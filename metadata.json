@@ -1,0 +1,6 @@
+{
+  "name": "BioForge",
+  "description": "Open-World Ecosystem Exploration, Bio-Crafting & Base-Building game set in a vibrant prismatic botanical world.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

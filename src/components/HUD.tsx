@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Sparkles,
   Zap,
@@ -135,6 +135,36 @@ export const HUD: React.FC<HUDProps> = ({
       color: '#a855f7',
     },
   ];
+
+  // In-game tool descriptor: replaces native browser tooltips with a styled
+  // panel. Shows the hovered tool, or flashes the newly selected tool for
+  // ~3s after keyboard (1-6) / click selection changes.
+  const [hoveredToolId, setHoveredToolId] = useState<ToolType | null>(null);
+  const [flashToolId, setFlashToolId] = useState<ToolType | null>(null);
+  const flashTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    setFlashToolId(playerState.activeTool);
+    if (flashTimer.current !== null) {
+      window.clearTimeout(flashTimer.current);
+    }
+    flashTimer.current = window.setTimeout(() => setFlashToolId(null), 3000);
+    return () => {
+      if (flashTimer.current !== null) {
+        window.clearTimeout(flashTimer.current);
+      }
+    };
+  }, [playerState.activeTool]);
+
+  const descriptorToolId = hoveredToolId ?? flashToolId;
+  const descriptorTool = tools.find((t) => t.id === descriptorToolId) ?? null;
+
+  let descriptorExtra: string | null = null;
+  if (descriptorTool?.id === 'builder') {
+    descriptorExtra = `Selected Blueprint: ${ITEMS[selectedStructureType]?.name || selectedStructureType}`;
+  } else if (descriptorTool?.id === 'planter_trowel') {
+    descriptorExtra = `Selected Seed: ${ITEMS[selectedSeedId]?.name || selectedSeedId}`;
+  }
 
   return (
     <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-4 overflow-hidden">
@@ -300,10 +330,12 @@ export const HUD: React.FC<HUDProps> = ({
         </div>
       </div>
 
-      {/* Middle Center: 1st-Person Crosshair Reticle & Hover Target Details */}
-      <div className="flex flex-col items-center justify-center my-auto pointer-events-none">
-        {/* 1st-Person High-Tech Reticle */}
-        <div className="relative flex items-center justify-center w-7 h-7 mb-2">
+      {/* True-Center Reticle: absolutely centered to match the interaction raycast
+          (screen-center NDC 0,0). The old flex-centered reticle sat below true
+          center because the tall vitals/minimap stack made the top bar much
+          taller than the bottom bar. */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="relative flex items-center justify-center w-7 h-7">
           <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400" />
           <div className="absolute w-5 h-5 rounded-full border border-cyan-400/40" />
           <div className="absolute -top-1 w-1.5 h-0.5 bg-cyan-400/60" />
@@ -311,12 +343,15 @@ export const HUD: React.FC<HUDProps> = ({
           <div className="absolute -left-1 w-0.5 h-1.5 bg-cyan-400/60" />
           <div className="absolute -right-1 w-0.5 h-1.5 bg-cyan-400/60" />
         </div>
+      </div>
 
+      {/* Pointer Lock Invitation + Hover Inspector, parked just below the reticle */}
+      <div className="absolute inset-x-0 top-1/2 mt-10 flex flex-col items-center gap-2 pointer-events-none">
         {/* Pointer Lock Invitation (Visible when cursor is unlocked) */}
         {!isPointerLocked && (
           <button
             onClick={onRequestLock}
-            className="pointer-events-auto glass-panel-biolum px-5 py-2 rounded-2xl flex items-center gap-2.5 text-xs font-tech font-bold text-cyan-300 hover:scale-105 active:scale-95 transition-all shadow-xl border border-cyan-500/50 cursor-pointer mb-3"
+            className="pointer-events-auto glass-panel-biolum px-5 py-2 rounded-2xl flex items-center gap-2.5 text-xs font-tech font-bold text-cyan-300 hover:scale-105 active:scale-95 transition-all shadow-xl border border-cyan-500/50 cursor-pointer"
           >
             <Compass className="w-4 h-4 text-cyan-400 animate-pulse" />
             <span>CLICK SCREEN TO LOOK & EXPLORE (ESC TO RELEASE)</span>
@@ -374,6 +409,39 @@ export const HUD: React.FC<HUDProps> = ({
           </div>
         )}
 
+        {/* In-Game Tool Descriptor — styled panel replacing native browser tooltips.
+            Shows the hovered slot, or flashes the newly equipped slot after 1-6 / click selection. */}
+        {descriptorTool && (
+          <div className="pointer-events-none glass-panel-biolum px-5 py-3 rounded-2xl flex items-center gap-4 animate-fade-in max-w-xl border border-cyan-500/30 shadow-2xl">
+            <div
+              className="w-11 h-11 rounded-xl flex items-center justify-center text-2xl shrink-0"
+              style={{
+                backgroundColor: `${descriptorTool.color}20`,
+                border: `1px solid ${descriptorTool.color}50`,
+              }}
+            >
+              {descriptorTool.icon}
+            </div>
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-tech font-bold text-sm text-white">{descriptorTool.label}</span>
+                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300 border border-slate-700">
+                  [{descriptorTool.key}]
+                </span>
+                {!hoveredToolId && (
+                  <span className="font-tech text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                    EQUIPPED
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-300 mt-0.5">{descriptorTool.desc}</p>
+              {descriptorExtra && (
+                <p className="text-[11px] text-cyan-300/90 font-medium mt-0.5">{descriptorExtra}</p>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between w-full max-w-4xl">
           {/* Main Quick Nav Buttons */}
           <div className="pointer-events-auto flex items-center gap-2">
@@ -410,7 +478,8 @@ export const HUD: React.FC<HUDProps> = ({
                 <button
                   key={t.id}
                   onClick={() => onSelectTool(t.id)}
-                  title={`${t.label} [${t.key}]: ${t.desc}`}
+                  onMouseEnter={() => setHoveredToolId(t.id)}
+                  onMouseLeave={() => setHoveredToolId(null)}
                   className={`group relative flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all duration-200 border ${
                     isActive
                       ? 'bg-slate-800/90 border-cyan-400 shadow-md shadow-cyan-500/20 scale-105'

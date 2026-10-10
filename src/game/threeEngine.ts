@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
 import {
   FloraEntity,
+  FloraSpecies,
   FaunaEntity,
   StructureEntity,
   DroppedItemEntity,
@@ -32,6 +33,41 @@ export interface ThreeEngineCallbacks {
   onEntityHover?: (target: HoverTarget) => void;
   onLockChange?: (isLocked: boolean) => void;
   onFrame?: (dt: number) => void;
+}
+
+// One light-emitting source gathered from live entities each lighting tick.
+interface LightSource {
+  id: string;
+  x: number;
+  y: number;
+  z: number;
+  color: number;
+  intensity: number;
+  distance: number;
+}
+
+interface LightBase {
+  color: number;
+  intensity: number;
+  distance: number;
+  y: number;
+}
+
+// Shared radial-gradient texture for glow sprites (one texture, many sprites).
+function makeGlowTexture(): THREE.Texture {
+  const c = document.createElement('canvas');
+  c.width = 128;
+  c.height = 128;
+  const ctx = c.getContext('2d');
+  if (ctx) {
+    const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    grad.addColorStop(0, 'rgba(255,255,255,1)');
+    grad.addColorStop(0.35, 'rgba(255,255,255,0.45)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 128, 128);
+  }
+  return new THREE.CanvasTexture(c);
 }
 
 export class BioForgeThreeEngine {
@@ -65,10 +101,46 @@ export class BioForgeThreeEngine {
   // Building Preview Ghost
   private ghostGroup: THREE.Group = new THREE.Group();
   private ghostVisible: boolean = false;
+  private ghostType: StructureType | null = null;
+
+  // Pooled dynamic lighting: a fixed set of real PointLights fed by
+  // grid-merged sources, plus one glow sprite per merged cell.
+  private lightPool: THREE.PointLight[] = [];
+  private glowSprites: Map<string, THREE.Sprite> = new Map();
+  private glowTexture: THREE.Texture | null = null;
+  private lastLightUpdate: number = 0;
+  private readonly lightPoolSize: number = 12;
+  private readonly lightCellSize: number = 4;
+
+  // Base light specs (growth-dynamic species handled in the getters below).
+  // Every structure gets a small halo (~2m, enough to see by); ferns shine.
+  private floraLightBase: Record<Exclude<FloraSpecies, 'lantern_fern'>, LightBase> = {
+    sap_weaver: { color: 0xf59e0b, intensity: 1.5, distance: 7, y: 1.2 },
+    petal_mill: { color: 0xec4899, intensity: 0.5, distance: 3.5, y: 1.4 },
+    mouth_vine: { color: 0xa3e635, intensity: 0.4, distance: 3, y: 1.0 },
+    snap_trap: { color: 0xef4444, intensity: 0.5, distance: 3, y: 0.9 },
+    bell_bloom: { color: 0x38bdf8, intensity: 0.6, distance: 4, y: 1.3 },
+    ribbon_moss: { color: 0x2dd4bf, intensity: 0.4, distance: 2.5, y: 0.4 },
+  };
+  private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
+    root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },
+    chitin_glass_wall: { color: 0x67e8f9, intensity: 0.55, distance: 2.5, y: 1.2 },
+    iris_slit_door: { color: 0xf0abfc, intensity: 0.55, distance: 2.5, y: 1.2 },
+    spore_canopy: { color: 0xa78bfa, intensity: 0.9, distance: 3.5, y: 2.6 },
+    bio_forge_station: { color: 0x22d3ee, intensity: 0.9, distance: 3.5, y: 1.4 },
+    tamed_snap_trap_turret: { color: 0xef4444, intensity: 0.7, distance: 3, y: 1.1 },
+    cultivation_mound: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.6 },
+  };
 
   // Raycasting
   private raycaster: THREE.Raycaster = new THREE.Raycaster();
   private groundPlane: THREE.Plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+
+  // High-frequency throttling & proximity cache
+  private reticleTimer: number = 0;
+  private sporeFrameCount: number = 0;
+  private cachedPlayerX: number = 0;
+  private cachedPlayerZ: number = 0;
 
   // Spore particles
   private sporeParticles: THREE.Points | null = null;
@@ -78,6 +150,166 @@ export class BioForgeThreeEngine {
   private floraMeshMap: Map<string, THREE.Group> = new Map();
   private faunaMeshMap: Map<string, THREE.Group> = new Map();
   private structureMeshMap: Map<string, THREE.Group> = new Map();
+  // Per-structure mesh builders (registry replacing the createStructureMesh switch).
+  // Arrow functions read this.materials lazily at build time, so field-init order is safe.
+  private structureBuilders: Record<StructureType, () => THREE.Group> = {
+    'root_tile_floor': () => {
+      const group = new THREE.Group();
+      const floor = new THREE.Mesh(new THREE.BoxGeometry(2, 0.12, 2), this.materials.woodRoot);
+      floor.position.y = 0.06;
+      floor.receiveShadow = true;
+      group.add(floor);
+      return group;
+    },
+    'chitin_glass_wall': () => {
+      const group = new THREE.Group();
+      const postGeom = new THREE.CylinderGeometry(0.12, 0.12, 2.4, 8);
+      const leftPost = new THREE.Mesh(postGeom, this.materials.porcelainWhite);
+      leftPost.position.set(-0.95, 1.2, 0);
+      const rightPost = leftPost.clone();
+      rightPost.position.x = 0.95;
+      group.add(leftPost);
+      group.add(rightPost);
+
+      const pane = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.2, 0.1), this.materials.chitinGlass);
+      pane.position.set(0, 1.2, 0);
+      pane.castShadow = true;
+      group.add(pane);
+      return group;
+    },
+    'iris_slit_door': () => {
+      const group = new THREE.Group();
+      const frame = new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.12, 8, 24), this.materials.porcelainWhite);
+      frame.position.set(0, 1.2, 0);
+      group.add(frame);
+
+      // Blades lie flat in the frame plane (XY, facing ±Z): rotation.x = 90°
+      // turns the cylinder's thin axis (Y) into Z. Left leaf covers the -X
+      // half (thetaStart PI), right leaf the +X half (thetaStart 0), so the
+      // straight edges meet along x = 0 when closed.
+      const irisLeft = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.85, 0.85, 0.08, 16, 1, false, Math.PI, Math.PI),
+        this.materials.biolumPink
+      );
+      irisLeft.name = 'irisLeft';
+      irisLeft.rotation.x = Math.PI / 2;
+      irisLeft.position.set(0, 1.2, 0);
+      group.add(irisLeft);
+
+      const irisRight = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.85, 0.85, 0.08, 16, 1, false, 0, Math.PI),
+        this.materials.biolumPink
+      );
+      irisRight.name = 'irisRight';
+      irisRight.rotation.x = Math.PI / 2;
+      irisRight.position.set(0, 1.2, 0);
+      group.add(irisRight);
+      return group;
+    },
+    'lantern_fern_post': () => {
+      const group = new THREE.Group();
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.16, 2.6, 8), this.materials.woodRoot);
+      pole.position.y = 1.3;
+      group.add(pole);
+
+      const orb = new THREE.Mesh(new THREE.SphereGeometry(0.38, 16, 16), this.materials.biolumCyan);
+      orb.position.y = 2.7;
+      group.add(orb);
+
+      return group;
+    },
+    'bio_forge_station': () => {
+      const group = new THREE.Group();
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.1, 0.6, 16), this.materials.porcelainWhite);
+      base.position.y = 0.3;
+      group.add(base);
+
+      const core = new THREE.Mesh(new THREE.OctahedronGeometry(0.35, 1), this.materials.biolumCyan);
+      core.name = 'forgeCore';
+      core.position.y = 1.1;
+      group.add(core);
+      return group;
+    },
+    'cultivation_mound': () => {
+      const group = new THREE.Group();
+      const mound = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 1.0, 0.22, 16), this.materials.woodRoot);
+      mound.position.y = 0.11;
+      group.add(mound);
+      return group;
+    },
+    'tamed_snap_trap_turret': () => {
+      const group = new THREE.Group();
+      // Pedestal
+      const pedestal = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.42, 0.58, 0.55, 10),
+        this.materials.woodRoot
+      );
+      pedestal.position.y = 0.275;
+      pedestal.castShadow = true;
+      group.add(pedestal);
+
+      // Swivel head (named for future targeting in normal/hostile modes)
+      const head = new THREE.Group();
+      head.name = 'turretHead';
+      head.position.y = 0.85;
+
+      const skull = new THREE.Mesh(
+        new THREE.SphereGeometry(0.3, 12, 12),
+        this.materials.porcelainWhite
+      );
+      skull.castShadow = true;
+      head.add(skull);
+
+      // Jaws mirror the wild snap-trap flora so it reads as the same creature
+      const jawMat = new THREE.MeshStandardMaterial({
+        color: 0xef4444,
+        roughness: 0.35,
+        emissive: 0x7f1d1d,
+        emissiveIntensity: 0.5,
+      });
+      const upperJaw = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.5, 6), jawMat);
+      upperJaw.rotation.x = Math.PI / 4;
+      upperJaw.position.set(0, 0.18, 0.18);
+      const lowerJaw = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.5, 6), jawMat);
+      lowerJaw.rotation.x = -Math.PI / 4;
+      lowerJaw.position.set(0, -0.18, 0.18);
+      head.add(upperJaw);
+      head.add(lowerJaw);
+
+      group.add(head);
+      return group;
+    },
+    'spore_canopy': () => {
+      const group = new THREE.Group();
+      // Four corner posts
+      const postGeom = new THREE.CylinderGeometry(0.09, 0.12, 2.4, 8);
+      const corners: Array<[number, number]> = [[-0.85, -0.85], [0.85, -0.85], [-0.85, 0.85], [0.85, 0.85]];
+      corners.forEach(([px, pz]) => {
+        const post = new THREE.Mesh(postGeom, this.materials.woodRoot);
+        post.position.set(px, 1.2, pz);
+        post.castShadow = true;
+        group.add(post);
+      });
+
+      // Dome cap
+      const dome = new THREE.Mesh(
+        new THREE.SphereGeometry(1.55, 18, 10, 0, Math.PI * 2, 0, Math.PI * 0.42),
+        this.materials.biolumViolet
+      );
+      dome.position.y = 2.1;
+      dome.castShadow = true;
+      group.add(dome);
+
+      // Dew-collector orb at the apex (emissive only — no new light, protects the light budget)
+      const orb = new THREE.Mesh(
+        new THREE.SphereGeometry(0.22, 12, 12),
+        this.materials.biolumCyan
+      );
+      orb.position.y = 3.7;
+      group.add(orb);
+      return group;
+    },
+  };
   private droppedItemMeshMap: Map<string, THREE.Group> = new Map();
 
   // Callbacks
@@ -217,6 +449,7 @@ export class BioForgeThreeEngine {
     this.buildTerrain();
     this.buildSporeSystem();
     this.setupGhostHologram();
+    this.initLighting();
 
     // Event listeners
     this.initEventListeners();
@@ -253,9 +486,12 @@ export class BioForgeThreeEngine {
   }
 
   public setPlayerPosition(x: number, z: number) {
+    this.cachedPlayerX = x;
+    this.cachedPlayerZ = z;
     this.camera.position.x = x;
     this.camera.position.z = z;
     this.camera.position.y = this.eyeHeight;
+    this.updateIrisDoorsProximity(x, z);
   }
 
   public getForwardVector(out: THREE.Vector3): THREE.Vector3 {
@@ -472,9 +708,6 @@ export class BioForgeThreeEngine {
         bulb.position.set(0, 2.2, 0);
         group.add(bulb);
 
-        const pointLight = new THREE.PointLight(0x06b6d4, 1.8, 8);
-        pointLight.position.set(0, 2.2, 0);
-        group.add(pointLight);
         break;
       }
 
@@ -489,9 +722,6 @@ export class BioForgeThreeEngine {
         sac.castShadow = true;
         group.add(sac);
 
-        const amberLight = new THREE.PointLight(0xf59e0b, 1.5, 7);
-        amberLight.position.set(0, 1.2, 0);
-        group.add(amberLight);
         break;
       }
 
@@ -573,8 +803,7 @@ export class BioForgeThreeEngine {
   private updateFloraMesh(mesh: THREE.Group, flora: FloraEntity) {
     mesh.position.set(flora.x, 0, flora.z);
     mesh.userData.entity = flora;
-
-    const baseScale = flora.scale * (0.45 + flora.growthStage * 0.22);
+    const baseScale = flora.scale * (0.45 + flora.growthStage * 0.14);
     mesh.scale.set(baseScale, baseScale, baseScale);
 
     const petalHub = mesh.getObjectByName('petalHub');
@@ -679,7 +908,7 @@ export class BioForgeThreeEngine {
   // --------------------------------------------------------------------------
   // Bio-Structures & Proximity Doors
   // --------------------------------------------------------------------------
-  public syncStructures(structuresList: StructureEntity[], playerX: number, playerZ: number) {
+  public syncStructures(structuresList: StructureEntity[], playerX?: number, playerZ?: number) {
     const activeIds = new Set(structuresList.map((s) => s.id));
 
     this.structureMeshMap.forEach((mesh, id) => {
@@ -696,107 +925,46 @@ export class BioForgeThreeEngine {
         this.structuresGroup.add(mesh);
         this.structureMeshMap.set(s.id, mesh);
       }
-      this.updateStructureMesh(mesh, s, playerX, playerZ);
+      this.updateStructureMesh(mesh, s);
+    });
+
+    const px = playerX !== undefined ? playerX : this.cachedPlayerX;
+    const pz = playerZ !== undefined ? playerZ : this.cachedPlayerZ;
+    this.updateIrisDoorsProximity(px, pz);
+  }
+
+  public updateIrisDoorsProximity(playerX: number, playerZ: number) {
+    this.structureMeshMap.forEach((mesh) => {
+      const entity = mesh.userData.entity as StructureEntity | undefined;
+      if (!entity) return;
+      if (entity.type !== 'iris_slit_door') return;
+
+      const dist = Math.hypot(playerX - entity.worldX, playerZ - entity.worldZ);
+      const isNearby = dist < 2.5;
+
+      const targetProgress = isNearby ? 1.0 : 0.0;
+      entity.doorOpenProgress += (targetProgress - entity.doorOpenProgress) * 0.15;
+
+      const irisLeft = mesh.getObjectByName('irisLeft');
+      const irisRight = mesh.getObjectByName('irisRight');
+      if (irisLeft && irisRight) {
+        irisLeft.position.x = -entity.doorOpenProgress * 0.9;
+        irisRight.position.x = entity.doorOpenProgress * 0.9;
+
+      }
     });
   }
 
   private createStructureMesh(structure: StructureEntity): THREE.Group {
-    const group = new THREE.Group();
+    const builder = this.structureBuilders[structure.type];
+    const group = builder ? builder() : new THREE.Group();
     group.userData = { type: 'structure', entity: structure };
-
-    switch (structure.type) {
-      case 'root_tile_floor': {
-        const floor = new THREE.Mesh(new THREE.BoxGeometry(2, 0.12, 2), this.materials.woodRoot);
-        floor.position.y = 0.06;
-        floor.receiveShadow = true;
-        group.add(floor);
-        break;
-      }
-
-      case 'chitin_glass_wall': {
-        const postGeom = new THREE.CylinderGeometry(0.12, 0.12, 2.4, 8);
-        const leftPost = new THREE.Mesh(postGeom, this.materials.porcelainWhite);
-        leftPost.position.set(-0.95, 1.2, 0);
-        const rightPost = leftPost.clone();
-        rightPost.position.x = 0.95;
-        group.add(leftPost);
-        group.add(rightPost);
-
-        const pane = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.2, 0.1), this.materials.chitinGlass);
-        pane.position.set(0, 1.2, 0);
-        pane.castShadow = true;
-        group.add(pane);
-        break;
-      }
-
-      case 'iris_slit_door': {
-        const frame = new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.12, 8, 24), this.materials.porcelainWhite);
-        frame.position.set(0, 1.2, 0);
-        group.add(frame);
-
-        const irisLeft = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.85, 0.85, 0.08, 16, 1, false, 0, Math.PI),
-          this.materials.biolumPink
-        );
-        irisLeft.name = 'irisLeft';
-        irisLeft.rotation.z = Math.PI / 2;
-        irisLeft.position.set(-0.35, 1.2, 0);
-        group.add(irisLeft);
-
-        const irisRight = irisLeft.clone();
-        irisRight.name = 'irisRight';
-        irisRight.rotation.z = -Math.PI / 2;
-        irisRight.position.x = 0.35;
-        group.add(irisRight);
-        break;
-      }
-
-      case 'lantern_fern_post': {
-        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.16, 2.6, 8), this.materials.woodRoot);
-        pole.position.y = 1.3;
-        group.add(pole);
-
-        const orb = new THREE.Mesh(new THREE.SphereGeometry(0.38, 16, 16), this.materials.biolumCyan);
-        orb.position.y = 2.7;
-        group.add(orb);
-
-        const light = new THREE.PointLight(0x06b6d4, 2.4, 12);
-        light.position.y = 2.7;
-        group.add(light);
-        break;
-      }
-
-      case 'bio_forge_station': {
-        const base = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.1, 0.6, 16), this.materials.porcelainWhite);
-        base.position.y = 0.3;
-        group.add(base);
-
-        const core = new THREE.Mesh(new THREE.OctahedronGeometry(0.35, 1), this.materials.biolumCyan);
-        core.name = 'forgeCore';
-        core.position.y = 1.1;
-        group.add(core);
-        break;
-      }
-
-      case 'cultivation_mound': {
-        const mound = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 1.0, 0.22, 16), this.materials.woodRoot);
-        mound.position.y = 0.11;
-        group.add(mound);
-        break;
-      }
-    }
-
     group.position.set(structure.worldX, 0, structure.worldZ);
     group.rotation.y = structure.rotation;
     return group;
   }
 
-  private updateStructureMesh(
-    mesh: THREE.Group,
-    structure: StructureEntity,
-    playerX: number,
-    playerZ: number
-  ) {
+  private updateStructureMesh(mesh: THREE.Group, structure: StructureEntity) {
     mesh.position.set(structure.worldX, 0, structure.worldZ);
     mesh.rotation.y = structure.rotation;
     mesh.userData.entity = structure;
@@ -804,21 +972,6 @@ export class BioForgeThreeEngine {
     const forgeCore = mesh.getObjectByName('forgeCore');
     if (forgeCore) {
       forgeCore.rotation.y += 0.03;
-    }
-
-    if (structure.type === 'iris_slit_door') {
-      const dist = Math.hypot(playerX - structure.worldX, playerZ - structure.worldZ);
-      const isNearby = dist < 2.5;
-
-      const targetProgress = isNearby ? 1.0 : 0.0;
-      structure.doorOpenProgress += (targetProgress - structure.doorOpenProgress) * 0.15;
-
-      const irisLeft = mesh.getObjectByName('irisLeft');
-      const irisRight = mesh.getObjectByName('irisRight');
-      if (irisLeft && irisRight) {
-        irisLeft.position.x = -0.35 - structure.doorOpenProgress * 0.55;
-        irisRight.position.x = 0.35 + structure.doorOpenProgress * 0.55;
-      }
     }
   }
 
@@ -854,11 +1007,56 @@ export class BioForgeThreeEngine {
   // --------------------------------------------------------------------------
   private setupGhostHologram() {
     this.ghostGroup.clear();
-    const boxGeom = new THREE.BoxGeometry(2, 2, 2);
-    const box = new THREE.Mesh(boxGeom, this.materials.ghostValid);
-    box.name = 'ghostMesh';
-    this.ghostGroup.add(box);
+    this.ghostType = null;
     this.ghostGroup.visible = false;
+  }
+
+  // Builds the ghost preview from the real structure builder, then swaps every
+  // mesh to the wireframe hologram material and strips lights (a ghost must
+  // never light the scene).
+  private buildGhostFor(type: StructureType): void {
+    const builder = this.structureBuilders[type];
+    const built = builder ? builder() : new THREE.Group();
+    const lights: THREE.Object3D[] = [];
+    built.traverse((obj) => {
+      const asLight = obj as THREE.PointLight;
+      if (asLight.isPointLight) {
+        lights.push(obj);
+        return;
+      }
+      const asMesh = obj as THREE.Mesh;
+      if (!asMesh.isMesh) {
+        return;
+      }
+      asMesh.castShadow = false;
+      asMesh.receiveShadow = false;
+    });
+    lights.forEach((l) => l.removeFromParent());
+    this.ghostGroup.add(built);
+    this.ghostType = type;
+  }
+
+  private tintGhost(valid: boolean): void {
+    const mat = valid ? this.materials.ghostValid : this.materials.ghostInvalid;
+    this.ghostGroup.traverse((obj) => {
+      const mesh = obj as THREE.Mesh;
+      if (!mesh.isMesh) {
+        return;
+      }
+      mesh.material = mat;
+    });
+  }
+
+  private disposeGhost(): void {
+    this.ghostGroup.traverse((obj) => {
+      const mesh = obj as THREE.Mesh;
+      if (!mesh.isMesh) {
+        return;
+      }
+      mesh.geometry.dispose();
+    });
+    this.ghostGroup.clear();
+    this.ghostType = null;
   }
 
   public setGhostPreview(
@@ -871,23 +1069,160 @@ export class BioForgeThreeEngine {
   ) {
     this.ghostVisible = visible;
     this.ghostGroup.visible = visible;
-    if (!visible) return;
-
-    this.ghostGroup.position.set(gridX * 2, 0.05, gridZ * 2);
+    if (!visible) {
+      return;
+    }
+    if (this.ghostType !== type) {
+      this.disposeGhost();
+      this.buildGhostFor(type);
+    }
+    this.ghostGroup.position.set(gridX * 2, 0, gridZ * 2);
     this.ghostGroup.rotation.y = rotation;
+    this.tintGhost(valid);
+  }
 
-    const ghostMesh = this.ghostGroup.getObjectByName('ghostMesh') as THREE.Mesh;
-    if (!ghostMesh) return;
+  // --------------------------------------------------------------------------
+  // Pooled Dynamic Lighting
+  // --------------------------------------------------------------------------
+  // Per-mesh PointLights don't scale (fern farms = shader-recompile hitches),
+  // so all structure/flora light comes from here: sources are gathered from
+  // live entities, merged into 4m grid cells (close ferns become one greater
+  // light, scaled sublinearly so clustering feels rewarding), and the nearest
+  // cells win a fixed pool of real PointLights. Every cell also gets one glow
+  // sprite, so distant sources still look lit without costing a real light.
+  private initLighting(): void {
+    for (let i = 0; i < this.lightPoolSize; i++) {
+      const pl = new THREE.PointLight(0xffffff, 0, 1);
+      pl.visible = false;
+      this.scene.add(pl);
+      this.lightPool.push(pl);
+    }
+    this.glowTexture = makeGlowTexture();
+  }
 
-    ghostMesh.material = valid ? this.materials.ghostValid : this.materials.ghostInvalid;
-    if (type === 'root_tile_floor' || type === 'cultivation_mound') {
-      ghostMesh.scale.set(1.9, 0.1, 1.9);
-      ghostMesh.position.y = 0.05;
+  private getFloraLightSpec(flora: FloraEntity): LightSource {
+    const id = `flora:${flora.id}`;
+    if (flora.species === 'lantern_fern') {
+      // Growth curve preserved from the per-mesh era: feeble seedling (stage 0)
+      // to brilliant mature fern (stage 5). Merging multiplies from here.
+      const g = (0.45 + flora.growthStage * 0.14) / 0.45;
+      return { id, x: flora.x, y: 2.2, z: flora.z, color: 0x06b6d4, intensity: 1.8 * g ** 3, distance: 8 * g };
     }
-    if (type !== 'root_tile_floor' && type !== 'cultivation_mound') {
-      ghostMesh.scale.set(1.9, 2.0, 0.3);
-      ghostMesh.position.y = 1.0;
+    const b = this.floraLightBase[flora.species];
+    return { id, x: flora.x, y: b.y, z: flora.z, color: b.color, intensity: b.intensity, distance: b.distance };
+  }
+
+  private getStructureLightSpec(s: StructureEntity): LightSource {
+    const id = `struct:${s.id}`;
+    if (s.type === 'lantern_fern_post') {
+      // Built mature: stage-4 equivalent of a wild fern.
+      const g = (0.45 + 4 * 0.14) / 0.45;
+      return { id, x: s.worldX, y: 2.7, z: s.worldZ, color: 0x06b6d4, intensity: 1.8 * g ** 3, distance: 8 * g };
     }
+    const b = this.structureLightBase[s.type];
+    return { id, x: s.worldX, y: b.y, z: s.worldZ, color: b.color, intensity: b.intensity, distance: b.distance };
+  }
+
+  private updateLighting(): void {
+    const sources: LightSource[] = [];
+    this.floraMeshMap.forEach((mesh) => {
+      const flora = mesh.userData.entity as FloraEntity | undefined;
+      if (!flora) {
+        return;
+      }
+      sources.push(this.getFloraLightSpec(flora));
+    });
+    this.structureMeshMap.forEach((mesh) => {
+      const s = mesh.userData.entity as StructureEntity | undefined;
+      if (!s) {
+        return;
+      }
+      sources.push(this.getStructureLightSpec(s));
+    });
+
+    // Merge sources into grid cells (intensity-weighted centroid per cell).
+    const cells = new Map<string, { sx: number; sy: number; sz: number; si: number; r: number; g: number; b: number; count: number; maxDist: number; maxI: number }>();
+    sources.forEach((src) => {
+      const key = `${Math.floor(src.x / this.lightCellSize)},${Math.floor(src.z / this.lightCellSize)}`;
+      let cell = cells.get(key);
+      if (!cell) {
+        cell = { sx: 0, sy: 0, sz: 0, si: 0, r: 0, g: 0, b: 0, count: 0, maxDist: 0, maxI: 0 };
+        cells.set(key, cell);
+      }
+      cell.sx += src.x * src.intensity;
+      cell.sy += src.y * src.intensity;
+      cell.sz += src.z * src.intensity;
+      cell.si += src.intensity;
+      const c = new THREE.Color(src.color);
+      cell.r += c.r * src.intensity;
+      cell.g += c.g * src.intensity;
+      cell.b += c.b * src.intensity;
+      cell.count += 1;
+      cell.maxDist = Math.max(cell.maxDist, src.distance);
+      cell.maxI = Math.max(cell.maxI, src.intensity);
+    });
+
+    // Nearest cells win the real-light pool; every cell gets a glow sprite.
+    const ranked = [...cells.entries()]
+      .map(([key, cell]) => {
+        const cx = cell.sx / cell.si;
+        const cy = cell.sy / cell.si;
+        const cz = cell.sz / cell.si;
+        const d2 = (cx - this.cachedPlayerX) ** 2 + (cz - this.cachedPlayerZ) ** 2;
+        // Sublinear but rewarding: 1 source keeps full strength, 3 merged
+        // ferns read as one big much-more-effective light, 50 saturate.
+        const mergedI = cell.maxI * (1 + 0.85 * Math.log2(cell.count));
+        const mergedD = Math.min(24, cell.maxDist + 0.6 * (cell.count - 1));
+        const color = new THREE.Color(cell.r / cell.si, cell.g / cell.si, cell.b / cell.si);
+        return { key, cx, cy, cz, d2, mergedI, mergedD, color };
+      })
+      .sort((a, b) => a.d2 - b.d2);
+
+    ranked.forEach((entry, i) => {
+      if (i >= this.lightPool.length) {
+        return;
+      }
+      const pl = this.lightPool[i];
+      pl.visible = true;
+      pl.position.set(entry.cx, entry.cy, entry.cz);
+      pl.color.copy(entry.color);
+      pl.intensity = entry.mergedI;
+      pl.distance = entry.mergedD;
+    });
+    for (let i = ranked.length; i < this.lightPool.length; i++) {
+      this.lightPool[i].visible = false;
+    }
+
+    const seen = new Set<string>();
+    ranked.forEach((entry) => {
+      seen.add(entry.key);
+      let sprite = this.glowSprites.get(entry.key);
+      if (!sprite) {
+        const mat = new THREE.SpriteMaterial({
+          map: this.glowTexture,
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.32,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        sprite = new THREE.Sprite(mat);
+        this.scene.add(sprite);
+        this.glowSprites.set(entry.key, sprite);
+      }
+      sprite.position.set(entry.cx, entry.cy, entry.cz);
+      const sc = entry.mergedD * 0.85;
+      sprite.scale.set(sc, sc, 1);
+      (sprite.material as THREE.SpriteMaterial).color.copy(entry.color);
+    });
+    this.glowSprites.forEach((sprite, key) => {
+      if (seen.has(key)) {
+        return;
+      }
+      this.scene.remove(sprite);
+      (sprite.material as THREE.Material).dispose();
+      this.glowSprites.delete(key);
+    });
   }
 
   // --------------------------------------------------------------------------
@@ -980,8 +1315,11 @@ export class BioForgeThreeEngine {
   // --------------------------------------------------------------------------
   // First-Person Raycasting & Screen Click
   // --------------------------------------------------------------------------
-  private initEventListeners() {
-    const el = this.renderer.domElement;
+private initEventListeners() {
+// Listen on the container div (not the canvas): during pointer lock the
+// browser retargets mouse events to the locked element, so a
+// canvas-level listener never fires while locked.
+    const el = this.container;
 
     el.addEventListener('click', () => {
       // If pointer is unlocked, first click requests lock
@@ -1023,7 +1361,7 @@ export class BioForgeThreeEngine {
         this.callbacks.onEntityHover?.({
           type: 'flora',
           name: f.species.replace('_', ' ').toUpperCase(),
-          details: `Stage: ${f.growthStage}/3 ${f.harvestReady ? '• [READY TO HARVEST]' : '• Growing'}`,
+          details: `Stage: ${f.growthStage}/5 ${f.harvestReady ? '• [READY TO HARVEST]' : '• Growing'}`,
           entity: f,
         });
         return;
@@ -1164,13 +1502,24 @@ export class BioForgeThreeEngine {
     // Invoke authoritative game frame callback
     this.callbacks.onFrame?.(delta);
 
-    // Update reticle hover targets in 1st person
-    if (this.controls.isLocked) {
+    // Update reticle hover targets in 1st person (throttled to 10 Hz / every 100ms)
+    this.reticleTimer += delta;
+    if (this.controls.isLocked && this.reticleTimer >= 0.1) {
+      this.reticleTimer = 0;
       this.updateReticleAim();
     }
 
-    // Animate botanical pollen / spore motes with gentle, frame-rate independent drift
-    if (this.sporeParticles) {
+    // Pooled dynamic lighting (throttled to 4 Hz — growth changes are gradual)
+    if (now - this.lastLightUpdate > 250) {
+      this.lastLightUpdate = now;
+      this.updateLighting();
+    }
+
+    // Animate botanical pollen / spore motes with gentle drift (throttled to ~15 Hz / every 4 frames)
+    this.sporeFrameCount += 1;
+    if (this.sporeParticles && this.sporeFrameCount >= 4) {
+      const sporeDt = delta * this.sporeFrameCount;
+      this.sporeFrameCount = 0;
       const positions = this.sporeParticles.geometry.attributes.position;
       const count = positions.count;
       for (let i = 0; i < count; i++) {
@@ -1178,10 +1527,10 @@ export class BioForgeThreeEngine {
         let py = positions.getY(i);
         let pz = positions.getZ(i);
 
-        // Gentle floating drift scaled strictly by delta (calm botanical ambient motion)
-        px += Math.cos(this.elapsedTime * 0.35 + i * 0.4) * 0.35 * delta;
-        py += Math.sin(this.elapsedTime * 0.5 + i * 0.6) * 0.25 * delta;
-        pz += Math.sin(this.elapsedTime * 0.25 + i * 0.3) * 0.35 * delta;
+        // Gentle floating drift scaled strictly by accumulated sporeDt (calm botanical ambient motion)
+        px += Math.cos(this.elapsedTime * 0.35 + i * 0.4) * 0.35 * sporeDt;
+        py += Math.sin(this.elapsedTime * 0.5 + i * 0.6) * 0.25 * sporeDt;
+        pz += Math.sin(this.elapsedTime * 0.25 + i * 0.3) * 0.35 * sporeDt;
 
         // Soft wrapping boundaries around exploration field
         if (px > 42) px = -42;

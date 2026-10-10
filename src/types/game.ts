@@ -73,7 +73,7 @@ export interface FloraEntity {
   z: number;
   rotation: number;
   scale: number;
-  growthStage: number; // 0=seedling, 1=sprout, 2=mature, 3=ready
+  growthStage: number; // 0=seed, 1=sprout, 2=growing, 3=established, 4=mature, 5=ready
   growthProgress: number; // 0 to 1
   fertilizedGrowth: boolean;
   fertilizedYield: boolean;

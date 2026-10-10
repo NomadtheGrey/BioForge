@@ -113,6 +113,8 @@ export function useToolInteractions({
       }
 
       addInventoryItem(yieldItem, yieldCount);
+      // Trimmings: every harvest yields a little compost — the renewable source
+      addInventoryItem('basic_compost', 1);
       resetFloraHarvest(flora.id, flora.fertilizedGrowth ? 8 : 18);
 
       setCodexList((prev) =>

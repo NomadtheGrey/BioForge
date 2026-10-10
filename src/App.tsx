@@ -137,6 +137,16 @@ export default function App() {
     floraListRef.current = floraList;
   }, [floraList]);
 
+  const triggerHarvestFx = useCallback(
+  (x: number, z: number) => engineRef.current?.triggerHarvestEffect(x, z),
+  []
+);
+  const triggerSolventFx = useCallback(
+  (x: number, z: number) => engineRef.current?.triggerSolventSprayEffect(x, z),
+  []
+);
+  const openBioForgeModal = useCallback(() => setActiveModal('bioforge'), []);
+  
   // 4. Encapsulated Tool Interactions
   const {
     handleGroundClick,
@@ -159,11 +169,29 @@ export default function App() {
     tameFauna,
     setCodexList,
     postNotification,
-    onOpenBioForgeModal: () => setActiveModal('bioforge'),
-    triggerHarvestFx: (x, z) => engineRef.current?.triggerHarvestEffect(x, z),
-    triggerSolventFx: (x, z) => engineRef.current?.triggerSolventSprayEffect(x, z),
+    onOpenBioForgeModal: openBioForgeModal,
+    triggerHarvestFx,
+    triggerSolventFx,
+
   });
 
+  const toolHandlersRef = useRef({
+  handleGroundClick,
+  handleFloraInteract,
+  handleFaunaInteract,
+  handleStructureInteract,
+});
+  const liveGameRefs = useRef({ hasItem, addInventoryItem, updateTick, postNotification });
+
+  useEffect(() => {
+    toolHandlersRef.current = {
+      handleGroundClick,
+      handleFloraInteract,
+      handleFaunaInteract,
+      handleStructureInteract,
+    };
+  liveGameRefs.current = { hasItem, addInventoryItem, updateTick, postNotification };
+});
   // Current Biome Indicator
   const getCurrentBiomeName = useCallback((): string => {
     const { x, z } = playerPosRef.current;
@@ -180,10 +208,10 @@ export default function App() {
     if (!containerRef.current) return;
 
     const engine = new BioForgeThreeEngine(containerRef.current, {
-      onGroundClick: (wx, wz) => handleGroundClick(wx, wz),
-      onFloraInteract: (flora) => handleFloraInteract(flora),
-      onFaunaInteract: (fauna) => handleFaunaInteract(fauna),
-      onStructureInteract: (structure) => handleStructureInteract(structure),
+    onGroundClick: (wx, wz) => toolHandlersRef.current.handleGroundClick(wx, wz),
+    onFloraInteract: (flora) => toolHandlersRef.current.handleFloraInteract(flora),
+    onFaunaInteract: (fauna) => toolHandlersRef.current.handleFaunaInteract(fauna),
+    onStructureInteract: (structure) => toolHandlersRef.current.handleStructureInteract(structure),
       onEntityHover: (target: HoverTarget) => setHoverInfo(target),
       onLockChange: (locked) => setIsPointerLocked(locked),
       onFrame: (dt: number) => {
@@ -192,9 +220,6 @@ export default function App() {
 
         // 1. Controller Update
         const isPaused = !isPointerLockedRef.current || activeModalRef.current !== null;
-        if (isPaused) {
-          keysPressed.current = {};
-        }
 
         const inputState: ControllerInputState = {
           forward: Boolean(keysPressed.current['w'] || keysPressed.current['arrowup']),
@@ -265,7 +290,8 @@ export default function App() {
               gx,
               gz,
               0,
-              hasItem(selectedStructureRef.current, 1)
+              liveGameRefs.current.hasItem(selectedStructureRef.current, 1)
+
             );
           }
         }
@@ -278,14 +304,14 @@ export default function App() {
         if (accumulatedTickTime.current >= 0.1) {
           const simDt = accumulatedTickTime.current;
           accumulatedTickTime.current = 0;
-          updateTick(
+          liveGameRefs.current.updateTick(
             simDt,
             moveResult.x,
             moveResult.z,
             (pickedItem) => {
-              addInventoryItem(pickedItem.itemId, pickedItem.count);
+              liveGameRefs.current.addInventoryItem(pickedItem.itemId, pickedItem.count);
               soundEngine.playHarvest();
-              postNotification(
+              liveGameRefs.current.postNotification(
                 'Item Collected',
                 `Picked up ${pickedItem.count}x ${ITEMS[pickedItem.itemId]?.name || pickedItem.itemId}`,
                 'harvest',
@@ -294,10 +320,10 @@ export default function App() {
             },
             (critterSpecies) => {
               if (critterSpecies === 'soft_puff') {
-                postNotification('Bio-Pellet Produced', 'Your tamed Soft-Puff excreted high-grade organic fertilizer!', 'tame', '#10b981');
+                liveGameRefs.current.postNotification('Bio-Pellet Produced', 'Your tamed Soft-Puff excreted high-grade organic fertilizer!', 'tame', '#10b981');
               }
               if (critterSpecies === 'chitin_stalker') {
-                postNotification('Carapace Shedding', 'Your guardian Chitin-Stalker shed a Reinforced Carapace Scale!', 'tame', '#8b5cf6');
+                liveGameRefs.current.postNotification('Carapace Shedding', 'Your guardian Chitin-Stalker shed a Reinforced Carapace Scale!', 'tame', '#8b5cf6');
               }
             }
           );
@@ -327,16 +353,7 @@ export default function App() {
       window.removeEventListener('click', handleGesture);
       window.removeEventListener('keydown', handleGesture);
     };
-  }, [
-    handleGroundClick,
-    handleFloraInteract,
-    handleFaunaInteract,
-    handleStructureInteract,
-    hasItem,
-    addInventoryItem,
-    updateTick,
-    postNotification,
-  ]);
+  }, []);
 
   // Sync World Entities with Engine
   useEffect(() => {
@@ -415,13 +432,6 @@ export default function App() {
         return;
       }
 
-      // Guard Clause 3: Ignore movement and gameplay inputs when Esc / pause mode is active
-      const isPaused = !isPointerLocked || activeModal !== null;
-      if (isPaused) {
-        keysPressed.current = {};
-        return;
-      }
-
       // Register standard continuous WASD / Arrow movement keys
       const key = e.key.toLowerCase();
       if (['w', 'a', 's', 'd', 'arrowup', 'arrowleft', 'arrowdown', 'arrowright'].includes(key)) {
@@ -445,13 +455,6 @@ export default function App() {
     const handleKeyUp = (e: KeyboardEvent) => {
       // Guard Clause 1: Ignore inputs if user is typing in form/chat fields
       if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) {
-        return;
-      }
-
-      // Guard Clause 2: If Esc / pause mode is active, clear pressed keys and ignore
-      const isPaused = !isPointerLocked || activeModal !== null;
-      if (isPaused) {
-        keysPressed.current = {};
         return;
       }
 

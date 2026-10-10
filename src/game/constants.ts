@@ -144,7 +144,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'common',
     maxStack: 50,
   },
-
+  
   // Fertilizers
   growth_fertilizer: {
     id: 'growth_fertilizer',
@@ -305,6 +305,34 @@ export const RECIPES: CraftingRecipe[] = [
     ],
     craftTimeMs: 2500,
   },
+  {
+    id: 'craft_seed_bell_bloom',
+    outputId: 'seed_bell_bloom',
+    outputCount: 2,
+    name: 'Bell-Bloom Seed',
+    description: 'Distill dew essence and soft fibers into resonant bell-bloom seeds.',
+    category: 'seeds',
+    ingredients: [
+      { id: 'dew_essence', count: 2 },
+      { id: 'soft_fiber', count: 1 },
+    ],
+    craftTimeMs: 1200,
+  },
+  {
+  id: 'craft_bio_forge_station',
+  outputId: 'bio_forge_station',
+  outputCount: 1,
+  name: 'Bio-Forge Station',
+  description: 'Grow a second Bio-Forge — an advanced bio-fabrication station for late-tier synthesis.',
+  category: 'composites',
+  ingredients: [
+    { id: 'resin_sap', count: 4 },
+    { id: 'soft_fiber', count: 4 },
+    { id: 'carapace_scale', count: 2 },
+    { id: 'dew_essence', count: 2 },
+  ],
+  craftTimeMs: 4000,
+},
 
   // Fertilizers
   {

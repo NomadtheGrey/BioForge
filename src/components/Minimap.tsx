@@ -98,8 +98,12 @@ export const Minimap: React.FC<MinimapProps> = ({
     return flora.filter((f) => Math.hypot(f.x - playerX, f.z - playerZ) <= radarRadius * 1.15);
   }, [flora, playerX, playerZ, radarRadius, showFlora]);
 
-  // Player orientation angle in radians (converted to SVG degree angle)
-  const playerDeg = (playerRotation * 180) / Math.PI;
+ // Player orientation angle in radians (converted to SVG degree angle).
+// NOTE: playerRotation = atan2(dir.x, dir.z), so 0 = facing +Z (map south)
+// and PI = facing -Z (map north). The marker is drawn pointing north (up),
+// so offset by 180° to align the arrow with the true facing direction.
+  const playerDeg = 180 - (playerRotation * 180) / Math.PI;
+
 
   const currentSize = isExpanded ? (mapMode === 'world' ? 260 : 240) : 160;
 

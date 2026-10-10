@@ -277,10 +277,10 @@ const INITIAL_STRUCTURES: StructureEntity[] = [
   {
     id: 'struct_start_forge',
     type: 'bio_forge_station',
-    gridX: 0,
-    gridZ: 0,
-    worldX: 0,
-    worldZ: 0,
+    gridX: 2,
+    gridZ: 2,
+    worldX: 4,
+    worldZ: 4,
     rotation: 0,
     health: 250,
     maxHealth: 250,
@@ -354,7 +354,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           return {
             ...f,
             fertilizedGrowth: true,
-            growthStage: Math.min(3, f.growthStage + 1),
+            growthStage: Math.min(5, f.growthStage + 1),
             harvestReady: true,
           };
         }
@@ -467,7 +467,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           const growthMult = flora.fertilizedGrowth ? 2.5 : 1.0;
           const newTimer = Math.max(0, flora.harvestTimer - dt * growthMult);
           const isNowReady = newTimer === 0;
-          const newStage = isNowReady ? 3 : Math.min(2, Math.floor((1 - newTimer / 18) * 3));
+          const newStage = isNowReady ? 5 : Math.min(4, Math.floor((1 - newTimer / 18) * 5));
 
           return {
             ...flora,

@@ -48,6 +48,20 @@ export class FirstPersonMovementController {
       return { x: currentX, z: currentZ, isMoving: false };
     }
 
+    // Wilderness is rough: full speed on root-tile floors, 25% slower off them
+    let onFloor = false;
+    for (let i = 0; i < structures.length; i++) {
+      const s = structures[i];
+      if (s.type !== 'root_tile_floor') {
+        continue;
+      }
+      if (Math.abs(s.worldX - currentX) < 1.1 && Math.abs(s.worldZ - currentZ) < 1.1) {
+        onFloor = true;
+        break;
+      }
+    }
+    const effectiveMaxSpeed = onFloor ? this.maxSpeed : this.maxSpeed * 0.75;
+
     // Calculate discrete input axes (flat, zero else)
     let moveZ = 0;
     if (input.forward) {
@@ -85,8 +99,8 @@ export class FirstPersonMovementController {
 
     // Accelerate or decelerate velocity vectors cleanly
     if (hasInput) {
-      const targetVelX = DESIRED_DIR.x * this.maxSpeed;
-      const targetVelZ = DESIRED_DIR.z * this.maxSpeed;
+      const targetVelX = DESIRED_DIR.x * effectiveMaxSpeed;
+      const targetVelZ = DESIRED_DIR.z * effectiveMaxSpeed;
 
       this.velocity.x += (targetVelX - this.velocity.x) * Math.min(1, this.acceleration * dt);
       this.velocity.z += (targetVelZ - this.velocity.z) * Math.min(1, this.acceleration * dt);
@@ -109,11 +123,6 @@ export class FirstPersonMovementController {
     const deltaX = this.velocity.x * dt;
     const deltaZ = this.velocity.z * dt;
     const isMoving = Math.hypot(this.velocity.x, this.velocity.z) > 0.1;
-
-    // Guard Clause 3: If no displacement, return current
-    if (Math.abs(deltaX) < 0.0001 && Math.abs(deltaZ) < 0.0001) {
-      return { x: currentX, z: currentZ, isMoving: false };
-    }
 
     // Apply spatial collision resolution with sliding
     const resolved = resolveMovementWithCollision(

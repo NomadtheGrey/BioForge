@@ -23,7 +23,10 @@ export interface ControllerInputState {
 
 export class FirstPersonMovementController {
   public velocity: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
+  public sprintMultiplier: number = 1;
   public maxSpeed: number = 6.4;
+
+
   public acceleration: number = 28.0;
   public friction: number = 16.0;
 
@@ -60,7 +63,8 @@ export class FirstPersonMovementController {
         break;
       }
     }
-    const effectiveMaxSpeed = onFloor ? this.maxSpeed : this.maxSpeed * 0.75;
+   const effectiveMaxSpeed = (onFloor ? this.maxSpeed : this.maxSpeed * 0.75) * this.sprintMultiplier;
+
 
     // Calculate discrete input axes (flat, zero else)
     let moveZ = 0;

@@ -415,23 +415,28 @@ export function useToolInteractions({
     [activeTool, handleTameFauna, handleScanTarget]
   );
 
-  const handleStructureInteract = useCallback(
-    (structure: StructureEntity): void => {
-      if (activeTool === 'solvent_sprayer') {
-        handleSolventSprayer(structure);
-        return;
-      }
-      if (activeTool === 'bio_scanner') {
-        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
-        return;
-      }
-      if (structure.type === 'bio_forge_station') {
-        onOpenBioForgeModal();
-        return;
-      }
-    },
-    [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal]
-  );
+ const handleStructureInteract = useCallback(
+  (structure: StructureEntity): void => {
+    // Builder on flat surfaces: floors and mounds act as ground for placement
+    if (activeTool === 'builder' && (structure.type === 'root_tile_floor' || structure.type === 'cultivation_mound')) {
+      handleGroundClick(structure.worldX, structure.worldZ);
+      return;
+    }
+    if (activeTool === 'solvent_sprayer') {
+      handleSolventSprayer(structure);
+      return;
+    }
+    if (activeTool === 'bio_scanner') {
+      handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+      return;
+    }
+    if (structure.type === 'bio_forge_station') {
+      onOpenBioForgeModal();
+      return;
+    }
+  },
+  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, handleGroundClick]
+);
 
   return {
     handleHarvestFlora,

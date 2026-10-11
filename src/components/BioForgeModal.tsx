@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { X, Sparkles, Check, AlertCircle, ArrowRight } from 'lucide-react';
 import { CraftingRecipe, ItemId, StructureType } from '../types/game';
-import { ITEMS, RECIPES } from '../game/constants';
+import { ITEMS, RECIPES, getRecipeTier } from '../game/constants'
 import { soundEngine } from '../audio/soundEngine';
+import { RecipeFlowchart } from './RecipeFlowchart';
 
 interface BioForgeModalProps {
   isOpen: boolean;
   onClose: () => void;
   inventory: Record<ItemId, number>;
+  nearForge: boolean;
+  hasGauntlet: boolean;
   onCraftRecipe: (recipe: CraftingRecipe) => void;
   onSelectStructureBlueprint?: (type: StructureType) => void;
 }
@@ -16,12 +19,15 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   isOpen,
   onClose,
   inventory,
+  nearForge,
+  hasGauntlet,
   onCraftRecipe,
   onSelectStructureBlueprint,
 }) => {
   const [activeCategory, setActiveCategory] = useState<'all' | 'seeds' | 'fertilizers' | 'composites' | 'defenses'>('all');
   const [selectedRecipe, setSelectedRecipe] = useState<CraftingRecipe>(RECIPES[0]);
   const [isCrafting, setIsCrafting] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'tree'>('list');
 
   if (!isOpen) return null;
 
@@ -29,8 +35,23 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     (r) => activeCategory === 'all' || r.category === activeCategory
   );
 
-  const canCraft = (recipe: CraftingRecipe) => {
+  const hasIngredients = (recipe: CraftingRecipe) => {
     return recipe.ingredients.every((ing) => (inventory[ing.id] || 0) >= ing.count);
+  };
+
+  const canCraft = (recipe: CraftingRecipe) => {
+    if (!hasIngredients(recipe)) return false;
+    if (nearForge) return true;
+    if (getRecipeTier(recipe) >= 3) return false;
+    return hasGauntlet;
+  };
+
+  const craftBlockReason = (recipe: CraftingRecipe): string | null => {
+    if (!hasIngredients(recipe)) return 'Missing ingredients';
+    if (nearForge) return null;
+    if (getRecipeTier(recipe) >= 3) return 'Advanced synthesis requires a bio-forge station';
+    if (!hasGauntlet) return 'Too far from a bio-forge — synthesize a Field Synthesizer Gauntlet';
+    return null;
   };
 
   const handleCraft = (recipe: CraftingRecipe) => {
@@ -98,13 +119,38 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
               {cat.label}
             </button>
           ))}
+          <div className="ml-auto flex items-center gap-1 pl-3 border-l border-slate-800/70">
+            {(['list', 'tree'] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-tech transition-all ${
+                  viewMode === mode
+                    ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40'
+                    : 'text-slate-500 hover:text-slate-300'
+                }`}
+              >
+                {mode === 'list' ? 'List' : 'Tree'}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Content Body */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Left: Recipe List */}
-          <div className="w-1/2 border-r border-slate-800/80 overflow-y-auto p-4 space-y-2">
-            {filteredRecipes.map((recipe) => {
+          {/* Left: Recipe List / Tree */}
+          <div className="w-1/2 border-r border-slate-800/80 overflow-hidden">
+            {viewMode === 'tree' ? (
+              <RecipeFlowchart
+                inventory={inventory}
+                nearForge={nearForge}
+                hasGauntlet={hasGauntlet}
+                selectedRecipeId={selectedRecipe.id}
+                onSelectRecipe={setSelectedRecipe}
+              />
+            ) : (
+              <div className="h-full overflow-y-auto p-4 space-y-2">
+                {filteredRecipes.map((recipe) => {
               const item = ITEMS[recipe.outputId];
               const craftable = canCraft(recipe);
               const isSelected = selectedRecipe.id === recipe.id;
@@ -148,8 +194,10 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                     )}
                   </div>
                 </div>
-              );
-            })}
+                );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Right: Synthesis Details & Action */}
@@ -247,6 +295,12 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                   </>
                 )}
               </button>
+              {craftBlockReason(selectedRecipe) && !isCrafting && (
+                <p className="mt-2 text-xs text-amber-400/90 text-center flex items-center justify-center gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{craftBlockReason(selectedRecipe)}</span>
+                </p>
+              )}
             </div>
           </div>
         </div>

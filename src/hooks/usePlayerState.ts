@@ -14,6 +14,7 @@ export interface UsePlayerStateResult {
   setSelectedSeedId: (seedId: ItemId) => void;
   setSelectedFertilizerId: (fertilizerId: ItemId) => void;
   setPlayerTransform: (x: number, z: number, rotation: number) => void;
+  setStamina: (stamina: number) => void;
 }
 
 export function usePlayerState(): UsePlayerStateResult {
@@ -58,6 +59,13 @@ export function usePlayerState(): UsePlayerStateResult {
     }));
   }, []);
 
+  const setStamina = useCallback((stamina: number): void => {
+    setPlayerState((prev) => {
+      const clamped = Math.max(0, Math.min(prev.maxStamina, stamina));
+      return prev.stamina === clamped ? prev : { ...prev, stamina: clamped };
+    });
+  }, []);
+
   return {
     playerState,
     setActiveTool,
@@ -65,5 +73,6 @@ export function usePlayerState(): UsePlayerStateResult {
     setSelectedSeedId,
     setSelectedFertilizerId,
     setPlayerTransform,
+    setStamina,
   };
 }

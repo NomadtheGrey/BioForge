@@ -248,6 +248,17 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'common',
     maxStack: 99,
   },
+  field_synthesizer_gauntlet: {
+  id: 'field_synthesizer_gauntlet',
+  name: 'Field Synthesizer Gauntlet',
+  category: 'equipment',
+  description: 'A living gauntlet hosting a miniature bio-forge — synthesize tier 1-2 recipes anywhere in the field.',
+  iconName: 'Zap',
+  color: '#f59e0b',
+  rarity: 'rare',
+  maxStack: 1,
+},
+
 };
 
 export const RECIPES: CraftingRecipe[] = [
@@ -461,6 +472,20 @@ export const RECIPES: CraftingRecipe[] = [
     ],
     craftTimeMs: 3000,
   },
+  {
+    id: 'craft_field_gauntlet',
+    outputId: 'field_synthesizer_gauntlet',
+    outputCount: 1,
+    name: 'Field Synthesizer Gauntlet',
+    description: 'Grow a wearable miniature bio-forge for remote tier 1-2 synthesis.',
+    category: 'composites',
+    ingredients: [
+      { id: 'carapace_scale', count: 3 },
+      { id: 'resin_sap', count: 3 },
+      { id: 'dew_essence', count: 2 },
+    ],
+    craftTimeMs: 3000,
+  },
 ];
 
 export const INITIAL_CODEX: CodexEntry[] = [
@@ -670,3 +695,42 @@ export const BIOMES = [
     bounds: { minX: 0, maxX: 50, minZ: 0, maxZ: 50 },
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Derived recipe tiers — never assigned by hand.
+// Tier 0 = raw/harvested (no recipe). Tier N = needs at least one tier N-1
+// product. A recipe is only ever "locked" by missing ingredients.
+// ---------------------------------------------------------------------------
+const PRODUCER_OF = new Map<ItemId, CraftingRecipe>();
+for (const r of RECIPES) {
+  if (!PRODUCER_OF.has(r.outputId)) {
+    PRODUCER_OF.set(r.outputId, r);
+  }
+}
+
+const tierCache = new Map<string, number>();
+
+function computeTier(recipe: CraftingRecipe, visiting: Set<string>): number {
+  const cached = tierCache.get(recipe.id);
+  if (cached !== undefined) {
+    return cached;
+  }
+  if (visiting.has(recipe.id)) {
+    return 1;
+  }
+  visiting.add(recipe.id);
+  let tier = 1;
+  for (const ing of recipe.ingredients) {
+    const producer = PRODUCER_OF.get(ing.id);
+    if (producer && producer.id !== recipe.id) {
+      tier = Math.max(tier, computeTier(producer, visiting) + 1);
+    }
+  }
+  visiting.delete(recipe.id);
+  tierCache.set(recipe.id, tier);
+  return tier;
+}
+
+export function getRecipeTier(recipe: CraftingRecipe): number {
+  return computeTier(recipe, new Set());
+}

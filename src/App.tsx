@@ -59,6 +59,7 @@ export default function App() {
     setSelectedSeedId,
     setSelectedFertilizerId,
     setPlayerTransform,
+    setStamina,
   } = usePlayerState();
 
   const {
@@ -101,6 +102,10 @@ export default function App() {
 
   // Movement Keys & High-Frequency Refs (Rule 3: Performance & Memoization)
   const keysPressed = useRef<Record<string, boolean>>({});
+  const lastWTap = useRef(0);
+  const sprinting = useRef(false);
+  const staminaRef = useRef(100);
+  const lastStaminaSync = useRef(0);
   const playerPosRef = useRef({ x: playerState.x, z: playerState.z, rotation: playerState.rotation });
   const activeToolRef = useRef(playerState.activeTool);
   const selectedStructureRef = useRef(playerState.selectedStructureType);
@@ -228,6 +233,9 @@ export default function App() {
           right: Boolean(keysPressed.current['d'] || keysPressed.current['arrowright']),
         };
 
+        const wantSprint = sprinting.current && staminaRef.current > 0;
+        movementController.current.sprintMultiplier = wantSprint ? 1.6 : 1;
+
         const moveResult = movementController.current.update(
           dt,
           playerPosRef.current.x,
@@ -241,6 +249,14 @@ export default function App() {
 
         playerPosRef.current.x = moveResult.x;
         playerPosRef.current.z = moveResult.z;
+
+        const isSprintingNow = wantSprint && moveResult.isMoving && !isPaused;
+        const staminaDelta = isSprintingNow ? -18 * dt : (moveResult.isMoving ? 8 : 14) * dt;
+        staminaRef.current = Math.max(0, Math.min(100, staminaRef.current + staminaDelta));
+        if (performance.now() - lastStaminaSync.current > 100) {
+          lastStaminaSync.current = performance.now();
+          setStamina(staminaRef.current);
+        }
 
         if (moveResult.isMoving) {
           const camDir = new THREE.Vector3();
@@ -438,6 +454,14 @@ export default function App() {
         keysPressed.current[key] = true;
       }
 
+      if (key === 'w' && !e.repeat) {
+        const now = performance.now();
+        if (now - lastWTap.current < 300) {
+          sprinting.current = true;
+        }
+        lastWTap.current = now;
+      }
+
       // Tools 1 - 6 selection
       const toolKeyMap: Record<string, typeof playerState.activeTool> = {
         '1': 'harvest_glove',
@@ -459,6 +483,10 @@ export default function App() {
       }
 
       keysPressed.current[e.key.toLowerCase()] = false;
+
+      if (e.key.toLowerCase() === 'w') {
+        sprinting.current = false;
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -550,7 +578,31 @@ export default function App() {
     ]);
   };
 
+  // Crafting access: within 6m of a bio-forge station, or carrying the Field Synthesizer Gauntlet
+  const checkCraftAccess = (): { nearForge: boolean; hasGauntlet: boolean } => {
+    const px = playerPosRef.current.x;
+    const pz = playerPosRef.current.z;
+    const nearForge = structuresListRef.current.some(
+      (s) => s.type === 'bio_forge_station' && Math.hypot(s.worldX - px, s.worldZ - pz) < 6
+    );
+    const hasGauntlet = (inventory['field_synthesizer_gauntlet'] || 0) > 0;
+    return { nearForge, hasGauntlet };
+  };
+
   const handleCraftRecipe = (recipe: CraftingRecipe) => {
+    const access = checkCraftAccess();
+    const forgeOnly = recipe.tier === 3;
+    if (!access.nearForge && (forgeOnly || !access.hasGauntlet)) {
+      postNotification(
+        'Synthesis Blocked',
+        forgeOnly
+          ? 'Advanced synthesis requires a bio-forge station.'
+          : 'Too far from a bio-forge station — synthesize a Field Synthesizer Gauntlet to craft in the field.',
+        'craft',
+        '#f59e0b'
+      );
+      return;
+    }
     const success = craftRecipe(recipe);
     if (success) {
       postNotification(
@@ -561,6 +613,8 @@ export default function App() {
       );
     }
   };
+
+  const craftAccess = checkCraftAccess();
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-slate-950 font-sans select-none">
@@ -614,6 +668,8 @@ export default function App() {
         isOpen={activeModal === 'bioforge'}
         onClose={() => setActiveModal(null)}
         inventory={inventory}
+        nearForge={craftAccess.nearForge}
+        hasGauntlet={craftAccess.hasGauntlet}
         onCraftRecipe={handleCraftRecipe}
         onSelectStructureBlueprint={(type) => {
           setSelectedStructureType(type);

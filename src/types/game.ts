@@ -121,7 +121,10 @@ export type StructureType =
   | 'spore_canopy'
   | 'bio_forge_station'
   | 'tamed_snap_trap_turret'
-  | 'cultivation_mound';
+  | 'cultivation_mound'
+  // Equipment
+  | 'field_synthesizer_gauntlet';
+;
 
 export interface StructureEntity {
   id: string;
@@ -155,9 +158,11 @@ export interface CraftingRecipe {
   outputCount: number;
   name: string;
   description: string;
-  category: 'seeds' | 'fertilizers' | 'composites' | 'defenses';
+  category: 'raw' | 'seed' | 'fertilizer' | 'structure' | 'equipment';
+
   ingredients: { id: ItemId; count: number }[];
   craftTimeMs: number;
+
 }
 
 export interface CodexEntry {

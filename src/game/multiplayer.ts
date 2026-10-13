@@ -221,6 +221,7 @@ export class MultiplayerManager {
     switch (msg.type) {
       case 'peer_join': {
         const payload = msg.payload as { name: string; color: string };
+        const alreadyKnown = this.peers.has(msg.senderId);
         const peer: MultiplayerPeer = {
           id: msg.senderId,
           name: payload.name || msg.senderName,
@@ -232,17 +233,21 @@ export class MultiplayerManager {
           ping: 15,
         };
         this.peers.set(msg.senderId, peer);
+        if (alreadyKnown) break;
+
         this.callbacks.onPeerJoin?.(peer);
 
-        // If I am host, respond with my presence and greeting
-        if (this.isHost) {
-          this.broadcastMessage('peer_join', {
-            name: this.playerName,
-            color: this.playerColor,
-          });
-        }
+        // Announce myself so the newcomer learns I exist too. Without this,
+        // only the host ever answered a join, so guests never discovered
+        // each other and every screen showed a different headcount. Firing
+        // only for newly learned peers keeps announcements from looping.
+        this.broadcastMessage('peer_join', {
+          name: this.playerName,
+          color: this.playerColor,
+        });
         break;
       }
+
 
       case 'peer_leave': {
         this.peers.delete(msg.senderId);

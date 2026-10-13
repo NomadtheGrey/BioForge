@@ -14,6 +14,9 @@ interface MultiplayerModalProps {
   onLeaveSession: () => void;
   onSendMessage: (text: string) => void;
   chatMessages: { sender: string; text: string; color: string; time: string }[];
+  playerName: string;
+  onSetPlayerName: (name: string) => void;
+
 }
 
 export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
@@ -28,10 +31,16 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
   onLeaveSession,
   onSendMessage,
   chatMessages,
+  playerName, 
+  onSetPlayerName
+  
+
 }) => {
+ 
   const [inputCode, setInputCode] = useState('');
   const [copied, setCopied] = useState(false);
   const [chatInput, setChatInput] = useState('');
+  const [nameInput, setNameInput] = useState(playerName);
 
   if (!isOpen) return null;
 
@@ -80,6 +89,19 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
           {/* Connection Status & Setup */}
           {!isConnected ? (
             <div className="space-y-6">
+              <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
+                <label className="text-[11px] font-tech text-slate-400 uppercase tracking-wider block mb-2">
+                  Your Explorer Name
+                </label>
+                <input
+                  type="text"
+                  maxLength={20}
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  placeholder="e.g. Nomad"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:outline-none focus:border-cyan-400"
+                />
+                </div>
               <div className="grid grid-cols-2 gap-4">
                 {/* Host Card */}
                 <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col justify-between">
@@ -93,7 +115,7 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
                     </p>
                   </div>
                   <button
-                    onClick={() => onHostSession()}
+                    onClick={() => { onSetPlayerName(nameInput); onHostSession(); }}
                     className="mt-4 w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 font-tech font-bold text-xs text-slate-950 shadow-md shadow-cyan-500/20 active:scale-95 transition-all"
                   >
                     START HOSTING WORLD
@@ -121,7 +143,7 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
                   </div>
                   <button
                     disabled={inputCode.length < 3}
-                    onClick={() => onJoinSession(inputCode)}
+                    onClick={() => { onSetPlayerName(nameInput); onJoinSession(inputCode); }}
                     className="mt-4 w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:bg-slate-800 disabled:text-slate-600 font-tech font-bold text-xs text-white shadow-md shadow-purple-600/20 active:scale-95 transition-all"
                   >
                     JOIN SESSION

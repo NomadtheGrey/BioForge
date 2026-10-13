@@ -784,6 +784,8 @@ export default function App() {
         isHost={isHost}
         isConnected={isConnected}
         peers={peers}
+        playerName={multiplayerManager.playerName}
+        onSetPlayerName={(name) => multiplayerManager.setPlayerName(name)}
         onHostSession={handleHostSession}
         onJoinSession={handleJoinSession}
         onLeaveSession={handleLeaveSession}

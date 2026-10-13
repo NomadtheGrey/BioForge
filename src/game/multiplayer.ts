@@ -8,6 +8,9 @@ import {
 
 const RELAY_BASE_URL = 'wss://bioforge-relay.nomadthegrey71.workers.dev';
 const MAX_SEEN_MESSAGE_IDS = 1000;
+const RELAY_RECONNECT_DELAY_MS = 3000;
+const PLAYER_NAME_STORAGE_KEY = 'bioforge_player_name';
+const MAX_PLAYER_NAME_LENGTH = 20;
 
 export type EntityKind = 'flora' | 'fauna' | 'structure' | 'drop';
 export type EntitySnapshot =
@@ -63,6 +66,7 @@ export class MultiplayerManager {
   public isConnected: boolean = false;
   private channel: BroadcastChannel | null = null;
   private socket: WebSocket | null = null;
+  private reconnectTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private seenMessageIds: Set<string> = new Set();
   private peers: Map<string, MultiplayerPeer> = new Map();
   private callbacks: MultiplayerCallbacks = {};
@@ -70,13 +74,37 @@ export class MultiplayerManager {
   constructor(callbacks: MultiplayerCallbacks = {}) {
     this.callbacks = callbacks;
     this.peerId = 'bio_' + Math.random().toString(36).substring(2, 9);
-    this.playerName = 'Explorer-' + Math.floor(100 + Math.random() * 900);
+    this.playerName = this.loadPlayerName();
     const colors = ['#38bdf8', '#a855f7', '#34d399', '#f59e0b', '#ec4899', '#06b6d4'];
     this.playerColor = colors[Math.floor(Math.random() * colors.length)];
   }
 
   public setCallbacks(callbacks: MultiplayerCallbacks) {
     this.callbacks = callbacks;
+  }
+
+  private generatePlayerName(): string {
+    return 'Explorer-' + Math.floor(100 + Math.random() * 900);
+  }
+
+  private loadPlayerName(): string {
+    try {
+      const saved = localStorage.getItem(PLAYER_NAME_STORAGE_KEY);
+      if (saved && saved.trim().length > 0) return saved;
+    } catch (e) {
+      // Storage unavailable (private mode, etc.) — fall back to a rolled name.
+    }
+    return this.generatePlayerName();
+  }
+
+  public setPlayerName(name: string) {
+    const trimmed = name.trim().slice(0, MAX_PLAYER_NAME_LENGTH);
+    this.playerName = trimmed.length > 0 ? trimmed : this.generatePlayerName();
+    try {
+      localStorage.setItem(PLAYER_NAME_STORAGE_KEY, this.playerName);
+    } catch (e) {
+      // Storage unavailable — the name still applies for this session.
+    }
   }
 
   public hostSession(customCode?: string): string {
@@ -106,6 +134,10 @@ export class MultiplayerManager {
   }
 
   public leaveSession() {
+    if (this.reconnectTimeoutId !== null) {
+      clearTimeout(this.reconnectTimeoutId);
+      this.reconnectTimeoutId = null;
+    }
     if (this.channel) {
       this.broadcastMessage('peer_leave', { peerId: this.peerId });
       this.channel.close();
@@ -143,14 +175,19 @@ export class MultiplayerManager {
   }
 
   private initSocket() {
+    let sock: WebSocket;
     try {
-      this.socket = new WebSocket(`${RELAY_BASE_URL}/room/${this.roomCode}`);
+      sock = new WebSocket(`${RELAY_BASE_URL}/room/${this.roomCode}`);
     } catch (e) {
       console.warn('Relay connection failed to start', e);
-      this.socket = null;
       return;
     }
-    this.socket.onopen = () => {
+    this.socket = sock;
+    sock.onopen = () => {
+      if (this.reconnectTimeoutId !== null) {
+        clearTimeout(this.reconnectTimeoutId);
+        this.reconnectTimeoutId = null;
+      }
       // Announce over the relay once it is actually connected. The greeting
       // sent at join time cannot travel yet (socket still connecting), and
       // the host never sends one at session start at all.
@@ -161,19 +198,34 @@ export class MultiplayerManager {
         })
       );
     };
-    this.socket.onmessage = (event) => {
+    sock.onmessage = (event) => {
       try {
         this.handleIncomingMessage(JSON.parse(event.data as string) as MultiplayerMessage);
       } catch (e) {
         console.warn('Failed to parse relay message', e);
       }
     };
-    this.socket.onclose = () => {
+    sock.onclose = () => {
+      // A stale socket from a previous session must not clear or reconnect
+      // over the current one — only the live socket's close counts.
+      if (this.socket !== sock) return;
       this.socket = null;
+      if (!this.isConnected) return;
+      this.scheduleReconnect();
     };
-    this.socket.onerror = () => {
+    sock.onerror = () => {
       console.warn('Relay connection error');
     };
+  }
+
+  private scheduleReconnect() {
+    if (this.reconnectTimeoutId !== null) return;
+    this.reconnectTimeoutId = setTimeout(() => {
+      this.reconnectTimeoutId = null;
+      if (!this.isConnected) return;
+      if (this.socket) return;
+      this.initSocket();
+    }, RELAY_RECONNECT_DELAY_MS);
   }
 
   private buildMessage(type: MultiplayerMessage['type'], payload: unknown): MultiplayerMessage {
@@ -247,7 +299,6 @@ export class MultiplayerManager {
         });
         break;
       }
-
 
       case 'peer_leave': {
         this.peers.delete(msg.senderId);

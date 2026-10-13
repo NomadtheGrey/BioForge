@@ -6,6 +6,9 @@ import {
   DroppedItemEntity,
 } from '../types/game';
 
+const RELAY_BASE_URL = 'wss://bioforge-relay.nomadthegrey71.workers.dev';
+const MAX_SEEN_MESSAGE_IDS = 1000;
+
 export type EntityKind = 'flora' | 'fauna' | 'structure' | 'drop';
 export type EntitySnapshot =
   | FloraEntity
@@ -27,6 +30,7 @@ export interface MultiplayerMessage {
     | 'entity_upsert'
     | 'entity_remove'
     | 'day_night';
+  id: string;
   senderId: string;
   senderName: string;
   senderColor: string;
@@ -58,6 +62,8 @@ export class MultiplayerManager {
   public isHost: boolean = false;
   public isConnected: boolean = false;
   private channel: BroadcastChannel | null = null;
+  private socket: WebSocket | null = null;
+  private seenMessageIds: Set<string> = new Set();
   private peers: Map<string, MultiplayerPeer> = new Map();
   private callbacks: MultiplayerCallbacks = {};
 
@@ -105,6 +111,10 @@ export class MultiplayerManager {
       this.channel.close();
       this.channel = null;
     }
+    if (this.socket) {
+      this.socket.close();
+      this.socket = null;
+    }
     this.peers.clear();
     this.isConnected = false;
     this.isHost = false;
@@ -129,10 +139,84 @@ export class MultiplayerManager {
     } catch (e) {
       console.warn('BroadcastChannel not supported in current environment', e);
     }
+    this.initSocket();
+  }
+
+  private initSocket() {
+    try {
+      this.socket = new WebSocket(`${RELAY_BASE_URL}/room/${this.roomCode}`);
+    } catch (e) {
+      console.warn('Relay connection failed to start', e);
+      this.socket = null;
+      return;
+    }
+    this.socket.onopen = () => {
+      // Announce over the relay once it is actually connected. The greeting
+      // sent at join time cannot travel yet (socket still connecting), and
+      // the host never sends one at session start at all.
+      this.postToSocket(
+        this.buildMessage('peer_join', {
+          name: this.playerName,
+          color: this.playerColor,
+        })
+      );
+    };
+    this.socket.onmessage = (event) => {
+      try {
+        this.handleIncomingMessage(JSON.parse(event.data as string) as MultiplayerMessage);
+      } catch (e) {
+        console.warn('Failed to parse relay message', e);
+      }
+    };
+    this.socket.onclose = () => {
+      this.socket = null;
+    };
+    this.socket.onerror = () => {
+      console.warn('Relay connection error');
+    };
+  }
+
+  private buildMessage(type: MultiplayerMessage['type'], payload: unknown): MultiplayerMessage {
+    return {
+      type,
+      id: this.peerId + '_' + Math.random().toString(36).substring(2, 10),
+      senderId: this.peerId,
+      senderName: this.playerName,
+      senderColor: this.playerColor,
+      roomCode: this.roomCode,
+      payload,
+      timestamp: Date.now(),
+    };
+  }
+
+  private postToChannel(msg: MultiplayerMessage) {
+    if (!this.channel) return;
+    try {
+      this.channel.postMessage(msg);
+    } catch (e) {
+      console.warn('Failed to broadcast message', e);
+    }
+  }
+
+  private postToSocket(msg: MultiplayerMessage) {
+    if (!this.socket) return;
+    if (this.socket.readyState !== WebSocket.OPEN) return;
+    try {
+      this.socket.send(JSON.stringify(msg));
+    } catch (e) {
+      console.warn('Failed to send relay message', e);
+    }
   }
 
   private handleIncomingMessage(msg: MultiplayerMessage) {
     if (msg.senderId === this.peerId) return; // Ignore own messages
+
+    // The same message can arrive twice (local channel + relay). Handle once.
+    if (msg.id) {
+      if (this.seenMessageIds.has(msg.id)) return;
+      this.seenMessageIds.add(msg.id);
+      if (this.seenMessageIds.size > MAX_SEEN_MESSAGE_IDS) this.seenMessageIds.clear();
+    }
 
     switch (msg.type) {
       case 'peer_join': {
@@ -253,21 +337,9 @@ export class MultiplayerManager {
   }
 
   public broadcastMessage(type: MultiplayerMessage['type'], payload: unknown) {
-    if (!this.channel) return;
-    const msg: MultiplayerMessage = {
-      type,
-      senderId: this.peerId,
-      senderName: this.playerName,
-      senderColor: this.playerColor,
-      roomCode: this.roomCode,
-      payload,
-      timestamp: Date.now(),
-    };
-    try {
-      this.channel.postMessage(msg);
-    } catch (e) {
-      console.warn('Failed to broadcast message', e);
-    }
+    const msg = this.buildMessage(type, payload);
+    this.postToChannel(msg);
+    this.postToSocket(msg);
   }
 
   public broadcastPlayerMove(x: number, z: number, rotation: number, tool: string) {

@@ -1,0 +1,5 @@
+# BioForge on Netlify — site name: bioforgegame
+# Static Vite build; no environment variables or API keys required.
+[build]
+  command = "npm run build"
+  publish = "dist"

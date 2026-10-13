@@ -29,6 +29,21 @@ import { useNotifications } from './hooks/useNotifications';
 import { usePlayerState } from './hooks/usePlayerState';
 import { useWorldEntities } from './hooks/useWorldEntities';
 import { useToolInteractions } from './hooks/useToolInteractions';
+import {
+  AUTOSAVE_INTERVAL_MS,
+  buildSavedGame,
+  createSaveMetadata,
+  deleteSavedGame,
+  listSaveMetadata,
+  loadSavedGame,
+  storeSavedGame,
+  GameDifficulty,
+  SaveMetadata,
+  SavedGameRecord,
+  WorldSnapshot,
+} from './game/saveSystem';
+
+import { StartScreenModal } from './components/StartScreenModal';
 
 // UI Components
 import { HUD } from './components/HUD';
@@ -52,6 +67,7 @@ export default function App() {
     deductInventoryItem,
     hasItem,
     craftRecipe,
+    restoreInventory,
   } = useInventory();
 
   const {
@@ -67,6 +83,7 @@ export default function App() {
     setSelectedFertilizerId,
     setPlayerTransform,
     setStamina,
+    restorePlayerState,
   } = usePlayerState();
 
   const {
@@ -89,6 +106,7 @@ export default function App() {
     updateTick,
     upsertDroppedItem,
     removeDroppedItem,
+    replaceWorld,
   } = useWorldEntities();
 
   // 2. Modals & UI States
@@ -521,6 +539,146 @@ export default function App() {
   }, [activeModal, isPointerLocked, setActiveTool]);
 
   // --------------------------------------------------------------------------
+  // Save System — start gate, snapshots, autosave
+// --------------------------------------------------------------------------
+// hasStarted is the boot gate: the start screen stays up until the
+// player picks a saved world, starts a new one, or takes the co-op door.
+const [hasStarted, setHasStarted] = useState(false);
+
+// The library shown on the start screen (metadata only — worlds load on
+// demand when one is picked).
+const [saveList, setSaveList] = useState<SaveMetadata[]>([]);
+
+// Which save the current session belongs to. A ref, not state: the
+// autosave timer and pagehide handler must always see the latest value
+// without re-subscribing. Null means "no save attached" — the start
+// screen is still up, or this is a co-op guest session.
+const currentSaveRef = useRef<SaveMetadata | null>(null);
+
+// A mirror of every state slice a save needs, refreshed each render.
+// Timers and network callbacks read from here so they never act on
+// stale closures. (The engine loop keeps its own per-list refs; this
+// one exists purely for save/snapshot assembly.)
+const latestStateRef = useRef({
+  floraList, faunaList, structuresList, droppedItems,
+  inventory, playerState, codexList, dayNightCycle,
+});
+useEffect(() => {
+  latestStateRef.current = {
+    floraList, faunaList, structuresList, droppedItems,
+    inventory, playerState, codexList, dayNightCycle,
+  };
+});
+
+// The world-only portion of current state (what world_sync sends and
+// what a save stores as its world).
+const buildWorldSnapshot = (): WorldSnapshot => {
+  const s = latestStateRef.current;
+  return { flora: s.floraList, fauna: s.faunaList, structures: s.structuresList, drops: s.droppedItems };
+};
+
+// Player state for a save: the React state holds vitals and tool picks,
+// but the live position truth is playerPosRef (the game loop moves the
+// ref every tick) — so position is overlaid from the ref.
+const buildCurrentPlayerState = () => ({
+  ...latestStateRef.current.playerState,
+  x: playerPosRef.current.x,
+  z: playerPosRef.current.z,
+  rotation: playerPosRef.current.rotation,
+});
+
+// Writes the current session to its save slot. The two guard clauses
+// are the whole safety story: no save attached → nothing to write;
+// connected as a guest → the world belongs to the host, never save it.
+const saveNow = useCallback((): void => {
+  const meta = currentSaveRef.current;
+  if (!meta) return;
+  if (multiplayerManager.isConnected && !multiplayerManager.isHost) return;
+  const s = latestStateRef.current;
+  const record = buildSavedGame(meta, buildWorldSnapshot(), s.inventory, buildCurrentPlayerState(), s.dayNightCycle, s.codexList);
+  currentSaveRef.current = { ...meta, savedAt: record.savedAt };
+  void storeSavedGame(record);
+  // buildWorldSnapshot/buildCurrentPlayerState only read refs, so this
+  // callback safely stays stable for the interval/pagehide effects.
+}, []);
+
+// Load the save library once at boot, for the start screen.
+useEffect(() => {
+  void listSaveMetadata().then(setSaveList);
+}, []);
+
+// Autosave on an interval while a world is open.
+useEffect(() => {
+  if (!hasStarted) return;
+  const id = setInterval(saveNow, AUTOSAVE_INTERVAL_MS);
+  return () => clearInterval(id);
+}, [hasStarted, saveNow]);
+
+// Save when the page goes away. `pagehide` is the reliable leave
+// signal — it fires on tab close and navigation, including mobile
+// browsers where beforeunload often never runs.
+useEffect(() => {
+  const onPageHide = () => saveNow();
+  window.addEventListener('pagehide', onPageHide);
+  return () => window.removeEventListener('pagehide', onPageHide);
+}, [saveNow]);
+
+// Applies a loaded record to every state holder at once: world lists,
+// pouch, player (state AND the loop's position ref), codex, and clock.
+  const applySavedGame = (record: SavedGameRecord): void => {
+    replaceWorld(record.world);
+    restoreInventory(record.inventory);
+    restorePlayerState(record.playerState);
+    playerPosRef.current = {
+      x: record.playerState.x,
+      z: record.playerState.z,
+      rotation: record.playerState.rotation,
+    };
+    setCodexList(record.codexList);
+    setDayNightCycle(record.dayNightCycle);
+  };
+
+  const handleSelectSave = (id: string): void => {
+    void loadSavedGame(id).then((record) => {
+      if (!record) {
+        postNotification('Save Unreadable', 'That world could not be loaded (missing, or written by an older format).', 'system', '#ef4444');
+        return;
+      }
+      applySavedGame(record);
+      currentSaveRef.current = {
+        id: record.id, name: record.name, difficulty: record.difficulty,
+        createdAt: record.createdAt, savedAt: record.savedAt,
+      };
+      setHasStarted(true);
+      postNotification('World Loaded', `Welcome back to ${record.name}.`, 'system', '#10b981');
+    });
+  };
+
+  const handleCreateSave = (name: string, difficulty: GameDifficulty): void => {
+    const meta = createSaveMetadata(name, difficulty);
+    currentSaveRef.current = meta;
+    setHasStarted(true);
+    // First save right away: the world is the fresh starter world (the
+    // start screen has covered the game until now), and writing it now
+    // means the world exists in the library from minute one.
+    saveNow();
+    postNotification('New World Created', `${meta.name} — autosaving as you play.`, 'system', '#10b981');
+  };
+
+  const handleDeleteSave = (id: string): void => {
+    void deleteSavedGame(id)
+      .then(() => listSaveMetadata())
+      .then(setSaveList);
+  };
+
+  // The co-op door: no local save involved. The guest plays in the
+  // host's world; saveNow stays disarmed because currentSaveRef is null.
+  const handleJoinCoopFromStart = (): void => {
+    setHasStarted(true);
+    setActiveModal('multiplayer');
+  };
+
+  // --------------------------------------------------------------------------
   // Multiplayer Event Setup
   // --------------------------------------------------------------------------
   useEffect(() => {
@@ -528,6 +686,12 @@ export default function App() {
       onPeerJoin: (peer) => {
         setPeers(multiplayerManager.getConnectedPeers());
         postNotification('Explorer Joined', `${peer.name} entered sector. Co-Op synced!`, 'system', peer.color);
+        // Host duty: a new explorer's game booted with the starter world
+        // (or their own saved one). If it isn't OUR world, it's wrong —
+        // send the full snapshot so they play in the same place we do.
+        if (multiplayerManager.isHost) {
+          multiplayerManager.broadcastWorldSync(buildWorldSnapshot(), latestStateRef.current.dayNightCycle);
+        }
       },
       onPeerLeave: (peerId) => {
         setPeers(multiplayerManager.getConnectedPeers());
@@ -598,8 +762,20 @@ export default function App() {
       onDayNight: (value) => {
         setDayNightCycle(value);
       },
+      onWorldSync: (data) => {
+        // The host's world replaces ours wholesale. This is memory only:
+        // our own save file on disk is untouched, and autosave is gated
+        // off while we are guests, so their world can never overwrite it.
+        replaceWorld({
+          flora: data.flora,
+          fauna: data.fauna,
+          structures: data.structures,
+          drops: data.drops,
+        });
+        setDayNightCycle(data.dayNightCycle);
+      },
     });
-  }, [peers, addStructure, removeStructure, resetFloraHarvest, tameFauna, postNotification, upsertFlora, removeFlora, upsertFauna, removeFauna, upsertStructure, upsertDroppedItem, removeDroppedItem]);
+  }, [peers, addStructure, removeStructure, resetFloraHarvest, tameFauna, postNotification, upsertFlora, removeFlora, upsertFauna, removeFauna, upsertStructure, upsertDroppedItem, removeDroppedItem, replaceWorld]);
 
   const handleHostSession = () => {
     const code = multiplayerManager.hostSession();
@@ -777,6 +953,14 @@ export default function App() {
         codexList={codexList}
       />
 
+      <StartScreenModal
+        isOpen={!hasStarted}
+        saves={saveList}
+        onSelectSave={handleSelectSave}
+        onCreateSave={handleCreateSave}
+        onDeleteSave={handleDeleteSave}
+        onJoinCoop={handleJoinCoopFromStart}
+      />
       <MultiplayerModal
         isOpen={activeModal === 'multiplayer'}
         onClose={() => setActiveModal(null)}

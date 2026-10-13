@@ -5,6 +5,7 @@ import {
   FaunaEntity,
   DroppedItemEntity,
 } from '../types/game';
+import type { WorldSnapshot } from './saveSystem';
 
 const RELAY_BASE_URL = 'wss://bioforge-relay.nomadthegrey71.workers.dev';
 const MAX_SEEN_MESSAGE_IDS = 1000;
@@ -50,7 +51,7 @@ export interface MultiplayerCallbacks {
   onBuildRemoved?: (structureId: string) => void;
   onFloraHarvested?: (floraId: string) => void;
   onFaunaTamed?: (faunaId: string, tamedBy: string) => void;
-  onWorldSync?: (data: { structures: StructureEntity[]; flora: FloraEntity[]; fauna: FaunaEntity[] }) => void;
+  onWorldSync?: (data: { structures: StructureEntity[]; flora: FloraEntity[]; fauna: FaunaEntity[]; drops: DroppedItemEntity[]; dayNightCycle: number }) => void;
   onChatMessage?: (senderName: string, text: string, color: string) => void;
   onEntityUpsert?: (kind: EntityKind, entity: EntitySnapshot) => void;
   onEntityRemove?: (kind: EntityKind, id: string) => void;
@@ -360,6 +361,8 @@ export class MultiplayerManager {
               structures: StructureEntity[];
               flora: FloraEntity[];
               fauna: FaunaEntity[];
+              drops: DroppedItemEntity[];
+              dayNightCycle: number;
             }
           );
         }
@@ -428,6 +431,19 @@ export class MultiplayerManager {
 
   public broadcastDayNight(value: number) {
     this.broadcastMessage('day_night', { value });
+  }
+
+  // Sends the host's whole world to a guest who just joined (their game
+  // booted with the starter world, which is not the world the host is
+  // playing in once saves exist). Guests apply it via onWorldSync.
+  public broadcastWorldSync(world: WorldSnapshot, dayNightCycle: number) {
+    this.broadcastMessage('world_sync', {
+      structures: world.structures,
+      flora: world.flora,
+      fauna: world.fauna,
+      drops: world.drops,
+      dayNightCycle,
+    });
   }
 
   public broadcastChat(text: string) {

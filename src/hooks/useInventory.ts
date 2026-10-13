@@ -13,6 +13,7 @@ export interface UseInventoryResult {
   deductInventoryItem: (itemId: ItemId, count?: number) => boolean;
   hasItem: (itemId: ItemId, minCount?: number) => boolean;
   craftRecipe: (recipe: CraftingRecipe) => boolean;
+  restoreInventory: (saved: Record<ItemId, number>) => void;
 }
 
 export function useInventory(): UseInventoryResult {
@@ -64,11 +65,18 @@ export function useInventory(): UseInventoryResult {
     return true;
   }, [inventory]);
 
+  // Replaces the whole inventory from a loaded save. A copy is stored so
+  // later edits can never mutate the save record the caller is holding.
+  const restoreInventory = useCallback((saved: Record<ItemId, number>): void => {
+    setInventory({ ...saved });
+  }, []);
+
   return {
     inventory,
     addInventoryItem,
     deductInventoryItem,
     hasItem,
     craftRecipe,
+    restoreInventory,
   };
 }

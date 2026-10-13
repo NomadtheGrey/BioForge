@@ -15,6 +15,7 @@ export interface UsePlayerStateResult {
   setSelectedFertilizerId: (fertilizerId: ItemId) => void;
   setPlayerTransform: (x: number, z: number, rotation: number) => void;
   setStamina: (stamina: number) => void;
+  restorePlayerState: (saved: PlayerState) => void;
 }
 
 export function usePlayerState(): UsePlayerStateResult {
@@ -66,6 +67,12 @@ export function usePlayerState(): UsePlayerStateResult {
     });
   }, []);
 
+    // Restores a complete saved player state (position, vitals, tool picks)
+  // in one shot, instead of poking each field through its own setter.
+  const restorePlayerState = useCallback((saved: PlayerState): void => {
+    setPlayerState({ ...saved });
+  }, []);
+
   return {
     playerState,
     setActiveTool,
@@ -74,5 +81,6 @@ export function usePlayerState(): UsePlayerStateResult {
     setSelectedFertilizerId,
     setPlayerTransform,
     setStamina,
+    restorePlayerState,
   };
 }

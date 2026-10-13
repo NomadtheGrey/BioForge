@@ -12,6 +12,8 @@ import {
   DroppedItemEntity,
 } from '../types/game';
 import { multiplayerManager } from '../game/multiplayer';
+import type { WorldSnapshot } from '../game/saveSystem';
+
 
 export const FLORA_MATURE_SECONDS = 90;
 export const FLORA_MATURE_SECONDS_FERTILIZED = 25;
@@ -330,6 +332,8 @@ export interface UseWorldEntitiesResult {
   spawnDroppedItem: (itemId: DroppedItemEntity['itemId'], count: number, x: number, z: number) => void;
   upsertDroppedItem: (item: DroppedItemEntity) => void;
   removeDroppedItem: (itemId: string) => void;
+  replaceWorld: (world: WorldSnapshot) => void;
+
   updateTick: (
     dt: number,
     playerX: number,
@@ -487,6 +491,16 @@ export function useWorldEntities(): UseWorldEntitiesResult {
 
   const removeDroppedItem = useCallback((itemId: string): void => {
     setDroppedItems((prev) => prev.filter((d) => d.id !== itemId));
+  }, []);
+
+  // Wholesale world replacement — used when loading a saved game and when
+// applying a host's world snapshot (world_sync) as a guest. Every list
+// is swapped at once so the world never appears half-old, half-new.
+  const replaceWorld = useCallback((world: WorldSnapshot): void => {
+    setFloraList(world.flora);
+    setFaunaList(world.fauna);
+    setStructuresList(world.structures);
+    setDroppedItems(world.drops);
   }, []);
 
   const updateTick = useCallback(
@@ -649,6 +663,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
     spawnDroppedItem,
     upsertDroppedItem,
     removeDroppedItem,
+    replaceWorld,
     updateTick,
   };
 }

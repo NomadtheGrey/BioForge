@@ -24,6 +24,7 @@ const SCRATCH_VEC_B = new THREE.Vector3();
 const SCRATCH_RAY_ORIGIN = new THREE.Vector3();
 const SCRATCH_RAY_DIR = new THREE.Vector3();
 const CENTER_SCREEN_UV = new THREE.Vector2(0, 0);
+const IRIS_DOOR_TRIGGER_RADIUS = 2.5;
 
 export interface ThreeEngineCallbacks {
   onFloraInteract?: (flora: FloraEntity) => void;
@@ -940,7 +941,18 @@ export class BioForgeThreeEngine {
       if (entity.type !== 'iris_slit_door') return;
 
       const dist = Math.hypot(playerX - entity.worldX, playerZ - entity.worldZ);
-      const isNearby = dist < 2.5;
+      let isNearby = dist < IRIS_DOOR_TRIGGER_RADIUS;
+      if (!isNearby) {
+        for (const peerGroup of this.peerMeshes.values()) {
+          const pdist = Math.hypot(peerGroup.position.x - entity.worldX, peerGroup.position.z - entity.worldZ);
+          if (pdist < IRIS_DOOR_TRIGGER_RADIUS) {
+            isNearby = true;
+            break;
+          }
+        }
+      }
+
+
 
       const targetProgress = isNearby ? 1.0 : 0.0;
       entity.doorOpenProgress += (targetProgress - entity.doorOpenProgress) * 0.15;
@@ -1380,7 +1392,8 @@ private initEventListeners() {
         this.callbacks.onEntityHover?.({
           type: 'fauna',
           name: fn.species.replace('_', ' ').toUpperCase(),
-          details: `${fn.isTamed ? 'TAMED • Companion' : 'WILD • Lure to tame'} [HP: ${fn.health}/${fn.maxHealth}]`,
+          details: `${fn.isTamed ? `TAMED • Companion • ${fn.command?.toUpperCase() ?? 'FOLLOW'}` : 'WILD • Lure to tame'} [HP: ${fn.health}/${fn.maxHealth}]`,
+
           entity: fn,
         });
         return;

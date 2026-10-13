@@ -46,6 +46,7 @@ interface HUDProps {
   isPointerLocked: boolean;
   onRequestLock: () => void;
   hoverInfo: HoverTarget;
+  hoverHint?: string | null;
   notifications: GameNotification[];
   roomCode?: string;
   peerCount: number;
@@ -73,6 +74,7 @@ export const HUD: React.FC<HUDProps> = ({
   isPointerLocked,
   onRequestLock,
   hoverInfo,
+  hoverHint,
   notifications,
   roomCode,
   peerCount,
@@ -362,7 +364,7 @@ export const HUD: React.FC<HUDProps> = ({
         {hoverInfo && (
           <div className="glass-panel-biolum px-4 py-2 rounded-2xl flex flex-col items-center animate-fade-in text-center max-w-md shadow-2xl">
             <span className="font-tech text-xs tracking-wider text-cyan-300 font-bold">{hoverInfo.name}</span>
-            <span className="text-xs text-slate-300 mt-0.5">{hoverInfo.details}</span>
+            <span className="text-xs text-slate-300 mt-0.5">{hoverInfo.details}{hoverHint ? ` • ${hoverHint}` : ''}</span>
           </div>
         )}
       </div>

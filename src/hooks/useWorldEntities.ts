@@ -4,13 +4,23 @@
  * Enforces CODE_MANIFESTO.md Rules 1 (Guard Clauses), 2 (Functional Style), 8 (Modular Separation), 9 (Strict Type Safety)
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import {
   FloraEntity,
   FaunaEntity,
   StructureEntity,
   DroppedItemEntity,
 } from '../types/game';
+import { multiplayerManager } from '../game/multiplayer';
+
+export const FLORA_MATURE_SECONDS = 90;
+export const FLORA_MATURE_SECONDS_FERTILIZED = 25;
+export const FERTILIZED_GROWTH_MULT = 2.5;
+export const FOLLOW_OFFSET = 2.5;
+export const WANDER_CHANCE = 0.015;
+export const WANDER_RADIUS = 12;
+
+const FAUNA_SYNC_INTERVAL = 0.5;
 
 const INITIAL_FLORA: FloraEntity[] = [
   // Violet Cradle Flora
@@ -75,7 +85,7 @@ const INITIAL_FLORA: FloraEntity[] = [
     fertilizedGrowth: false,
     fertilizedYield: false,
     harvestReady: false,
-    harvestTimer: 10,
+    harvestTimer: 54,
     isHazardous: false,
     swayOffset: 3,
   },
@@ -306,12 +316,20 @@ export interface UseWorldEntitiesResult {
   structuresList: StructureEntity[];
   droppedItems: DroppedItemEntity[];
   addFlora: (flora: FloraEntity) => void;
+  upsertFlora: (flora: FloraEntity) => void;
+  removeFlora: (floraId: string) => void;
   resetFloraHarvest: (floraId: string, regrowthDuration: number) => void;
   applyFloraFertilizer: (floraId: string, type: 'growth' | 'yield') => void;
   addStructure: (structure: StructureEntity) => void;
+  upsertStructure: (structure: StructureEntity) => void;
   removeStructure: (structureId: string) => void;
   tameFauna: (faunaId: string, customName: string, state: FaunaEntity['state']) => void;
+  setFaunaCommand: (faunaId: string, cmd: 'follow' | 'stay' | 'guard') => void;
+  upsertFauna: (fauna: FaunaEntity) => void;
+  removeFauna: (faunaId: string) => void;
   spawnDroppedItem: (itemId: DroppedItemEntity['itemId'], count: number, x: number, z: number) => void;
+  upsertDroppedItem: (item: DroppedItemEntity) => void;
+  removeDroppedItem: (itemId: string) => void;
   updateTick: (
     dt: number,
     playerX: number,
@@ -326,6 +344,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   const [faunaList, setFaunaList] = useState<FaunaEntity[]>(INITIAL_FAUNA);
   const [structuresList, setStructuresList] = useState<StructureEntity[]>(INITIAL_STRUCTURES);
   const [droppedItems, setDroppedItems] = useState<DroppedItemEntity[]>([]);
+  const faunaSyncTimer = useRef(0);
 
   const addFlora = useCallback((flora: FloraEntity): void => {
     setFloraList((prev) => [...prev, flora]);
@@ -340,6 +359,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
               harvestReady: false,
               harvestTimer: regrowthDuration,
               fertilizedYield: false,
+              growthStage: 0,
             }
           : f
       )
@@ -363,12 +383,36 @@ export function useWorldEntities(): UseWorldEntitiesResult {
     );
   }, []);
 
+  const upsertFlora = useCallback((flora: FloraEntity): void => {
+    setFloraList((prev) => {
+      const idx = prev.findIndex((f) => f.id === flora.id);
+      if (idx === -1) return [...prev, flora];
+      const next = [...prev];
+      next[idx] = flora;
+      return next;
+    });
+  }, []);
+
+  const removeFlora = useCallback((floraId: string): void => {
+    setFloraList((prev) => prev.filter((f) => f.id !== floraId));
+  }, []);
+
   const addStructure = useCallback((structure: StructureEntity): void => {
     setStructuresList((prev) => [...prev, structure]);
   }, []);
 
   const removeStructure = useCallback((structureId: string): void => {
     setStructuresList((prev) => prev.filter((s) => s.id !== structureId));
+  }, []);
+
+  const upsertStructure = useCallback((structure: StructureEntity): void => {
+    setStructuresList((prev) => {
+      const idx = prev.findIndex((s) => s.id === structure.id);
+      if (idx === -1) return [...prev, structure];
+      const next = [...prev];
+      next[idx] = structure;
+      return next;
+    });
   }, []);
 
   const tameFauna = useCallback((faunaId: string, customName: string, state: FaunaEntity['state']): void => {
@@ -380,10 +424,41 @@ export function useWorldEntities(): UseWorldEntitiesResult {
               isTamed: true,
               state,
               customName,
+              command: fn.species === 'chitin_stalker' ? 'guard' : 'follow',
             }
           : fn
       )
     );
+  }, []);
+
+  const upsertFauna = useCallback((fauna: FaunaEntity): void => {
+    setFaunaList((prev) => {
+      const idx = prev.findIndex((f) => f.id === fauna.id);
+      if (idx === -1) return [...prev, fauna];
+      const next = [...prev];
+      next[idx] = fauna;
+      return next;
+    });
+  }, []);
+
+  const setFaunaCommand = useCallback((faunaId: string, cmd: 'follow' | 'stay' | 'guard'): void => {
+    setFaunaList((prev) =>
+      prev.map((fn) =>
+        fn.id === faunaId
+          ? {
+              ...fn,
+              command: cmd,
+              targetX: fn.x,
+              targetZ: fn.z,
+              state: cmd === 'follow' ? 'following' : cmd === 'guard' ? 'patrolling' : 'idle',
+            }
+          : fn
+      )
+    );
+  }, []);
+
+  const removeFauna = useCallback((faunaId: string): void => {
+    setFaunaList((prev) => prev.filter((f) => f.id !== faunaId));
   }, []);
 
   const spawnDroppedItem = useCallback((itemId: DroppedItemEntity['itemId'], count: number, x: number, z: number): void => {
@@ -397,6 +472,21 @@ export function useWorldEntities(): UseWorldEntitiesResult {
       bobTime: 0,
     };
     setDroppedItems((prev) => [...prev, newItem]);
+    multiplayerManager.broadcastEntityUpsert('drop', newItem);
+  }, []);
+
+  const upsertDroppedItem = useCallback((item: DroppedItemEntity): void => {
+    setDroppedItems((prev) => {
+      const idx = prev.findIndex((d) => d.id === item.id);
+      if (idx === -1) return [...prev, item];
+      const next = [...prev];
+      next[idx] = item;
+      return next;
+    });
+  }, []);
+
+  const removeDroppedItem = useCallback((itemId: string): void => {
+    setDroppedItems((prev) => prev.filter((d) => d.id !== itemId));
   }, []);
 
   const updateTick = useCallback(
@@ -407,18 +497,38 @@ export function useWorldEntities(): UseWorldEntitiesResult {
       onPickupItem: (item: DroppedItemEntity) => void,
       onCritterExcrete?: (species: string) => void
     ): void => {
-      // 1. Fauna Behavioral AI Tick
+      const simulateWorld = !multiplayerManager.isConnected || multiplayerManager.isHost;
+
+      // 1. Fauna Behavioral AI Tick (host authority — guests apply host upserts)
+      if (simulateWorld) {
+      faunaSyncTimer.current += dt;
+      const syncFaunaNow = faunaSyncTimer.current >= FAUNA_SYNC_INTERVAL;
+      if (syncFaunaNow) faunaSyncTimer.current = 0;
       setFaunaList((prevFauna) =>
         prevFauna.map((fauna) => {
-          let { x, z, state, isTamed, targetX, targetZ, byproductTimer } = fauna;
+          let { x, z, state, isTamed, targetX, targetZ, byproductTimer, command } = fauna;
 
-          if (isTamed && state === 'following') {
-            targetX = playerX + Math.sin(fauna.id.length) * 2.5;
-            targetZ = playerZ + Math.cos(fauna.id.length) * 2.5;
-          }
-          if ((!isTamed || state !== 'following') && Math.random() < 0.015) {
-            targetX = x + (Math.random() - 0.5) * 12;
-            targetZ = z + (Math.random() - 0.5) * 12;
+          if (isTamed && command) {
+            // Pet commands drive tamed companions; state reflects current activity.
+            // Peaceful mode: guard holds its anchor — hostile engagement hooks in later.
+            if (command === 'follow') {
+              targetX = playerX + Math.sin(fauna.id.length) * FOLLOW_OFFSET;
+              targetZ = playerZ + Math.cos(fauna.id.length) * FOLLOW_OFFSET;
+              state = 'following';
+            } else if (command === 'stay') {
+              state = 'idle';
+            } else {
+              state = 'patrolling';
+            }
+          } else {
+            if (isTamed && state === 'following') {
+              targetX = playerX + Math.sin(fauna.id.length) * FOLLOW_OFFSET;
+              targetZ = playerZ + Math.cos(fauna.id.length) * FOLLOW_OFFSET;
+            }
+            if ((!isTamed || state !== 'following') && Math.random() < WANDER_CHANCE) {
+              targetX = x + (Math.random() - 0.5) * WANDER_RADIUS;
+              targetZ = z + (Math.random() - 0.5) * WANDER_RADIUS;
+            }
           }
 
           const distToTarget = Math.hypot(targetX - x, targetZ - z);
@@ -446,37 +556,48 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             onCritterExcrete?.('chitin_stalker');
           }
 
-          return {
+          const nextFauna = {
             ...fauna,
             x,
             z,
+            state,
             rotation: newRot,
             targetX,
             targetZ,
             byproductTimer,
             animTime: fauna.animTime + dt,
           };
+          if (syncFaunaNow) multiplayerManager.broadcastEntityUpsert('fauna', nextFauna);
+          return nextFauna;
         })
       );
+      }
 
-      // 2. Flora Growth & Replenish Tick
+      // 2. Flora Growth & Replenish Tick (host authority)
+      if (simulateWorld) {
       setFloraList((prevFlora) =>
         prevFlora.map((flora) => {
           if (flora.harvestReady) return flora;
 
-          const growthMult = flora.fertilizedGrowth ? 2.5 : 1.0;
+          const maxTimer = flora.fertilizedGrowth ? FLORA_MATURE_SECONDS_FERTILIZED : FLORA_MATURE_SECONDS;
+          const growthMult = flora.fertilizedGrowth ? FERTILIZED_GROWTH_MULT : 1.0;
           const newTimer = Math.max(0, flora.harvestTimer - dt * growthMult);
           const isNowReady = newTimer === 0;
-          const newStage = isNowReady ? 5 : Math.min(4, Math.floor((1 - newTimer / 18) * 5));
+          const newStage = isNowReady ? 5 : Math.min(4, Math.floor((1 - newTimer / maxTimer) * 5));
 
-          return {
+          const nextFlora = {
             ...flora,
             harvestTimer: newTimer,
             harvestReady: isNowReady,
             growthStage: newStage,
           };
+          if (nextFlora.growthStage !== flora.growthStage || nextFlora.harvestReady !== flora.harvestReady) {
+            multiplayerManager.broadcastEntityUpsert('flora', nextFlora);
+          }
+          return nextFlora;
         })
       );
+      }
 
       // 3. Dropped Item Magnetism & Pickup (Zero else)
       setDroppedItems((prevDrops) => {
@@ -485,6 +606,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           const distToPlayer = Math.hypot(playerX - item.x, playerZ - item.z);
           if (distToPlayer < 2.0) {
             onPickupItem(item);
+            multiplayerManager.broadcastEntityRemove('drop', item.id);
             return;
           }
 
@@ -513,12 +635,20 @@ export function useWorldEntities(): UseWorldEntitiesResult {
     structuresList,
     droppedItems,
     addFlora,
+    upsertFlora,
+    removeFlora,
     resetFloraHarvest,
     applyFloraFertilizer,
     addStructure,
+    upsertStructure,
     removeStructure,
     tameFauna,
+    setFaunaCommand,
+    upsertFauna,
+    removeFauna,
     spawnDroppedItem,
+    upsertDroppedItem,
+    removeDroppedItem,
     updateTick,
   };
 }

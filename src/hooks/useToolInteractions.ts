@@ -19,6 +19,7 @@ import {
 import { ITEMS } from '../game/constants';
 import { soundEngine } from '../audio/soundEngine';
 import { multiplayerManager } from '../game/multiplayer';
+import { FLORA_MATURE_SECONDS, FLORA_MATURE_SECONDS_FERTILIZED } from './useWorldEntities';
 
 export interface UseToolInteractionsParams {
   activeTool: ToolType;
@@ -34,6 +35,7 @@ export interface UseToolInteractionsParams {
   addStructure: (structure: StructureEntity) => void;
   removeStructure: (structureId: string) => void;
   tameFauna: (faunaId: string, customName: string, state: FaunaEntity['state']) => void;
+  setFaunaCommand: (faunaId: string, cmd: 'follow' | 'stay' | 'guard') => void;
   setCodexList: React.Dispatch<React.SetStateAction<CodexEntry[]>>;
   postNotification: (
     title: string,
@@ -60,6 +62,7 @@ export function useToolInteractions({
   addStructure,
   removeStructure,
   tameFauna,
+  setFaunaCommand,
   setCodexList,
   postNotification,
   onOpenBioForgeModal,
@@ -115,7 +118,15 @@ export function useToolInteractions({
       addInventoryItem(yieldItem, yieldCount);
       // Trimmings: every harvest yields a little compost — the renewable source
       addInventoryItem('basic_compost', 1);
-      resetFloraHarvest(flora.id, flora.fertilizedGrowth ? 8 : 18);
+      const regrowTimer = flora.fertilizedGrowth ? FLORA_MATURE_SECONDS_FERTILIZED : FLORA_MATURE_SECONDS;
+      resetFloraHarvest(flora.id, regrowTimer);
+      multiplayerManager.broadcastEntityUpsert('flora', {
+        ...flora,
+        harvestReady: false,
+        harvestTimer: regrowTimer,
+        fertilizedYield: false,
+        growthStage: 0,
+      });
 
       setCodexList((prev) =>
         prev.map((c) =>
@@ -132,7 +143,6 @@ export function useToolInteractions({
         ITEMS[yieldItem]?.color || '#2dd4bf'
       );
 
-      multiplayerManager.broadcastFloraHarvest(flora.id);
     },
     [addInventoryItem, resetFloraHarvest, setCodexList, postNotification, triggerHarvestFx]
   );
@@ -191,6 +201,12 @@ export function useToolInteractions({
           deductInventoryItem('growth_fertilizer', 1);
           soundEngine.playFertilize();
           applyFloraFertilizer(targetFlora.id, 'growth');
+          multiplayerManager.broadcastEntityUpsert('flora', {
+            ...targetFlora,
+            fertilizedGrowth: true,
+            growthStage: Math.min(5, targetFlora.growthStage + 1),
+            harvestReady: true,
+          });
           postNotification('Growth Fertilizer Applied', 'Tripled plant maturation rate! Flower is ready to harvest.', 'craft', '#10b981');
           return;
         }
@@ -199,6 +215,10 @@ export function useToolInteractions({
           deductInventoryItem('yield_fertilizer', 1);
           soundEngine.playFertilize();
           applyFloraFertilizer(targetFlora.id, 'yield');
+          multiplayerManager.broadcastEntityUpsert('flora', {
+            ...targetFlora,
+            fertilizedYield: true,
+          });
           postNotification('Yield Fertilizer Applied', 'Enhanced material yield and triggered rare bio-traits.', 'craft', '#a855f7');
           return;
         }
@@ -234,13 +254,14 @@ export function useToolInteractions({
         fertilizedGrowth: false,
         fertilizedYield: false,
         harvestReady: false,
-        harvestTimer: 15,
+        harvestTimer: FLORA_MATURE_SECONDS,
         isHazardous: false,
         swayOffset: Math.random() * 3,
         isPlayerPlanted: true,
       };
 
       addFlora(newFlora);
+      multiplayerManager.broadcastEntityUpsert('flora', newFlora);
       postNotification('Spore Planted', `Successfully cultivated ${ITEMS[selectedSeedId]?.name}. Water with fertilizer to accelerate!`, 'craft', '#4ade80');
     },
     [selectedSeedId, hasItem, deductInventoryItem, applyFloraFertilizer, addFlora, postNotification]
@@ -263,7 +284,7 @@ export function useToolInteractions({
         '#38bdf8'
       );
 
-      multiplayerManager.broadcastBuildRemoved(structure.id);
+      multiplayerManager.broadcastEntityRemove('structure', structure.id);
     },
     [addInventoryItem, removeStructure, triggerSolventFx, postNotification]
   );
@@ -272,7 +293,19 @@ export function useToolInteractions({
   const handleTameFauna = useCallback(
     (fauna: FaunaEntity): void => {
       if (fauna.isTamed) {
-        postNotification('Already Domesticated', `${fauna.customName || fauna.species.replace('_', ' ')} is happily loyal to your outpost!`, 'tame', '#2dd4bf');
+        const order: Array<'follow' | 'stay' | 'guard'> = ['follow', 'stay', 'guard'];
+        const next = order[(order.indexOf(fauna.command ?? 'follow') + 1) % order.length];
+        const petName = fauna.customName || fauna.species.replace('_', ' ');
+        const verb = next === 'follow' ? 'follow you' : next === 'stay' ? 'stay here' : 'guard this spot';
+        setFaunaCommand(fauna.id, next);
+        multiplayerManager.broadcastEntityUpsert('fauna', {
+          ...fauna,
+          command: next,
+          targetX: fauna.x,
+          targetZ: fauna.z,
+          state: next === 'follow' ? 'following' : next === 'guard' ? 'patrolling' : 'idle',
+        });
+        postNotification('Pet Command', `${petName} will ${verb}.`, 'tame', '#2dd4bf');
         return;
       }
 
@@ -288,7 +321,7 @@ export function useToolInteractions({
 
         postNotification(
           'Companion Domesticated!',
-          'Soft-Puff tamed! It will now clean your base perimeter and excrete high-grade Bio-Pellets.',
+          'Soft-Puff tamed! It follows you and excretes high-grade Bio-Pellets. Lure it again to order it to stay or guard.',
           'tame',
           '#2dd4bf'
         );
@@ -363,7 +396,7 @@ export function useToolInteractions({
 
       addStructure(newStruct);
       postNotification('Living Composite Placed', `Grown ${ITEMS[selectedStructureType]?.name}. Fully recyclable via Solvent Sprayer [4].`, 'craft', '#a855f7');
-      multiplayerManager.broadcastBuildPlaced(newStruct);
+      multiplayerManager.broadcastEntityUpsert('structure', newStruct);
     },
     [selectedStructureType, hasItem, deductInventoryItem, addStructure, postNotification]
   );

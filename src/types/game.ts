@@ -111,6 +111,8 @@ export interface FaunaEntity {
   animTime: number;
   colorVariant?: string;
   customName?: string;
+  command?: 'follow' | 'stay' | 'guard';
+
 }
 
 export type StructureType =

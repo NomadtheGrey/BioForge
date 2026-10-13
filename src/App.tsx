@@ -9,11 +9,18 @@ import {
   HoverTarget,
   CodexEntry,
   CraftingRecipe,
+  FloraEntity,
+  FaunaEntity,
+  StructureEntity,
+  DroppedItemEntity,
 } from './types/game';
 import { INITIAL_CODEX, ITEMS } from './game/constants';
 import { BioForgeThreeEngine } from './game/threeEngine';
 import { soundEngine } from './audio/soundEngine';
-import { multiplayerManager } from './game/multiplayer';
+import { multiplayerManager, EntityKind, EntitySnapshot } from './game/multiplayer';
+
+const CHAT_TOAST_DURATION_MS = 5000;
+const MAX_CHAT_TOASTS = 5;
 import { FirstPersonMovementController, ControllerInputState } from './game/controller';
 
 // Modular Domain Hooks (Enforces CODE_MANIFESTO.md Rule 8)
@@ -68,12 +75,20 @@ export default function App() {
     structuresList,
     droppedItems,
     addFlora,
+    upsertFlora,
+    removeFlora,
     resetFloraHarvest,
     applyFloraFertilizer,
     addStructure,
+    upsertStructure,
     removeStructure,
     tameFauna,
+    setFaunaCommand,
+    upsertFauna,
+    removeFauna,
     updateTick,
+    upsertDroppedItem,
+    removeDroppedItem,
   } = useWorldEntities();
 
   // 2. Modals & UI States
@@ -95,6 +110,7 @@ export default function App() {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [peers, setPeers] = useState(multiplayerManager.getConnectedPeers());
   const [chatMessages, setChatMessages] = useState<{ sender: string; text: string; color: string; time: string }[]>([]);
+  const [chatToasts, setChatToasts] = useState<{ id: number; sender: string; text: string; color: string }[]>([]);
 
   // Minimap position state updated smoothly during frame/tick
   const [minimapPos, setMinimapPos] = useState({ x: playerState.x, z: playerState.z, rotation: playerState.rotation });
@@ -172,6 +188,7 @@ export default function App() {
     addStructure,
     removeStructure,
     tameFauna,
+    setFaunaCommand,
     setCodexList,
     postNotification,
     onOpenBioForgeModal: openBioForgeModal,
@@ -345,11 +362,17 @@ export default function App() {
           );
         }
 
-        // 3. Smooth Sol-Cycle advancement (1 second throttled UI tick)
+        // 3. Smooth Sol-Cycle advancement (1 second throttled UI tick, host authority)
         accumulatedDayTime.current += dt;
         if (accumulatedDayTime.current >= 1.0) {
           accumulatedDayTime.current = 0;
-          setDayNightCycle((prev) => (prev + 0.002) % 1.0);
+          if (!multiplayerManager.isConnected || multiplayerManager.isHost) {
+            setDayNightCycle((prev) => {
+              const next = (prev + 0.002) % 1.0;
+              multiplayerManager.broadcastDayNight(next);
+              return next;
+            });
+          }
         }
       },
     });
@@ -534,9 +557,49 @@ export default function App() {
           ...prev,
           { sender, text, color, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
         ]);
+        const toastId = Date.now() + Math.random();
+        setChatToasts((prev) => [...prev.slice(-MAX_CHAT_TOASTS), { id: toastId, sender, text, color }]);
+        setTimeout(() => {
+          setChatToasts((prev) => prev.filter((t) => t.id !== toastId));
+        }, CHAT_TOAST_DURATION_MS);
+      },
+      onEntityUpsert: (kind: EntityKind, entity: EntitySnapshot) => {
+        switch (kind) {
+          case 'flora':
+            upsertFlora(entity as FloraEntity);
+            break;
+          case 'fauna':
+            upsertFauna(entity as FaunaEntity);
+            break;
+          case 'structure':
+            upsertStructure(entity as StructureEntity);
+            break;
+          case 'drop':
+            upsertDroppedItem(entity as DroppedItemEntity);
+            break;
+        }
+      },
+      onEntityRemove: (kind: EntityKind, id: string) => {
+        switch (kind) {
+          case 'flora':
+            removeFlora(id);
+            break;
+          case 'fauna':
+            removeFauna(id);
+            break;
+          case 'structure':
+            removeStructure(id);
+            break;
+          case 'drop':
+            removeDroppedItem(id);
+            break;
+        }
+      },
+      onDayNight: (value) => {
+        setDayNightCycle(value);
       },
     });
-  }, [peers, addStructure, removeStructure, resetFloraHarvest, tameFauna, postNotification]);
+  }, [peers, addStructure, removeStructure, resetFloraHarvest, tameFauna, postNotification, upsertFlora, removeFlora, upsertFauna, removeFauna, upsertStructure, upsertDroppedItem, removeDroppedItem]);
 
   const handleHostSession = () => {
     const code = multiplayerManager.hostSession();
@@ -616,6 +679,17 @@ export default function App() {
 
   const craftAccess = checkCraftAccess();
 
+  // Trowel hover hint: tell the player when a plant can (or can't) be fertilized
+  const hoverHint: string | null = (() => {
+    if (playerState.activeTool !== 'planter_trowel' || hoverInfo?.type !== 'flora') return null;
+    const flora = hoverInfo.entity;
+    if (flora.fertilizedGrowth || flora.fertilizedYield) return null;
+    const hasFertilizer =
+      (inventory['growth_fertilizer'] ?? 0) > 0 || (inventory['yield_fertilizer'] ?? 0) > 0;
+    if (hasFertilizer) return 'Click to apply fertilizer';
+    return 'No fertilizer — craft at Bio-Forge [B]';
+  })();
+
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-slate-950 font-sans select-none">
       {/* 3D WebGL Canvas Viewport */}
@@ -656,12 +730,23 @@ export default function App() {
         isPointerLocked={isPointerLocked}
         onRequestLock={() => engineRef.current?.requestPointerLock()}
         hoverInfo={hoverInfo}
+        hoverHint={hoverHint}
         notifications={notifications}
         roomCode={roomCode}
         peerCount={peers.length}
         selectedStructureType={playerState.selectedStructureType}
         selectedSeedId={playerState.selectedSeedId}
       />
+
+      {/* In-game chat toasts (bottom-left, above nav buttons) */}
+      <div className="absolute left-4 bottom-28 z-30 flex flex-col justify-end gap-1.5 max-w-xs pointer-events-none">
+        {chatToasts.map((t) => (
+          <div key={t.id} className="glass-panel px-3 py-1.5 rounded-xl text-xs animate-fade-in">
+            <span className="font-bold" style={{ color: t.color }}>{t.sender}: </span>
+            <span className="text-slate-200">{t.text}</span>
+          </div>
+        ))}
+      </div>
 
       {/* Modals */}
       <BioForgeModal

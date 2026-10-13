@@ -3,7 +3,15 @@ import {
   StructureEntity,
   FloraEntity,
   FaunaEntity,
+  DroppedItemEntity,
 } from '../types/game';
+
+export type EntityKind = 'flora' | 'fauna' | 'structure' | 'drop';
+export type EntitySnapshot =
+  | FloraEntity
+  | FaunaEntity
+  | StructureEntity
+  | DroppedItemEntity;
 
 export interface MultiplayerMessage {
   type:
@@ -15,7 +23,10 @@ export interface MultiplayerMessage {
     | 'flora_harvested'
     | 'fauna_tamed'
     | 'world_sync'
-    | 'chat_message';
+    | 'chat_message'
+    | 'entity_upsert'
+    | 'entity_remove'
+    | 'day_night';
   senderId: string;
   senderName: string;
   senderColor: string;
@@ -34,6 +45,9 @@ export interface MultiplayerCallbacks {
   onFaunaTamed?: (faunaId: string, tamedBy: string) => void;
   onWorldSync?: (data: { structures: StructureEntity[]; flora: FloraEntity[]; fauna: FaunaEntity[] }) => void;
   onChatMessage?: (senderName: string, text: string, color: string) => void;
+  onEntityUpsert?: (kind: EntityKind, entity: EntitySnapshot) => void;
+  onEntityRemove?: (kind: EntityKind, id: string) => void;
+  onDayNight?: (value: number) => void;
 }
 
 export class MultiplayerManager {
@@ -212,9 +226,27 @@ export class MultiplayerManager {
         break;
       }
 
+      case 'entity_upsert': {
+        const { kind, entity } = msg.payload as { kind: EntityKind; entity: EntitySnapshot };
+        this.callbacks.onEntityUpsert?.(kind, entity);
+        break;
+      }
+
+      case 'entity_remove': {
+        const { kind, id } = msg.payload as { kind: EntityKind; id: string };
+        this.callbacks.onEntityRemove?.(kind, id);
+        break;
+      }
+
       case 'chat_message': {
         const { text } = msg.payload as { text: string };
         this.callbacks.onChatMessage?.(msg.senderName, text, msg.senderColor);
+        break;
+      }
+
+      case 'day_night': {
+        const { value } = msg.payload as { value: number };
+        this.callbacks.onDayNight?.(value);
         break;
       }
     }
@@ -256,6 +288,18 @@ export class MultiplayerManager {
 
   public broadcastFaunaTame(faunaId: string, tamedBy: string) {
     this.broadcastMessage('fauna_tamed', { faunaId, tamedBy });
+  }
+
+  public broadcastEntityUpsert(kind: EntityKind, entity: EntitySnapshot) {
+    this.broadcastMessage('entity_upsert', { kind, entity });
+  }
+
+  public broadcastEntityRemove(kind: EntityKind, id: string) {
+    this.broadcastMessage('entity_remove', { kind, id });
+  }
+
+  public broadcastDayNight(value: number) {
+    this.broadcastMessage('day_night', { value });
   }
 
   public broadcastChat(text: string) {

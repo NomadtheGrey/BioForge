@@ -21,11 +21,23 @@ import { soundEngine } from '../audio/soundEngine';
 import { multiplayerManager } from '../game/multiplayer';
 import { FLORA_MATURE_SECONDS, FLORA_MATURE_SECONDS_FERTILIZED } from './useWorldEntities';
 
+// Placement layers: each 2m grid cell may hold ONE ground-layer structure
+// (a floor OR a mound) plus ONE upright structure standing on it (a wall,
+// a forge, a door...). Two of the same layer in one cell is a stack, and
+// stacking is rejected until real wall-stacking support lands.
+const GROUND_LAYER_TYPES: StructureType[] = ['root_tile_floor', 'cultivation_mound'];
+
+// A new plant must be at least this far (meters) from every existing one —
+// anything closer is a stack of seedlings on one spot, not a garden.
+const MIN_PLANT_SPACING = 1.0;
+
 export interface UseToolInteractionsParams {
   activeTool: ToolType;
   selectedStructureType: StructureType;
   selectedSeedId: ItemId;
   inventory: Record<ItemId, number>;
+  structuresList: StructureEntity[];
+  floraList: FloraEntity[];
   addInventoryItem: (itemId: ItemId, count?: number) => void;
   deductInventoryItem: (itemId: ItemId, count?: number) => boolean;
   hasItem: (itemId: ItemId, minCount?: number) => boolean;
@@ -53,6 +65,8 @@ export function useToolInteractions({
   selectedStructureType,
   selectedSeedId,
   inventory,
+  structuresList,
+  floraList,
   addInventoryItem,
   deductInventoryItem,
   hasItem,
@@ -228,6 +242,15 @@ export function useToolInteractions({
       }
 
       // Planting a new seed
+      // Spacing guard: refuse to root a plant on top of an existing one.
+      const tooClose = floraList.some(
+        (f) => Math.hypot(f.x - worldX, f.z - worldZ) < MIN_PLANT_SPACING
+      );
+      if (tooClose) {
+        postNotification('Already Growing Here', 'A plant is already rooted at this spot — give it about a meter of space.', 'alert', '#fbbf24');
+        return;
+      }
+
       if (!hasItem(selectedSeedId, 1)) {
         postNotification('No Seeds in Stock', `You need a ${ITEMS[selectedSeedId]?.name || selectedSeedId} to plant. Craft more in Bio-Forge [B].`, 'alert', '#ef4444');
         return;
@@ -264,7 +287,7 @@ export function useToolInteractions({
       multiplayerManager.broadcastEntityUpsert('flora', newFlora);
       postNotification('Spore Planted', `Successfully cultivated ${ITEMS[selectedSeedId]?.name}. Water with fertilizer to accelerate!`, 'craft', '#4ade80');
     },
-    [selectedSeedId, hasItem, deductInventoryItem, applyFloraFertilizer, addFlora, postNotification]
+    [selectedSeedId, hasItem, deductInventoryItem, applyFloraFertilizer, addFlora, postNotification, floraList]
   );
 
   // 4. Solvent Sprayer (100% Recycler)
@@ -378,6 +401,25 @@ export function useToolInteractions({
       const gridX = Math.round(worldX / 2);
       const gridZ = Math.round(worldZ / 2);
 
+      // Occupancy guard: one ground layer + one upright structure per
+      // cell. A floor under a wall is fine; a floor ON a floor is not.
+      const placingGroundLayer = GROUND_LAYER_TYPES.includes(selectedStructureType);
+      const sameLayerOccupied = structuresList.some((s) => {
+        if (s.gridX !== gridX || s.gridZ !== gridZ) return false;
+        return GROUND_LAYER_TYPES.includes(s.type) === placingGroundLayer;
+      });
+      if (sameLayerOccupied) {
+        postNotification(
+          placingGroundLayer ? 'Tile Already Floored' : 'Tile Occupied',
+          placingGroundLayer
+            ? 'That tile already has a floor or a mound — one ground layer per tile.'
+            : 'Something is already built on that tile. Dissolve it with the Solvent Sprayer [4] to rebuild.',
+          'alert',
+          '#fbbf24'
+        );
+        return;
+      }
+
       deductInventoryItem(selectedStructureType, 1);
       soundEngine.playBuildPlace();
 
@@ -398,7 +440,7 @@ export function useToolInteractions({
       postNotification('Living Composite Placed', `Grown ${ITEMS[selectedStructureType]?.name}. Fully recyclable via Solvent Sprayer [4].`, 'craft', '#a855f7');
       multiplayerManager.broadcastEntityUpsert('structure', newStruct);
     },
-    [selectedStructureType, hasItem, deductInventoryItem, addStructure, postNotification]
+    [selectedStructureType, hasItem, deductInventoryItem, addStructure, postNotification, structuresList]
   );
 
   // Unified Interactions Handlers (Flat, zero else)
@@ -455,6 +497,22 @@ export function useToolInteractions({
       handleGroundClick(structure.worldX, structure.worldZ);
       return;
     }
+    // Planter on flat surfaces: a mound IS soil, so any seed plants there.
+    if (activeTool === 'planter_trowel' && structure.type === 'cultivation_mound') {
+      handlePlanterAction(structure.worldX, structure.worldZ);
+      return;
+    }
+    // Planter on a floor: floors are paved, and only lantern-ferns root on
+    // them — they are the house-lighting plant. Other seeds get a hint
+    // instead of the old silent nothing.
+    if (activeTool === 'planter_trowel' && structure.type === 'root_tile_floor') {
+      if (selectedSeedId !== 'seed_lantern_fern') {
+        postNotification('Needs Open Soil', 'Only Lantern-Ferns root on paved floors — other seeds need unpaved ground or a cultivation mound.', 'alert', '#fbbf24');
+        return;
+      }
+      handlePlanterAction(structure.worldX, structure.worldZ);
+      return;
+    }
     if (activeTool === 'solvent_sprayer') {
       handleSolventSprayer(structure);
       return;
@@ -468,7 +526,7 @@ export function useToolInteractions({
       return;
     }
   },
-  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, handleGroundClick]
+  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, handleGroundClick, handlePlanterAction, selectedSeedId, postNotification]
 );
 
   return {

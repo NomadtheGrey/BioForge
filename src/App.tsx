@@ -197,6 +197,8 @@ export default function App() {
     selectedStructureType: playerState.selectedStructureType,
     selectedSeedId: playerState.selectedSeedId,
     inventory,
+    structuresList,
+    floraList,
     addInventoryItem,
     deductInventoryItem,
     hasItem,
@@ -678,6 +680,23 @@ useEffect(() => {
     setActiveModal('multiplayer');
   };
 
+  // The HUD's Save button. saveNow() itself silently no-ops in exactly
+  // the two cases guarded below, so this handler checks them first and
+  // tells the player what happened instead of letting a click vanish.
+  const handleManualSave = (): void => {
+    const meta = currentSaveRef.current;
+    if (!meta) {
+      postNotification('Nothing to Save', 'You are visiting as a co-op guest — there is no local world attached to this session.', 'system', '#f59e0b');
+      return;
+    }
+    if (multiplayerManager.isConnected && !multiplayerManager.isHost) {
+      postNotification('Guest Session', "You are playing in the host's world — only the host can save it.", 'system', '#f59e0b');
+      return;
+    }
+    saveNow();
+    postNotification('World Saved', `${meta.name} was saved just now.`, 'system', '#10b981');
+  };
+
   // --------------------------------------------------------------------------
   // Multiplayer Event Setup
   // --------------------------------------------------------------------------
@@ -889,6 +908,7 @@ useEffect(() => {
         onOpenMultiplayer={() => setActiveModal('multiplayer')}
         onOpenControls={() => setActiveModal('controls')}
         onOpenDevTools={() => setActiveModal('devtools')}
+        onSave={handleManualSave}
         currentBiomeName={getCurrentBiomeName()}
         dayNightCycle={dayNightCycle}
         onToggleDayNight={() => {

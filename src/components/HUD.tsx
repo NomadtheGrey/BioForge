@@ -14,6 +14,7 @@ import {
   Moon,
   FolderArchive,
   Map,
+  Save,
 } from 'lucide-react';
 import {
   ToolType,
@@ -38,6 +39,7 @@ interface HUDProps {
   onOpenMultiplayer: () => void;
   onOpenControls: () => void;
   onOpenDevTools?: () => void;
+  onSave?: () => void;
   currentBiomeName: string;
   dayNightCycle: number;
   onToggleDayNight: () => void;
@@ -66,6 +68,7 @@ export const HUD: React.FC<HUDProps> = ({
   onOpenMultiplayer,
   onOpenControls,
   onOpenDevTools,
+  onSave,
   currentBiomeName,
   dayNightCycle,
   onToggleDayNight,
@@ -239,9 +242,9 @@ export const HUD: React.FC<HUDProps> = ({
           )}
         </div>
 
-        {/* Center Top: Biome & Day/Night Indicator */}
-        <div className="pointer-events-auto flex items-center gap-3">
-          <div className="glass-panel px-4 py-2 rounded-2xl flex items-center gap-2.5">
+        {/* Center Top: Biome & Day/Night — one grouped bar */}
+        <div className="pointer-events-auto glass-panel px-2 py-1.5 rounded-2xl flex items-center gap-1 shadow-lg">
+          <div className="px-2.5 py-1 flex items-center gap-2.5">
             <Compass className="w-4 h-4 text-cyan-400" />
             <div className="flex flex-col">
               <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono">Current Sector</span>
@@ -251,11 +254,13 @@ export const HUD: React.FC<HUDProps> = ({
             </div>
           </div>
 
+          <div className="w-px h-6 bg-slate-700/60" />
+
           {/* Day/Night Toggle & Bioluminescence button */}
           <button
             onClick={onToggleDayNight}
             title="Toggle Day / Night Bioluminescence"
-            className="glass-panel hover:bg-slate-800/80 transition-colors p-2.5 rounded-2xl flex items-center gap-2 text-xs font-medium text-slate-200 border border-slate-700/50"
+            className="hover:bg-slate-800/80 transition-colors p-2 rounded-xl flex items-center gap-2 text-xs font-medium text-slate-200"
           >
             {isDay ? (
               <>
@@ -271,26 +276,44 @@ export const HUD: React.FC<HUDProps> = ({
           </button>
         </div>
 
-        {/* Right Top: Room & Navigation Modals */}
-        <div className="pointer-events-auto flex items-center gap-2">
-          {/* Multiplayer Status Pill */}
+        {/* Right Top: one grouped action bar — save, session, and system
+            buttons live together in a single panel instead of floating
+            as separate pills. Inner buttons are flat "ghost" buttons. */}
+        <div className="pointer-events-auto glass-panel p-1.5 rounded-2xl flex items-center gap-1 shadow-lg">
+          {/* Save World (manual save — autosave also runs every 30s) */}
+          {onSave && (
+            <button
+              onClick={onSave}
+              title="Save World Now"
+              className="p-2 rounded-xl text-emerald-300 hover:text-emerald-200 hover:bg-emerald-950/50 transition-colors flex items-center gap-1.5"
+            >
+              <Save className="w-4 h-4 text-emerald-400" />
+              <span className="text-[11px] font-mono font-medium hidden md:inline">Save</span>
+            </button>
+          )}
+
+          <div className="w-px h-6 bg-slate-700/60" />
+
+          {/* Multiplayer Status segment */}
           <button
             onClick={onOpenMultiplayer}
-            className={`glass-panel px-3 py-2 rounded-2xl flex items-center gap-2 text-xs font-medium border transition-colors ${
+            className={`px-2.5 py-2 rounded-xl flex items-center gap-2 text-xs font-medium transition-colors ${
               roomCode
-                ? 'border-emerald-500/50 text-emerald-300 bg-emerald-950/40'
-                : 'border-slate-700/50 text-slate-300 hover:bg-slate-800/80'
+                ? 'text-emerald-300 bg-emerald-950/40'
+                : 'text-slate-300 hover:bg-slate-800/80'
             }`}
           >
             <Users className="w-4 h-4 text-cyan-400" />
             <span>{roomCode ? `Room: ${roomCode} (${peerCount + 1})` : 'P2P Co-Op'}</span>
           </button>
 
+          <div className="w-px h-6 bg-slate-700/60" />
+
           {/* Sound Toggle */}
           <button
             onClick={onToggleMute}
             title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
-            className="glass-panel p-2.5 rounded-2xl text-slate-300 hover:text-white transition-colors"
+            className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/70 transition-colors"
           >
             {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-cyan-400" />}
           </button>
@@ -300,7 +323,7 @@ export const HUD: React.FC<HUDProps> = ({
             <button
               onClick={onOpenDevTools}
               title="Dev Tools: Codebase Source Exporter"
-              className="glass-panel p-2.5 rounded-2xl text-cyan-400 hover:text-cyan-200 hover:border-cyan-500/50 transition-colors flex items-center gap-1.5 border border-cyan-500/30 bg-cyan-950/30"
+              className="p-2 rounded-xl text-cyan-400 hover:text-cyan-200 hover:bg-cyan-950/50 transition-colors flex items-center gap-1.5"
             >
               <FolderArchive className="w-4 h-4 text-cyan-400" />
               <span className="text-[11px] font-mono font-medium hidden md:inline">Dev Tools</span>
@@ -311,10 +334,10 @@ export const HUD: React.FC<HUDProps> = ({
           <button
             onClick={() => setIsMinimapVisible((prev) => !prev)}
             title={isMinimapVisible ? 'Hide Minimap Radar' : 'Show Minimap Radar'}
-            className={`glass-panel p-2.5 rounded-2xl transition-colors flex items-center gap-1.5 border ${
+            className={`p-2 rounded-xl transition-colors flex items-center gap-1.5 ${
               isMinimapVisible
-                ? 'border-cyan-500/50 text-cyan-300 bg-cyan-950/40'
-                : 'border-slate-700/50 text-slate-300 hover:text-white'
+                ? 'text-cyan-300 bg-cyan-950/50'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/70'
             }`}
           >
             <Map className="w-4 h-4 text-cyan-400" />
@@ -325,7 +348,7 @@ export const HUD: React.FC<HUDProps> = ({
           <button
             onClick={onOpenControls}
             title="Controls & Guide"
-            className="glass-panel p-2.5 rounded-2xl text-slate-300 hover:text-white transition-colors"
+            className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/70 transition-colors"
           >
             <HelpCircle className="w-4 h-4 text-slate-300" />
           </button>
@@ -445,11 +468,11 @@ export const HUD: React.FC<HUDProps> = ({
         )}
 
         <div className="flex items-center justify-between w-full max-w-4xl">
-          {/* Main Quick Nav Buttons */}
-          <div className="pointer-events-auto flex items-center gap-2">
+          {/* Main Quick Nav Buttons — one grouped bar, ghost buttons */}
+          <div className="pointer-events-auto glass-panel p-1.5 rounded-2xl flex items-center gap-1 shadow-lg">
             <button
               onClick={onOpenBioForge}
-              className="glass-panel hover:bg-cyan-950/50 hover:border-cyan-500/50 text-cyan-300 font-tech font-bold text-xs px-3.5 py-2.5 rounded-2xl flex items-center gap-2 transition-all shadow-lg active:scale-95"
+              className="hover:bg-cyan-950/60 text-cyan-300 font-tech font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-2 transition-all active:scale-95"
             >
               <Hammer className="w-4 h-4 text-cyan-400" />
               <span>Bio-Forge [B]</span>
@@ -457,7 +480,7 @@ export const HUD: React.FC<HUDProps> = ({
 
             <button
               onClick={onOpenInventory}
-              className="glass-panel hover:bg-emerald-950/50 hover:border-emerald-500/50 text-emerald-300 font-tech font-bold text-xs px-3.5 py-2.5 rounded-2xl flex items-center gap-2 transition-all shadow-lg active:scale-95"
+              className="hover:bg-emerald-950/60 text-emerald-300 font-tech font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-2 transition-all active:scale-95"
             >
               <Backpack className="w-4 h-4 text-emerald-400" />
               <span>Pouch [I]</span>
@@ -465,7 +488,7 @@ export const HUD: React.FC<HUDProps> = ({
 
             <button
               onClick={onOpenCodex}
-              className="glass-panel hover:bg-purple-950/50 hover:border-purple-500/50 text-purple-300 font-tech font-bold text-xs px-3.5 py-2.5 rounded-2xl flex items-center gap-2 transition-all shadow-lg active:scale-95"
+              className="hover:bg-purple-950/60 text-purple-300 font-tech font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-2 transition-all active:scale-95"
             >
               <BookOpen className="w-4 h-4 text-purple-400" />
               <span>Codex [C]</span>

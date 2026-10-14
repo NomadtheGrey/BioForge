@@ -17,6 +17,9 @@ import {
   HoverTarget,
 } from '../types/game';
 import { FirstPersonViewmodel } from './viewmodel';
+import { BrownianWiggle, hashStringToSeed } from './motion';
+
+const IRIS_DOOR_TRIGGER_RADIUS = 2.5;
 
 // Pre-allocated scratch vectors to prevent GC allocations in render loop (Rule 3)
 const SCRATCH_VEC_A = new THREE.Vector3();
@@ -24,7 +27,6 @@ const SCRATCH_VEC_B = new THREE.Vector3();
 const SCRATCH_RAY_ORIGIN = new THREE.Vector3();
 const SCRATCH_RAY_DIR = new THREE.Vector3();
 const CENTER_SCREEN_UV = new THREE.Vector2(0, 0);
-const IRIS_DOOR_TRIGGER_RADIUS = 2.5;
 
 export interface ThreeEngineCallbacks {
   onFloraInteract?: (flora: FloraEntity) => void;
@@ -150,6 +152,11 @@ export class BioForgeThreeEngine {
   // Entity mesh maps
   private floraMeshMap: Map<string, THREE.Group> = new Map();
   private faunaMeshMap: Map<string, THREE.Group> = new Map();
+  // Idle-life wiggle state per fauna (render-only; see motion.ts). One
+  // BrownianWiggle per creature, seeded by its id so it wiggles the same
+  // way on every screen. lastFaunaSyncMs times the wiggle's dt.
+  private faunaWiggleMap: Map<string, BrownianWiggle> = new Map();
+  private lastFaunaSyncMs = 0;
   private structureMeshMap: Map<string, THREE.Group> = new Map();
   // Per-structure mesh builders (registry replacing the createStructureMesh switch).
   // Arrow functions read this.materials lazily at build time, so field-init order is safe.
@@ -819,10 +826,17 @@ export class BioForgeThreeEngine {
   public syncFauna(faunaList: FaunaEntity[]) {
     const activeIds = new Set(faunaList.map((f) => f.id));
 
+    // One wiggle timestep per sync (not per creature), clamped like the
+    // render loop so a tab-switch hitch can't lurch every creature at once.
+    const nowMs = performance.now();
+    const wiggleDt = this.lastFaunaSyncMs === 0 ? 0 : Math.min((nowMs - this.lastFaunaSyncMs) / 1000, 0.05);
+    this.lastFaunaSyncMs = nowMs;
+
     this.faunaMeshMap.forEach((mesh, id) => {
       if (!activeIds.has(id)) {
         this.faunaGroup.remove(mesh);
         this.faunaMeshMap.delete(id);
+        this.faunaWiggleMap.delete(id);
       }
     });
 
@@ -833,7 +847,7 @@ export class BioForgeThreeEngine {
         this.faunaGroup.add(mesh);
         this.faunaMeshMap.set(f.id, mesh);
       }
-      this.updateFaunaMesh(mesh, f);
+      this.updateFaunaMesh(mesh, f, wiggleDt);
     });
   }
 
@@ -895,7 +909,7 @@ export class BioForgeThreeEngine {
     return group;
   }
 
-  private updateFaunaMesh(mesh: THREE.Group, fauna: FaunaEntity) {
+  private updateFaunaMesh(mesh: THREE.Group, fauna: FaunaEntity, wiggleDt = 0) {
     mesh.position.set(fauna.x, fauna.y, fauna.z);
     mesh.rotation.y = fauna.rotation;
     mesh.userData.entity = fauna;
@@ -904,6 +918,20 @@ export class BioForgeThreeEngine {
       const hop = Math.abs(Math.sin(fauna.animTime * 6)) * 0.25;
       mesh.position.y = hop;
     }
+
+    // Idle-life wiggle (bounded Brownian — see game/motion.ts). Purely how
+    // the mesh is DRAWN: the entity's simulated position never changes, so
+    // nothing here needs syncing, saving, or pathing around. The offsets
+    // are centimeters — a creature breathing in place, not sliding around.
+    let wiggle = this.faunaWiggleMap.get(fauna.id);
+    if (!wiggle) {
+      wiggle = new BrownianWiggle(hashStringToSeed(fauna.id));
+      this.faunaWiggleMap.set(fauna.id, wiggle);
+    }
+    const w = wiggle.update(wiggleDt);
+    mesh.position.x += w.x;
+    mesh.position.z += w.z;
+    mesh.rotation.z = w.rock;
   }
 
   // --------------------------------------------------------------------------
@@ -951,8 +979,6 @@ export class BioForgeThreeEngine {
           }
         }
       }
-
-
 
       const targetProgress = isNearby ? 1.0 : 0.0;
       entity.doorOpenProgress += (targetProgress - entity.doorOpenProgress) * 0.15;
@@ -1393,7 +1419,6 @@ private initEventListeners() {
           type: 'fauna',
           name: fn.species.replace('_', ' ').toUpperCase(),
           details: `${fn.isTamed ? `TAMED • Companion • ${fn.command?.toUpperCase() ?? 'FOLLOW'}` : 'WILD • Lure to tame'} [HP: ${fn.health}/${fn.maxHealth}]`,
-
           entity: fn,
         });
         return;

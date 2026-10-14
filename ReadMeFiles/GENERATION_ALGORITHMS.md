@@ -167,10 +167,22 @@ guaranteed-clear approach corridor. Each mouth pairs with its cavern
 instance through the portal-link record; the anchor invariance was
 re-verified with surface-chosen anchors (cave grids byte-identical,
 exit spawn exactly 2 m out). All harness checks pass, including a
-stress run against full-density scatter as blockers. Still stubbed:
-dressing is typed data (no meshes), no terrain-slope check yet, and
-no game wiring — P3's game-integration step is the transition and
-interior rendering, still ahead per the one-at-a-time rule.
+stress run against full-density scatter as blockers.
+
+**Surface half — SHIPPED in the game (2026-10-14).** The generator
+graduated to `src/game/caveSurface.ts` (lab parity verified) and
+world generation (WORLD_GEN_VERSION 4) grows mouths with the world:
+new seeded worlds get exactly one cave mouth in the spawn zone,
+placed clear of the homestead and the grown flora/fauna. A mouth is
+a `cave_mouth` structure — it rides the normal structures / save /
+sync pipeline — carrying its portal link (instance id + exit spawn)
+and dressing list as stored data; the engine renders the dressing
+(rock mound, black opening, boulders, path stones, biome accent) and
+the mouth is permanent (the solvent is refused) with its own
+collision and a violet halo. Mouths grow only at world creation;
+existing saves keep their snapshots, per the persistence rule. Still
+ahead: the interior itself — transition, cavern rendering, and the
+portal trigger — as the next one-at-a-time step.
 
 ## P4 — Ruin interior generators
 

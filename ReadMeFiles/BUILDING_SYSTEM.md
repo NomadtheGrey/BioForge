@@ -43,10 +43,20 @@ playtest session (corner gaps, stacking, traversal).
 ## The building verbs (Bio-Builder tool, clicks)
 
 - Aim at ground: place the selected piece (panels land on edges).
-- Click a wall with a WALL/DOOR selected: STACK it on top (same edge,
-  same facing, one story up).
-- Click a wall with a FLOOR selected: lay a CEILING one story above,
-  over the cell on YOUR side of the wall.
+- Click a wall or door panel with a WALL/DOOR selected: STACK it on
+  top (same edge, same facing, one story up).
+- Click a wall or door panel with a FLOOR selected: lay a CEILING one
+  story above, over the cell on YOUR side of the wall.
+- Click the ground line of an already-walled edge with a WALL/DOOR
+  selected: STACK onto the panel standing on that edge. This is the
+  reliable way to stack on an IRIS DOOR — its blades open as you
+  approach, so a click aimed at the doorway passes through to the
+  ground line, which resolves to the door's own edge.
+- Click any other structure (forge, post, canopy, turret, cave
+  mouth...) with a WALL/DOOR selected: the panel rings that base
+  block's cell on your facing edge, at the base's story. With a
+  FLOOR selected: a CEILING over the base block's cell, one story
+  up. Any solid block can anchor building, not just walls.
 - Click a ceiling tile with a FLOOR selected: GROW the ceiling one
   tile in your facing direction (covers room centers no wall touches).
 - Click a wall with a VINE LADDER selected: grow a ladder segment on

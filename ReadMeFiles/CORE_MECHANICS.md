@@ -184,6 +184,9 @@ Fauna are categorized into two behavioral classes:
   cave form of the surface glow spore cluster); on the surface the
   trowel refuses — wrong soil. Other seeds stay refused underground:
   the cavern floor is barren rock to everything but its own spores.
+  What the player plants in a cave **persists per-cave**: the save
+  record keeps each cavern's planted flora (keyed by instance) and
+  restores it on the next delve, even though the wild cave regrows.
 
 ### 4.7. Browser-Native P2P Multiplayer Architecture
 * **Host-Driven Sessions:** One browser acts as host authority; no external game servers required for casual play.

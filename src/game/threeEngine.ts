@@ -161,6 +161,9 @@ export class BioForgeThreeEngine {
     bio_forge_station: { color: 0x22d3ee, intensity: 0.9, distance: 3.5, y: 1.4 },
     tamed_snap_trap_turret: { color: 0xef4444, intensity: 0.7, distance: 3, y: 1.1 },
     cultivation_mound: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.6 },
+    // A cave mouth's halo: the cool violet breath of the Biolume
+    // Caverns below (its dressing glow accents ride this halo).
+    cave_mouth: { color: 0xa855f7, intensity: 0.55, distance: 3.2, y: 1.0 },
   };
 
   // Raycasting
@@ -233,6 +236,23 @@ export class BioForgeThreeEngine {
         rung.position.set(0, 0.3 + i * 0.36, 0);
         group.add(rung);
       }
+      return group;
+    },
+    // Cave mouth: the registry needs an entry, but a mouth's real look
+    // is its per-entity DRESSING (game/caveSurface.ts) — boulders, rock
+    // lips, the dark opening — which only the entity knows. This base
+    // is just a rocky mound so a mouth never renders as nothing;
+    // createStructureMesh layers the dressing on top of it.
+    'cave_mouth': () => {
+      const group = new THREE.Group();
+      const mound = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(1.9, 0),
+        new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.95 }),
+      );
+      mound.position.y = 0.55;
+      mound.scale.set(1.25, 0.72, 1.1);
+      mound.castShadow = true;
+      group.add(mound);
       return group;
     },
     'iris_slit_door': () => {
@@ -1171,7 +1191,122 @@ export class BioForgeThreeEngine {
     const group = builder ? builder() : new THREE.Group();
     group.userData = { type: 'structure', entity: structure };
     this.applyTerrainTransform(group, structure.type, structure.worldX, structure.worldZ, structure.rotation, structure.level ?? 0);
+    // Cave mouths wear their generated dressing (boulders, lips, the
+    // dark opening, biome accents) — built from the entity's own link
+    // record, once, at mesh creation; dressing never changes after.
+    if (structure.type === 'cave_mouth' && structure.cave?.dressing?.length) {
+      group.add(this.buildCaveDressing(structure));
+    }
     return group;
+  }
+
+  /**
+   * Render one cave mouth's dressing pieces. The pieces carry WORLD
+   * positions (zone-local meters) from the generator; this subgroup
+   * counter-rotates the parent group's yaw (applyTerrainTransform set
+   * it to the mouth's facing) so children can be placed at plain
+   * anchor-relative offsets and land exactly where the generator put
+   * them. Piece heights are relative to the anchor's terrain height —
+   * pieces sit slightly sunk so gentle slopes never float them.
+   */
+  private buildCaveDressing(structure: StructureEntity): THREE.Group {
+    const sub = new THREE.Group();
+    sub.rotation.y = -(structure.rotation ?? 0);
+    const facing = structure.rotation ?? 0;
+    const rock = new THREE.MeshStandardMaterial({ color: 0x6b6560, roughness: 0.95 });
+    const rockDark = new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 0.97 });
+    const soil = new THREE.MeshStandardMaterial({ color: 0x292019, roughness: 1 });
+    const stone = new THREE.MeshStandardMaterial({ color: 0x9c958c, roughness: 0.9 });
+    const emberRock = new THREE.MeshStandardMaterial({ color: 0x571f1f, roughness: 0.9, emissive: 0x7c2d12, emissiveIntensity: 0.25 });
+    const reed = new THREE.MeshStandardMaterial({ color: 0x3f6212, roughness: 0.85 });
+    const mouthBlack = new THREE.MeshBasicMaterial({ color: 0x030303 });
+
+    for (const piece of structure.cave!.dressing) {
+      const dx = piece.x - structure.worldX;
+      const dz = piece.z - structure.worldZ;
+      const s = piece.scale;
+      switch (piece.type) {
+        case 'cave_mouth': {
+          // The opening: a black, flattened dome sunk into the mound,
+          // its flat axis aimed along the facing (rotation.y = PI/2 - f
+          // maps local +Z onto the facing's XZ direction).
+          const dome = new THREE.Mesh(new THREE.SphereGeometry(1.15, 20, 14), mouthBlack);
+          dome.scale.set(1.25 * s, 0.95 * s, 0.55 * s);
+          dome.position.set(dx, 0.72 * s, dz);
+          dome.rotation.y = Math.PI / 2 - facing;
+          sub.add(dome);
+          break;
+        }
+        case 'dark_soil_patch': {
+          const patch = new THREE.Mesh(new THREE.CircleGeometry(2.1 * s, 20), soil);
+          patch.rotation.x = -Math.PI / 2;
+          patch.position.set(dx, 0.03, dz);
+          sub.add(patch);
+          break;
+        }
+        case 'rock_lip':
+        case 'boulder': {
+          const rockMesh = new THREE.Mesh(new THREE.DodecahedronGeometry(0.95 * s, 0), rock);
+          rockMesh.position.set(dx, 0.5 * s, dz);
+          rockMesh.rotation.set(piece.rotation, piece.rotation * 1.7, 0);
+          rockMesh.castShadow = true;
+          sub.add(rockMesh);
+          break;
+        }
+        case 'rubble': {
+          const rubble = new THREE.Mesh(new THREE.DodecahedronGeometry(0.4 * s, 0), rockDark);
+          rubble.position.set(dx, 0.16, dz);
+          rubble.rotation.set(piece.rotation, piece.rotation * 2.3, 0);
+          sub.add(rubble);
+          break;
+        }
+        case 'heat_cracked_stone': {
+          const cracked = new THREE.Mesh(new THREE.DodecahedronGeometry(0.8 * s, 0), emberRock);
+          cracked.position.set(dx, 0.42 * s, dz);
+          cracked.rotation.set(piece.rotation, piece.rotation * 1.3, 0);
+          sub.add(cracked);
+          break;
+        }
+        case 'path_stone': {
+          const stepping = new THREE.Mesh(new THREE.CylinderGeometry(0.55 * s, 0.62 * s, 0.09, 7), stone);
+          stepping.position.set(dx, 0.045, dz);
+          stepping.rotation.y = piece.rotation;
+          sub.add(stepping);
+          break;
+        }
+        case 'glow_spore_cluster':
+        case 'glow_fungus_cluster': {
+          const glowMat = piece.type === 'glow_fungus_cluster' ? this.materials.biolumViolet : this.materials.biolumCyan;
+          for (let i = 0; i < 3; i++) {
+            const orb = new THREE.Mesh(new THREE.SphereGeometry(0.09 + i * 0.035, 10, 8), glowMat);
+            orb.position.set(dx + (i - 1) * 0.22, 0.12 + i * 0.09, dz + (i % 2 === 0 ? 0.14 : -0.12));
+            orb.scale.setScalar(s);
+            sub.add(orb);
+          }
+          break;
+        }
+        case 'reed_cluster': {
+          for (let i = 0; i < 4; i++) {
+            const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.045, 1.1 + i * 0.12, 5), reed);
+            stalk.position.set(dx + (i - 1.5) * 0.16, 0.55, dz + (i % 2 === 0 ? 0.1 : -0.1));
+            stalk.rotation.z = (i - 1.5) * 0.06;
+            stalk.scale.setScalar(s);
+            sub.add(stalk);
+          }
+          break;
+        }
+        case 'ember_vent': {
+          const vent = new THREE.Mesh(new THREE.ConeGeometry(0.32 * s, 0.7 * s, 7), rockDark);
+          vent.position.set(dx, 0.3 * s, dz);
+          sub.add(vent);
+          const glow = new THREE.Mesh(new THREE.SphereGeometry(0.13 * s, 10, 8), this.materials.biolumAmber);
+          glow.position.set(dx, 0.62 * s, dz);
+          sub.add(glow);
+          break;
+        }
+      }
+    }
+    return sub;
   }
 
   private updateStructureMesh(mesh: THREE.Group, structure: StructureEntity) {

@@ -53,6 +53,22 @@ export const BIOMES: BiomeDef[] = [
   { id: 'ember', floraDensity: 0.8, faunaDensity: 0.9 }, // harsher ground, thinner cover
 ];
 
+/**
+ * How each biome TINTS the ground. The terrain's base color still comes
+ * from its quadrant (the zone's identity — Violet Cradle stays violet),
+ * and the biome hue is blended over it: `strength` is how far each
+ * vertex leans toward the biome color. Meadow leans least — home
+ * ground should mostly feel like itself — while the far, strange
+ * biomes lean hard enough to read at a glance. This is the type made
+ * visible; the zone NAME remains a separate, poetic system.
+ */
+export const BIOME_TINTS: Record<BiomeId, { color: number; strength: number }> = {
+  meadow: { color: 0x3a6b35, strength: 0.25 },
+  wetland: { color: 0x0e7a6d, strength: 0.5 },
+  fungal: { color: 0x7a2ea0, strength: 0.5 },
+  ember: { color: 0xc2571b, strength: 0.55 },
+};
+
 /** Within this distance of spawn the biome is always meadow. */
 const BIOME_MEADOW_RADIUS = 12;
 /** Biome patch size in meters — big enough to read as a place. */

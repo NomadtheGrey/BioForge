@@ -4,7 +4,7 @@
  * Enforces CODE_MANIFESTO.md Rules 1 (Guard Clauses), 2 (Functional Style), 8 (Modular Separation), 9 (Strict Type Safety)
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   FloraEntity,
   FaunaEntity,
@@ -15,12 +15,34 @@ import { multiplayerManager } from '../game/multiplayer';
 import type { WorldSnapshot } from '../game/saveSystem';
 
 
-export const FLORA_MATURE_SECONDS = 90;
-export const FLORA_MATURE_SECONDS_FERTILIZED = 25;
+// Base time for a plant to go from planted to harvest-ready. Slowed
+// from 90 to 120 (2026-10-13) so a garden is a project, not a pause.
+export const FLORA_MATURE_SECONDS = 120;
+// Growth fertilizer is a BOOST WITH A DURATION, not an instant mature:
+// while a plant's fertilizerTimer runs, it grows at FERTILIZED_GROWTH_MULT.
+export const FERTILIZER_DURATION_SECONDS = 30;
 export const FERTILIZED_GROWTH_MULT = 2.5;
+// Rich soil: a plant rooted on a cultivation mound's cell grows faster,
+// permanently — the mound's whole reason to exist. Stacks with fertilizer.
+export const MOUND_GROWTH_MULT = 1.5;
 export const FOLLOW_OFFSET = 2.5;
 export const WANDER_CHANCE = 0.015;
 export const WANDER_RADIUS = 12;
+// Restless wandering: a creature standing AT its target re-rolls with this
+// much higher chance — short pauses, long roams. The old single slow rate
+// is why wild stalkers stood like statues ~70% of the time.
+export const WANDER_CHANCE_RESTLESS = 0.08;
+// How close (meters) a wild stalker lets a player get before it stops,
+// faces them, and watches. Peaceful awareness only — no attacks.
+export const AGGRO_RANGE = 8;
+// Guard-stalker patrol: waypoints are picked on a ring this wide (meters)
+// around the anchor; arriving this close picks the next point.
+export const PATROL_RADIUS = 5;
+export const PATROL_ARRIVAL_DISTANCE = 0.6;
+// Guard-collectors (soft-puffs, burrow mice) fetch drops within this
+// radius of themselves and "pick up" on reaching this distance.
+export const COLLECT_SEARCH_RADIUS = 12;
+export const COLLECT_REACH = 0.8;
 
 const FAUNA_SYNC_INTERVAL = 0.5;
 
@@ -211,6 +233,43 @@ const INITIAL_FAUNA: FaunaEntity[] = [
     byproductTimer: 0,
     animTime: 0,
   },
+  {
+    // Burrow mice existed on paper only (codex + tame rules) until now —
+    // nothing ever spawned one. Two join the starting world; their model
+    // is the engine's plain amber critter until they earn a custom one.
+    id: 'fauna_4',
+    species: 'burrow_mouse',
+    x: -16,
+    z: 6,
+    y: 0,
+    rotation: 0.8,
+    state: 'wandering',
+    isTamed: false,
+    targetX: -16,
+    targetZ: 6,
+    speed: 2.0,
+    health: 30,
+    maxHealth: 30,
+    byproductTimer: 0,
+    animTime: 0,
+  },
+  {
+    id: 'fauna_5',
+    species: 'burrow_mouse',
+    x: -4,
+    z: 18,
+    y: 0,
+    rotation: 2.1,
+    state: 'wandering',
+    isTamed: false,
+    targetX: -4,
+    targetZ: 18,
+    speed: 1.7,
+    health: 30,
+    maxHealth: 30,
+    byproductTimer: 0,
+    animTime: 2,
+  },
 ];
 
 const INITIAL_STRUCTURES: StructureEntity[] = [
@@ -350,6 +409,21 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   const [droppedItems, setDroppedItems] = useState<DroppedItemEntity[]>([]);
   const faunaSyncTimer = useRef(0);
 
+  // Mirror of the drop list for the fauna tick: guard-collectors hunt
+  // drops while the fauna pass runs, and React state itself cannot be
+  // read from inside another list's updater.
+  const droppedItemsRef = useRef<DroppedItemEntity[]>([]);
+  useEffect(() => {
+    droppedItemsRef.current = droppedItems;
+  }, [droppedItems]);
+
+  // Same mirror trick for structures: the flora pass needs to know which
+  // cells hold cultivation mounds (rich-soil growth bonus).
+  const structuresRef = useRef<StructureEntity[]>([]);
+  useEffect(() => {
+    structuresRef.current = structuresList;
+  }, [structuresList]);
+
   const addFlora = useCallback((flora: FloraEntity): void => {
     setFloraList((prev) => [...prev, flora]);
   }, []);
@@ -363,6 +437,8 @@ export function useWorldEntities(): UseWorldEntitiesResult {
               harvestReady: false,
               harvestTimer: regrowthDuration,
               fertilizedYield: false,
+              fertilizedGrowth: false,
+              fertilizerTimer: 0,
               growthStage: 0,
             }
           : f
@@ -378,8 +454,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           return {
             ...f,
             fertilizedGrowth: true,
-            growthStage: Math.min(5, f.growthStage + 1),
-            harvestReady: true,
+            fertilizerTimer: FERTILIZER_DURATION_SECONDS,
           };
         }
         return { ...f, fertilizedYield: true };
@@ -429,6 +504,8 @@ export function useWorldEntities(): UseWorldEntitiesResult {
               state,
               customName,
               command: fn.species === 'chitin_stalker' ? 'guard' : 'follow',
+              anchorX: fn.species === 'chitin_stalker' ? fn.x : fn.anchorX,
+              anchorZ: fn.species === 'chitin_stalker' ? fn.z : fn.anchorZ,
             }
           : fn
       )
@@ -452,6 +529,8 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           ? {
               ...fn,
               command: cmd,
+              anchorX: cmd === 'guard' ? fn.x : fn.anchorX,
+              anchorZ: cmd === 'guard' ? fn.z : fn.anchorZ,
               targetX: fn.x,
               targetZ: fn.z,
               state: cmd === 'follow' ? 'following' : cmd === 'guard' ? 'patrolling' : 'idle',
@@ -518,31 +597,97 @@ export function useWorldEntities(): UseWorldEntitiesResult {
       faunaSyncTimer.current += dt;
       const syncFaunaNow = faunaSyncTimer.current >= FAUNA_SYNC_INTERVAL;
       if (syncFaunaNow) faunaSyncTimer.current = 0;
+
+      // Nearest loose drop to a point — guard-collectors hunt with this.
+      const nearestDrop = (px: number, pz: number): DroppedItemEntity | null => {
+        let best: DroppedItemEntity | null = null;
+        let bestDist = COLLECT_SEARCH_RADIUS;
+        droppedItemsRef.current.forEach((d) => {
+          const dist = Math.hypot(d.x - px, d.z - pz);
+          if (dist < bestDist) {
+            best = d;
+            bestDist = dist;
+          }
+        });
+        return best;
+      };
+
+      // Drops a collector reaches this tick land here; they are removed
+      // and credited after the fauna pass (drops are separate state).
+      const collectedDrops: DroppedItemEntity[] = [];
       setFaunaList((prevFauna) =>
         prevFauna.map((fauna) => {
           let { x, z, state, isTamed, targetX, targetZ, byproductTimer, command } = fauna;
 
-          if (isTamed && command) {
-            // Pet commands drive tamed companions; state reflects current activity.
-            // Peaceful mode: guard holds its anchor — hostile engagement hooks in later.
-            if (command === 'follow') {
-              targetX = playerX + Math.sin(fauna.id.length) * FOLLOW_OFFSET;
-              targetZ = playerZ + Math.cos(fauna.id.length) * FOLLOW_OFFSET;
-              state = 'following';
-            } else if (command === 'stay') {
-              state = 'idle';
-            } else {
-              state = 'patrolling';
+          // --- Companion orders (tamed, with a command set) ---
+          if (isTamed && command === 'follow') {
+            targetX = playerX + Math.sin(fauna.id.length) * FOLLOW_OFFSET;
+            targetZ = playerZ + Math.cos(fauna.id.length) * FOLLOW_OFFSET;
+            state = 'following';
+          }
+          if (isTamed && command === 'stay') {
+            state = 'idle';
+          }
+          // Guard, stalker: a real patrol — waypoints on a ring around the
+          // anchor post, a new one on every arrival. When hostiles exist
+          // (Normal), engagement hooks in from this same state.
+          if (isTamed && command === 'guard' && fauna.species === 'chitin_stalker') {
+            state = 'patrolling';
+            if (Math.hypot(targetX - x, targetZ - z) <= PATROL_ARRIVAL_DISTANCE) {
+              const anchorX = fauna.anchorX ?? x;
+              const anchorZ = fauna.anchorZ ?? z;
+              const angle = Math.random() * Math.PI * 2;
+              targetX = anchorX + Math.sin(angle) * PATROL_RADIUS;
+              targetZ = anchorZ + Math.cos(angle) * PATROL_RADIUS;
             }
-          } else {
-            if (isTamed && state === 'following') {
-              targetX = playerX + Math.sin(fauna.id.length) * FOLLOW_OFFSET;
-              targetZ = playerZ + Math.cos(fauna.id.length) * FOLLOW_OFFSET;
+          }
+          // Guard, everyone else (soft-puffs, burrow mice): sanitation
+          // duty — fetch the nearest loose drop back to the pouch. With
+          // nothing to fetch, return to the anchor post and wait.
+          if (isTamed && command === 'guard' && fauna.species !== 'chitin_stalker') {
+            const drop = nearestDrop(x, z);
+            if (drop) {
+              targetX = drop.x;
+              targetZ = drop.z;
+              state = 'wandering';
+              if (Math.hypot(drop.x - x, drop.z - z) <= COLLECT_REACH) collectedDrops.push(drop);
             }
-            if ((!isTamed || state !== 'following') && Math.random() < WANDER_CHANCE) {
+            if (!drop) {
+              targetX = fauna.anchorX ?? targetX;
+              targetZ = fauna.anchorZ ?? targetZ;
+              state = Math.hypot(targetX - x, targetZ - z) <= 0.4 ? 'idle' : 'wandering';
+            }
+          }
+
+          // --- Wild creatures ---
+          const distToPlayer = Math.hypot(playerX - x, playerZ - z);
+          // Stalkers are territorial: inside their aggro range they stop
+          // and face the intruder. Peaceful promise kept — noticing is
+          // not attacking; attacks arrive with Normal difficulty.
+          const stalkerAlert =
+            !isTamed && fauna.species === 'chitin_stalker' && distToPlayer <= AGGRO_RANGE;
+          if (stalkerAlert) {
+            state = 'alert';
+            targetX = x;
+            targetZ = z;
+          }
+          if (!isTamed && !stalkerAlert) {
+            state = 'wandering';
+            // Restless wandering: standing at the target re-rolls fast
+            // (short pauses, long roams); en route the re-roll stays rare
+            // so a walk actually finishes.
+            const atTarget = Math.hypot(targetX - x, targetZ - z) <= 0.4;
+            const wanderChance = atTarget ? WANDER_CHANCE_RESTLESS : WANDER_CHANCE;
+            if (Math.random() < wanderChance) {
               targetX = x + (Math.random() - 0.5) * WANDER_RADIUS;
               targetZ = z + (Math.random() - 0.5) * WANDER_RADIUS;
             }
+          }
+
+          // --- Legacy companions (tamed before commands existed) ---
+          if (isTamed && !command && state === 'following') {
+            targetX = playerX + Math.sin(fauna.id.length) * FOLLOW_OFFSET;
+            targetZ = playerZ + Math.cos(fauna.id.length) * FOLLOW_OFFSET;
           }
 
           const distToTarget = Math.hypot(targetX - x, targetZ - z);
@@ -552,6 +697,11 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             x += ((targetX - x) / distToTarget) * moveSpeed * dt;
             z += ((targetZ - z) / distToTarget) * moveSpeed * dt;
             newRot = Math.atan2(targetX - x, targetZ - z);
+          }
+
+          // An alert stalker watches the intruder, not its path.
+          if (state === 'alert') {
+            newRot = Math.atan2(playerX - x, playerZ - z);
           }
 
           byproductTimer += dt;
@@ -585,27 +735,58 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           return nextFauna;
         })
       );
+
+      // Guard-collectors deliver: remove what they fetched and credit it
+      // through the normal pickup path — the same result as the player
+      // walking over the drop, because the pet did the walking.
+      if (collectedDrops.length > 0) {
+        const collectedIds = new Set(collectedDrops.map((d) => d.id));
+        setDroppedItems((prev) => prev.filter((d) => !collectedIds.has(d.id)));
+        collectedDrops.forEach((d) => {
+          onPickupItem(d);
+          multiplayerManager.broadcastEntityRemove('drop', d.id);
+        });
+      }
       }
 
       // 2. Flora Growth & Replenish Tick (host authority)
       if (simulateWorld) {
+      // Cells with rich soil, computed once per tick from the mirror.
+      const moundCells = new Set(
+        structuresRef.current
+          .filter((s) => s.type === 'cultivation_mound')
+          .map((s) => `${s.gridX},${s.gridZ}`)
+      );
       setFloraList((prevFlora) =>
         prevFlora.map((flora) => {
           if (flora.harvestReady) return flora;
 
-          const maxTimer = flora.fertilizedGrowth ? FLORA_MATURE_SECONDS_FERTILIZED : FLORA_MATURE_SECONDS;
-          const growthMult = flora.fertilizedGrowth ? FERTILIZED_GROWTH_MULT : 1.0;
+          // The fertilizer clock runs down in real time; the boost lives
+          // exactly as long as the timer does.
+          const fertilizerTimer = Math.max(0, (flora.fertilizerTimer ?? 0) - dt);
+          const fertilizerActive = fertilizerTimer > 0;
+
+          // Speed sources stack: fertilizer boost x rich-soil mound.
+          let growthMult = fertilizerActive ? FERTILIZED_GROWTH_MULT : 1.0;
+          const cellX = Math.round(flora.x / 2);
+          const cellZ = Math.round(flora.z / 2);
+          if (moundCells.has(`${cellX},${cellZ}`)) growthMult *= MOUND_GROWTH_MULT;
+
           const newTimer = Math.max(0, flora.harvestTimer - dt * growthMult);
           const isNowReady = newTimer === 0;
-          const newStage = isNowReady ? 5 : Math.min(4, Math.floor((1 - newTimer / maxTimer) * 5));
+          // Stage is always read against the BASE mature time, so the
+          // readout never jumps when a boost starts or wears off.
+          const newStage = isNowReady ? 5 : Math.min(4, Math.floor((1 - newTimer / FLORA_MATURE_SECONDS) * 5));
 
           const nextFlora = {
             ...flora,
             harvestTimer: newTimer,
             harvestReady: isNowReady,
             growthStage: newStage,
+            fertilizerTimer,
+            fertilizedGrowth: fertilizerActive,
           };
-          if (nextFlora.growthStage !== flora.growthStage || nextFlora.harvestReady !== flora.harvestReady) {
+          if (nextFlora.growthStage !== flora.growthStage || nextFlora.harvestReady !== flora.harvestReady || nextFlora.fertilizedGrowth !== flora.fertilizedGrowth) {
             multiplayerManager.broadcastEntityUpsert('flora', nextFlora);
           }
           return nextFlora;

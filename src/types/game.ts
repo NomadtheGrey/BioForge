@@ -77,6 +77,7 @@ export interface FloraEntity {
   growthProgress: number; // 0 to 1
   fertilizedGrowth: boolean;
   fertilizedYield: boolean;
+  fertilizerTimer?: number; // Seconds of growth-boost left (0/absent = none)
   harvestReady: boolean;
   harvestTimer: number;
   isHazardous: boolean;
@@ -112,6 +113,8 @@ export interface FaunaEntity {
   colorVariant?: string;
   customName?: string;
   command?: 'follow' | 'stay' | 'guard';
+  anchorX?: number; // Guard post: where 'guard' was ordered — patrols loop
+  anchorZ?: number; // around it and collectors return to it.
 
 }
 

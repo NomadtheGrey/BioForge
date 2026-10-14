@@ -19,7 +19,7 @@ import {
 import { ITEMS } from '../game/constants';
 import { soundEngine } from '../audio/soundEngine';
 import { multiplayerManager } from '../game/multiplayer';
-import { FLORA_MATURE_SECONDS, FLORA_MATURE_SECONDS_FERTILIZED } from './useWorldEntities';
+import { FLORA_MATURE_SECONDS, FERTILIZER_DURATION_SECONDS } from './useWorldEntities';
 
 // Placement layers: each 2m grid cell may hold ONE ground-layer structure
 // (a floor OR a mound) plus ONE upright structure standing on it (a wall,
@@ -30,6 +30,13 @@ const GROUND_LAYER_TYPES: StructureType[] = ['root_tile_floor', 'cultivation_mou
 // A new plant must be at least this far (meters) from every existing one —
 // anything closer is a stack of seedlings on one spot, not a garden.
 const MIN_PLANT_SPACING = 1.0;
+
+// Taming odds per lure attempt, by species. The bait is eaten either way —
+// a failed attempt is a snack, not a refund. Docile species rarely refuse;
+// the stalker is a predator and tames on its own terms.
+const TAME_CHANCE_SOFT_PUFF = 0.8;
+const TAME_CHANCE_BURROW_MOUSE = 0.6;
+const TAME_CHANCE_CHITIN_STALKER = 0.25;
 
 export interface UseToolInteractionsParams {
   activeTool: ToolType;
@@ -132,7 +139,9 @@ export function useToolInteractions({
       addInventoryItem(yieldItem, yieldCount);
       // Trimmings: every harvest yields a little compost — the renewable source
       addInventoryItem('basic_compost', 1);
-      const regrowTimer = flora.fertilizedGrowth ? FLORA_MATURE_SECONDS_FERTILIZED : FLORA_MATURE_SECONDS;
+      // Regrowth runs at the base rate; a fresh fertilizer application
+      // is what speeds a regrowing plant up now (timed boost model).
+      const regrowTimer = FLORA_MATURE_SECONDS;
       resetFloraHarvest(flora.id, regrowTimer);
       multiplayerManager.broadcastEntityUpsert('flora', {
         ...flora,
@@ -218,10 +227,9 @@ export function useToolInteractions({
           multiplayerManager.broadcastEntityUpsert('flora', {
             ...targetFlora,
             fertilizedGrowth: true,
-            growthStage: Math.min(5, targetFlora.growthStage + 1),
-            harvestReady: true,
+            fertilizerTimer: FERTILIZER_DURATION_SECONDS,
           });
-          postNotification('Growth Fertilizer Applied', 'Tripled plant maturation rate! Flower is ready to harvest.', 'craft', '#10b981');
+          postNotification('Growth Fertilizer Applied', `Growth boosted for ${FERTILIZER_DURATION_SECONDS} seconds. Reapply to keep it surging.`, 'craft', '#10b981');
           return;
         }
 
@@ -276,6 +284,7 @@ export function useToolInteractions({
         growthProgress: 0,
         fertilizedGrowth: false,
         fertilizedYield: false,
+        fertilizerTimer: 0,
         harvestReady: false,
         harvestTimer: FLORA_MATURE_SECONDS,
         isHazardous: false,
@@ -339,12 +348,26 @@ export function useToolInteractions({
         }
 
         deductInventoryItem('sweet_nectar', 1);
+
+        // The roll: the nectar is gone either way. On a failure the
+        // critter enjoys the snack and stays wild — bring more bait.
+        const tameChance = fauna.species === 'soft_puff' ? TAME_CHANCE_SOFT_PUFF : TAME_CHANCE_BURROW_MOUSE;
+        if (Math.random() > tameChance) {
+          postNotification(
+            'It Darted Away',
+            `The ${fauna.species === 'soft_puff' ? 'Soft-Puff' : 'Burrow Mouse'} took the nectar and slipped off, still wild.`,
+            'alert',
+            '#fbbf24'
+          );
+          return;
+        }
+
         soundEngine.playTameCritter();
-        tameFauna(fauna.id, 'Luminescent Puff', 'following');
+        tameFauna(fauna.id, fauna.species === 'soft_puff' ? 'Luminescent Puff' : 'Burrow Scout', 'following');
 
         postNotification(
           'Companion Domesticated!',
-          'Soft-Puff tamed! It follows you and excretes high-grade Bio-Pellets. Lure it again to order it to stay or guard.',
+          `${fauna.species === 'soft_puff' ? 'Soft-Puff' : 'Burrow Mouse'} tamed! It follows you${fauna.species === 'soft_puff' ? ' and excretes high-grade Bio-Pellets' : ''}. Lure it again to order it to stay or guard.`,
           'tame',
           '#2dd4bf'
         );
@@ -367,6 +390,19 @@ export function useToolInteractions({
         }
         if (!hasCarapace) {
           deductInventoryItem('sweet_nectar', 2);
+        }
+
+        // The roll: a predator usually decides you are not worth it. The
+        // offering is eaten either way — three failures in four is normal,
+        // which is what makes a tamed stalker worth having.
+        if (Math.random() > TAME_CHANCE_CHITIN_STALKER) {
+          postNotification(
+            'The Stalker Backs Off',
+            'It snatched the offering and melted back, still wild. Stalkers tame on their own terms — bring more bait.',
+            'alert',
+            '#ef4444'
+          );
+          return;
         }
 
         soundEngine.playTameCritter();

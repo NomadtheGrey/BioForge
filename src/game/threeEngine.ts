@@ -44,6 +44,7 @@ const FAUNA_WIGGLE_FLAVORS: Record<string, WiggleOptions> = {
   chitin_stalker: { impulse: 0.5, maxOffset: 0.02, maxRock: 0.06, spring: 8, damping: 4 },
   soft_puff: { impulse: 2.0, maxOffset: 0.06, maxRock: 0.07, spring: 5, damping: 2.2 },
   burrow_mouse: { impulse: 1.6, maxOffset: 0.035, maxRock: 0.04, spring: 9, damping: 3.5 },
+  vesper_glider: { impulse: 0.7, maxOffset: 0.05, maxRock: 0.1, spring: 3.5, damping: 2.4 },
 };
 const FAUNA_WIGGLE_DEFAULT: WiggleOptions = { impulse: 1.4, maxOffset: 0.05, maxRock: 0.05, spring: 6, damping: 3 };
 
@@ -163,6 +164,7 @@ export class BioForgeThreeEngine {
     snap_trap: { color: 0xef4444, intensity: 0.5, distance: 3, y: 0.9 },
     bell_bloom: { color: 0x38bdf8, intensity: 0.6, distance: 4, y: 1.3 },
     ribbon_moss: { color: 0x2dd4bf, intensity: 0.4, distance: 2.5, y: 0.4 },
+    echo_reed: { color: 0x2dd4bf, intensity: 0.5, distance: 3.5, y: 1.7 },
     bounce_shroom: { color: 0xa855f7, intensity: 0.6, distance: 3, y: 0.6 },
     glow_spore_cluster: { color: 0x06b6d4, intensity: 0.7, distance: 3.5, y: 0.5 },
     // Cave flora (Biolume Caverns): the fungus is the cave's lamp —
@@ -186,8 +188,6 @@ export class BioForgeThreeEngine {
     cave_exit: { color: 0xa855f7, intensity: 0.9, distance: 4.5, y: 1.4 },
     // The way DOWN: a deeper violet — the dark below breathes colder.
     cave_descent: { color: 0x7c3aed, intensity: 0.9, distance: 4.5, y: 0.8 },
-    // The express way OUT: living green, the color of up and daylight.
-    vine_shaft: { color: 0x34d399, intensity: 0.85, distance: 4.5, y: 2.0 },
   };
 
   // Raycasting
@@ -375,49 +375,6 @@ export class BioForgeThreeEngine {
         rock.scale.set(1, 0.6, 1);
         group.add(rock);
       }
-      return group;
-    },
-    // The express way OUT (Adam's vine shafts): a living elevator —
-    // a thick alien vine hanging from a crack in the cavern ceiling
-    // (4.6 m up) down to climbing height, tendrils and glow-leaves
-    // along its length, roots gripping the floor. Where the descent
-    // lies flat and the exit stands tall, the vine HANGS — three
-    // doorways, three silhouettes, no confusion in the dark.
-    // Clicking it climbs straight to the surface.
-    'vine_shaft': () => {
-      const group = new THREE.Group();
-      const vineMat = new THREE.MeshStandardMaterial({
-        color: 0x166534, roughness: 0.7, emissive: 0x22c55e, emissiveIntensity: 0.35,
-      });
-      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.2, 3.7, 7), vineMat);
-      trunk.position.y = 2.75;
-      trunk.castShadow = true;
-      group.add(trunk);
-      for (let i = 0; i < 3; i++) {
-        const tendril = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.07, 2.4 - i * 0.4, 5), vineMat);
-        const a = (i / 3) * Math.PI * 2 + 0.8;
-        tendril.position.set(Math.cos(a) * 0.3, 3.3 - i * 0.25, Math.sin(a) * 0.3);
-        tendril.rotation.set(Math.sin(a) * 0.22, 0, Math.cos(a) * 0.22);
-        group.add(tendril);
-      }
-      const leafMat = new THREE.MeshStandardMaterial({
-        color: 0x15803d, roughness: 0.55, emissive: 0x4ade80, emissiveIntensity: 0.7,
-      });
-      for (let i = 0; i < 6; i++) {
-        const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(0.13, 0), leafMat);
-        const a = i * 1.7 + 0.4;
-        const y = 1.3 + (i % 3) * 0.9;
-        leaf.position.set(Math.cos(a) * 0.26, y, Math.sin(a) * 0.26);
-        leaf.scale.set(1, 0.55, 1);
-        group.add(leaf);
-      }
-      const root = new THREE.Mesh(
-        new THREE.DodecahedronGeometry(0.55, 0),
-        new THREE.MeshStandardMaterial({ color: 0x365314, roughness: 0.95 })
-      );
-      root.position.y = 0.12;
-      root.scale.set(1.25, 0.4, 1.25);
-      group.add(root);
       return group;
     },
     'iris_slit_door': () => {
@@ -1273,6 +1230,36 @@ export class BioForgeThreeEngine {
         break;
       }
 
+      case 'echo_reed': {
+        // Wetland listening stalks: a fan of tall, ringed, hollow
+        // reeds tipped with teal resonator bells. The rings are thin
+        // torus bands — cheap, and they read as "grown around sound"
+        // from across the marsh.
+        const reedMat = new THREE.MeshStandardMaterial({ color: 0x3f6212, roughness: 0.8 });
+        const ringMat = new THREE.MeshStandardMaterial({ color: 0x2dd4bf, roughness: 0.4, emissive: 0x0f766e, emissiveIntensity: 0.5 });
+        const stalks: [number, number, number][] = [
+          [0, 0, 2.6], [0.22, 0.1, 2.1], [-0.2, 0.12, 2.3], [0.1, -0.2, 1.8], [-0.12, -0.16, 2.0],
+        ];
+        for (const [ox, oz, h] of stalks) {
+          const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.06, h, 6), reedMat);
+          stalk.position.set(ox, h / 2, oz);
+          stalk.rotation.z = ox * 0.25;
+          stalk.castShadow = true;
+          group.add(stalk);
+          for (let r = 1; r <= 3; r++) {
+            const ring = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.016, 6, 12), ringMat);
+            ring.position.set(ox + ox * 0.25 * (h * r / 4) * 0.4, (h * r) / 4, oz);
+            ring.rotation.x = Math.PI / 2;
+            group.add(ring);
+          }
+          const bell = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.22, 8, 1, true), ringMat);
+          bell.position.set(ox + ox * 0.25 * h * 0.4, h + 0.08, oz);
+          bell.rotation.x = Math.PI;
+          group.add(bell);
+        }
+        break;
+      }
+
       case 'bell_bloom':
       default: {
         const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.12, 1.6, 8), this.materials.woodRoot);
@@ -1381,6 +1368,56 @@ export class BioForgeThreeEngine {
         break;
       }
 
+      case 'vesper_glider': {
+        // A dusk glider: slim body, two swept membrane wings veined
+        // like ears, a fan tail. It is drawn AIRBORNE — updateFaunaMesh
+        // holds the whole mesh at glide height with a slow bob, so the
+        // body sits at local y 0 and the wings do the talking.
+        const bodyMat = new THREE.MeshStandardMaterial({
+          color: fauna.isTamed ? 0x818cf8 : 0x6366f1,
+          roughness: 0.55,
+          emissive: 0x312e81,
+          emissiveIntensity: 0.45,
+        });
+        const membraneMat = new THREE.MeshStandardMaterial({
+          color: 0xa5b4fc,
+          roughness: 0.6,
+          transparent: true,
+          opacity: 0.72,
+          side: THREE.DoubleSide,
+          emissive: 0x4338ca,
+          emissiveIntensity: 0.25,
+        });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.16, 0.55, 6, 10), bodyMat);
+        body.rotation.x = Math.PI / 2;
+        body.castShadow = true;
+        group.add(body);
+
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 10), bodyMat);
+        head.position.set(0, 0.05, 0.48);
+        group.add(head);
+        // The ears the species is named for — two small vanes up top.
+        for (const sideSign of [-1, 1]) {
+          const ear = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.22, 6), membraneMat);
+          ear.position.set(0.09 * sideSign, 0.22, 0.44);
+          ear.rotation.z = -0.3 * sideSign;
+          group.add(ear);
+        }
+        for (const sideSign of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 0.5), membraneMat);
+          wing.name = sideSign < 0 ? 'gliderWingL' : 'gliderWingR';
+          wing.position.set(0.68 * sideSign, 0.06, -0.02);
+          wing.rotation.x = -Math.PI / 2 + 0.12;
+          wing.rotation.z = 0.1 * sideSign;
+          group.add(wing);
+        }
+        const tail = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.3), membraneMat);
+        tail.position.set(0, 0.03, -0.5);
+        tail.rotation.x = -Math.PI / 2;
+        group.add(tail);
+        break;
+      }
+
       default: {
         const body = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 12), this.materials.biolumAmber);
         body.position.y = 0.3;
@@ -1406,6 +1443,17 @@ export class BioForgeThreeEngine {
     if (fauna.species === 'soft_puff') {
       const hop = Math.abs(Math.sin(fauna.animTime * 6)) * 0.25;
       mesh.position.y = groundY + hop;
+    }
+
+    if (fauna.species === 'vesper_glider') {
+      // Airborne by nature: a low glide with a slow rise-and-settle,
+      // and the wings breathe — a shallow flap cycle, not a buzz.
+      mesh.position.y = groundY + 0.85 + Math.sin(fauna.animTime * 1.7) * 0.22;
+      const flap = Math.sin(fauna.animTime * 2.6) * 0.28;
+      const wingL = mesh.getObjectByName('gliderWingL');
+      const wingR = mesh.getObjectByName('gliderWingR');
+      if (wingL) wingL.rotation.z = -0.1 - flap;
+      if (wingR) wingR.rotation.z = 0.1 + flap;
     }
 
     // Idle-life wiggle (bounded Brownian — see game/motion.ts). Purely how
@@ -2444,22 +2492,6 @@ export class BioForgeThreeEngine {
       downRing.position.set(descentWorld.x, 0.06, descentWorld.z);
       this.cavernGroup.add(downRing);
     }
-
-    // The vine marker: an emerald ring — "up is here". (The vine
-    // itself is the vine_shaft structure in the instance's list;
-    // this ring is its floor signage, kin to the home/descent rings.)
-    if (cavern.vineShaft) {
-      const vineWorld = cavernCellToWorld(
-        cavern.vineShaft.x, cavern.vineShaft.y, cavern.width, cavern.height
-      );
-      const vineRing = new THREE.Mesh(
-        new THREE.TorusGeometry(1.25, 0.05, 6, 32),
-        new THREE.MeshBasicMaterial({ color: 0x34d399 })
-      );
-      vineRing.rotation.x = Math.PI / 2;
-      vineRing.position.set(vineWorld.x, 0.06, vineWorld.z);
-      this.cavernGroup.add(vineRing);
-    }
   }
 
   /** Dispose every cavern mesh/light (geometries + materials are fresh
@@ -2571,8 +2603,6 @@ private initEventListeners() {
                 ? 'The way back up · Permanent — not solvent recyclable'
                 : s.type === 'cave_descent'
                   ? 'The cavern continues below · Permanent — not solvent recyclable'
-                  : s.type === 'vine_shaft'
-                    ? 'A living elevator — climbs straight to the surface · Permanent — not solvent recyclable'
                   : s.type === 'ruin_landmark'
                     ? s.ruin?.tier === 'traces'
                       ? 'A scattered remnant of something older · Permanent — not solvent recyclable'

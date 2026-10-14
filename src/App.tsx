@@ -655,22 +655,28 @@ useEffect(() => {
       applySavedGame(record);
       currentSaveRef.current = {
         id: record.id, name: record.name, difficulty: record.difficulty,
+        worldSeed: record.worldSeed ?? '',
         createdAt: record.createdAt, savedAt: record.savedAt,
       };
       setHasStarted(true);
-      postNotification('World Loaded', `Welcome back to ${record.name}.`, 'system', '#10b981');
+      postNotification(
+        'World Loaded',
+        record.worldSeed ? `Welcome back to ${record.name} · Seed ${record.worldSeed}` : `Welcome back to ${record.name}.`,
+        'system',
+        '#10b981'
+      );
     });
   };
 
-  const handleCreateSave = (name: string, difficulty: GameDifficulty): void => {
-    const meta = createSaveMetadata(name, difficulty);
+  const handleCreateSave = (name: string, difficulty: GameDifficulty, worldSeed: string): void => {
+    const meta = createSaveMetadata(name, difficulty, worldSeed);
     currentSaveRef.current = meta;
     setHasStarted(true);
     // First save right away: the world is the fresh starter world (the
     // start screen has covered the game until now), and writing it now
     // means the world exists in the library from minute one.
     saveNow();
-    postNotification('New World Created', `${meta.name} — autosaving as you play.`, 'system', '#10b981');
+    postNotification('New World Created', `${meta.name} · Seed ${meta.worldSeed} — autosaving as you play.`, 'system', '#10b981');
   };
 
   const handleDeleteSave = (id: string): void => {

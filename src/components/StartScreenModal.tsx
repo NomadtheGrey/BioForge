@@ -7,9 +7,11 @@
  *   - SAVED WORLDS: every world stored on this device, newest first.
  *     Clicking one loads it. The trash button deletes — two-step, because
  *     deletion is forever and a misclick shouldn't cost anyone a base.
- *   - NEW GAME: name a world and pick its difficulty. Only Peaceful is
- *     selectable today; Normal and Hostile are shown disabled, per design,
- *     until hostile creature AI exists to give them meaning.
+ *   - NEW GAME: name a world, pick its difficulty, and set its seed.
+ *     Only Peaceful is selectable today; Normal and Hostile are shown
+ *     disabled, per design, until hostile creature AI exists to give
+ *     them meaning. The seed is pre-rolled and editable — the world's
+ *     fingerprint, saved with it; generation grows from it.
  *   - JOIN CO-OP: a door for guests. Joining somebody else's world needs
  *     no local save at all, so it bypasses this screen's save logic and
  *     simply opens the game with the multiplayer panel ready.
@@ -19,14 +21,20 @@
  */
 
 import React, { useState } from 'react';
-import { Play, Plus, Trash2, Users, Sprout } from 'lucide-react';
-import { GameDifficulty, SaveMetadata, MAX_SAVE_NAME_LENGTH } from '../game/saveSystem';
+import { Play, Plus, Trash2, Users, Sprout, RefreshCw } from 'lucide-react';
+import {
+  GameDifficulty,
+  SaveMetadata,
+  MAX_SAVE_NAME_LENGTH,
+  MAX_WORLD_SEED_LENGTH,
+  generateWorldSeed,
+} from '../game/saveSystem';
 
 interface StartScreenModalProps {
   isOpen: boolean;
   saves: SaveMetadata[];
   onSelectSave: (id: string) => void;
-  onCreateSave: (name: string, difficulty: GameDifficulty) => void;
+  onCreateSave: (name: string, difficulty: GameDifficulty, worldSeed: string) => void;
   onDeleteSave: (id: string) => void;
   onJoinCoop: () => void;
 }
@@ -71,6 +79,12 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
   // "Unnamed World" — so the button is never disabled over a name.
   const [worldName, setWorldName] = useState('');
   const [difficulty, setDifficulty] = useState<GameDifficulty>('peaceful');
+
+  // The world's seed. Pre-rolled so every new world has one even if the
+  // player never touches the field; the dice button rolls a fresh one,
+  // and a player who wants a specific world can type anything — a word
+  // or phrase works just as well as a number.
+  const [worldSeed, setWorldSeed] = useState<string>(() => generateWorldSeed());
 
   // Which save (if any) is mid-delete-confirmation. Deleting takes two
   // clicks on purpose: arm with the trash button, confirm with the red one.
@@ -127,6 +141,7 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
                       <div className="text-sm font-semibold text-slate-100 truncate">{save.name}</div>
                       <div className="text-[11px] text-slate-400">
                         {difficultyLabel(save.difficulty)} · Last played {formatSavedAt(save.savedAt)}
+                        {save.worldSeed && <> · Seed {save.worldSeed}</>}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
@@ -167,6 +182,31 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
               placeholder="Name your world (e.g. Verdant Base)"
               className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:outline-none focus:border-cyan-400"
             />
+            {/* World seed — the fingerprint this world grows from. */}
+            <div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  maxLength={MAX_WORLD_SEED_LENGTH}
+                  value={worldSeed}
+                  onChange={(e) => setWorldSeed(e.target.value)}
+                  placeholder="World seed"
+                  aria-label="World seed"
+                  className="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm font-mono focus:outline-none focus:border-cyan-400"
+                />
+                <button
+                  onClick={() => setWorldSeed(generateWorldSeed())}
+                  title="Roll a new random seed"
+                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors shrink-0"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+              </div>
+              <p className="text-[10px] text-slate-500 mt-1">
+                World seed — saved with your world. Generation will grow the same world from
+                the same seed; type a word, or roll the dice.
+              </p>
+            </div>
             <div className="grid grid-cols-3 gap-2">
               {DIFFICULTY_OPTIONS.map((option) => (
                 <button
@@ -193,7 +233,7 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
               ))}
             </div>
             <button
-              onClick={() => onCreateSave(worldName, difficulty)}
+              onClick={() => onCreateSave(worldName, difficulty, worldSeed)}
               className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-lime-400 hover:from-emerald-400 hover:to-lime-300 font-tech font-bold text-xs text-slate-950 shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-2"
             >
               <Plus className="w-4 h-4" /> START NEW WORLD

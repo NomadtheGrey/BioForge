@@ -44,6 +44,9 @@ export const AUTOSAVE_INTERVAL_MS = 30000;
 /** Longest world name the start screen will accept. */
 export const MAX_SAVE_NAME_LENGTH = 40;
 
+/** Longest world seed the start screen will accept. */
+export const MAX_WORLD_SEED_LENGTH = 32;
+
 const DATABASE_NAME = 'bioforge-saves';
 const DATABASE_VERSION = 1;
 const SAVE_STORE_NAME = 'saves';
@@ -72,6 +75,13 @@ export interface SaveMetadata {
   id: string;
   name: string;
   difficulty: GameDifficulty;
+  /**
+   * The world's seed, chosen (or rolled) on the New Game screen. World
+   * generation will grow flora and fauna from this seed (hashStringToSeed
+   * in game/motion.ts turns the text into a number). Saves written before
+   * seeds existed simply have no seed — readers treat that as ''.
+   */
+  worldSeed: string;
   createdAt: number;
   savedAt: number;
 }
@@ -141,6 +151,7 @@ export async function listSaveMetadata(): Promise<SaveMetadata[]> {
     id: record.id,
     name: record.name,
     difficulty: record.difficulty,
+    worldSeed: record.worldSeed ?? '',
     createdAt: record.createdAt,
     savedAt: record.savedAt,
   }));
@@ -171,17 +182,28 @@ export async function deleteSavedGame(id: string): Promise<void> {
 }
 
 /**
+ * Rolls a fresh world seed: a six-digit number as text. Short enough to
+ * read aloud, text a friend, or type back in — and any text works as a
+ * seed, so a player can equally well type a word or a phrase instead.
+ */
+export function generateWorldSeed(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+/**
  * Builds the metadata for a brand-new world. Ids follow the codebase's
  * existing style (prefixed random string, like peer ids) — short, unique
  * enough at family scale, and readable in dev tools.
  */
-export function createSaveMetadata(name: string, difficulty: GameDifficulty): SaveMetadata {
+export function createSaveMetadata(name: string, difficulty: GameDifficulty, worldSeed: string): SaveMetadata {
   const trimmed = name.trim().slice(0, MAX_SAVE_NAME_LENGTH);
+  const seed = worldSeed.trim().slice(0, MAX_WORLD_SEED_LENGTH);
   const now = Date.now();
   return {
     id: 'save_' + Math.random().toString(36).substring(2, 10),
     name: trimmed.length > 0 ? trimmed : 'Unnamed World',
     difficulty,
+    worldSeed: seed.length > 0 ? seed : generateWorldSeed(),
     createdAt: now,
     savedAt: now,
   };

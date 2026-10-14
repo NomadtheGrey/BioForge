@@ -18,6 +18,8 @@ import {
 } from '../types/game';
 import { FirstPersonViewmodel } from './viewmodel';
 import { BrownianWiggle, hashStringToSeed, type WiggleOptions } from './motion';
+import { BIOME_TINTS } from './biomes';
+import type { BiomeId } from './biomes';
 
 const IRIS_DOOR_TRIGGER_RADIUS = 2.5;
 // Structures sit on ROLLING terrain (see terrainHeightAt): floors ride
@@ -26,10 +28,6 @@ const IRIS_DOOR_TRIGGER_RADIUS = 2.5;
 // this far either side of center — half the 2 m tile, i.e. its edges.
 const FLOOR_TERRAIN_LIFT = 0.03;
 const SLOPE_SAMPLE_DISTANCE = 1;
-// One story of building: wall posts are 2.4 m tall, so a level-1 piece
-// sits exactly one wall-height above its level-0 counterpart. Structure
-// levels (StructureEntity.level) multiply this.
-const STORY_HEIGHT = 2.4;
 
 // Per-species idle-wiggle flavors (see game/motion.ts for what the knobs
 // mean). A predator should not fidget like a puff: the stalker is nearly
@@ -116,6 +114,10 @@ export class BioForgeThreeEngine {
 
   // Groups
   private terrainGroup: THREE.Group = new THREE.Group();
+  /** Kept so the ground can be REPAINTED when a zone's biome arrives. */
+  private terrainGeometry: THREE.BufferGeometry | null = null;
+  /** The current zone's biome (its identity); null = plain quadrant colors. */
+  private zoneBiome: BiomeId | null = null;
   private floraGroup: THREE.Group = new THREE.Group();
   private faunaGroup: THREE.Group = new THREE.Group();
   private structuresGroup: THREE.Group = new THREE.Group();
@@ -515,7 +517,7 @@ export class BioForgeThreeEngine {
     return this.controls.isLocked;
   }
 
-  public setPlayerPosition(x: number, z: number, level: number = 0) {
+  public setPlayerPosition(x: number, z: number) {
     this.cachedPlayerX = x;
     this.cachedPlayerZ = z;
     this.camera.position.x = x;
@@ -523,8 +525,7 @@ export class BioForgeThreeEngine {
     // The player STANDS on the rolling terrain: eye height rides the
     // ground, so crossing a rise lifts the view instead of wading
     // through the hill (structures/floors got the same treatment).
-    // Story levels add a wall-height per floor above the ground.
-    this.camera.position.y = this.eyeHeight + this.terrainHeightAt(x, z) + level * STORY_HEIGHT;
+    this.camera.position.y = this.eyeHeight + this.terrainHeightAt(x, z);
     this.updateIrisDoorsProximity(x, z);
   }
 
@@ -583,26 +584,15 @@ export class BioForgeThreeEngine {
     type: StructureType,
     worldX: number,
     worldZ: number,
-    rotation: number,
-    level: number = 0
+    rotation: number
   ): void {
-    // Story levels stack on the terrain height: a level-1 wall stands
-    // where a level-0 wall's top ends, whatever the ground does below.
-    const groundY = this.terrainHeightAt(worldX, worldZ) + level * STORY_HEIGHT;
+    const groundY = this.terrainHeightAt(worldX, worldZ);
     if (type !== 'root_tile_floor') {
       mesh.position.set(worldX, groundY, worldZ);
       mesh.rotation.set(0, rotation, 0);
       return;
     }
     mesh.position.set(worldX, groundY + FLOOR_TERRAIN_LIFT, worldZ);
-    if (level > 0) {
-      // A ceiling floor must be FLAT — it rests on wall tops, not on the
-      // hillside. Only ground floors tilt with the terrain.
-      mesh.quaternion.copy(
-        new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotation)
-      );
-      return;
-    }
     const hL = this.terrainHeightAt(worldX - SLOPE_SAMPLE_DISTANCE, worldZ);
     const hR = this.terrainHeightAt(worldX + SLOPE_SAMPLE_DISTANCE, worldZ);
     const hD = this.terrainHeightAt(worldX, worldZ - SLOPE_SAMPLE_DISTANCE);
@@ -624,43 +614,15 @@ export class BioForgeThreeEngine {
     geometry.rotateX(-Math.PI / 2);
 
     const positions = geometry.attributes.position;
-    const colors: number[] = [];
-
-    const cViolet = new THREE.Color(0x1e122b);
-    const cTurquoise = new THREE.Color(0x0e2c2c);
-    const cAmber = new THREE.Color(0x2a1a08);
-    const cPrismatic = new THREE.Color(0x191838);
-    const cPath = new THREE.Color(0x273549);
 
     for (let i = 0; i < positions.count; i++) {
-      const vx = positions.getX(i);
-      const vz = positions.getZ(i);
-
-      positions.setY(i, this.terrainHeightAt(vx, vz));
-
-      const col = new THREE.Color();
-      if (vx <= 0 && vz <= 0) {
-        col.copy(cViolet);
-      }
-      if (vx > 0 && vz <= 0) {
-        col.copy(cTurquoise);
-      }
-      if (vx <= 0 && vz > 0) {
-        col.copy(cAmber);
-      }
-      if (vx > 0 && vz > 0) {
-        col.copy(cPrismatic);
-      }
-
-      const distFromCenter = Math.hypot(vx, vz);
-      if (distFromCenter < 12) {
-        col.lerp(cPath, ((12 - distFromCenter) / 12) * 0.4);
-      }
-
-      colors.push(col.r, col.g, col.b);
+      positions.setY(i, this.terrainHeightAt(positions.getX(i), positions.getZ(i)));
     }
 
-    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    // Colors live in paintTerrainColors so the ground can be repainted
+    // when a zone (and its biome) arrives — see setZoneBiome.
+    this.terrainGeometry = geometry;
+    this.paintTerrainColors();
     geometry.computeVertexNormals();
 
     const terrainMaterial = new THREE.MeshStandardMaterial({
@@ -679,6 +641,73 @@ export class BioForgeThreeEngine {
     (gridHelper.material as THREE.Material).transparent = true;
     (gridHelper.material as THREE.Material).opacity = 0.18;
     this.terrainGroup.add(gridHelper);
+  }
+
+  /**
+   * Tell the engine which zone it's showing, by biome. A zone has ONE
+   * biome — its identity — so the tint is a single even blend across
+   * the whole map, never patches. Called by App when a world is
+   * created or loaded. Pass null for a pre-seed world (or no world):
+   * the ground keeps its plain quadrant colors.
+   */
+  public setZoneBiome(biome: BiomeId | null): void {
+    if (this.zoneBiome === biome) return;
+    this.zoneBiome = biome;
+    this.paintTerrainColors();
+  }
+
+  /**
+   * (Re)compute the terrain's vertex colors. Base color comes from the
+   * QUADRANT (the survey's sector shading), then the zone's biome tint
+   * (game/biomes.ts BIOME_TINTS) blends evenly over it, then the pale
+   * path tint around spawn applies last, as before. Repaints happen on
+   * world load only, never per frame.
+   */
+  private paintTerrainColors(): void {
+    const geometry = this.terrainGeometry;
+    if (!geometry) return;
+    const positions = geometry.attributes.position;
+    const colors: number[] = [];
+
+    const cViolet = new THREE.Color(0x1e122b);
+    const cTurquoise = new THREE.Color(0x0e2c2c);
+    const cAmber = new THREE.Color(0x2a1a08);
+    const cPrismatic = new THREE.Color(0x191838);
+    const cPath = new THREE.Color(0x273549);
+    const tint = this.zoneBiome ? BIOME_TINTS[this.zoneBiome] : null;
+    const tintColor = tint ? new THREE.Color(tint.color) : null;
+
+    for (let i = 0; i < positions.count; i++) {
+      const vx = positions.getX(i);
+      const vz = positions.getZ(i);
+
+      const col = new THREE.Color();
+      if (vx <= 0 && vz <= 0) {
+        col.copy(cViolet);
+      }
+      if (vx > 0 && vz <= 0) {
+        col.copy(cTurquoise);
+      }
+      if (vx <= 0 && vz > 0) {
+        col.copy(cAmber);
+      }
+      if (vx > 0 && vz > 0) {
+        col.copy(cPrismatic);
+      }
+
+      if (tint && tintColor) {
+        col.lerp(tintColor, tint.strength);
+      }
+
+      const distFromCenter = Math.hypot(vx, vz);
+      if (distFromCenter < 12) {
+        col.lerp(cPath, ((12 - distFromCenter) / 12) * 0.4);
+      }
+
+      colors.push(col.r, col.g, col.b);
+    }
+
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   }
 
   private buildSporeSystem() {
@@ -723,7 +752,7 @@ export class BioForgeThreeEngine {
   // --------------------------------------------------------------------------
   // Multiplayer Peer Avatars
   // --------------------------------------------------------------------------
-  public updatePeerAvatar(peerId: string, name: string, x: number, z: number, rotation: number, colorHex: string, level: number = 0) {
+  public updatePeerAvatar(peerId: string, name: string, x: number, z: number, rotation: number, colorHex: string) {
     let peerGroup = this.peerMeshes.get(peerId);
     if (!peerGroup) {
       peerGroup = new THREE.Group();
@@ -747,7 +776,7 @@ export class BioForgeThreeEngine {
       this.peerMeshes.set(peerId, peerGroup);
     }
 
-    peerGroup.position.set(x, this.terrainHeightAt(x, z) + level * STORY_HEIGHT, z);
+    peerGroup.position.set(x, this.terrainHeightAt(x, z), z);
     peerGroup.rotation.y = rotation;
   }
 
@@ -1086,12 +1115,12 @@ export class BioForgeThreeEngine {
     const builder = this.structureBuilders[structure.type];
     const group = builder ? builder() : new THREE.Group();
     group.userData = { type: 'structure', entity: structure };
-    this.applyTerrainTransform(group, structure.type, structure.worldX, structure.worldZ, structure.rotation, structure.level ?? 0);
+    this.applyTerrainTransform(group, structure.type, structure.worldX, structure.worldZ, structure.rotation);
     return group;
   }
 
   private updateStructureMesh(mesh: THREE.Group, structure: StructureEntity) {
-    this.applyTerrainTransform(mesh, structure.type, structure.worldX, structure.worldZ, structure.rotation, structure.level ?? 0);
+    this.applyTerrainTransform(mesh, structure.type, structure.worldX, structure.worldZ, structure.rotation);
     mesh.userData.entity = structure;
 
     const forgeCore = mesh.getObjectByName('forgeCore');

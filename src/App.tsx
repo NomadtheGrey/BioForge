@@ -564,6 +564,25 @@ export default function App() {
           level: 0,
         });
       }
+      // The express way OUT, when this (deep) level grew one: an
+      // alien vine shaft in the mid depths — one climb, straight to
+      // the surface (see cavern.ts placeVineShaft).
+      if (cavern.vineShaft) {
+        const vw = cavernCellToWorld(cavern.vineShaft.x, cavern.vineShaft.y, cavern.width, cavern.height);
+        structures.push({
+          id: `vine_shaft_${instanceId}_${depth}`,
+          type: 'vine_shaft',
+          gridX: Math.round(vw.x / 2),
+          gridZ: Math.round(vw.z / 2),
+          worldX: vw.x,
+          worldZ: vw.z,
+          rotation: 0,
+          health: 999,
+          maxHealth: 999,
+          doorOpenProgress: 0,
+          level: 0,
+        });
+      }
       // The cavern's living contents: its glow fungus and BOTH
       // crystal kinds become real flora in the instance list —
       // harvestable, fertilizable, regrowable, exactly like surface
@@ -717,6 +736,32 @@ export default function App() {
     [floraList, faunaList, structuresList, droppedItems, postNotification, captureCavePlantings, enterCavernLevel]
   );
 
+  // The final leg home — shared by the first level's exit portal
+  // and by vine shafts at ANY depth: restore the parked surface
+  // world and land the player at the mouth's stored exit anchor.
+  const exitToSurface = useCallback(
+    (inst: Extract<InstanceState, { kind: 'cavern' }>, note: { title: string; body: string }): void => {
+      const mouth = inst.parked.structures.find((s) => s.id === inst.mouthId);
+      // The return address is the anchor stored on the mouth at
+      // world creation: 2 m out from the mouth, so the player lands
+      // OUTSIDE the portal and never instantly re-triggers it.
+      const exitX = mouth?.cave?.exitX ?? 0;
+      const exitZ = mouth?.cave?.exitZ ?? 0;
+      const facing = mouth ? Math.atan2(exitX - mouth.worldX, exitZ - mouth.worldZ) : 0;
+      replaceWorld(inst.parked);
+      engineRef.current?.setCavernMode(false);
+      instanceRef.current = { kind: 'surface' };
+      caveStackRef.current = [];
+      applyPlayerLevel(0);
+      playerPosRef.current = { x: exitX, z: exitZ, rotation: facing };
+      engineRef.current?.setPlayerPosition(exitX, exitZ, 0);
+      setInCavern(false);
+      setCavernDepth(0);
+      postNotification(note.title, note.body, 'system', '#38bdf8');
+    },
+    [replaceWorld, applyPlayerLevel, postNotification]
+  );
+
   const handleExitCave = useCallback((): void => {
     const inst = instanceRef.current;
     if (inst.kind !== 'cavern') return;
@@ -745,24 +790,21 @@ export default function App() {
       // No frame under us (a restored mid-state) — fall through to
       // the surface exit rather than stranding the player.
     }
-    const mouth = inst.parked.structures.find((s) => s.id === inst.mouthId);
-    // The return address is the anchor stored on the mouth at world
-    // creation: 2 m out from the mouth, so the player lands OUTSIDE
-    // the portal and never instantly re-triggers it.
-    const exitX = mouth?.cave?.exitX ?? 0;
-    const exitZ = mouth?.cave?.exitZ ?? 0;
-    const facing = mouth ? Math.atan2(exitX - mouth.worldX, exitZ - mouth.worldZ) : 0;
-    replaceWorld(inst.parked);
-    engineRef.current?.setCavernMode(false);
-    instanceRef.current = { kind: 'surface' };
-    caveStackRef.current = [];
-    applyPlayerLevel(0);
-    playerPosRef.current = { x: exitX, z: exitZ, rotation: facing };
-    engineRef.current?.setPlayerPosition(exitX, exitZ, 0);
-    setInCavern(false);
-    setCavernDepth(0);
-    postNotification('Surface', 'You climb back into the open air.', 'system', '#38bdf8');
-  }, [replaceWorld, applyPlayerLevel, postNotification, captureCavePlantings]);
+    exitToSurface(inst, { title: 'Surface', body: 'You climb back into the open air.' });
+  }, [replaceWorld, applyPlayerLevel, postNotification, captureCavePlantings, exitToSurface]);
+
+  // The vine climb: from ANY depth, straight to the surface in one
+  // motion (Adam's express access, 2026-10-14). The level's plantings
+  // are captured first, exactly as on a portal exit.
+  const handleVineClimb = useCallback((): void => {
+    const inst = instanceRef.current;
+    if (inst.kind !== 'cavern') return;
+    captureCavePlantings(plantingsKey(inst.instanceId, inst.depth));
+    exitToSurface(inst, {
+      title: 'Daylight',
+      body: 'Hand over hand up the living vine — the whole cave falls away below you, and then there is sky.',
+    });
+  }, [captureCavePlantings, exitToSurface]);
 
   // Leaving an instance WITHOUT the portal (loading a save, starting
   // a new world, receiving a host's world): drop the cave so the
@@ -806,6 +848,7 @@ export default function App() {
     onEnterCave: handleEnterCave,
     onExitCave: handleExitCave,
     onDescendCave: handleDescendCave,
+    onVineClimb: handleVineClimb,
     isInCavern: isInCavernNow,
     tameFauna,
     setFaunaCommand,

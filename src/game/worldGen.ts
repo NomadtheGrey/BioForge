@@ -38,15 +38,26 @@
 // Generation runs ONCE, at world creation; the resulting entities are
 // what get saved — saves never regenerate.
 //
-// Biomes are NOT here. The lab's biome layer stays parked until Adam
-// promotes it; this module is positions + species only.
+// THE BIOME LAYER (P2, promoted 2026-10-14) now runs inside this
+// scatter: every candidate point's biome (biomes.ts — meadow / wetland
+// / fungal / ember, by distance ring + seeded noise) modulates whether
+// the scatter accepts it (biome density multipliers) and how much each
+// species wants it (biome affinity). Every generated entity is stamped
+// with the biome it grew in. Biome TYPE carries these rules; zone
+// NAMES stay a separate, purely poetic system, untouched by this file.
 // ============================================================================
 
 import { createNoise2D, createSeededRandom, hashStringToSeed } from './motion';
+import { biomeAt, biomeDensityFactor, biomeWeightFactor } from './biomes';
+import type { BiomeId } from './biomes';
 import type { FaunaEntity, FaunaSpecies, FloraEntity, FloraSpecies } from '../types/game';
 
-/** Stamp recorded on saves so future format/gen changes can migrate. */
-export const WORLD_GEN_VERSION = 1;
+/**
+ * Stamp recorded on saves so future format/gen changes can migrate.
+ * v1: the hybrid scatter (positions + distance species rule).
+ * v2: + the biome layer (density modulation, species affinity, stamps).
+ */
+export const WORLD_GEN_VERSION = 2;
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -95,6 +106,14 @@ interface FloraSpeciesDef {
   near: number;
   far: number;
   hazardous: boolean;
+  /**
+   * Biome affinity: 'all' = welcome in every biome. A list = the
+   * species ONLY grows in those biomes (weight 0 elsewhere — a hard
+   * rule, see biomes.ts) with a home bonus inside them. All shipped
+   * species are 'all' for now, exactly as labbed; giving a species a
+   * list later is a one-line table edit per species.
+   */
+  biomes: BiomeId[] | 'all';
 }
 
 interface FaunaSpeciesDef {
@@ -107,23 +126,25 @@ interface FaunaSpeciesDef {
   speed: number;
   speedJitter: number;
   health: number;
+  /** Biome affinity — same rule as flora (see FloraSpeciesDef). */
+  biomes: BiomeId[] | 'all';
 }
 
 // The census IS the shipped starter world's multiset:
 // 2 ferns, 2 bell blooms, 2 petal mills, 1 sap weaver, 1 snap trap.
 const FLORA_CENSUS: FloraSpeciesDef[] = [
-  { species: 'lantern_fern', count: 2, baseWeight: 0.28, near: 1.8, far: 0.25, hazardous: false },
-  { species: 'bell_bloom', count: 2, baseWeight: 0.22, near: 1.2, far: 0.8, hazardous: false },
-  { species: 'petal_mill', count: 2, baseWeight: 0.20, near: 0.9, far: 1.15, hazardous: false },
-  { species: 'sap_weaver', count: 1, baseWeight: 0.18, near: 0.6, far: 1.4, hazardous: false },
-  { species: 'snap_trap', count: 1, baseWeight: 0.12, near: 0.03, far: 2.4, hazardous: true },
+  { species: 'lantern_fern', count: 2, baseWeight: 0.28, near: 1.8, far: 0.25, hazardous: false, biomes: 'all' },
+  { species: 'bell_bloom', count: 2, baseWeight: 0.22, near: 1.2, far: 0.8, hazardous: false, biomes: 'all' },
+  { species: 'petal_mill', count: 2, baseWeight: 0.20, near: 0.9, far: 1.15, hazardous: false, biomes: 'all' },
+  { species: 'sap_weaver', count: 1, baseWeight: 0.18, near: 0.6, far: 1.4, hazardous: false, biomes: 'all' },
+  { species: 'snap_trap', count: 1, baseWeight: 0.12, near: 0.03, far: 2.4, hazardous: true, biomes: 'all' },
 ];
 
 // 2 soft-puffs, 2 burrow mice, 1 chitin stalker — the shipped five.
 const FAUNA_CENSUS: FaunaSpeciesDef[] = [
-  { species: 'soft_puff', count: 2, baseWeight: 0.45, near: 1.6, far: 0.35, speed: 1.7, speedJitter: 0.1, health: 40 },
-  { species: 'burrow_mouse', count: 2, baseWeight: 0.35, near: 1.0, far: 1.0, speed: 1.85, speedJitter: 0.15, health: 30 },
-  { species: 'chitin_stalker', count: 1, baseWeight: 0.20, near: 0.03, far: 2.6, speed: 2.4, speedJitter: 0, health: 120 },
+  { species: 'soft_puff', count: 2, baseWeight: 0.45, near: 1.6, far: 0.35, speed: 1.7, speedJitter: 0.1, health: 40, biomes: 'all' },
+  { species: 'burrow_mouse', count: 2, baseWeight: 0.35, near: 1.0, far: 1.0, speed: 1.85, speedJitter: 0.15, health: 30, biomes: 'all' },
+  { species: 'chitin_stalker', count: 1, baseWeight: 0.20, near: 0.03, far: 2.6, speed: 2.4, speedJitter: 0, health: 120, biomes: 'all' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -192,14 +213,19 @@ function scatterClustered(
   minSpacing: number,
   spawnClear: number,
   blockers: PlacedPoint[] = [],
+  densityAt?: (x: number, z: number) => number,
 ): ScatterResult {
   // Acceptance: how "grove-worthy" is this point? Field value mapped to
   // 0..1, then a soft threshold — deep-field points almost always accept,
   // barren points almost never do, edges are a coin weighted by depth.
+  // The BIOME LAYER multiplies that by the biome's density factor for
+  // this kind: groves thicken in fertile biomes and thin out on harsh
+  // ground, whatever the noise field said (clamped back to a probability).
   const acceptP = (x: number, z: number): number => {
     const n = field(x / scale + fieldOffsetX, z / scale + fieldOffsetZ);
     const t = (n + 1) / 2;
-    return smooth01((t - CLUSTER_THRESHOLD) / CLUSTER_SLOPE);
+    const grove = smooth01((t - CLUSTER_THRESHOLD) / CLUSTER_SLOPE);
+    return clamp01(grove * (densityAt ? densityAt(x, z) : 1));
   };
   const propose = (): PlacedPoint => ({
     x: (rng() * 2 - 1) * WORLD_HALF_EXTENT,
@@ -277,11 +303,18 @@ function assignSpecies<T extends { near: number; far: number; count: number }>(
   for (const def of ordered) {
     for (let i = 0; i < def.count && remaining.length > 0; i++) {
       // Weighted pick without replacement from the remaining points.
+      // A weight of exactly 0 means "this species cannot live here"
+      // (biome exclusivity) — those points are EXCLUDED while any legal
+      // point remains. The tiny floor applies only when NO legal point
+      // is left, because the census is a promise: a guaranteed creature
+      // must live somewhere, even somewhere it dislikes.
+      const rawWeights = remaining.map((p) => Math.max(weightOf(def, p), 0));
+      const anyLegal = rawWeights.some((w) => w > 0);
       let total = 0;
-      const weights = remaining.map((p) => {
-        const w = Math.max(weightOf(def, p), 0.0001);
-        total += w;
-        return w;
+      const weights = rawWeights.map((w) => {
+        const effective = anyLegal ? w : 0.0001;
+        total += effective;
+        return effective;
       });
       let roll = rng() * total;
       let idx = 0;
@@ -358,22 +391,37 @@ export function generateSeededWorld(seedStr: string): GeneratedWorld {
   const faunaOx = (streamSeed(seedStr, 'fauna:ox') % 200) - 100;
   const faunaOz = (streamSeed(seedStr, 'fauna:oz') % 200) - 100;
 
+  // Biome density gates the scatter: each kind gets its own factor
+  // lookup (flora and fauna densities differ per biome — fungal ground
+  // grows plants fine but its fauna runs sparse).
+  const floraDensityAt = (x: number, z: number): number =>
+    biomeDensityFactor('flora', biomeAt(seedStr, x, z));
+  const faunaDensityAt = (x: number, z: number): number =>
+    biomeDensityFactor('fauna', biomeAt(seedStr, x, z));
+
   const floraScatter = scatterClustered(
     floraPosRng, floraField, floraOx, floraOz,
     FLORA_COUNT - fernDef.count, FLORA_CLUSTER_SCALE, FLORA_MIN_SPACING, SPAWN_CLEAR_FLORA,
-    fernPoints,
+    fernPoints, floraDensityAt,
   );
   const faunaScatter = scatterClustered(
     faunaPosRng, faunaField, faunaOx, faunaOz,
     FAUNA_COUNT, FAUNA_CLUSTER_SCALE, FAUNA_MIN_SPACING, SPAWN_CLEAR_FAUNA,
+    [], faunaDensityAt,
   );
 
+  // Species want a point by distance AND by biome: the distance weight
+  // (far specialists still pick first) times the biome affinity factor
+  // (1 for 'all' species, home bonus in listed biomes, 0 outside them).
   const floraDealt: { def: FloraSpeciesDef; point: PlacedPoint }[] = [
     ...fernPoints.map((point) => ({ def: fernDef, point })),
-    ...assignSpecies(floraScatter.points, floraCensusRest, floraSpRng, (def, p) => distanceWeight(def, p.x, p.z)),
+    ...assignSpecies(floraScatter.points, floraCensusRest, floraSpRng, (def, p) =>
+      distanceWeight(def, p.x, p.z) * biomeWeightFactor(def.biomes, biomeAt(seedStr, p.x, p.z)),
+    ),
   ];
   const faunaDealt = assignSpecies(
-    faunaScatter.points, FAUNA_CENSUS, faunaSpRng, (def, p) => distanceWeight(def, p.x, p.z),
+    faunaScatter.points, FAUNA_CENSUS, faunaSpRng, (def, p) =>
+      distanceWeight(def, p.x, p.z) * biomeWeightFactor(def.biomes, biomeAt(seedStr, p.x, p.z)),
   );
 
   // Build full entities with the shipped starter world's shape: mature,
@@ -384,6 +432,7 @@ export function generateSeededWorld(seedStr: string): GeneratedWorld {
     species: d.def.species,
     x: d.point.x,
     z: d.point.z,
+    biome: biomeAt(seedStr, d.point.x, d.point.z),
     rotation: decorRng() * Math.PI * 2,
     scale: 0.95 + decorRng() * 0.35,
     growthStage: 3,
@@ -402,6 +451,7 @@ export function generateSeededWorld(seedStr: string): GeneratedWorld {
     species: d.def.species,
     x: d.point.x,
     z: d.point.z,
+    biome: biomeAt(seedStr, d.point.x, d.point.z),
     y: 0,
     rotation: decorRng() * Math.PI * 2,
     state: 'wandering',

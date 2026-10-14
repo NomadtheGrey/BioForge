@@ -3,6 +3,8 @@
  * Prismatic Botanical Tech Ecosystem
  */
 
+import type { BiomeId } from '../game/biomes';
+
 export type ItemId =
   // Raw Botanical Byproducts & Harvests
   | 'resin_sap'
@@ -83,6 +85,8 @@ export interface FloraEntity {
   isHazardous: boolean;
   pacifiedUntil?: number;
   swayOffset: number;
+  /** Biome TYPE this plant grew in (world-gen stamp; absent on player-planted flora and old saves). */
+  biome?: BiomeId;
   colorVariant?: string;
   isPlayerPlanted?: boolean;
 }
@@ -110,6 +114,8 @@ export interface FaunaEntity {
   maxHealth: number;
   byproductTimer: number; // spawns bio_pellet or carapace_scale
   animTime: number;
+  /** Biome TYPE this creature spawned in (world-gen stamp; absent on old saves). */
+  biome?: BiomeId;
   colorVariant?: string;
   customName?: string;
   command?: 'follow' | 'stay' | 'guard';

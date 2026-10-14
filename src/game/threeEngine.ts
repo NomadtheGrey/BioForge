@@ -21,6 +21,7 @@ import { BrownianWiggle, hashStringToSeed, type WiggleOptions } from './motion';
 import { BIOME_TINTS } from './biomes';
 import type { BiomeId } from './biomes';
 import { cavernCellToWorld, type CavernResult } from './cavern';
+import type { RuinResult } from './ruinInterior';
 import { FATE_STYLES, type WorldFate } from './ruins';
 
 const IRIS_DOOR_TRIGGER_RADIUS = 2.5;
@@ -138,6 +139,12 @@ export class BioForgeThreeEngine {
   // flat 0, and the day/night cycle yields to permanent cave dark.
   private cavernGroup: THREE.Group = new THREE.Group();
   private cavernMode: boolean = false;
+  // Instanced ruin interiors (game/ruinInterior.ts): the cavern
+  // pattern's sibling — one group of instanced meshes, built on
+  // entry, disposed on exit. Ruins are broken-roofed, so their look
+  // is dim daylight-leak rather than the caverns' permanent dark.
+  private ruinGroup: THREE.Group = new THREE.Group();
+  private ruinMode: boolean = false;
   /** Last day/night cycle value seen, so leaving a cave restores it. */
   private lastDayCycle: number = 0.5;
 
@@ -188,6 +195,16 @@ export class BioForgeThreeEngine {
     cave_exit: { color: 0xa855f7, intensity: 0.9, distance: 4.5, y: 1.4 },
     // The way DOWN: a deeper violet — the dark below breathes colder.
     cave_descent: { color: 0x7c3aed, intensity: 0.9, distance: 4.5, y: 0.8 },
+    // Ruin interiors (game/ruinInterior.ts): the cavern pattern's
+    // sibling — one instanced group, built on entry, disposed on
+    // exit. Broken-roofed, so the look is dim daylight-leak, not
+    // the caverns' permanent dark.
+    vine_shaft: { color: 0x34d399, intensity: 0.85, distance: 4.5, y: 2.0 },
+    ruin_landmark: { color: 0xa5b4fc, intensity: 0.5, distance: 3.5, y: 1.2 },
+    ruin_exit: { color: 0x2dd4bf, intensity: 0.9, distance: 4.5, y: 1.4 },
+    precursor_cache: { color: 0x67e8f9, intensity: 0.55, distance: 3, y: 0.8 },
+    artifact_heart: { color: 0xfb7185, intensity: 1.1, distance: 5.5, y: 1.5 },
+    ruin_glyph: { color: 0xa5b4fc, intensity: 0.6, distance: 3, y: 1.1 },
   };
 
   // Raycasting
@@ -375,6 +392,166 @@ export class BioForgeThreeEngine {
         rock.scale.set(1, 0.6, 1);
         group.add(rock);
       }
+      return group;
+    },
+    // The vine shaft (Adam's deep-cave elevator): an alien vine
+    // through a crack in the cavern roof — the hanging doorway
+    // (exit stands, descent lies flat, the vine HANGS). Trunk and
+    // tendrils rise the full 4.6 m; glow-leaves mark it living.
+    'vine_shaft': () => {
+      const group = new THREE.Group();
+      const barkMat = new THREE.MeshStandardMaterial({ color: 0x365314, roughness: 0.9 });
+      const leafMat = new THREE.MeshStandardMaterial({ color: 0x166534, emissive: 0x34d399, emissiveIntensity: 0.85, roughness: 0.6 });
+      // Root collar where the vine meets the cavern floor.
+      const collar = new THREE.Mesh(new THREE.DodecahedronGeometry(0.85, 0), barkMat);
+      collar.position.y = 0.18;
+      collar.scale.set(1.25, 0.45, 1.25);
+      collar.castShadow = true;
+      group.add(collar);
+      // The trunk: thick as a mast, climbing to the ceiling crack.
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.26, 4.6, 7), barkMat);
+      trunk.position.y = 2.3;
+      trunk.rotation.z = 0.03;
+      trunk.castShadow = true;
+      group.add(trunk);
+      // Tendrils spiraling off the trunk — handholds, in fiction.
+      for (let i = 0; i < 3; i++) {
+        const tendril = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.08, 2.6, 5), barkMat);
+        const a = (i / 3) * Math.PI * 2 + 0.6;
+        tendril.position.set(Math.cos(a) * 0.3, 2.5, Math.sin(a) * 0.3);
+        tendril.rotation.set(Math.sin(a) * 0.35, 0, Math.cos(a) * 0.35);
+        group.add(tendril);
+      }
+      // Glow-leaves along the upper trunk — the vine's own light.
+      for (let i = 0; i < 6; i++) {
+        const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.16, 6, 5), leafMat);
+        const a = (i / 6) * Math.PI * 2 + 0.3;
+        leaf.position.set(Math.cos(a) * 0.34, 3.1 + (i % 3) * 0.55, Math.sin(a) * 0.34);
+        leaf.scale.set(1, 0.45, 1.6);
+        leaf.rotation.y = -a;
+        group.add(leaf);
+      }
+      // The crack it climbs through: a dark disc on the ceiling.
+      const crack = new THREE.Mesh(
+        new THREE.CircleGeometry(0.8, 16),
+        new THREE.MeshBasicMaterial({ color: 0x010103 })
+      );
+      crack.name = 'vineShaftCrack';
+      crack.rotation.x = Math.PI / 2;
+      crack.position.y = 4.58;
+      group.add(crack);
+      return group;
+    },
+    // The threshold OUT of a ruin interior: two broken pillars and
+    // a tilted lintel — the cave exit's door grammar in precursor
+    // stone — with a teal daylight shimmer between them.
+    'ruin_exit': () => {
+      const group = new THREE.Group();
+      const stone = new THREE.MeshStandardMaterial({ color: 0x6b6560, roughness: 0.95 });
+      const pillarGeom = new THREE.BoxGeometry(0.38, 2.6, 0.38);
+      const leftPillar = new THREE.Mesh(pillarGeom, stone);
+      leftPillar.position.set(-0.95, 1.3, 0);
+      leftPillar.castShadow = true;
+      const rightPillar = leftPillar.clone();
+      rightPillar.position.x = 0.95;
+      rightPillar.scale.y = 0.82; // the right pillar broke shorter
+      rightPillar.position.y = 1.07;
+      group.add(leftPillar);
+      group.add(rightPillar);
+      const lintel = new THREE.Mesh(new THREE.BoxGeometry(2.35, 0.34, 0.42), stone);
+      lintel.position.set(0, 2.62, 0);
+      lintel.rotation.z = 0.045; // settled with the centuries
+      lintel.castShadow = true;
+      group.add(lintel);
+      const shimmer = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.65, 2.3),
+        new THREE.MeshBasicMaterial({ color: 0x2dd4bf, transparent: true, opacity: 0.26, side: THREE.DoubleSide })
+      );
+      shimmer.name = 'ruinExitShimmer';
+      shimmer.position.set(0, 1.2, 0);
+      group.add(shimmer);
+      const slab = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.14, 1.1), stone);
+      slab.position.y = 0.07;
+      slab.receiveShadow = true;
+      group.add(slab);
+      return group;
+    },
+    // A precursor cache: a stone coffer with a cold cyan seam — the
+    // seal the precursors trusted to outlast them. Opened with the
+    // harvest glove (useToolInteractions resolves its seeded loot).
+    'precursor_cache': () => {
+      const group = new THREE.Group();
+      const stone = new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.95 });
+      const body = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.68, 0.82), stone);
+      body.position.y = 0.34;
+      body.castShadow = true;
+      group.add(body);
+      const lid = new THREE.Mesh(new THREE.BoxGeometry(1.28, 0.2, 0.94), stone);
+      lid.position.y = 0.76;
+      lid.rotation.z = 0.03;
+      lid.castShadow = true;
+      group.add(lid);
+      // The seal seam: a thin emissive line where lid meets body.
+      const seam = new THREE.Mesh(
+        new THREE.BoxGeometry(1.17, 0.045, 0.84),
+        new THREE.MeshStandardMaterial({ color: 0x164e63, emissive: 0x22d3ee, emissiveIntensity: 1.1, roughness: 0.4 })
+      );
+      seam.position.y = 0.67;
+      group.add(seam);
+      return group;
+    },
+    // The artifact heart: the deepest room's prize on its pedestal —
+    // a warm rose crystal that still pulses, ringed by shardlets.
+    'artifact_heart': () => {
+      const group = new THREE.Group();
+      const pedestal = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.55, 0.75, 0.9, 8),
+        new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.95 })
+      );
+      pedestal.position.y = 0.45;
+      pedestal.castShadow = true;
+      group.add(pedestal);
+      const heart = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.62),
+        new THREE.MeshStandardMaterial({ color: 0x881337, emissive: 0xf43f5e, emissiveIntensity: 1.7, roughness: 0.25 })
+      );
+      heart.name = 'artifactHeartCrystal';
+      heart.position.y = 1.55;
+      group.add(heart);
+      for (let i = 0; i < 3; i++) {
+        const shard = new THREE.Mesh(
+          new THREE.OctahedronGeometry(0.16),
+          new THREE.MeshStandardMaterial({ color: 0x881337, emissive: 0xfb7185, emissiveIntensity: 1.2, roughness: 0.3 })
+        );
+        const a = (i / 3) * Math.PI * 2 + 0.4;
+        shard.position.set(Math.cos(a) * 0.95, 1.25 + (i % 2) * 0.35, Math.sin(a) * 0.95);
+        group.add(shard);
+      }
+      return group;
+    },
+    // A ruin glyph: a stone tablet on a rubble base, its indigo
+    // script-lines still lit. Clicking reads the stone's memory
+    // (useToolInteractions serves the fate's lore lines).
+    'ruin_glyph': () => {
+      const group = new THREE.Group();
+      const stone = new THREE.MeshStandardMaterial({ color: 0x605a54, roughness: 0.95 });
+      const base = new THREE.Mesh(new THREE.DodecahedronGeometry(0.7, 0), stone);
+      base.position.y = 0.16;
+      base.scale.set(1.25, 0.5, 1);
+      group.add(base);
+      const tablet = new THREE.Mesh(new THREE.BoxGeometry(0.95, 1.5, 0.16), stone);
+      tablet.position.y = 1.05;
+      tablet.rotation.x = -0.1; // leaning back on its base, reading angle
+      tablet.castShadow = true;
+      group.add(tablet);
+      // Script lines: three lit bars of descending length on the face.
+      const scriptMat = new THREE.MeshBasicMaterial({ color: 0xa5b4fc });
+      [0.34, 0.22, 0.27].forEach((len, i) => {
+        const line = new THREE.Mesh(new THREE.BoxGeometry(len * 2, 0.045, 0.02), scriptMat);
+        line.position.set(-0.32 + len, 1.42 - i * 0.3, 0.1);
+        line.rotation.x = -0.1;
+        group.add(line);
+      });
       return group;
     },
     'iris_slit_door': () => {
@@ -646,6 +823,8 @@ export class BioForgeThreeEngine {
     this.scene.add(this.ghostGroup);
     this.cavernGroup.visible = false;
     this.scene.add(this.cavernGroup);
+    this.ruinGroup.visible = false;
+    this.scene.add(this.ruinGroup);
 
     // World Elements
     this.buildTerrain();
@@ -741,7 +920,8 @@ export class BioForgeThreeEngine {
     // Inside an instanced cavern the floor is FLAT: the surface's
     // rolling field belongs to a world that isn't rendered here, and
     // sampling it would bob the camera over invisible hills.
-    if (this.cavernMode) return 0;
+    // Ruin interiors are flat-floored instances for the same reason.
+    if (this.cavernMode || this.ruinMode) return 0;
     return (
       Math.sin(x * 0.08) * Math.cos(z * 0.08) * 0.45 +
       Math.sin(x * 0.18 + z * 0.12) * 0.25
@@ -2287,7 +2467,8 @@ export class BioForgeThreeEngine {
     this.lastDayCycle = cycle;
     // Underground there is no day: the cavern look (set by
     // setCavernMode) owns the lights until the player surfaces.
-    if (this.cavernMode) return;
+    // Ruin interiors own their dimmer look the same way.
+    if (this.cavernMode || this.ruinMode) return;
     const isDay = cycle > 0.25 && cycle < 0.75;
     const sunAngle = cycle * Math.PI * 2;
     this.dirLight.position.set(
@@ -2492,6 +2673,22 @@ export class BioForgeThreeEngine {
       downRing.position.set(descentWorld.x, 0.06, descentWorld.z);
       this.cavernGroup.add(downRing);
     }
+
+    // The vine marker: an emerald ring around the shaft — "the way
+    // OUT is here", daylight's family color. (The shaft itself is the
+    // vine_shaft structure in the instance's list, hanging above it.)
+    if (cavern.vineShaft) {
+      const vineWorld = cavernCellToWorld(
+        cavern.vineShaft.x, cavern.vineShaft.y, cavern.width, cavern.height
+      );
+      const vineRing = new THREE.Mesh(
+        new THREE.TorusGeometry(1.25, 0.05, 6, 32),
+        new THREE.MeshBasicMaterial({ color: 0x34d399 })
+      );
+      vineRing.rotation.x = Math.PI / 2;
+      vineRing.position.set(vineWorld.x, 0.06, vineWorld.z);
+      this.cavernGroup.add(vineRing);
+    }
   }
 
   /** Dispose every cavern mesh/light (geometries + materials are fresh
@@ -2505,6 +2702,188 @@ export class BioForgeThreeEngine {
       else if (material) material.dispose();
     });
     this.cavernGroup.clear();
+  }
+
+  // Instanced ruin interiors (game/ruinInterior.ts): the cavern
+  // pattern rebuilt for the precursors — instanced floor tiles
+  // (per-cell fate tint + overgrowth), one instanced wall mesh
+  // (3.2 m — rooms, not caves), rubble where the centuries collapsed
+  // a corridor, blobs where they grew one over. NO ceiling: the
+  // roofs fell in long ago; light leaks from a grey sky. Instances
+  // are exclusive: App never opens a ruin and a cavern at once.
+
+  /** Enter (on=true, with the ruin + its fate tint) or leave. */
+  public setRuinMode(on: boolean, ruin?: RuinResult, fateTint = 0xa8a29e): void {
+    this.ruinMode = on;
+    this.terrainGroup.visible = !on;
+    if (on && ruin) this.buildRuin(ruin, fateTint);
+    this.ruinGroup.visible = on;
+    const fog = this.scene.fog as THREE.FogExp2;
+    if (on) {
+      // Dim daylight-leak: brighter than a cave (you can navigate
+      // by it), dark enough that held light still earns its slot.
+      this.dirLight.intensity = 0.32;
+      this.hemiLight.intensity = 0.38;
+      this.ambientLight.intensity = 0.3;
+      this.scene.background = new THREE.Color(0x10151c);
+      fog.color.setHex(0x10151c);
+      fog.density = 0.03;
+    } else {
+      this.clearRuin();
+      // Surface restore, mirroring setCavernMode's exit path.
+      this.hemiLight.intensity = 0.8;
+      fog.density = 0.018;
+      this.setDayNightTime(this.lastDayCycle);
+    }
+  }
+
+  public isInRuin(): boolean {
+    return this.ruinMode;
+  }
+
+  private buildRuin(ruin: RuinResult, fateTint: number): void {
+    this.clearRuin();
+    const WALL_H = 3.2; // precursor rooms: tall, but not cavern-tall
+    const tint = new THREE.Color(fateTint);
+    const dummy = new THREE.Object3D();
+    const isOpen = (ch: string): boolean => ch !== '#' && ch !== 'x';
+    // Deterministic per-cell shade (the cavern walls' hash trick).
+    const shadeOf = (cx: number, cy: number): number =>
+      0.8 + (((cx * 31 + cy * 17) % 10) / 10) * 0.45;
+
+    // --- Floor tiles: one instanced plane per open cell, colored by
+    // what the centuries did to it — plain stone, overgrowth green,
+    // the entrance's worn threshold, the heart room's tinted floor.
+    const floorCells: { x: number; z: number; ch: string; cx: number; cy: number }[] = [];
+    const wallCells: { x: number; z: number; cx: number; cy: number }[] = [];
+    const rubbleCells: { x: number; z: number; cx: number; cy: number }[] = [];
+    for (let cy = 0; cy < ruin.height; cy++) {
+      for (let cx = 0; cx < ruin.width; cx++) {
+        const ch = ruin.grid[cy][cx];
+        const w = cavernCellToWorld(cx, cy, ruin.width, ruin.height);
+        if (ch === '#') {
+          const touchesOpen =
+            (cx > 0 && isOpen(ruin.grid[cy][cx - 1])) ||
+            (cx < ruin.width - 1 && isOpen(ruin.grid[cy][cx + 1])) ||
+            (cy > 0 && isOpen(ruin.grid[cy - 1][cx])) ||
+            (cy < ruin.height - 1 && isOpen(ruin.grid[cy + 1][cx]));
+          if (touchesOpen) wallCells.push({ x: w.x, z: w.z, cx, cy });
+        } else if (ch === 'x') {
+          rubbleCells.push({ x: w.x, z: w.z, cx, cy });
+        } else {
+          floorCells.push({ x: w.x, z: w.z, ch, cx, cy });
+        }
+      }
+    }
+    const floorMesh = new THREE.InstancedMesh(
+      new THREE.PlaneGeometry(2.04, 2.04),
+      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1 }),
+      floorCells.length
+    );
+    const stoneFloor = new THREE.Color(0x6f6a63);
+    const grownFloor = new THREE.Color(0x556b2f);
+    floorCells.forEach((cell, i) => {
+      dummy.position.set(cell.x, 0.01, cell.z);
+      dummy.rotation.set(-Math.PI / 2, 0, 0);
+      dummy.scale.set(1, 1, 1);
+      dummy.updateMatrix();
+      floorMesh.setMatrixAt(i, dummy.matrix);
+      const base = cell.ch === 'o' ? grownFloor.clone() : stoneFloor.clone().lerp(tint, 0.18);
+      if (cell.ch === 'E') base.multiplyScalar(1.3);
+      if (cell.ch === '*') base.lerp(tint, 0.45);
+      floorMesh.setColorAt(i, base.multiplyScalar(shadeOf(cell.cx, cell.cy)));
+    });
+    floorMesh.receiveShadow = true;
+    this.ruinGroup.add(floorMesh);
+
+    // --- Walls: one instanced box per wall cell touching open floor.
+    const wallMesh = new THREE.InstancedMesh(
+      new THREE.BoxGeometry(2.04, WALL_H, 2.04),
+      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1 }),
+      wallCells.length
+    );
+    const wallBase = new THREE.Color(0x7a756e).lerp(tint, 0.3);
+    wallCells.forEach((cell, i) => {
+      dummy.position.set(cell.x, WALL_H / 2, cell.z);
+      dummy.rotation.set(0, 0, 0);
+      dummy.scale.set(1, 1, 1);
+      dummy.updateMatrix();
+      wallMesh.setMatrixAt(i, dummy.matrix);
+      wallMesh.setColorAt(i, wallBase.clone().multiplyScalar(shadeOf(cell.cx, cell.cy)));
+    });
+    wallMesh.castShadow = true;
+    wallMesh.receiveShadow = true;
+    this.ruinGroup.add(wallMesh);
+
+    // --- Rubble: two deterministic rocks per collapsed cell.
+    if (rubbleCells.length) {
+      const rubbleMesh = new THREE.InstancedMesh(
+        new THREE.DodecahedronGeometry(0.55, 0),
+        new THREE.MeshStandardMaterial({ color: 0x5d5851, roughness: 1 }),
+        rubbleCells.length * 2
+      );
+      rubbleCells.forEach((cell, i) => {
+        for (let k = 0; k < 2; k++) {
+          const jx = (((cell.cx * 13 + cell.cy * 7 + k * 29) % 10) / 10 - 0.5) * 0.9;
+          const jz = (((cell.cx * 7 + cell.cy * 19 + k * 11) % 10) / 10 - 0.5) * 0.9;
+          dummy.position.set(cell.x + jx, 0.28, cell.z + jz);
+          dummy.rotation.set(0, ((cell.cx * 3 + k) % 6) * 1.05, 0);
+          const s = 0.7 + (((cell.cx * 17 + cell.cy * 5 + k * 7) % 10) / 10) * 0.6;
+          dummy.scale.set(s, s * 0.65, s);
+          dummy.updateMatrix();
+          rubbleMesh.setMatrixAt(i * 2 + k, dummy.matrix);
+        }
+      });
+      rubbleMesh.castShadow = true;
+      this.ruinGroup.add(rubbleMesh);
+    }
+
+    // --- Overgrowth: a living blob on most 'o' cells (the fate's
+    // flora reclaiming its floor — densest in the grown fates).
+    const grownCells = floorCells.filter((c) => c.ch === 'o' && (c.cx * 31 + c.cy * 17) % 5 !== 0);
+    if (grownCells.length) {
+      const blobMesh = new THREE.InstancedMesh(
+        new THREE.IcosahedronGeometry(0.5, 0),
+        new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 1, emissive: 0x1a2e05, emissiveIntensity: 0.5 }),
+        grownCells.length
+      );
+      grownCells.forEach((cell, i) => {
+        const s = 1.1 + (((cell.cx * 11 + cell.cy * 23) % 10) / 10) * 0.8;
+        dummy.position.set(cell.x, 0.16, cell.z);
+        dummy.rotation.set(0, ((cell.cx + cell.cy) % 6) * 1.05, 0);
+        dummy.scale.set(s, s * 0.42, s);
+        dummy.updateMatrix();
+        blobMesh.setMatrixAt(i, dummy.matrix);
+      });
+      this.ruinGroup.add(blobMesh);
+    }
+
+    // --- Rings: the entrance ("home") and the heart ("the prize"),
+    // both in the world's fate tint — a ruin's two poles.
+    const ringAt = (cx: number, cy: number, radius: number): void => {
+      const w = cavernCellToWorld(cx, cy, ruin.width, ruin.height);
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(radius, 0.05, 6, 32),
+        new THREE.MeshBasicMaterial({ color: fateTint })
+      );
+      ring.rotation.x = Math.PI / 2;
+      ring.position.set(w.x, 0.06, w.z);
+      this.ruinGroup.add(ring);
+    };
+    ringAt(ruin.entrance.cx, ruin.entrance.cy, 1.25);
+    ringAt(ruin.heart.cx, ruin.heart.cy, 1.45);
+  }
+
+  /** Dispose every ruin mesh (fresh per build, like clearCavern). */
+  private clearRuin(): void {
+    this.ruinGroup.traverse((obj) => {
+      const mesh = obj as THREE.Mesh;
+      if (mesh.geometry) mesh.geometry.dispose();
+      const material = mesh.material as THREE.Material | THREE.Material[] | undefined;
+      if (Array.isArray(material)) material.forEach((m) => m.dispose());
+      else if (material) material.dispose();
+    });
+    this.ruinGroup.clear();
   }
 
   // --------------------------------------------------------------------------
@@ -2603,10 +2982,20 @@ private initEventListeners() {
                 ? 'The way back up · Permanent — not solvent recyclable'
                 : s.type === 'cave_descent'
                   ? 'The cavern continues below · Permanent — not solvent recyclable'
-                  : s.type === 'ruin_landmark'
+                  : s.type === 'vine_shaft'
+                    ? 'A living elevator — climbs straight to the surface · Permanent — not solvent recyclable'
+                    : s.type === 'ruin_landmark'
                     ? s.ruin?.tier === 'traces'
                       ? 'A scattered remnant of something older · Permanent — not solvent recyclable'
-                      : 'Precursor ruin · The way in is not open yet · Permanent — not solvent recyclable'
+                      : 'Precursor ruin · Click to step inside · Permanent — not solvent recyclable'
+                    : s.type === 'ruin_exit'
+                      ? 'The way back out · Permanent — not solvent recyclable'
+                      : s.type === 'precursor_cache'
+                        ? 'Precursor Cache · Open with the harvest glove'
+                        : s.type === 'artifact_heart'
+                          ? 'Artifact Heart · The deepest room\'s prize · Take it with the harvest glove'
+                          : s.type === 'ruin_glyph'
+                            ? 'Ruin Glyph · Click to read what the stone remembers'
                   : `Integrity: ${s.health}/${s.maxHealth} (Solvent Recyclable)`,
           entity: s,
         });

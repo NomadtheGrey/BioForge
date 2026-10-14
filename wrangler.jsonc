@@ -4,7 +4,7 @@
   // The game is a static Vite build: `npm run build` emits dist/, and
   // Wrangler serves that folder as the site. No server code runs here;
   // the multiplayer relay is a separate Worker (bioforge-relay repo).
-  "name": "bioforgegame",
+  "name": "bioforge",
   "compatibility_date": "2025-01-01",
   "assets": {
     "directory": "./dist"

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Users, Copy, Check, Radio, Send, ShieldCheck, Globe } from 'lucide-react';
+import { X, Users, Copy, Check, Radio, Send, ShieldCheck, Globe, Link2 } from 'lucide-react';
 import { MultiplayerPeer } from '../types/game';
 
 interface MultiplayerModalProps {
@@ -58,14 +58,21 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
 
   if (!isOpen) return null;
 
+  // The INVITE LINK for this session (origin + path + ?room=CODE).
+  // Whoever opens it lands in the game with this room's code already
+  // filled into the join field (App reads ?room= at boot and passes it
+  // down as initialJoinCode). Shown in full in the session header so
+  // the host can see it, select it, and send it anywhere — Discord,
+  // Messenger, a text (Adam, 2026-10-14: the link itself was invisible,
+  // hiding behind an unlabeled icon button).
+  const inviteLink = roomCode
+    ? `${window.location.origin}${window.location.pathname}?room=${roomCode}`
+    : '';
+
   const handleCopy = () => {
     if (!roomCode) return;
-    // The copy button shares an INVITE LINK, not the bare code: the host
-    // taps once, and whoever opens the link lands in the game with this
-    // room's code already filled into the join field (App reads ?room=
-    // at boot and passes it down as initialJoinCode). The code itself
-    // stays on screen above for anyone who prefers to type it.
-    const inviteLink = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
+    // Copies the LINK, not the bare code; the code itself stays on
+    // screen above for anyone who prefers to type it.
     navigator.clipboard.writeText(inviteLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -210,6 +217,31 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
                     className="px-3 py-1.5 rounded-xl bg-red-950/60 hover:bg-red-900/60 text-red-300 border border-red-800/50 text-xs font-tech transition-all"
                   >
                     DISCONNECT
+                  </button>
+                </div>
+              </div>
+
+              {/* Invite Link — visible, selectable, one-tap copy. This is
+                  the row the host pastes into Discord / Messenger / a
+                  text so a friend can tap straight into the session. */}
+              <div className="p-3 rounded-2xl bg-slate-900/60 border border-slate-800">
+                <span className="text-[10px] text-slate-400 font-mono uppercase block mb-1.5">
+                  Invite Link — send it to your crew
+                </span>
+                <div className="flex items-center gap-2">
+                  <input
+                    readOnly
+                    value={inviteLink}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => (e.target as HTMLInputElement).select()}
+                    className="flex-1 min-w-0 bg-slate-950/70 border border-slate-800 rounded-lg px-2.5 py-2 font-mono text-[11px] text-cyan-200 outline-none focus:border-cyan-700/60"
+                  />
+                  <button
+                    onClick={handleCopy}
+                    className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-cyan-950 hover:bg-cyan-900/70 text-cyan-200 border border-cyan-700/50 text-xs font-tech transition-colors"
+                  >
+                    {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Link2 className="w-4 h-4" />}
+                    {copied ? 'Copied!' : 'Copy Invite Link'}
                   </button>
                 </div>
               </div>

@@ -92,7 +92,7 @@ export default function App() {
   } = usePlayerState();
 
   // ------------------------------------------------------------------------
-  // Loaded Fertilizer Cycling (mouse wheel / ArrowUp / ArrowDown)
+  // Loaded Fertilizer Cycling (ArrowUp / ArrowDown)
   // ------------------------------------------------------------------------
   // The planter trowel carries one "loaded" fertilizer at a time
   // (playerState.selectedFertilizerId) — clicking a plant applies THAT
@@ -116,6 +116,53 @@ export default function App() {
       setSelectedFertilizerId(fertilizerCycle[nextIndex]);
     },
     [fertilizerCycle, playerState.selectedFertilizerId, setSelectedFertilizerId]
+  );
+
+  // ------------------------------------------------------------------------
+  // Seed & Blueprint Cycling (Adam, 2026-10-14)
+  // ------------------------------------------------------------------------
+  // The same treatment for the other selections a tool carries: the
+  // trowel's SEED and the builder's BLUEPRINT. Orders derive from ITEMS
+  // categories, so new seeds and structures join the rotation on their
+  // own. Input split on the trowel, which carries two selections: the
+  // WHEEL cycles seeds (planting is its main verb) and ↑/↓ keep cycling
+  // fertilizer as they already did. On the builder, both inputs cycle
+  // the blueprint.
+  const seedCycle: ItemId[] = useMemo(
+    () =>
+      Object.values(ITEMS)
+        .filter((item) => item.category === 'seed')
+        .map((item) => item.id),
+    []
+  );
+
+  const structureCycle: ItemId[] = useMemo(
+    () =>
+      Object.values(ITEMS)
+        .filter((item) => item.category === 'structure')
+        .map((item) => item.id),
+    []
+  );
+
+  const cycleSelectedSeed = useCallback(
+    (direction: 1 | -1): void => {
+      if (seedCycle.length < 2) return;
+      const currentIndex = seedCycle.indexOf(playerState.selectedSeedId);
+      const nextIndex = (currentIndex + direction + seedCycle.length) % seedCycle.length;
+      setSelectedSeedId(seedCycle[nextIndex]);
+    },
+    [seedCycle, playerState.selectedSeedId, setSelectedSeedId]
+  );
+
+  const cycleSelectedStructure = useCallback(
+    (direction: 1 | -1): void => {
+      if (structureCycle.length < 2) return;
+      const currentIndex = structureCycle.indexOf(playerState.selectedStructureType);
+      const nextIndex =
+        (currentIndex + direction + structureCycle.length) % structureCycle.length;
+      setSelectedStructureType(structureCycle[nextIndex] as StructureType);
+    },
+    [structureCycle, playerState.selectedStructureType, setSelectedStructureType]
   );
 
   const {
@@ -689,6 +736,17 @@ export default function App() {
         return;
       }
 
+      // Same deal on the builder: ↑/↓ cycle the BLUEPRINT instead of
+      // walking — WASD still moves, and ←/→ always move.
+      if (
+        playerState.activeTool === 'builder' &&
+        (key === 'arrowup' || key === 'arrowdown')
+      ) {
+        e.preventDefault();
+        cycleSelectedStructure(key === 'arrowdown' ? 1 : -1);
+        return;
+      }
+
       // Register standard continuous WASD / Arrow movement keys
       if (['w', 'a', 's', 'd', 'arrowup', 'arrowleft', 'arrowdown', 'arrowright'].includes(key)) {
         keysPressed.current[key] = true;
@@ -735,29 +793,36 @@ export default function App() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [activeModal, isPointerLocked, setActiveTool, playerState.activeTool, cycleLoadedFertilizer, attemptBounce]);
+  }, [activeModal, isPointerLocked, setActiveTool, playerState.activeTool, cycleLoadedFertilizer, cycleSelectedStructure, attemptBounce]);
 
-  // Mouse wheel cycles the loaded fertilizer while the trowel is equipped.
-  // Guarded like the keyboard handler: no cycling while a modal is open.
-  // A short cooldown keeps one physical scroll notch from spinning through
-  // the whole rotation on high-resolution wheels.
+  // Mouse wheel cycles the equipped tool's primary selection: SEEDS on
+  // the trowel, BLUEPRINTS on the builder. (The trowel's fertilizer
+  // keeps the ↑/↓ arrows — see the keydown handler.) Guarded like the
+  // keyboard handler: no cycling while a modal is open. A short
+  // cooldown keeps one physical scroll notch from spinning through the
+  // whole rotation on high-resolution wheels.
   const lastWheelCycleRef = useRef(0);
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       if (activeModal !== null) return;
-      if (playerState.activeTool !== 'planter_trowel') return;
       if (e.deltaY === 0) return;
+      const tool = playerState.activeTool;
+      if (tool !== 'planter_trowel' && tool !== 'builder') return;
       const now = performance.now();
       if (now - lastWheelCycleRef.current < 150) return;
       lastWheelCycleRef.current = now;
-      cycleLoadedFertilizer(e.deltaY > 0 ? 1 : -1);
+      if (tool === 'planter_trowel') {
+        cycleSelectedSeed(e.deltaY > 0 ? 1 : -1);
+      } else {
+        cycleSelectedStructure(e.deltaY > 0 ? 1 : -1);
+      }
     };
 
     window.addEventListener('wheel', handleWheel);
     return () => {
       window.removeEventListener('wheel', handleWheel);
     };
-  }, [activeModal, playerState.activeTool, cycleLoadedFertilizer]);
+  }, [activeModal, playerState.activeTool, cycleSelectedSeed, cycleSelectedStructure]);
 
   // --------------------------------------------------------------------------
   // Save System — start gate, snapshots, autosave

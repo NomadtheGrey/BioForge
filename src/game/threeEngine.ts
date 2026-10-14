@@ -18,7 +18,6 @@ import {
 } from '../types/game';
 import { FirstPersonViewmodel } from './viewmodel';
 import { BrownianWiggle, hashStringToSeed, type WiggleOptions } from './motion';
-import { biomeAt, BIOME_TINTS } from './biomes';
 
 const IRIS_DOOR_TRIGGER_RADIUS = 2.5;
 // Structures sit on ROLLING terrain (see terrainHeightAt): floors ride
@@ -113,10 +112,6 @@ export class BioForgeThreeEngine {
 
   // Groups
   private terrainGroup: THREE.Group = new THREE.Group();
-  /** Kept so the ground can be REPAINTED when a world's seed arrives. */
-  private terrainGeometry: THREE.BufferGeometry | null = null;
-  /** The active world's seed for biome tinting; null = no seed (quadrant colors only). */
-  private biomeSeed: string | null = null;
   private floraGroup: THREE.Group = new THREE.Group();
   private faunaGroup: THREE.Group = new THREE.Group();
   private structuresGroup: THREE.Group = new THREE.Group();
@@ -613,15 +608,43 @@ export class BioForgeThreeEngine {
     geometry.rotateX(-Math.PI / 2);
 
     const positions = geometry.attributes.position;
+    const colors: number[] = [];
+
+    const cViolet = new THREE.Color(0x1e122b);
+    const cTurquoise = new THREE.Color(0x0e2c2c);
+    const cAmber = new THREE.Color(0x2a1a08);
+    const cPrismatic = new THREE.Color(0x191838);
+    const cPath = new THREE.Color(0x273549);
 
     for (let i = 0; i < positions.count; i++) {
-      positions.setY(i, this.terrainHeightAt(positions.getX(i), positions.getZ(i)));
+      const vx = positions.getX(i);
+      const vz = positions.getZ(i);
+
+      positions.setY(i, this.terrainHeightAt(vx, vz));
+
+      const col = new THREE.Color();
+      if (vx <= 0 && vz <= 0) {
+        col.copy(cViolet);
+      }
+      if (vx > 0 && vz <= 0) {
+        col.copy(cTurquoise);
+      }
+      if (vx <= 0 && vz > 0) {
+        col.copy(cAmber);
+      }
+      if (vx > 0 && vz > 0) {
+        col.copy(cPrismatic);
+      }
+
+      const distFromCenter = Math.hypot(vx, vz);
+      if (distFromCenter < 12) {
+        col.lerp(cPath, ((12 - distFromCenter) / 12) * 0.4);
+      }
+
+      colors.push(col.r, col.g, col.b);
     }
 
-    // Colors live in paintTerrainColors so the ground can be repainted
-    // when a world (and its seed) arrives — see setBiomeSeed.
-    this.terrainGeometry = geometry;
-    this.paintTerrainColors();
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
     geometry.computeVertexNormals();
 
     const terrainMaterial = new THREE.MeshStandardMaterial({
@@ -640,75 +663,6 @@ export class BioForgeThreeEngine {
     (gridHelper.material as THREE.Material).transparent = true;
     (gridHelper.material as THREE.Material).opacity = 0.18;
     this.terrainGroup.add(gridHelper);
-  }
-
-  /**
-   * Tell the engine which world it's showing, so the ground can wear
-   * that world's BIOME MAP as a tint (biomes.ts / BIOME_TINTS). Called
-   * by App whenever a world is created or loaded. Pass null for a
-   * pre-seed world (or no world): the ground then keeps its plain
-   * quadrant colors, exactly as before the biome layer existed.
-   */
-  public setBiomeSeed(seedStr: string | null): void {
-    if (this.biomeSeed === seedStr) return;
-    this.biomeSeed = seedStr;
-    this.paintTerrainColors();
-  }
-
-  /**
-   * (Re)compute the terrain's vertex colors. Base color comes from the
-   * QUADRANT — the zone's identity — then, when a world seed is known,
-   * each vertex leans toward its biome's tint (game/biomes.ts): the
-   * biome TYPE becomes visible as patches of shifted hue spreading
-   * across the quadrants, while no quadrant ever loses its base color
-   * entirely. The pale path tint around spawn is applied last, as
-   * before. Repaints happen on world load only, never per frame.
-   */
-  private paintTerrainColors(): void {
-    const geometry = this.terrainGeometry;
-    if (!geometry) return;
-    const positions = geometry.attributes.position;
-    const colors: number[] = [];
-
-    const cViolet = new THREE.Color(0x1e122b);
-    const cTurquoise = new THREE.Color(0x0e2c2c);
-    const cAmber = new THREE.Color(0x2a1a08);
-    const cPrismatic = new THREE.Color(0x191838);
-    const cPath = new THREE.Color(0x273549);
-    const tintColor = new THREE.Color();
-
-    for (let i = 0; i < positions.count; i++) {
-      const vx = positions.getX(i);
-      const vz = positions.getZ(i);
-
-      const col = new THREE.Color();
-      if (vx <= 0 && vz <= 0) {
-        col.copy(cViolet);
-      }
-      if (vx > 0 && vz <= 0) {
-        col.copy(cTurquoise);
-      }
-      if (vx <= 0 && vz > 0) {
-        col.copy(cAmber);
-      }
-      if (vx > 0 && vz > 0) {
-        col.copy(cPrismatic);
-      }
-
-      if (this.biomeSeed) {
-        const tint = BIOME_TINTS[biomeAt(this.biomeSeed, vx, vz)];
-        col.lerp(tintColor.setHex(tint.color), tint.strength);
-      }
-
-      const distFromCenter = Math.hypot(vx, vz);
-      if (distFromCenter < 12) {
-        col.lerp(cPath, ((12 - distFromCenter) / 12) * 0.4);
-      }
-
-      colors.push(col.r, col.g, col.b);
-    }
-
-    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   }
 
   private buildSporeSystem() {
@@ -1219,8 +1173,8 @@ export class BioForgeThreeEngine {
   public setGhostPreview(
     type: StructureType,
     visible: boolean,
-    gridX: number,
-    gridZ: number,
+    worldX: number,
+    worldZ: number,
     rotation: number,
     valid: boolean
   ) {
@@ -1233,7 +1187,7 @@ export class BioForgeThreeEngine {
       this.disposeGhost();
       this.buildGhostFor(type);
     }
-    this.applyTerrainTransform(this.ghostGroup, type, gridX * 2, gridZ * 2, rotation);
+    this.applyTerrainTransform(this.ghostGroup, type, worldX, worldZ, rotation);
     this.tintGhost(valid);
   }
 

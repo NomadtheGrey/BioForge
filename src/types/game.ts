@@ -20,6 +20,12 @@ export type ItemId =
   | 'hand_lantern_fern'
   | 'sunshard'
   | 'violet_prism'
+  | 'resonant_reed'
+  | 'sonar_vane'
+  | 'resonant_antenna_fan'
+  | 'sonar_receiver'
+  | 'chitin_housing'
+  | 'biolume_power_cell'
   // Cultivation Seeds
   | 'seed_lantern_fern'
   | 'seed_sap_weaver'
@@ -82,7 +88,8 @@ export type FloraSpecies =
   | 'glow_spore_cluster'
   | 'glow_fungus'
   | 'sunshard_cluster'
-  | 'prism_cluster';
+  | 'prism_cluster'
+  | 'echo_reed';
 
 export interface FloraEntity {
   id: string;
@@ -111,7 +118,8 @@ export type FaunaSpecies =
   | 'soft_puff'
   | 'burrow_mouse'
   | 'chitin_stalker'
-  | 'scale_bear';
+  | 'scale_bear'
+  | 'vesper_glider';
 
 export interface FaunaEntity {
   id: string;

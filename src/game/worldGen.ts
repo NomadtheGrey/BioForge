@@ -486,6 +486,74 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
   }));
 
   // ---------------------------------------------------------------------
+  // Radar species (2026-10-14) — biome-gated BONUS life, dealt outside
+  // the census exactly like the cave glow clusters: the census is a
+  // promise about the starter multiset and stays untouched.
+  //   * Echo Reed grows ONLY in wetland zones (2 plants) — the radar's
+  //     listening half lives where the ground is wet.
+  //   * The Vesper Glider haunts meadow and fungal zones (1), but
+  //     never the spawn zone: the homestead's five stay the shipped
+  //     five, and the glider is a reason to walk one zone over.
+  // ---------------------------------------------------------------------
+  if (zoneBiome === 'wetland') {
+    const echoRng = createSeededRandom(streamSeed(seedStr, 'flora:echoreed'));
+    let plantedEcho = 0;
+    for (let attempt = 0; attempt < 40 && plantedEcho < 2; attempt++) {
+      const x = (echoRng() * 2 - 1) * 44;
+      const z = (echoRng() * 2 - 1) * 44;
+      if (Math.hypot(x, z) < 8) continue;
+      if (flora.some((f) => Math.hypot(f.x - x, f.z - z) < 1.2)) continue;
+      flora.push({
+        id: `flora_echo_${plantedEcho}`,
+        species: 'echo_reed',
+        x,
+        z,
+        biome: zoneBiome,
+        rotation: echoRng() * Math.PI * 2,
+        scale: 0.95 + echoRng() * 0.35,
+        growthStage: 3,
+        growthProgress: 1,
+        fertilizedGrowth: false,
+        fertilizedYield: false,
+        fertilizerTimer: 0,
+        harvestReady: true,
+        harvestTimer: 0,
+        isHazardous: false,
+        swayOffset: 200 + plantedEcho,
+      });
+      plantedEcho++;
+    }
+  }
+  if ((zoneBiome === 'meadow' || zoneBiome === 'fungal') && !(zoneZx === 0 && zoneZz === 0)) {
+    const vesperRng = createSeededRandom(streamSeed(seedStr, 'fauna:vesper'));
+    for (let attempt = 0; attempt < 40; attempt++) {
+      const x = (vesperRng() * 2 - 1) * 44;
+      const z = (vesperRng() * 2 - 1) * 44;
+      if (Math.hypot(x, z) < 10) continue;
+      if (fauna.some((f) => Math.hypot(f.x - x, f.z - z) < 3)) continue;
+      fauna.push({
+        id: 'fauna_vesper_1',
+        species: 'vesper_glider',
+        x,
+        z,
+        biome: zoneBiome,
+        y: 0,
+        rotation: vesperRng() * Math.PI * 2,
+        state: 'wandering',
+        isTamed: false,
+        targetX: x,
+        targetZ: z,
+        speed: 2.6 + (vesperRng() * 2 - 1) * 0.15,
+        health: 50,
+        maxHealth: 50,
+        byproductTimer: 0,
+        animTime: 0,
+      });
+      break;
+    }
+  }
+
+  // ---------------------------------------------------------------------
   // Cave mouths (P3, surface half) — grown LAST, once the surface they
   // must respect exists: mouths keep their footprint clear of the
   // homestead (spawn zone only — it's the only zone with one) and of

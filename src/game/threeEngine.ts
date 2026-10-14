@@ -17,9 +17,21 @@ import {
   HoverTarget,
 } from '../types/game';
 import { FirstPersonViewmodel } from './viewmodel';
-import { BrownianWiggle, hashStringToSeed } from './motion';
+import { BrownianWiggle, hashStringToSeed, type WiggleOptions } from './motion';
 
 const IRIS_DOOR_TRIGGER_RADIUS = 2.5;
+
+// Per-species idle-wiggle flavors (see game/motion.ts for what the knobs
+// mean). A predator should not fidget like a puff: the stalker is nearly
+// statue-still with a slow rock, the puff is busy and bouncy, the mouse is
+// small and quick. Tuned by simulation — typical drift: stalker ~4 mm,
+// mouse ~1.5 cm, puff ~3 cm.
+const FAUNA_WIGGLE_FLAVORS: Record<string, WiggleOptions> = {
+  chitin_stalker: { impulse: 0.5, maxOffset: 0.02, maxRock: 0.06, spring: 8, damping: 4 },
+  soft_puff: { impulse: 2.0, maxOffset: 0.06, maxRock: 0.07, spring: 5, damping: 2.2 },
+  burrow_mouse: { impulse: 1.6, maxOffset: 0.035, maxRock: 0.04, spring: 9, damping: 3.5 },
+};
+const FAUNA_WIGGLE_DEFAULT: WiggleOptions = { impulse: 1.4, maxOffset: 0.05, maxRock: 0.05, spring: 6, damping: 3 };
 
 // Pre-allocated scratch vectors to prevent GC allocations in render loop (Rule 3)
 const SCRATCH_VEC_A = new THREE.Vector3();
@@ -925,7 +937,8 @@ export class BioForgeThreeEngine {
     // are centimeters — a creature breathing in place, not sliding around.
     let wiggle = this.faunaWiggleMap.get(fauna.id);
     if (!wiggle) {
-      wiggle = new BrownianWiggle(hashStringToSeed(fauna.id));
+      const flavor = FAUNA_WIGGLE_FLAVORS[fauna.species] ?? FAUNA_WIGGLE_DEFAULT;
+      wiggle = new BrownianWiggle(hashStringToSeed(fauna.id), flavor);
       this.faunaWiggleMap.set(fauna.id, wiggle);
     }
     const w = wiggle.update(wiggleDt);

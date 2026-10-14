@@ -30,6 +30,7 @@ import { useNotifications } from './hooks/useNotifications';
 import { usePlayerState } from './hooks/usePlayerState';
 import { useWorldEntities, INITIAL_STRUCTURES } from './hooks/useWorldEntities';
 import { generateSeededWorld } from './game/worldGen';
+import { biomeAt } from './game/biomes';
 import { useToolInteractions } from './hooks/useToolInteractions';
 import {
   AUTOSAVE_INTERVAL_MS,
@@ -725,6 +726,9 @@ useEffect(() => {
         worldSeed: record.worldSeed ?? '',
         createdAt: record.createdAt, savedAt: record.savedAt,
       };
+      // Repaint the ground with this world's biome map (pre-seed saves
+      // pass null and keep the plain quadrant colors).
+      engineRef.current?.setBiomeSeed(record.worldSeed ? record.worldSeed : null);
       setHasStarted(true);
       postNotification(
         'World Loaded',
@@ -752,6 +756,8 @@ useEffect(() => {
       structures: INITIAL_STRUCTURES,
       drops: [],
     });
+    // The ground wears the new world's biome map as a tint.
+    engineRef.current?.setBiomeSeed(meta.worldSeed);
     setHasStarted(true);
     // First save right away — but deferred a beat: saveNow reads
     // latestStateRef, which only syncs after the replaceWorld render
@@ -1023,6 +1029,17 @@ useEffect(() => {
   const craftAccess = checkCraftAccess();
 
   // Trowel hover hint: tell the player when a plant can (or can't) be fertilized
+  // The biome TYPE under the player's feet (rules layer — distinct from
+  // the sector's poetic zone name above). Null when the active world has
+  // no seed (pre-seed saves, co-op guests): no seed, no biome map.
+  const currentBiomeType: string | null = (() => {
+    const seed = currentSaveRef.current?.worldSeed;
+    if (!seed) return null;
+    const { x, z } = playerPosRef.current;
+    const id = biomeAt(seed, x, z);
+    return id.charAt(0).toUpperCase() + id.slice(1);
+  })();
+
   const hoverHint: string | null = (() => {
     if (playerState.activeTool !== 'planter_trowel' || hoverInfo?.type !== 'flora') return null;
     const flora = hoverInfo.entity;
@@ -1064,6 +1081,7 @@ useEffect(() => {
         onOpenDevTools={() => setActiveModal('devtools')}
         onSave={handleManualSave}
         currentBiomeName={getCurrentBiomeName()}
+        currentBiomeType={currentBiomeType}
         dayNightCycle={dayNightCycle}
         onToggleDayNight={() => {
           if (dayNightCycle > 0.5) {

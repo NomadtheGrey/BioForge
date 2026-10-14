@@ -41,6 +41,8 @@ interface HUDProps {
   onOpenDevTools?: () => void;
   onSave?: () => void;
   currentBiomeName: string;
+  /** Biome TYPE underfoot (Meadow/Wetland/Fungal/Ember); null when the world has no seed. */
+  currentBiomeType: string | null;
   dayNightCycle: number;
   onToggleDayNight: () => void;
   isMuted: boolean;
@@ -71,6 +73,7 @@ export const HUD: React.FC<HUDProps> = ({
   onOpenDevTools,
   onSave,
   currentBiomeName,
+  currentBiomeType,
   dayNightCycle,
   onToggleDayNight,
   isMuted,
@@ -253,6 +256,11 @@ export const HUD: React.FC<HUDProps> = ({
               <span className="text-sm font-tech font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-pink-400">
                 {currentBiomeName}
               </span>
+              {currentBiomeType && (
+                <span className="text-[10px] font-mono text-teal-300/80">
+                  Biome · {currentBiomeType}
+                </span>
+              )}
             </div>
           </div>
 

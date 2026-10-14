@@ -1,8 +1,8 @@
 # GENERATION ALGORITHMS — INDEX
 
-> **Status: MIXED (2026-10-14).** P1 and P2 have been promoted from the
-> standalone lab (`~/workspace/bioforge-gen-lab/`) into the game and are
-> marked **SHIPPED** below. P3 and P4 remain lab-proven but not yet wired
+> **Status: MIXED (2026-10-14).** P1, P2, and P3 have been promoted from
+> the standalone lab (`~/workspace/bioforge-gen-lab/`) into the game and
+> are marked **SHIPPED** below. P4 remains lab-proven but not yet wired
 > into the game; P5 is future work. The families are listed **in
 > integration priority order** — per the standing rule, algorithms enter
 > the game one at a time, each proven before the next.
@@ -185,9 +185,22 @@ accent, and a pulsing, procedurally drawn glow sigil on the rock
 face above the opening — the entrance sign) and the mouth is
 permanent (the solvent is refused) with its own collision and a
 violet halo. Mouths grow only at world creation;
-existing saves keep their snapshots, per the persistence rule. Still
-ahead: the interior itself — transition, cavern rendering, and the
-portal trigger — as the next one-at-a-time step.
+existing saves keep their snapshots, per the persistence rule.
+
+**Interior — SHIPPED in the game (2026-10-14).** The cavern
+generator graduated to `src/game/cavern.ts` (byte-identical grids
+vs the lab). Clicking a mouth enters its instance — generated from
+the mouth's instance id alone, so co-op guests rebuild the same
+cave from the synced entity without the world seed — and a
+`cave_exit` portal at the entrance cell returns the player to the
+mouth's stored exit spawn. Underground is its own scene: instanced
+cavern walls, glow-fungus light clusters, resource/rare/hazard
+decor graded by depth, the heart crystal at the deepest cell,
+permanent dark, flat underground height, grid collision. V1
+limits: no building or planting underground; a save taken inside
+writes the parked surface world with the player at the exit
+anchor; peer avatars carry a zone tag and hide across zones. P3
+is complete end-to-end.
 
 ## P4 — Ruin interior generators
 

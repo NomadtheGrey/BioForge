@@ -1230,6 +1230,26 @@ export function useToolInteractions({
       onEnterCave(structure);
       return;
     }
+    // Ruin landmarks are world-grown too (P4 surface stage): the
+    // solvent can't take them, the scanner reads them, and every
+    // other tool hears the truth — the interior isn't open yet.
+    // Its stage is the next build; today the gate is a promise.
+    if (structure.type === 'ruin_landmark') {
+      if (activeTool === 'solvent_sprayer') {
+        postNotification('Undissolvable', 'Ancient stone shrugs off the solvent — precursor ruins are part of the world, not your building.', 'alert', '#fbbf24');
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      if (structure.ruin?.tier === 'traces') {
+        postNotification('A Scattered Remnant', 'Broken shards of something far older, half-swallowed by the soil. Whatever stood here, only its teeth remain.', 'system', '#a8a29e');
+      } else {
+        postNotification('Sealed Ruin', 'The gate stands, but the way in is not open — not yet. Whatever sleeps below this stone is a story for another delve.', 'system', '#a8a29e');
+      }
+      return;
+    }
     // Vine ladders: builder grows them (on a wall, or up from a ladder);
     // every other tool CLIMBS them. Solvent and scanner keep their
     // usual meanings on a ladder, so they are handled below as normal.

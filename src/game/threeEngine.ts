@@ -20,6 +20,12 @@ import { FirstPersonViewmodel } from './viewmodel';
 import { BrownianWiggle, hashStringToSeed, type WiggleOptions } from './motion';
 
 const IRIS_DOOR_TRIGGER_RADIUS = 2.5;
+// Structures sit on ROLLING terrain (see terrainHeightAt): floors ride
+// this far above the sampled center height so a slab can never dip
+// under the surface between slope samples, and floor slope is sampled
+// this far either side of center — half the 2 m tile, i.e. its edges.
+const FLOOR_TERRAIN_LIFT = 0.03;
+const SLOPE_SAMPLE_DISTANCE = 1;
 
 // Per-species idle-wiggle flavors (see game/motion.ts for what the knobs
 // mean). A predator should not fidget like a puff: the stalker is nearly
@@ -542,6 +548,56 @@ export class BioForgeThreeEngine {
   // --------------------------------------------------------------------------
   // Terrain & Atmosphere
   // --------------------------------------------------------------------------
+  /**
+   * The terrain's height at a point — the SAME closed-form rolling
+   * ground the terrain mesh is built from (two gentle sine waves,
+   * ±0.7 m). Anything that must sit ON the ground samples this instead
+   * of assuming y=0: at y=0 a 12 cm floor slab is swallowed whole
+   * wherever a rise exceeds it (Adam's invisible-floors bug, 2026-10-14).
+   */
+  private terrainHeightAt(x: number, z: number): number {
+    return (
+      Math.sin(x * 0.08) * Math.cos(z * 0.08) * 0.45 +
+      Math.sin(x * 0.18 + z * 0.12) * 0.25
+    );
+  }
+
+  /**
+   * Seat a structure (or its placement ghost) on the terrain: height at
+   * its center, and — for root-tile floors — a tilt matching the local
+   * slope, so the slab hugs the ground like a flagstone instead of
+   * clipping into a rise or hovering over a dip. Other structures take
+   * the height only: leaning walls would look drunk, and a few cm of
+   * settle at the base reads as "set into the ground" anyway.
+   */
+  private applyTerrainTransform(
+    mesh: THREE.Group,
+    type: StructureType,
+    worldX: number,
+    worldZ: number,
+    rotation: number
+  ): void {
+    const groundY = this.terrainHeightAt(worldX, worldZ);
+    if (type !== 'root_tile_floor') {
+      mesh.position.set(worldX, groundY, worldZ);
+      mesh.rotation.set(0, rotation, 0);
+      return;
+    }
+    mesh.position.set(worldX, groundY + FLOOR_TERRAIN_LIFT, worldZ);
+    const hL = this.terrainHeightAt(worldX - SLOPE_SAMPLE_DISTANCE, worldZ);
+    const hR = this.terrainHeightAt(worldX + SLOPE_SAMPLE_DISTANCE, worldZ);
+    const hD = this.terrainHeightAt(worldX, worldZ - SLOPE_SAMPLE_DISTANCE);
+    const hU = this.terrainHeightAt(worldX, worldZ + SLOPE_SAMPLE_DISTANCE);
+    const normal = new THREE.Vector3(
+      hL - hR,
+      2 * SLOPE_SAMPLE_DISTANCE,
+      hD - hU
+    ).normalize();
+    const tilt = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+    const yaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotation);
+    mesh.quaternion.copy(yaw).multiply(tilt);
+  }
+
   private buildTerrain() {
     const size = 120;
     const segments = 80;
@@ -561,10 +617,7 @@ export class BioForgeThreeEngine {
       const vx = positions.getX(i);
       const vz = positions.getZ(i);
 
-      const h =
-        Math.sin(vx * 0.08) * Math.cos(vz * 0.08) * 0.45 +
-        Math.sin(vx * 0.18 + vz * 0.12) * 0.25;
-      positions.setY(i, h);
+      positions.setY(i, this.terrainHeightAt(vx, vz));
 
       const col = new THREE.Color();
       if (vx <= 0 && vz <= 0) {
@@ -1010,14 +1063,12 @@ export class BioForgeThreeEngine {
     const builder = this.structureBuilders[structure.type];
     const group = builder ? builder() : new THREE.Group();
     group.userData = { type: 'structure', entity: structure };
-    group.position.set(structure.worldX, 0, structure.worldZ);
-    group.rotation.y = structure.rotation;
+    this.applyTerrainTransform(group, structure.type, structure.worldX, structure.worldZ, structure.rotation);
     return group;
   }
 
   private updateStructureMesh(mesh: THREE.Group, structure: StructureEntity) {
-    mesh.position.set(structure.worldX, 0, structure.worldZ);
-    mesh.rotation.y = structure.rotation;
+    this.applyTerrainTransform(mesh, structure.type, structure.worldX, structure.worldZ, structure.rotation);
     mesh.userData.entity = structure;
 
     const forgeCore = mesh.getObjectByName('forgeCore');
@@ -1127,8 +1178,7 @@ export class BioForgeThreeEngine {
       this.disposeGhost();
       this.buildGhostFor(type);
     }
-    this.ghostGroup.position.set(gridX * 2, 0, gridZ * 2);
-    this.ghostGroup.rotation.y = rotation;
+    this.applyTerrainTransform(this.ghostGroup, type, gridX * 2, gridZ * 2, rotation);
     this.tintGhost(valid);
   }
 

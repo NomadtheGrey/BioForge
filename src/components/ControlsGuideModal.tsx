@@ -70,6 +70,14 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({
                 <span className="text-slate-300">Climb a Vine Ladder</span>
                 <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-emerald-300 font-bold">Click the Ladder</span>
               </div>
+              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex justify-between items-center">
+                <span className="text-slate-300">Sprint</span>
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold">Double-tap W</span>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex justify-between items-center">
+                <span className="text-slate-300">Cycle Seed / Fertilizer / Blueprint</span>
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold">Mouse Wheel · ↑ ↓</span>
+              </div>
             </div>
           </div>
 
@@ -134,10 +142,14 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({
             <h3 className="text-xs font-tech font-bold uppercase tracking-wider text-emerald-400 mb-3 flex items-center gap-2">
               <Cpu className="w-4 h-4" /> Interface Shortcuts
             </h3>
-            <div className="grid grid-cols-4 gap-2 text-xs">
+            <div className="grid grid-cols-5 gap-2 text-xs">
               <div className="p-2.5 rounded-xl bg-slate-900/50 border border-slate-800 text-center">
                 <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold block mb-1">[B]</span>
                 <span className="text-slate-300">Bio-Forge Crafting</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-900/50 border border-slate-800 text-center">
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-amber-300 font-bold block mb-1">[?]</span>
+                <span className="text-slate-300">This Guide</span>
               </div>
               <div className="p-2.5 rounded-xl bg-slate-900/50 border border-slate-800 text-center">
                 <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-emerald-300 font-bold block mb-1">[I]</span>

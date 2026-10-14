@@ -466,6 +466,49 @@ export const HUD: React.FC<HUDProps> = ({
         ))}
       </div>
 
+      {/* Controls Card (Adam, 2026-10-14): the everyday keys live IN the
+          HUD — glanceable in the bottom-left corner — instead of only
+          inside the Controls Guide modal. Deliberately terse; the full
+          guide is one [?] press away. Hidden on small screens so it
+          never crowds the hotbar. */}
+      <div className="absolute left-4 bottom-4 pointer-events-none hidden md:block">
+        <div className="glass-panel px-3 py-2.5 rounded-2xl border border-slate-700/50 shadow-lg">
+          <div className="text-[9px] font-tech font-bold tracking-widest text-slate-400 uppercase mb-1.5">
+            Controls
+          </div>
+          <div className="space-y-1 text-[10px] font-mono leading-none">
+            <div className="flex items-center gap-2">
+              <span className="text-cyan-300 font-bold w-20">W A S D</span>
+              <span className="text-slate-300">Move · W×2 sprint</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-cyan-300 font-bold w-20">Mouse</span>
+              <span className="text-slate-300">Look · Click uses tool</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-cyan-300 font-bold w-20">Wheel · ↑↓</span>
+              <span className="text-slate-300">Cycle seed / fertilizer / blueprint</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-cyan-300 font-bold w-20">1 – 6</span>
+              <span className="text-slate-300">Select tool</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-cyan-300 font-bold w-20">Space</span>
+              <span className="text-slate-300">Jump / bounce</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-cyan-300 font-bold w-20">B · I · C · M</span>
+              <span className="text-slate-300">Forge · Pouch · Codex · Co-op</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-cyan-300 font-bold w-20">?</span>
+              <span className="text-slate-300">Full controls guide</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Bottom Bar: Tool Selection, Active Sub-item, and Main Windows */}
       <div className="flex flex-col items-center gap-3 w-full">
         {/* Contextual Active Sub-Selection Info */}

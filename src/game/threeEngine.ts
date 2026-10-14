@@ -205,7 +205,7 @@ export class BioForgeThreeEngine {
   // Idle-life wiggle state per fauna (render-only; see motion.ts). One
   // BrownianWiggle per creature, seeded by its id so it wiggles the same
   // way on every screen. lastFaunaSyncMs times the wiggle's dt.
-  private faunaWiggleMap: Map<string, BrownianWiggle> = new Map();
+  private faunaWiggleMap: Map<string, { wiggle: BrownianWiggle; species: FaunaEntity['species'] }> = new Map();
   private lastFaunaSyncMs = 0;
   private structureMeshMap: Map<string, THREE.Group> = new Map();
   // Per-structure mesh builders (registry replacing the createStructureMesh switch).
@@ -904,23 +904,68 @@ export class BioForgeThreeEngine {
   // --------------------------------------------------------------------------
   // Procedural Flora Meshes
   // --------------------------------------------------------------------------
+  // ------------------------------------------------------------------------
+  // The mesh-binding invariant (Adam's recurring creature mixup)
+  // ------------------------------------------------------------------------
+  // Entity ids are PER-WORLD: 'fauna_3' can be a soft puff in one
+  // world and a chitin stalker in the next, and loading a save swaps
+  // the whole entity list in a single frame. A mesh keyed by id alone
+  // therefore outlives the creature it was built for — the puff walks
+  // around in the stalker's body (the mixup that kept coming back).
+  // The structural rule: a mesh is bound to (id, KIND) — the species
+  // or type it was built from — and EVERY sync re-validates the
+  // binding through this one helper. If the entity behind an id
+  // changed kind, the stale mesh is disposed and rebuilt from the
+  // live entity. All three sync loops (flora, fauna, structures)
+  // come through here, so the rule can't be fixed in one loop and
+  // forgotten in another.
+  private ensureBoundMesh<E extends { id: string }>(
+    map: Map<string, THREE.Group>,
+    group: THREE.Group,
+    entity: E,
+    kindKey: string,
+    create: (entity: E) => THREE.Group
+  ): THREE.Group {
+    let mesh = map.get(entity.id);
+    if (mesh && mesh.userData.boundKind !== kindKey) {
+      group.remove(mesh);
+      this.disposeMeshGeometries(mesh);
+      map.delete(entity.id);
+      mesh = undefined;
+    }
+    if (!mesh) {
+      mesh = create(entity);
+      mesh.userData.boundKind = kindKey;
+      group.add(mesh);
+      map.set(entity.id, mesh);
+    }
+    return mesh;
+  }
+
+  /** Dispose a retired mesh's geometries. Materials are NOT disposed:
+   *  most are the engine's shared set — disposing one would break
+   *  every live mesh using it. The few per-mesh materials a rebuild
+   *  leaves behind cost almost nothing on a rare world-swap rebuild. */
+  private disposeMeshGeometries(root: THREE.Object3D): void {
+    root.traverse((obj) => {
+      const mesh = obj as THREE.Mesh;
+      if (mesh.geometry) mesh.geometry.dispose();
+    });
+  }
+
   public syncFlora(floraList: FloraEntity[]) {
     const activeIds = new Set(floraList.map((f) => f.id));
 
     this.floraMeshMap.forEach((mesh, id) => {
       if (!activeIds.has(id)) {
         this.floraGroup.remove(mesh);
+        this.disposeMeshGeometries(mesh);
         this.floraMeshMap.delete(id);
       }
     });
 
     floraList.forEach((f) => {
-      let mesh = this.floraMeshMap.get(f.id);
-      if (!mesh) {
-        mesh = this.createFloraMesh(f);
-        this.floraGroup.add(mesh);
-        this.floraMeshMap.set(f.id, mesh);
-      }
+      const mesh = this.ensureBoundMesh(this.floraMeshMap, this.floraGroup, f, f.species, (e) => this.createFloraMesh(e));
       this.updateFloraMesh(mesh, f);
     });
   }
@@ -1157,18 +1202,19 @@ export class BioForgeThreeEngine {
     this.faunaMeshMap.forEach((mesh, id) => {
       if (!activeIds.has(id)) {
         this.faunaGroup.remove(mesh);
+        this.disposeMeshGeometries(mesh);
         this.faunaMeshMap.delete(id);
         this.faunaWiggleMap.delete(id);
       }
     });
 
     faunaList.forEach((f) => {
-      let mesh = this.faunaMeshMap.get(f.id);
-      if (!mesh) {
-        mesh = this.createFaunaMesh(f);
-        this.faunaGroup.add(mesh);
-        this.faunaMeshMap.set(f.id, mesh);
-      }
+      // The binding kind includes taming: the tame TINT is baked into
+      // the mesh at creation, so a creature that gets tamed must
+      // rebuild to wear its new colors (the tint was always meant to
+      // be the tame signal — it just never got to change before).
+      const kindKey = `${f.species}:${f.isTamed ? 'tamed' : 'wild'}`;
+      const mesh = this.ensureBoundMesh(this.faunaMeshMap, this.faunaGroup, f, kindKey, (e) => this.createFaunaMesh(e));
       this.updateFaunaMesh(mesh, f, wiggleDt);
     });
   }
@@ -1249,13 +1295,16 @@ export class BioForgeThreeEngine {
     // the mesh is DRAWN: the entity's simulated position never changes, so
     // nothing here needs syncing, saving, or pathing around. The offsets
     // are centimeters — a creature breathing in place, not sliding around.
-    let wiggle = this.faunaWiggleMap.get(fauna.id);
-    if (!wiggle) {
+    // The wiggle's FLAVOR is species personality (stalker ≈ statue,
+    // puff = fidget) — bound to the species exactly like the mesh is:
+    // if this id changed species across worlds, the old flavor goes.
+    let wiggleEntry = this.faunaWiggleMap.get(fauna.id);
+    if (!wiggleEntry || wiggleEntry.species !== fauna.species) {
       const flavor = FAUNA_WIGGLE_FLAVORS[fauna.species] ?? FAUNA_WIGGLE_DEFAULT;
-      wiggle = new BrownianWiggle(hashStringToSeed(fauna.id), flavor);
-      this.faunaWiggleMap.set(fauna.id, wiggle);
+      wiggleEntry = { wiggle: new BrownianWiggle(hashStringToSeed(fauna.id), flavor), species: fauna.species };
+      this.faunaWiggleMap.set(fauna.id, wiggleEntry);
     }
-    const w = wiggle.update(wiggleDt);
+    const w = wiggleEntry.wiggle.update(wiggleDt);
     mesh.position.x += w.x;
     mesh.position.z += w.z;
     mesh.rotation.z = w.rock;
@@ -1270,17 +1319,18 @@ export class BioForgeThreeEngine {
     this.structureMeshMap.forEach((mesh, id) => {
       if (!activeIds.has(id)) {
         this.structuresGroup.remove(mesh);
+        this.disposeMeshGeometries(mesh);
         this.structureMeshMap.delete(id);
       }
     });
 
     structuresList.forEach((s) => {
-      let mesh = this.structureMeshMap.get(s.id);
-      if (!mesh) {
-        mesh = this.createStructureMesh(s);
-        this.structuresGroup.add(mesh);
-        this.structureMeshMap.set(s.id, mesh);
-      }
+      // Cave mouths bind tighter than type alone: their DRESSING is
+      // baked from the entity's own link record at creation, so the
+      // kind includes the instance — a different world's mouth with
+      // the same id must not inherit this world's rocks.
+      const kindKey = s.type === 'cave_mouth' ? `cave_mouth:${s.cave?.instanceId ?? ''}` : s.type;
+      const mesh = this.ensureBoundMesh(this.structureMeshMap, this.structuresGroup, s, kindKey, (e) => this.createStructureMesh(e));
       this.updateStructureMesh(mesh, s);
     });
 

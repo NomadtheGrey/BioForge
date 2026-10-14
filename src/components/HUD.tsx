@@ -41,8 +41,12 @@ interface HUDProps {
   onOpenDevTools?: () => void;
   onSave?: () => void;
   currentBiomeName: string;
-  /** Biome TYPE underfoot (Meadow/Wetland/Fungal/Ember); null when the world has no seed. */
+  /** The current zone's biome TYPE (Meadow/Wetland/Fungal/Ember); null when the world has no seed. */
   currentBiomeType: string | null;
+  /** Near the map edge: the next zone's direction, name, and biome. Null away from edges. */
+  edgeZoneLabel: string | null;
+  /** The current zone's grid coordinates, e.g. "Zone 0, 0" (spawn tracking). */
+  zoneCoordsLabel: string;
   dayNightCycle: number;
   onToggleDayNight: () => void;
   isMuted: boolean;
@@ -74,6 +78,8 @@ export const HUD: React.FC<HUDProps> = ({
   onSave,
   currentBiomeName,
   currentBiomeType,
+  edgeZoneLabel,
+  zoneCoordsLabel,
   dayNightCycle,
   onToggleDayNight,
   isMuted,
@@ -243,6 +249,8 @@ export const HUD: React.FC<HUDProps> = ({
               fauna={fauna}
               flora={flora}
               currentBiomeName={currentBiomeName}
+              currentBiomeType={currentBiomeType}
+              zoneCoordsLabel={zoneCoordsLabel}
             />
           )}
         </div>
@@ -252,13 +260,18 @@ export const HUD: React.FC<HUDProps> = ({
           <div className="px-2.5 py-1 flex items-center gap-2.5">
             <Compass className="w-4 h-4 text-cyan-400" />
             <div className="flex flex-col">
-              <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono">Current Sector</span>
+              <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono">Current Zone</span>
               <span className="text-sm font-tech font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-pink-400">
                 {currentBiomeName}
               </span>
               {currentBiomeType && (
                 <span className="text-[10px] font-mono text-teal-300/80">
-                  Biome · {currentBiomeType}
+                  Biome · {currentBiomeType} · {zoneCoordsLabel}
+                </span>
+              )}
+              {edgeZoneLabel && (
+                <span className="text-[10px] font-mono text-amber-300/90">
+                  Edge · {edgeZoneLabel}
                 </span>
               )}
             </div>

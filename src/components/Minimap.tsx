@@ -25,6 +25,10 @@ export interface MinimapProps {
   fauna?: FaunaEntity[];
   flora?: FloraEntity[];
   currentBiomeName: string;
+  /** The current zone's biome type label (e.g. "Meadow"); null when seedless. */
+  currentBiomeType: string | null;
+  /** The current zone's grid coordinates, e.g. "Zone 0, 0". */
+  zoneCoordsLabel: string;
 }
 
 export type MinimapMode = 'radar' | 'world';
@@ -37,6 +41,8 @@ export const Minimap: React.FC<MinimapProps> = ({
   fauna = [],
   flora = [],
   currentBiomeName,
+  currentBiomeType,
+  zoneCoordsLabel,
 }) => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [mapMode, setMapMode] = useState<MinimapMode>('radar');
@@ -104,8 +110,20 @@ export const Minimap: React.FC<MinimapProps> = ({
 // so offset by 180° to align the arrow with the true facing direction.
   const playerDeg = 180 - (playerRotation * 180) / Math.PI;
 
-
   const currentSize = isExpanded ? (mapMode === 'world' ? 260 : 240) : 160;
+
+  // Spawn-zone home arrow (radar mode): the bearing from the player to
+  // the SPAWN POINT (0, 0) — the heart of the spawn zone — drawn as a
+  // small amber triangle riding the radar circle's rim, so home is
+  // always one glance away. The radar is north-up with +Z drawn
+  // downward, so the screen-space direction to spawn is (-x, -z).
+  // Hidden when the player is basically standing on spawn.
+  const spawnDist = Math.hypot(playerX, playerZ);
+  const spawnAngle = Math.atan2(-playerZ, -playerX);
+  const spawnRimR = currentSize / 2 - 10;
+  const spawnArrowX = currentSize / 2 + Math.cos(spawnAngle) * spawnRimR;
+  const spawnArrowY = currentSize / 2 + Math.sin(spawnAngle) * spawnRimR;
+  const spawnArrowDeg = (spawnAngle * 180) / Math.PI;
 
   return (
     <div className="pointer-events-auto flex flex-col gap-1.5 select-none animate-fade-in">
@@ -375,6 +393,15 @@ export const Minimap: React.FC<MinimapProps> = ({
                 />
                 <circle cx="0" cy="0" r="1.5" fill="#ffffff" />
               </g>
+
+              {/* Spawn-zone home arrow on the radar rim (see spawnAngle
+                  above): an amber triangle pointing toward spawn. */}
+              {spawnDist > 2 && (
+                <g transform={`translate(${spawnArrowX}, ${spawnArrowY}) rotate(${spawnArrowDeg})`} className="animate-pulse">
+                  <title>Spawn Zone — this way home</title>
+                  <polygon points="7,0 -5,-4.5 -5,4.5" fill="#f59e0b" stroke="#0f172a" strokeWidth="1" />
+                </g>
+              )}
             </svg>
           )}
 
@@ -385,8 +412,11 @@ export const Minimap: React.FC<MinimapProps> = ({
               viewBox={`0 0 ${currentSize} ${currentSize}`}
               className="w-full h-full"
             >
-              {/* 4 Biome Quadrants */}
-              {/* Violet Cradle: X [-50,0], Z [-50,0] => Top-Left */}
+              {/* Sector shading: the four quadrant base colors of THIS
+                  zone's terrain. Per the per-zone model these are
+                  sectors of one zone, not separate biomes/zones — the
+                  zone's own name heads the survey below. */}
+              {/* NW sector: X [-50,0], Z [-50,0] => Top-Left */}
               <rect
                 x="0"
                 y="0"
@@ -396,11 +426,8 @@ export const Minimap: React.FC<MinimapProps> = ({
                 stroke="#3b0764"
                 strokeWidth="0.5"
               />
-              <text x="6" y="14" fill="#a855f7" fontSize="7" fontFamily="monospace" opacity="0.85">
-                Violet Cradle
-              </text>
 
-              {/* Turquoise Glade: X [0,50], Z [-50,0] => Top-Right */}
+              {/* NE sector: X [0,50], Z [-50,0] => Top-Right */}
               <rect
                 x={currentSize / 2}
                 y="0"
@@ -410,11 +437,8 @@ export const Minimap: React.FC<MinimapProps> = ({
                 stroke="#042f2e"
                 strokeWidth="0.5"
               />
-              <text x={currentSize / 2 + 4} y="14" fill="#2dd4bf" fontSize="7" fontFamily="monospace" opacity="0.85">
-                Turquoise Glade
-              </text>
 
-              {/* Amber Thicket: X [-50,0], Z [0,50] => Bottom-Left */}
+              {/* SW sector: X [-50,0], Z [0,50] => Bottom-Left */}
               <rect
                 x="0"
                 y={currentSize / 2}
@@ -424,11 +448,8 @@ export const Minimap: React.FC<MinimapProps> = ({
                 stroke="#451a03"
                 strokeWidth="0.5"
               />
-              <text x="6" y={currentSize / 2 + 12} fill="#f59e0b" fontSize="7" fontFamily="monospace" opacity="0.85">
-                Amber Thicket
-              </text>
 
-              {/* Prismatic Verge: X [0,50], Z [0,50] => Bottom-Right */}
+              {/* SE sector: X [0,50], Z [0,50] => Bottom-Right */}
               <rect
                 x={currentSize / 2}
                 y={currentSize / 2}
@@ -438,16 +459,31 @@ export const Minimap: React.FC<MinimapProps> = ({
                 stroke="#312e81"
                 strokeWidth="0.5"
               />
+
+              {/* Zone identity header: one zone, one name, one biome */}
               <text
-                x={currentSize / 2 + 4}
-                y={currentSize / 2 + 12}
-                fill="#818cf8"
-                fontSize="7"
+                x={currentSize / 2}
+                y="13"
+                fill="#e2e8f0"
+                fontSize="8.5"
                 fontFamily="monospace"
                 fontWeight="bold"
+                textAnchor="middle"
                 opacity="0.95"
               >
-                ★ Prismatic Verge
+                {currentBiomeName}
+              </text>
+              <text
+                x={currentSize / 2}
+                y={currentSize - 5}
+                fill="#94a3b8"
+                fontSize="7.5"
+                fontFamily="monospace"
+                textAnchor="middle"
+                opacity="0.9"
+              >
+                {zoneCoordsLabel}
+                {currentBiomeType ? ` · ${currentBiomeType}` : ''}
               </text>
 
               {/* Axis Dividers */}
@@ -556,16 +592,18 @@ export const Minimap: React.FC<MinimapProps> = ({
           )}
         </div>
 
-        {/* Footer Coordinate Readout */}
+        {/* Footer Coordinate Readout: zone grid coords first (where am
+            I in the WORLD), then in-zone position. Zone name lives in
+            the HUD bar and the survey header. */}
         <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 pt-1 border-t border-slate-800/80 mt-1">
           <div className="flex items-center gap-1">
             <MapPin className="w-3 h-3 text-cyan-400 shrink-0" />
-            <span className="text-slate-300 font-semibold">
-              X: {Math.round(playerX)} | Z: {Math.round(playerZ)}
+            <span className="text-cyan-300 font-semibold" title={currentBiomeName}>
+              {zoneCoordsLabel}
             </span>
           </div>
-          <span className="text-slate-500 text-[9px] truncate max-w-[85px] font-tech" title={currentBiomeName}>
-            {currentBiomeName}
+          <span className="text-slate-300">
+            X: {Math.round(playerX)} | Z: {Math.round(playerZ)}
           </span>
         </div>
 

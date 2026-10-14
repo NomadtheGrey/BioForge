@@ -30,6 +30,7 @@ import { useNotifications } from './hooks/useNotifications';
 import { usePlayerState } from './hooks/usePlayerState';
 import { useWorldEntities, INITIAL_STRUCTURES } from './hooks/useWorldEntities';
 import { generateSeededWorld } from './game/worldGen';
+import { zoneInfo, zoneBiomeAt, biomeDisplayName, SPAWN_ZONE } from './game/zones';
 import { occupancyConflict, placementFor } from './game/placement';
 import { useToolInteractions } from './hooks/useToolInteractions';
 import {
@@ -85,7 +86,6 @@ export default function App() {
     setSelectedSeedId,
     setSelectedFertilizerId,
     setPlayerTransform,
-    setPlayerLevel,
     setStamina,
     restorePlayerState,
   } = usePlayerState();
@@ -178,13 +178,6 @@ export default function App() {
   const staminaRef = useRef(100);
   const lastStaminaSync = useRef(0);
   const playerPosRef = useRef({ x: playerState.x, z: playerState.z, rotation: playerState.rotation });
-  // The story the player stands on (0 = ground). The movement loop reads
-  // this ref; playerState.level is the persisted copy, kept in step by
-  // the mirror effect below and by setPlayerLevel at every transition.
-  const playerLevelRef = useRef(playerState.level ?? 0);
-  useEffect(() => {
-    playerLevelRef.current = playerState.level ?? 0;
-  }, [playerState.level]);
   const activeToolRef = useRef(playerState.activeTool);
   const selectedStructureRef = useRef(playerState.selectedStructureType);
   const isPointerLockedRef = useRef(isPointerLocked);
@@ -248,10 +241,6 @@ export default function App() {
     return Math.round(yaw / step) * step;
   }, []);
 
-  // Live player position for the tool hook (ceiling placement needs to
-  // know which side of a wall the player stands on).
-  const getPlayerPosition = useCallback((): { x: number; z: number } => playerPosRef.current, []);
-
   // 4. Encapsulated Tool Interactions
   const {
     handleGroundClick,
@@ -276,7 +265,6 @@ export default function App() {
     removeStructure,
     removeFlora,
     getPlacementRotation,
-    getPlayerPosition,
     tameFauna,
     setFaunaCommand,
     setCodexList,
@@ -304,14 +292,10 @@ export default function App() {
     };
   liveGameRefs.current = { hasItem, addInventoryItem, updateTick, postNotification, getPlacementRotation };
 });
-  // Current Biome Indicator
-  const getCurrentBiomeName = useCallback((): string => {
-    const { x, z } = playerPosRef.current;
-    if (x <= 0 && z <= 0) return 'Violet Cradle';
-    if (x > 0 && z <= 0) return 'Turquoise Glade';
-    if (x <= 0 && z > 0) return 'Amber Thicket';
-    return 'Prismatic Verge';
-  }, []);
+  // Zone identity (name + biome) is computed at render time from the
+  // active world's seed — see the zone block just above the JSX return.
+  // (The old quadrant-name indicator retired with the per-zone model:
+  // a zone has ONE name and ONE biome, zones.ts.)
 
   // --------------------------------------------------------------------------
   // Three.js Engine Lifecycle & Authoritative Simulation Loop (Single Source of Truth)
@@ -351,34 +335,11 @@ export default function App() {
           inputState,
           isPaused,
           structuresListRef.current,
-          floraListRef.current,
-          playerLevelRef.current
+          floraListRef.current
         );
 
         playerPosRef.current.x = moveResult.x;
         playerPosRef.current.z = moveResult.z;
-
-        // Story support: above the ground story you stand on ceiling
-        // floors. Step off one (or have it dissolved under you) and you
-        // drop to the highest floor still present in this column, or
-        // to the ground. Runs after the move, so this frame's collision
-        // still used the level you started on.
-        if (playerLevelRef.current > 0) {
-          const cellX = Math.round(moveResult.x / 2);
-          const cellZ = Math.round(moveResult.z / 2);
-          let landing = 0;
-          let supported = false;
-          for (const s of structuresListRef.current) {
-            if (s.type !== 'root_tile_floor' || s.gridX !== cellX || s.gridZ !== cellZ) continue;
-            const l = s.level ?? 0;
-            if (l === playerLevelRef.current) supported = true;
-            if (l < playerLevelRef.current && l > landing) landing = l;
-          }
-          if (!supported) {
-            playerLevelRef.current = landing;
-            setPlayerLevel(landing);
-          }
-        }
 
         const isSprintingNow = wantSprint && moveResult.isMoving && !isPaused;
         const staminaDelta = isSprintingNow ? -18 * dt : (moveResult.isMoving ? 8 : 14) * dt;
@@ -401,14 +362,13 @@ export default function App() {
               moveResult.x,
               moveResult.z,
               playerPosRef.current.rotation,
-              activeToolRef.current,
-              playerLevelRef.current
+              activeToolRef.current
             );
           }
         }
 
         // Update Camera & Viewmodel dynamics using the exact same dt
-        engineRef.current.setPlayerPosition(moveResult.x, moveResult.z, playerLevelRef.current);
+        engineRef.current.setPlayerPosition(moveResult.x, moveResult.z);
         engineRef.current.updateViewmodelDynamics(dt, moveResult.isMoving);
 
         // Smooth Minimap Pos update (every 50ms)
@@ -787,6 +747,9 @@ useEffect(() => {
         worldSeed: record.worldSeed ?? '',
         createdAt: record.createdAt, savedAt: record.savedAt,
       };
+      // Repaint the ground with this world's spawn-zone biome (pre-seed
+      // saves pass null and keep the plain quadrant colors).
+      engineRef.current?.setZoneBiome(record.worldSeed ? zoneBiomeAt(record.worldSeed, SPAWN_ZONE.zx, SPAWN_ZONE.zz) : null);
       setHasStarted(true);
       postNotification(
         'World Loaded',
@@ -814,6 +777,8 @@ useEffect(() => {
       structures: INITIAL_STRUCTURES,
       drops: [],
     });
+    // The ground wears the spawn zone's biome tint (always meadow).
+    engineRef.current?.setZoneBiome(zoneBiomeAt(meta.worldSeed, SPAWN_ZONE.zx, SPAWN_ZONE.zz));
     setHasStarted(true);
     // First save right away — but deferred a beat: saveNow reads
     // latestStateRef, which only syncs after the replaceWorld render
@@ -895,9 +860,9 @@ useEffect(() => {
         setPeers(multiplayerManager.getConnectedPeers());
         engineRef.current?.removePeerAvatar(peerId);
       },
-      onPeerMove: (peerId, px, pz, prot, _tool, level) => {
+      onPeerMove: (peerId, px, pz, prot) => {
         const peer = peers.find((p) => p.id === peerId);
-        engineRef.current?.updatePeerAvatar(peerId, peer?.name || 'Explorer', px, pz, prot, peer?.color || '#38bdf8', level ?? 0);
+        engineRef.current?.updatePeerAvatar(peerId, peer?.name || 'Explorer', px, pz, prot, peer?.color || '#38bdf8');
       },
       onBuildPlaced: (structure) => {
         addStructure(structure);
@@ -993,7 +958,7 @@ useEffect(() => {
     if (!isConnected) return;
     const sendPresence = () => {
       const pos = playerPosRef.current;
-      multiplayerManager.broadcastPlayerMove(pos.x, pos.z, pos.rotation, activeToolRef.current, playerLevelRef.current);
+      multiplayerManager.broadcastPlayerMove(pos.x, pos.z, pos.rotation, activeToolRef.current);
     };
     sendPresence();
     const heartbeatId = setInterval(sendPresence, PEER_PRESENCE_HEARTBEAT_MS);
@@ -1085,6 +1050,38 @@ useEffect(() => {
   const craftAccess = checkCraftAccess();
 
   // Trowel hover hint: tell the player when a plant can (or can't) be fertilized
+  // ------------------------------------------------------------------------
+  // Zone identity for the HUD (per-zone model — zones.ts)
+  // ------------------------------------------------------------------------
+  // The current zone is the SPAWN ZONE (0, 0) — the only zone that
+  // exists as a playable map so far. Its name and biome derive from
+  // the world seed; seedless contexts (pre-seed saves, co-op guests)
+  // get a plain fallback name and no biome line.
+  const activeSeed = currentSaveRef.current?.worldSeed ?? '';
+  const currentZone = activeSeed ? zoneInfo(activeSeed, SPAWN_ZONE.zx, SPAWN_ZONE.zz) : null;
+  const currentZoneName = currentZone ? currentZone.name : 'Starting Zone';
+  const currentZoneBiomeLabel = currentZone ? biomeDisplayName(currentZone.biome) : null;
+  const zoneCoordsLabel = `Zone ${SPAWN_ZONE.zx}, ${SPAWN_ZONE.zz}`;
+
+  // Edge label: within 10 m of the map border, name the zone beyond
+  // the nearest edge (its deterministic name + biome from the seed) —
+  // the world already has a geography before travel between zones
+  // exists. North is -Z, per the minimap's orientation.
+  const edgeZoneLabel: string | null = (() => {
+    if (!activeSeed) return null;
+    const { x, z } = playerPosRef.current;
+    const edges = [
+      { dir: 'North', dist: 50 + z, zx: SPAWN_ZONE.zx, zz: SPAWN_ZONE.zz - 1 },
+      { dir: 'South', dist: 50 - z, zx: SPAWN_ZONE.zx, zz: SPAWN_ZONE.zz + 1 },
+      { dir: 'West', dist: 50 + x, zx: SPAWN_ZONE.zx - 1, zz: SPAWN_ZONE.zz },
+      { dir: 'East', dist: 50 - x, zx: SPAWN_ZONE.zx + 1, zz: SPAWN_ZONE.zz },
+    ];
+    const nearest = edges.reduce((a, b) => (b.dist < a.dist ? b : a));
+    if (nearest.dist > 10) return null;
+    const beyond = zoneInfo(activeSeed, nearest.zx, nearest.zz);
+    return `${nearest.dir} — ${beyond.name} · ${biomeDisplayName(beyond.biome)}`;
+  })();
+
   const hoverHint: string | null = (() => {
     if (playerState.activeTool !== 'planter_trowel' || hoverInfo?.type !== 'flora') return null;
     const flora = hoverInfo.entity;
@@ -1125,7 +1122,10 @@ useEffect(() => {
         onOpenControls={() => setActiveModal('controls')}
         onOpenDevTools={() => setActiveModal('devtools')}
         onSave={handleManualSave}
-        currentBiomeName={getCurrentBiomeName()}
+        currentBiomeName={currentZoneName}
+        currentBiomeType={currentZoneBiomeLabel}
+        edgeZoneLabel={edgeZoneLabel}
+        zoneCoordsLabel={zoneCoordsLabel}
         dayNightCycle={dayNightCycle}
         onToggleDayNight={() => {
           if (dayNightCycle > 0.5) {

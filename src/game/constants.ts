@@ -95,12 +95,27 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   glow_spore: {
     id: 'glow_spore',
     name: 'Glow Spores',
-    category: 'raw',
-    description: 'Bioluminescent spores gathered from the clusters that grow around cave mouths. They hold a charge of light long after picking.',
+    // Category 'seed' on purpose: the spores ARE the planting stock —
+    // harvest them from a cluster and the trowel can plant them (in
+    // the cavern dark they take hold as glow fungus). Seed-category
+    // membership is what joins the trowel's seed cycle and the
+    // inventory's SELECT-seed flow on its own.
+    category: 'seed',
+    description: 'Bioluminescent spores gathered from the clusters that grow around cave mouths. They hold a charge of light long after picking — and planted in cavern dark, they grow.',
     iconName: 'Sparkles',
     color: '#22d3ee',
     rarity: 'uncommon',
     maxStack: 99,
+  },
+  hand_lantern_fern: {
+    id: 'hand_lantern_fern',
+    name: 'Hand Lantern-Fern',
+    category: 'raw',
+    description: 'A young lantern-fern rooted in a woven compost cup. Carried in the LEFT HAND, it lights the way like a torch — generous cyan light wherever you go.',
+    iconName: 'Flashlight',
+    color: '#22d3ee',
+    rarity: 'uncommon',
+    maxStack: 16,
   },
   sunshard: {
     id: 'sunshard',
@@ -426,6 +441,19 @@ export const RECIPES: CraftingRecipe[] = [
       { id: 'dew_essence', count: 1 },
     ],
     craftTimeMs: 1200,
+  },
+  {
+    id: 'craft_hand_lantern_fern',
+    outputId: 'hand_lantern_fern',
+    outputCount: 1,
+    name: 'Hand Lantern-Fern',
+    description: 'Pot a young lantern-fern in a compost cup to carry in your left hand — a living torch for dark places.',
+    category: 'seeds',
+    ingredients: [
+      { id: 'seed_lantern_fern', count: 1 },
+      { id: 'basic_compost', count: 1 },
+    ],
+    craftTimeMs: 1500,
   },
   {
   id: 'craft_bio_forge_station',
@@ -776,8 +804,8 @@ export const INITIAL_CODEX: CodexEntry[] = [
     scannedCount: 0,
     description: 'A low cluster of luminous cyan orbs on dark stalks. It seeds itself around cave mouths, feeding on the cool breath of the caverns below.',
     byproducts: ['Glow Spores', 'Dew Essence'],
-    tamingOrCraftNotes: 'Harvest the orbs with the glove; the cluster regrows. Wild only — it refuses domestic soil and keeps to cave mouths.',
-    biome: 'Cave Mouths',
+    tamingOrCraftNotes: 'Harvest the orbs with the glove; the cluster regrows. Its spores refuse domestic soil — plant them in cavern dark, where they rise as glow fungus.',
+    biome: 'Cave Mouths & Caverns',
     iconColor: '#22d3ee',
   },
   {

@@ -13,6 +13,7 @@ export interface UsePlayerStateResult {
   setSelectedStructureType: (structureType: StructureType) => void;
   setSelectedSeedId: (seedId: ItemId) => void;
   setSelectedFertilizerId: (fertilizerId: ItemId) => void;
+  setHeldItemId: (itemId: ItemId | null) => void;
   setPlayerTransform: (x: number, z: number, rotation: number) => void;
   setPlayerLevel: (level: number) => void;
   setStamina: (stamina: number) => void;
@@ -35,6 +36,7 @@ export function usePlayerState(): UsePlayerStateResult {
     selectedStructureType: 'root_tile_floor',
     selectedSeedId: 'seed_lantern_fern',
     selectedFertilizerId: 'growth_fertilizer',
+    heldItemId: null,
   });
 
   const setActiveTool = useCallback((tool: ToolType): void => {
@@ -51,6 +53,10 @@ export function usePlayerState(): UsePlayerStateResult {
 
   const setSelectedFertilizerId = useCallback((fertilizerId: ItemId): void => {
     setPlayerState((prev) => ({ ...prev, selectedFertilizerId: fertilizerId }));
+  }, []);
+
+  const setHeldItemId = useCallback((itemId: ItemId | null): void => {
+    setPlayerState((prev) => ({ ...prev, heldItemId: itemId }));
   }, []);
 
   const setPlayerTransform = useCallback((x: number, z: number, rotation: number): void => {
@@ -86,6 +92,7 @@ export function usePlayerState(): UsePlayerStateResult {
     setSelectedStructureType,
     setSelectedSeedId,
     setSelectedFertilizerId,
+    setHeldItemId,
     setPlayerTransform,
     setPlayerLevel,
     setStamina,

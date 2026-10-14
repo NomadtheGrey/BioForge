@@ -17,6 +17,7 @@ export type ItemId =
   | 'prismatic_core'
   | 'basic_compost'
   | 'glow_spore'
+  | 'hand_lantern_fern'
   | 'sunshard'
   | 'violet_prism'
   // Cultivation Seeds
@@ -234,7 +235,10 @@ export interface CraftingRecipe {
   outputCount: number;
   name: string;
   description: string;
-  category: 'raw' | 'seed' | 'fertilizer' | 'structure' | 'equipment';
+  // The forge's recipe-tab groups (BioForgeModal filters on exactly
+  // these). This type previously declared the ITEM category union,
+  // which made every seed recipe a type error — corrected 2026-10-14.
+  category: 'seeds' | 'fertilizers' | 'composites' | 'defenses';
 
   ingredients: { id: ItemId; count: number }[];
   craftTimeMs: number;
@@ -279,6 +283,11 @@ export interface PlayerState {
   selectedStructureType: StructureType;
   selectedSeedId: ItemId;
   selectedFertilizerId: ItemId;
+  /** The LEFT HAND: an item carried for its passive effect (today: the
+   * Hand Lantern-Fern's light), separate from the active tool. Rides
+   * the save verbatim with the rest of PlayerState; absent (undefined)
+   * on saves from before the slot existed — treat as empty. */
+  heldItemId?: ItemId | null;
 }
 
 export interface MultiplayerPeer {

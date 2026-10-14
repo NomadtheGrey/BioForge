@@ -36,6 +36,11 @@ host generates zones and peers receive them via `world_sync`, guests explore
 the *host's* world's story. Two worlds are not just different maps — they
 are different mysteries with different answers.
 
+**A second axis — the remnant state** — decides what is *left* of the
+precursors (see below). A world's story is **fate × remnant**: the Crash
+with degenerate survivors is a different mystery from the Crash with an
+underground enclave, though the same thing "happened."
+
 ### Candidate fates (brainstorm)
 
 - **The Gardeners.** Bio-engineers who seeded and tended the planet, then
@@ -52,6 +57,23 @@ are different mysteries with different answers.
 - **The Becoming.** They didn't die or leave; they merged into the
   ecosystem. The Living Valley is not a metaphor, and some "creatures" are
   closer to citizens than animals.
+
+### Remnant states — what is left of them (Adam, 2026-10-13, brainstorm)
+
+- **Extinct.** Only ruins and artifacts remain. The loneliest worlds.
+- **Almost extinct.** A few still present, hidden; meeting one is among the
+  rarest events in the game.
+- **Present but degenerate.** Regressed descendants who have lost the
+  knowledge that built the ruins. Raises the possibility that one of the
+  tameable "creature" species *is* the precursors, fallen that far.
+- **Split in two.** A surface branch and an underground branch, diverged
+  past recognizing each other (the Time Machine pattern). This makes the
+  instanced caves story-bearing: the underground branch lives in the cave
+  instances, the surface branch above them, and neither side's existence is
+  announced to the other.
+- **Survivors underground.** An enclave that chose the caves when whatever
+  happened, happened. Pairs naturally with the Evacuation fate: they were
+  not fleeing the planet — they were fleeing *downward*.
 
 ## Clue layers (brainstorm)
 
@@ -78,3 +100,5 @@ No exposition dumps. The story arrives through three channels:
   or purely visual storytelling with codex narration?
 - Do working artifacts duplicate gauntlet upgrades (alternate sources) or
   offer things crafting never can (unique effects)?
+- If a remnant state leaves precursors present, are they characters — met,
+  traded with, spoken to — or kept ambient, glimpsed and never confirmed?

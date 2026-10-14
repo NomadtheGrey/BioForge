@@ -20,6 +20,7 @@ import { FirstPersonViewmodel } from './viewmodel';
 import { BrownianWiggle, hashStringToSeed, type WiggleOptions } from './motion';
 import { BIOME_TINTS } from './biomes';
 import type { BiomeId } from './biomes';
+import { cavernCellToWorld, type CavernResult } from './cavern';
 
 const IRIS_DOOR_TRIGGER_RADIUS = 2.5;
 // Structures sit on ROLLING terrain (see terrainHeightAt): floors ride
@@ -129,6 +130,15 @@ export class BioForgeThreeEngine {
   private particlesGroup: THREE.Group = new THREE.Group();
   private peerMeshes: Map<string, THREE.Group> = new Map();
 
+  // Instanced caverns (game/cavern.ts): the whole cave is ONE group of
+  // instanced meshes, built on entry and disposed on exit. While
+  // cavernMode is on, the surface terrain hides, terrain height reads
+  // flat 0, and the day/night cycle yields to permanent cave dark.
+  private cavernGroup: THREE.Group = new THREE.Group();
+  private cavernMode: boolean = false;
+  /** Last day/night cycle value seen, so leaving a cave restores it. */
+  private lastDayCycle: number = 0.5;
+
   // Building Preview Ghost
   private ghostGroup: THREE.Group = new THREE.Group();
   private ghostVisible: boolean = false;
@@ -166,6 +176,8 @@ export class BioForgeThreeEngine {
     // A cave mouth's halo: the cool violet breath of the Biolume
     // Caverns below (its dressing glow accents ride this halo).
     cave_mouth: { color: 0xa855f7, intensity: 0.85, distance: 4.2, y: 1.0 },
+    // The way home, inside the cave: same violet family as the mouth.
+    cave_exit: { color: 0xa855f7, intensity: 0.9, distance: 4.5, y: 1.4 },
   };
 
   // Raycasting
@@ -255,6 +267,35 @@ export class BioForgeThreeEngine {
       mound.scale.set(1.25, 0.72, 1.1);
       mound.castShadow = true;
       group.add(mound);
+      return group;
+    },
+    // The portal home inside an instanced cavern: a standing ring of
+    // dark rock and violet light (kin to the iris door's frame, so it
+    // reads as "door" at a glance), with a translucent inner disc —
+    // the surface, seen from below. Clicking it exits the instance.
+    'cave_exit': () => {
+      const group = new THREE.Group();
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(1.05, 0.14, 8, 24),
+        new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 0.9, emissive: 0x7c3aed, emissiveIntensity: 0.55 })
+      );
+      ring.position.set(0, 1.35, 0);
+      ring.castShadow = true;
+      group.add(ring);
+      const disc = new THREE.Mesh(
+        new THREE.CircleGeometry(0.98, 24),
+        new THREE.MeshBasicMaterial({ color: 0xa855f7, transparent: true, opacity: 0.32, side: THREE.DoubleSide })
+      );
+      disc.name = 'caveExitDisc';
+      disc.position.set(0, 1.35, 0);
+      group.add(disc);
+      const base = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(0.8, 0),
+        new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.95 })
+      );
+      base.position.y = 0.15;
+      base.scale.set(1.3, 0.45, 1.0);
+      group.add(base);
       return group;
     },
     'iris_slit_door': () => {
@@ -524,6 +565,8 @@ export class BioForgeThreeEngine {
     this.scene.add(this.droppedItemsGroup);
     this.scene.add(this.particlesGroup);
     this.scene.add(this.ghostGroup);
+    this.cavernGroup.visible = false;
+    this.scene.add(this.cavernGroup);
 
     // World Elements
     this.buildTerrain();
@@ -614,6 +657,10 @@ export class BioForgeThreeEngine {
    * wherever a rise exceeds it (Adam's invisible-floors bug, 2026-10-14).
    */
   private terrainHeightAt(x: number, z: number): number {
+    // Inside an instanced cavern the floor is FLAT: the surface's
+    // rolling field belongs to a world that isn't rendered here, and
+    // sampling it would bob the camera over invisible hills.
+    if (this.cavernMode) return 0;
     return (
       Math.sin(x * 0.08) * Math.cos(z * 0.08) * 0.45 +
       Math.sin(x * 0.18 + z * 0.12) * 0.25
@@ -1404,6 +1451,14 @@ export class BioForgeThreeEngine {
       const breathe = 1 + 0.03 * pulse;
       sigil.scale.set(breathe, breathe, 1);
     }
+
+    // The cave exit's inner disc shimmers the same way — kin signals:
+    // violet that breathes marks a portal, on either side of it.
+    const exitDisc = mesh.getObjectByName('caveExitDisc');
+    if (exitDisc) {
+      const pulse = Math.sin(performance.now() / 550);
+      ((exitDisc as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity = 0.22 + 0.18 * pulse;
+    }
   }
 
   private caveSigilTexture: THREE.CanvasTexture | null = null;
@@ -1788,6 +1843,10 @@ export class BioForgeThreeEngine {
   // Day / Night Atmosphere Cycle
   // --------------------------------------------------------------------------
   public setDayNightTime(cycle: number) {
+    this.lastDayCycle = cycle;
+    // Underground there is no day: the cavern look (set by
+    // setCavernMode) owns the lights until the player surfaces.
+    if (this.cavernMode) return;
     const isDay = cycle > 0.25 && cycle < 0.75;
     const sunAngle = cycle * Math.PI * 2;
     this.dirLight.position.set(
@@ -1808,6 +1867,237 @@ export class BioForgeThreeEngine {
       this.scene.background = new THREE.Color(0x050811);
       (this.scene.fog as THREE.FogExp2).color.setHex(0x070c18);
     }
+  }
+
+  // --------------------------------------------------------------------------
+  // Instanced Caverns (game/cavern.ts)
+  // --------------------------------------------------------------------------
+  // The cave renders as ONE group: two planes (floor/ceiling), ONE
+  // instanced mesh for every visible wall cell, and instanced decor
+  // per feature type. Built on entry, disposed on exit — the surface
+  // world underneath is untouched (its terrain group just hides).
+
+  /** Enter (on=true, with the generated cavern) or leave a cave. */
+  public setCavernMode(on: boolean, cavern?: CavernResult): void {
+    this.cavernMode = on;
+    this.terrainGroup.visible = !on;
+    if (on && cavern) this.buildCavern(cavern);
+    this.cavernGroup.visible = on;
+    const fog = this.scene.fog as THREE.FogExp2;
+    if (on) {
+      // Permanent dark: a whisper of global light so silhouettes read,
+      // real visibility comes from fungus glow + portal lights.
+      this.dirLight.intensity = 0.03;
+      this.hemiLight.intensity = 0.08;
+      this.ambientLight.intensity = 0.05;
+      this.scene.background = new THREE.Color(0x020208);
+      fog.color.setHex(0x020208);
+      fog.density = 0.055;
+    } else {
+      this.clearCavern();
+      // Restore the surface sky: hemisphere back to its built value,
+      // then the day/night setter re-applies sun/ambient/background.
+      this.hemiLight.intensity = 0.8;
+      fog.density = 0.018;
+      this.setDayNightTime(this.lastDayCycle);
+    }
+  }
+
+  public isInCavern(): boolean {
+    return this.cavernMode;
+  }
+
+  private buildCavern(cavern: CavernResult): void {
+    this.clearCavern();
+    const CEIL = 4.6; // cavern ceiling height (flat instance, no stories)
+    const size = cavern.width * cavern.cellMeters;
+
+    // Floor + ceiling planes.
+    const floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(size + 8, size + 8),
+      new THREE.MeshStandardMaterial({ color: 0x232030, roughness: 1 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    this.cavernGroup.add(floor);
+    const ceiling = new THREE.Mesh(
+      new THREE.PlaneGeometry(size + 8, size + 8),
+      new THREE.MeshStandardMaterial({ color: 0x14111d, roughness: 1 })
+    );
+    ceiling.rotation.x = Math.PI / 2;
+    ceiling.position.y = CEIL;
+    this.cavernGroup.add(ceiling);
+
+    // Walls: one instanced box per wall cell that TOUCHES floor — deep
+    // solid rock is never seen, so it gets no instance.
+    const wallAt: { x: number; z: number; cx: number; cy: number }[] = [];
+    for (let cy = 0; cy < cavern.height; cy++) {
+      for (let cx = 0; cx < cavern.width; cx++) {
+        if (cavern.grid[cy][cx] !== '#') continue;
+        const touchesFloor =
+          (cx > 0 && cavern.grid[cy][cx - 1] === '.') ||
+          (cx < cavern.width - 1 && cavern.grid[cy][cx + 1] === '.') ||
+          (cy > 0 && cavern.grid[cy - 1][cx] === '.') ||
+          (cy < cavern.height - 1 && cavern.grid[cy + 1][cx] === '.');
+        if (!touchesFloor) continue;
+        const w = cavernCellToWorld(cx, cy, cavern.width, cavern.height);
+        wallAt.push({ x: w.x, z: w.z, cx, cy });
+      }
+    }
+    const wallMesh = new THREE.InstancedMesh(
+      new THREE.BoxGeometry(2.04, CEIL, 2.04),
+      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1 }),
+      wallAt.length
+    );
+    const dummy = new THREE.Object3D();
+    const rockBase = new THREE.Color(0x403a52);
+    wallAt.forEach((cell, i) => {
+      dummy.position.set(cell.x, CEIL / 2, cell.z);
+      dummy.rotation.set(0, 0, 0);
+      dummy.updateMatrix();
+      wallMesh.setMatrixAt(i, dummy.matrix);
+      // Deterministic per-cell shade so the rock isn't one flat tone.
+      const shade = 0.8 + (((cell.cx * 31 + cell.cy * 17) % 10) / 10) * 0.45;
+      wallMesh.setColorAt(i, rockBase.clone().multiplyScalar(shade));
+    });
+    wallMesh.receiveShadow = true;
+    this.cavernGroup.add(wallMesh);
+
+    // Features → instanced decor, one mesh per type.
+    const featuresOf = (type: string) => cavern.features.filter((f) => f.type === type);
+    const placeInstances = (
+      mesh: THREE.InstancedMesh,
+      cells: { x: number; z: number }[],
+      y: number,
+      spin: boolean
+    ): void => {
+      cells.forEach((cell, i) => {
+        dummy.position.set(cell.x, y, cell.z);
+        dummy.rotation.set(0, spin ? ((cell.x * 13 + cell.z * 7) % 6.28) : 0, 0);
+        dummy.updateMatrix();
+        mesh.setMatrixAt(i, dummy.matrix);
+      });
+      mesh.instanceMatrix.needsUpdate = true;
+      this.cavernGroup.add(mesh);
+    };
+    const worldOf = (f: { cx: number; cy: number }) =>
+      cavernCellToWorld(f.cx, f.cy, cavern.width, cavern.height);
+
+    // Glow fungus: three small emissive caps per feature + real lights
+    // at the first few clusters (the cave's light economy — static
+    // lights, separate from the pooled surface system).
+    const fungus = featuresOf('glow_fungus');
+    const capMesh = new THREE.InstancedMesh(
+      new THREE.SphereGeometry(0.17, 8, 6),
+      new THREE.MeshStandardMaterial({ color: 0x164e63, emissive: 0x22d3ee, emissiveIntensity: 2.2, roughness: 0.4 }),
+      Math.max(1, fungus.length * 3)
+    );
+    let capIdx = 0;
+    fungus.forEach((f, fi) => {
+      const w = worldOf(f);
+      for (let k = 0; k < 3; k++) {
+        const angle = (f.cx * 7 + f.cy * 13 + k * 2.4) % 6.28;
+        const r = 0.22 + ((k * 37 + fi * 11) % 40) / 100;
+        dummy.position.set(w.x + Math.cos(angle) * r, 0.16, w.z + Math.sin(angle) * r);
+        const s = 0.7 + ((fi * 29 + k * 17) % 50) / 80;
+        dummy.scale.set(s, s, s);
+        dummy.rotation.set(0, 0, 0);
+        dummy.updateMatrix();
+        capMesh.setMatrixAt(capIdx++, dummy.matrix);
+      }
+      dummy.scale.set(1, 1, 1);
+      if (fi < 6) {
+        const glow = new THREE.PointLight(0x22d3ee, 5, 8.5, 1.6);
+        glow.position.set(w.x, 0.9, w.z);
+        this.cavernGroup.add(glow);
+      }
+    });
+    capMesh.count = capIdx;
+    capMesh.instanceMatrix.needsUpdate = true;
+    this.cavernGroup.add(capMesh);
+
+    const resources = featuresOf('common_resource');
+    if (resources.length) {
+      placeInstances(
+        new THREE.InstancedMesh(
+          new THREE.OctahedronGeometry(0.3),
+          new THREE.MeshStandardMaterial({ color: 0x92400e, emissive: 0xf59e0b, emissiveIntensity: 0.7, roughness: 0.35 }),
+          resources.length
+        ),
+        resources.map(worldOf),
+        0.3,
+        true
+      );
+    }
+    const rares = featuresOf('rare_mineral');
+    if (rares.length) {
+      placeInstances(
+        new THREE.InstancedMesh(
+          new THREE.OctahedronGeometry(0.45),
+          new THREE.MeshStandardMaterial({ color: 0x5b21b6, emissive: 0xa78bfa, emissiveIntensity: 1.4, roughness: 0.3 }),
+          rares.length
+        ),
+        rares.map(worldOf),
+        0.42,
+        true
+      );
+    }
+    const hazards = featuresOf('hazard');
+    if (hazards.length) {
+      placeInstances(
+        new THREE.InstancedMesh(
+          new THREE.ConeGeometry(0.42, 1.15, 6),
+          new THREE.MeshStandardMaterial({ color: 0x7f1d1d, emissive: 0xef4444, emissiveIntensity: 0.6, roughness: 0.6 }),
+          hazards.length
+        ),
+        hazards.map(worldOf),
+        0.57,
+        true
+      );
+    }
+
+    // The heart: the deepest chamber's prize — one big pulsing crystal.
+    const heart = cavern.features.find((f) => f.type === 'heart');
+    if (heart) {
+      const w = worldOf(heart);
+      const crystal = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.85),
+        new THREE.MeshStandardMaterial({ color: 0x831843, emissive: 0xec4899, emissiveIntensity: 1.8, roughness: 0.25 })
+      );
+      crystal.name = 'cavernHeart';
+      crystal.position.set(w.x, 1.15, w.z);
+      this.cavernGroup.add(crystal);
+      const heartLight = new THREE.PointLight(0xec4899, 9, 11, 1.5);
+      heartLight.position.set(w.x, 1.4, w.z);
+      this.cavernGroup.add(heartLight);
+    }
+
+    // Entrance marker: a cyan ring flat on the floor — "home is here",
+    // visible down the entrance chamber (the exit portal stands here
+    // too, as a normal structure in the instance's list).
+    const entranceWorld = cavernCellToWorld(
+      cavern.entrance.x, cavern.entrance.y, cavern.width, cavern.height
+    );
+    const homeRing = new THREE.Mesh(
+      new THREE.TorusGeometry(1.25, 0.05, 6, 32),
+      new THREE.MeshBasicMaterial({ color: 0x22d3ee })
+    );
+    homeRing.rotation.x = Math.PI / 2;
+    homeRing.position.set(entranceWorld.x, 0.06, entranceWorld.z);
+    this.cavernGroup.add(homeRing);
+  }
+
+  /** Dispose every cavern mesh/light (geometries + materials are fresh
+   *  per build, so disposing them all is safe). */
+  private clearCavern(): void {
+    this.cavernGroup.traverse((obj) => {
+      const mesh = obj as THREE.Mesh;
+      if (mesh.geometry) mesh.geometry.dispose();
+      const material = mesh.material as THREE.Material | THREE.Material[] | undefined;
+      if (Array.isArray(material)) material.forEach((m) => m.dispose());
+      else if (material) material.dispose();
+    });
+    this.cavernGroup.clear();
   }
 
   // --------------------------------------------------------------------------

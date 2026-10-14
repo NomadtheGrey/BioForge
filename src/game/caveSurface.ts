@@ -275,9 +275,15 @@ function dressMouth(rng: () => number, anchor: { x: number; z: number; facing: n
 
   const rubble = 6 + Math.floor(rng() * 5);
   for (let i = 0; i < rubble; i++) {
-    const behind = -0.6 + rng() * 4.2;
+    // Rubble frames the PORTAL BOULDER (Adam, 2026-10-14): it belongs
+    // BEHIND the big rock and out to its sides — never in front of the
+    // entrance face, and never buried inside the boulder itself. Close
+    // in, it is pushed out past the rock's flanks; deeper back, it can
+    // skirt across behind it. The scatter stays seeded-random — the
+    // framing just keeps the doorway clear.
+    const behind = 1.0 + rng() * 3.6;
     let s = (0.8 + rng() * 3.4) * (rng() < 0.5 ? -1 : 1);
-    if (behind < 1.2) s = Math.sign(s) * Math.max(Math.abs(s), 2.1);
+    if (behind < 2.8) s = Math.sign(s) * Math.max(Math.abs(s), 2.2);
     add('rubble', behind, s, 0.3 + rng() * 0.5, false);
   }
 

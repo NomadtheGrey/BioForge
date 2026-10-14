@@ -428,11 +428,67 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     id: 'ruin_landmark',
     name: 'Precursor Ruin',
     category: 'structure',
-    description: 'Broken stone older than the world wearing it. Whoever built here is gone — what they left reads like a sentence with the verbs removed. The way in is not open. Yet.',
+    description: 'Broken stone older than the world wearing it. Whoever built here is gone — what they left reads like a sentence with the verbs removed. The way in stands open for those who find it.',
     iconName: 'Landmark',
     color: '#a8a29e',
     rarity: 'rare',
     maxStack: 1,
+  },
+  // Ruin interior structures (P4 interior stage, game/ruinInterior.ts):
+  // like the cave portals, these exist only inside an instance's
+  // structure list — never in a save, a pouch, or the builder's cycle.
+  ruin_exit: {
+    id: 'ruin_exit',
+    name: 'Ruin Threshold',
+    category: 'structure',
+    description: 'The way back out of the precursor ruin: a stone threshold worn smooth by feet that stopped walking it long ago. Step through to return to the landmark above.',
+    iconName: 'Circle',
+    color: '#2dd4bf',
+    rarity: 'rare',
+    maxStack: 1,
+  },
+  precursor_cache: {
+    id: 'precursor_cache',
+    name: 'Precursor Cache',
+    category: 'structure',
+    description: 'A sealed remnant of the ones who came before — supplies they meant to come back for. Open it with the harvest glove.',
+    iconName: 'Layers',
+    color: '#d6d3d1',
+    rarity: 'rare',
+    maxStack: 1,
+  },
+  artifact_heart: {
+    id: 'artifact_heart',
+    name: 'Artifact Heart',
+    category: 'structure',
+    description: 'The deepest room\'s prize: the still-warm heart of whatever this place was. Take it with the harvest glove.',
+    iconName: 'Gem',
+    color: '#fb7185',
+    rarity: 'rare',
+    maxStack: 1,
+  },
+  ruin_glyph: {
+    id: 'ruin_glyph',
+    name: 'Ruin Glyph',
+    category: 'structure',
+    description: 'Precursor writing that survived the centuries, cut into stone that outlasted its makers. Click to read what the stone remembers.',
+    iconName: 'Sparkles',
+    color: '#a5b4fc',
+    rarity: 'rare',
+    maxStack: 1,
+  },
+  // The ruin heart's yield: a fragment of precursor technology.
+  // Someday the gauntlet upgrade graph will want these; today they
+  // are proof you reached the bottom of a ruin and read its story.
+  precursor_shard: {
+    id: 'precursor_shard',
+    name: 'Precursor Shard',
+    category: 'raw',
+    description: 'A fragment of precursor technology, warm to the touch and older than the world wearing it. It hums in a rhythm almost like a heartbeat.',
+    iconName: 'Cpu',
+    color: '#67e8f9',
+    rarity: 'rare',
+    maxStack: 99,
   },
   vine_ladder: {
     id: 'vine_ladder',
@@ -473,7 +529,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
  * inside an instance. UI lists derived from ITEMS (the builder's
  * blueprint cycle and panel) must filter these out.
  */
-export const NON_BUILDABLE_STRUCTURE_IDS: ItemId[] = ['cave_mouth', 'cave_exit', 'cave_descent', 'vine_shaft', 'ruin_landmark'];
+export const NON_BUILDABLE_STRUCTURE_IDS: ItemId[] = ['cave_mouth', 'cave_exit', 'cave_descent', 'vine_shaft', 'ruin_landmark', 'ruin_exit', 'precursor_cache', 'artifact_heart', 'ruin_glyph'];
 
 export const RECIPES: CraftingRecipe[] = [
   // Seeds

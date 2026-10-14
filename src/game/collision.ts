@@ -49,8 +49,9 @@ function isCollidingWithStructure(
     // The cave exit is a portal, not an obstacle: the player ENTERS
     // standing in its ring (the instance spawn is the entrance cell),
     // so it must never push back. The descent shaft is the same kind
-    // of doorway — the player stands at its throat to use it.
-    if (s.type === 'cave_exit' || s.type === 'cave_descent' || s.type === 'vine_shaft') {
+    // of doorway — the player stands at its throat to use it. The
+    // ruin threshold is the third sibling: the ruin spawn is its cell.
+    if (s.type === 'cave_exit' || s.type === 'cave_descent' || s.type === 'vine_shaft' || s.type === 'ruin_exit') {
       return false;
     }
 

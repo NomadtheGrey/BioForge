@@ -20,6 +20,7 @@ export type ItemId =
   | 'hand_lantern_fern'
   | 'sunshard'
   | 'violet_prism'
+  | 'precursor_shard'
   | 'resonant_reed'
   | 'sonar_vane'
   | 'resonant_antenna_fan'
@@ -51,7 +52,11 @@ export type ItemId =
   | 'cave_exit'
   | 'cave_descent'
   | 'vine_shaft'
-  | 'ruin_landmark';
+  | 'ruin_landmark'
+  | 'ruin_exit'
+  | 'precursor_cache'
+  | 'artifact_heart'
+  | 'ruin_glyph';
 
 export type ToolType =
   | 'harvest_glove'
@@ -164,6 +169,10 @@ export type StructureType =
   | 'cave_descent'
   | 'vine_shaft'
   | 'ruin_landmark'
+  | 'ruin_exit'
+  | 'precursor_cache'
+  | 'artifact_heart'
+  | 'ruin_glyph'
   // Equipment
   | 'field_synthesizer_gauntlet';
 
@@ -266,6 +275,18 @@ export interface StructureEntity {
    */
   level?: number;
   health: number;
+  /**
+   * Ruin-interior feature payload (P4 interior stage): rides the
+   * precursor_cache / artifact_heart / ruin_glyph structures inside a
+   * ruin instance so any client can resolve loot and lore locally.
+   * fate = the world's fate id; band = the feature's depth band.
+   * Instance-transient like the cave link: never in a save's surface
+   * world (instances park, they don't persist).
+   */
+  ruinFeature?: {
+    fate: string;
+    band: 'shallow' | 'mid' | 'deep';
+  };
   maxHealth: number;
   doorOpenProgress: number; // 0 closed, 1 open
   plantedFloraId?: string; // for cultivation mound

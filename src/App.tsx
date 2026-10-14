@@ -13,6 +13,7 @@ import {
   FaunaEntity,
   StructureEntity,
   DroppedItemEntity,
+  ItemId,
 } from './types/game';
 import { INITIAL_CODEX, ITEMS } from './game/constants';
 import { BioForgeThreeEngine } from './game/threeEngine';
@@ -86,6 +87,33 @@ export default function App() {
     setStamina,
     restorePlayerState,
   } = usePlayerState();
+
+  // ------------------------------------------------------------------------
+  // Loaded Fertilizer Cycling (mouse wheel / ArrowUp / ArrowDown)
+  // ------------------------------------------------------------------------
+  // The planter trowel carries one "loaded" fertilizer at a time
+  // (playerState.selectedFertilizerId) — clicking a plant applies THAT
+  // one, never whichever the pouch happens to hold first. The cycle
+  // order is derived from ITEMS (category 'fertilizer'), so a future
+  // third fertilizer joins the rotation with no change needed here.
+  const fertilizerCycle: ItemId[] = useMemo(
+    () =>
+      Object.values(ITEMS)
+        .filter((item) => item.category === 'fertilizer')
+        .map((item) => item.id),
+    []
+  );
+
+  const cycleLoadedFertilizer = useCallback(
+    (direction: 1 | -1): void => {
+      if (fertilizerCycle.length < 2) return;
+      const currentIndex = fertilizerCycle.indexOf(playerState.selectedFertilizerId);
+      const nextIndex =
+        (currentIndex + direction + fertilizerCycle.length) % fertilizerCycle.length;
+      setSelectedFertilizerId(fertilizerCycle[nextIndex]);
+    },
+    [fertilizerCycle, playerState.selectedFertilizerId, setSelectedFertilizerId]
+  );
 
   const {
     floraList,
@@ -203,6 +231,7 @@ export default function App() {
     activeTool: playerState.activeTool,
     selectedStructureType: playerState.selectedStructureType,
     selectedSeedId: playerState.selectedSeedId,
+    selectedFertilizerId: playerState.selectedFertilizerId,
     inventory,
     structuresList,
     floraList,
@@ -214,7 +243,6 @@ export default function App() {
     addFlora,
     addStructure,
     removeStructure,
-    removeFlora,
     tameFauna,
     setFaunaCommand,
     setCodexList,
@@ -499,8 +527,22 @@ export default function App() {
         return;
       }
 
-      // Register standard continuous WASD / Arrow movement keys
       const key = e.key.toLowerCase();
+
+      // Loaded-fertilizer cycling: with the planter trowel equipped, ↑/↓
+      // switch which fertilizer is loaded INSTEAD of walking — WASD still
+      // moves. (The arrows keep their movement role with every other tool,
+      // and ←/→ always move.)
+      if (
+        playerState.activeTool === 'planter_trowel' &&
+        (key === 'arrowup' || key === 'arrowdown')
+      ) {
+        e.preventDefault();
+        cycleLoadedFertilizer(key === 'arrowdown' ? 1 : -1);
+        return;
+      }
+
+      // Register standard continuous WASD / Arrow movement keys
       if (['w', 'a', 's', 'd', 'arrowup', 'arrowleft', 'arrowdown', 'arrowright'].includes(key)) {
         keysPressed.current[key] = true;
       }
@@ -546,7 +588,29 @@ export default function App() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [activeModal, isPointerLocked, setActiveTool]);
+  }, [activeModal, isPointerLocked, setActiveTool, playerState.activeTool, cycleLoadedFertilizer]);
+
+  // Mouse wheel cycles the loaded fertilizer while the trowel is equipped.
+  // Guarded like the keyboard handler: no cycling while a modal is open.
+  // A short cooldown keeps one physical scroll notch from spinning through
+  // the whole rotation on high-resolution wheels.
+  const lastWheelCycleRef = useRef(0);
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      if (activeModal !== null) return;
+      if (playerState.activeTool !== 'planter_trowel') return;
+      if (e.deltaY === 0) return;
+      const now = performance.now();
+      if (now - lastWheelCycleRef.current < 150) return;
+      lastWheelCycleRef.current = now;
+      cycleLoadedFertilizer(e.deltaY > 0 ? 1 : -1);
+    };
+
+    window.addEventListener('wheel', handleWheel);
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+    };
+  }, [activeModal, playerState.activeTool, cycleLoadedFertilizer]);
 
   // --------------------------------------------------------------------------
   // Save System — start gate, snapshots, autosave
@@ -962,9 +1026,15 @@ useEffect(() => {
     if (playerState.activeTool !== 'planter_trowel' || hoverInfo?.type !== 'flora') return null;
     const flora = hoverInfo.entity;
     if (flora.fertilizedGrowth || flora.fertilizedYield) return null;
-    const hasFertilizer =
+    const loadedId = playerState.selectedFertilizerId;
+    if ((inventory[loadedId] ?? 0) > 0) {
+      return `Click to apply ${ITEMS[loadedId]?.name || 'fertilizer'}`;
+    }
+    const hasAnyFertilizer =
       (inventory['growth_fertilizer'] ?? 0) > 0 || (inventory['yield_fertilizer'] ?? 0) > 0;
-    if (hasFertilizer) return 'Click to apply fertilizer';
+    if (hasAnyFertilizer) {
+      return `${ITEMS[loadedId]?.name || 'Loaded fertilizer'} in the trowel, none in pouch — wheel / ↑ ↓ to switch`;
+    }
     return 'No fertilizer — craft at Bio-Forge [B]';
   })();
 
@@ -1015,6 +1085,7 @@ useEffect(() => {
         peerCount={peers.length}
         selectedStructureType={playerState.selectedStructureType}
         selectedSeedId={playerState.selectedSeedId}
+        selectedFertilizerId={playerState.selectedFertilizerId}
       />
 
       {/* In-game chat toasts (bottom-left, above nav buttons) */}
@@ -1047,6 +1118,7 @@ useEffect(() => {
         inventory={inventory}
         onSelectBlueprint={setSelectedStructureType}
         onSelectSeed={setSelectedSeedId}
+        onSelectFertilizer={setSelectedFertilizerId}
         onSelectTool={setActiveTool}
       />
 

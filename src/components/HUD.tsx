@@ -54,6 +54,7 @@ interface HUDProps {
   peerCount: number;
   selectedStructureType: StructureType;
   selectedSeedId: ItemId;
+  selectedFertilizerId: ItemId;
   structures?: StructureEntity[];
   fauna?: FaunaEntity[];
   flora?: FloraEntity[];
@@ -83,6 +84,7 @@ export const HUD: React.FC<HUDProps> = ({
   peerCount,
   selectedStructureType,
   selectedSeedId,
+  selectedFertilizerId,
   structures = [],
   fauna = [],
   flora = [],
@@ -168,7 +170,7 @@ export const HUD: React.FC<HUDProps> = ({
   if (descriptorTool?.id === 'builder') {
     descriptorExtra = `Selected Blueprint: ${ITEMS[selectedStructureType]?.name || selectedStructureType}`;
   } else if (descriptorTool?.id === 'planter_trowel') {
-    descriptorExtra = `Selected Seed: ${ITEMS[selectedSeedId]?.name || selectedSeedId}`;
+    descriptorExtra = `Selected Seed: ${ITEMS[selectedSeedId]?.name || selectedSeedId} · Loaded Fertilizer: ${ITEMS[selectedFertilizerId]?.name || selectedFertilizerId}`;
   }
 
   return (
@@ -430,7 +432,11 @@ export const HUD: React.FC<HUDProps> = ({
             <span className="font-tech font-bold text-emerald-300">
               {ITEMS[selectedSeedId]?.name || selectedSeedId}
             </span>
-            <span className="text-[10px] text-slate-400 font-mono">(Click mounds to plant / fertilize)</span>
+            <span className="text-slate-400">Loaded Fertilizer:</span>
+            <span className="font-tech font-bold text-teal-300">
+              {ITEMS[selectedFertilizerId]?.name || selectedFertilizerId}
+            </span>
+            <span className="text-[10px] text-slate-400 font-mono">(Wheel / ↑ ↓ switch fertilizer · click mounds to plant / fertilize)</span>
           </div>
         )}
 

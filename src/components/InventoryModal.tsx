@@ -9,6 +9,7 @@ interface InventoryModalProps {
   inventory: Record<ItemId, number>;
   onSelectBlueprint: (type: StructureType) => void;
   onSelectSeed: (seedId: ItemId) => void;
+  onSelectFertilizer: (fertilizerId: ItemId) => void;
   onSelectTool: (tool: ToolType) => void;
 }
 
@@ -18,6 +19,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
   inventory,
   onSelectBlueprint,
   onSelectSeed,
+  onSelectFertilizer,
   onSelectTool,
 }) => {
   const [activeTab, setActiveTab] = useState<'all' | 'raw' | 'seed' | 'fertilizer' | 'structure'>('all');
@@ -53,6 +55,10 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
       return;
     }
     if (activeItem.category === 'fertilizer') {
+      // "SELECT FOR FERTILIZING" actually loads the clicked fertilizer
+      // into the trowel (it previously equipped the tool but never told
+      // the game WHICH fertilizer was chosen).
+      onSelectFertilizer(activeItem.id);
       onSelectTool('planter_trowel');
       onClose();
       return;

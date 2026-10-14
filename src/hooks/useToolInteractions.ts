@@ -42,6 +42,7 @@ export interface UseToolInteractionsParams {
   activeTool: ToolType;
   selectedStructureType: StructureType;
   selectedSeedId: ItemId;
+  selectedFertilizerId: ItemId;
   inventory: Record<ItemId, number>;
   structuresList: StructureEntity[];
   floraList: FloraEntity[];
@@ -53,7 +54,6 @@ export interface UseToolInteractionsParams {
   addFlora: (flora: FloraEntity) => void;
   addStructure: (structure: StructureEntity) => void;
   removeStructure: (structureId: string) => void;
-  removeFlora: (floraId: string) => void;
   tameFauna: (faunaId: string, customName: string, state: FaunaEntity['state']) => void;
   setFaunaCommand: (faunaId: string, cmd: 'follow' | 'stay' | 'guard') => void;
   setCodexList: React.Dispatch<React.SetStateAction<CodexEntry[]>>;
@@ -72,6 +72,7 @@ export function useToolInteractions({
   activeTool,
   selectedStructureType,
   selectedSeedId,
+  selectedFertilizerId,
   inventory,
   structuresList,
   floraList,
@@ -83,7 +84,6 @@ export function useToolInteractions({
   addFlora,
   addStructure,
   removeStructure,
-  removeFlora,
   tameFauna,
   setFaunaCommand,
   setCodexList,
@@ -92,29 +92,6 @@ export function useToolInteractions({
   triggerHarvestFx,
   triggerSolventFx,
 }: UseToolInteractionsParams) {
-  // What a harvest-ready plant gives up, per species — ONE table shared by
-  // the harvest glove (which leaves the plant standing to regrow) and the
-  // solvent sprayer (which dissolves it outright), so the two can never
-  // drift apart. The fertilizedYield flag (Yield Fertilizer) fattens the
-  // main yield; some species also drop a bonus extra.
-  const computeHarvestYields = (
-    flora: FloraEntity
-  ): { item: ItemId; count: number; extras: [ItemId, number][] } => {
-    switch (flora.species) {
-      case 'lantern_fern':
-        return { item: 'soft_fiber', count: flora.fertilizedYield ? 5 : 2, extras: [['dew_essence', 1]] };
-      case 'sap_weaver':
-        return { item: 'resin_sap', count: flora.fertilizedYield ? 6 : 3, extras: [] };
-      case 'petal_mill':
-        return { item: 'vibrant_petal', count: flora.fertilizedYield ? 6 : 3, extras: [['sweet_nectar', 2]] };
-      case 'snap_trap':
-        return { item: 'carapace_scale', count: 1, extras: [] };
-      case 'bell_bloom':
-      default:
-        return { item: 'dew_essence', count: flora.fertilizedYield ? 4 : 2, extras: [['soft_fiber', 1]] };
-    }
-  };
-
   // 1. Non-Lethal Flora Harvesting
   const handleHarvestFlora = useCallback(
     (flora: FloraEntity): void => {
@@ -131,8 +108,36 @@ export function useToolInteractions({
       soundEngine.playHarvest();
       triggerHarvestFx(flora.x, flora.z);
 
-      const { item: yieldItem, count: yieldCount, extras } = computeHarvestYields(flora);
-      extras.forEach(([extraId, extraCount]) => addInventoryItem(extraId, extraCount));
+      let yieldItem: ItemId = 'resin_sap';
+      let yieldCount = 2;
+
+      switch (flora.species) {
+        case 'lantern_fern':
+          yieldItem = 'soft_fiber';
+          yieldCount = flora.fertilizedYield ? 5 : 2;
+          addInventoryItem('dew_essence', 1);
+          break;
+        case 'sap_weaver':
+          yieldItem = 'resin_sap';
+          yieldCount = flora.fertilizedYield ? 6 : 3;
+          break;
+        case 'petal_mill':
+          yieldItem = 'vibrant_petal';
+          yieldCount = flora.fertilizedYield ? 6 : 3;
+          addInventoryItem('sweet_nectar', 2);
+          break;
+        case 'snap_trap':
+          yieldItem = 'carapace_scale';
+          yieldCount = 1;
+          break;
+        case 'bell_bloom':
+        default:
+          yieldItem = 'dew_essence';
+          yieldCount = flora.fertilizedYield ? 4 : 2;
+          addInventoryItem('soft_fiber', 1);
+          break;
+      }
+
       addInventoryItem(yieldItem, yieldCount);
       // Trimmings: every harvest yields a little compost — the renewable source
       addInventoryItem('basic_compost', 1);
@@ -217,28 +222,39 @@ export function useToolInteractions({
     (worldX: number, worldZ: number, targetFlora?: FloraEntity): void => {
       // Applying Fertilizer to existing plant
       if (targetFlora) {
-        if (hasItem('growth_fertilizer', 1)) {
-          deductInventoryItem('growth_fertilizer', 1);
+        // The trowel applies the LOADED fertilizer (selectedFertilizerId —
+        // cycled with the mouse wheel / ↑ ↓, or picked in the Inventory).
+        // It never silently swaps to the other kind: if the loaded one is
+        // missing from the pouch, say so and name the way out.
+        const loadedId = selectedFertilizerId;
+        const loadedType: 'growth' | 'yield' = loadedId === 'yield_fertilizer' ? 'yield' : 'growth';
+
+        if (hasItem(loadedId, 1)) {
+          deductInventoryItem(loadedId, 1);
           soundEngine.playFertilize();
-          applyFloraFertilizer(targetFlora.id, 'growth');
+          applyFloraFertilizer(targetFlora.id, loadedType);
           multiplayerManager.broadcastEntityUpsert('flora', {
             ...targetFlora,
-            fertilizedGrowth: true,
-            fertilizerTimer: FERTILIZER_DURATION_SECONDS,
+            ...(loadedType === 'growth'
+              ? { fertilizedGrowth: true, fertilizerTimer: FERTILIZER_DURATION_SECONDS }
+              : { fertilizedYield: true }),
           });
-          postNotification('Growth Fertilizer Applied', `Growth boosted for ${FERTILIZER_DURATION_SECONDS} seconds. Reapply to keep it surging.`, 'craft', '#10b981');
+          if (loadedType === 'growth') {
+            postNotification('Growth Fertilizer Applied', `Growth boosted for ${FERTILIZER_DURATION_SECONDS} seconds. Reapply to keep it surging.`, 'craft', '#10b981');
+          } else {
+            postNotification('Yield Fertilizer Applied', 'Enhanced material yield and triggered rare bio-traits.', 'craft', '#a855f7');
+          }
           return;
         }
 
-        if (hasItem('yield_fertilizer', 1)) {
-          deductInventoryItem('yield_fertilizer', 1);
-          soundEngine.playFertilize();
-          applyFloraFertilizer(targetFlora.id, 'yield');
-          multiplayerManager.broadcastEntityUpsert('flora', {
-            ...targetFlora,
-            fertilizedYield: true,
-          });
-          postNotification('Yield Fertilizer Applied', 'Enhanced material yield and triggered rare bio-traits.', 'craft', '#a855f7');
+        const otherId: ItemId = loadedId === 'yield_fertilizer' ? 'growth_fertilizer' : 'yield_fertilizer';
+        if (hasItem(otherId, 1)) {
+          postNotification(
+            'Loaded Fertilizer Missing',
+            `${ITEMS[loadedId]?.name || 'The loaded fertilizer'} is in the trowel but your pouch has none — scroll the mouse wheel or press ↑ / ↓ to load ${ITEMS[otherId]?.name || 'the other fertilizer'} instead.`,
+            'alert',
+            '#fbbf24'
+          );
           return;
         }
 
@@ -293,7 +309,7 @@ export function useToolInteractions({
       multiplayerManager.broadcastEntityUpsert('flora', newFlora);
       postNotification('Spore Planted', `Successfully cultivated ${ITEMS[selectedSeedId]?.name}. Water with fertilizer to accelerate!`, 'craft', '#4ade80');
     },
-    [selectedSeedId, hasItem, deductInventoryItem, applyFloraFertilizer, addFlora, postNotification, floraList]
+    [selectedSeedId, selectedFertilizerId, hasItem, deductInventoryItem, applyFloraFertilizer, addFlora, postNotification, floraList]
   );
 
   // 4. Solvent Sprayer (100% Recycler)
@@ -316,53 +332,6 @@ export function useToolInteractions({
       multiplayerManager.broadcastEntityRemove('structure', structure.id);
     },
     [addInventoryItem, removeStructure, triggerSolventFx, postNotification]
-  );
-
-  // 4b. Solvent Sprayer on flora — dissolve & reclaim (Adam, 2026-10-14:
-  // there must be a way to REMOVE a plant, not just harvest it forever).
-  // A harvest-ready plant returns EVERYTHING a harvest would have given
-  // (the shared yield table above, yield-fertilizer bonus included, plus
-  // the compost trimmings) AND its seed — dissolving reclaims the whole
-  // organism. An unripe plant returns just the seed: dissolving early is
-  // a replant tool, not a shortcut past growing time. Either way the
-  // plant is GONE — no regrowth, unlike the glove — and co-op peers are
-  // told to remove it too.
-  const handleSolventFlora = useCallback(
-    (flora: FloraEntity): void => {
-      soundEngine.playSolventSpray();
-      triggerSolventFx(flora.x, flora.z);
-
-      const seedId = `seed_${flora.species}` as ItemId;
-      const rawName = flora.species.replace(/_/g, ' ');
-      const speciesName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
-
-      if (flora.harvestReady) {
-        const { item, count, extras } = computeHarvestYields(flora);
-        addInventoryItem(item, count);
-        extras.forEach(([extraId, extraCount]) => addInventoryItem(extraId, extraCount));
-        // Trimmings, same as a glove harvest.
-        addInventoryItem('basic_compost', 1);
-        if (ITEMS[seedId]) addInventoryItem(seedId, 1);
-        postNotification(
-          'Plant Dissolved',
-          `${speciesName} reclaimed: ${count}x ${ITEMS[item]?.name || item}, trimmings, and its seed.`,
-          'craft',
-          '#38bdf8'
-        );
-      } else {
-        if (ITEMS[seedId]) addInventoryItem(seedId, 1);
-        postNotification(
-          'Plant Dissolved',
-          `Unripe ${speciesName} returned to seed form — nothing to harvest yet, but your seed is back.`,
-          'craft',
-          '#38bdf8'
-        );
-      }
-
-      removeFlora(flora.id);
-      multiplayerManager.broadcastEntityRemove('flora', flora.id);
-    },
-    [addInventoryItem, removeFlora, triggerSolventFx, postNotification]
   );
 
   // 5. Taming Lure
@@ -552,12 +521,8 @@ export function useToolInteractions({
         handlePlanterAction(flora.x, flora.z, flora);
         return;
       }
-      if (activeTool === 'solvent_sprayer') {
-        handleSolventFlora(flora);
-        return;
-      }
     },
-    [activeTool, handleHarvestFlora, handleScanTarget, handlePlanterAction, handleSolventFlora]
+    [activeTool, handleHarvestFlora, handleScanTarget, handlePlanterAction]
   );
 
   const handleFaunaInteract = useCallback(

@@ -183,6 +183,8 @@ export class BioForgeThreeEngine {
     cave_mouth: { color: 0xa855f7, intensity: 0.85, distance: 4.2, y: 1.0 },
     // The way home, inside the cave: same violet family as the mouth.
     cave_exit: { color: 0xa855f7, intensity: 0.9, distance: 4.5, y: 1.4 },
+    // The way DOWN: a deeper violet — the dark below breathes colder.
+    cave_descent: { color: 0x7c3aed, intensity: 0.9, distance: 4.5, y: 0.8 },
   };
 
   // Raycasting
@@ -311,6 +313,49 @@ export class BioForgeThreeEngine {
       base.position.y = 0.15;
       base.scale.set(1.3, 0.45, 1.0);
       group.add(base);
+      return group;
+    },
+    // The shaft DOWN to the next depth level (Adam's deeper caves):
+    // a rock collar around a black pit, cold violet light breathing
+    // up from below. Where the exit portal stands tall ("door"), the
+    // descent lies flat ("hole") — the two read oppositely at a
+    // glance, which is the point. Clicking it descends.
+    'cave_descent': () => {
+      const group = new THREE.Group();
+      const collar = new THREE.Mesh(
+        new THREE.TorusGeometry(1.05, 0.17, 8, 24),
+        new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 0.9, emissive: 0x5b21b6, emissiveIntensity: 0.5 })
+      );
+      collar.rotation.x = Math.PI / 2;
+      collar.position.y = 0.1;
+      collar.castShadow = true;
+      group.add(collar);
+      const pit = new THREE.Mesh(
+        new THREE.CircleGeometry(1.0, 24),
+        new THREE.MeshBasicMaterial({ color: 0x010103 })
+      );
+      pit.name = 'caveDescentPit';
+      pit.rotation.x = -Math.PI / 2;
+      pit.position.y = 0.05;
+      group.add(pit);
+      const breath = new THREE.Mesh(
+        new THREE.CircleGeometry(0.62, 24),
+        new THREE.MeshBasicMaterial({ color: 0x7c3aed, transparent: true, opacity: 0.3, side: THREE.DoubleSide })
+      );
+      breath.name = 'caveDescentGlow';
+      breath.rotation.x = -Math.PI / 2;
+      breath.position.y = 0.08;
+      group.add(breath);
+      for (let i = 0; i < 3; i++) {
+        const rock = new THREE.Mesh(
+          new THREE.DodecahedronGeometry(0.42, 0),
+          new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.95 })
+        );
+        const a = (i / 3) * Math.PI * 2 + 0.5;
+        rock.position.set(Math.cos(a) * 1.3, 0.12, Math.sin(a) * 1.3);
+        rock.scale.set(1, 0.6, 1);
+        group.add(rock);
+      }
       return group;
     },
     'iris_slit_door': () => {
@@ -2037,7 +2082,7 @@ export class BioForgeThreeEngine {
   // world underneath is untouched (its terrain group just hides).
 
   /** Enter (on=true, with the generated cavern) or leave a cave. */
-  public setCavernMode(on: boolean, cavern?: CavernResult): void {
+  public setCavernMode(on: boolean, cavern?: CavernResult, depthLevel = 1): void {
     this.cavernMode = on;
     this.terrainGroup.visible = !on;
     if (on && cavern) this.buildCavern(cavern);
@@ -2045,13 +2090,17 @@ export class BioForgeThreeEngine {
     const fog = this.scene.fog as THREE.FogExp2;
     if (on) {
       // Permanent dark: a whisper of global light so silhouettes read,
-      // real visibility comes from fungus glow + portal lights.
-      this.dirLight.intensity = 0.03;
+      // real visibility comes from fungus glow + portal lights. Each
+      // depth level down is darker still (Adam's deeper caves: the
+      // darkness itself is the gradient) — fog thickens, the whisper
+      // thins, and carried light starts to matter.
+      const sink = Math.max(0, depthLevel - 1);
+      this.dirLight.intensity = Math.max(0.015, 0.03 - sink * 0.008);
       this.hemiLight.intensity = 0.08;
-      this.ambientLight.intensity = 0.05;
+      this.ambientLight.intensity = Math.max(0.03, 0.05 - sink * 0.01);
       this.scene.background = new THREE.Color(0x020208);
       fog.color.setHex(0x020208);
-      fog.density = 0.055;
+      fog.density = 0.055 + sink * 0.014;
     } else {
       this.clearCavern();
       // Restore the surface sky: hemisphere back to its built value,
@@ -2189,6 +2238,23 @@ export class BioForgeThreeEngine {
     homeRing.rotation.x = Math.PI / 2;
     homeRing.position.set(entranceWorld.x, 0.06, entranceWorld.z);
     this.cavernGroup.add(homeRing);
+
+    // The descent marker: a violet ring flat on the floor around the
+    // shaft — "down is here", kin to the home ring but the deep
+    // family's color. (The shaft itself is the cave_descent structure
+    // in the instance's list; this ring is its floor signage.)
+    if (cavern.descent) {
+      const descentWorld = cavernCellToWorld(
+        cavern.descent.x, cavern.descent.y, cavern.width, cavern.height
+      );
+      const downRing = new THREE.Mesh(
+        new THREE.TorusGeometry(1.25, 0.05, 6, 32),
+        new THREE.MeshBasicMaterial({ color: 0x8b5cf6 })
+      );
+      downRing.rotation.x = Math.PI / 2;
+      downRing.position.set(descentWorld.x, 0.06, descentWorld.z);
+      this.cavernGroup.add(downRing);
+    }
   }
 
   /** Dispose every cavern mesh/light (geometries + materials are fresh
@@ -2296,7 +2362,11 @@ private initEventListeners() {
           details:
             s.type === 'cave_mouth'
               ? 'Entrance to the Biolume Caverns · Permanent — not solvent recyclable'
-              : `Integrity: ${s.health}/${s.maxHealth} (Solvent Recyclable)`,
+              : s.type === 'cave_exit'
+                ? 'The way back up · Permanent — not solvent recyclable'
+                : s.type === 'cave_descent'
+                  ? 'The cavern continues below · Permanent — not solvent recyclable'
+                  : `Integrity: ${s.health}/${s.maxHealth} (Solvent Recyclable)`,
           entity: s,
         });
         return;

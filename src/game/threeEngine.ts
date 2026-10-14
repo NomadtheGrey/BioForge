@@ -163,7 +163,7 @@ export class BioForgeThreeEngine {
     cultivation_mound: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.6 },
     // A cave mouth's halo: the cool violet breath of the Biolume
     // Caverns below (its dressing glow accents ride this halo).
-    cave_mouth: { color: 0xa855f7, intensity: 0.55, distance: 3.2, y: 1.0 },
+    cave_mouth: { color: 0xa855f7, intensity: 0.85, distance: 4.2, y: 1.0 },
   };
 
   // Raycasting
@@ -1235,6 +1235,27 @@ export class BioForgeThreeEngine {
           dome.position.set(dx, 0.72 * s, dz);
           dome.rotation.y = Math.PI / 2 - facing;
           sub.add(dome);
+
+          // The SIGN: a procedurally drawn glow sigil (getCaveSigilTexture)
+          // floating on the rock face above the opening, so a cave mouth
+          // is unmistakable from across the zone (Adam, 2026-10-14).
+          // Additive-blended, sunk slightly into the rock side of the
+          // anchor, and pulsed in updateStructureMesh.
+          const sigil = new THREE.Mesh(
+            new THREE.PlaneGeometry(3.2 * s, 3.2 * s),
+            new THREE.MeshBasicMaterial({
+              map: this.getCaveSigilTexture(),
+              transparent: true,
+              opacity: 0.8,
+              blending: THREE.AdditiveBlending,
+              depthWrite: false,
+              side: THREE.DoubleSide,
+            }),
+          );
+          sigil.name = 'caveSigil';
+          sigil.position.set(dx - Math.cos(facing) * 0.85, 1.55 * s, dz - Math.sin(facing) * 0.85);
+          sigil.rotation.y = Math.PI / 2 - facing;
+          sub.add(sigil);
           break;
         }
         case 'dark_soil_patch': {
@@ -1244,13 +1265,24 @@ export class BioForgeThreeEngine {
           sub.add(patch);
           break;
         }
-        case 'rock_lip':
+        case 'rock_lip': {
+          const lip = new THREE.Mesh(new THREE.DodecahedronGeometry(0.95 * s, 0), rock);
+          lip.position.set(dx, 0.5 * s, dz);
+          lip.rotation.set(piece.rotation, piece.rotation * 1.7, 0);
+          lip.castShadow = true;
+          sub.add(lip);
+          break;
+        }
         case 'boulder': {
-          const rockMesh = new THREE.Mesh(new THREE.DodecahedronGeometry(0.95 * s, 0), rock);
-          rockMesh.position.set(dx, 0.5 * s, dz);
-          rockMesh.rotation.set(piece.rotation, piece.rotation * 1.7, 0);
-          rockMesh.castShadow = true;
-          sub.add(rockMesh);
+          // Boulders stand TALL (Adam, 2026-10-14: at least 3x taller)
+          // — they're the cliff face the mouth is set into, not gravel.
+          // Y-stretched 3x and seated so the base stays buried.
+          const boulder = new THREE.Mesh(new THREE.DodecahedronGeometry(0.95 * s, 0), rock);
+          boulder.scale.set(1.15, 3.0, 1.15);
+          boulder.position.set(dx, 1.25 * s, dz);
+          boulder.rotation.set(piece.rotation, piece.rotation * 1.7, 0);
+          boulder.castShadow = true;
+          sub.add(boulder);
           break;
         }
         case 'rubble': {
@@ -1317,6 +1349,82 @@ export class BioForgeThreeEngine {
     if (forgeCore) {
       forgeCore.rotation.y += 0.03;
     }
+
+    // Cave sigils breathe: a slow opacity/scale pulse so the entrance
+    // sign catches the eye without strobing.
+    const sigil = mesh.getObjectByName('caveSigil');
+    if (sigil) {
+      const pulse = Math.sin(performance.now() / 550);
+      ((sigil as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity = 0.6 + 0.28 * pulse;
+      const breathe = 1 + 0.03 * pulse;
+      sigil.scale.set(breathe, breathe, 1);
+    }
+  }
+
+  private caveSigilTexture: THREE.CanvasTexture | null = null;
+
+  /**
+   * The cave-entrance sigil, drawn PROCEDURALLY on a canvas (no image
+   * asset): concentric rings, radial ticks, and a downward chevron
+   * motif — "descend here" in precursor sign language — stroked in a
+   * cyan-to-violet gradient with a soft shadow glow. Generated once
+   * and shared by every cave mouth.
+   */
+  private getCaveSigilTexture(): THREE.CanvasTexture {
+    if (this.caveSigilTexture) return this.caveSigilTexture;
+    const size = 256;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d')!;
+    ctx.translate(size / 2, size / 2);
+    const gradient = ctx.createLinearGradient(-110, -110, 110, 110);
+    gradient.addColorStop(0, '#67e8f9');
+    gradient.addColorStop(0.55, '#38bdf8');
+    gradient.addColorStop(1, '#a855f7');
+    ctx.strokeStyle = gradient;
+    ctx.fillStyle = gradient;
+    ctx.shadowColor = '#22d3ee';
+    ctx.shadowBlur = 16;
+
+    // Outer + inner rings.
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.arc(0, 0, 108, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.lineWidth = 3;
+    ctx.globalAlpha = 0.85;
+    ctx.beginPath();
+    ctx.arc(0, 0, 88, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // Radial ticks between the rings.
+    ctx.lineWidth = 4;
+    for (let i = 0; i < 24; i++) {
+      const a = (i / 24) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * 93, Math.sin(a) * 93);
+      ctx.lineTo(Math.cos(a) * 103, Math.sin(a) * 103);
+      ctx.stroke();
+    }
+
+    // The descend motif: two nested chevrons pointing down over a
+    // filled core dot — the mouth, and the way into it.
+    ctx.lineWidth = 9;
+    for (const yOff of [-34, -2]) {
+      ctx.beginPath();
+      ctx.moveTo(-38, yOff);
+      ctx.lineTo(0, yOff + 30);
+      ctx.lineTo(38, yOff);
+      ctx.stroke();
+    }
+    ctx.beginPath();
+    ctx.arc(0, 52, 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    this.caveSigilTexture = new THREE.CanvasTexture(canvas);
+    return this.caveSigilTexture;
   }
 
   // --------------------------------------------------------------------------

@@ -32,7 +32,7 @@ import { useNotifications } from './hooks/useNotifications';
 import { usePlayerState } from './hooks/usePlayerState';
 import { useWorldEntities, INITIAL_STRUCTURES } from './hooks/useWorldEntities';
 import { generateSeededWorld } from './game/worldGen';
-import { generateGameCavern, cavernCellToWorld, cavernEntryYaw, type CavernResult } from './game/cavern';
+import { generateGameCavern, generateGameCavernLevel, cavernCellToWorld, cavernEntryYaw, cavernStratumName, MAX_CAVERN_DEPTH, type CavernResult } from './game/cavern';
 import { zoneInfo, zoneBiomeAt, biomeDisplayName, SPAWN_ZONE } from './game/zones';
 import { occupancyConflict, placementFor } from './game/placement';
 import { useToolInteractions } from './hooks/useToolInteractions';
@@ -455,15 +455,35 @@ export default function App() {
         mouthId: string;
         instanceId: string;
         cavern: CavernResult;
+        /** 1-based depth level of `cavern` (Adam's deeper caves). */
+        depth: number;
         parked: WorldSnapshot;
       };
   const instanceRef = useRef<InstanceState>({ kind: 'surface' });
   const [inCavern, setInCavern] = useState(false);
+  // The current depth level as STATE (the ref holds the truth; this
+  // mirror exists so the HUD can name the stratum the player is in).
+  const [cavernDepth, setCavernDepth] = useState(0);
 
-  /** 'surface', or the cavern instanceId the player is inside. */
+  // The descent stack: one frame per level ABOVE the current one,
+  // pushed when the player goes down a shaft, popped on the climb
+  // back. A frame keeps that level's whole world — its lists exactly
+  // as they were the moment the player left — plus the shaft's world
+  // position, which is where the player climbs back out.
+  interface CaveFrame {
+    cavern: CavernResult;
+    world: WorldSnapshot;
+    shaft: { x: number; z: number };
+  }
+  const caveStackRef = useRef<CaveFrame[]>([]);
+
+  /** 'surface', or the cavern instanceId the player is inside —
+   *  deeper levels suffix the depth so co-op peers on different
+   *  levels of the same cave stay invisible to each other. */
   const currentZoneId = useCallback((): string => {
     const inst = instanceRef.current;
-    return inst.kind === 'cavern' ? inst.instanceId : 'surface';
+    if (inst.kind !== 'cavern') return 'surface';
+    return inst.depth > 1 ? `${inst.instanceId}#${inst.depth}` : inst.instanceId;
   }, []);
 
   const isInCavernNow = useCallback(
@@ -478,14 +498,120 @@ export default function App() {
   // cave (and at save time, for saves taken mid-delve), merged back
   // in on entry, and carried in the save record (saveSystem).
   const cavePlantingsRef = useRef<Record<string, FloraEntity[]>>({});
-  const captureCavePlantings = useCallback((instanceId: string): void => {
+  // Plantings are remembered PER LEVEL of a cave: depth 1 keeps the
+  // original bare-instanceId key (existing saves' gardens carry on
+  // untouched); deeper levels suffix their depth.
+  const plantingsKey = (instanceId: string, depth: number): string =>
+    depth <= 1 ? instanceId : `${instanceId}#${depth}`;
+  const captureCavePlantings = useCallback((key: string): void => {
     cavePlantingsRef.current = {
       ...cavePlantingsRef.current,
-      [instanceId]: floraListRef.current
+      [key]: floraListRef.current
         .filter((f) => f.isPlayerPlanted)
         .map((f) => ({ ...f })),
     };
   }, []);
+
+  // Enter one LEVEL of a cavern — the mouth's first level, or a
+  // deeper one after a descent: build the level's structures (the
+  // way back up, plus the way further down when this level rolled
+  // one) and its living flora, swap the world for them, light the
+  // engine's cavern, and land the player at the level's entrance.
+  // Shared by cave entry and descent so the two can never drift.
+  const enterCavernLevel = useCallback(
+    (cavern: CavernResult, instanceId: string, depth: number, note: { title: string; body: string }): void => {
+      const entry = cavernCellToWorld(cavern.entrance.x, cavern.entrance.y, cavern.width, cavern.height);
+      const entryYaw = cavernEntryYaw(cavern.link);
+      const idSuffix = depth > 1 ? `_d${depth}` : '';
+      const exitPortal: StructureEntity = {
+        id: `cave_exit_${instanceId}${idSuffix}`,
+        type: 'cave_exit',
+        gridX: Math.round(entry.x / 2),
+        gridZ: Math.round(entry.z / 2),
+        worldX: entry.x,
+        worldZ: entry.z,
+        rotation: entryYaw,
+        health: 999,
+        maxHealth: 999,
+        doorOpenProgress: 0,
+        level: 0,
+      };
+      const structures: StructureEntity[] = [exitPortal];
+      // The way DOWN, when this level grew one: a shaft structure in
+      // the deep chamber beside the heart (see cavern.ts placeDescent).
+      if (cavern.descent) {
+        const dw = cavernCellToWorld(cavern.descent.x, cavern.descent.y, cavern.width, cavern.height);
+        structures.push({
+          id: `cave_descent_${instanceId}_${depth}`,
+          type: 'cave_descent',
+          gridX: Math.round(dw.x / 2),
+          gridZ: Math.round(dw.z / 2),
+          worldX: dw.x,
+          worldZ: dw.z,
+          rotation: 0,
+          health: 999,
+          maxHealth: 999,
+          doorOpenProgress: 0,
+          level: 0,
+        });
+      }
+      // The cavern's living contents: its glow fungus and BOTH
+      // crystal kinds become real flora in the instance list —
+      // harvestable, fertilizable, regrowable, exactly like surface
+      // plants (Adam, 2026-10-14). Hazards and the heart stay scenery.
+      // Ids are deterministic per instance + depth + feature, so co-op
+      // peers inside the same cave level agree on which plant is
+      // which. Features hugging the entrance cell are skipped: the
+      // player materializes there, and a crystal in the doorway
+      // would crowd the spawn.
+      const caveFlora: FloraEntity[] = [];
+      for (const f of cavern.features) {
+        const species: FloraSpecies | null =
+          f.type === 'glow_fungus'
+            ? 'glow_fungus'
+            : f.type === 'common_resource'
+              ? 'sunshard_cluster'
+              : f.type === 'rare_mineral'
+                ? 'prism_cluster'
+                : null;
+        if (!species) continue;
+        if (Math.abs(f.cx - cavern.entrance.x) <= 1 && Math.abs(f.cy - cavern.entrance.y) <= 1) continue;
+        const w = cavernCellToWorld(f.cx, f.cy, cavern.width, cavern.height);
+        caveFlora.push({
+          id: `caveflora_${instanceId}${idSuffix}_${f.id}`,
+          species,
+          x: w.x,
+          z: w.z,
+          rotation: ((f.cx * 37 + f.cy * 91) % 628) / 100,
+          scale: 0.9 + ((f.cx * 13 + f.cy * 7) % 40) / 100,
+          growthStage: 5,
+          growthProgress: 1,
+          fertilizedGrowth: false,
+          fertilizedYield: false,
+          fertilizerTimer: 0,
+          harvestReady: true,
+          harvestTimer: 0,
+          isHazardous: false,
+          swayOffset: f.cx * 3 + f.cy,
+        });
+      }
+      // The player's own plantings on THIS level come back — captured
+      // on exit/save (cavePlantingsRef) — as fresh copies, so the
+      // record never shares object identity with the live list.
+      const plantedBack = (cavePlantingsRef.current[plantingsKey(instanceId, depth)] ?? [])
+        .filter((p) => !caveFlora.some((f) => f.id === p.id))
+        .map((p) => ({ ...p }));
+      replaceWorld({ flora: [...caveFlora, ...plantedBack], fauna: [], structures, drops: [] });
+      engineRef.current?.setCavernMode(true, cavern, depth);
+      applyPlayerLevel(0);
+      playerPosRef.current = { x: entry.x, z: entry.z, rotation: entryYaw };
+      engineRef.current?.setPlayerPosition(entry.x, entry.z, 0);
+      setInCavern(true);
+      setCavernDepth(depth);
+      postNotification(note.title, note.body, 'system', '#a855f7');
+    },
+    [replaceWorld, applyPlayerLevel, postNotification]
+  );
 
   const handleEnterCave = useCallback(
     (mouth: StructureEntity): void => {
@@ -513,6 +639,7 @@ export default function App() {
         mouthId: mouth.id,
         instanceId: link.instanceId,
         cavern,
+        depth: 1,
         parked: {
           flora: [...floraList],
           fauna: [...faunaList],
@@ -520,75 +647,66 @@ export default function App() {
           drops: [...droppedItems],
         },
       };
-      const entry = cavernCellToWorld(cavern.entrance.x, cavern.entrance.y, cavern.width, cavern.height);
-      const entryYaw = cavernEntryYaw(cavern.link);
-      const exitPortal: StructureEntity = {
-        id: `cave_exit_${link.instanceId}`,
-        type: 'cave_exit',
-        gridX: Math.round(entry.x / 2),
-        gridZ: Math.round(entry.z / 2),
-        worldX: entry.x,
-        worldZ: entry.z,
-        rotation: entryYaw,
-        health: 999,
-        maxHealth: 999,
-        doorOpenProgress: 0,
-        level: 0,
-      };
-      // The cavern's living contents: its glow fungus and BOTH
-      // crystal kinds become real flora in the instance list —
-      // harvestable, fertilizable, regrowable, exactly like surface
-      // plants (Adam, 2026-10-14). Hazards and the heart stay scenery.
-      // Ids are deterministic per instance + feature, so co-op peers
-      // inside the same cave agree on which plant is which. Features
-      // hugging the entrance cell are skipped: the player materializes
-      // there, and a crystal in the doorway would crowd the spawn.
-      const caveFlora: FloraEntity[] = [];
-      for (const f of cavern.features) {
-        const species: FloraSpecies | null =
-          f.type === 'glow_fungus'
-            ? 'glow_fungus'
-            : f.type === 'common_resource'
-              ? 'sunshard_cluster'
-              : f.type === 'rare_mineral'
-                ? 'prism_cluster'
-                : null;
-        if (!species) continue;
-        if (Math.abs(f.cx - cavern.entrance.x) <= 1 && Math.abs(f.cy - cavern.entrance.y) <= 1) continue;
-        const w = cavernCellToWorld(f.cx, f.cy, cavern.width, cavern.height);
-        caveFlora.push({
-          id: `caveflora_${link.instanceId}_${f.id}`,
-          species,
-          x: w.x,
-          z: w.z,
-          rotation: ((f.cx * 37 + f.cy * 91) % 628) / 100,
-          scale: 0.9 + ((f.cx * 13 + f.cy * 7) % 40) / 100,
-          growthStage: 5,
-          growthProgress: 1,
-          fertilizedGrowth: false,
-          fertilizedYield: false,
-          fertilizerTimer: 0,
-          harvestReady: true,
-          harvestTimer: 0,
-          isHazardous: false,
-          swayOffset: f.cx * 3 + f.cy,
-        });
-      }
-      // The player's own plantings in THIS cave come back — captured
-      // on exit/save (cavePlantingsRef) — as fresh copies, so the
-      // record never shares object identity with the live list.
-      const plantedBack = (cavePlantingsRef.current[link.instanceId] ?? [])
-        .filter((p) => !caveFlora.some((f) => f.id === p.id))
-        .map((p) => ({ ...p }));
-      replaceWorld({ flora: [...caveFlora, ...plantedBack], fauna: [], structures: [exitPortal], drops: [] });
-      engineRef.current?.setCavernMode(true, cavern);
-      applyPlayerLevel(0);
-      playerPosRef.current = { x: entry.x, z: entry.z, rotation: entryYaw };
-      engineRef.current?.setPlayerPosition(entry.x, entry.z, 0);
-      setInCavern(true);
-      postNotification('Biolume Caverns', 'You descend into the dark. The fungus and crystals down here are alive — harvest them like any plant and they will regrow. The glowing ring is the way home.', 'system', '#a855f7');
+      caveStackRef.current = [];
+      enterCavernLevel(cavern, link.instanceId, 1, {
+        title: 'Biolume Caverns',
+        body: cavern.descent
+          ? 'You descend into the dark. The fungus and crystals down here are alive — harvest them like any plant and they will regrow. The glowing ring is the way home — and this cave goes deeper: a violet shaft waits in the deep dark.'
+          : 'You descend into the dark. The fungus and crystals down here are alive — harvest them like any plant and they will regrow. The glowing ring is the way home.',
+      });
     },
-    [floraList, faunaList, structuresList, droppedItems, replaceWorld, applyPlayerLevel, postNotification]
+    [floraList, faunaList, structuresList, droppedItems, postNotification, enterCavernLevel]
+  );
+
+  // Down a shaft (Adam's deeper caves): the current level's world is
+  // pushed onto the descent stack exactly as it stands, the next
+  // level is generated from the same instanceId at depth + 1, and
+  // the player lands at its entrance. The exit portal down there
+  // pops the stack — the climb back up.
+  const handleDescendCave = useCallback(
+    (descent: StructureEntity): void => {
+      const inst = instanceRef.current;
+      if (inst.kind !== 'cavern') return;
+      if (inst.depth >= MAX_CAVERN_DEPTH) return;
+      const mouth = inst.parked.structures.find((s) => s.id === inst.mouthId);
+      if (!mouth?.cave) {
+        postNotification('Sealed Shut', 'This shaft leads nowhere — its cavern was never linked.', 'alert', '#fbbf24');
+        return;
+      }
+      const anchorFacing = Math.atan2(mouth.cave.exitZ - mouth.worldZ, mouth.cave.exitX - mouth.worldX);
+      const next = generateGameCavernLevel(inst.instanceId, inst.instanceId, inst.depth + 1, {
+        x: mouth.worldX,
+        z: mouth.worldZ,
+        facing: anchorFacing,
+      });
+      if (!next.meta.validation.pass) {
+        postNotification('Unstable Cavern', 'The shaft crumbles before it deepens. (This level failed its validation — a bug, not a feature.)', 'alert', '#ef4444');
+        return;
+      }
+      captureCavePlantings(plantingsKey(inst.instanceId, inst.depth));
+      caveStackRef.current = [
+        ...caveStackRef.current,
+        {
+          cavern: inst.cavern,
+          world: {
+            flora: [...floraList],
+            fauna: [...faunaList],
+            structures: [...structuresList],
+            drops: [...droppedItems],
+          },
+          shaft: { x: descent.worldX, z: descent.worldZ },
+        },
+      ];
+      const nextDepth = inst.depth + 1;
+      instanceRef.current = { ...inst, cavern: next, depth: nextDepth };
+      enterCavernLevel(next, inst.instanceId, nextDepth, {
+        title: cavernStratumName(nextDepth),
+        body: next.descent
+          ? `Depth ${nextDepth} of the Biolume Caverns. Darker, richer — and the cave goes deeper still.`
+          : `Depth ${nextDepth} of the Biolume Caverns — the deepest dark. Darker, richer, and from here the only way is back up.`,
+      });
+    },
+    [floraList, faunaList, structuresList, droppedItems, postNotification, captureCavePlantings, enterCavernLevel]
   );
 
   const handleExitCave = useCallback((): void => {
@@ -596,7 +714,29 @@ export default function App() {
     if (inst.kind !== 'cavern') return;
     // Remember what the player planted down here before the instance
     // list goes away — it is this cave's garden, kept per-cave.
-    captureCavePlantings(inst.instanceId);
+    captureCavePlantings(plantingsKey(inst.instanceId, inst.depth));
+    // Below the first level, the exit portal is the way UP one
+    // level: pop the descent stack, restore that level exactly as
+    // it was left, and land the player at the shaft they climbed
+    // out of.
+    if (inst.depth > 1) {
+      const frame = caveStackRef.current[caveStackRef.current.length - 1];
+      if (frame) {
+        caveStackRef.current = caveStackRef.current.slice(0, -1);
+        const upDepth = inst.depth - 1;
+        instanceRef.current = { ...inst, cavern: frame.cavern, depth: upDepth };
+        replaceWorld(frame.world);
+        engineRef.current?.setCavernMode(true, frame.cavern, upDepth);
+        applyPlayerLevel(0);
+        playerPosRef.current = { x: frame.shaft.x, z: frame.shaft.z, rotation: cavernEntryYaw(frame.cavern.link) };
+        engineRef.current?.setPlayerPosition(frame.shaft.x, frame.shaft.z, 0);
+        setCavernDepth(upDepth);
+        postNotification(cavernStratumName(upDepth), 'You climb back up the shaft.', 'system', '#a855f7');
+        return;
+      }
+      // No frame under us (a restored mid-state) — fall through to
+      // the surface exit rather than stranding the player.
+    }
     const mouth = inst.parked.structures.find((s) => s.id === inst.mouthId);
     // The return address is the anchor stored on the mouth at world
     // creation: 2 m out from the mouth, so the player lands OUTSIDE
@@ -607,10 +747,12 @@ export default function App() {
     replaceWorld(inst.parked);
     engineRef.current?.setCavernMode(false);
     instanceRef.current = { kind: 'surface' };
+    caveStackRef.current = [];
     applyPlayerLevel(0);
     playerPosRef.current = { x: exitX, z: exitZ, rotation: facing };
     engineRef.current?.setPlayerPosition(exitX, exitZ, 0);
     setInCavern(false);
+    setCavernDepth(0);
     postNotification('Surface', 'You climb back into the open air.', 'system', '#38bdf8');
   }, [replaceWorld, applyPlayerLevel, postNotification, captureCavePlantings]);
 
@@ -620,8 +762,10 @@ export default function App() {
   const resetInstanceState = useCallback((): void => {
     if (instanceRef.current.kind === 'surface') return;
     instanceRef.current = { kind: 'surface' };
+    caveStackRef.current = [];
     engineRef.current?.setCavernMode(false);
     setInCavern(false);
+    setCavernDepth(0);
   }, []);
 
   // 4. Encapsulated Tool Interactions
@@ -653,6 +797,7 @@ export default function App() {
     applyPlayerLevel,
     onEnterCave: handleEnterCave,
     onExitCave: handleExitCave,
+    onDescendCave: handleDescendCave,
     isInCavern: isInCavernNow,
     tameFauna,
     setFaunaCommand,
@@ -1202,7 +1347,7 @@ const saveNow = useCallback((): void => {
   // snapshot itself still writes the parked surface world, so the
   // player wakes up outside — with their cave garden on record).
   if (instanceRef.current.kind === 'cavern') {
-    captureCavePlantings(instanceRef.current.instanceId);
+    captureCavePlantings(plantingsKey(instanceRef.current.instanceId, instanceRef.current.depth));
   }
   const record = buildSavedGame(meta, buildWorldSnapshot(), s.inventory, buildCurrentPlayerState(), s.dayNightCycle, s.codexList, cavePlantingsRef.current);
   currentSaveRef.current = { ...meta, savedAt: record.savedAt };
@@ -1686,7 +1831,7 @@ useEffect(() => {
         onOpenControls={() => setActiveModal('controls')}
         onOpenDevTools={() => setActiveModal('devtools')}
         onSave={handleManualSave}
-        currentBiomeName={inCavern ? 'Biolume Caverns' : currentZoneName}
+        currentBiomeName={inCavern ? cavernStratumName(cavernDepth || 1) : currentZoneName}
         currentBiomeType={inCavern ? 'Cavern' : currentZoneBiomeLabel}
         edgeZoneLabel={inCavern ? null : edgeZoneLabel}
         zoneCoordsLabel={inCavern ? 'Instanced Zone' : zoneCoordsLabel}

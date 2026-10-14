@@ -129,8 +129,8 @@ Fauna are categorized into two behavioral classes:
   its rim pointing toward the spawn point, so the player can always
   recover the direction home. It disappears when the player is already
   at spawn.
-* **Future intent — a built radar device (Adam, 2026-10-14):** The
-  player will assemble a **Prismatic Field Radar** from four biological
+* **The built radar device (Adam, 2026-10-14; BUILT the same day):**
+  The player assembles a **Prismatic Field Radar** from four biological
   subassemblies at a Bio-Forge, rather than the navigation suite being
   only an abstract permanent HUD feature. Adam delegated the parts
   list to Marlowe; the decided recipe is:
@@ -154,31 +154,54 @@ Fauna are categorized into two behavioral classes:
   ever produces one of its raw inputs — a refined Prismatic Core, say —
   the graph will deepen the radar's tier on its own.)
 
-* **Two upcoming species exist partly to feed that recipe:**
-  - **Echo Reed** *(new flora)* — a hollow-stalked reed suited to damp
-    ground and wetland zones. Its segmented stalks resonate when the
-    wind moves through them. A mature plant yields **Resonant Reeds**.
-  - **Vesper Glider** *(new fauna)* — a nocturnal gliding creature with
-    broad hearing vanes that navigates by emitted pulses. It naturally
-    sheds **Sonar Vanes**, so the part follows BioForge's non-lethal
-    byproduct pattern; no kill harvest is required. A tamed glider can
-    supply them over time like other companion byproducts.
+* **Two species exist partly to feed that recipe (both LIVE):**
+  - **Echo Reed** *(flora)* — a hollow-stalked reed of the wetlands
+    (two per wetland zone, dealt outside the census). Its segmented
+    stalks resonate when the wind moves through them. A mature plant
+    yields **Resonant Reeds** ×2 (×4 yield-fertilized) plus dew.
+  - **Vesper Glider** *(fauna)* — a gliding creature with broad
+    hearing vanes that navigates by emitted pulses, haunting the
+    meadow and fungal zones beyond the homestead. It naturally sheds
+    **Sonar Vanes** (about every 45 seconds, wild or tame), so the
+    part follows BioForge's non-lethal byproduct pattern; no kill
+    harvest is required.
 
-  Still open when the device is implemented: the Echo Reed's and Vesper
-  Glider's exact biome placement, and the navigation split — what basic
-  orientation remains available before construction, and which of the
-  present-day radar functions the completed device owns or improves.
+  **What the finished radar DOES (decided and built 2026-10-14):**
+  the radar is a Left-Hand instrument (below). While held, the
+  minimap **pings the finds worth walking for** in the current zone
+  or cavern: cave mouths (violet), precursor ruins (amber), cave
+  descents (deep violet), vine shafts (emerald), chitin stalkers
+  (pink), and snap-traps (red) — a pulsing diamond on the scope in
+  range, a rim diamond at the find's bearing beyond it, and a ring
+  on the expanded survey. The pre-radar split is the shipped one:
+  the basic minimap, zone labels, the spawn arrow, and the cave-exit
+  arrow work from the first minute; the crafted device adds the
+  pings. ("Ribbon Fiber" in the recipe table is the game's
+  **Soft Fiber** item.)
 
 * **Cave-exit arrow:** Inside an instanced cavern, the radar's rim
   arrow turns violet and points to the cave exit portal — the way
   back up — taking the spawn arrow's place while underground (the
   surface spawn is not in the cavern's coordinate space).
 * **The Left Hand:** A dedicated off-hand slot beside the hotbar
-  holds passive gear. Its first citizen is the **Hand Lantern-Fern**
+  holds passive gear. Its citizens are the **Hand Lantern-Fern**
   (crafted: 1 Lantern-Fern Seed + 1 Organic Compost): carried in the
   left hand, its light follows the player like a torch, surface or
-  cave. Clicking the slot takes it into the hand or stows it back in
-  the pouch; the held item is part of the saved player state.
+  cave — and the **Prismatic Field Radar** (above), which turns the
+  minimap into a finder while held. Clicking the slot **cycles the
+  instruments you own** (lantern → radar → stow) — in the dark,
+  light or knowledge is a real choice; the held item is part of the
+  saved player state.
+* **Species↔biome affinities (live 2026-10-14):** in wild zones,
+  census species grow only where they belong — bell-blooms in
+  meadow/wetland, petal-mills in meadow/fungal, sap-weavers in
+  fungal/ember, snap-traps in wetland/fungal; soft-puffs in
+  meadow/wetland, stalkers in ember/fungal; lantern-ferns and
+  burrow-mice everywhere. Off-affinity zones grow a little sparser,
+  with a cast that tells you where you are — and getting resin
+  (sap-weavers) or carapace (stalkers) means a trip. The spawn
+  homestead is cultivated ground and always deals the classic
+  census, so the first session is unchanged.
 * **Glow-spore planting:** Glow Spores are seed stock. They take
   hold only in cavern dark, where they rise as **glow fungus** (the
   cave form of the surface glow spore cluster); on the surface the

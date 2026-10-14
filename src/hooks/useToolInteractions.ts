@@ -66,6 +66,14 @@ export interface UseToolInteractionsParams {
   getPlayerLevel: () => number;
   /** Move the player to another story (ladder climbs). */
   applyPlayerLevel: (level: number) => void;
+  /** Step through a cave mouth into its instanced cavern (App owns the
+   *  transition: entity swap, engine cavern, teleport). */
+  onEnterCave: (mouth: StructureEntity) => void;
+  /** Step through a cave exit back to the surface. */
+  onExitCave: () => void;
+  /** True while the player is inside an instanced cavern — building and
+   *  planting belong to the surface world and are refused underground. */
+  isInCavern: () => boolean;
   tameFauna: (faunaId: string, customName: string, state: FaunaEntity['state']) => void;
   setFaunaCommand: (faunaId: string, cmd: 'follow' | 'stay' | 'guard') => void;
   setCodexList: React.Dispatch<React.SetStateAction<CodexEntry[]>>;
@@ -101,6 +109,9 @@ export function useToolInteractions({
   getPlayerPosition,
   getPlayerLevel,
   applyPlayerLevel,
+  onEnterCave,
+  onExitCave,
+  isInCavern,
   tameFauna,
   setFaunaCommand,
   setCodexList,
@@ -248,6 +259,12 @@ export function useToolInteractions({
   // 3. Planter Trowel & Fertilizers
   const handlePlanterAction = useCallback(
     (worldX: number, worldZ: number, targetFlora?: FloraEntity): void => {
+      // Nothing grows in the cave by hand in v1 — cave flora will be
+      // their own ecology; surface planting stays on the surface.
+      if (isInCavern()) {
+        postNotification('Barren Rock', 'The cavern floor is bare stone — nothing planted by hand takes hold here. The cave grows its own way.', 'alert', '#fbbf24');
+        return;
+      }
       // Applying Fertilizer to existing plant
       if (targetFlora) {
         // The trowel applies the LOADED fertilizer (selectedFertilizerId —
@@ -699,6 +716,12 @@ export function useToolInteractions({
 
   const handleBuildPlacement = useCallback(
     (worldX: number, worldZ: number): void => {
+      // Building belongs to the surface world in v1: pieces placed in
+      // an instance would vanish when the instance closes.
+      if (isInCavern()) {
+        postNotification('Unstable Ground', 'The cavern rejects construction — for now. What you build belongs on the surface.', 'alert', '#fbbf24');
+        return;
+      }
       if (!hasItem(selectedStructureType, 1)) {
         postNotification(
           'Insufficient Seed-Nodes',
@@ -1087,6 +1110,22 @@ export function useToolInteractions({
     // cave mouth...) with a panel or floor selected: build from that
     // base block. Floors/mounds never reach here (flat-surface routing
     // above claims them first).
+    // The cave exit is a portal, not a prop: every ordinary tool steps
+    // through it (App owns the transition back to the surface anchor).
+    // Solvent is refused, the scanner describes, the builder's base-
+    // block case never sees it — this branch runs first on purpose.
+    if (structure.type === 'cave_exit') {
+      if (activeTool === 'solvent_sprayer') {
+        postNotification('Undissolvable', 'The way home is part of the cave itself — the solvent cannot take it.', 'alert', '#fbbf24');
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onExitCave();
+      return;
+    }
     if (
       activeTool === 'builder' &&
       !isEdgePanel(structure.type) &&
@@ -1110,7 +1149,10 @@ export function useToolInteractions({
         handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
         return;
       }
-      postNotification('Cave Mouth', 'Cool air breathes out of the dark — the Biolume Caverns wait below. The way down opens with the interior expedition.', 'system', '#78716c');
+      // Any other tool steps through: the interior is IN (P3 wired
+      // 2026-10-14) — App generates the mouth's cavern from its
+      // instanceId and swaps the world for the instance.
+      onEnterCave(structure);
       return;
     }
     // Vine ladders: builder grows them (on a wall, or up from a ladder);
@@ -1141,7 +1183,7 @@ export function useToolInteractions({
       return;
     }
   },
-  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, handleGroundClick, handlePlanterAction, selectedSeedId, selectedStructureType, handleBuilderOnPanel, handleBuilderOnBaseBlock, handleGrowCeiling, handlePlaceLadder, handleExtendLadder, handleClimbLadder, postNotification]
+  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, handleGroundClick, handlePlanterAction, selectedSeedId, selectedStructureType, handleBuilderOnPanel, handleBuilderOnBaseBlock, handleGrowCeiling, handlePlaceLadder, handleExtendLadder, handleClimbLadder, postNotification, onEnterCave, onExitCave]
 );
 
   return {

@@ -266,15 +266,42 @@ export function useToolInteractions({
     [setCodexList, postNotification]
   );
 
+  // Which species a seed item grows — the planter's ONE mapping,
+  // shared by the habitat guards and the planting code below, so the
+  // two can never disagree about what a seed becomes.
+  const speciesForSeed = (seedId: ItemId): FloraEntity['species'] => {
+    switch (seedId) {
+      case 'seed_sap_weaver': return 'sap_weaver';
+      case 'seed_petal_mill': return 'petal_mill';
+      case 'seed_snap_trap': return 'snap_trap';
+      case 'seed_bell_bloom': return 'bell_bloom';
+      case 'seed_bounce_shroom': return 'bounce_shroom';
+      case 'glow_spore':
+        // One spore stock, two forms: the cluster that rings surface
+        // cave mouths, and glow fungus in the cavern dark.
+        return isInCavern() ? 'glow_fungus' : 'glow_spore_cluster';
+      default: return 'lantern_fern';
+    }
+  };
+
   // 3. Planter Trowel & Fertilizers
   const handlePlanterAction = useCallback(
     (worldX: number, worldZ: number, targetFlora?: FloraEntity): void => {
-      // Nothing gets PLANTED in the cave by hand — cave flora are
-      // their own ecology. (Fertilizing an existing cave plant is
-      // fine: that path passes a targetFlora and skips this guard.)
-      if (isInCavern() && !targetFlora) {
-        postNotification('Barren Rock', 'The cavern floor is bare stone — nothing planted by hand takes hold here. The cave grows its own way.', 'alert', '#fbbf24');
-        return;
+      // Habitat rules for PLANTING (fertilizing an existing plant —
+      // the targetFlora path below — is always fine):
+      //  - Underground, only the cave's own spore stock takes hold by
+      //    hand: glow spores, which rise as glow fungus.
+      //  - On the surface, glow spores refuse domestic soil — they
+      //    belong to the cavern dark (and to wild rings at cave mouths).
+      if (!targetFlora) {
+        if (isInCavern() && speciesForSeed(selectedSeedId) !== 'glow_fungus') {
+          postNotification('Barren Rock', 'The cavern floor is bare stone — only glow spores take hold here, rising as glow fungus. The cave grows its own way.', 'alert', '#fbbf24');
+          return;
+        }
+        if (!isInCavern() && selectedSeedId === 'glow_spore') {
+          postNotification('Wrong Soil', 'Glow spores refuse domestic soil — plant them in the dark of a cavern, where they rise as glow fungus.', 'alert', '#fbbf24');
+          return;
+        }
       }
       // Applying Fertilizer to existing plant
       if (targetFlora) {
@@ -336,12 +363,7 @@ export function useToolInteractions({
       deductInventoryItem(selectedSeedId, 1);
       soundEngine.playFertilize();
 
-      let species: FloraEntity['species'] = 'lantern_fern';
-      if (selectedSeedId === 'seed_sap_weaver') species = 'sap_weaver';
-      if (selectedSeedId === 'seed_petal_mill') species = 'petal_mill';
-      if (selectedSeedId === 'seed_snap_trap') species = 'snap_trap';
-      if (selectedSeedId === 'seed_bell_bloom') species = 'bell_bloom';
-      if (selectedSeedId === 'seed_bounce_shroom') species = 'bounce_shroom';
+      const species: FloraEntity['species'] = speciesForSeed(selectedSeedId);
 
       const newFlora: FloraEntity = {
         id: 'flora_' + Math.random().toString(36).substring(2, 9),
@@ -407,7 +429,19 @@ export function useToolInteractions({
       soundEngine.playSolventSpray();
       triggerSolventFx(flora.x, flora.z);
 
-      const seedId = `seed_${flora.species}` as ItemId;
+      // What dissolving reclaims as the plant's propagule. Most
+      // species have a seed_<species> item; the spore/crystal cave
+      // species reclaim their own harvest stock instead — there is
+      // no seed_glow_fungus item, and minting one here would drop a
+      // phantom item into the pouch.
+      const seedId: ItemId =
+        flora.species === 'glow_spore_cluster' || flora.species === 'glow_fungus'
+          ? 'glow_spore'
+          : flora.species === 'sunshard_cluster'
+            ? 'sunshard'
+            : flora.species === 'prism_cluster'
+              ? 'violet_prism'
+              : (`seed_${flora.species}` as ItemId);
       const rawName = flora.species.replace(/_/g, ' ');
       const speciesName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
 

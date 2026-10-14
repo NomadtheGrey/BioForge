@@ -73,6 +73,8 @@ export interface UseToolInteractionsParams {
   onExitCave: () => void;
   /** Step down a cave descent shaft to the next depth level. */
   onDescendCave: (descent: StructureEntity) => void;
+  /** Climb a vine shaft straight to the surface, from any depth. */
+  onVineClimb: () => void;
   /** True while the player is inside an instanced cavern — building and
    *  planting belong to the surface world and are refused underground. */
   isInCavern: () => boolean;
@@ -114,6 +116,7 @@ export function useToolInteractions({
   onEnterCave,
   onExitCave,
   onDescendCave,
+  onVineClimb,
   isInCavern,
   tameFauna,
   setFaunaCommand,
@@ -1199,6 +1202,21 @@ export function useToolInteractions({
         return;
       }
       onDescendCave(structure);
+      return;
+    }
+    // The vine shaft is the third doorway of the family: the express
+    // climb straight to the surface from any depth. Same rules —
+    // solvent refused, scanner describes, everything else climbs.
+    if (structure.type === 'vine_shaft') {
+      if (activeTool === 'solvent_sprayer') {
+        postNotification('Undissolvable', 'The vine is older than the cave around it — the solvent cannot take it.', 'alert', '#fbbf24');
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onVineClimb();
       return;
     }
     if (

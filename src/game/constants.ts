@@ -333,6 +333,20 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 1,
   },
+  // Also not a buildable: ruin landmarks are grown by world generation
+  // (P4, game/ruins.ts) from the world's fate and are permanent. The
+  // ITEMS entry exists so hover, scan, and codex lookups have a name
+  // and description for the type.
+  ruin_landmark: {
+    id: 'ruin_landmark',
+    name: 'Precursor Ruin',
+    category: 'structure',
+    description: 'Broken stone older than the world wearing it. Whoever built here is gone — what they left reads like a sentence with the verbs removed. The way in is not open. Yet.',
+    iconName: 'Landmark',
+    color: '#a8a29e',
+    rarity: 'rare',
+    maxStack: 1,
+  },
   vine_ladder: {
     id: 'vine_ladder',
     name: 'Vine Ladder',
@@ -372,7 +386,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
  * inside an instance. UI lists derived from ITEMS (the builder's
  * blueprint cycle and panel) must filter these out.
  */
-export const NON_BUILDABLE_STRUCTURE_IDS: ItemId[] = ['cave_mouth', 'cave_exit', 'cave_descent'];
+export const NON_BUILDABLE_STRUCTURE_IDS: ItemId[] = ['cave_mouth', 'cave_exit', 'cave_descent', 'ruin_landmark'];
 
 export const RECIPES: CraftingRecipe[] = [
   // Seeds

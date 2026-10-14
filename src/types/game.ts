@@ -42,7 +42,8 @@ export type ItemId =
   | 'vine_ladder'
   | 'cave_mouth'
   | 'cave_exit'
-  | 'cave_descent';
+  | 'cave_descent'
+  | 'ruin_landmark';
 
 export type ToolType =
   | 'harvest_glove'
@@ -151,6 +152,7 @@ export type StructureType =
   | 'cave_mouth'
   | 'cave_exit'
   | 'cave_descent'
+  | 'ruin_landmark'
   // Equipment
   | 'field_synthesizer_gauntlet';
 
@@ -195,6 +197,47 @@ export interface CaveLinkData {
   exitZ: number;
   dressing: CaveDressingPiece[];
 }
+
+/** Dressing piece types a ruin landmark wears (see game/ruins.ts). */
+export type RuinDressingType =
+  | 'pillar'
+  | 'toppled_pillar'
+  | 'wall_stub'
+  | 'arch_fragment'
+  | 'shard'
+  | 'rubble';
+
+/** One piece of ruin set dressing, in zone-local meters. */
+export interface RuinDressingPiece {
+  id: string;
+  type: RuinDressingType;
+  x: number;
+  z: number;
+  rotation: number;
+  scale: number;
+  /** Solid set dressing (kept out of the entrance approach). */
+  blocking: boolean;
+}
+
+/**
+ * The record on a ruin_landmark structure (P4, surface stage): which
+ * precursor fate built this place, which interior generator variant
+ * that fate chooses, and how large the ruin is. Like the cave link,
+ * this is stored bookkeeping — the interior (a later stage) derives
+ * from (world seed + instanceId + fate) alone, so this record can
+ * never change what sleeps below. The fate is deliberately NOT shown
+ * in the UI: a world's story is discovered by reading its ruins.
+ */
+export interface RuinLinkData {
+  instanceId: string;
+  fate: string;
+  variant: string;
+  tier: 'traces' | 'small' | 'medium' | 'grand';
+  /** Return address for the future interior: anchor + 2 m facing. */
+  exitX: number;
+  exitZ: number;
+  dressing: RuinDressingPiece[];
+}
 ;
 
 export interface StructureEntity {
@@ -219,6 +262,8 @@ export interface StructureEntity {
   color?: string;
   /** Present only on cave_mouth structures: the portal link + dressing. */
   cave?: CaveLinkData;
+  /** Present only on ruin_landmark structures: fate/variant/tier record. */
+  ruin?: RuinLinkData;
 }
 
 export interface DroppedItemEntity {

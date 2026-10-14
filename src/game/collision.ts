@@ -74,6 +74,12 @@ function isCollidingWithStructure(
     // A cave mouth is a rock mass: you walk up TO the opening (the
     // portal radius is 1.4 m) but not into the stone.
     if (s.type === 'cave_mouth') obstacleRadius = 1.3;
+    // A ruin landmark's gate massif: traces are low rubble you can
+    // pick through (small radius); a real gate stops you at its
+    // threshold, like the cave mouth's portal rock.
+    if (s.type === 'ruin_landmark') {
+      obstacleRadius = s.ruin?.tier === 'traces' ? 0.8 : s.ruin?.tier === 'small' ? 1.6 : 2.1;
+    }
 
     const distSq = (candidateX - s.worldX) ** 2 + (candidateZ - s.worldZ) ** 2;
     return distSq < (obstacleRadius + PLAYER_RADIUS) ** 2;

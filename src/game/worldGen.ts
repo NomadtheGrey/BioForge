@@ -54,6 +54,7 @@ import type { BiomeId } from './biomes';
 import { zoneBiomeAt } from './zones';
 import type { FaunaEntity, FaunaSpecies, FloraEntity, FloraSpecies, StructureEntity } from '../types/game';
 import { generateCaveSurface, HOMESTEAD_BLOCKERS } from './caveSurface';
+import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
 
 /**
  * Stamp recorded on saves so future format/gen changes can migrate.
@@ -61,8 +62,11 @@ import { generateCaveSurface, HOMESTEAD_BLOCKERS } from './caveSurface';
  * v2: + the biome layer, per-point (superseded within the day).
  * v3: biome layer at zone scope — one biome per zone (zones.ts).
  * v4: + cave mouths on the surface (P3 surface half, caveSurface.ts).
+ * v5: + ruin landmarks (P4 surface stage, ruins.ts) — fate-styled,
+ *     hop-scaled; existing saves keep their snapshots and simply
+ *     never grow ruins (mouths behaved the same at v4).
  */
-export const WORLD_GEN_VERSION = 4;
+export const WORLD_GEN_VERSION = 5;
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -362,9 +366,10 @@ function placeFernRing(rng: () => number): PlacedPoint[] {
 export interface GeneratedWorld {
   flora: FloraEntity[];
   fauna: FaunaEntity[];
-  /** World-grown structures (v4: cave mouths). The caller merges these
-   *  with the fixed starter structures — mouths are wilderness, not
-   *  homestead, but they ride the same structures/save/sync pipeline. */
+  /** World-grown structures (v4: cave mouths; v5: + ruin landmarks).
+   *  The caller merges these with the fixed starter structures —
+   *  they're wilderness, not homestead, but they ride the same
+   *  structures/save/sync pipeline. */
   structures: StructureEntity[];
   /** Placements that needed the spacing safety valve (expect 0). */
   relaxedPlacements: number;
@@ -565,10 +570,53 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
     }
   }
 
+  // ---------------------------------------------------------------------
+  // Ruin landmarks (P4, surface stage) — grown LAST of all: a site
+  // must respect the homestead, the cave mouths, and everything
+  // already living on the surface. The world's FATE (derived from the
+  // seed alone, game/ruins.ts) chooses the variant and the tint;
+  // distance in ZONE HOPS chooses the size. The landmark's record is
+  // stored bookkeeping for the interior stage — the ruin below will
+  // derive from (seed + instanceId + fate), never from this record.
+  // ---------------------------------------------------------------------
+  const worldFate = fateForWorld(seedStr);
+  const ruinBlockers = [
+    ...caveBlockers,
+    ...caveSection.mouths.map((m) => ({ x: m.anchor.x, z: m.anchor.z, radius: 3.4 })),
+  ];
+  const ruinSection = generateZoneRuins(seedStr, {
+    zoneZx,
+    zoneZz,
+    zoneBiome,
+    fate: worldFate,
+    blockers: ruinBlockers,
+  });
+  const ruinStructures: StructureEntity[] = ruinSection.sites.map((site) => ({
+    id: site.id,
+    type: 'ruin_landmark',
+    gridX: Math.round(site.anchor.x / 2),
+    gridZ: Math.round(site.anchor.z / 2),
+    worldX: site.anchor.x,
+    worldZ: site.anchor.z,
+    rotation: site.anchor.facing,
+    health: 9999,
+    maxHealth: 9999,
+    doorOpenProgress: 0,
+    ruin: {
+      instanceId: site.instanceId,
+      fate: worldFate,
+      variant: FATE_STYLES[worldFate].variant,
+      tier: site.tier,
+      exitX: site.surfaceExitSpawn.x,
+      exitZ: site.surfaceExitSpawn.z,
+      dressing: site.dressing,
+    },
+  }));
+
   return {
     flora: [...flora, ...caveFlora],
     fauna,
-    structures,
+    structures: [...structures, ...ruinStructures],
     relaxedPlacements: floraScatter.relaxed + faunaScatter.relaxed,
   };
 }

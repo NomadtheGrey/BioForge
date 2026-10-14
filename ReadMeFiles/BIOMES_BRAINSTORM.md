@@ -29,6 +29,15 @@ later, and chosen ones move into CORE_MECHANICS.md.
   magnetic dunes → navigation/tool stabilizer; deep caves → a light
   reservoir charged by lantern-ferns. Each biome teaches the player how to
   survive the next one.
+- **The helmet is the sensory platform (Adam, 2026-10-13).** The gauntlet
+  acts on the world; a special helmet perceives it — vision, audio, and
+  other senses. Grown modules, one per problem the planet teaches: biolume
+  night-sight, spore/gas sight, echo-hearing for fog, glare/flare
+  shielding, creature-mood readings, a precursor-glyph overlay in ruins.
+  As precursor bio-tech it is a tame organism you wear. **Boundary:** the
+  gauntlet and helmet are the two worn platforms, each upgraded as one
+  item — no drift into a full suit of armor built piece by piece. (A full
+  suit is a door left open for much later, not a current direction.)
 - **Instanced interior zones (Adam, 2026-10-13).** Caves, ruins, and similar
   interiors are SEPARATE INSTANCES — their own zones — not spaces carved
   into surface terrain. An entrance links to an instance with its own

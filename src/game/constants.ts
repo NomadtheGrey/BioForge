@@ -333,6 +333,20 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 1,
   },
+  // Also not a buildable: the vine shaft is the express way OUT of a
+  // deep cavern level (game/cavern.ts) — an alien vine through a
+  // crack in the ceiling. Like the exit and the descent, it exists
+  // only inside an instance's structure list.
+  vine_shaft: {
+    id: 'vine_shaft',
+    name: 'Vine Shaft',
+    category: 'structure',
+    description: 'An alien vine thick as a mast, climbing through a crack in the cavern roof toward light it has never seen. Climb it and the whole cave falls away below you — straight to the surface.',
+    iconName: 'Sprout',
+    color: '#34d399',
+    rarity: 'rare',
+    maxStack: 1,
+  },
   // Also not a buildable: ruin landmarks are grown by world generation
   // (P4, game/ruins.ts) from the world's fate and are permanent. The
   // ITEMS entry exists so hover, scan, and codex lookups have a name
@@ -386,7 +400,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
  * inside an instance. UI lists derived from ITEMS (the builder's
  * blueprint cycle and panel) must filter these out.
  */
-export const NON_BUILDABLE_STRUCTURE_IDS: ItemId[] = ['cave_mouth', 'cave_exit', 'cave_descent', 'ruin_landmark'];
+export const NON_BUILDABLE_STRUCTURE_IDS: ItemId[] = ['cave_mouth', 'cave_exit', 'cave_descent', 'vine_shaft', 'ruin_landmark'];
 
 export const RECIPES: CraftingRecipe[] = [
   // Seeds

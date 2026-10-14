@@ -43,6 +43,7 @@ export type ItemId =
   | 'cave_mouth'
   | 'cave_exit'
   | 'cave_descent'
+  | 'vine_shaft'
   | 'ruin_landmark';
 
 export type ToolType =
@@ -152,6 +153,7 @@ export type StructureType =
   | 'cave_mouth'
   | 'cave_exit'
   | 'cave_descent'
+  | 'vine_shaft'
   | 'ruin_landmark'
   // Equipment
   | 'field_synthesizer_gauntlet';

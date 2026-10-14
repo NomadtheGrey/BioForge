@@ -320,6 +320,19 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 1,
   },
+  // Also not a buildable: the cave descent is the shaft DOWN to the
+  // next depth level of an instanced cavern (game/cavern.ts). Like
+  // the exit, it exists only inside an instance's structure list.
+  cave_descent: {
+    id: 'cave_descent',
+    name: 'Cave Descent',
+    category: 'structure',
+    description: 'A shaft bored by something patient, breathing cold air from below. The cavern continues — deeper, darker, richer. Step through to descend.',
+    iconName: 'ArrowDownCircle',
+    color: '#7c3aed',
+    rarity: 'rare',
+    maxStack: 1,
+  },
   vine_ladder: {
     id: 'vine_ladder',
     name: 'Vine Ladder',
@@ -359,7 +372,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
  * inside an instance. UI lists derived from ITEMS (the builder's
  * blueprint cycle and panel) must filter these out.
  */
-export const NON_BUILDABLE_STRUCTURE_IDS: ItemId[] = ['cave_mouth', 'cave_exit'];
+export const NON_BUILDABLE_STRUCTURE_IDS: ItemId[] = ['cave_mouth', 'cave_exit', 'cave_descent'];
 
 export const RECIPES: CraftingRecipe[] = [
   // Seeds

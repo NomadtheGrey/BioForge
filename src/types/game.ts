@@ -41,7 +41,8 @@ export type ItemId =
   | 'cultivation_mound'
   | 'vine_ladder'
   | 'cave_mouth'
-  | 'cave_exit';
+  | 'cave_exit'
+  | 'cave_descent';
 
 export type ToolType =
   | 'harvest_glove'
@@ -149,6 +150,7 @@ export type StructureType =
   | 'vine_ladder'
   | 'cave_mouth'
   | 'cave_exit'
+  | 'cave_descent'
   // Equipment
   | 'field_synthesizer_gauntlet';
 

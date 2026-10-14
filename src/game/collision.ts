@@ -48,8 +48,9 @@ function isCollidingWithStructure(
 
     // The cave exit is a portal, not an obstacle: the player ENTERS
     // standing in its ring (the instance spawn is the entrance cell),
-    // so it must never push back.
-    if (s.type === 'cave_exit') {
+    // so it must never push back. The descent shaft is the same kind
+    // of doorway — the player stands at its throat to use it.
+    if (s.type === 'cave_exit' || s.type === 'cave_descent') {
       return false;
     }
 

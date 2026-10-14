@@ -39,7 +39,7 @@ export const CAVERN_GEN_VERSION = 1;
 /** In-game cavern size in cells (one cell = 2 m → an 88 m zone). */
 export const CAVERN_GRID_CELLS = 44;
 
-export type CavernFeatureType = 'glow_fungus' | 'common_resource' | 'rare_mineral' | 'hazard' | 'heart';
+export type CavernFeatureType = 'glow_fungus' | 'common_resource' | 'rare_mineral' | 'hazard' | 'heart' | 'descent';
 
 export interface CavernFeature {
   id: string;
@@ -67,6 +67,10 @@ export interface CavernResult {
   grid: string[];
   entrance: { x: number; y: number };
   heart: { x: number; y: number } | null;
+  /** The way DOWN to the next level, when this level rolled one. */
+  descent: { x: number; y: number } | null;
+  /** 1-based depth level of this cavern (1 = just under the surface). */
+  depthLevel: number;
   features: CavernFeature[];
   depthStats: { maxDepth: number; bandCounts: { shallow: number; mid: number; deep: number } };
   openShare: number;
@@ -463,6 +467,45 @@ function stageFeatures(
 }
 
 // --------------------------------------------------------------------------
+// Stage C2 — the descent (the way down to the next depth level)
+// --------------------------------------------------------------------------
+// Adam's deeper caves (2026-10-14): a level may grow a shaft down to
+// another generated level beneath it. The shaft belongs in the deep
+// dark: a floor cell at ≥75% of the cave's max BFS depth, never the
+// heart's own cell or its immediate neighbor (the heart keeps its
+// chamber), and never near the entrance. Placement is a pure scan —
+// no RNG — so it cannot shift any seeded stream; whether a descent
+// EXISTS at all is the only roll, drawn on its own 'descent' stream.
+function placeDescent(
+  g: Grid, w: number, h: number,
+  depth: Grid, maxDepth: number,
+  heart: { x: number; y: number } | null,
+  entrance: { x: number; y: number },
+): { x: number; y: number } | null {
+  const minD = Math.ceil(maxDepth * 0.75);
+  const far = (x: number, y: number, heartGap: number): boolean => {
+    if (heart && Math.abs(x - heart.x) + Math.abs(y - heart.y) < heartGap) return false;
+    if (Math.abs(x - entrance.x) + Math.abs(y - entrance.y) < 5) return false;
+    return true;
+  };
+  for (const heartGap of [2, 1]) {
+    let best: { x: number; y: number } | null = null;
+    let bestD = -1;
+    for (let y = 1; y < h - 1; y++)
+      for (let x = 1; x < w - 1; x++) {
+        if (g[y][x] !== 0) continue;
+        const d = depth[y][x];
+        if (d < minD || d <= bestD) continue;
+        if (!far(x, y, heartGap)) continue;
+        best = { x, y };
+        bestD = d;
+      }
+    if (best) return best;
+  }
+  return null;
+}
+
+// --------------------------------------------------------------------------
 // Stage D — validation
 // --------------------------------------------------------------------------
 function validateCavern(
@@ -518,6 +561,15 @@ export interface GenerateCavernOptions {
   height?: number;
   /** Bookkeeping ONLY — never feeds generation (see the invariant). */
   surfaceAnchor?: { x: number; z: number; facing: number } | null;
+  /** 1-based depth level this cavern sits at (stamped on the result). */
+  depthLevel?: number;
+  /**
+   * Probability (0–1) that this level grows a DESCENT to the next
+   * one. Undefined = no descent is possible here (deepest level).
+   * The roll draws on its own seeded stream, so it never perturbs
+   * the layout or feature streams.
+   */
+  descentChance?: number;
 }
 
 export function generateCavern(seedStr: string, options: GenerateCavernOptions = {}): CavernResult {
@@ -525,6 +577,7 @@ export function generateCavern(seedStr: string, options: GenerateCavernOptions =
   const opts: CavernOpts = { ...CAVERN_DEFAULTS, ...overrides };
   const zoneId = options.zoneId || 'cavern';
   const { width: w, height: h } = opts;
+  const depthLevel = options.depthLevel ?? 1;
 
   const fillRng = createSeededRandom(stageSeed(seedStr, zoneId, 'fill'));
   const repairRng = createSeededRandom(stageSeed(seedStr, zoneId, 'repair'));
@@ -539,6 +592,19 @@ export function generateCavern(seedStr: string, options: GenerateCavernOptions =
   const { dist, max: maxDepth } = bfsDepth(g, w, h, entrance.x, entrance.y);
 
   const { features, heart } = stageFeatures(featureRng, g, w, h, dist, maxDepth, opts);
+
+  // The descent roll: its OWN stream, drawn only when a descent is on
+  // the table, so levels without one stay byte-identical to before.
+  let descent: { x: number; y: number } | null = null;
+  if (options.descentChance !== undefined) {
+    const descentRng = createSeededRandom(stageSeed(seedStr, zoneId, 'descent'));
+    if (descentRng() < options.descentChance) {
+      descent = placeDescent(g, w, h, dist, maxDepth, heart, entrance);
+      if (descent) {
+        features.push({ id: 'cf_descent', type: 'descent', cx: descent.x, cy: descent.y, depth: dist[descent.y][descent.x] });
+      }
+    }
+  }
   const link = buildPortalLink(g, w, h, entrance, zoneId, surfaceAnchor, opts);
   const validation = validateCavern(g, w, h, entrance, features, repair.corridors, opts);
 
@@ -562,12 +628,28 @@ export function generateCavern(seedStr: string, options: GenerateCavernOptions =
     grid,
     entrance,
     heart,
+    descent,
+    depthLevel,
     features,
     depthStats: { maxDepth, bandCounts },
     openShare: open / (w * h),
     link,
     meta: { genVersion: CAVERN_GEN_VERSION, validation },
   };
+}
+
+/** The deepest a cave can go (Adam's depth cap for v1). */
+export const MAX_CAVERN_DEPTH = 3;
+
+/** Each depth level has a name — the HUD and the entry toast use it. */
+export const CAVERN_STRATUM_NAMES: Record<number, string> = {
+  1: 'Biolume Caverns',
+  2: 'The Violet Deep',
+  3: 'The Abyssal Dark',
+};
+
+export function cavernStratumName(depthLevel: number): string {
+  return CAVERN_STRATUM_NAMES[depthLevel] ?? `Depth ${depthLevel}`;
 }
 
 /**
@@ -581,11 +663,59 @@ export function generateGameCavern(
   instanceId: string,
   surfaceAnchor: { x: number; z: number; facing: number } | null,
 ): CavernResult {
+  return generateGameCavernLevel(worldSeed, instanceId, 1, surfaceAnchor);
+}
+
+/**
+ * One LEVEL of a mouth's cavern (Adam's deeper caves, 2026-10-14).
+ * Depth is a level number fed to the same generator — never a new
+ * coordinate: level 1 keeps the instanceId as its zoneId (existing
+ * caves stay byte-identical), deeper levels suffix it, which re-seeds
+ * every stage stream and grows a wholly different layout.
+ *
+ * The descent chance (Adam's rule: deeper is likelier the farther
+ * the mouth sits from spawn) = a per-level base + a distance bonus.
+ * The distance is measured from the mouth's stored position — data
+ * every client holding the mouth entity has — so the roll lands the
+ * same on host and guests alike. Deeper levels also deal RICHER
+ * feature targets (greater depths, greater rewards): rares and
+ * hazards scale fastest, fungus gently (light stays precious).
+ */
+export function generateGameCavernLevel(
+  worldSeed: string,
+  instanceId: string,
+  depthLevel: number,
+  surfaceAnchor: { x: number; z: number; facing: number } | null,
+): CavernResult {
+  const zoneId = depthLevel <= 1 ? instanceId : `${instanceId}@d${depthLevel}`;
+
+  let descentChance: number | undefined;
+  if (depthLevel < MAX_CAVERN_DEPTH) {
+    const base = depthLevel === 1 ? 0.55 : 0.4;
+    const dist = surfaceAnchor ? Math.hypot(surfaceAnchor.x, surfaceAnchor.z) : 20;
+    const bonus = Math.min(1, Math.max(0, (dist - 20) / 22)) * 0.25;
+    descentChance = base + bonus;
+  }
+
+  const rich = 1 + 0.35 * (depthLevel - 1);
+  const featureTargets =
+    depthLevel <= 1
+      ? undefined
+      : {
+          glow_fungus: Math.round(36 * (1 + 0.15 * (depthLevel - 1))),
+          common_resource: Math.round(22 * rich),
+          rare_mineral: Math.round(12 * rich),
+          hazard: Math.round(6 * rich),
+        };
+
   return generateCavern(worldSeed, {
-    zoneId: instanceId,
+    zoneId,
     width: CAVERN_GRID_CELLS,
     height: CAVERN_GRID_CELLS,
     surfaceAnchor,
+    depthLevel,
+    descentChance,
+    ...(featureTargets ? { featureTargets } : {}),
   });
 }
 

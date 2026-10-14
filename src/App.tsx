@@ -87,6 +87,7 @@ export default function App() {
     setSelectedFertilizerId,
     setPlayerTransform,
     setStamina,
+    setPlayerLevel,
     restorePlayerState,
   } = usePlayerState();
 
@@ -178,6 +179,28 @@ export default function App() {
   const staminaRef = useRef(100);
   const lastStaminaSync = useRef(0);
   const playerPosRef = useRef({ x: playerState.x, z: playerState.z, rotation: playerState.rotation });
+  // The story the player stands on (0 = ground). The movement loop reads
+  // this ref; playerState.level is the persisted copy, kept in step by
+  // the mirror effect below and by setPlayerLevel at every transition.
+  const playerLevelRef = useRef(playerState.level ?? 0);
+  useEffect(() => {
+    playerLevelRef.current = playerState.level ?? 0;
+  }, [playerState.level]);
+  // Change the player's story (ladder climbs, shroom bounces, falls):
+  // ref first (the loop reads it this frame), then the persisted state.
+  const applyPlayerLevel = useCallback(
+    (level: number): void => {
+      if (playerLevelRef.current === level) return;
+      playerLevelRef.current = level;
+      setPlayerLevel(level);
+    },
+    [setPlayerLevel]
+  );
+  // Bounce grace: after a shroom bounce the player hangs in the ceiling
+  // HOLE (a cell with no floor) — support checks pause until this
+  // timestamp so they can step onto a real tile instead of dropping
+  // straight back through.
+  const bounceGraceUntil = useRef(0);
   const activeToolRef = useRef(playerState.activeTool);
   const selectedStructureRef = useRef(playerState.selectedStructureType);
   const isPointerLockedRef = useRef(isPointerLocked);
@@ -241,6 +264,72 @@ export default function App() {
     return Math.round(yaw / step) * step;
   }, []);
 
+  // Live player position + story for the tool hook: ceiling placement
+  // reads the player's side of a wall, and ladder climbs move the
+  // player's story (through the same applyPlayerLevel the loop uses).
+  const getPlayerPosition = useCallback((): { x: number; z: number } => playerPosRef.current, []);
+  const getPlayerLevel = useCallback((): number => playerLevelRef.current, []);
+
+  // Spacebar on a mature bounce-shroom: the game's only jump, and it is
+  // a LAUNCH — one story up, through the ceiling hole above the shroom.
+  // It never fires from LANDING on the cap: falling through the hole
+  // onto the shroom is safe (Adam's spec); the cap fires only when you
+  // jump on it. After the bounce, a short grace window pauses the
+  // story-support check so you can step from the hole onto a tile.
+  const BOUNCE_RADIUS = 0.9;
+  const BOUNCE_GRACE_MS = 1600;
+  const BOUNCE_MIN_STAGE = 4;
+  const attemptBounce = useCallback((): void => {
+    // Bounce-shrooms are ground plants (they never root on floors), so
+    // the launch only exists on the ground story.
+    if (playerLevelRef.current !== 0) return;
+    const pos = playerPosRef.current;
+    const shroom = floraListRef.current.find(
+      (f) =>
+        f.species === 'bounce_shroom' &&
+        f.growthStage >= BOUNCE_MIN_STAGE &&
+        Math.hypot(f.x - pos.x, f.z - pos.z) < BOUNCE_RADIUS
+    );
+    if (!shroom) return;
+
+    const target = 1;
+    const cellGX = Math.round(pos.x / 2);
+    const cellGZ = Math.round(pos.z / 2);
+    const structs = structuresListRef.current;
+    const floorAt = (gx: number, gz: number, level: number): boolean =>
+      structs.some(
+        (s) => s.type === 'root_tile_floor' && (s.level ?? 0) === level && s.gridX === gx && s.gridZ === gz
+      );
+
+    if (floorAt(cellGX, cellGZ, target)) {
+      postNotification(
+        'No Opening Above',
+        'The ceiling over this shroom is closed. Dissolve a tile with the Solvent Sprayer [4] to open the hole.',
+        'alert',
+        '#fbbf24'
+      );
+      return;
+    }
+    const hasLanding =
+      floorAt(cellGX + 1, cellGZ, target) ||
+      floorAt(cellGX - 1, cellGZ, target) ||
+      floorAt(cellGX, cellGZ + 1, target) ||
+      floorAt(cellGX, cellGZ - 1, target);
+    if (!hasLanding) {
+      postNotification(
+        'Nothing to Land On',
+        'Bouncing here would just drop you back down the hole. Lay ceiling tiles around the opening first.',
+        'alert',
+        '#fbbf24'
+      );
+      return;
+    }
+
+    bounceGraceUntil.current = performance.now() + BOUNCE_GRACE_MS;
+    applyPlayerLevel(target);
+    soundEngine.playFertilize();
+  }, [applyPlayerLevel, postNotification]);
+
   // 4. Encapsulated Tool Interactions
   const {
     handleGroundClick,
@@ -265,6 +354,9 @@ export default function App() {
     removeStructure,
     removeFlora,
     getPlacementRotation,
+    getPlayerPosition,
+    getPlayerLevel,
+    applyPlayerLevel,
     tameFauna,
     setFaunaCommand,
     setCodexList,
@@ -335,11 +427,34 @@ export default function App() {
           inputState,
           isPaused,
           structuresListRef.current,
-          floraListRef.current
+          floraListRef.current,
+          playerLevelRef.current
         );
 
         playerPosRef.current.x = moveResult.x;
         playerPosRef.current.z = moveResult.z;
+
+        // Story support: above the ground story you stand on ceiling
+        // floors. Step off one (or have it dissolved under you) and you
+        // drop to the highest floor still present in this column, or
+        // to the ground. Runs after the move, so this frame's collision
+        // still used the level you started on. A fresh bounce (Part 3)
+        // buys a short grace window to step from the hole onto a tile.
+        if (playerLevelRef.current > 0 && performance.now() > bounceGraceUntil.current) {
+          const cellX = Math.round(moveResult.x / 2);
+          const cellZ = Math.round(moveResult.z / 2);
+          let landing = 0;
+          let supported = false;
+          for (const s of structuresListRef.current) {
+            if (s.type !== 'root_tile_floor' || s.gridX !== cellX || s.gridZ !== cellZ) continue;
+            const l = s.level ?? 0;
+            if (l === playerLevelRef.current) supported = true;
+            if (l < playerLevelRef.current && l > landing) landing = l;
+          }
+          if (!supported) {
+            applyPlayerLevel(landing);
+          }
+        }
 
         const isSprintingNow = wantSprint && moveResult.isMoving && !isPaused;
         const staminaDelta = isSprintingNow ? -18 * dt : (moveResult.isMoving ? 8 : 14) * dt;
@@ -362,13 +477,14 @@ export default function App() {
               moveResult.x,
               moveResult.z,
               playerPosRef.current.rotation,
-              activeToolRef.current
+              activeToolRef.current,
+              playerLevelRef.current
             );
           }
         }
 
         // Update Camera & Viewmodel dynamics using the exact same dt
-        engineRef.current.setPlayerPosition(moveResult.x, moveResult.z);
+        engineRef.current.setPlayerPosition(moveResult.x, moveResult.z, playerLevelRef.current);
         engineRef.current.updateViewmodelDynamics(dt, moveResult.isMoving);
 
         // Smooth Minimap Pos update (every 50ms)
@@ -528,6 +644,14 @@ export default function App() {
         return;
       }
 
+      // Spacebar: jump — which in practice means bouncing, when you are
+      // standing on a mature bounce-shroom (see attemptBounce).
+      if (e.code === 'Space') {
+        e.preventDefault();
+        attemptBounce();
+        return;
+      }
+
       // Quick Window Shortcuts can toggle modals
       if (e.key.toLowerCase() === 'b') {
         setActiveModal((prev) => (prev === 'bioforge' ? null : 'bioforge'));
@@ -611,7 +735,7 @@ export default function App() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [activeModal, isPointerLocked, setActiveTool, playerState.activeTool, cycleLoadedFertilizer]);
+  }, [activeModal, isPointerLocked, setActiveTool, playerState.activeTool, cycleLoadedFertilizer, attemptBounce]);
 
   // Mouse wheel cycles the loaded fertilizer while the trowel is equipped.
   // Guarded like the keyboard handler: no cycling while a modal is open.
@@ -860,9 +984,9 @@ useEffect(() => {
         setPeers(multiplayerManager.getConnectedPeers());
         engineRef.current?.removePeerAvatar(peerId);
       },
-      onPeerMove: (peerId, px, pz, prot) => {
+      onPeerMove: (peerId, px, pz, prot, _tool, level) => {
         const peer = peers.find((p) => p.id === peerId);
-        engineRef.current?.updatePeerAvatar(peerId, peer?.name || 'Explorer', px, pz, prot, peer?.color || '#38bdf8');
+        engineRef.current?.updatePeerAvatar(peerId, peer?.name || 'Explorer', px, pz, prot, peer?.color || '#38bdf8', level ?? 0);
       },
       onBuildPlaced: (structure) => {
         addStructure(structure);
@@ -958,7 +1082,7 @@ useEffect(() => {
     if (!isConnected) return;
     const sendPresence = () => {
       const pos = playerPosRef.current;
-      multiplayerManager.broadcastPlayerMove(pos.x, pos.z, pos.rotation, activeToolRef.current);
+      multiplayerManager.broadcastPlayerMove(pos.x, pos.z, pos.rotation, activeToolRef.current, playerLevelRef.current);
     };
     sendPresence();
     const heartbeatId = setInterval(sendPresence, PEER_PRESENCE_HEARTBEAT_MS);

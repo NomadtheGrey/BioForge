@@ -103,32 +103,53 @@ the portal link record — bookkeeping only, never seed math).
 verticality, no liquids. Open experiment: biased drunkard's-walk
 corridors vs the current L-shaped carves.
 
-## P4 — Ruin interior generators (IN TEST)
+## P4 — Ruin interior generators
 
-**Status:** three candidate algorithms being compared head-to-head in
-the lab (started 2026-10-14); no winner yet.
+**Status:** built, measured, verified in the lab (24 runs: 3 variants ×
+small/grand × 2 fates × 2 seeds — all validate, all deterministic,
+reachability independently re-verified). Recommendation: roomGraph
+primary, with a fate×variant pairing idea (below). Full detail:
+RUINS_GENERATION.md.
 
 **The candidates:**
 - **roomGraph** — rooms grow root-like from the entrance room
   (the stashed house design); purposeful, irregular, grown.
+  Grand tier: 14.2% floor, max depth 4.75.
 - **bsp** — binary space partition; one room per partition, sibling
-  corridors; architectural, engineered.
+  corridors; architectural, engineered. Grand tier: 22.3% floor,
+  max depth 6.25. Reads as a crash site better than as a garden.
 - **placedRooms** — non-overlapping rooms scattered with gaps, joined
   by minimum-spanning-tree corridors plus loops; a compound feel.
+  Grand tier: 19.8% floor, max depth 7.5. The fallback.
 
 **Shared inputs:** seed string + zone id salt + **world fate** + **size
 tier**. The fate is the per-world style bundle (archetype, room biases,
 damage flavor) — all ruins in one world share its style, so different
 worlds' ruins read differently (a Gardeners world grows cultivation
-vaults, a Crash world is a broken vessel). Size tier comes from the
-ruin's distance from spawn: small near spawn (~4–6 rooms), grand far
-out (~12–18 rooms, loops, a secret, the story's heart deepest).
+vaults, a Crash world is a broken vessel). **Measured: fate moves the
+numbers more than variant choice** (gardeners: room-area variance
+~380–395, ~88 overgrowth cells; crash: variance ~38–50, 12 rubble
+cells) — which motivates the pairing idea: let the fate choose the
+layout variant too (gardeners → roomGraph, crash → bsp), so per-world
+difference is structural, not just decorative.
+
+**Placement & size tier:** a ruin is a surface presence (visible
+structure + entrance) whose interior is its own instanced zone.
+Distance from spawn is measured in **zone hops, not meters** (Adam,
+2026-10-14): presence is sparse and probabilistic (~one ruin per
+zone, two if really lucky, some zones/biomes none); size ramps with
+hop count and saturates ~8 zones out — the spawn zone gets at most
+traces, hop 1 is small (4–6 rooms), 8+ approaches grand (16 rooms,
+loops, a secret, the story's heart deepest). The placement stage is
+designed but not yet built; the lab implements the ramp's two ends.
 
 **Damage pass:** collapse and overgrowth applied per fate after layout,
-under one hard rule — never seal the critical path; validation must
-prove every room reachable after the centuries have run.
+under one hard rule — never seal a room (collapse only touches
+non-bridge graph edges); validation proves every room reachable after
+the centuries have run. Known blemish: small-tier ruins take zero
+rubble (corridors too short for the collapse rules).
 
-**Version:** RUIN_GEN_VERSION 1 (on first build).
+**Version:** RUIN_GEN_VERSION 1.
 
 ## P5 — Terrain (future)
 
@@ -145,4 +166,4 @@ lab's generators are being built as composable layers with this in mind.
 |---|---|---|
 | surface + biomes | GEN_VERSION | 1 |
 | caverns | CAVERN_GEN_VERSION | 1 |
-| ruins | RUIN_GEN_VERSION | 1 (on first build) |
+| ruins | RUIN_GEN_VERSION | 1 |

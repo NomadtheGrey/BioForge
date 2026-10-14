@@ -26,6 +26,14 @@ import { GROUND_LAYER_TYPES, isEdgePanel, isLadder, occupancyConflict, placement
 // anything closer is a stack of seedlings on one spot, not a garden.
 const MIN_PLANT_SPACING = 1.0;
 
+// Render a collection ledger ("2x Soft Fiber, 1x Dew Essence") for
+// harvest/dissolve notifications, so every item that lands in the pouch
+// is visible in the message — seeds and spores included.
+const formatCollected = (collected: Map<ItemId, number>): string =>
+  [...collected.entries()]
+    .map(([id, n]) => `${n}x ${ITEMS[id]?.name || id}`)
+    .join(', ');
+
 // Taming odds per lure attempt, by species. The bait is eaten either way —
 // a failed attempt is a snack, not a refund. Docile species rarely refuse;
 // the stalker is a predator and tames on its own terms.
@@ -144,11 +152,19 @@ export function useToolInteractions({
       soundEngine.playHarvest();
       triggerHarvestFx(flora.x, flora.z);
 
+      // Everything collected goes through one ledger so the notification
+      // can list it ALL — players should see their seeds/spores, extras
+      // and trimmings land, not just the headline yield (Adam, 2026-10-14).
       const { item: yieldItem, count: yieldCount, extras } = computeHarvestYields(flora);
-      extras.forEach(([extraId, extraCount]) => addInventoryItem(extraId, extraCount));
-      addInventoryItem(yieldItem, yieldCount);
+      const collected = new Map<ItemId, number>();
+      const collect = (id: ItemId, n: number): void => {
+        collected.set(id, (collected.get(id) ?? 0) + n);
+        addInventoryItem(id, n);
+      };
+      collect(yieldItem, yieldCount);
+      extras.forEach(([extraId, extraCount]) => collect(extraId, extraCount));
       // Trimmings: every harvest yields a little compost — the renewable source
-      addInventoryItem('basic_compost', 1);
+      collect('basic_compost', 1);
       // Regrowth runs at the base rate; a fresh fertilizer application
       // is what speeds a regrowing plant up now (timed boost model).
       const regrowTimer = FLORA_MATURE_SECONDS;
@@ -171,7 +187,7 @@ export function useToolInteractions({
 
       postNotification(
         'Harvest Successful',
-        `Gathered ${yieldCount}x ${ITEMS[yieldItem]?.name || yieldItem} non-lethally.`,
+        `Collected ${formatCollected(collected)} — gathered non-lethally; the plant stays rooted and regrows.`,
         'harvest',
         ITEMS[yieldItem]?.color || '#2dd4bf'
       );
@@ -365,22 +381,36 @@ export function useToolInteractions({
 
       if (flora.harvestReady) {
         const { item, count, extras } = computeHarvestYields(flora);
-        addInventoryItem(item, count);
-        extras.forEach(([extraId, extraCount]) => addInventoryItem(extraId, extraCount));
-        // Trimmings, same as a glove harvest.
-        addInventoryItem('basic_compost', 1);
-        if (ITEMS[seedId]) addInventoryItem(seedId, 1);
+        // One ledger, like the glove harvest: the message lists
+        // everything reclaimed, seed/spore included (merged if the
+        // yield IS the seed, as with bounce-shroom spores).
+        const collected = new Map<ItemId, number>();
+        const collect = (id: ItemId, n: number): void => {
+          collected.set(id, (collected.get(id) ?? 0) + n);
+          addInventoryItem(id, n);
+        };
+        collect(item, count);
+        extras.forEach(([extraId, extraCount]) => collect(extraId, extraCount));
+        collect('basic_compost', 1); // trimmings, same as a glove harvest
+        if (ITEMS[seedId]) collect(seedId, 1);
         postNotification(
           'Plant Dissolved',
-          `${speciesName} reclaimed: ${count}x ${ITEMS[item]?.name || item}, trimmings, and its seed.`,
+          `${speciesName} reclaimed: ${formatCollected(collected)}.`,
+          'craft',
+          '#38bdf8'
+        );
+      } else if (ITEMS[seedId]) {
+        addInventoryItem(seedId, 1);
+        postNotification(
+          'Plant Dissolved',
+          `Unripe ${speciesName} dissolved — nothing to harvest yet, but its ${ITEMS[seedId]?.name || 'seed'} is back in your pouch.`,
           'craft',
           '#38bdf8'
         );
       } else {
-        if (ITEMS[seedId]) addInventoryItem(seedId, 1);
         postNotification(
           'Plant Dissolved',
-          `Unripe ${speciesName} returned to seed form — nothing to harvest yet, but your seed is back.`,
+          `Unripe ${speciesName} dissolved — nothing to reclaim from it yet.`,
           'craft',
           '#38bdf8'
         );

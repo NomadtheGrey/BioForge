@@ -39,7 +39,7 @@ export const CAVERN_GEN_VERSION = 1;
 /** In-game cavern size in cells (one cell = 2 m → an 88 m zone). */
 export const CAVERN_GRID_CELLS = 44;
 
-export type CavernFeatureType = 'glow_fungus' | 'common_resource' | 'rare_mineral' | 'hazard' | 'heart' | 'descent';
+export type CavernFeatureType = 'glow_fungus' | 'common_resource' | 'rare_mineral' | 'hazard' | 'heart' | 'descent' | 'vine_shaft';
 
 export interface CavernFeature {
   id: string;
@@ -69,6 +69,9 @@ export interface CavernResult {
   heart: { x: number; y: number } | null;
   /** The way DOWN to the next level, when this level rolled one. */
   descent: { x: number; y: number } | null;
+  /** The express way OUT: an alien vine shaft climbing straight to
+   *  the surface, when this (deep) level grew one. */
+  vineShaft: { x: number; y: number } | null;
   /** 1-based depth level of this cavern (1 = just under the surface). */
   depthLevel: number;
   features: CavernFeature[];
@@ -506,6 +509,43 @@ function placeDescent(
 }
 
 // --------------------------------------------------------------------------
+// Stage C3 — the vine shaft (the express way out)
+// --------------------------------------------------------------------------
+// Adam's climb-out answer for uncapped depth (2026-10-14): on deep
+// levels, an alien vine may grow down through a crack in the ceiling
+// — one climb takes the player straight to the surface, skipping
+// the level-by-level portal walk. Vines reach toward the light, so
+// the shaft roots in the MID depths (30–70% of max BFS depth), never
+// at the entrance and never on top of another feature's cell (≥2
+// cells clear). Pure scan again; existence is the only roll.
+function placeVineShaft(
+  g: Grid, w: number, h: number,
+  depth: Grid, maxDepth: number,
+  features: CavernFeature[],
+  entrance: { x: number; y: number },
+): { x: number; y: number } | null {
+  const lo = Math.ceil(maxDepth * 0.3);
+  const hi = Math.floor(maxDepth * 0.7);
+  let best: { x: number; y: number } | null = null;
+  let bestD = -1;
+  for (let y = 1; y < h - 1; y++)
+    for (let x = 1; x < w - 1; x++) {
+      if (g[y][x] !== 0) continue;
+      const d = depth[y][x];
+      if (d < lo || d > hi || d <= bestD) continue;
+      if (Math.abs(x - entrance.x) + Math.abs(y - entrance.y) < 5) continue;
+      let clear = true;
+      for (const f of features) {
+        if (Math.abs(f.cx - x) + Math.abs(f.cy - y) < 2) { clear = false; break; }
+      }
+      if (!clear) continue;
+      best = { x, y };
+      bestD = d;
+    }
+  return best;
+}
+
+// --------------------------------------------------------------------------
 // Stage D — validation
 // --------------------------------------------------------------------------
 function validateCavern(
@@ -570,6 +610,12 @@ export interface GenerateCavernOptions {
    * layout or feature streams.
    */
   descentChance?: number;
+  /**
+   * Probability (0–1) that this level grows a VINE SHAFT — the
+   * express climb straight to the surface. Its own seeded stream,
+   * same isolation as the descent roll.
+   */
+  vineChance?: number;
 }
 
 export function generateCavern(seedStr: string, options: GenerateCavernOptions = {}): CavernResult {
@@ -605,6 +651,19 @@ export function generateCavern(seedStr: string, options: GenerateCavernOptions =
       }
     }
   }
+
+  // The vine shaft roll: same isolation — its own 'vine' stream,
+  // drawn only when a vine is on the table (deep levels).
+  let vineShaft: { x: number; y: number } | null = null;
+  if (options.vineChance !== undefined) {
+    const vineRng = createSeededRandom(stageSeed(seedStr, zoneId, 'vine'));
+    if (vineRng() < options.vineChance) {
+      vineShaft = placeVineShaft(g, w, h, dist, maxDepth, features, entrance);
+      if (vineShaft) {
+        features.push({ id: 'cf_vine', type: 'vine_shaft', cx: vineShaft.x, cy: vineShaft.y, depth: dist[vineShaft.y][vineShaft.x] });
+      }
+    }
+  }
   const link = buildPortalLink(g, w, h, entrance, zoneId, surfaceAnchor, opts);
   const validation = validateCavern(g, w, h, entrance, features, repair.corridors, opts);
 
@@ -629,6 +688,7 @@ export function generateCavern(seedStr: string, options: GenerateCavernOptions =
     entrance,
     heart,
     descent,
+    vineShaft,
     depthLevel,
     features,
     depthStats: { maxDepth, bandCounts },
@@ -704,6 +764,11 @@ export function generateGameCavernLevel(
   const hopBonus = Math.min(zoneHopsFromSpawn * 0.05, 0.3);
   const descentChance = base + hopBonus;
 
+  // Vine shafts are a DEEP-level mercy: level 1 is one portal from
+  // daylight already, so vines only grow at depth 2 and below, in
+  // about half of levels — finding one is luck, not a guarantee.
+  const vineChance = depthLevel >= 2 ? 0.5 : undefined;
+
   const rich = 1 + 0.35 * (depthLevel - 1);
   const featureTargets =
     depthLevel <= 1
@@ -715,15 +780,30 @@ export function generateGameCavernLevel(
           hazard: Math.round(6 * rich),
         };
 
-  return generateCavern(worldSeed, {
-    zoneId,
-    width: CAVERN_GRID_CELLS,
-    height: CAVERN_GRID_CELLS,
-    surfaceAnchor,
-    depthLevel,
-    descentChance,
-    ...(featureTargets ? { featureTargets } : {}),
-  });
+  // Bounded deterministic retry: the CA + repair stages occasionally
+  // produce a level whose corridors fail the Stage-D width check
+  // (~1 seed in 10 at depth) — a dead shaft for a player already
+  // committed inside. Regenerate with a retry-suffixed zoneId until
+  // one validates. Attempt 0 is the plain zoneId, so every cave that
+  // validates first try stays byte-identical; the loop is a pure
+  // function of the seeds, so all clients land on the same attempt.
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const attemptZoneId = attempt === 0 ? zoneId : `${zoneId}#r${attempt}`;
+    const result = generateCavern(worldSeed, {
+      zoneId: attemptZoneId,
+      width: CAVERN_GRID_CELLS,
+      height: CAVERN_GRID_CELLS,
+      surfaceAnchor,
+      depthLevel,
+      descentChance,
+      vineChance,
+      ...(featureTargets ? { featureTargets } : {}),
+    });
+    if (result.meta.validation.pass || attempt === 7) return result;
+  }
+  // Unreachable (the loop returns on its last attempt) — but TS
+  // wants a return, and a thrown bug beats a silent undefined here.
+  throw new Error(`generateGameCavernLevel: retry loop fell through (${instanceId} @ depth ${depthLevel})`);
 }
 
 /**

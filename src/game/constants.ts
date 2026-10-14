@@ -145,6 +145,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 10,
   },
+  prismatic_field_radar: {
+    id: 'prismatic_field_radar',
+    name: 'Prismatic Field Radar',
+    category: 'raw',
+    description: 'The four subassemblies, grown together into one listening instrument. Hold it in your Left Hand and the minimap pings what is worth walking for: cave mouths, precursor ruins, deep shafts, and the rare lives.',
+    iconName: 'Radar',
+    color: '#a855f7',
+    rarity: 'prismatic',
+    maxStack: 1,
+  },
   basic_compost: {
     id: 'basic_compost',
     name: 'Organic Compost',
@@ -784,6 +794,21 @@ export const RECIPES: CraftingRecipe[] = [
       { id: 'bio_pellet', count: 2 },
     ],
     craftTimeMs: 2000,
+  },
+  {
+    id: 'craft_prismatic_field_radar',
+    outputId: 'prismatic_field_radar',
+    outputCount: 1,
+    name: 'Prismatic Field Radar',
+    description: 'Grow the four subassemblies into one instrument. Tier 2 by the recipe graph — it is built from built things. Held in the Left Hand, it pings caves, ruins, deep shafts, and rare lives on the minimap.',
+    category: 'composites',
+    ingredients: [
+      { id: 'resonant_antenna_fan', count: 1 },
+      { id: 'sonar_receiver', count: 1 },
+      { id: 'chitin_housing', count: 1 },
+      { id: 'biolume_power_cell', count: 1 },
+    ],
+    craftTimeMs: 4000,
   },
 ];
 

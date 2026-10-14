@@ -26,6 +26,7 @@ export type ItemId =
   | 'sonar_receiver'
   | 'chitin_housing'
   | 'biolume_power_cell'
+  | 'prismatic_field_radar'
   // Cultivation Seeds
   | 'seed_lantern_fern'
   | 'seed_sap_weaver'

@@ -1,11 +1,16 @@
 # RUINS GENERATION (BRAINSTORM / LAB)
 
-> **Status: BRAINSTORM — NOT PINNED.** Built and measured in the
-> standalone generation lab (`~/workspace/bioforge-gen-lab/`,
-> `src/ruinsLab.mjs`, run `node evaluate-ruins.mjs`). Nothing here is
-> wired into the game. Dated 2026-10-14. This doc parks the ruins
-> algorithm so it can be tested and argued with; the final variant call
-> still needs Adam's eye on the maps.
+> **Status: LAB + SURFACE STAGE SHIPPED (2026-10-14).** The interior
+> algorithms below were built and measured in the standalone
+> generation lab (`~/workspace/bioforge-gen-lab/`, `src/ruinsLab.mjs`,
+> run `node evaluate-ruins.mjs`). The SURFACE stage is now in the
+> game (game/ruins.ts): Adam's two calls are settled — the world's
+> fate picks the variant (table in ruins.ts FATE_STYLES), and the
+> fate derives from the world seed, hidden from the UI. Zones grow
+> fate-tinted ruin landmarks by hop distance (spawn = traces at
+> most); the interior wiring (entering a ruin) is the remaining
+> step, and it will consume the variant table and the lab
+> generators below.
 
 ## What a ruin is
 

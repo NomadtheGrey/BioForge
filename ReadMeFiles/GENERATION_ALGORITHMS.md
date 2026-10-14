@@ -2,10 +2,11 @@
 
 > **Status: MIXED (2026-10-14).** P1, P2, and P3 have been promoted from
 > the standalone lab (`~/workspace/bioforge-gen-lab/`) into the game and
-> are marked **SHIPPED** below. P4 remains lab-proven but not yet wired
-> into the game; P5 is future work. The families are listed **in
-> integration priority order** — per the standing rule, algorithms enter
-> the game one at a time, each proven before the next.
+> are marked **SHIPPED** below. P4's SURFACE stage has shipped (fates,
+> per-zone placement, landmarks); its interior stage is next. P5 is
+> future work. The families are listed **in integration priority
+> order** — per the standing rule, algorithms enter the game one at a
+> time, each proven before the next.
 
 ## Shared contract (all generators)
 
@@ -212,6 +213,23 @@ small/grand × 2 fates × 2 seeds — all validate, all deterministic,
 reachability independently re-verified). Recommendation: roomGraph
 primary, with a fate×variant pairing idea (below). Full detail:
 RUINS_GENERATION.md.
+
+**SURFACE STAGE SHIPPED 2026-10-14** (commits a13b9c5 / 4129139 /
+4944a27; game/ruins.ts; worldGen v5): Adam made both open calls —
+(1) **the world's fate picks the variant** (grown/merged fates →
+roomGraph, built fates → bsp, fallen/colony fates → placedRooms),
+and (2) **the fate itself derives deterministically from the world
+seed**, never shown in the UI: a world's story is discovered by
+reading its ruins. Zones roll ruins by hop distance (spawn zone:
+traces at most, 55%; elsewhere 62% one ruin at its tier, 12% a
+second one tier down; size tiers traces/small/medium/grand ramp at
+hops 0 / 1–2 / 3–5 / 6+). Landmarks render as fate-tinted broken
+stone with a gate + threshold; the stored link record (fate /
+variant / tier / dressing / exit spawn) is bookkeeping for the
+interior stage, which derives from (seed + instanceId + fate)
+alone. Existing saves keep their snapshots and grow no ruins.
+The INTERIOR stage (clicking a gate to descend into the generated
+ruin) is the remaining P4 step.
 
 **The candidates:**
 - **roomGraph** — rooms grow root-like from the entrance room

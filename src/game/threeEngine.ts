@@ -193,6 +193,16 @@ export class BioForgeThreeEngine {
   private reticleTimer: number = 0;
   private sporeFrameCount: number = 0;
   private cachedPlayerX: number = 0;
+
+  /** Left-hand lantern: when true, updateLighting adds a generous
+   * player-carried light source (the held Hand Lantern-Fern). */
+  private heldLightActive: boolean = false;
+
+  /** App drives this from PlayerState.heldItemId: a lantern in the
+   * left hand lights the way like a torch, surface or cave. */
+  public setHeldLight(active: boolean): void {
+    this.heldLightActive = active;
+  }
   private cachedPlayerZ: number = 0;
 
   // Spore particles
@@ -1825,6 +1835,22 @@ export class BioForgeThreeEngine {
       }
       sources.push(this.getStructureLightSpec(s));
     });
+
+    // The LEFT HAND lantern (Adam, 2026-10-14): a carried lantern-fern
+    // is a light source glued to the player — generous and torch-like.
+    // It merges and culls like any other source, and sitting at
+    // distance ~0 from the player it always claims a pool light.
+    if (this.heldLightActive) {
+      sources.push({
+        id: 'held:lantern',
+        x: this.cachedPlayerX,
+        y: 1.6,
+        z: this.cachedPlayerZ,
+        color: 0x67e8f9,
+        intensity: 2.6,
+        distance: 16,
+      });
+    }
 
     // Merge sources into grid cells (intensity-weighted centroid per cell).
     const cells = new Map<string, { sx: number; sy: number; sz: number; si: number; r: number; g: number; b: number; count: number; maxDist: number; maxI: number }>();

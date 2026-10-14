@@ -66,7 +66,7 @@ import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
  *     hop-scaled; existing saves keep their snapshots and simply
  *     never grow ruins (mouths behaved the same at v4).
  */
-export const WORLD_GEN_VERSION = 5;
+export const WORLD_GEN_VERSION = 6;
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -141,19 +141,29 @@ interface FaunaSpeciesDef {
 
 // The census IS the shipped starter world's multiset:
 // 2 ferns, 2 bell blooms, 2 petal mills, 1 sap weaver, 1 snap trap.
+//
+// AFFINITIES (Adam, 2026-10-14 — the species↔biome pass): the biomes
+// lists below are now REAL. In wild zones a listed species deals ONLY
+// in its biomes (the affinity gate in generateSeededWorld drops it
+// elsewhere — its slots stay undealt, so off-affinity zones simply
+// grow a little sparser, with a flora cast that tells you where you
+// are). The SPAWN zone is the one exception: the homestead is
+// cultivated ground and always deals the classic census above, so
+// the first session's economy is unchanged — affinities govern the
+// wild beyond the yard.
 const FLORA_CENSUS: FloraSpeciesDef[] = [
   { species: 'lantern_fern', count: 2, baseWeight: 0.28, near: 1.8, far: 0.25, hazardous: false, biomes: 'all' },
-  { species: 'bell_bloom', count: 2, baseWeight: 0.22, near: 1.2, far: 0.8, hazardous: false, biomes: 'all' },
-  { species: 'petal_mill', count: 2, baseWeight: 0.20, near: 0.9, far: 1.15, hazardous: false, biomes: 'all' },
-  { species: 'sap_weaver', count: 1, baseWeight: 0.18, near: 0.6, far: 1.4, hazardous: false, biomes: 'all' },
-  { species: 'snap_trap', count: 1, baseWeight: 0.12, near: 0.03, far: 2.4, hazardous: true, biomes: 'all' },
+  { species: 'bell_bloom', count: 2, baseWeight: 0.22, near: 1.2, far: 0.8, hazardous: false, biomes: ['meadow', 'wetland'] },
+  { species: 'petal_mill', count: 2, baseWeight: 0.20, near: 0.9, far: 1.15, hazardous: false, biomes: ['meadow', 'fungal'] },
+  { species: 'sap_weaver', count: 1, baseWeight: 0.18, near: 0.6, far: 1.4, hazardous: false, biomes: ['fungal', 'ember'] },
+  { species: 'snap_trap', count: 1, baseWeight: 0.12, near: 0.03, far: 2.4, hazardous: true, biomes: ['wetland', 'fungal'] },
 ];
 
 // 2 soft-puffs, 2 burrow mice, 1 chitin stalker — the shipped five.
 const FAUNA_CENSUS: FaunaSpeciesDef[] = [
-  { species: 'soft_puff', count: 2, baseWeight: 0.45, near: 1.6, far: 0.35, speed: 1.7, speedJitter: 0.1, health: 40, biomes: 'all' },
+  { species: 'soft_puff', count: 2, baseWeight: 0.45, near: 1.6, far: 0.35, speed: 1.7, speedJitter: 0.1, health: 40, biomes: ['meadow', 'wetland'] },
   { species: 'burrow_mouse', count: 2, baseWeight: 0.35, near: 1.0, far: 1.0, speed: 1.85, speedJitter: 0.15, health: 30, biomes: 'all' },
-  { species: 'chitin_stalker', count: 1, baseWeight: 0.20, near: 0.03, far: 2.6, speed: 2.4, speedJitter: 0, health: 120, biomes: 'all' },
+  { species: 'chitin_stalker', count: 1, baseWeight: 0.20, near: 0.03, far: 2.6, speed: 2.4, speedJitter: 0, health: 120, biomes: ['ember', 'fungal'] },
 ];
 
 // ---------------------------------------------------------------------------
@@ -401,6 +411,20 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
   const fernPoints = placeFernRing(fernRng);
   const floraCensusRest = FLORA_CENSUS.filter((d) => d.species !== 'lantern_fern');
 
+  // AFFINITY GATE (Adam, 2026-10-14): outside the spawn zone, a census
+  // species whose affinity list excludes this zone's biome is NOT
+  // dealt — its slots stay empty and the zone grows a little sparser,
+  // with a cast that fits where you are. The spawn zone (0, 0) is
+  // cultivated homestead ground and always deals the classic census,
+  // so the first session's economy never changes.
+  const isSpawnZone = zoneZx === 0 && zoneZz === 0;
+  const floraCensusHere = isSpawnZone
+    ? floraCensusRest
+    : floraCensusRest.filter((d) => d.biomes === 'all' || d.biomes.includes(zoneBiome));
+  const faunaCensusHere = isSpawnZone
+    ? FAUNA_CENSUS
+    : FAUNA_CENSUS.filter((d) => d.biomes === 'all' || d.biomes.includes(zoneBiome));
+
   // One cluster field per kind, offset so flora groves and fauna herds
   // don't trace the same shapes.
   const floraField = createClusterField(streamSeed(seedStr, 'flora:cluster-field'));
@@ -429,18 +453,18 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
 
   // Species want a point by distance AND by the zone's biome: the
   // distance weight (far specialists still pick first) times the biome
-  // affinity factor for THIS zone (1 for 'all' species, home bonus in
-  // listed biomes, 0 in zones whose biome the species can't live in —
-  // with the census fallback in assignSpecies if that zeroes a species
-  // out of its own zone entirely).
+  // affinity factor for THIS zone (home bonus in listed biomes). The
+  // AFFINITY GATE above has already removed the species that cannot
+  // live here at all; the census fallback inside assignSpecies now
+  // only covers placement scarcity among the species that can.
   const floraDealt: { def: FloraSpeciesDef; point: PlacedPoint }[] = [
     ...fernPoints.map((point) => ({ def: fernDef, point })),
-    ...assignSpecies(floraScatter.points, floraCensusRest, floraSpRng, (def, p) =>
+    ...assignSpecies(floraScatter.points, floraCensusHere, floraSpRng, (def, p) =>
       distanceWeight(def, p.x, p.z) * biomeWeightFactor(def.biomes, zoneBiome),
     ),
   ];
   const faunaDealt = assignSpecies(
-    faunaScatter.points, FAUNA_CENSUS, faunaSpRng, (def, p) =>
+    faunaScatter.points, faunaCensusHere, faunaSpRng, (def, p) =>
       distanceWeight(def, p.x, p.z) * biomeWeightFactor(def.biomes, zoneBiome),
   );
 

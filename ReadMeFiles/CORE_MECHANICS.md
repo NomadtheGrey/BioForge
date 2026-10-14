@@ -169,6 +169,22 @@ Fauna are categorized into two behavioral classes:
   orientation remains available before construction, and which of the
   present-day radar functions the completed device owns or improves.
 
+* **Cave-exit arrow:** Inside an instanced cavern, the radar's rim
+  arrow turns violet and points to the cave exit portal — the way
+  back up — taking the spawn arrow's place while underground (the
+  surface spawn is not in the cavern's coordinate space).
+* **The Left Hand:** A dedicated off-hand slot beside the hotbar
+  holds passive gear. Its first citizen is the **Hand Lantern-Fern**
+  (crafted: 1 Lantern-Fern Seed + 1 Organic Compost): carried in the
+  left hand, its light follows the player like a torch, surface or
+  cave. Clicking the slot takes it into the hand or stows it back in
+  the pouch; the held item is part of the saved player state.
+* **Glow-spore planting:** Glow Spores are seed stock. They take
+  hold only in cavern dark, where they rise as **glow fungus** (the
+  cave form of the surface glow spore cluster); on the surface the
+  trowel refuses — wrong soil. Other seeds stay refused underground:
+  the cavern floor is barren rock to everything but its own spores.
+
 ### 4.7. Browser-Native P2P Multiplayer Architecture
 * **Host-Driven Sessions:** One browser acts as host authority; no external game servers required for casual play.
 * **Zero-Setup Room Codes:** Hosts share a 6-letter room code (e.g. `BIO77X`).

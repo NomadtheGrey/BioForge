@@ -180,9 +180,12 @@ mouths, seeded outside the approach corridor. A mouth is
 a `cave_mouth` structure — it rides the normal structures / save /
 sync pipeline — carrying its portal link (instance id + exit spawn)
 and dressing list as stored data; the engine renders the dressing
-(rock mound, black opening, towering boulders, path stones, biome
-accent, and a pulsing, procedurally drawn glow sigil on the rock
-face above the opening — the entrance sign) and the mouth is
+around the PORTAL BOULDER — one large rock whose face is the
+entrance: the black opening sunk into it as a shaded hollow, the
+pulsing, procedurally drawn glow sigil stuck tangent on its
+outside, towering boulders behind and beside it, rubble framing
+its back and flanks (never the face), path stones leading out —
+and the mouth is
 permanent (the solvent is refused) with its own collision and a
 violet halo. Mouths grow only at world creation;
 existing saves keep their snapshots, per the persistence rule.

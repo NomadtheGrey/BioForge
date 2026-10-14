@@ -29,6 +29,10 @@ export interface MinimapProps {
   currentBiomeType: string | null;
   /** The current zone's grid coordinates, e.g. "Zone 0, 0". */
   zoneCoordsLabel: string;
+  /** Inside an instanced zone (a cavern): where the exit portal is.
+   * When set, the rim arrow points THERE (violet) instead of toward
+   * the surface spawn, which isn't in this coordinate space. */
+  exitTarget?: { x: number; z: number } | null;
 }
 
 export type MinimapMode = 'radar' | 'world';
@@ -43,6 +47,7 @@ export const Minimap: React.FC<MinimapProps> = ({
   currentBiomeName,
   currentBiomeType,
   zoneCoordsLabel,
+  exitTarget = null,
 }) => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [mapMode, setMapMode] = useState<MinimapMode>('radar');
@@ -124,6 +129,15 @@ export const Minimap: React.FC<MinimapProps> = ({
   const spawnArrowX = currentSize / 2 + Math.cos(spawnAngle) * spawnRimR;
   const spawnArrowY = currentSize / 2 + Math.sin(spawnAngle) * spawnRimR;
   const spawnArrowDeg = (spawnAngle * 180) / Math.PI;
+
+  // Cave-exit arrow (Adam, 2026-10-14): the spawn arrow's underground
+  // twin. Screen-space direction to the target is (dx, dz) — the radar
+  // is north-up with +Z drawn downward, same convention as spawn.
+  const exitDist = exitTarget ? Math.hypot(exitTarget.x - playerX, exitTarget.z - playerZ) : 0;
+  const exitAngle = exitTarget ? Math.atan2(exitTarget.z - playerZ, exitTarget.x - playerX) : 0;
+  const exitArrowX = currentSize / 2 + Math.cos(exitAngle) * spawnRimR;
+  const exitArrowY = currentSize / 2 + Math.sin(exitAngle) * spawnRimR;
+  const exitArrowDeg = (exitAngle * 180) / Math.PI;
 
   return (
     <div className="pointer-events-auto flex flex-col gap-1.5 select-none animate-fade-in">
@@ -395,11 +409,20 @@ export const Minimap: React.FC<MinimapProps> = ({
               </g>
 
               {/* Spawn-zone home arrow on the radar rim (see spawnAngle
-                  above): an amber triangle pointing toward spawn. */}
-              {spawnDist > 2 && (
+                  above): an amber triangle pointing toward spawn. While
+                  an exitTarget is set (inside a cavern), the VIOLET exit
+                  arrow takes its place — the surface spawn isn't in this
+                  coordinate space, and the way out is what matters. */}
+              {!exitTarget && spawnDist > 2 && (
                 <g transform={`translate(${spawnArrowX}, ${spawnArrowY}) rotate(${spawnArrowDeg})`} className="animate-pulse">
                   <title>Spawn Zone — this way home</title>
                   <polygon points="7,0 -5,-4.5 -5,4.5" fill="#f59e0b" stroke="#0f172a" strokeWidth="1" />
+                </g>
+              )}
+              {exitTarget && exitDist > 2 && (
+                <g transform={`translate(${exitArrowX}, ${exitArrowY}) rotate(${exitArrowDeg})`} className="animate-pulse">
+                  <title>Cave Exit — the way back up</title>
+                  <polygon points="7,0 -5,-4.5 -5,4.5" fill="#a855f7" stroke="#0f172a" strokeWidth="1" />
                 </g>
               )}
             </svg>

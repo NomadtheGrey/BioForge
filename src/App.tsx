@@ -15,6 +15,7 @@ import {
   DroppedItemEntity,
   ItemId,
   StructureType,
+  FloraSpecies,
 } from './types/game';
 import { INITIAL_CODEX, ITEMS, NON_BUILDABLE_STRUCTURE_IDS } from './game/constants';
 import { BioForgeThreeEngine } from './game/threeEngine';
@@ -323,19 +324,35 @@ export default function App() {
   const getPlayerPosition = useCallback((): { x: number; z: number } => playerPosRef.current, []);
   const getPlayerLevel = useCallback((): number => playerLevelRef.current, []);
 
-  // Spacebar on a mature bounce-shroom: the game's only jump, and it is
-  // a LAUNCH — one story up, through the ceiling hole above the shroom.
-  // It never fires from LANDING on the cap: falling through the hole
-  // onto the shroom is safe (Adam's spec); the cap fires only when you
-  // jump on it. After the bounce, a short grace window pauses the
-  // story-support check so you can step from the hole onto a tile.
+  // ----------------------------------------------------------------------
+  // Jumping (Adam, 2026-10-14)
+  // ----------------------------------------------------------------------
+  // Space is a real jump now: a short cosmetic arc over the level
+  // model (the game has no Y physics — your height IS your story,
+  // plus this offset). Standing on a mature bounce-shroom turns the
+  // hop into a LAUNCH: the arc crosses story height, the player's
+  // level flips mid-flight, and air control (movement keys keep
+  // working while airborne) lets you slide onto the adjacent floor
+  // tile — Mario rules. Falling ONTO a cap from above still does
+  // nothing: the cap fires only when jumped on (Adam's spec). After
+  // a bounce, a grace window pauses the story-support check so you
+  // can step from the ceiling hole onto a tile.
   const BOUNCE_RADIUS = 0.9;
   const BOUNCE_GRACE_MS = 1600;
   const BOUNCE_MIN_STAGE = 4;
-  const attemptBounce = useCallback((): void => {
-    // Bounce-shrooms are ground plants (they never root on floors), so
-    // the launch only exists on the ground story.
-    if (playerLevelRef.current !== 0) return;
+  const JUMP_GRAVITY = 24; // m/s^2 — gamey, snappier than Earth's 9.8
+  const JUMP_VELOCITY = 5.4; // ordinary hop: ~0.6 m peak, ~0.45 s of air
+  const BOUNCE_VELOCITY = 12.5; // shroom launch: ~3.3 m peak — clears a story
+  const STORY_HEIGHT_METERS = 2.4; // mirrors threeEngine's STORY_HEIGHT
+  const jumpRef = useRef({ y: 0, vy: 0, bounceFlip: false });
+
+  // Is a bounce available under the player's feet right now — and if
+  // a shroom is there but the bounce can't work, why not? Pure check:
+  // the caller decides about notifications and velocities.
+  const bounceCheck = (): { near: boolean; blocked: 'opening' | 'landing' | null } => {
+    // Bounce-shrooms are ground plants (they never root on floors),
+    // so the launch only exists on the ground story.
+    if (playerLevelRef.current !== 0) return { near: false, blocked: null };
     const pos = playerPosRef.current;
     const shroom = floraListRef.current.find(
       (f) =>
@@ -343,9 +360,8 @@ export default function App() {
         f.growthStage >= BOUNCE_MIN_STAGE &&
         Math.hypot(f.x - pos.x, f.z - pos.z) < BOUNCE_RADIUS
     );
-    if (!shroom) return;
+    if (!shroom) return { near: false, blocked: null };
 
-    const target = 1;
     const cellGX = Math.round(pos.x / 2);
     const cellGZ = Math.round(pos.z / 2);
     const structs = structuresListRef.current;
@@ -354,34 +370,48 @@ export default function App() {
         (s) => s.type === 'root_tile_floor' && (s.level ?? 0) === level && s.gridX === gx && s.gridZ === gz
       );
 
-    if (floorAt(cellGX, cellGZ, target)) {
+    if (floorAt(cellGX, cellGZ, 1)) return { near: true, blocked: 'opening' };
+    const hasLanding =
+      floorAt(cellGX + 1, cellGZ, 1) ||
+      floorAt(cellGX - 1, cellGZ, 1) ||
+      floorAt(cellGX, cellGZ + 1, 1) ||
+      floorAt(cellGX, cellGZ - 1, 1);
+    if (!hasLanding) return { near: true, blocked: 'landing' };
+    return { near: true, blocked: null };
+  };
+
+  const attemptJump = useCallback((): void => {
+    const j = jumpRef.current;
+    if (j.vy !== 0 || j.y > 0) return; // already airborne
+    const bounce = bounceCheck();
+    if (bounce.near && bounce.blocked === 'opening') {
       postNotification(
         'No Opening Above',
         'The ceiling over this shroom is closed. Dissolve a tile with the Solvent Sprayer [4] to open the hole.',
         'alert',
         '#fbbf24'
       );
-      return;
     }
-    const hasLanding =
-      floorAt(cellGX + 1, cellGZ, target) ||
-      floorAt(cellGX - 1, cellGZ, target) ||
-      floorAt(cellGX, cellGZ + 1, target) ||
-      floorAt(cellGX, cellGZ - 1, target);
-    if (!hasLanding) {
+    if (bounce.near && bounce.blocked === 'landing') {
       postNotification(
         'Nothing to Land On',
         'Bouncing here would just drop you back down the hole. Lay ceiling tiles around the opening first.',
         'alert',
         '#fbbf24'
       );
-      return;
     }
-
-    bounceGraceUntil.current = performance.now() + BOUNCE_GRACE_MS;
-    applyPlayerLevel(target);
-    soundEngine.playFertilize();
-  }, [applyPlayerLevel, postNotification]);
+    if (bounce.near && !bounce.blocked) {
+      // The launch: big arc, story flip mid-flight (the game loop
+      // applies it as the arc crosses STORY_HEIGHT_METERS), and the
+      // grace window so the landing step isn't rushed.
+      j.vy = BOUNCE_VELOCITY;
+      j.bounceFlip = true;
+      bounceGraceUntil.current = performance.now() + BOUNCE_GRACE_MS;
+      soundEngine.playFertilize();
+    } else {
+      j.vy = JUMP_VELOCITY;
+    }
+  }, [postNotification]);
 
   // ----------------------------------------------------------------------
   // Instanced caverns (P3 interior)
@@ -465,13 +495,52 @@ export default function App() {
         doorOpenProgress: 0,
         level: 0,
       };
-      replaceWorld({ flora: [], fauna: [], structures: [exitPortal], drops: [] });
+      // The cavern's living contents: its glow fungus and BOTH
+      // crystal kinds become real flora in the instance list —
+      // harvestable, fertilizable, regrowable, exactly like surface
+      // plants (Adam, 2026-10-14). Hazards and the heart stay scenery.
+      // Ids are deterministic per instance + feature, so co-op peers
+      // inside the same cave agree on which plant is which. Features
+      // hugging the entrance cell are skipped: the player materializes
+      // there, and a crystal in the doorway would crowd the spawn.
+      const caveFlora: FloraEntity[] = [];
+      for (const f of cavern.features) {
+        const species: FloraSpecies | null =
+          f.type === 'glow_fungus'
+            ? 'glow_fungus'
+            : f.type === 'common_resource'
+              ? 'sunshard_cluster'
+              : f.type === 'rare_mineral'
+                ? 'prism_cluster'
+                : null;
+        if (!species) continue;
+        if (Math.abs(f.cx - cavern.entrance.x) <= 1 && Math.abs(f.cy - cavern.entrance.y) <= 1) continue;
+        const w = cavernCellToWorld(f.cx, f.cy, cavern.width, cavern.height);
+        caveFlora.push({
+          id: `caveflora_${link.instanceId}_${f.id}`,
+          species,
+          x: w.x,
+          z: w.z,
+          rotation: ((f.cx * 37 + f.cy * 91) % 628) / 100,
+          scale: 0.9 + ((f.cx * 13 + f.cy * 7) % 40) / 100,
+          growthStage: 5,
+          growthProgress: 1,
+          fertilizedGrowth: false,
+          fertilizedYield: false,
+          fertilizerTimer: 0,
+          harvestReady: true,
+          harvestTimer: 0,
+          isHazardous: false,
+          swayOffset: f.cx * 3 + f.cy,
+        });
+      }
+      replaceWorld({ flora: caveFlora, fauna: [], structures: [exitPortal], drops: [] });
       engineRef.current?.setCavernMode(true, cavern);
       applyPlayerLevel(0);
       playerPosRef.current = { x: entry.x, z: entry.z, rotation: entryYaw };
       engineRef.current?.setPlayerPosition(entry.x, entry.z, 0);
       setInCavern(true);
-      postNotification('Biolume Caverns', 'You descend into the dark. The glowing ring is the way home — click it to climb back out.', 'system', '#a855f7');
+      postNotification('Biolume Caverns', 'You descend into the dark. The fungus and crystals down here are alive — harvest them like any plant and they will regrow. The glowing ring is the way home.', 'system', '#a855f7');
     },
     [floraList, faunaList, structuresList, droppedItems, replaceWorld, applyPlayerLevel, postNotification]
   );
@@ -625,13 +694,42 @@ export default function App() {
         playerPosRef.current.x = moveResult.x;
         playerPosRef.current.z = moveResult.z;
 
+        // Jump arc: gravity pulls the cosmetic Y back to the floor.
+        // Movement input kept working during the move above — that IS
+        // the air control. A bounce launch flips the player's story
+        // as the arc crosses story height: camera height is the SUM
+        // (level × story + jumpY), so subtracting the story from
+        // jumpY in the same frame keeps the view perfectly continuous
+        // while collision and support switch to the upper floor.
+        const jump = jumpRef.current;
+        if (jump.vy !== 0 || jump.y > 0) {
+          jump.vy -= JUMP_GRAVITY * dt;
+          jump.y += jump.vy * dt;
+          if (jump.bounceFlip && playerLevelRef.current === 0 && jump.y >= STORY_HEIGHT_METERS) {
+            applyPlayerLevel(1);
+            jump.y -= STORY_HEIGHT_METERS;
+            jump.bounceFlip = false;
+          }
+          if (jump.y <= 0) {
+            jump.y = 0;
+            jump.vy = 0;
+            jump.bounceFlip = false;
+            // Touching down on the upper story: a short grace to
+            // finish the step onto a tile before support is judged.
+            if (playerLevelRef.current > 0) {
+              bounceGraceUntil.current = Math.max(bounceGraceUntil.current, performance.now() + 350);
+            }
+          }
+        }
+
         // Story support: above the ground story you stand on ceiling
         // floors. Step off one (or have it dissolved under you) and you
         // drop to the highest floor still present in this column, or
         // to the ground. Runs after the move, so this frame's collision
         // still used the level you started on. A fresh bounce (Part 3)
         // buys a short grace window to step from the hole onto a tile.
-        if (playerLevelRef.current > 0 && performance.now() > bounceGraceUntil.current) {
+        // While a jump arc is airborne, support isn't judged at all.
+        if (playerLevelRef.current > 0 && performance.now() > bounceGraceUntil.current && jump.y <= 0) {
           const cellX = Math.round(moveResult.x / 2);
           const cellZ = Math.round(moveResult.z / 2);
           let landing = 0;
@@ -676,7 +774,7 @@ export default function App() {
         }
 
         // Update Camera & Viewmodel dynamics using the exact same dt
-        engineRef.current.setPlayerPosition(moveResult.x, moveResult.z, playerLevelRef.current);
+        engineRef.current.setPlayerPosition(moveResult.x, moveResult.z, playerLevelRef.current, jump.y);
         engineRef.current.updateViewmodelDynamics(dt, moveResult.isMoving);
 
         // Smooth Minimap Pos update (every 50ms)
@@ -836,11 +934,11 @@ export default function App() {
         return;
       }
 
-      // Spacebar: jump — which in practice means bouncing, when you are
-      // standing on a mature bounce-shroom (see attemptBounce).
+      // Spacebar: jump — a hop anywhere, a bounce-shroom LAUNCH when
+      // standing on a mature cap (see attemptJump).
       if (e.code === 'Space') {
         e.preventDefault();
-        attemptBounce();
+        attemptJump();
         return;
       }
 
@@ -938,7 +1036,7 @@ export default function App() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [activeModal, isPointerLocked, setActiveTool, playerState.activeTool, cycleLoadedFertilizer, cycleSelectedStructure, attemptBounce]);
+  }, [activeModal, isPointerLocked, setActiveTool, playerState.activeTool, cycleLoadedFertilizer, cycleSelectedStructure, attemptJump]);
 
   // Mouse wheel cycles the equipped tool's primary selection: SEEDS on
   // the trowel, BLUEPRINTS on the builder. (The trowel's fertilizer

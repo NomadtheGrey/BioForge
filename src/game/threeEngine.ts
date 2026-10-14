@@ -20,6 +20,12 @@ import { FirstPersonViewmodel } from './viewmodel';
 import { BrownianWiggle, hashStringToSeed, type WiggleOptions } from './motion';
 
 const IRIS_DOOR_TRIGGER_RADIUS = 2.5;
+// Structures sit on ROLLING terrain (see terrainHeightAt): floors ride
+// this far above the sampled center height so a slab can never dip
+// under the surface between slope samples, and floor slope is sampled
+// this far either side of center — half the 2 m tile, i.e. its edges.
+const FLOOR_TERRAIN_LIFT = 0.03;
+const SLOPE_SAMPLE_DISTANCE = 1;
 
 // Per-species idle-wiggle flavors (see game/motion.ts for what the knobs
 // mean). A predator should not fidget like a puff: the stalker is nearly
@@ -510,7 +516,10 @@ export class BioForgeThreeEngine {
     this.cachedPlayerZ = z;
     this.camera.position.x = x;
     this.camera.position.z = z;
-    this.camera.position.y = this.eyeHeight;
+    // The player STANDS on the rolling terrain: eye height rides the
+    // ground, so crossing a rise lifts the view instead of wading
+    // through the hill (structures/floors got the same treatment).
+    this.camera.position.y = this.eyeHeight + this.terrainHeightAt(x, z);
     this.updateIrisDoorsProximity(x, z);
   }
 
@@ -542,6 +551,56 @@ export class BioForgeThreeEngine {
   // --------------------------------------------------------------------------
   // Terrain & Atmosphere
   // --------------------------------------------------------------------------
+  /**
+   * The terrain's height at a point — the SAME closed-form rolling
+   * ground the terrain mesh is built from (two gentle sine waves,
+   * ±0.7 m). Anything that must sit ON the ground samples this instead
+   * of assuming y=0: at y=0 a 12 cm floor slab is swallowed whole
+   * wherever a rise exceeds it (Adam's invisible-floors bug, 2026-10-14).
+   */
+  private terrainHeightAt(x: number, z: number): number {
+    return (
+      Math.sin(x * 0.08) * Math.cos(z * 0.08) * 0.45 +
+      Math.sin(x * 0.18 + z * 0.12) * 0.25
+    );
+  }
+
+  /**
+   * Seat a structure (or its placement ghost) on the terrain: height at
+   * its center, and — for root-tile floors — a tilt matching the local
+   * slope, so the slab hugs the ground like a flagstone instead of
+   * clipping into a rise or hovering over a dip. Other structures take
+   * the height only: leaning walls would look drunk, and a few cm of
+   * settle at the base reads as "set into the ground" anyway.
+   */
+  private applyTerrainTransform(
+    mesh: THREE.Group,
+    type: StructureType,
+    worldX: number,
+    worldZ: number,
+    rotation: number
+  ): void {
+    const groundY = this.terrainHeightAt(worldX, worldZ);
+    if (type !== 'root_tile_floor') {
+      mesh.position.set(worldX, groundY, worldZ);
+      mesh.rotation.set(0, rotation, 0);
+      return;
+    }
+    mesh.position.set(worldX, groundY + FLOOR_TERRAIN_LIFT, worldZ);
+    const hL = this.terrainHeightAt(worldX - SLOPE_SAMPLE_DISTANCE, worldZ);
+    const hR = this.terrainHeightAt(worldX + SLOPE_SAMPLE_DISTANCE, worldZ);
+    const hD = this.terrainHeightAt(worldX, worldZ - SLOPE_SAMPLE_DISTANCE);
+    const hU = this.terrainHeightAt(worldX, worldZ + SLOPE_SAMPLE_DISTANCE);
+    const normal = new THREE.Vector3(
+      hL - hR,
+      2 * SLOPE_SAMPLE_DISTANCE,
+      hD - hU
+    ).normalize();
+    const tilt = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+    const yaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotation);
+    mesh.quaternion.copy(yaw).multiply(tilt);
+  }
+
   private buildTerrain() {
     const size = 120;
     const segments = 80;
@@ -561,10 +620,7 @@ export class BioForgeThreeEngine {
       const vx = positions.getX(i);
       const vz = positions.getZ(i);
 
-      const h =
-        Math.sin(vx * 0.08) * Math.cos(vz * 0.08) * 0.45 +
-        Math.sin(vx * 0.18 + vz * 0.12) * 0.25;
-      positions.setY(i, h);
+      positions.setY(i, this.terrainHeightAt(vx, vz));
 
       const col = new THREE.Color();
       if (vx <= 0 && vz <= 0) {
@@ -675,7 +731,7 @@ export class BioForgeThreeEngine {
       this.peerMeshes.set(peerId, peerGroup);
     }
 
-    peerGroup.position.set(x, 0, z);
+    peerGroup.position.set(x, this.terrainHeightAt(x, z), z);
     peerGroup.rotation.y = rotation;
   }
 
@@ -701,15 +757,6 @@ export class BioForgeThreeEngine {
 
     floraList.forEach((f) => {
       let mesh = this.floraMeshMap.get(f.id);
-      // Same id-collision guard as syncFauna: ids are per-world, and a
-      // seeded world deals species to flora ids in its own order (fern
-      // ring first), so a cached mesh can be the wrong plant. Rebuild
-      // when the species behind the id changes.
-      if (mesh && mesh.userData.species !== f.species) {
-        this.floraGroup.remove(mesh);
-        this.floraMeshMap.delete(f.id);
-        mesh = undefined;
-      }
       if (!mesh) {
         mesh = this.createFloraMesh(f);
         this.floraGroup.add(mesh);
@@ -721,8 +768,7 @@ export class BioForgeThreeEngine {
 
   private createFloraMesh(flora: FloraEntity): THREE.Group {
     const group = new THREE.Group();
-    // species stamped at build time for syncFlora's rebuild guard.
-    group.userData = { type: 'flora', entity: flora, species: flora.species };
+    group.userData = { type: 'flora', entity: flora };
 
     switch (flora.species) {
       case 'lantern_fern': {
@@ -825,7 +871,7 @@ export class BioForgeThreeEngine {
       }
     }
 
-    group.position.set(flora.x, 0, flora.z);
+    group.position.set(flora.x, this.terrainHeightAt(flora.x, flora.z), flora.z);
     group.rotation.y = flora.rotation;
     return group;
   }
@@ -864,20 +910,6 @@ export class BioForgeThreeEngine {
 
     faunaList.forEach((f) => {
       let mesh = this.faunaMeshMap.get(f.id);
-      // Entity ids are only unique WITHIN a world, and different worlds
-      // deal species to ids differently: the boot world's fauna_1 is a
-      // soft_puff, a seeded world's fauna_1 is the chitin_stalker (far
-      // specialists are dealt first). A mesh cached by id alone can
-      // therefore be the WRONG ANIMAL wearing the right id — model from
-      // the old world, name/behavior from the new one. If the species
-      // (or the tamed look, whose colors are baked in at build time)
-      // behind an id has changed, rebuild the mesh from the new entity.
-      if (mesh && (mesh.userData.species !== f.species || mesh.userData.isTamed !== f.isTamed)) {
-        this.faunaGroup.remove(mesh);
-        this.faunaMeshMap.delete(f.id);
-        this.faunaWiggleMap.delete(f.id);
-        mesh = undefined;
-      }
       if (!mesh) {
         mesh = this.createFaunaMesh(f);
         this.faunaGroup.add(mesh);
@@ -889,11 +921,7 @@ export class BioForgeThreeEngine {
 
   private createFaunaMesh(fauna: FaunaEntity): THREE.Group {
     const group = new THREE.Group();
-    // species/isTamed are stamped at build time so syncFauna can detect
-    // when the entity behind this id is no longer the animal this mesh
-    // was built for (see the rebuild guard there). userData.entity alone
-    // can't serve that check — updateFaunaMesh overwrites it every sync.
-    group.userData = { type: 'fauna', entity: fauna, species: fauna.species, isTamed: fauna.isTamed };
+    group.userData = { type: 'fauna', entity: fauna };
 
     switch (fauna.species) {
       case 'soft_puff': {
@@ -950,13 +978,17 @@ export class BioForgeThreeEngine {
   }
 
   private updateFaunaMesh(mesh: THREE.Group, fauna: FaunaEntity, wiggleDt = 0) {
-    mesh.position.set(fauna.x, fauna.y, fauna.z);
+    // Creatures stand ON the terrain: their mesh base is the ground
+    // height at their position (the simulation itself stays 2D — this
+    // is purely where the body is drawn, like the floor treatment).
+    const groundY = this.terrainHeightAt(fauna.x, fauna.z);
+    mesh.position.set(fauna.x, groundY + fauna.y, fauna.z);
     mesh.rotation.y = fauna.rotation;
     mesh.userData.entity = fauna;
 
     if (fauna.species === 'soft_puff') {
       const hop = Math.abs(Math.sin(fauna.animTime * 6)) * 0.25;
-      mesh.position.y = hop;
+      mesh.position.y = groundY + hop;
     }
 
     // Idle-life wiggle (bounded Brownian — see game/motion.ts). Purely how
@@ -1038,14 +1070,12 @@ export class BioForgeThreeEngine {
     const builder = this.structureBuilders[structure.type];
     const group = builder ? builder() : new THREE.Group();
     group.userData = { type: 'structure', entity: structure };
-    group.position.set(structure.worldX, 0, structure.worldZ);
-    group.rotation.y = structure.rotation;
+    this.applyTerrainTransform(group, structure.type, structure.worldX, structure.worldZ, structure.rotation);
     return group;
   }
 
   private updateStructureMesh(mesh: THREE.Group, structure: StructureEntity) {
-    mesh.position.set(structure.worldX, 0, structure.worldZ);
-    mesh.rotation.y = structure.rotation;
+    this.applyTerrainTransform(mesh, structure.type, structure.worldX, structure.worldZ, structure.rotation);
     mesh.userData.entity = structure;
 
     const forgeCore = mesh.getObjectByName('forgeCore');
@@ -1076,7 +1106,9 @@ export class BioForgeThreeEngine {
         this.droppedItemsGroup.add(mesh);
         this.droppedItemMeshMap.set(item.id, mesh);
       }
-      mesh.position.set(item.x, 0.35 + Math.sin(item.bobTime * 4) * 0.1, item.z);
+      // Drops hover — over the terrain, not over y=0, so a pickup on a
+      // rise doesn't bob along inside the hill.
+      mesh.position.set(item.x, this.terrainHeightAt(item.x, item.z) + 0.35 + Math.sin(item.bobTime * 4) * 0.1, item.z);
       mesh.rotation.y += 0.04;
     });
   }
@@ -1155,8 +1187,7 @@ export class BioForgeThreeEngine {
       this.disposeGhost();
       this.buildGhostFor(type);
     }
-    this.ghostGroup.position.set(gridX * 2, 0, gridZ * 2);
-    this.ghostGroup.rotation.y = rotation;
+    this.applyTerrainTransform(this.ghostGroup, type, gridX * 2, gridZ * 2, rotation);
     this.tintGhost(valid);
   }
 
@@ -1325,7 +1356,7 @@ export class BioForgeThreeEngine {
       blending: THREE.AdditiveBlending,
     });
     const points = new THREE.Points(geom, mat);
-    points.position.set(x, 0, z);
+    points.position.set(x, this.terrainHeightAt(x, z), z);
     this.particlesGroup.add(points);
 
     this.transientParticles.push({
@@ -1354,7 +1385,7 @@ export class BioForgeThreeEngine {
       blending: THREE.AdditiveBlending,
     });
     const points = new THREE.Points(geom, mat);
-    points.position.set(x, 0, z);
+    points.position.set(x, this.terrainHeightAt(x, z), z);
     this.particlesGroup.add(points);
 
     this.transientParticles.push({

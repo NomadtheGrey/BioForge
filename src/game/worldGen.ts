@@ -517,8 +517,56 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
     },
   }));
 
+  // ---------------------------------------------------------------------
+  // Glow spore clusters — a REAL plant that keeps to cave mouths (Adam,
+  // 2026-10-14: the blue spheres at the entrance should be harvestable,
+  // not just dressing). Each mouth gets a small ring of living clusters
+  // just outside its footprint, kept out of the approach corridor (you
+  // don't have to harvest your way through the doorway) and a meter
+  // clear of everything already growing. EXTRA flora, outside the zone
+  // census — the census promise above is untouched.
+  // ---------------------------------------------------------------------
+  const caveFloraRng = createSeededRandom(streamSeed(seedStr, 'cave:flora'));
+  const caveFlora: FloraEntity[] = [];
+  for (const m of caveSection.mouths) {
+    for (let k = 0; k < 4; k++) {
+      for (let attempt = 0; attempt < 12; attempt++) {
+        const angle = caveFloraRng() * Math.PI * 2;
+        // Angular distance from the mouth's facing (the approach):
+        // clusters never seed the doorway itself.
+        const rel = Math.abs(((angle - m.anchor.facing) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI);
+        if (rel < 0.6) continue;
+        const r = 3.0 + caveFloraRng() * 1.8;
+        const x = m.anchor.x + Math.cos(angle) * r;
+        const z = m.anchor.z + Math.sin(angle) * r;
+        if (Math.abs(x) > 48 || Math.abs(z) > 48) continue;
+        const crowded = [...flora, ...caveFlora].some((f) => Math.hypot(f.x - x, f.z - z) < 1.0);
+        if (crowded) continue;
+        caveFlora.push({
+          id: `flora_${flora.length + caveFlora.length + 1}`,
+          species: 'glow_spore_cluster',
+          x,
+          z,
+          biome: zoneBiome,
+          rotation: caveFloraRng() * Math.PI * 2,
+          scale: 0.9 + caveFloraRng() * 0.4,
+          growthStage: 3,
+          growthProgress: 1,
+          fertilizedGrowth: false,
+          fertilizedYield: false,
+          fertilizerTimer: 0,
+          harvestReady: true,
+          harvestTimer: 0,
+          isHazardous: false,
+          swayOffset: 100 + caveFlora.length,
+        });
+        break;
+      }
+    }
+  }
+
   return {
-    flora,
+    flora: [...flora, ...caveFlora],
     fauna,
     structures,
     relaxedPlacements: floraScatter.relaxed + faunaScatter.relaxed,

@@ -243,6 +243,7 @@ export default function App() {
     addFlora,
     addStructure,
     removeStructure,
+    removeFlora,
     tameFauna,
     setFaunaCommand,
     setCodexList,

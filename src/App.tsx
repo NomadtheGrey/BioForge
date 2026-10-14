@@ -14,8 +14,9 @@ import {
   StructureEntity,
   DroppedItemEntity,
   ItemId,
+  StructureType,
 } from './types/game';
-import { INITIAL_CODEX, ITEMS } from './game/constants';
+import { INITIAL_CODEX, ITEMS, NON_BUILDABLE_STRUCTURE_IDS } from './game/constants';
 import { BioForgeThreeEngine } from './game/threeEngine';
 import { soundEngine } from './audio/soundEngine';
 import { multiplayerManager, EntityKind, EntitySnapshot } from './game/multiplayer';
@@ -30,6 +31,7 @@ import { useNotifications } from './hooks/useNotifications';
 import { usePlayerState } from './hooks/usePlayerState';
 import { useWorldEntities, INITIAL_STRUCTURES } from './hooks/useWorldEntities';
 import { generateSeededWorld } from './game/worldGen';
+import { generateGameCavern, cavernCellToWorld, cavernEntryYaw, type CavernResult } from './game/cavern';
 import { zoneInfo, zoneBiomeAt, biomeDisplayName, SPAWN_ZONE } from './game/zones';
 import { occupancyConflict, placementFor } from './game/placement';
 import { useToolInteractions } from './hooks/useToolInteractions';
@@ -139,7 +141,11 @@ export default function App() {
   const structureCycle: ItemId[] = useMemo(
     () =>
       Object.values(ITEMS)
-        .filter((item) => item.category === 'structure')
+        .filter(
+          (item) =>
+            item.category === 'structure' &&
+            !NON_BUILDABLE_STRUCTURE_IDS.includes(item.id)
+        )
         .map((item) => item.id),
     []
   );
@@ -157,7 +163,7 @@ export default function App() {
   const cycleSelectedStructure = useCallback(
     (direction: 1 | -1): void => {
       if (structureCycle.length < 2) return;
-      const currentIndex = structureCycle.indexOf(playerState.selectedStructureType);
+      const currentIndex = structureCycle.indexOf(playerState.selectedStructureType as ItemId);
       const nextIndex =
         (currentIndex + direction + structureCycle.length) % structureCycle.length;
       setSelectedStructureType(structureCycle[nextIndex] as StructureType);
@@ -377,6 +383,129 @@ export default function App() {
     soundEngine.playFertilize();
   }, [applyPlayerLevel, postNotification]);
 
+  // ----------------------------------------------------------------------
+  // Instanced caverns (P3 interior)
+  // ----------------------------------------------------------------------
+  // Entering a cave mouth swaps the whole world for the mouth's
+  // generated cavern: the surface lists are PARKED here, the
+  // instance's own list (just the exit portal) takes their place, and
+  // every system that reads the lists — render sync, the sim tick,
+  // saves (via buildWorldSnapshot) — follows along. The cavern is
+  // generated from the mouth's instanceId ALONE, so any client
+  // holding the mouth entity (guests included, via world_sync)
+  // rebuilds the identical cave without ever seeing the world seed.
+  type InstanceState =
+    | { kind: 'surface' }
+    | {
+        kind: 'cavern';
+        mouthId: string;
+        instanceId: string;
+        cavern: CavernResult;
+        parked: WorldSnapshot;
+      };
+  const instanceRef = useRef<InstanceState>({ kind: 'surface' });
+  const [inCavern, setInCavern] = useState(false);
+
+  /** 'surface', or the cavern instanceId the player is inside. */
+  const currentZoneId = useCallback((): string => {
+    const inst = instanceRef.current;
+    return inst.kind === 'cavern' ? inst.instanceId : 'surface';
+  }, []);
+
+  const isInCavernNow = useCallback(
+    (): boolean => instanceRef.current.kind === 'cavern',
+    []
+  );
+
+  const handleEnterCave = useCallback(
+    (mouth: StructureEntity): void => {
+      if (instanceRef.current.kind !== 'surface') return;
+      const link = mouth.cave;
+      if (!link) {
+        postNotification('Sealed Shut', 'This mouth leads nowhere — its cavern was never linked.', 'alert', '#fbbf24');
+        return;
+      }
+      // The link anchor (mouth position + the facing implied by its
+      // stored exit point) is bookkeeping for the record only — the
+      // layout itself comes from the instanceId seed and nothing else.
+      const anchorFacing = Math.atan2(link.exitZ - mouth.worldZ, link.exitX - mouth.worldX);
+      const cavern = generateGameCavern(link.instanceId, link.instanceId, {
+        x: mouth.worldX,
+        z: mouth.worldZ,
+        facing: anchorFacing,
+      });
+      if (!cavern.meta.validation.pass) {
+        postNotification('Unstable Cavern', 'The way down collapses before it forms. (This cave failed its validation — a bug, not a feature.)', 'alert', '#ef4444');
+        return;
+      }
+      instanceRef.current = {
+        kind: 'cavern',
+        mouthId: mouth.id,
+        instanceId: link.instanceId,
+        cavern,
+        parked: {
+          flora: [...floraList],
+          fauna: [...faunaList],
+          structures: [...structuresList],
+          drops: [...droppedItems],
+        },
+      };
+      const entry = cavernCellToWorld(cavern.entrance.x, cavern.entrance.y, cavern.width, cavern.height);
+      const entryYaw = cavernEntryYaw(cavern.link);
+      const exitPortal: StructureEntity = {
+        id: `cave_exit_${link.instanceId}`,
+        type: 'cave_exit',
+        gridX: Math.round(entry.x / 2),
+        gridZ: Math.round(entry.z / 2),
+        worldX: entry.x,
+        worldZ: entry.z,
+        rotation: entryYaw,
+        health: 999,
+        maxHealth: 999,
+        doorOpenProgress: 0,
+        level: 0,
+      };
+      replaceWorld({ flora: [], fauna: [], structures: [exitPortal], drops: [] });
+      engineRef.current?.setCavernMode(true, cavern);
+      applyPlayerLevel(0);
+      playerPosRef.current = { x: entry.x, z: entry.z, rotation: entryYaw };
+      engineRef.current?.setPlayerPosition(entry.x, entry.z, 0);
+      setInCavern(true);
+      postNotification('Biolume Caverns', 'You descend into the dark. The glowing ring is the way home — click it to climb back out.', 'system', '#a855f7');
+    },
+    [floraList, faunaList, structuresList, droppedItems, replaceWorld, applyPlayerLevel, postNotification]
+  );
+
+  const handleExitCave = useCallback((): void => {
+    const inst = instanceRef.current;
+    if (inst.kind !== 'cavern') return;
+    const mouth = inst.parked.structures.find((s) => s.id === inst.mouthId);
+    // The return address is the anchor stored on the mouth at world
+    // creation: 2 m out from the mouth, so the player lands OUTSIDE
+    // the portal and never instantly re-triggers it.
+    const exitX = mouth?.cave?.exitX ?? 0;
+    const exitZ = mouth?.cave?.exitZ ?? 0;
+    const facing = mouth ? Math.atan2(exitX - mouth.worldX, exitZ - mouth.worldZ) : 0;
+    replaceWorld(inst.parked);
+    engineRef.current?.setCavernMode(false);
+    instanceRef.current = { kind: 'surface' };
+    applyPlayerLevel(0);
+    playerPosRef.current = { x: exitX, z: exitZ, rotation: facing };
+    engineRef.current?.setPlayerPosition(exitX, exitZ, 0);
+    setInCavern(false);
+    postNotification('Surface', 'You climb back into the open air.', 'system', '#38bdf8');
+  }, [replaceWorld, applyPlayerLevel, postNotification]);
+
+  // Leaving an instance WITHOUT the portal (loading a save, starting
+  // a new world, receiving a host's world): drop the cave so the
+  // fresh world never opens inside a ghost instance.
+  const resetInstanceState = useCallback((): void => {
+    if (instanceRef.current.kind === 'surface') return;
+    instanceRef.current = { kind: 'surface' };
+    engineRef.current?.setCavernMode(false);
+    setInCavern(false);
+  }, []);
+
   // 4. Encapsulated Tool Interactions
   const {
     handleGroundClick,
@@ -404,6 +533,9 @@ export default function App() {
     getPlayerPosition,
     getPlayerLevel,
     applyPlayerLevel,
+    onEnterCave: handleEnterCave,
+    onExitCave: handleExitCave,
+    isInCavern: isInCavernNow,
     tameFauna,
     setFaunaCommand,
     setCodexList,
@@ -466,6 +598,17 @@ export default function App() {
         const wantSprint = sprinting.current && staminaRef.current > 0;
         movementController.current.sprintMultiplier = wantSprint ? 1.6 : 1;
 
+        // Inside an instance, the cavern grid itself is the walls.
+        const activeInstance = instanceRef.current;
+        const cavernArg =
+          activeInstance.kind === 'cavern'
+            ? {
+                grid: activeInstance.cavern.grid,
+                width: activeInstance.cavern.width,
+                height: activeInstance.cavern.height,
+              }
+            : null;
+
         const moveResult = movementController.current.update(
           dt,
           playerPosRef.current.x,
@@ -475,7 +618,8 @@ export default function App() {
           isPaused,
           structuresListRef.current,
           floraListRef.current,
-          playerLevelRef.current
+          playerLevelRef.current,
+          cavernArg
         );
 
         playerPosRef.current.x = moveResult.x;
@@ -525,7 +669,8 @@ export default function App() {
               moveResult.z,
               playerPosRef.current.rotation,
               activeToolRef.current,
-              playerLevelRef.current
+              playerLevelRef.current,
+              currentZoneId()
             );
           }
         }
@@ -857,21 +1002,46 @@ useEffect(() => {
 });
 
 // The world-only portion of current state (what world_sync sends and
-// what a save stores as its world).
+// what a save stores as its world). While the player is inside a
+// cavern, "the world" is the PARKED surface world: instances are
+// regenerated from their seed on entry and are never themselves
+// saved or synced — a guest joining a host who is underground gets
+// the surface, which is where they'll arrive.
 const buildWorldSnapshot = (): WorldSnapshot => {
+  const inst = instanceRef.current;
+  if (inst.kind === 'cavern') return inst.parked;
   const s = latestStateRef.current;
   return { flora: s.floraList, fauna: s.faunaList, structures: s.structuresList, drops: s.droppedItems };
 };
 
 // Player state for a save: the React state holds vitals and tool picks,
 // but the live position truth is playerPosRef (the game loop moves the
-// ref every tick) — so position is overlaid from the ref.
-const buildCurrentPlayerState = () => ({
-  ...latestStateRef.current.playerState,
-  x: playerPosRef.current.x,
-  z: playerPosRef.current.z,
-  rotation: playerPosRef.current.rotation,
-});
+// ref every tick) — so position is overlaid from the ref. Inside a
+// cavern, the saved position is the mouth's surface exit anchor: you
+// wake up OUTSIDE the cave you were exploring, on solid ground.
+const buildCurrentPlayerState = () => {
+  const inst = instanceRef.current;
+  if (inst.kind === 'cavern') {
+    const mouth = inst.parked.structures.find((s) => s.id === inst.mouthId);
+    const exitX = mouth?.cave?.exitX ?? playerPosRef.current.x;
+    const exitZ = mouth?.cave?.exitZ ?? playerPosRef.current.z;
+    return {
+      ...latestStateRef.current.playerState,
+      x: exitX,
+      z: exitZ,
+      rotation: mouth
+        ? Math.atan2(exitX - mouth.worldX, exitZ - mouth.worldZ)
+        : playerPosRef.current.rotation,
+      level: 0,
+    };
+  }
+  return {
+    ...latestStateRef.current.playerState,
+    x: playerPosRef.current.x,
+    z: playerPosRef.current.z,
+    rotation: playerPosRef.current.rotation,
+  };
+};
 
 // Writes the current session to its save slot. The two guard clauses
 // are the whole safety story: no save attached → nothing to write;
@@ -912,6 +1082,7 @@ useEffect(() => {
 // Applies a loaded record to every state holder at once: world lists,
 // pouch, player (state AND the loop's position ref), codex, and clock.
   const applySavedGame = (record: SavedGameRecord): void => {
+    resetInstanceState();
     replaceWorld(record.world);
     restoreInventory(record.inventory);
     restorePlayerState(record.playerState);
@@ -950,6 +1121,7 @@ useEffect(() => {
   };
 
   const handleCreateSave = (name: string, difficulty: GameDifficulty, worldSeed: string): void => {
+    resetInstanceState();
     const meta = createSaveMetadata(name, difficulty, worldSeed);
     currentSaveRef.current = meta;
     // The seed earns its keep: a new world's flora and fauna are GROWN
@@ -1051,7 +1223,14 @@ useEffect(() => {
         setPeers(multiplayerManager.getConnectedPeers());
         engineRef.current?.removePeerAvatar(peerId);
       },
-      onPeerMove: (peerId, px, pz, prot, _tool, level) => {
+      onPeerMove: (peerId, px, pz, prot, _tool, level, zone) => {
+        // Instances are separate spaces: a peer on the surface is not
+        // standing in your cave, nor you in theirs — hide cross-zone
+        // avatars instead of drawing them in the wrong world.
+        if ((zone ?? 'surface') !== currentZoneId()) {
+          engineRef.current?.removePeerAvatar(peerId);
+          return;
+        }
         const peer = peers.find((p) => p.id === peerId);
         engineRef.current?.updatePeerAvatar(peerId, peer?.name || 'Explorer', px, pz, prot, peer?.color || '#38bdf8', level ?? 0);
       },
@@ -1120,6 +1299,7 @@ useEffect(() => {
         // The host's world replaces ours wholesale. This is memory only:
         // our own save file on disk is untouched, and autosave is gated
         // off while we are guests, so their world can never overwrite it.
+        resetInstanceState();
         replaceWorld({
           flora: data.flora,
           fauna: data.fauna,
@@ -1149,7 +1329,7 @@ useEffect(() => {
     if (!isConnected) return;
     const sendPresence = () => {
       const pos = playerPosRef.current;
-      multiplayerManager.broadcastPlayerMove(pos.x, pos.z, pos.rotation, activeToolRef.current, playerLevelRef.current);
+      multiplayerManager.broadcastPlayerMove(pos.x, pos.z, pos.rotation, activeToolRef.current, playerLevelRef.current, currentZoneId());
     };
     sendPresence();
     const heartbeatId = setInterval(sendPresence, PEER_PRESENCE_HEARTBEAT_MS);
@@ -1313,10 +1493,10 @@ useEffect(() => {
         onOpenControls={() => setActiveModal('controls')}
         onOpenDevTools={() => setActiveModal('devtools')}
         onSave={handleManualSave}
-        currentBiomeName={currentZoneName}
-        currentBiomeType={currentZoneBiomeLabel}
-        edgeZoneLabel={edgeZoneLabel}
-        zoneCoordsLabel={zoneCoordsLabel}
+        currentBiomeName={inCavern ? 'Biolume Caverns' : currentZoneName}
+        currentBiomeType={inCavern ? 'Cavern' : currentZoneBiomeLabel}
+        edgeZoneLabel={inCavern ? null : edgeZoneLabel}
+        zoneCoordsLabel={inCavern ? 'Instanced Zone' : zoneCoordsLabel}
         inventory={inventory}
         dayNightCycle={dayNightCycle}
         onToggleDayNight={() => {

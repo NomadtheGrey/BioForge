@@ -130,6 +130,12 @@ export default function App() {
   const [chatMessages, setChatMessages] = useState<{ sender: string; text: string; color: string; time: string }[]>([]);
   const [chatToasts, setChatToasts] = useState<{ id: number; sender: string; text: string; color: string }[]>([]);
 
+  // Invite links: when the game is opened from a shared link
+  // (…/?room=CODE), the code is parked here at boot and handed to the
+  // multiplayer modal, which pre-fills its join field. Empty string
+  // means "no invite" — the modal then behaves exactly as before.
+  const [inviteRoomCode, setInviteRoomCode] = useState<string>('');
+
   // Minimap position state updated smoothly during frame/tick
   const [minimapPos, setMinimapPos] = useState({ x: playerState.x, z: playerState.z, rotation: playerState.rotation });
   const lastMinimapUpdateTime = useRef(0);
@@ -680,6 +686,28 @@ useEffect(() => {
     setActiveModal('multiplayer');
   };
 
+  // ------------------------------------------------------------------------
+  // Invite Links — landing side
+  // ------------------------------------------------------------------------
+  // A host shares a link like bioforgegame.netlify.app/?room=BIO77X.
+  // On boot we lift the code out of the URL so the join flow can start
+  // pre-filled: the guest lands on the start screen, takes the co-op
+  // door, and the code is already waiting in the join field — all that
+  // is left is typing their name and pressing JOIN SESSION.
+  // The parameter is sanitized to the room-code alphabet (letters and
+  // digits, 6 max) and must be at least 3 characters, matching what the
+  // join field itself accepts. The URL is left untouched; the code also
+  // stays parked here until a session actually starts, so closing the
+  // modal and reopening it keeps the pre-fill.
+  useEffect(() => {
+    const rawCode = new URLSearchParams(window.location.search).get('room');
+    if (!rawCode) return;
+    const cleanCode = rawCode.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+    if (cleanCode.length < 3) return;
+    setInviteRoomCode(cleanCode);
+    postNotification('Invite Link Detected', `Room code ${cleanCode} is filled in and waiting — take the co-op door to join your host!`, 'system', '#a855f7');
+  }, []);
+
   // The HUD's Save button. saveNow() itself silently no-ops in exactly
   // the two cases guarded below, so this handler checks them first and
   // tells the player what happened instead of letting a click vanish.
@@ -796,12 +824,40 @@ useEffect(() => {
     });
   }, [peers, addStructure, removeStructure, resetFloraHarvest, tameFauna, postNotification, upsertFlora, removeFlora, upsertFauna, removeFauna, upsertStructure, upsertDroppedItem, removeDroppedItem, replaceWorld]);
 
+  // ------------------------------------------------------------------------
+  // Presence heartbeat — appear on join, stay visible standing still
+  // ------------------------------------------------------------------------
+  // The movement broadcast in the game loop only fires while the player is
+  // actually moving, so a peer who joins and stands still never sends a
+  // position — and because remote avatars are only drawn when a peer_move
+  // arrives, that player stays invisible to everyone until they walk.
+  // While connected, this heartbeat re-sends our current position once a
+  // second whether we are moving or not. A joiner materializes for the
+  // room almost immediately; the room materializes for the joiner too,
+  // because everyone else's heartbeats keep arriving; and nobody vanishes
+  // for the crime of standing still. Position truth is playerPosRef, the
+  // same source the movement broadcast uses.
+  const PEER_PRESENCE_HEARTBEAT_MS = 1000;
+  useEffect(() => {
+    if (!isConnected) return;
+    const sendPresence = () => {
+      const pos = playerPosRef.current;
+      multiplayerManager.broadcastPlayerMove(pos.x, pos.z, pos.rotation, activeToolRef.current);
+    };
+    sendPresence();
+    const heartbeatId = setInterval(sendPresence, PEER_PRESENCE_HEARTBEAT_MS);
+    return () => clearInterval(heartbeatId);
+  }, [isConnected]);
+
   const handleHostSession = () => {
     const code = multiplayerManager.hostSession();
     setRoomCode(code);
     setIsHost(true);
     setIsConnected(true);
-    postNotification('Host Session Created', `Room Code: ${code}. Share with fellow explorers to join your world!`, 'system', '#10b981');
+    // A session has started, so any parked invite code has done its job
+    // (or was never meant for us). Clear it so it can't pre-fill later.
+    setInviteRoomCode('');
+    postNotification('Host Session Created', `Room Code: ${code}. Share the code — or copy your invite link from the multiplayer panel — to bring fellow explorers into your world!`, 'system', '#10b981');
   };
 
   const handleJoinSession = (code: string) => {
@@ -810,6 +866,9 @@ useEffect(() => {
       setRoomCode(code);
       setIsHost(false);
       setIsConnected(true);
+      // Joined — the parked invite code is spent. Clear it (see
+      // handleHostSession for why).
+      setInviteRoomCode('');
       postNotification('Session Joined', `Connected to room ${code}! Co-Op base building active.`, 'system', '#a855f7');
     }
   };
@@ -995,6 +1054,7 @@ useEffect(() => {
         onLeaveSession={handleLeaveSession}
         onSendMessage={handleSendChatMessage}
         chatMessages={chatMessages}
+        initialJoinCode={inviteRoomCode}
       />
 
       <ControlsGuideModal

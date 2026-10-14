@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Users, Copy, Check, Radio, Send, ShieldCheck, Globe } from 'lucide-react';
 import { MultiplayerPeer } from '../types/game';
 
@@ -16,6 +16,10 @@ interface MultiplayerModalProps {
   chatMessages: { sender: string; text: string; color: string; time: string }[];
   playerName: string;
   onSetPlayerName: (name: string) => void;
+  // Invite links: when the game was opened from a shared link
+  // (…/?room=CODE), App passes the code down so the join field can be
+  // pre-filled. Optional — absent or empty means a normal visit.
+  initialJoinCode?: string;
 
 }
 
@@ -32,7 +36,8 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
   onSendMessage,
   chatMessages,
   playerName, 
-  onSetPlayerName
+  onSetPlayerName,
+  initialJoinCode
   
 
 }) => {
@@ -42,11 +47,26 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
   const [chatInput, setChatInput] = useState('');
   const [nameInput, setNameInput] = useState(playerName);
 
+  // Invite-link pre-fill: whenever this modal opens with an invite code
+  // waiting, seed the join field with it. Runs on open (and if the code
+  // changes), never while the player is typing their own code.
+  useEffect(() => {
+    if (isOpen && initialJoinCode) {
+      setInputCode(initialJoinCode);
+    }
+  }, [isOpen, initialJoinCode]);
+
   if (!isOpen) return null;
 
   const handleCopy = () => {
     if (!roomCode) return;
-    navigator.clipboard.writeText(roomCode);
+    // The copy button shares an INVITE LINK, not the bare code: the host
+    // taps once, and whoever opens the link lands in the game with this
+    // room's code already filled into the join field (App reads ?room=
+    // at boot and passes it down as initialJoinCode). The code itself
+    // stays on screen above for anyone who prefers to type it.
+    const inviteLink = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
+    navigator.clipboard.writeText(inviteLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -173,11 +193,12 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
                     <button
                       onClick={handleCopy}
                       className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
-                      title="Copy code"
+                      title="Copy invite link"
                     >
                       {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                     </button>
                   </div>
+                  <span className="text-[10px] text-slate-500">Copy button copies a join link — friends just tap it and type their name.</span>
                 </div>
 
                 <div className="flex items-center gap-3">

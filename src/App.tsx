@@ -1250,6 +1250,7 @@ useEffect(() => {
         currentBiomeType={currentZoneBiomeLabel}
         edgeZoneLabel={edgeZoneLabel}
         zoneCoordsLabel={zoneCoordsLabel}
+        inventory={inventory}
         dayNightCycle={dayNightCycle}
         onToggleDayNight={() => {
           if (dayNightCycle > 0.5) {

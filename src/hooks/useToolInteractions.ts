@@ -142,9 +142,19 @@ export function useToolInteractions({
         // under another hole) plus the dew that collects on the cap.
         return { item: 'seed_bounce_shroom', count: flora.fertilizedYield ? 2 : 1, extras: [['dew_essence', 1]] };
       case 'glow_spore_cluster':
-        // The cave-mouth plant: its orbs are picked for their spores,
-        // which hold the cluster's glow. The plant stays and regrows.
+      case 'glow_fungus':
+        // Spore-bearers, surface and cave: the orbs/caps are picked for
+        // their spores, which hold the glow. The plant stays and regrows.
         return { item: 'glow_spore', count: flora.fertilizedYield ? 4 : 2, extras: [['dew_essence', 1]] };
+      case 'sunshard_cluster':
+        // A cave crystal that GROWS — so it harvests like a plant:
+        // chips for the pouch, dew from the cave air condensing on it,
+        // and the root crystal stays to regrow the cluster.
+        return { item: 'sunshard', count: flora.fertilizedYield ? 4 : 2, extras: [['dew_essence', 1]] };
+      case 'prism_cluster':
+        // The deep prize: fewer, rarer — one prism per harvest bare,
+        // two when yield-fertilized.
+        return { item: 'violet_prism', count: flora.fertilizedYield ? 2 : 1, extras: [] };
       case 'bell_bloom':
       default:
         return { item: 'dew_essence', count: flora.fertilizedYield ? 4 : 2, extras: [['soft_fiber', 1]] };
@@ -259,9 +269,10 @@ export function useToolInteractions({
   // 3. Planter Trowel & Fertilizers
   const handlePlanterAction = useCallback(
     (worldX: number, worldZ: number, targetFlora?: FloraEntity): void => {
-      // Nothing grows in the cave by hand in v1 — cave flora will be
-      // their own ecology; surface planting stays on the surface.
-      if (isInCavern()) {
+      // Nothing gets PLANTED in the cave by hand — cave flora are
+      // their own ecology. (Fertilizing an existing cave plant is
+      // fine: that path passes a targetFlora and skips this guard.)
+      if (isInCavern() && !targetFlora) {
         postNotification('Barren Rock', 'The cavern floor is bare stone — nothing planted by hand takes hold here. The cave grows its own way.', 'alert', '#fbbf24');
         return;
       }

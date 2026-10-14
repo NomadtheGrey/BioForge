@@ -17,6 +17,8 @@ export type ItemId =
   | 'prismatic_core'
   | 'basic_compost'
   | 'glow_spore'
+  | 'sunshard'
+  | 'violet_prism'
   // Cultivation Seeds
   | 'seed_lantern_fern'
   | 'seed_sap_weaver'
@@ -73,7 +75,10 @@ export type FloraSpecies =
   | 'bell_bloom'
   | 'bounce_shroom'
   | 'ribbon_moss'
-  | 'glow_spore_cluster';
+  | 'glow_spore_cluster'
+  | 'glow_fungus'
+  | 'sunshard_cluster'
+  | 'prism_cluster';
 
 export interface FloraEntity {
   id: string;

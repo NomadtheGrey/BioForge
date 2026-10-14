@@ -6,3 +6,8 @@ coverage/
 *.log
 .env*
 !.env.example
+# This project's toolchain is npm (package-lock.json). AI Studio's
+# environment uses bun and may regenerate a bun.lock; if it reaches the
+# repo, CI hosts detect bun and install with the wrong tool. Keep it out.
+bun.lock
+bun.lockb

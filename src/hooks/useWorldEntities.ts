@@ -720,6 +720,17 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             onCritterExcrete?.('chitin_stalker');
           }
 
+          // Vesper Glider byproduct (Sonar Vanes) — NATURAL shedding:
+          // unlike the tamed-only producers above, a glider drops its
+          // worn vanes whether it is wild or tame (the radar's supply
+          // chain must never require harming one — Adam, 2026-10-14:
+          // the vanes are a non-lethal byproduct).
+          if (fauna.species === 'vesper_glider' && byproductTimer > 45) {
+            byproductTimer = 0;
+            spawnDroppedItem('sonar_vane', 1, x, z);
+            onCritterExcrete?.('vesper_glider');
+          }
+
           const nextFauna = {
             ...fauna,
             x,

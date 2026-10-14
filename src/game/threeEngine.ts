@@ -186,6 +186,8 @@ export class BioForgeThreeEngine {
     cave_exit: { color: 0xa855f7, intensity: 0.9, distance: 4.5, y: 1.4 },
     // The way DOWN: a deeper violet — the dark below breathes colder.
     cave_descent: { color: 0x7c3aed, intensity: 0.9, distance: 4.5, y: 0.8 },
+    // The express way OUT: living green, the color of up and daylight.
+    vine_shaft: { color: 0x34d399, intensity: 0.85, distance: 4.5, y: 2.0 },
   };
 
   // Raycasting
@@ -373,6 +375,49 @@ export class BioForgeThreeEngine {
         rock.scale.set(1, 0.6, 1);
         group.add(rock);
       }
+      return group;
+    },
+    // The express way OUT (Adam's vine shafts): a living elevator —
+    // a thick alien vine hanging from a crack in the cavern ceiling
+    // (4.6 m up) down to climbing height, tendrils and glow-leaves
+    // along its length, roots gripping the floor. Where the descent
+    // lies flat and the exit stands tall, the vine HANGS — three
+    // doorways, three silhouettes, no confusion in the dark.
+    // Clicking it climbs straight to the surface.
+    'vine_shaft': () => {
+      const group = new THREE.Group();
+      const vineMat = new THREE.MeshStandardMaterial({
+        color: 0x166534, roughness: 0.7, emissive: 0x22c55e, emissiveIntensity: 0.35,
+      });
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.2, 3.7, 7), vineMat);
+      trunk.position.y = 2.75;
+      trunk.castShadow = true;
+      group.add(trunk);
+      for (let i = 0; i < 3; i++) {
+        const tendril = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.07, 2.4 - i * 0.4, 5), vineMat);
+        const a = (i / 3) * Math.PI * 2 + 0.8;
+        tendril.position.set(Math.cos(a) * 0.3, 3.3 - i * 0.25, Math.sin(a) * 0.3);
+        tendril.rotation.set(Math.sin(a) * 0.22, 0, Math.cos(a) * 0.22);
+        group.add(tendril);
+      }
+      const leafMat = new THREE.MeshStandardMaterial({
+        color: 0x15803d, roughness: 0.55, emissive: 0x4ade80, emissiveIntensity: 0.7,
+      });
+      for (let i = 0; i < 6; i++) {
+        const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(0.13, 0), leafMat);
+        const a = i * 1.7 + 0.4;
+        const y = 1.3 + (i % 3) * 0.9;
+        leaf.position.set(Math.cos(a) * 0.26, y, Math.sin(a) * 0.26);
+        leaf.scale.set(1, 0.55, 1);
+        group.add(leaf);
+      }
+      const root = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(0.55, 0),
+        new THREE.MeshStandardMaterial({ color: 0x365314, roughness: 0.95 })
+      );
+      root.position.y = 0.12;
+      root.scale.set(1.25, 0.4, 1.25);
+      group.add(root);
       return group;
     },
     'iris_slit_door': () => {
@@ -2399,6 +2444,22 @@ export class BioForgeThreeEngine {
       downRing.position.set(descentWorld.x, 0.06, descentWorld.z);
       this.cavernGroup.add(downRing);
     }
+
+    // The vine marker: an emerald ring — "up is here". (The vine
+    // itself is the vine_shaft structure in the instance's list;
+    // this ring is its floor signage, kin to the home/descent rings.)
+    if (cavern.vineShaft) {
+      const vineWorld = cavernCellToWorld(
+        cavern.vineShaft.x, cavern.vineShaft.y, cavern.width, cavern.height
+      );
+      const vineRing = new THREE.Mesh(
+        new THREE.TorusGeometry(1.25, 0.05, 6, 32),
+        new THREE.MeshBasicMaterial({ color: 0x34d399 })
+      );
+      vineRing.rotation.x = Math.PI / 2;
+      vineRing.position.set(vineWorld.x, 0.06, vineWorld.z);
+      this.cavernGroup.add(vineRing);
+    }
   }
 
   /** Dispose every cavern mesh/light (geometries + materials are fresh
@@ -2510,6 +2571,8 @@ private initEventListeners() {
                 ? 'The way back up · Permanent — not solvent recyclable'
                 : s.type === 'cave_descent'
                   ? 'The cavern continues below · Permanent — not solvent recyclable'
+                  : s.type === 'vine_shaft'
+                    ? 'A living elevator — climbs straight to the surface · Permanent — not solvent recyclable'
                   : s.type === 'ruin_landmark'
                     ? s.ruin?.tier === 'traces'
                       ? 'A scattered remnant of something older · Permanent — not solvent recyclable'

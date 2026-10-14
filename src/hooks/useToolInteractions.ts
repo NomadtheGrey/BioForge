@@ -55,6 +55,8 @@ export interface UseToolInteractionsParams {
   addStructure: (structure: StructureEntity) => void;
   removeStructure: (structureId: string) => void;
   removeFlora: (floraId: string) => void;
+  /** Player facing snapped to 90° steps — placed structures inherit it. */
+  getPlacementRotation: () => number;
   tameFauna: (faunaId: string, customName: string, state: FaunaEntity['state']) => void;
   setFaunaCommand: (faunaId: string, cmd: 'follow' | 'stay' | 'guard') => void;
   setCodexList: React.Dispatch<React.SetStateAction<CodexEntry[]>>;
@@ -86,6 +88,7 @@ export function useToolInteractions({
   addStructure,
   removeStructure,
   removeFlora,
+  getPlacementRotation,
   tameFauna,
   setFaunaCommand,
   setCodexList,
@@ -525,7 +528,9 @@ export function useToolInteractions({
         gridZ,
         worldX: gridX * 2,
         worldZ: gridZ * 2,
-        rotation: 0,
+        // Faces the way the player faces (90° steps) so walls can turn
+        // corners and doors open onto the room you built them for.
+        rotation: getPlacementRotation(),
         health: 120,
         maxHealth: 120,
         doorOpenProgress: 0,
@@ -535,7 +540,7 @@ export function useToolInteractions({
       postNotification('Living Composite Placed', `Grown ${ITEMS[selectedStructureType]?.name}. Fully recyclable via Solvent Sprayer [4].`, 'craft', '#a855f7');
       multiplayerManager.broadcastEntityUpsert('structure', newStruct);
     },
-    [selectedStructureType, hasItem, deductInventoryItem, addStructure, postNotification, structuresList]
+    [selectedStructureType, hasItem, deductInventoryItem, addStructure, postNotification, structuresList, getPlacementRotation]
   );
 
   // Unified Interactions Handlers (Flat, zero else)

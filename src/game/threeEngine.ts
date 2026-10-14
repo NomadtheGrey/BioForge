@@ -164,6 +164,11 @@ export class BioForgeThreeEngine {
     ribbon_moss: { color: 0x2dd4bf, intensity: 0.4, distance: 2.5, y: 0.4 },
     bounce_shroom: { color: 0xa855f7, intensity: 0.6, distance: 3, y: 0.6 },
     glow_spore_cluster: { color: 0x06b6d4, intensity: 0.7, distance: 3.5, y: 0.5 },
+    // Cave flora (Biolume Caverns): the fungus is the cave's lamp —
+    // its pooled light is what you navigate by down there.
+    glow_fungus: { color: 0x22d3ee, intensity: 0.85, distance: 4.5, y: 0.5 },
+    sunshard_cluster: { color: 0xf59e0b, intensity: 0.55, distance: 3.5, y: 0.5 },
+    prism_cluster: { color: 0xa78bfa, intensity: 0.85, distance: 4.5, y: 0.7 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },
@@ -608,7 +613,7 @@ export class BioForgeThreeEngine {
     return this.controls.isLocked;
   }
 
-  public setPlayerPosition(x: number, z: number, level: number = 0) {
+  public setPlayerPosition(x: number, z: number, level: number = 0, jumpOffset: number = 0) {
     this.cachedPlayerX = x;
     this.cachedPlayerZ = z;
     this.camera.position.x = x;
@@ -617,7 +622,9 @@ export class BioForgeThreeEngine {
     // ground, so crossing a rise lifts the view instead of wading
     // through the hill (structures/floors got the same treatment).
     // Story levels add a wall-height per floor above the ground.
-    this.camera.position.y = this.eyeHeight + this.terrainHeightAt(x, z) + level * STORY_HEIGHT;
+    // jumpOffset is the jump arc (App's cosmetic Y over the level
+    // model): while airborne the camera rides it, landing returns to 0.
+    this.camera.position.y = this.eyeHeight + this.terrainHeightAt(x, z) + level * STORY_HEIGHT + jumpOffset;
     this.updateIrisDoorsProximity(x, z);
   }
 
@@ -1026,6 +1033,63 @@ export class BioForgeThreeEngine {
           const orb = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), this.materials.biolumCyan);
           orb.position.set(ox, oy, oz);
           group.add(orb);
+        }
+        break;
+      }
+
+      case 'glow_fungus': {
+        // The cavern's own fungus (Adam, 2026-10-14): taller than its
+        // surface cousin — pale stalks and flat cyan caps, grown for a
+        // place with no sun at all. Harvested like any plant; regrows.
+        const capGeom = new THREE.SphereGeometry(0.16, 10, 8);
+        const stalkMat = this.materials.woodRoot;
+        const tuft: [number, number, number][] = [
+          [0, 0.85, 0], [0.2, 0.6, 0.12], [-0.18, 0.7, -0.1], [0.1, 0.45, -0.2], [-0.08, 0.5, 0.18],
+        ];
+        for (const [ox, h, oz] of tuft) {
+          const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.055, h, 6), stalkMat);
+          stalk.position.set(ox, h / 2, oz);
+          group.add(stalk);
+          const cap = new THREE.Mesh(capGeom, this.materials.biolumCyan);
+          cap.scale.set(1, 0.5, 1);
+          cap.position.set(ox, h + 0.03, oz);
+          group.add(cap);
+        }
+        break;
+      }
+
+      case 'sunshard_cluster': {
+        // Amber crystals that grow in the shallow caverns — a small
+        // cluster of warm shards around a taller spine.
+        const shardGeom = new THREE.OctahedronGeometry(0.3);
+        const shards: [number, number, number, number][] = [
+          [0, 0.42, 0, 1.25], [0.24, 0.26, 0.1, 0.8], [-0.2, 0.3, -0.14, 0.9], [0.05, 0.2, 0.24, 0.65],
+        ];
+        for (const [ox, oy, oz, s] of shards) {
+          const shard = new THREE.Mesh(shardGeom, this.materials.biolumAmber);
+          shard.position.set(ox, oy, oz);
+          shard.scale.setScalar(s);
+          shard.rotation.set(0.2, ox * 4, 0.15);
+          shard.castShadow = true;
+          group.add(shard);
+        }
+        break;
+      }
+
+      case 'prism_cluster': {
+        // The deep caves' prize: two tall violet prisms. Stretched
+        // octahedra read as cut crystal without any new geometry.
+        const prismGeom = new THREE.OctahedronGeometry(0.34);
+        const prisms: [number, number, number, number][] = [
+          [0, 0.62, 0, 1.5], [0.26, 0.4, -0.1, 1.0], [-0.22, 0.32, 0.14, 0.8],
+        ];
+        for (const [ox, oy, oz, s] of prisms) {
+          const prism = new THREE.Mesh(prismGeom, this.materials.biolumViolet);
+          prism.position.set(ox, oy, oz);
+          prism.scale.set(0.8 * s, 1.6 * s, 0.8 * s);
+          prism.rotation.y = ox * 5;
+          prism.castShadow = true;
+          group.add(prism);
         }
         break;
       }
@@ -1963,7 +2027,11 @@ export class BioForgeThreeEngine {
     wallMesh.receiveShadow = true;
     this.cavernGroup.add(wallMesh);
 
-    // Features → instanced decor, one mesh per type.
+    // Features: the fungus and BOTH crystal kinds are REAL FLORA now
+    // (Adam, 2026-10-14) — they live in the instance's flora list and
+    // render through the flora pipeline (harvestable, regrowable), so
+    // the cavern decor below keeps only what is still scenery: the
+    // hazard spikes and the heart.
     const featuresOf = (type: string) => cavern.features.filter((f) => f.type === type);
     const placeInstances = (
       mesh: THREE.InstancedMesh,
@@ -1983,65 +2051,6 @@ export class BioForgeThreeEngine {
     const worldOf = (f: { cx: number; cy: number }) =>
       cavernCellToWorld(f.cx, f.cy, cavern.width, cavern.height);
 
-    // Glow fungus: three small emissive caps per feature + real lights
-    // at the first few clusters (the cave's light economy — static
-    // lights, separate from the pooled surface system).
-    const fungus = featuresOf('glow_fungus');
-    const capMesh = new THREE.InstancedMesh(
-      new THREE.SphereGeometry(0.17, 8, 6),
-      new THREE.MeshStandardMaterial({ color: 0x164e63, emissive: 0x22d3ee, emissiveIntensity: 2.2, roughness: 0.4 }),
-      Math.max(1, fungus.length * 3)
-    );
-    let capIdx = 0;
-    fungus.forEach((f, fi) => {
-      const w = worldOf(f);
-      for (let k = 0; k < 3; k++) {
-        const angle = (f.cx * 7 + f.cy * 13 + k * 2.4) % 6.28;
-        const r = 0.22 + ((k * 37 + fi * 11) % 40) / 100;
-        dummy.position.set(w.x + Math.cos(angle) * r, 0.16, w.z + Math.sin(angle) * r);
-        const s = 0.7 + ((fi * 29 + k * 17) % 50) / 80;
-        dummy.scale.set(s, s, s);
-        dummy.rotation.set(0, 0, 0);
-        dummy.updateMatrix();
-        capMesh.setMatrixAt(capIdx++, dummy.matrix);
-      }
-      dummy.scale.set(1, 1, 1);
-      if (fi < 6) {
-        const glow = new THREE.PointLight(0x22d3ee, 5, 8.5, 1.6);
-        glow.position.set(w.x, 0.9, w.z);
-        this.cavernGroup.add(glow);
-      }
-    });
-    capMesh.count = capIdx;
-    capMesh.instanceMatrix.needsUpdate = true;
-    this.cavernGroup.add(capMesh);
-
-    const resources = featuresOf('common_resource');
-    if (resources.length) {
-      placeInstances(
-        new THREE.InstancedMesh(
-          new THREE.OctahedronGeometry(0.3),
-          new THREE.MeshStandardMaterial({ color: 0x92400e, emissive: 0xf59e0b, emissiveIntensity: 0.7, roughness: 0.35 }),
-          resources.length
-        ),
-        resources.map(worldOf),
-        0.3,
-        true
-      );
-    }
-    const rares = featuresOf('rare_mineral');
-    if (rares.length) {
-      placeInstances(
-        new THREE.InstancedMesh(
-          new THREE.OctahedronGeometry(0.45),
-          new THREE.MeshStandardMaterial({ color: 0x5b21b6, emissive: 0xa78bfa, emissiveIntensity: 1.4, roughness: 0.3 }),
-          rares.length
-        ),
-        rares.map(worldOf),
-        0.42,
-        true
-      );
-    }
     const hazards = featuresOf('hazard');
     if (hazards.length) {
       placeInstances(

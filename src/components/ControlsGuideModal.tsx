@@ -63,8 +63,12 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({
                 <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-emerald-300 font-bold">Solid Walls & Dense Flora</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex justify-between items-center">
-                <span className="text-slate-300">Bounce (on a mature Bounce-Shroom)</span>
+                <span className="text-slate-300">Jump</span>
                 <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold">Spacebar</span>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex justify-between items-center">
+                <span className="text-slate-300">Bounce-Shroom Launch — bounce to the story above, steer mid-air to land on a floor tile</span>
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold">Jump on / near a mature Bounce-Shroom</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex justify-between items-center">
                 <span className="text-slate-300">Climb a Vine Ladder</span>

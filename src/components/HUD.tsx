@@ -498,7 +498,7 @@ export const HUD: React.FC<HUDProps> = ({
             </div>
             <div className="flex items-center gap-2">
               <span className="text-cyan-300 font-bold w-20">Space</span>
-              <span className="text-slate-300">Jump / bounce</span>
+              <span className="text-slate-300">Jump · on a Bounce-Shroom: bounce a story up, steer mid-air</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-cyan-300 font-bold w-20">B · I · C · M</span>

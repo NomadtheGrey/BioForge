@@ -386,7 +386,16 @@ export function useToolInteractions({
 
       addFlora(newFlora);
       multiplayerManager.broadcastEntityUpsert('flora', newFlora);
-      postNotification('Spore Planted', `Successfully cultivated ${ITEMS[selectedSeedId]?.name}. Water with fertilizer to accelerate!`, 'craft', '#4ade80');
+      if (isInCavern()) {
+        // Say the visit-only rule OUT LOUD at planting time (coordination
+        // flag, 2026-10-14): a cavern instance regrows wild on exit, so a
+        // spent seed quietly vanishing on the next delve would read as a
+        // bug. Planted cave fungus lives for THIS delve — and the player
+        // hears that before they spend more spores finding out.
+        postNotification('Cave Spore Planted', 'Glow fungus takes hold in the cavern dark. It lives for this delve — the cavern regrows wild when you leave.', 'craft', '#22d3ee');
+      } else {
+        postNotification('Spore Planted', `Successfully cultivated ${ITEMS[selectedSeedId]?.name}. Water with fertilizer to accelerate!`, 'craft', '#4ade80');
+      }
     },
     [selectedSeedId, selectedFertilizerId, hasItem, deductInventoryItem, applyFloraFertilizer, addFlora, postNotification, floraList]
   );

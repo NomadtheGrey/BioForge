@@ -14,6 +14,7 @@ export interface UsePlayerStateResult {
   setSelectedSeedId: (seedId: ItemId) => void;
   setSelectedFertilizerId: (fertilizerId: ItemId) => void;
   setPlayerTransform: (x: number, z: number, rotation: number) => void;
+  setPlayerLevel: (level: number) => void;
   setStamina: (stamina: number) => void;
   restorePlayerState: (saved: PlayerState) => void;
 }
@@ -23,6 +24,7 @@ export function usePlayerState(): UsePlayerStateResult {
     x: 0,
     z: 0,
     rotation: 0,
+    level: 0,
     health: 100,
     maxHealth: 100,
     stamina: 100,
@@ -60,6 +62,10 @@ export function usePlayerState(): UsePlayerStateResult {
     }));
   }, []);
 
+  const setPlayerLevel = useCallback((level: number): void => {
+    setPlayerState((prev) => (prev.level === level ? prev : { ...prev, level }));
+  }, []);
+
   const setStamina = useCallback((stamina: number): void => {
     setPlayerState((prev) => {
       const clamped = Math.max(0, Math.min(prev.maxStamina, stamina));
@@ -70,7 +76,8 @@ export function usePlayerState(): UsePlayerStateResult {
     // Restores a complete saved player state (position, vitals, tool picks)
   // in one shot, instead of poking each field through its own setter.
   const restorePlayerState = useCallback((saved: PlayerState): void => {
-    setPlayerState({ ...saved });
+    // Saves from before story levels have no level field — ground story.
+    setPlayerState({ ...saved, level: saved.level ?? 0 });
   }, []);
 
   return {
@@ -80,6 +87,7 @@ export function usePlayerState(): UsePlayerStateResult {
     setSelectedSeedId,
     setSelectedFertilizerId,
     setPlayerTransform,
+    setPlayerLevel,
     setStamina,
     restorePlayerState,
   };

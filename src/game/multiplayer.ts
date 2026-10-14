@@ -46,7 +46,7 @@ export interface MultiplayerMessage {
 export interface MultiplayerCallbacks {
   onPeerJoin?: (peer: MultiplayerPeer) => void;
   onPeerLeave?: (peerId: string) => void;
-  onPeerMove?: (peerId: string, x: number, z: number, rotation: number, tool: string) => void;
+  onPeerMove?: (peerId: string, x: number, z: number, rotation: number, tool: string, level: number) => void;
   onBuildPlaced?: (structure: StructureEntity) => void;
   onBuildRemoved?: (structureId: string) => void;
   onFloraHarvested?: (floraId: string) => void;
@@ -308,7 +308,7 @@ export class MultiplayerManager {
       }
 
       case 'peer_move': {
-        const payload = msg.payload as { x: number; z: number; rotation: number; tool: string };
+        const payload = msg.payload as { x: number; z: number; rotation: number; tool: string; level?: number };
         const existing = this.peers.get(msg.senderId);
         if (existing) {
           existing.x = payload.x;
@@ -327,7 +327,7 @@ export class MultiplayerManager {
             ping: 20,
           });
         }
-        this.callbacks.onPeerMove?.(msg.senderId, payload.x, payload.z, payload.rotation, payload.tool);
+        this.callbacks.onPeerMove?.(msg.senderId, payload.x, payload.z, payload.rotation, payload.tool, payload.level ?? 0);
         break;
       }
 
@@ -401,8 +401,8 @@ export class MultiplayerManager {
     this.postToSocket(msg);
   }
 
-  public broadcastPlayerMove(x: number, z: number, rotation: number, tool: string) {
-    this.broadcastMessage('peer_move', { x, z, rotation, tool });
+  public broadcastPlayerMove(x: number, z: number, rotation: number, tool: string, level: number = 0) {
+    this.broadcastMessage('peer_move', { x, z, rotation, tool, level });
   }
 
   public broadcastBuildPlaced(structure: StructureEntity) {

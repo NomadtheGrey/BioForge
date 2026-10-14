@@ -52,6 +52,8 @@ export interface UseToolInteractionsParams {
   removeFlora: (floraId: string) => void;
   /** Player facing snapped to 90° steps — placed structures inherit it. */
   getPlacementRotation: () => number;
+  /** Live player position — ceiling placement reads the player's side of a wall. */
+  getPlayerPosition: () => { x: number; z: number };
   tameFauna: (faunaId: string, customName: string, state: FaunaEntity['state']) => void;
   setFaunaCommand: (faunaId: string, cmd: 'follow' | 'stay' | 'guard') => void;
   setCodexList: React.Dispatch<React.SetStateAction<CodexEntry[]>>;
@@ -84,6 +86,7 @@ export function useToolInteractions({
   removeStructure,
   removeFlora,
   getPlacementRotation,
+  getPlayerPosition,
   tameFauna,
   setFaunaCommand,
   setCodexList,
@@ -600,6 +603,97 @@ export function useToolInteractions({
     [activeTool, handleTameFauna, handleScanTarget]
   );
 
+  // Builder on a wall/door panel — the two vertical verbs (Adam,
+  // 2026-10-14): with a PANEL selected, STACK it on top of the clicked
+  // panel (same edge, same facing, one story up). With a FLOOR selected,
+  // lay a CEILING: a floor one story above the clicked panel, over the
+  // cell on the PLAYER's side of the wall — the room you're standing in
+  // is the one you mean to roof.
+  const handleBuilderOnPanel = useCallback(
+    (panel: StructureEntity): void => {
+      if (!hasItem(selectedStructureType, 1)) {
+        postNotification(
+          'Insufficient Seed-Nodes',
+          `No ${ITEMS[selectedStructureType]?.name || selectedStructureType} remaining in pouch. Synthesize more at Bio-Forge [B].`,
+          'alert',
+          '#ef4444'
+        );
+        return;
+      }
+
+      const level = (panel.level ?? 0) + 1;
+
+      let spot;
+      if (isEdgePanel(selectedStructureType)) {
+        // Stack: same edge, one story up.
+        spot = {
+          gridX: panel.gridX,
+          gridZ: panel.gridZ,
+          worldX: panel.worldX,
+          worldZ: panel.worldZ,
+          level,
+        };
+      } else {
+        // Ceiling over the player's-side cell: for an east-west panel the
+        // two candidate cells are a meter north/south of the wall line;
+        // for a north-south panel, a meter east/west. (Panel lines sit on
+        // odd coordinates; cell centers on even ones — one step crosses.)
+        const player = getPlayerPosition();
+        const runsEastWest = Math.abs(Math.sin(panel.rotation)) < 0.7;
+        let cx: number;
+        let cz: number;
+        if (runsEastWest) {
+          cx = panel.worldX;
+          cz = panel.worldZ + (player.z >= panel.worldZ ? 1 : -1);
+        } else {
+          cx = panel.worldX + (player.x >= panel.worldX ? 1 : -1);
+          cz = panel.worldZ;
+        }
+        spot = { gridX: cx / 2, gridZ: cz / 2, worldX: cx, worldZ: cz, level };
+      }
+
+      const conflict = occupancyConflict(selectedStructureType, spot, structuresList);
+      if (conflict) {
+        postNotification(
+          'Story Occupied',
+          'Something is already built at that height there. Dissolve it with the Solvent Sprayer [4] to rebuild.',
+          'alert',
+          '#fbbf24'
+        );
+        return;
+      }
+
+      deductInventoryItem(selectedStructureType, 1);
+      soundEngine.playBuildPlace();
+
+      const newStruct: StructureEntity = {
+        id: 'struct_' + Math.random().toString(36).substring(2, 9),
+        type: selectedStructureType,
+        gridX: spot.gridX,
+        gridZ: spot.gridZ,
+        worldX: spot.worldX,
+        worldZ: spot.worldZ,
+        rotation: isEdgePanel(selectedStructureType) ? panel.rotation : 0,
+        level,
+        health: 120,
+        maxHealth: 120,
+        doorOpenProgress: 0,
+      };
+
+      addStructure(newStruct);
+      postNotification(
+        isEdgePanel(selectedStructureType) ? 'Story Stacked' : 'Ceiling Laid',
+        isEdgePanel(selectedStructureType)
+          ? `${ITEMS[selectedStructureType]?.name} grown on top — story ${level + 1} rises.`
+          : `${ITEMS[selectedStructureType]?.name} laid overhead — a ceiling below, the floor of story ${level + 1} above.`,
+        'craft',
+        '#a855f7'
+      );
+      multiplayerManager.broadcastEntityUpsert('structure', newStruct);
+    },
+    [selectedStructureType, hasItem, deductInventoryItem, addStructure, postNotification, structuresList, getPlayerPosition]
+  );
+
  const handleStructureInteract = useCallback(
   (structure: StructureEntity): void => {
     // Builder on flat surfaces: floors and mounds act as ground for placement
@@ -623,6 +717,15 @@ export function useToolInteractions({
       handlePlanterAction(structure.worldX, structure.worldZ);
       return;
     }
+    // Builder on a wall/door panel: stack a panel or lay a ceiling.
+    if (
+      activeTool === 'builder' &&
+      isEdgePanel(structure.type) &&
+      (isEdgePanel(selectedStructureType) || selectedStructureType === 'root_tile_floor')
+    ) {
+      handleBuilderOnPanel(structure);
+      return;
+    }
     if (activeTool === 'solvent_sprayer') {
       handleSolventSprayer(structure);
       return;
@@ -636,7 +739,7 @@ export function useToolInteractions({
       return;
     }
   },
-  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, handleGroundClick, handlePlanterAction, selectedSeedId, postNotification]
+  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, handleGroundClick, handlePlanterAction, selectedSeedId, selectedStructureType, handleBuilderOnPanel, postNotification]
 );
 
   return {

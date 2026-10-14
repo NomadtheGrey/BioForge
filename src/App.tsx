@@ -448,6 +448,22 @@ export default function App() {
     []
   );
 
+  // Per-cave PLAYER plantings (Adam, 2026-10-14: planted cave plants
+  // persist per-cave). Wild instance flora regenerates from the
+  // instanceId on every entry — only what the player planted by hand
+  // is remembered: captured from the live flora list when leaving a
+  // cave (and at save time, for saves taken mid-delve), merged back
+  // in on entry, and carried in the save record (saveSystem).
+  const cavePlantingsRef = useRef<Record<string, FloraEntity[]>>({});
+  const captureCavePlantings = useCallback((instanceId: string): void => {
+    cavePlantingsRef.current = {
+      ...cavePlantingsRef.current,
+      [instanceId]: floraListRef.current
+        .filter((f) => f.isPlayerPlanted)
+        .map((f) => ({ ...f })),
+    };
+  }, []);
+
   const handleEnterCave = useCallback(
     (mouth: StructureEntity): void => {
       if (instanceRef.current.kind !== 'surface') return;
@@ -535,7 +551,13 @@ export default function App() {
           swayOffset: f.cx * 3 + f.cy,
         });
       }
-      replaceWorld({ flora: caveFlora, fauna: [], structures: [exitPortal], drops: [] });
+      // The player's own plantings in THIS cave come back — captured
+      // on exit/save (cavePlantingsRef) — as fresh copies, so the
+      // record never shares object identity with the live list.
+      const plantedBack = (cavePlantingsRef.current[link.instanceId] ?? [])
+        .filter((p) => !caveFlora.some((f) => f.id === p.id))
+        .map((p) => ({ ...p }));
+      replaceWorld({ flora: [...caveFlora, ...plantedBack], fauna: [], structures: [exitPortal], drops: [] });
       engineRef.current?.setCavernMode(true, cavern);
       applyPlayerLevel(0);
       playerPosRef.current = { x: entry.x, z: entry.z, rotation: entryYaw };
@@ -549,6 +571,9 @@ export default function App() {
   const handleExitCave = useCallback((): void => {
     const inst = instanceRef.current;
     if (inst.kind !== 'cavern') return;
+    // Remember what the player planted down here before the instance
+    // list goes away — it is this cave's garden, kept per-cave.
+    captureCavePlantings(inst.instanceId);
     const mouth = inst.parked.structures.find((s) => s.id === inst.mouthId);
     // The return address is the anchor stored on the mouth at world
     // creation: 2 m out from the mouth, so the player lands OUTSIDE
@@ -564,7 +589,7 @@ export default function App() {
     engineRef.current?.setPlayerPosition(exitX, exitZ, 0);
     setInCavern(false);
     postNotification('Surface', 'You climb back into the open air.', 'system', '#38bdf8');
-  }, [replaceWorld, applyPlayerLevel, postNotification]);
+  }, [replaceWorld, applyPlayerLevel, postNotification, captureCavePlantings]);
 
   // Leaving an instance WITHOUT the portal (loading a save, starting
   // a new world, receiving a host's world): drop the cave so the
@@ -1150,7 +1175,13 @@ const saveNow = useCallback((): void => {
   if (!meta) return;
   if (multiplayerManager.isConnected && !multiplayerManager.isHost) return;
   const s = latestStateRef.current;
-  const record = buildSavedGame(meta, buildWorldSnapshot(), s.inventory, buildCurrentPlayerState(), s.dayNightCycle, s.codexList);
+  // A save taken mid-delve: capture the cave's plantings first (the
+  // snapshot itself still writes the parked surface world, so the
+  // player wakes up outside — with their cave garden on record).
+  if (instanceRef.current.kind === 'cavern') {
+    captureCavePlantings(instanceRef.current.instanceId);
+  }
+  const record = buildSavedGame(meta, buildWorldSnapshot(), s.inventory, buildCurrentPlayerState(), s.dayNightCycle, s.codexList, cavePlantingsRef.current);
   currentSaveRef.current = { ...meta, savedAt: record.savedAt };
   void storeSavedGame(record);
   // buildWorldSnapshot/buildCurrentPlayerState only read refs, so this
@@ -1182,6 +1213,9 @@ useEffect(() => {
 // pouch, player (state AND the loop's position ref), codex, and clock.
   const applySavedGame = (record: SavedGameRecord): void => {
     resetInstanceState();
+    // The world's per-cave plantings come back with it (older saves
+    // have none — an empty record, every cave wild).
+    cavePlantingsRef.current = record.cavePlantings ?? {};
     replaceWorld(record.world);
     restoreInventory(record.inventory);
     restorePlayerState(record.playerState);
@@ -1221,6 +1255,7 @@ useEffect(() => {
 
   const handleCreateSave = (name: string, difficulty: GameDifficulty, worldSeed: string): void => {
     resetInstanceState();
+    cavePlantingsRef.current = {};
     const meta = createSaveMetadata(name, difficulty, worldSeed);
     currentSaveRef.current = meta;
     // The seed earns its keep: a new world's flora and fauna are GROWN

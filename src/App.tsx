@@ -88,6 +88,7 @@ export default function App() {
     setSelectedStructureType,
     setSelectedSeedId,
     setSelectedFertilizerId,
+    setHeldItemId,
     setPlayerTransform,
     setStamina,
     setPlayerLevel,
@@ -345,14 +346,11 @@ export default function App() {
   const BOUNCE_VELOCITY = 12.5; // shroom launch: ~3.3 m peak — clears a story
   const STORY_HEIGHT_METERS = 2.4; // mirrors threeEngine's STORY_HEIGHT
   const jumpRef = useRef({ y: 0, vy: 0, bounceFlip: false });
-  // Throttle for the too-young-cap explanation: Space gets mashed,
-  // and the lesson only needs saying once every few seconds.
-  const lastYoungNoteRef = useRef(0);
 
   // Is a bounce available under the player's feet right now — and if
   // a shroom is there but the bounce can't work, why not? Pure check:
   // the caller decides about notifications and velocities.
-  const bounceCheck = (): { near: boolean; blocked: 'opening' | 'landing' | 'young' | null; shroomStage?: number } => {
+  const bounceCheck = (): { near: boolean; blocked: 'opening' | 'landing' | null } => {
     // Bounce-shrooms are ground plants (they never root on floors),
     // so the launch only exists on the ground story.
     if (playerLevelRef.current !== 0) return { near: false, blocked: null };
@@ -360,16 +358,10 @@ export default function App() {
     const shroom = floraListRef.current.find(
       (f) =>
         f.species === 'bounce_shroom' &&
+        f.growthStage >= BOUNCE_MIN_STAGE &&
         Math.hypot(f.x - pos.x, f.z - pos.z) < BOUNCE_RADIUS
     );
     if (!shroom) return { near: false, blocked: null };
-    // A cap underfoot that hasn't matured yet is its own verdict:
-    // the bounce used to fail SILENTLY here (plain hop, no reason
-    // given), which read as "the bounce is broken" in playtest. The
-    // caller explains it — stage 4 of 5 is the firing line.
-    if (shroom.growthStage < BOUNCE_MIN_STAGE) {
-      return { near: true, blocked: 'young', shroomStage: shroom.growthStage };
-    }
 
     const cellGX = Math.round(pos.x / 2);
     const cellGZ = Math.round(pos.z / 2);
@@ -408,20 +400,6 @@ export default function App() {
         'alert',
         '#fbbf24'
       );
-    }
-    if (bounce.near && bounce.blocked === 'young') {
-      // Throttled: the hop still happens, the lesson repeats at most
-      // every five seconds no matter how hard Space gets mashed.
-      const now = performance.now();
-      if (now - lastYoungNoteRef.current > 5000) {
-        lastYoungNoteRef.current = now;
-        postNotification(
-          'Too Young to Bounce',
-          `This cap is at growth stage ${bounce.shroomStage} of 5 — it only fires at maturity (stage 4). Fertilizer speeds the growing up.`,
-          'system',
-          '#38bdf8'
-        );
-      }
     }
     if (bounce.near && !bounce.blocked) {
       // The launch: big arc, story flip mid-flight (the game loop
@@ -1311,6 +1289,42 @@ useEffect(() => {
   // The HUD's Save button. saveNow() itself silently no-ops in exactly
   // the two cases guarded below, so this handler checks them first and
   // tells the player what happened instead of letting a click vanish.
+  // ------------------------------------------------------------------------
+  // Left Hand (Adam, 2026-10-14): the off-hand slot. Today it holds one
+  // thing — the Hand Lantern-Fern, a living torch. Taking it INTO the
+  // hand spends the pouch item; stowing returns it. The engine light
+  // follows PlayerState.heldItemId via the effect below, so saves,
+  // loads, and co-op world swaps all keep the light honest.
+  // ------------------------------------------------------------------------
+  const handleToggleHeldItem = useCallback((): void => {
+    const held = playerState.heldItemId;
+    if (held) {
+      addInventoryItem(held, 1);
+      setHeldItemId(null);
+      postNotification('Left Hand Free', `${ITEMS[held]?.name ?? 'Item'} stowed back in your pouch.`, 'craft', '#94a3b8');
+      return;
+    }
+    if (hasItem('hand_lantern_fern', 1)) {
+      deductInventoryItem('hand_lantern_fern', 1);
+      setHeldItemId('hand_lantern_fern');
+      postNotification('Lantern Raised', 'The Hand Lantern-Fern takes your left hand — its light goes where you go.', 'craft', '#22d3ee');
+    } else {
+      postNotification('Empty Left Hand', 'Craft a Hand Lantern-Fern at the Bio-Forge [B] to carry a light.', 'alert', '#fbbf24');
+    }
+  }, [playerState.heldItemId, addInventoryItem, deductInventoryItem, hasItem, setHeldItemId, postNotification]);
+
+  useEffect(() => {
+    engineRef.current?.setHeldLight(playerState.heldItemId === 'hand_lantern_fern');
+  }, [playerState.heldItemId]);
+
+  // Where the cave exit is, while inside a cavern — the radar's violet
+  // way-out arrow (HUD → Minimap) aims at it. On the surface: null.
+  const caveExitTarget = useMemo(() => {
+    if (!inCavern) return null;
+    const exit = structuresList.find((s) => s.type === 'cave_exit');
+    return exit ? { x: exit.worldX, z: exit.worldZ } : null;
+  }, [inCavern, structuresList]);
+
   const handleManualSave = (): void => {
     const meta = currentSaveRef.current;
     if (!meta) {
@@ -1619,6 +1633,8 @@ useEffect(() => {
         edgeZoneLabel={inCavern ? null : edgeZoneLabel}
         zoneCoordsLabel={inCavern ? 'Instanced Zone' : zoneCoordsLabel}
         inventory={inventory}
+        caveExitTarget={caveExitTarget}
+        onToggleHeldItem={handleToggleHeldItem}
         dayNightCycle={dayNightCycle}
         onToggleDayNight={() => {
           if (dayNightCycle > 0.5) {

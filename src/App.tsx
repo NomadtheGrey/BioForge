@@ -1544,26 +1544,39 @@ useEffect(() => {
   // the two cases guarded below, so this handler checks them first and
   // tells the player what happened instead of letting a click vanish.
   // ------------------------------------------------------------------------
-  // Left Hand (Adam, 2026-10-14): the off-hand slot. Today it holds one
-  // thing — the Hand Lantern-Fern, a living torch. Taking it INTO the
-  // hand spends the pouch item; stowing returns it. The engine light
-  // follows PlayerState.heldItemId via the effect below, so saves,
-  // loads, and co-op world swaps all keep the light honest.
+  // Left Hand (Adam, 2026-10-14): the off-hand slot for INSTRUMENTS —
+  // the Hand Lantern-Fern (a living torch) and the Prismatic Field
+  // Radar (minimap pings). Taking one INTO the hand spends the pouch
+  // item; stowing returns it. The engine light follows
+  // PlayerState.heldItemId via the effect below, so saves, loads,
+  // and co-op world swaps all keep the hand honest.
   // ------------------------------------------------------------------------
   const handleToggleHeldItem = useCallback((): void => {
+    // The Left Hand holds INSTRUMENTS, and the slot CYCLES the ones
+    // you own (Adam, 2026-10-14): click takes the first, click again
+    // swaps to the next, click past the last stows it. Lantern vs
+    // radar is a real choice in the dark — light, or knowledge.
+    const HOLDABLES: ItemId[] = ['hand_lantern_fern', 'prismatic_field_radar'];
     const held = playerState.heldItemId;
-    if (held) {
-      addInventoryItem(held, 1);
-      setHeldItemId(null);
-      postNotification('Left Hand Free', `${ITEMS[held]?.name ?? 'Item'} stowed back in your pouch.`, 'craft', '#94a3b8');
+    const owned = HOLDABLES.filter((id) => id === held || hasItem(id, 1));
+    if (owned.length === 0) {
+      postNotification('Empty Left Hand', 'Craft a Hand Lantern-Fern or a Prismatic Field Radar at the Bio-Forge [B] to hold an instrument.', 'alert', '#fbbf24');
       return;
     }
-    if (hasItem('hand_lantern_fern', 1)) {
-      deductInventoryItem('hand_lantern_fern', 1);
-      setHeldItemId('hand_lantern_fern');
-      postNotification('Lantern Raised', 'The Hand Lantern-Fern takes your left hand — its light goes where you go.', 'craft', '#22d3ee');
+    const idx = held ? owned.indexOf(held) : -1;
+    const next = owned[idx + 1] ?? null;
+    if (held) addInventoryItem(held, 1);
+    if (next) {
+      deductInventoryItem(next, 1);
+      setHeldItemId(next);
+      if (next === 'prismatic_field_radar') {
+        postNotification('Radar Raised', 'The Prismatic Field Radar takes your left hand — the minimap now pings caves, ruins, deep shafts, and rare lives.', 'craft', '#a855f7');
+      } else {
+        postNotification('Lantern Raised', 'The Hand Lantern-Fern takes your left hand — its light goes where you go.', 'craft', '#22d3ee');
+      }
     } else {
-      postNotification('Empty Left Hand', 'Craft a Hand Lantern-Fern at the Bio-Forge [B] to carry a light.', 'alert', '#fbbf24');
+      setHeldItemId(null);
+      postNotification('Left Hand Free', `${ITEMS[held as ItemId]?.name ?? 'Item'} stowed back in your pouch.`, 'craft', '#94a3b8');
     }
   }, [playerState.heldItemId, addInventoryItem, deductInventoryItem, hasItem, setHeldItemId, postNotification]);
 
@@ -1888,6 +1901,7 @@ useEffect(() => {
         zoneCoordsLabel={inCavern ? 'Instanced Zone' : zoneCoordsLabel}
         inventory={inventory}
         caveExitTarget={caveExitTarget}
+        radarActive={playerState.heldItemId === 'prismatic_field_radar'}
         onToggleHeldItem={handleToggleHeldItem}
         dayNightCycle={dayNightCycle}
         onToggleDayNight={() => {

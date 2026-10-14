@@ -177,9 +177,11 @@ placed clear of the homestead and the grown flora/fauna. A mouth is
 a `cave_mouth` structure — it rides the normal structures / save /
 sync pipeline — carrying its portal link (instance id + exit spawn)
 and dressing list as stored data; the engine renders the dressing
-(rock mound, black opening, boulders, path stones, biome accent) and
-the mouth is permanent (the solvent is refused) with its own
-collision and a violet halo. Mouths grow only at world creation;
+(rock mound, black opening, towering boulders, path stones, biome
+accent, and a pulsing, procedurally drawn glow sigil on the rock
+face above the opening — the entrance sign) and the mouth is
+permanent (the solvent is refused) with its own collision and a
+violet halo. Mouths grow only at world creation;
 existing saves keep their snapshots, per the persistence rule. Still
 ahead: the interior itself — transition, cavern rendering, and the
 portal trigger — as the next one-at-a-time step.

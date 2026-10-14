@@ -1,0 +1,12 @@
+{
+  // BioForge game site, hosted as a Cloudflare Worker serving static
+  // assets (the "modern" Cloudflare way — Pages is the legacy path).
+  // The game is a static Vite build: `npm run build` emits dist/, and
+  // Wrangler serves that folder as the site. No server code runs here;
+  // the multiplayer relay is a separate Worker (bioforge-relay repo).
+  "name": "bioforgegame",
+  "compatibility_date": "2025-01-01",
+  "assets": {
+    "directory": "./dist"
+  }
+}

@@ -1421,24 +1421,43 @@ export class BioForgeThreeEngine {
       const childrenBefore = sub.children.length;
       switch (piece.type) {
         case 'cave_mouth': {
-          // The opening: a black, flattened dome sunk into the mound,
-          // its flat axis aimed along the facing (rotation.y = PI/2 - f
-          // maps local +Z onto the facing's XZ direction).
+          // THE PORTAL BOULDER (Adam, 2026-10-14): one large rock whose
+          // outward face IS the entrance. It carries everything — the
+          // shaded opening sunk into its face, and the glow sigil stuck
+          // tangent onto its outside — instead of the sigil floating
+          // among the rubble boulders, embedded and unreachable.
+          // A flattened sphere: its convex front face sits ~0.35 m
+          // behind the anchor (rotation.y = PI/2 - f maps local +Z
+          // onto the facing's XZ direction). Scenery, not a hover
+          // target — the opening and its sign speak for the entrance.
+          const portalRock = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 18), rock);
+          portalRock.name = 'portalRock';
+          portalRock.scale.set(2.0 * s, 2.1 * s, 1.1 * s);
+          portalRock.position.set(dx - Math.cos(facing) * 1.45, 1.45 * s, dz - Math.sin(facing) * 1.45);
+          portalRock.rotation.y = Math.PI / 2 - facing;
+          portalRock.castShadow = true;
+          portalRock.raycast = () => {};
+          sub.add(portalRock);
+
+          // The opening: a black, flattened dome sunk INTO the portal
+          // rock's face — the shaded hollow that reads as the cave
+          // entrance itself, protruding just enough to catch the edge
+          // of the dark.
           const dome = new THREE.Mesh(new THREE.SphereGeometry(1.15, 20, 14), mouthBlack);
           dome.scale.set(1.25 * s, 0.95 * s, 0.55 * s);
-          dome.position.set(dx, 0.72 * s, dz);
+          dome.position.set(dx - Math.cos(facing) * 0.3, 0.72 * s, dz - Math.sin(facing) * 0.3);
           dome.rotation.y = Math.PI / 2 - facing;
           sub.add(dome);
 
-          // The SIGN: a procedurally drawn glow sigil (getCaveSigilTexture)
-          // standing TANGENT to the rock at the entrance face — out in
-          // front of the opening like a portal ring, bottom near the
-          // ground, flanks grazing the boulders — so it reads as the
-          // doorway itself, not a mystery glyph embedded in a mountain
-          // (Adam, 2026-10-14). Additive-blended, pulsed in
+          // The SIGN: the procedurally drawn glow sigil
+          // (getCaveSigilTexture) stuck TANGENT to the portal rock's
+          // face — its plane touches the convex rock at the face's
+          // center point (just proud of it) and kisses away at the
+          // edges, like a plate mounted on the stone. Sized to fit
+          // the boulder that holds it. Additive-blended, pulsed in
           // updateStructureMesh.
           const sigil = new THREE.Mesh(
-            new THREE.PlaneGeometry(3.4 * s, 3.4 * s),
+            new THREE.PlaneGeometry(2.9 * s, 2.9 * s),
             new THREE.MeshBasicMaterial({
               map: this.getCaveSigilTexture(),
               transparent: true,
@@ -1449,7 +1468,7 @@ export class BioForgeThreeEngine {
             }),
           );
           sigil.name = 'caveSigil';
-          sigil.position.set(dx + Math.cos(facing) * 0.95, 1.4 * s, dz + Math.sin(facing) * 0.95);
+          sigil.position.set(dx - Math.cos(facing) * 0.28, 1.5 * s, dz - Math.sin(facing) * 0.28);
           sigil.rotation.y = Math.PI / 2 - facing;
           sub.add(sigil);
           break;

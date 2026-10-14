@@ -1,0 +1,133 @@
+// ============================================================================
+// zones.ts — the world is a grid of zones; a zone HAS a biome
+// ============================================================================
+//
+// Adam's model (corrected 2026-10-14, superseding the lab's within-zone
+// biome patches): a biome is PER-ZONE. One zone — a 100 m × 100 m map —
+// has exactly one biome, and that biome is the zone's identity: it
+// drives the zone's generation rules (density, species affinity,
+// stamps, ground tint) uniformly across the whole zone. Biomes never
+// patchwork inside a zone.
+//
+// Zones tile the world on a coordinate grid. The SPAWN ZONE is (0, 0)
+// and is always a meadow — home ground is gentle, whatever the seed.
+// Every other zone's biome is derived deterministically from the world
+// seed + zone coordinates, in bands by HOP DISTANCE (Manhattan
+// distance on the zone grid — the same "distance = zones traveled"
+// measure the ruins placement model uses): near zones stay gentle,
+// far zones turn strange. Danger and strangeness rise with distance
+// from home, zone-shaped.
+//
+// Each zone also has a NAME — poetic flavor, per the pinned split
+// (biomes carry rules, names carry poetry) — drawn from pools that
+// MATCH its biome, so a meadow is never called something like "Amber
+// Thicket". The name is as deterministic as the biome: same seed +
+// same coordinates = same zone, forever, computed on demand without
+// the zone ever having been generated or visited. That is what lets
+// the HUD label the zone beyond the map's edge before travel exists.
+// ============================================================================
+
+import { createSeededRandom, hashStringToSeed } from './motion';
+import type { BiomeId } from './biomes';
+
+export interface ZoneCoords {
+  zx: number;
+  zz: number;
+}
+
+export interface ZoneInfo extends ZoneCoords {
+  biome: BiomeId;
+  name: string;
+  /** Zone-graph distance from the spawn zone (Manhattan / BFS hops). */
+  hops: number;
+}
+
+/** The spawn zone's coordinates — home. */
+export const SPAWN_ZONE: ZoneCoords = { zx: 0, zz: 0 };
+
+export function zoneHops(zx: number, zz: number): number {
+  return Math.abs(zx) + Math.abs(zz);
+}
+
+// ---------------------------------------------------------------------------
+// Biome by zone — hop bands, seeded pick within the band
+// ---------------------------------------------------------------------------
+
+// Which biomes are "on the table" at each hop distance, and their
+// weights. The gradient is the pinned world-progression rule in zone
+// form: meadow fades, wetland carries the near rings, fungal moves in,
+// and ember — the strange one — only exists 3+ zones out and dominates
+// the far field.
+const ZONE_BIOME_BANDS: { maxHops: number; table: [BiomeId, number][] }[] = [
+  { maxHops: 0, table: [['meadow', 1]] },
+  { maxHops: 1, table: [['meadow', 0.45], ['wetland', 0.55]] },
+  { maxHops: 2, table: [['meadow', 0.2], ['wetland', 0.4], ['fungal', 0.4]] },
+  { maxHops: 3, table: [['wetland', 0.25], ['fungal', 0.45], ['ember', 0.3]] },
+  { maxHops: 4, table: [['fungal', 0.45], ['ember', 0.55]] },
+  { maxHops: Infinity, table: [['fungal', 0.3], ['ember', 0.7]] },
+];
+
+/** A zone's biome: pure function of world seed + zone coordinates. */
+export function zoneBiomeAt(seedStr: string, zx: number, zz: number): BiomeId {
+  const hops = zoneHops(zx, zz);
+  if (hops === 0) return 'meadow'; // the spawn zone is always home ground
+  const band = ZONE_BIOME_BANDS.find((b) => hops <= b.maxHops) ?? ZONE_BIOME_BANDS[ZONE_BIOME_BANDS.length - 1];
+  // Own stream per zone: asking about one zone never perturbs another.
+  const rng = createSeededRandom(hashStringToSeed(`${seedStr}:zone-biome:${zx},${zz}`));
+  const total = band.table.reduce((sum, [, w]) => sum + w, 0);
+  let roll = rng() * total;
+  for (const [biome, w] of band.table) {
+    roll -= w;
+    if (roll <= 0) return biome;
+  }
+  return band.table[band.table.length - 1][0];
+}
+
+// ---------------------------------------------------------------------------
+// Zone names — poetic, biome-matched, deterministic
+// ---------------------------------------------------------------------------
+
+// Two-part names (modifier + landform) from per-biome pools, so the
+// name always fits the ecology: meadows are sunlit and gentle, ember
+// zones are scarred and strange. The game's four legacy quadrant names
+// live on inside the pools where they actually fit — "Turquoise Glade"
+// is a wetland name, "Violet Cradle" a fungal one (mycelial, violet),
+// "Prismatic Verge" an ember one.
+export const ZONE_NAME_PARTS: Record<BiomeId, { first: string[]; second: string[] }> = {
+  meadow: {
+    first: ['Sunlit', 'Verdant', 'Gentle', 'Golden', 'Whispering', 'Quiet'],
+    second: ['Vale', 'Meadow', 'Cradle', 'Reach', 'Downs', 'Expanse'],
+  },
+  wetland: {
+    first: ['Turquoise', 'Misty', 'Mirror', 'Still', 'Sedge'],
+    second: ['Glade', 'Marsh', 'Fen', 'Shallows', 'Reach'],
+  },
+  fungal: {
+    first: ['Violet', 'Spore', 'Umbral', 'Pale', 'Amber'],
+    second: ['Cradle', 'Hollow', 'Thicket', 'Grove', 'Vault'],
+  },
+  ember: {
+    first: ['Prismatic', 'Ember', 'Ashen', 'Scarlet', 'Glass'],
+    second: ['Verge', 'Scar', 'Flats', 'Crown', 'Wastes'],
+  },
+};
+
+/** A zone's name: pure function of world seed + coordinates + biome. */
+export function zoneNameFor(seedStr: string, zx: number, zz: number, biome: BiomeId): string {
+  const parts = ZONE_NAME_PARTS[biome];
+  const rng = createSeededRandom(hashStringToSeed(`${seedStr}:zone-name:${zx},${zz}`));
+  const first = parts.first[Math.floor(rng() * parts.first.length)];
+  const second = parts.second[Math.floor(rng() * parts.second.length)];
+  return `${first} ${second}`;
+}
+
+/** Everything the game needs to know about a zone, in one lookup. */
+export function zoneInfo(seedStr: string, zx: number, zz: number): ZoneInfo {
+  const biome = zoneBiomeAt(seedStr, zx, zz);
+  return { zx, zz, biome, name: zoneNameFor(seedStr, zx, zz, biome), hops: zoneHops(zx, zz) };
+}
+
+/** Display form of a biome id: 'fungal' -> 'Fungal'. */
+export function biomeDisplayName(biome: BiomeId): string {
+  return biome.charAt(0).toUpperCase() + biome.slice(1);
+}

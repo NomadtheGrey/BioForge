@@ -38,26 +38,29 @@
 // Generation runs ONCE, at world creation; the resulting entities are
 // what get saved — saves never regenerate.
 //
-// THE BIOME LAYER (P2, promoted 2026-10-14) now runs inside this
-// scatter: every candidate point's biome (biomes.ts — meadow / wetland
-// / fungal / ember, by distance ring + seeded noise) modulates whether
-// the scatter accepts it (biome density multipliers) and how much each
-// species wants it (biome affinity). Every generated entity is stamped
-// with the biome it grew in. Biome TYPE carries these rules; zone
-// NAMES stay a separate, purely poetic system, untouched by this file.
+// THE BIOME LAYER (P2) runs inside this scatter at ZONE scope (Adam's
+// per-zone model): the zone being generated has ONE biome — its
+// identity (zones.ts) — and that biome's density multipliers gate the
+// scatter while its affinity factor shapes species placement, for the
+// whole zone uniformly. Every generated entity is stamped with the
+// zone's biome. (v2 briefly stamped per-point biomes from a noise
+// field inside the zone; Adam corrected the model to per-zone the
+// same day, and v3 supersedes it.)
 // ============================================================================
 
 import { createNoise2D, createSeededRandom, hashStringToSeed } from './motion';
-import { biomeAt, biomeDensityFactor, biomeWeightFactor } from './biomes';
+import { biomeDensityFactor, biomeWeightFactor } from './biomes';
 import type { BiomeId } from './biomes';
+import { zoneBiomeAt } from './zones';
 import type { FaunaEntity, FaunaSpecies, FloraEntity, FloraSpecies } from '../types/game';
 
 /**
  * Stamp recorded on saves so future format/gen changes can migrate.
  * v1: the hybrid scatter (positions + distance species rule).
- * v2: + the biome layer (density modulation, species affinity, stamps).
+ * v2: + the biome layer, per-point (superseded within the day).
+ * v3: biome layer at zone scope — one biome per zone (zones.ts).
  */
-export const WORLD_GEN_VERSION = 2;
+export const WORLD_GEN_VERSION = 3;
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -362,11 +365,16 @@ export interface GeneratedWorld {
 }
 
 /**
- * Grow a new world's flora and fauna from its seed string.
- * Same seed -> same world, always. Called once at world creation
- * (App's handleCreateSave); the result is saved as concrete entities.
+ * Grow one ZONE's flora and fauna from the world seed string.
+ * Same seed + same zone -> same growth, always. Called once at world
+ * creation (App's handleCreateSave) for the spawn zone (0, 0); the
+ * result is saved as concrete entities. The zone coordinates decide
+ * the zone's biome (zones.ts) — the spawn zone is always a meadow.
  */
-export function generateSeededWorld(seedStr: string): GeneratedWorld {
+export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): GeneratedWorld {
+  // The zone's single biome — its identity — drives every biome rule
+  // below for the whole zone.
+  const zoneBiome: BiomeId = zoneBiomeAt(seedStr, zoneZx, zoneZz);
   // Independent streams per job: re-rolling positions must never reshuffle
   // species, and decoration (rotation/scale/speed jitter) touches neither.
   const floraPosRng = createSeededRandom(streamSeed(seedStr, 'flora:position:hybrid'));
@@ -391,13 +399,11 @@ export function generateSeededWorld(seedStr: string): GeneratedWorld {
   const faunaOx = (streamSeed(seedStr, 'fauna:ox') % 200) - 100;
   const faunaOz = (streamSeed(seedStr, 'fauna:oz') % 200) - 100;
 
-  // Biome density gates the scatter: each kind gets its own factor
-  // lookup (flora and fauna densities differ per biome — fungal ground
-  // grows plants fine but its fauna runs sparse).
-  const floraDensityAt = (x: number, z: number): number =>
-    biomeDensityFactor('flora', biomeAt(seedStr, x, z));
-  const faunaDensityAt = (x: number, z: number): number =>
-    biomeDensityFactor('fauna', biomeAt(seedStr, x, z));
+  // The zone biome's density gates the scatter — one factor per kind
+  // for the whole zone (flora and fauna densities differ per biome:
+  // a fungal zone grows plants fine but its fauna runs sparse).
+  const floraDensityAt = (): number => biomeDensityFactor('flora', zoneBiome);
+  const faunaDensityAt = (): number => biomeDensityFactor('fauna', zoneBiome);
 
   const floraScatter = scatterClustered(
     floraPosRng, floraField, floraOx, floraOz,
@@ -410,18 +416,21 @@ export function generateSeededWorld(seedStr: string): GeneratedWorld {
     [], faunaDensityAt,
   );
 
-  // Species want a point by distance AND by biome: the distance weight
-  // (far specialists still pick first) times the biome affinity factor
-  // (1 for 'all' species, home bonus in listed biomes, 0 outside them).
+  // Species want a point by distance AND by the zone's biome: the
+  // distance weight (far specialists still pick first) times the biome
+  // affinity factor for THIS zone (1 for 'all' species, home bonus in
+  // listed biomes, 0 in zones whose biome the species can't live in —
+  // with the census fallback in assignSpecies if that zeroes a species
+  // out of its own zone entirely).
   const floraDealt: { def: FloraSpeciesDef; point: PlacedPoint }[] = [
     ...fernPoints.map((point) => ({ def: fernDef, point })),
     ...assignSpecies(floraScatter.points, floraCensusRest, floraSpRng, (def, p) =>
-      distanceWeight(def, p.x, p.z) * biomeWeightFactor(def.biomes, biomeAt(seedStr, p.x, p.z)),
+      distanceWeight(def, p.x, p.z) * biomeWeightFactor(def.biomes, zoneBiome),
     ),
   ];
   const faunaDealt = assignSpecies(
     faunaScatter.points, FAUNA_CENSUS, faunaSpRng, (def, p) =>
-      distanceWeight(def, p.x, p.z) * biomeWeightFactor(def.biomes, biomeAt(seedStr, p.x, p.z)),
+      distanceWeight(def, p.x, p.z) * biomeWeightFactor(def.biomes, zoneBiome),
   );
 
   // Build full entities with the shipped starter world's shape: mature,
@@ -432,7 +441,7 @@ export function generateSeededWorld(seedStr: string): GeneratedWorld {
     species: d.def.species,
     x: d.point.x,
     z: d.point.z,
-    biome: biomeAt(seedStr, d.point.x, d.point.z),
+    biome: zoneBiome,
     rotation: decorRng() * Math.PI * 2,
     scale: 0.95 + decorRng() * 0.35,
     growthStage: 3,
@@ -451,7 +460,7 @@ export function generateSeededWorld(seedStr: string): GeneratedWorld {
     species: d.def.species,
     x: d.point.x,
     z: d.point.z,
-    biome: biomeAt(seedStr, d.point.x, d.point.z),
+    biome: zoneBiome,
     y: 0,
     rotation: decorRng() * Math.PI * 2,
     state: 'wandering',

@@ -85,6 +85,7 @@ export default function App() {
     setSelectedSeedId,
     setSelectedFertilizerId,
     setPlayerTransform,
+    setPlayerLevel,
     setStamina,
     restorePlayerState,
   } = usePlayerState();
@@ -177,6 +178,13 @@ export default function App() {
   const staminaRef = useRef(100);
   const lastStaminaSync = useRef(0);
   const playerPosRef = useRef({ x: playerState.x, z: playerState.z, rotation: playerState.rotation });
+  // The story the player stands on (0 = ground). The movement loop reads
+  // this ref; playerState.level is the persisted copy, kept in step by
+  // the mirror effect below and by setPlayerLevel at every transition.
+  const playerLevelRef = useRef(playerState.level ?? 0);
+  useEffect(() => {
+    playerLevelRef.current = playerState.level ?? 0;
+  }, [playerState.level]);
   const activeToolRef = useRef(playerState.activeTool);
   const selectedStructureRef = useRef(playerState.selectedStructureType);
   const isPointerLockedRef = useRef(isPointerLocked);
@@ -240,6 +248,10 @@ export default function App() {
     return Math.round(yaw / step) * step;
   }, []);
 
+  // Live player position for the tool hook (ceiling placement needs to
+  // know which side of a wall the player stands on).
+  const getPlayerPosition = useCallback((): { x: number; z: number } => playerPosRef.current, []);
+
   // 4. Encapsulated Tool Interactions
   const {
     handleGroundClick,
@@ -264,6 +276,7 @@ export default function App() {
     removeStructure,
     removeFlora,
     getPlacementRotation,
+    getPlayerPosition,
     tameFauna,
     setFaunaCommand,
     setCodexList,
@@ -338,11 +351,34 @@ export default function App() {
           inputState,
           isPaused,
           structuresListRef.current,
-          floraListRef.current
+          floraListRef.current,
+          playerLevelRef.current
         );
 
         playerPosRef.current.x = moveResult.x;
         playerPosRef.current.z = moveResult.z;
+
+        // Story support: above the ground story you stand on ceiling
+        // floors. Step off one (or have it dissolved under you) and you
+        // drop to the highest floor still present in this column, or
+        // to the ground. Runs after the move, so this frame's collision
+        // still used the level you started on.
+        if (playerLevelRef.current > 0) {
+          const cellX = Math.round(moveResult.x / 2);
+          const cellZ = Math.round(moveResult.z / 2);
+          let landing = 0;
+          let supported = false;
+          for (const s of structuresListRef.current) {
+            if (s.type !== 'root_tile_floor' || s.gridX !== cellX || s.gridZ !== cellZ) continue;
+            const l = s.level ?? 0;
+            if (l === playerLevelRef.current) supported = true;
+            if (l < playerLevelRef.current && l > landing) landing = l;
+          }
+          if (!supported) {
+            playerLevelRef.current = landing;
+            setPlayerLevel(landing);
+          }
+        }
 
         const isSprintingNow = wantSprint && moveResult.isMoving && !isPaused;
         const staminaDelta = isSprintingNow ? -18 * dt : (moveResult.isMoving ? 8 : 14) * dt;
@@ -365,13 +401,14 @@ export default function App() {
               moveResult.x,
               moveResult.z,
               playerPosRef.current.rotation,
-              activeToolRef.current
+              activeToolRef.current,
+              playerLevelRef.current
             );
           }
         }
 
         // Update Camera & Viewmodel dynamics using the exact same dt
-        engineRef.current.setPlayerPosition(moveResult.x, moveResult.z);
+        engineRef.current.setPlayerPosition(moveResult.x, moveResult.z, playerLevelRef.current);
         engineRef.current.updateViewmodelDynamics(dt, moveResult.isMoving);
 
         // Smooth Minimap Pos update (every 50ms)
@@ -858,9 +895,9 @@ useEffect(() => {
         setPeers(multiplayerManager.getConnectedPeers());
         engineRef.current?.removePeerAvatar(peerId);
       },
-      onPeerMove: (peerId, px, pz, prot) => {
+      onPeerMove: (peerId, px, pz, prot, _tool, level) => {
         const peer = peers.find((p) => p.id === peerId);
-        engineRef.current?.updatePeerAvatar(peerId, peer?.name || 'Explorer', px, pz, prot, peer?.color || '#38bdf8');
+        engineRef.current?.updatePeerAvatar(peerId, peer?.name || 'Explorer', px, pz, prot, peer?.color || '#38bdf8', level ?? 0);
       },
       onBuildPlaced: (structure) => {
         addStructure(structure);
@@ -956,7 +993,7 @@ useEffect(() => {
     if (!isConnected) return;
     const sendPresence = () => {
       const pos = playerPosRef.current;
-      multiplayerManager.broadcastPlayerMove(pos.x, pos.z, pos.rotation, activeToolRef.current);
+      multiplayerManager.broadcastPlayerMove(pos.x, pos.z, pos.rotation, activeToolRef.current, playerLevelRef.current);
     };
     sendPresence();
     const heartbeatId = setInterval(sendPresence, PEER_PRESENCE_HEARTBEAT_MS);

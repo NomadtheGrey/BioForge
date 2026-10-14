@@ -17,6 +17,8 @@ import {
   GameNotification,
 } from '../types/game';
 import { ITEMS } from '../game/constants';
+import { createSeededRandom, hashStringToSeed } from '../game/motion';
+import { ruinLoreLine } from '../game/ruinInterior';
 import { soundEngine } from '../audio/soundEngine';
 import { multiplayerManager } from '../game/multiplayer';
 import { FLORA_MATURE_SECONDS, FERTILIZER_DURATION_SECONDS } from './useWorldEntities';
@@ -33,6 +35,34 @@ const formatCollected = (collected: Map<ItemId, number>): string =>
   [...collected.entries()]
     .map(([id, n]) => `${n}x ${ITEMS[id]?.name || id}`)
     .join(', ');
+
+// Ruin cache loot (P4 interior): SEEDED BY THE CACHE'S ID, so the
+// host and every guest who could click it agree on what was inside —
+// no sync message carries loot. Depth band fattens the table: shallow
+// caches hold surface composites; deep ones hold cavern crystals and,
+// sometimes, a radar subassembly the precursors left behind.
+const RUIN_CACHE_POOLS: Record<'shallow' | 'mid' | 'deep', ItemId[]> = {
+  shallow: ['resin_sap', 'soft_fiber', 'dew_essence', 'carapace_scale'],
+  mid: ['resin_sap', 'dew_essence', 'carapace_scale', 'sunshard'],
+  deep: ['carapace_scale', 'dew_essence', 'sunshard', 'violet_prism'],
+};
+const RUIN_SUBASSEMBLIES: ItemId[] = ['resonant_antenna_fan', 'sonar_receiver', 'chitin_housing', 'biolume_power_cell'];
+const rollRuinCacheLoot = (cacheId: string, band: 'shallow' | 'mid' | 'deep'): [ItemId, number][] => {
+  const rng = createSeededRandom(hashStringToSeed(`ruin-cache:${cacheId}`));
+  const pool = RUIN_CACHE_POOLS[band];
+  const picks = band === 'shallow' ? 2 : 3;
+  const loot = new Map<ItemId, number>();
+  for (let i = 0; i < picks; i++) {
+    const item = pool[Math.floor(rng() * pool.length)];
+    loot.set(item, (loot.get(item) ?? 0) + 1 + Math.floor(rng() * 2));
+  }
+  // Deep caches: one time in four, a precursor subassembly survived.
+  if (band === 'deep' && rng() < 0.25) {
+    const sub = RUIN_SUBASSEMBLIES[Math.floor(rng() * RUIN_SUBASSEMBLIES.length)];
+    loot.set(sub, (loot.get(sub) ?? 0) + 1);
+  }
+  return [...loot.entries()];
+};
 
 // Taming odds per lure attempt, by species. The bait is eaten either way —
 // a failed attempt is a snack, not a refund. Docile species rarely refuse;
@@ -73,9 +103,18 @@ export interface UseToolInteractionsParams {
   onExitCave: () => void;
   /** Step down a cave descent shaft to the next depth level. */
   onDescendCave: (descent: StructureEntity) => void;
-  /** True while the player is inside an instanced cavern — building and
-   *  planting belong to the surface world and are refused underground. */
-  isInCavern: () => boolean;
+  /** Climb a vine shaft straight from a deep cavern level to the
+   *  surface (App owns the transition). */
+  onVineClimb: (shaft: StructureEntity) => void;
+  /** Step through a ruin landmark into its instanced interior (App
+   *  owns the transition: entity swap, engine ruin, teleport). */
+  onEnterRuin: (landmark: StructureEntity) => void;
+  /** Step through a ruin threshold back to the surface landmark. */
+  onExitRuin: () => void;
+  /** Which instance the player is inside, if any — building is
+   *  refused in both, planting is refused in ruins outright and
+   *  restricted to glow spores in caverns. */
+  instanceKind: () => 'surface' | 'cavern' | 'ruin';
   tameFauna: (faunaId: string, customName: string, state: FaunaEntity['state']) => void;
   setFaunaCommand: (faunaId: string, cmd: 'follow' | 'stay' | 'guard') => void;
   setCodexList: React.Dispatch<React.SetStateAction<CodexEntry[]>>;
@@ -114,7 +153,10 @@ export function useToolInteractions({
   onEnterCave,
   onExitCave,
   onDescendCave,
-  isInCavern,
+  onVineClimb,
+  onEnterRuin,
+  onExitRuin,
+  instanceKind,
   tameFauna,
   setFaunaCommand,
   setCodexList,
@@ -286,7 +328,7 @@ export function useToolInteractions({
       case 'glow_spore':
         // One spore stock, two forms: the cluster that rings surface
         // cave mouths, and glow fungus in the cavern dark.
-        return isInCavern() ? 'glow_fungus' : 'glow_spore_cluster';
+        return instanceKind() === 'cavern' ? 'glow_fungus' : 'glow_spore_cluster';
       default: return 'lantern_fern';
     }
   };
@@ -301,11 +343,15 @@ export function useToolInteractions({
       //  - On the surface, glow spores refuse domestic soil — they
       //    belong to the cavern dark (and to wild rings at cave mouths).
       if (!targetFlora) {
-        if (isInCavern() && speciesForSeed(selectedSeedId) !== 'glow_fungus') {
+        if (instanceKind() === 'ruin') {
+          postNotification('Barren Stone', 'The ruin floor is precursor stone — nothing takes hold here by hand. What grows in a ruin grows on its own terms.', 'alert', '#fbbf24');
+          return;
+        }
+        if (instanceKind() === 'cavern' && speciesForSeed(selectedSeedId) !== 'glow_fungus') {
           postNotification('Barren Rock', 'The cavern floor is bare stone — only glow spores take hold here, rising as glow fungus. The cave grows its own way.', 'alert', '#fbbf24');
           return;
         }
-        if (!isInCavern() && selectedSeedId === 'glow_spore') {
+        if (instanceKind() === 'surface' && selectedSeedId === 'glow_spore') {
           postNotification('Wrong Soil', 'Glow spores refuse domestic soil — plant them in the dark of a cavern, where they rise as glow fungus.', 'alert', '#fbbf24');
           return;
         }
@@ -393,7 +439,7 @@ export function useToolInteractions({
 
       addFlora(newFlora);
       multiplayerManager.broadcastEntityUpsert('flora', newFlora);
-      if (isInCavern()) {
+      if (instanceKind() === 'cavern') {
         // Planted cave flora PERSISTS per-cave (Adam's call,
         // 2026-10-14): App captures the player's plantings on exit
         // and at save time, and merges them back on the next entry —
@@ -780,8 +826,10 @@ export function useToolInteractions({
     (worldX: number, worldZ: number): void => {
       // Building belongs to the surface world in v1: pieces placed in
       // an instance would vanish when the instance closes.
-      if (isInCavern()) {
-        postNotification('Unstable Ground', 'The cavern rejects construction — for now. What you build belongs on the surface.', 'alert', '#fbbf24');
+      if (instanceKind() !== 'surface') {
+        postNotification('Unstable Ground', instanceKind() === 'ruin'
+          ? 'The ruin rejects construction — for now. What you build belongs on the surface.'
+          : 'The cavern rejects construction — for now. What you build belongs on the surface.', 'alert', '#fbbf24');
         return;
       }
       if (!hasItem(selectedStructureType, 1)) {
@@ -1205,6 +1253,36 @@ export function useToolInteractions({
       onDescendCave(structure);
       return;
     }
+    // The vine shaft is the third portal of the cave family: every
+    // ordinary tool CLIMBS it (App owns the ride to the surface),
+    // solvent is refused (the vine is alive), the scanner describes.
+    if (structure.type === 'vine_shaft') {
+      if (activeTool === 'solvent_sprayer') {
+        postNotification('Undissolvable', 'The vine is alive, and rooted deeper than the solvent can reach.', 'alert', '#fbbf24');
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onVineClimb(structure);
+      return;
+    }
+    // The ruin threshold is the ruin family's cave exit: every
+    // ordinary tool steps OUT through it (App owns the transition),
+    // solvent is refused, the scanner describes.
+    if (structure.type === 'ruin_exit') {
+      if (activeTool === 'solvent_sprayer') {
+        postNotification('Undissolvable', 'The threshold is part of the ruin itself — the solvent cannot take it.', 'alert', '#fbbf24');
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onExitRuin();
+      return;
+    }
     if (
       activeTool === 'builder' &&
       !isEdgePanel(structure.type) &&
@@ -1236,8 +1314,9 @@ export function useToolInteractions({
     }
     // Ruin landmarks are world-grown too (P4 surface stage): the
     // solvent can't take them, the scanner reads them, and every
-    // other tool hears the truth — the interior isn't open yet.
-    // Its stage is the next build; today the gate is a promise.
+    // other tool STEPS INSIDE (P4 interior stage — App generates the
+    // interior from the landmark's link record). 'Traces' landmarks
+    // are surface remnants only: there is no inside to enter.
     if (structure.type === 'ruin_landmark') {
       if (activeTool === 'solvent_sprayer') {
         postNotification('Undissolvable', 'Ancient stone shrugs off the solvent — precursor ruins are part of the world, not your building.', 'alert', '#fbbf24');
@@ -1249,9 +1328,72 @@ export function useToolInteractions({
       }
       if (structure.ruin?.tier === 'traces') {
         postNotification('A Scattered Remnant', 'Broken shards of something far older, half-swallowed by the soil. Whatever stood here, only its teeth remain.', 'system', '#a8a29e');
-      } else {
-        postNotification('Sealed Ruin', 'The gate stands, but the way in is not open — not yet. Whatever sleeps below this stone is a story for another delve.', 'system', '#a8a29e');
+        return;
       }
+      onEnterRuin(structure);
+      return;
+    }
+    // Ruin interior contents (P4): caches and the artifact heart are
+    // one-shot loot — the harvest glove works their seals, then
+    // they're spent (the interior regenerates pristine next entry,
+    // like wild cave flora). Glyphs are read, not taken. Solvent is
+    // refused on all of it; the scanner describes instead.
+    if (structure.type === 'precursor_cache' || structure.type === 'artifact_heart') {
+      if (activeTool === 'solvent_sprayer') {
+        postNotification('Undissolvable', 'Precursor work outlasts solvent — whatever this holds, it keeps until opened properly.', 'alert', '#fbbf24');
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      if (activeTool !== 'harvest_glove') {
+        postNotification(
+          structure.type === 'artifact_heart' ? 'The Artifact Heart' : 'A Sealed Cache',
+          'The harvest glove works the seal — other tools would only scar it.',
+          'system',
+          '#a8a29e'
+        );
+        return;
+      }
+      const band = structure.ruinFeature?.band ?? 'shallow';
+      const fate = structure.ruinFeature?.fate ?? 'gardeners';
+      const collected = new Map<ItemId, number>();
+      if (structure.type === 'artifact_heart') {
+        // The deepest room's prize: precursor shards + essence, and
+        // the fate's heart line — the closest thing to an ending the
+        // ruins ever state outright.
+        collected.set('precursor_shard', 2);
+        collected.set('dew_essence', 2);
+        for (const [item, n] of collected) addInventoryItem(item, n);
+        triggerHarvestFx(structure.worldX, structure.worldZ);
+        removeStructure(structure.id);
+        postNotification('The Heart of the Ruin', `${ruinLoreLine(fate, 'heart')} Taken: ${formatCollected(collected)}.`, 'discover', '#fb7185');
+      } else {
+        for (const [item, n] of rollRuinCacheLoot(structure.id, band)) {
+          addInventoryItem(item, n);
+          collected.set(item, n);
+        }
+        triggerHarvestFx(structure.worldX, structure.worldZ);
+        removeStructure(structure.id);
+        postNotification('Cache Opened', `The seal gives with a sigh of old air. Collected ${formatCollected(collected)}.`, 'harvest', '#67e8f9');
+      }
+      return;
+    }
+    if (structure.type === 'ruin_glyph') {
+      if (activeTool === 'solvent_sprayer') {
+        postNotification('Undissolvable', 'The glyph has outlasted centuries and worse than solvent.', 'alert', '#fbbf24');
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      // Reading a glyph serves the fate's lore line for its band —
+      // the story is the loot. Repeatable: stones don't mind.
+      const band = structure.ruinFeature?.band === 'deep' ? 'deep' : 'shallow';
+      const fate = structure.ruinFeature?.fate ?? 'gardeners';
+      postNotification('What the Stone Remembers', ruinLoreLine(fate, band), 'system', '#a5b4fc');
       return;
     }
     // Vine ladders: builder grows them (on a wall, or up from a ladder);

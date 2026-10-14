@@ -38,7 +38,8 @@ export class FirstPersonMovementController {
     input: ControllerInputState,
     isPaused: boolean,
     structures: StructureEntity[],
-    flora: FloraEntity[]
+    flora: FloraEntity[],
+    playerLevel: number = 0
   ): { x: number; z: number; isMoving: boolean } {
     // Guard Clause 1: If Esc / pause mode is active, damp velocity immediately and return
     if (isPaused) {
@@ -51,11 +52,17 @@ export class FirstPersonMovementController {
       return { x: currentX, z: currentZ, isMoving: false };
     }
 
-    // Wilderness is rough: full speed on root-tile floors, 25% slower off them
+    // Wilderness is rough: full speed on root-tile floors, 25% slower off
+    // them. Only the floor of the story you're standing on counts — a
+    // ceiling overhead is not footing, and the floor below your floor
+    // isn't either.
     let onFloor = false;
     for (let i = 0; i < structures.length; i++) {
       const s = structures[i];
       if (s.type !== 'root_tile_floor') {
+        continue;
+      }
+      if ((s.level ?? 0) !== playerLevel) {
         continue;
       }
       if (Math.abs(s.worldX - currentX) < 1.1 && Math.abs(s.worldZ - currentZ) < 1.1) {
@@ -135,7 +142,8 @@ export class FirstPersonMovementController {
       deltaX,
       deltaZ,
       structures,
-      flora
+      flora,
+      playerLevel
     );
 
     // If movement was blocked along an axis, zero out that velocity component

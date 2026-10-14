@@ -145,6 +145,12 @@ export interface StructureEntity {
   worldX: number;
   worldZ: number;
   rotation: number;
+  /**
+   * Story level: 0 (or absent, in older saves) = ground story. A wall at
+   * level 1 stands on a level-0 wall; a floor at level 1 is a ceiling
+   * from below and the floor of the second story from above.
+   */
+  level?: number;
   health: number;
   maxHealth: number;
   doorOpenProgress: number; // 0 closed, 1 open
@@ -202,6 +208,8 @@ export interface PlayerState {
   x: number;
   z: number;
   rotation: number;
+  /** Which story the player stands on (0 = ground). See StructureEntity.level. */
+  level: number;
   health: number;
   maxHealth: number;
   stamina: number;

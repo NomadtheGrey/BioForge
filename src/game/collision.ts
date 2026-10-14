@@ -24,9 +24,18 @@ const WORLD_BOUNDARY = 48.0;
 function isCollidingWithStructure(
   candidateX: number,
   candidateZ: number,
-  structures: StructureEntity[]
+  structures: StructureEntity[],
+  playerLevel: number = 0
 ): boolean {
   return structures.some((s) => {
+    // Collision is scoped to the story the player is standing on: a
+    // second-story wall must not block someone walking beneath it, and
+    // a ground-floor forge must not block someone crossing the floor
+    // above it.
+    if ((s.level ?? 0) !== playerLevel) {
+      return false;
+    }
+
     // Iris doors allow passage when opened (> 65% open)
     if (s.type === 'iris_slit_door' && s.doorOpenProgress > 0.65) {
       return false;
@@ -66,8 +75,14 @@ function isCollidingWithStructure(
 function isCollidingWithFlora(
   candidateX: number,
   candidateZ: number,
-  floraList: FloraEntity[]
+  floraList: FloraEntity[],
+  playerLevel: number = 0
 ): boolean {
+  // Plants live on the ground story; a player crossing an upper floor
+  // passes over them, not through them.
+  if (playerLevel > 0) {
+    return false;
+  }
   return floraList.some((f) => {
     // Only mature dense or hazardous flora have physical collision
     if (f.growthStage < 2) return false;
@@ -88,15 +103,16 @@ export function resolveMovementWithCollision(
   desiredDeltaX: number,
   desiredDeltaZ: number,
   structures: StructureEntity[],
-  floraList: FloraEntity[]
+  floraList: FloraEntity[],
+  playerLevel: number = 0
 ): { x: number; z: number } {
   // 1. Check full displacement
   const targetX = Math.max(-WORLD_BOUNDARY, Math.min(WORLD_BOUNDARY, currentX + desiredDeltaX));
   const targetZ = Math.max(-WORLD_BOUNDARY, Math.min(WORLD_BOUNDARY, currentZ + desiredDeltaZ));
 
   const collidesFull =
-    isCollidingWithStructure(targetX, targetZ, structures) ||
-    isCollidingWithFlora(targetX, targetZ, floraList);
+    isCollidingWithStructure(targetX, targetZ, structures, playerLevel) ||
+    isCollidingWithFlora(targetX, targetZ, floraList, playerLevel);
 
   if (!collidesFull) {
     return { x: targetX, z: targetZ };
@@ -104,13 +120,13 @@ export function resolveMovementWithCollision(
 
   // 2. Slide check on X axis independently
   const collidesXOnly =
-    isCollidingWithStructure(targetX, currentZ, structures) ||
-    isCollidingWithFlora(targetX, currentZ, floraList);
+    isCollidingWithStructure(targetX, currentZ, structures, playerLevel) ||
+    isCollidingWithFlora(targetX, currentZ, floraList, playerLevel);
 
   // 3. Slide check on Z axis independently
   const collidesZOnly =
-    isCollidingWithStructure(currentX, targetZ, structures) ||
-    isCollidingWithFlora(currentX, targetZ, floraList);
+    isCollidingWithStructure(currentX, targetZ, structures, playerLevel) ||
+    isCollidingWithFlora(currentX, targetZ, floraList, playerLevel);
 
   if (!collidesXOnly && collidesZOnly) {
     return { x: targetX, z: currentZ };

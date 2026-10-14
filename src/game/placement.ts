@@ -46,6 +46,9 @@ export interface PlacementSpot {
   gridZ: number;
   worldX: number;
   worldZ: number;
+  /** Story level (0 = ground). Ground-aim placement is always level 0;
+   * stacking/ceiling placement (clicking a panel) sets higher levels. */
+  level: number;
 }
 
 /**
@@ -65,7 +68,7 @@ export function placementFor(
   const cz = gridZ * CELL_SIZE;
 
   if (!isEdgePanel(type)) {
-    return { gridX, gridZ, worldX: cx, worldZ: cz };
+    return { gridX, gridZ, worldX: cx, worldZ: cz, level: 0 };
   }
 
   // Panel orientation comes from the facing: sin(rotation) ≈ 0 means
@@ -74,10 +77,10 @@ export function placementFor(
   const runsEastWest = Math.abs(Math.sin(rotation)) < 0.7;
   if (runsEastWest) {
     const side = aimZ >= cz ? 1 : -1;
-    return { gridX, gridZ, worldX: cx, worldZ: cz + side };
+    return { gridX, gridZ, worldX: cx, worldZ: cz + side, level: 0 };
   }
   const side = aimX >= cx ? 1 : -1;
-  return { gridX, gridZ, worldX: cx + side, worldZ: cz };
+  return { gridX, gridZ, worldX: cx + side, worldZ: cz, level: 0 };
 }
 
 /**
@@ -93,12 +96,17 @@ export function occupancyConflict(
 ): StructureEntity | undefined {
   if (isEdgePanel(type)) {
     return structures.find(
-      (s) => isEdgePanel(s.type) && s.worldX === spot.worldX && s.worldZ === spot.worldZ,
+      (s) =>
+        isEdgePanel(s.type) &&
+        (s.level ?? 0) === spot.level &&
+        s.worldX === spot.worldX &&
+        s.worldZ === spot.worldZ,
     );
   }
   const placingGroundLayer = GROUND_LAYER_TYPES.includes(type);
   return structures.find((s) => {
     if (s.gridX !== spot.gridX || s.gridZ !== spot.gridZ) return false;
+    if ((s.level ?? 0) !== spot.level) return false; // each story has its own layers
     if (isEdgePanel(s.type)) return false; // panels live on edges, not in the cell's layers
     return GROUND_LAYER_TYPES.includes(s.type) === placingGroundLayer;
   });

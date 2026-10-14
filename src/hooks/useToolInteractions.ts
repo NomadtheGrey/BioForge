@@ -694,8 +694,90 @@ export function useToolInteractions({
     [selectedStructureType, hasItem, deductInventoryItem, addStructure, postNotification, structuresList, getPlayerPosition]
   );
 
+  // Builder on a CEILING tile with a floor selected: GROW the ceiling
+  // one tile in the direction the player faces. Wall-clicks can only
+  // roof cells that touch a wall — the middle of a wide room touches
+  // none (Adam's 3x3 question, 2026-10-14) — so ceilings extend from
+  // themselves, tile by tile, toward where you're looking. Works from
+  // below (aim up at the ceiling's edge, face the gap) and from above
+  // once you can get up there.
+  const handleGrowCeiling = useCallback(
+    (tile: StructureEntity): void => {
+      if (!hasItem('root_tile_floor', 1)) {
+        postNotification(
+          'Insufficient Seed-Nodes',
+          `No ${ITEMS['root_tile_floor']?.name || 'root_tile_floor'} remaining in pouch. Synthesize more at Bio-Forge [B].`,
+          'alert',
+          '#ef4444'
+        );
+        return;
+      }
+
+      const rotation = getPlacementRotation();
+      const dx = Math.round(Math.sin(rotation));
+      const dz = Math.round(Math.cos(rotation));
+      const level = tile.level ?? 0;
+      const spot = {
+        gridX: tile.gridX + dx,
+        gridZ: tile.gridZ + dz,
+        worldX: tile.worldX + dx * 2,
+        worldZ: tile.worldZ + dz * 2,
+        level,
+      };
+
+      if (occupancyConflict('root_tile_floor', spot, structuresList)) {
+        postNotification(
+          'Story Occupied',
+          'That tile is already covered at this height.',
+          'alert',
+          '#fbbf24'
+        );
+        return;
+      }
+
+      deductInventoryItem('root_tile_floor', 1);
+      soundEngine.playBuildPlace();
+
+      const newStruct: StructureEntity = {
+        id: 'struct_' + Math.random().toString(36).substring(2, 9),
+        type: 'root_tile_floor',
+        gridX: spot.gridX,
+        gridZ: spot.gridZ,
+        worldX: spot.worldX,
+        worldZ: spot.worldZ,
+        rotation: 0,
+        level,
+        health: 120,
+        maxHealth: 120,
+        doorOpenProgress: 0,
+      };
+
+      addStructure(newStruct);
+      postNotification(
+        'Ceiling Grown',
+        `${ITEMS['root_tile_floor']?.name} extended overhead — story ${level + 1}'s floor grows toward your facing.`,
+        'craft',
+        '#a855f7'
+      );
+      multiplayerManager.broadcastEntityUpsert('structure', newStruct);
+    },
+    [hasItem, deductInventoryItem, addStructure, postNotification, structuresList, getPlacementRotation]
+  );
+
  const handleStructureInteract = useCallback(
   (structure: StructureEntity): void => {
+    // Builder on a ceiling tile with a floor selected: grow the ceiling
+    // toward your facing — checked BEFORE the flat-surface routing,
+    // which would otherwise treat the tile as ground.
+    if (
+      activeTool === 'builder' &&
+      structure.type === 'root_tile_floor' &&
+      (structure.level ?? 0) > 0 &&
+      selectedStructureType === 'root_tile_floor'
+    ) {
+      handleGrowCeiling(structure);
+      return;
+    }
     // Builder on flat surfaces: floors and mounds act as ground for placement
     if (activeTool === 'builder' && (structure.type === 'root_tile_floor' || structure.type === 'cultivation_mound')) {
       handleGroundClick(structure.worldX, structure.worldZ);
@@ -739,7 +821,7 @@ export function useToolInteractions({
       return;
     }
   },
-  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, handleGroundClick, handlePlanterAction, selectedSeedId, selectedStructureType, handleBuilderOnPanel, postNotification]
+  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, handleGroundClick, handlePlanterAction, selectedSeedId, selectedStructureType, handleBuilderOnPanel, handleGrowCeiling, postNotification]
 );
 
   return {

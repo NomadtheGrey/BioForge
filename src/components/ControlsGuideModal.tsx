@@ -116,7 +116,7 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({
                   <span className="font-mono bg-slate-800 px-1.5 py-0.2 rounded text-[11px]">[6]</span>
                   <span>Bio-Builder</span>
                 </div>
-                <p className="text-[11px] text-slate-400">Grows interlocking root floors, chitin-glass walls, and proximity iris doors on grid cells. Pieces face the way you face (90° steps) — turn to make corners. Click a wall with a wall selected to stack a story; with a floor selected to lay a ceiling over your side.</p>
+                <p className="text-[11px] text-slate-400">Grows interlocking root floors, chitin-glass walls, and proximity iris doors on grid cells. Pieces face the way you face (90° steps) — turn to make corners. Click a wall with a wall selected to stack a story; with a floor selected to lay a ceiling over your side; then click a ceiling tile to grow it toward where you face, middle tiles included.</p>
               </div>
             </div>
           </div>

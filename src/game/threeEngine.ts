@@ -21,6 +21,7 @@ import { BrownianWiggle, hashStringToSeed, type WiggleOptions } from './motion';
 import { BIOME_TINTS } from './biomes';
 import type { BiomeId } from './biomes';
 import { cavernCellToWorld, type CavernResult } from './cavern';
+import { FATE_STYLES, type WorldFate } from './ruins';
 
 const IRIS_DOOR_TRIGGER_RADIUS = 2.5;
 // Structures sit on ROLLING terrain (see terrainHeightAt): floors ride
@@ -284,6 +285,22 @@ export class BioForgeThreeEngine {
       mound.scale.set(1.25, 0.72, 1.1);
       mound.castShadow = true;
       group.add(mound);
+      return group;
+    },
+    // Ruin landmark: the registry needs an entry, but a ruin's real
+    // look is its per-entity DRESSING (game/ruins.ts) — broken pillars
+    // and stubs tinted by the world's fate — which only the entity
+    // knows. This base is a low stone dais so a landmark never renders
+    // as nothing; createStructureMesh layers the dressing on top.
+    'ruin_landmark': () => {
+      const group = new THREE.Group();
+      const dais = new THREE.Mesh(
+        new THREE.CylinderGeometry(2.3, 2.6, 0.28, 9),
+        new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.95 }),
+      );
+      dais.position.y = 0.12;
+      dais.castShadow = true;
+      group.add(dais);
       return group;
     },
     // The portal home inside an instanced cavern: a standing ring of
@@ -1384,7 +1401,12 @@ export class BioForgeThreeEngine {
       // baked from the entity's own link record at creation, so the
       // kind includes the instance — a different world's mouth with
       // the same id must not inherit this world's rocks.
-      const kindKey = s.type === 'cave_mouth' ? `cave_mouth:${s.cave?.instanceId ?? ''}` : s.type;
+      const kindKey =
+        s.type === 'cave_mouth'
+          ? `cave_mouth:${s.cave?.instanceId ?? ''}`
+          : s.type === 'ruin_landmark'
+            ? `ruin_landmark:${s.ruin?.instanceId ?? ''}`
+            : s.type;
       const mesh = this.ensureBoundMesh(this.structureMeshMap, this.structuresGroup, s, kindKey, (e) => this.createStructureMesh(e));
       this.updateStructureMesh(mesh, s);
     });
@@ -1444,6 +1466,12 @@ export class BioForgeThreeEngine {
       if (structure.cave?.dressing?.length) {
         group.add(this.buildCaveDressing(structure));
       }
+    }
+    // Ruin landmarks wear their generated dressing too — and like the
+    // cave mouth, only ONE piece speaks for the place (the threshold
+    // stone at the gate), so rubble never reports the wrong name.
+    if (structure.type === 'ruin_landmark' && structure.ruin) {
+      group.add(this.buildRuinDressing(structure));
     }
     return group;
   }
@@ -1617,6 +1645,122 @@ export class BioForgeThreeEngine {
           });
         }
       }
+    }
+    return sub;
+  }
+
+  /**
+   * Render one ruin landmark: its dressing pieces (broken stone in the
+   * world's fate tint — game/ruins.ts FATE_STYLES) plus, for any tier
+   * above traces, the GATE: two standing pillars and a lintel at the
+   * anchor, with a threshold stone that alone answers the raycaster
+   * (hovering rubble must not report the ruin, same rule as caves).
+   * Same counter-rotated subgroup convention as buildCaveDressing:
+   * piece positions are anchor-relative world offsets.
+   */
+  private buildRuinDressing(structure: StructureEntity): THREE.Group {
+    const sub = new THREE.Group();
+    sub.rotation.y = -(structure.rotation ?? 0);
+    const facing = structure.rotation ?? 0;
+    const ruin = structure.ruin!;
+    // The fate tints the stone: grey rock pulled toward the fate's
+    // color, so one world's ruins read differently from another's
+    // before a single clue is understood.
+    const fateTint = new THREE.Color(FATE_STYLES[ruin.fate as WorldFate]?.tint ?? 0xa8a29e);
+    const stoneColor = new THREE.Color(0x8a8378).lerp(fateTint, 0.38);
+    const stone = new THREE.MeshStandardMaterial({ color: stoneColor, roughness: 0.92 });
+    const stoneDark = new THREE.MeshStandardMaterial({ color: stoneColor.clone().multiplyScalar(0.62), roughness: 0.95 });
+    const silent = (m: THREE.Mesh): THREE.Mesh => {
+      m.raycast = () => {};
+      m.castShadow = true;
+      return m;
+    };
+
+    for (const piece of ruin.dressing) {
+      const dx = piece.x - structure.worldX;
+      const dz = piece.z - structure.worldZ;
+      const s = piece.scale;
+      switch (piece.type) {
+        case 'pillar': {
+          const m = silent(new THREE.Mesh(new THREE.BoxGeometry(0.72, 2.6, 0.72), stone));
+          m.position.set(dx, 1.3 * s - 0.18, dz);
+          m.rotation.set(Math.sin(piece.rotation) * 0.05, piece.rotation, Math.cos(piece.rotation) * 0.05);
+          m.scale.setScalar(s);
+          sub.add(m);
+          break;
+        }
+        case 'toppled_pillar': {
+          const m = silent(new THREE.Mesh(new THREE.BoxGeometry(0.72, 2.6, 0.72), stoneDark));
+          m.position.set(dx, 0.36 * s, dz);
+          m.rotation.set(0, piece.rotation, Math.PI / 2 - 0.06);
+          m.scale.setScalar(s);
+          sub.add(m);
+          break;
+        }
+        case 'wall_stub': {
+          const m = silent(new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.95, 0.5), stone));
+          m.position.set(dx, 0.42 * s, dz);
+          m.rotation.y = piece.rotation;
+          m.scale.setScalar(s);
+          sub.add(m);
+          break;
+        }
+        case 'arch_fragment': {
+          const m = silent(new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.42, 0.55), stoneDark));
+          m.position.set(dx, 0.24 * s, dz);
+          m.rotation.set(0.12, piece.rotation, 0.08);
+          m.scale.setScalar(s);
+          sub.add(m);
+          break;
+        }
+        case 'shard': {
+          const m = silent(new THREE.Mesh(new THREE.ConeGeometry(0.32, 1.15, 5), stone));
+          m.position.set(dx, 0.5 * s, dz);
+          m.rotation.y = piece.rotation;
+          m.scale.setScalar(s);
+          sub.add(m);
+          break;
+        }
+        case 'rubble': {
+          const m = silent(new THREE.Mesh(new THREE.DodecahedronGeometry(0.5, 0), stoneDark));
+          m.position.set(dx, 0.22 * s, dz);
+          m.rotation.set(piece.rotation, piece.rotation * 1.7, 0);
+          m.scale.set(s, s * 0.55, s);
+          sub.add(m);
+          break;
+        }
+      }
+    }
+
+    // THE GATE (not for traces — a remnant has no door): two pillars
+    // flanking the approach and the lintel that joins them, all
+    // raycast-silent scenery; the THRESHOLD stone between them is
+    // the one interactive piece, the ruin's doorstep.
+    if (ruin.tier !== 'traces') {
+      const perpX = -Math.sin(facing);
+      const perpZ = Math.cos(facing);
+      const gate = new THREE.Group();
+      gate.name = 'ruinGate';
+      for (const sideSign of [-1, 1]) {
+        const pillar = silent(new THREE.Mesh(new THREE.BoxGeometry(0.78, 3.1, 0.78), stone));
+        pillar.position.set(perpX * 1.7 * sideSign + Math.cos(facing) * 0.4, 1.38, perpZ * 1.7 * sideSign + Math.sin(facing) * 0.4);
+        gate.add(pillar);
+      }
+      const lintel = silent(new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.55, 4.3), stoneDark));
+      lintel.position.set(Math.cos(facing) * 0.4, 3.05, Math.sin(facing) * 0.4);
+      lintel.rotation.y = Math.PI / 2 - facing;
+      gate.add(lintel);
+      gate.traverse((o) => {
+        if ((o as THREE.Mesh).isMesh) o.raycast = () => {};
+      });
+      sub.add(gate);
+
+      const threshold = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.22, 2.6), stoneDark);
+      threshold.name = 'ruinThreshold';
+      threshold.position.set(Math.cos(facing) * 0.95, 0.1, Math.sin(facing) * 0.95);
+      threshold.rotation.y = Math.PI / 2 - facing;
+      threshold.castShadow = true;
+      sub.add(threshold);
     }
     return sub;
   }
@@ -2366,6 +2510,10 @@ private initEventListeners() {
                 ? 'The way back up · Permanent — not solvent recyclable'
                 : s.type === 'cave_descent'
                   ? 'The cavern continues below · Permanent — not solvent recyclable'
+                  : s.type === 'ruin_landmark'
+                    ? s.ruin?.tier === 'traces'
+                      ? 'A scattered remnant of something older · Permanent — not solvent recyclable'
+                      : 'Precursor ruin · The way in is not open yet · Permanent — not solvent recyclable'
                   : `Integrity: ${s.health}/${s.maxHealth} (Solvent Recyclable)`,
           entity: s,
         });

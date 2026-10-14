@@ -102,6 +102,13 @@ export interface SavedGameRecord extends SaveMetadata {
   playerState: PlayerState;
   dayNightCycle: number;
   codexList: CodexEntry[];
+  /** Flora the PLAYER planted inside cavern instances, keyed by the
+   * cavern's instanceId (Adam, 2026-10-14: planted cave plants persist
+   * per-cave). The wild instance flora is NOT stored — instances
+   * regenerate from their id on entry — only the player's own
+   * plantings ride the save, and App merges them back in on entry.
+   * Optional: saves from before this field existed simply have none. */
+  cavePlantings?: Record<string, FloraEntity[]>;
 }
 
 // ---------------------------------------------------------------------------
@@ -230,7 +237,8 @@ export function buildSavedGame(
   inventory: Record<ItemId, number>,
   playerState: PlayerState,
   dayNightCycle: number,
-  codexList: CodexEntry[]
+  codexList: CodexEntry[],
+  cavePlantings?: Record<string, FloraEntity[]>
 ): SavedGameRecord {
   return {
     ...metadata,
@@ -241,5 +249,6 @@ export function buildSavedGame(
     playerState,
     dayNightCycle,
     codexList,
+    cavePlantings: cavePlantings ?? {},
   };
 }

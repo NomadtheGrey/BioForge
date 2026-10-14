@@ -272,7 +272,7 @@ const INITIAL_FAUNA: FaunaEntity[] = [
   },
 ];
 
-const INITIAL_STRUCTURES: StructureEntity[] = [
+export const INITIAL_STRUCTURES: StructureEntity[] = [
   {
     id: 'struct_start_floor_1',
     type: 'root_tile_floor',

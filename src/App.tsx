@@ -27,7 +27,8 @@ import { FirstPersonMovementController, ControllerInputState } from './game/cont
 import { useInventory } from './hooks/useInventory';
 import { useNotifications } from './hooks/useNotifications';
 import { usePlayerState } from './hooks/usePlayerState';
-import { useWorldEntities } from './hooks/useWorldEntities';
+import { useWorldEntities, INITIAL_STRUCTURES } from './hooks/useWorldEntities';
+import { generateSeededWorld } from './game/worldGen';
 import { useToolInteractions } from './hooks/useToolInteractions';
 import {
   AUTOSAVE_INTERVAL_MS,
@@ -671,12 +672,28 @@ useEffect(() => {
   const handleCreateSave = (name: string, difficulty: GameDifficulty, worldSeed: string): void => {
     const meta = createSaveMetadata(name, difficulty, worldSeed);
     currentSaveRef.current = meta;
+    // The seed earns its keep: a new world's flora and fauna are GROWN
+    // from it (seeded surface scatter — game/worldGen.ts) instead of
+    // reusing the fixed hand-placed starter layout. Starter structures
+    // (forge, floors, mound) stay fixed — they're the homestead, not
+    // wilderness. Generate from meta.worldSeed: createSaveMetadata
+    // guarantees a non-empty seed, and the world must match the seed
+    // its save advertises.
+    const generated = generateSeededWorld(meta.worldSeed);
+    replaceWorld({
+      flora: generated.flora,
+      fauna: generated.fauna,
+      structures: INITIAL_STRUCTURES,
+      drops: [],
+    });
     setHasStarted(true);
-    // First save right away: the world is the fresh starter world (the
-    // start screen has covered the game until now), and writing it now
-    // means the world exists in the library from minute one.
-    saveNow();
-    postNotification('New World Created', `${meta.name} · Seed ${meta.worldSeed} — autosaving as you play.`, 'system', '#10b981');
+    // First save right away — but deferred a beat: saveNow reads
+    // latestStateRef, which only syncs after the replaceWorld render
+    // commits, so saving in this same tick would snapshot the PREVIOUS
+    // world into the new save. Writing it now (50 ms later) means the
+    // world exists in the library from minute one.
+    window.setTimeout(() => saveNow(), 50);
+    postNotification('New World Created', `${meta.name} · Seed ${meta.worldSeed} — grown from your seed. Autosaving as you play.`, 'system', '#10b981');
   };
 
   const handleDeleteSave = (id: string): void => {

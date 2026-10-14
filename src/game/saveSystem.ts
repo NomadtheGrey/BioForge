@@ -21,6 +21,7 @@
  * over the multiplayer wire as JSON), so they store and restore verbatim.
  */
 
+import { WORLD_GEN_VERSION } from './worldGen';
 import {
   CodexEntry,
   DroppedItemEntity,
@@ -82,6 +83,13 @@ export interface SaveMetadata {
    * seeds existed simply have no seed — readers treat that as ''.
    */
   worldSeed: string;
+  /**
+   * Which generation version grew this world (game/worldGen.ts). Saves
+   * from before seeded generation have no stamp — readers treat that
+   * as 0. Recorded so future generators can migrate old worlds instead
+   * of guessing.
+   */
+  genVersion?: number;
   createdAt: number;
   savedAt: number;
 }
@@ -152,6 +160,7 @@ export async function listSaveMetadata(): Promise<SaveMetadata[]> {
     name: record.name,
     difficulty: record.difficulty,
     worldSeed: record.worldSeed ?? '',
+    genVersion: record.genVersion ?? 0,
     createdAt: record.createdAt,
     savedAt: record.savedAt,
   }));
@@ -204,6 +213,7 @@ export function createSaveMetadata(name: string, difficulty: GameDifficulty, wor
     name: trimmed.length > 0 ? trimmed : 'Unnamed World',
     difficulty,
     worldSeed: seed.length > 0 ? seed : generateWorldSeed(),
+    genVersion: WORLD_GEN_VERSION,
     createdAt: now,
     savedAt: now,
   };

@@ -26,6 +26,10 @@ const IRIS_DOOR_TRIGGER_RADIUS = 2.5;
 // this far either side of center — half the 2 m tile, i.e. its edges.
 const FLOOR_TERRAIN_LIFT = 0.03;
 const SLOPE_SAMPLE_DISTANCE = 1;
+// One story of building: wall posts are 2.4 m tall, so a level-1 piece
+// sits exactly one wall-height above its level-0 counterpart. Structure
+// levels (StructureEntity.level) multiply this.
+const STORY_HEIGHT = 2.4;
 
 // Per-species idle-wiggle flavors (see game/motion.ts for what the knobs
 // mean). A predator should not fidget like a puff: the stalker is nearly
@@ -511,7 +515,7 @@ export class BioForgeThreeEngine {
     return this.controls.isLocked;
   }
 
-  public setPlayerPosition(x: number, z: number) {
+  public setPlayerPosition(x: number, z: number, level: number = 0) {
     this.cachedPlayerX = x;
     this.cachedPlayerZ = z;
     this.camera.position.x = x;
@@ -519,7 +523,8 @@ export class BioForgeThreeEngine {
     // The player STANDS on the rolling terrain: eye height rides the
     // ground, so crossing a rise lifts the view instead of wading
     // through the hill (structures/floors got the same treatment).
-    this.camera.position.y = this.eyeHeight + this.terrainHeightAt(x, z);
+    // Story levels add a wall-height per floor above the ground.
+    this.camera.position.y = this.eyeHeight + this.terrainHeightAt(x, z) + level * STORY_HEIGHT;
     this.updateIrisDoorsProximity(x, z);
   }
 
@@ -578,15 +583,26 @@ export class BioForgeThreeEngine {
     type: StructureType,
     worldX: number,
     worldZ: number,
-    rotation: number
+    rotation: number,
+    level: number = 0
   ): void {
-    const groundY = this.terrainHeightAt(worldX, worldZ);
+    // Story levels stack on the terrain height: a level-1 wall stands
+    // where a level-0 wall's top ends, whatever the ground does below.
+    const groundY = this.terrainHeightAt(worldX, worldZ) + level * STORY_HEIGHT;
     if (type !== 'root_tile_floor') {
       mesh.position.set(worldX, groundY, worldZ);
       mesh.rotation.set(0, rotation, 0);
       return;
     }
     mesh.position.set(worldX, groundY + FLOOR_TERRAIN_LIFT, worldZ);
+    if (level > 0) {
+      // A ceiling floor must be FLAT — it rests on wall tops, not on the
+      // hillside. Only ground floors tilt with the terrain.
+      mesh.quaternion.copy(
+        new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotation)
+      );
+      return;
+    }
     const hL = this.terrainHeightAt(worldX - SLOPE_SAMPLE_DISTANCE, worldZ);
     const hR = this.terrainHeightAt(worldX + SLOPE_SAMPLE_DISTANCE, worldZ);
     const hD = this.terrainHeightAt(worldX, worldZ - SLOPE_SAMPLE_DISTANCE);
@@ -707,7 +723,7 @@ export class BioForgeThreeEngine {
   // --------------------------------------------------------------------------
   // Multiplayer Peer Avatars
   // --------------------------------------------------------------------------
-  public updatePeerAvatar(peerId: string, name: string, x: number, z: number, rotation: number, colorHex: string) {
+  public updatePeerAvatar(peerId: string, name: string, x: number, z: number, rotation: number, colorHex: string, level: number = 0) {
     let peerGroup = this.peerMeshes.get(peerId);
     if (!peerGroup) {
       peerGroup = new THREE.Group();
@@ -731,7 +747,7 @@ export class BioForgeThreeEngine {
       this.peerMeshes.set(peerId, peerGroup);
     }
 
-    peerGroup.position.set(x, this.terrainHeightAt(x, z), z);
+    peerGroup.position.set(x, this.terrainHeightAt(x, z) + level * STORY_HEIGHT, z);
     peerGroup.rotation.y = rotation;
   }
 
@@ -1070,12 +1086,12 @@ export class BioForgeThreeEngine {
     const builder = this.structureBuilders[structure.type];
     const group = builder ? builder() : new THREE.Group();
     group.userData = { type: 'structure', entity: structure };
-    this.applyTerrainTransform(group, structure.type, structure.worldX, structure.worldZ, structure.rotation);
+    this.applyTerrainTransform(group, structure.type, structure.worldX, structure.worldZ, structure.rotation, structure.level ?? 0);
     return group;
   }
 
   private updateStructureMesh(mesh: THREE.Group, structure: StructureEntity) {
-    this.applyTerrainTransform(mesh, structure.type, structure.worldX, structure.worldZ, structure.rotation);
+    this.applyTerrainTransform(mesh, structure.type, structure.worldX, structure.worldZ, structure.rotation, structure.level ?? 0);
     mesh.userData.entity = structure;
 
     const forgeCore = mesh.getObjectByName('forgeCore');

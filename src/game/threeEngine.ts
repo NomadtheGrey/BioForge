@@ -152,6 +152,8 @@ export class BioForgeThreeEngine {
     snap_trap: { color: 0xef4444, intensity: 0.5, distance: 3, y: 0.9 },
     bell_bloom: { color: 0x38bdf8, intensity: 0.6, distance: 4, y: 1.3 },
     ribbon_moss: { color: 0x2dd4bf, intensity: 0.4, distance: 2.5, y: 0.4 },
+    bounce_shroom: { color: 0xa855f7, intensity: 0.6, distance: 3, y: 0.6 },
+    glow_spore_cluster: { color: 0x06b6d4, intensity: 0.7, distance: 3.5, y: 0.5 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },
@@ -960,6 +962,27 @@ export class BioForgeThreeEngine {
         break;
       }
 
+      case 'glow_spore_cluster': {
+        // The cave-mouth plant (Adam, 2026-10-14): a low cluster of
+        // glowing cyan orbs on short dark stalks — the same blue
+        // spheres that used to be pure set dressing at cave mouths,
+        // now a real, harvestable plant that grows around them.
+        const stalkGeom = new THREE.CylinderGeometry(0.03, 0.05, 0.5, 6);
+        const orbOffsets: [number, number, number][] = [
+          [0, 0.52, 0], [0.18, 0.4, 0.1], [-0.16, 0.44, -0.08],
+          [0.08, 0.34, -0.16], [-0.1, 0.3, 0.15], [0.22, 0.26, -0.14],
+        ];
+        for (const [ox, oy, oz] of orbOffsets) {
+          const stalk = new THREE.Mesh(stalkGeom, this.materials.woodRoot);
+          stalk.position.set(ox, oy / 2, oz);
+          group.add(stalk);
+          const orb = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), this.materials.biolumCyan);
+          orb.position.set(ox, oy, oz);
+          group.add(orb);
+        }
+        break;
+      }
+
       case 'bounce_shroom': {
         // Squat springy stem + a wide violet cap: the trampoline. The
         // cap is named so the render loop can squash it when bounced on.
@@ -1194,8 +1217,17 @@ export class BioForgeThreeEngine {
     // Cave mouths wear their generated dressing (boulders, lips, the
     // dark opening, biome accents) — built from the entity's own link
     // record, once, at mesh creation; dressing never changes after.
-    if (structure.type === 'cave_mouth' && structure.cave?.dressing?.length) {
-      group.add(this.buildCaveDressing(structure));
+    if (structure.type === 'cave_mouth') {
+      // ONE place reads as the entrance (Adam, 2026-10-14): the base
+      // mound's own meshes stop answering the raycaster, and in the
+      // dressing only the opening dome + its sigil stay interactive —
+      // hovering boulders and rubble must not report "Cave Mouth".
+      group.traverse((o) => {
+        if ((o as THREE.Mesh).isMesh) o.raycast = () => {};
+      });
+      if (structure.cave?.dressing?.length) {
+        group.add(this.buildCaveDressing(structure));
+      }
     }
     return group;
   }
@@ -1225,6 +1257,7 @@ export class BioForgeThreeEngine {
       const dx = piece.x - structure.worldX;
       const dz = piece.z - structure.worldZ;
       const s = piece.scale;
+      const childrenBefore = sub.children.length;
       switch (piece.type) {
         case 'cave_mouth': {
           // The opening: a black, flattened dome sunk into the mound,
@@ -1237,12 +1270,14 @@ export class BioForgeThreeEngine {
           sub.add(dome);
 
           // The SIGN: a procedurally drawn glow sigil (getCaveSigilTexture)
-          // floating on the rock face above the opening, so a cave mouth
-          // is unmistakable from across the zone (Adam, 2026-10-14).
-          // Additive-blended, sunk slightly into the rock side of the
-          // anchor, and pulsed in updateStructureMesh.
+          // standing TANGENT to the rock at the entrance face — out in
+          // front of the opening like a portal ring, bottom near the
+          // ground, flanks grazing the boulders — so it reads as the
+          // doorway itself, not a mystery glyph embedded in a mountain
+          // (Adam, 2026-10-14). Additive-blended, pulsed in
+          // updateStructureMesh.
           const sigil = new THREE.Mesh(
-            new THREE.PlaneGeometry(3.2 * s, 3.2 * s),
+            new THREE.PlaneGeometry(3.4 * s, 3.4 * s),
             new THREE.MeshBasicMaterial({
               map: this.getCaveSigilTexture(),
               transparent: true,
@@ -1253,7 +1288,7 @@ export class BioForgeThreeEngine {
             }),
           );
           sigil.name = 'caveSigil';
-          sigil.position.set(dx - Math.cos(facing) * 0.85, 1.55 * s, dz - Math.sin(facing) * 0.85);
+          sigil.position.set(dx + Math.cos(facing) * 0.95, 1.4 * s, dz + Math.sin(facing) * 0.95);
           sigil.rotation.y = Math.PI / 2 - facing;
           sub.add(sigil);
           break;
@@ -1335,6 +1370,16 @@ export class BioForgeThreeEngine {
           glow.position.set(dx, 0.62 * s, dz);
           sub.add(glow);
           break;
+        }
+      }
+      // Only the entrance itself (the 'cave_mouth' piece: dome + sigil)
+      // answers hover/click raycasts. Every other dressing piece is
+      // scenery — the ray passes through it to whatever is behind.
+      if (piece.type !== 'cave_mouth') {
+        for (let i = childrenBefore; i < sub.children.length; i++) {
+          sub.children[i].traverse((c) => {
+            if ((c as THREE.Mesh).isMesh) c.raycast = () => {};
+          });
         }
       }
     }
@@ -1852,7 +1897,12 @@ private initEventListeners() {
         this.callbacks.onEntityHover?.({
           type: 'structure',
           name: s.type.replace(/_/g, ' ').toUpperCase(),
-          details: `Integrity: ${s.health}/${s.maxHealth} (Solvent Recyclable)`,
+          // Cave mouths are world-grown and PERMANENT — the generic
+          // "(Solvent Recyclable)" line would be a lie (Adam, 2026-10-14).
+          details:
+            s.type === 'cave_mouth'
+              ? 'Entrance to the Biolume Caverns · Permanent — not solvent recyclable'
+              : `Integrity: ${s.health}/${s.maxHealth} (Solvent Recyclable)`,
           entity: s,
         });
         return;

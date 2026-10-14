@@ -248,6 +248,20 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'common',
     maxStack: 99,
   },
+  // Not a buildable: cave mouths are grown by world generation (P3,
+  // game/caveSurface.ts) and are permanent — the solvent can't take
+  // them and no recipe produces them. The ITEMS entry exists so hover,
+  // scan, and codex lookups have a name and description for the type.
+  cave_mouth: {
+    id: 'cave_mouth',
+    name: 'Cave Mouth',
+    category: 'structure',
+    description: 'A dark opening in the rock, breathing cool air. Below lies an instanced cavern — the Biolume Caverns. Grown by the world, not by hand: permanent and undissolvable.',
+    iconName: 'Circle',
+    color: '#78716c',
+    rarity: 'rare',
+    maxStack: 1,
+  },
   vine_ladder: {
     id: 'vine_ladder',
     name: 'Vine Ladder',

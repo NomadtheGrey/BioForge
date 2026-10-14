@@ -35,7 +35,8 @@ export type ItemId =
   | 'bio_forge_station'
   | 'tamed_snap_trap_turret'
   | 'cultivation_mound'
-  | 'vine_ladder';
+  | 'vine_ladder'
+  | 'cave_mouth';
 
 export type ToolType =
   | 'harvest_glove'
@@ -137,8 +138,51 @@ export type StructureType =
   | 'tamed_snap_trap_turret'
   | 'cultivation_mound'
   | 'vine_ladder'
+  | 'cave_mouth'
   // Equipment
   | 'field_synthesizer_gauntlet';
+
+/** Dressing piece types a cave mouth wears (see game/caveSurface.ts). */
+export type CaveDressingType =
+  | 'cave_mouth'
+  | 'dark_soil_patch'
+  | 'rock_lip'
+  | 'boulder'
+  | 'rubble'
+  | 'path_stone'
+  | 'glow_spore_cluster'
+  | 'reed_cluster'
+  | 'glow_fungus_cluster'
+  | 'heat_cracked_stone'
+  | 'ember_vent';
+
+/** One piece of cave-mouth set dressing, in zone-local meters. */
+export interface CaveDressingPiece {
+  id: string;
+  type: CaveDressingType;
+  x: number;
+  z: number;
+  rotation: number;
+  scale: number;
+  /** Solid set dressing (kept out of the mouth's approach corridor). */
+  blocking: boolean;
+}
+
+/**
+ * The portal link on a cave-mouth structure: where this mouth leads and
+ * where an exiting player reappears on the surface. This is the settled
+ * "return address" design — stored save data (host-authoritative),
+ * NEVER a generation input: the cavern behind this mouth derives from
+ * (world seed + instanceId) alone, so moving this record can never
+ * change the cave.
+ */
+export interface CaveLinkData {
+  instanceId: string;
+  /** Exit spawn: the mouth's anchor pushed 2 m out along its facing. */
+  exitX: number;
+  exitZ: number;
+  dressing: CaveDressingPiece[];
+}
 ;
 
 export interface StructureEntity {
@@ -161,6 +205,8 @@ export interface StructureEntity {
   plantedFloraId?: string; // for cultivation mound
   lastDefendTimer?: number;
   color?: string;
+  /** Present only on cave_mouth structures: the portal link + dressing. */
+  cave?: CaveLinkData;
 }
 
 export interface DroppedItemEntity {

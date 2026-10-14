@@ -147,6 +147,13 @@ Fauna are categorized into two behavioral classes:
   2 Resin Sap, 2 Ribbon Fiber, 1 Lantern-Fern Spore, 2 Dew Essence, and
   2 Bio-Pellets.
 
+  **Tier: 2** — by the derived recipe graph, never by assignment. Each
+  subassembly crafts directly from Tier 0 raw/harvested materials, so
+  the subassemblies are Tier 1; the radar consumes Tier 1 products, so
+  the radar itself computes to Tier 2. (If a future refinement recipe
+  ever produces one of its raw inputs — a refined Prismatic Core, say —
+  the graph will deepen the radar's tier on its own.)
+
 * **Two upcoming species exist partly to feed that recipe:**
   - **Echo Reed** *(new flora)* — a hollow-stalked reed suited to damp
     ground and wetland zones. Its segmented stalks resonate when the

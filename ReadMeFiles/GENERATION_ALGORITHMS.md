@@ -153,6 +153,25 @@ the portal link record — bookkeeping only, never seed math).
 verticality, no liquids. Open experiment: biased drunkard's-walk
 corridors vs the current L-shaped carves.
 
+**Surface half — BUILT in the lab (2026-10-14).** The interior above
+only covered the underground; `caveSurfaceLab.mjs`
+(CAVE_SURFACE_GEN_VERSION 1) now generates the on-surface section: for
+a given zone (seed + coords + biome + hops + caller-supplied blockers)
+it rolls mouth presence (the spawn zone always gets exactly one, in a
+20–42 m annulus clear of the homestead; other zones roll by biome —
+fungal/ember zones are more cave-prone, some zones get two, some
+none), places mouths with footprint clearance from structures and
+scatter, faces them toward the zone center, and dresses each one
+(rock lips, boulder arc, rubble, path stones, a biome accent) with a
+guaranteed-clear approach corridor. Each mouth pairs with its cavern
+instance through the portal-link record; the anchor invariance was
+re-verified with surface-chosen anchors (cave grids byte-identical,
+exit spawn exactly 2 m out). All harness checks pass, including a
+stress run against full-density scatter as blockers. Still stubbed:
+dressing is typed data (no meshes), no terrain-slope check yet, and
+no game wiring — P3's game-integration step is the transition and
+interior rendering, still ahead per the one-at-a-time rule.
+
 ## P4 — Ruin interior generators
 
 **Status:** built, measured, verified in the lab (24 runs: 3 variants ×

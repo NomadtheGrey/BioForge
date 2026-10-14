@@ -22,6 +22,7 @@ export type ItemId =
   | 'seed_petal_mill'
   | 'seed_snap_trap'
   | 'seed_bell_bloom'
+  | 'seed_bounce_shroom'
   // Fertilizers
   | 'growth_fertilizer'
   | 'yield_fertilizer'
@@ -33,7 +34,8 @@ export type ItemId =
   | 'spore_canopy'
   | 'bio_forge_station'
   | 'tamed_snap_trap_turret'
-  | 'cultivation_mound';
+  | 'cultivation_mound'
+  | 'vine_ladder';
 
 export type ToolType =
   | 'harvest_glove'
@@ -66,6 +68,7 @@ export type FloraSpecies =
   | 'mouth_vine'
   | 'snap_trap'
   | 'bell_bloom'
+  | 'bounce_shroom'
   | 'ribbon_moss';
 
 export interface FloraEntity {
@@ -133,6 +136,7 @@ export type StructureType =
   | 'bio_forge_station'
   | 'tamed_snap_trap_turret'
   | 'cultivation_mound'
+  | 'vine_ladder'
   // Equipment
   | 'field_synthesizer_gauntlet';
 ;

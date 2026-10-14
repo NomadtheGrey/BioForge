@@ -41,8 +41,8 @@ function isCollidingWithStructure(
       return false;
     }
 
-    // Floors and cultivation mounds can be walked over freely
-    if (s.type === 'root_tile_floor' || s.type === 'cultivation_mound' || s.type === 'spore_canopy') {
+    // Floors, cultivation mounds and vine ladders can be walked over freely
+    if (s.type === 'root_tile_floor' || s.type === 'cultivation_mound' || s.type === 'spore_canopy' || s.type === 'vine_ladder') {
       return false;
     }
 

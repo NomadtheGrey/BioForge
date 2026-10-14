@@ -41,6 +41,13 @@ export function isEdgePanel(type: StructureType): boolean {
   return EDGE_PANEL_TYPES.includes(type);
 }
 
+/** The vine ladder hangs ON a panel's edge (sharing its coordinates)
+ * but occupies an occupancy family of its own: one per edge per level,
+ * and it never blocks panels, floors, or anything else. */
+export function isLadder(type: StructureType): boolean {
+  return type === 'vine_ladder';
+}
+
 export interface PlacementSpot {
   gridX: number;
   gridZ: number;
@@ -94,6 +101,15 @@ export function occupancyConflict(
   spot: PlacementSpot,
   structures: StructureEntity[],
 ): StructureEntity | undefined {
+  if (isLadder(type)) {
+    return structures.find(
+      (s) =>
+        isLadder(s.type) &&
+        (s.level ?? 0) === spot.level &&
+        s.worldX === spot.worldX &&
+        s.worldZ === spot.worldZ,
+    );
+  }
   if (isEdgePanel(type)) {
     return structures.find(
       (s) =>
@@ -107,7 +123,7 @@ export function occupancyConflict(
   return structures.find((s) => {
     if (s.gridX !== spot.gridX || s.gridZ !== spot.gridZ) return false;
     if ((s.level ?? 0) !== spot.level) return false; // each story has its own layers
-    if (isEdgePanel(s.type)) return false; // panels live on edges, not in the cell's layers
+    if (isEdgePanel(s.type) || isLadder(s.type)) return false; // panels/ladders live on edges, not in the cell's layers
     return GROUND_LAYER_TYPES.includes(s.type) === placingGroundLayer;
   });
 }

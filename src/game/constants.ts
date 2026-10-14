@@ -248,6 +248,26 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'common',
     maxStack: 99,
   },
+  vine_ladder: {
+    id: 'vine_ladder',
+    name: 'Vine Ladder',
+    category: 'structure',
+    description: 'A living ladder grown against a wall face. Click it to climb between stories; grow it upward as your walls rise.',
+    iconName: 'AlignVerticalDistributeCenter',
+    color: '#84cc16',
+    rarity: 'common',
+    maxStack: 50,
+  },
+  seed_bounce_shroom: {
+    id: 'seed_bounce_shroom',
+    name: 'Bounce-Shroom Spore',
+    category: 'seed',
+    description: 'Cultivates a spring-capped mushroom. Plant it beneath a ceiling hole and jump (Space) on the mature cap to bounce up a story.',
+    iconName: 'ArrowBigUpDash',
+    color: '#a855f7',
+    rarity: 'uncommon',
+    maxStack: 50,
+  },
   field_synthesizer_gauntlet: {
   id: 'field_synthesizer_gauntlet',
   name: 'Field Synthesizer Gauntlet',
@@ -326,6 +346,19 @@ export const RECIPES: CraftingRecipe[] = [
     ingredients: [
       { id: 'dew_essence', count: 2 },
       { id: 'soft_fiber', count: 1 },
+    ],
+    craftTimeMs: 1200,
+  },
+  {
+    id: 'craft_seed_bounce_shroom',
+    outputId: 'seed_bounce_shroom',
+    outputCount: 2,
+    name: 'Bounce-Shroom Spores',
+    description: 'Knead soft fibers and dew essence into springy bounce-shroom spores.',
+    category: 'seeds',
+    ingredients: [
+      { id: 'soft_fiber', count: 2 },
+      { id: 'dew_essence', count: 1 },
     ],
     craftTimeMs: 1200,
   },
@@ -426,6 +459,19 @@ export const RECIPES: CraftingRecipe[] = [
       { id: 'soft_fiber', count: 2 },
       { id: 'dew_essence', count: 2 },
       { id: 'vibrant_petal', count: 1 },
+    ],
+    craftTimeMs: 1200,
+  },
+  {
+    id: 'craft_vine_ladder',
+    outputId: 'vine_ladder',
+    outputCount: 1,
+    name: 'Vine Ladder',
+    description: 'Train springy vines into a ladder that grips a wall face and carries you between stories.',
+    category: 'composites',
+    ingredients: [
+      { id: 'soft_fiber', count: 3 },
+      { id: 'resin_sap', count: 1 },
     ],
     craftTimeMs: 1200,
   },
@@ -633,6 +679,30 @@ export const INITIAL_CODEX: CodexEntry[] = [
     biome: 'Base Architecture',
     iconColor: '#38bdf8',
   },
+  {
+    species: 'vine_ladder',
+    name: 'Vine Ladder',
+    type: 'composite',
+    discovered: true,
+    scannedCount: 1,
+    description: 'A trained climbing vine with rung-like laterals, grown against a wall face. It bears a person’s weight one story at a time and keeps growing as the wall rises.',
+    byproducts: ['100% Recyclable with Solvent Sprayer'],
+    tamingOrCraftNotes: 'Click a wall with a ladder selected to grow the first span; click the ladder to climb or to grow it higher.',
+    biome: 'Base Architecture',
+    iconColor: '#84cc16',
+  },
+  {
+    species: 'bounce_shroom',
+    name: 'Bounce-Shroom',
+    type: 'flora',
+    discovered: true,
+    scannedCount: 1,
+    description: 'A spring-capped mushroom whose cap stores elastic tension. A mature cap launches a jumping colonist exactly one story — plant it beneath a ceiling hole.',
+    byproducts: ['Bounce-Shroom Spore', 'Dew Essence'],
+    tamingOrCraftNotes: 'Only fires when jumped on (Space). Dropping onto it from above is perfectly safe — no rebound.',
+    biome: 'Cultivated',
+    iconColor: '#a855f7',
+  },
 ];
 
 export const INITIAL_INVENTORY = [
@@ -655,6 +725,8 @@ export const INITIAL_INVENTORY = [
   { id: 'cultivation_mound', count: 6 },
   { id: 'lantern_fern_post', count: 4 },
   { id: 'bio_forge_station', count: 1 },
+  { id: 'vine_ladder', count: 4 },
+  { id: 'seed_bounce_shroom', count: 2 },
 ] as const;
 
 export const BIOMES = [

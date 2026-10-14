@@ -173,7 +173,10 @@ stress run against full-density scatter as blockers.
 graduated to `src/game/caveSurface.ts` (lab parity verified) and
 world generation (WORLD_GEN_VERSION 4) grows mouths with the world:
 new seeded worlds get exactly one cave mouth in the spawn zone,
-placed clear of the homestead and the grown flora/fauna. A mouth is
+placed clear of the homestead and the grown flora/fauna. Every
+mouth is also ringed by 3–4 living **Glow Spore Clusters** — a real
+harvestable flora species (yields Glow Spores) that keeps to cave
+mouths, seeded outside the approach corridor. A mouth is
 a `cave_mouth` structure — it rides the normal structures / save /
 sync pipeline — carrying its portal link (instance id + exit spawn)
 and dressing list as stored data; the engine renders the dressing

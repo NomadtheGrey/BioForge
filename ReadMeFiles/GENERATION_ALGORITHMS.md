@@ -1,11 +1,11 @@
-# GENERATION ALGORITHMS — INDEX (BRAINSTORM / LAB)
+# GENERATION ALGORITHMS — INDEX
 
-> **Status: BRAINSTORM — NOT PINNED.** Every algorithm below lives in a
-> standalone lab outside this repo (`~/workspace/bioforge-gen-lab/`), where
-> it was written, run, and measured. Nothing here is wired into the game.
-> Listed **in integration priority order** — per the standing rule,
-> algorithms enter the game one at a time, each proven before the next.
-> Dated 2026-10-14.
+> **Status: MIXED (2026-10-14).** P1 and P2 have been promoted from the
+> standalone lab (`~/workspace/bioforge-gen-lab/`) into the game and are
+> marked **SHIPPED** below. P3 and P4 remain lab-proven but not yet wired
+> into the game; P5 is future work. The families are listed **in
+> integration priority order** — per the standing rule, algorithms enter
+> the game one at a time, each proven before the next.
 
 ## Shared contract (all generators)
 
@@ -15,28 +15,38 @@
   another.
 - **Determinism:** same seed + same inputs + same generator version =
   byte-identical output, verified by harness on every generator.
-- **Version stamps:** each generator family carries its own version
-  (surface GEN_VERSION, CAVERN_GEN_VERSION, RUIN_GEN_VERSION — all
-  currently 1), stored with the world/zone so math changes never rewrite
-  existing saves.
+- **Version stamps:** each generator family carries its own version,
+  stored with the world/zone so math changes never rewrite existing
+  saves. The shipped surface generator is now `WORLD_GEN_VERSION 3`;
+  the lab's original `GEN_VERSION 1` remains part of its experiment
+  record. Caverns and ruins are still at lab version 1.
 - **Persistence:** player changes are saved as full world snapshots
   (the save system already built), never as seed diffs. The host generates
   and is the single source of truth; guests receive snapshots, they never
   regenerate.
-- **Zones:** interior zones (caverns, ruin interiors) are instances. A
-  zone generator takes the world seed plus a **zone id salt**, so many
-  distinct zones live in one world. Every zone carries a **portal link
-  record**: surface anchor (mouth position + facing) and the player's
-  return spawn just outside it. The anchor is stored bookkeeping — it
-  never feeds the seed math.
+- **Surface zones:** the world is a grid of 100 m × 100 m zones,
+  addressed by integer zone coordinates. The current playable map is
+  the **spawn zone, (0, 0)**. A surface zone's biome and poetic name are
+  deterministic functions of the world seed + zone coordinates (see
+  P2), so neighboring zones can be identified before travel between
+  zones is implemented.
+- **Instanced interiors:** caverns and ruin interiors are separate
+  instances attached to a surface location. Their generators take the
+  world seed plus a **zone/instance id salt**. Every instance carries a
+  **portal link record**: surface anchor (mouth position + facing) and
+  the player's return spawn just outside it. The anchor is stored
+  bookkeeping — it never feeds the seed math.
 
 ---
 
 ## P1 — Surface flora/fauna scatter → the HYBRID
 
-**Status:** built, measured, verified in the lab. Recommendation only;
-the hybrid itself is currently a recipe (its two parent variants exist
-separately), not yet a single combined variant.
+**Status: SHIPPED (2026-10-14).** The hybrid is implemented in
+`src/game/worldGen.ts` and grows the flora/fauna for a new seeded
+world. Two game-specific adjustments were made during integration:
+the shipped species census is fixed rather than rolled, and the
+lantern-fern guarantee is constructed directly on a seeded 6–16 m
+ring around spawn instead of relying on a post-pass.
 
 **Algorithm:** positions from **noise-clustered** placement (fbm value
 noise thresholding — groves and clearings; flora VMR 1.30, the only
@@ -61,23 +71,62 @@ multiplier inflates predator counts (~10.3 of 24 fauna).
 
 Detail: SEEDED_GENERATION_BRAINSTORM.md.
 
-## P2 — Biome layer
+## P2 — Biome layer (per-zone)
 
-**Status:** built and proven in the lab; opt-in (`withBiomes`), defaults
-off; output byte-identical with the layer off.
+**Status: SHIPPED, then corrected to the per-zone model (2026-10-14).**
+Implemented in `src/game/biomes.ts`, `src/game/zones.ts`, and
+`src/game/worldGen.ts`; `WORLD_GEN_VERSION` is now **3**.
 
-**Algorithm:** `biomeAt(seed, x, z)` — a seeded biome map on its own hash
-streams. Distance rings decide which ecological types are available
-(meadow guaranteed within 12 m of spawn; wetland 12 m+; fungal 30 m+;
-ember 44 m+), a per-seed standardized noise field carves boundaries
-inside the rings. Measured shares: meadow 23–34%, wetland 29–36%,
-fungal 17–21%, ember 13–22%.
+**The model:** a biome belongs to a whole **zone**, and the biome is
+that zone's identity. Biomes do not patchwork inside a zone. The spawn
+zone (0, 0) is always a **meadow**. Every other zone's biome is derived
+deterministically from the world seed + zone coordinates by hop bands:
 
-**Rules live on the biome** (per the pinned biome/zone split): each biome
-carries flora/fauna density multipliers. Species rows carry a `biomes`
-affinity list; weight 0 outside the list = the species does not exist
-there — proven with a dummy ember-only species (26 spawned, 0 outside
-ember). This is the seam for future biome-unique creatures.
+- 1 hop: meadow or wetland
+- 2 hops: meadow, wetland, or fungal
+- 3 hops: wetland, fungal, or ember
+- 4 hops: fungal or ember
+- 5+ hops: fungal/ember, with ember dominant
+
+This is the strangeness gradient in zone form: home and its immediate
+neighbors stay gentle; the strange biomes live farther out.
+
+**Rules live on the biome** (per the pinned biome/zone split): the
+zone's biome supplies flora/fauna density multipliers, species-affinity
+weighting, the biome stamp recorded on generated entities, and an even
+ground tint across the whole zone. Species rows still carry a `biomes`
+affinity list; weight 0 outside the list remains the hard-exclusion
+mechanism for future biome-unique creatures. All currently shipped
+species remain `'all'`, so naming the first species↔biome pairings is
+still a tuning/design step.
+
+**Zone names:** each zone also has a deterministic poetic name drawn
+from word pools matched to its biome — a meadow does not receive a name
+that reads like a dry thicket or an ember waste. The legacy names live
+where they fit: *Turquoise Glade* in the wetland pool, *Violet Cradle*
+in fungal, *Prismatic Verge* in ember, and *Amber Thicket* as a fungal
+possibility. The four old quadrant labels are no longer zone or biome
+names; the quadrants are only sector shading on the current map.
+
+**Player-facing geography now in the game:**
+
+- The HUD identifies the current zone by name, biome, and coordinates.
+- Within 10 m of the current map edge, it also names the neighboring
+  zone in that direction and that zone's biome.
+- The minimap/survey shows the current zone's name, biome, and grid
+  coordinates.
+- The radar rim carries a home arrow toward the spawn point. Its
+  longer-term equipment framing is recorded in `CORE_MECHANICS.md`:
+  the player will eventually assemble a radar device from pieces and
+  parts rather than treating the full navigation suite as an abstract
+  permanent gift.
+
+**Lab history:** the lab first modeled biome as a per-point field
+inside one map (distance rings + standardized noise). That experiment
+proved the density/affinity mechanics, but Adam corrected the game's
+model to per-zone identity the same day. The per-point `biomeAt` map
+was therefore removed from the game and should not be reintroduced as
+the surface-zone model.
 
 ## P3 — Cavern generator
 
@@ -164,6 +213,7 @@ lab's generators are being built as composable layers with this in mind.
 
 | family | version constant | current |
 |---|---|---|
-| surface + biomes | GEN_VERSION | 1 |
+| shipped surface + per-zone biomes | WORLD_GEN_VERSION | 3 |
+| lab surface experiments | GEN_VERSION | 1 |
 | caverns | CAVERN_GEN_VERSION | 1 |
 | ruins | RUIN_GEN_VERSION | 1 |

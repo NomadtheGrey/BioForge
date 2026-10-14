@@ -1,8 +1,12 @@
 # SEEDED WORLD GENERATION — LAB FINDINGS (BRAINSTORM)
 
-> **Status: BRAINSTORM — NOT PINNED.** Results from a standalone experiment
-> lab (kept outside this repo). Nothing here is a design decision until it's
-> moved into CORE_MECHANICS.md. Dated 2026-10-14.
+> **Status: LAB RECORD + IMPLEMENTATION UPDATE (2026-10-14).** The
+> measurements below remain the lab's brainstorm record. Since they were
+> written, the surface hybrid and biome mechanics have shipped in the
+> game with the adjustments noted here — most importantly, Adam
+> corrected biomes from a per-point map inside one zone to **one biome
+> per zone**. The current shipped account is in
+> `GENERATION_ALGORITHMS.md` (P1/P2).
 
 ## What the lab is
 
@@ -23,10 +27,12 @@ at a fuller density (80 / 24), across three seeds.
 | % predators within 15 m | 3.3 | 0.0 | 4.8 | **0.0** |
 | chitin_stalker mean distance | 37.0 m | 38.1 m | 39.7 m | **48.2 m** |
 
-## Recommendation (for when generation is wired in)
+## Recommendation (now shipped, with game adjustments)
 
 **Hybrid: noiseClustered positions + distanceWeighted species mix, with the
-biome layer on.**
+biome layer on.** The game fixes the shipped species census instead of
+rolling it, and guarantees lantern ferns by constructing them first on
+a seeded 6–16 m ring around spawn.
 
 - Noise-clustered placement is the only variant that makes groves, clearings,
   and herds — a world that reads like a *place* instead of a sprinkle.
@@ -37,30 +43,30 @@ biome layer on.**
 - jitteredGrid fauna lands on a visible lattice (VMR 0.04) — never ship it
   for creatures. Uniform stays as the honest baseline.
 
-## The biome seam (built, proven)
+## The biome seam (lab mechanics; game model corrected)
 
-Room was left — and now built — for more biomes, more species, and species
-unique to one biome:
+Room was left — and then built — for more biomes, more species, and
+species unique to one biome:
 
 - **BIOMES table** — ecological types (meadow / wetland / fungal / ember),
   not place names, carrying per-biome flora/fauna density multipliers.
   (Biolume Caverns is an instanced interior, not a surface biome.)
-- **`biomeAt(seed, x, z)`** — deterministic biome map on its own hash
-  streams. Distance rings decide which types are available (meadow
-  guaranteed within 12 m of spawn; wetland 12 m+; fungal 30 m+; ember
-  44 m+), and a per-seed standardized noise field carves organic boundaries
-  inside the rings. Measured shares: meadow 23–34%, wetland 29–36%,
-  fungal 17–21%, ember 13–22%.
+- **Lab's original `biomeAt(seed, x, z)`** — a deterministic per-point
+  biome map using meter rings and a standardized noise field. It proved
+  the seam in the lab, but **it is not the shipped game model**. Adam
+  corrected the design to per-zone identity: one surface zone has one
+  biome, selected from seed + zone coordinates by zone-hop bands. The
+  game's per-point `biomeAt` was removed; generated entities are now
+  stamped uniformly with their zone's biome.
 - **Species affinity** — every species row carries a `biomes` list ('all'
   by default). A dummy lab-only species, `ember_orchid` (ember only),
   proved exclusivity: 26 spawned across 6 runs, **0 outside ember**. Zero
   weight = dropped entirely, so biome-unique species are a hard rule, not
   a tendency. A future biome-unique creature is one table row.
-- **GEN_VERSION = 1** is stamped into generated worlds. Turning the biome
-  layer on in the game is a generation-math change — the save record must
-  store the genVersion a world was created with, or the same seed will
-  produce a different world later. Same seed + same GEN_VERSION = same
-  world, forever.
+- **Versioning** — the lab used `GEN_VERSION = 1`; the shipped surface
+  generator now stamps `WORLD_GEN_VERSION = 3` after the per-zone
+  correction. Same seed + same shipped version = same generated zone,
+  while existing saves keep their stored snapshots.
 
 ## Caveats the lab surfaced
 
@@ -87,8 +93,8 @@ biome layer off = byte-identical output to pre-biome runs.
 
 ## Queue after this
 
-Per the 2026-10-14 plan: a **cavern generator** next, then a **ruins
-generator** — both as instanced-zone generators (interior zones are their
-own space; the cave entrance behaves like a portal, looks like a cave).
-Starter sketches for both already live in WORLD_GENERATION_BRAINSTORM.md.
-Actual terrain (layered) comes later still.
+The cavern and ruin generators were subsequently built and verified in
+the lab. Per the one-at-a-time integration rule, **P3 caverns are the
+next generation family to promote into the game**, followed by P4
+ruins; layered terrain remains later still. Current status for every
+family lives in `GENERATION_ALGORITHMS.md`.

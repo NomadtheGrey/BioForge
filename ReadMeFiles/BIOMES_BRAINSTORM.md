@@ -1,8 +1,10 @@
 # Biomes — Brainstorm + Settled Rules
 
-**Status: MIXED (2026-10-13).** The "Settled rules" section is decided.
-The biome candidates are BRAINSTORM ONLY — none are pinned; they get sorted
-later, and chosen ones move into CORE_MECHANICS.md.
+**Status: MIXED (updated 2026-10-14).** The "Settled rules" section is
+decided, and the first four ecological types are now implemented under
+the per-zone model described below. The biome candidates remain
+BRAINSTORM ONLY — none are pinned; they get sorted later, and chosen
+ones move into CORE_MECHANICS.md.
 
 ## Settled rules (pinned)
 
@@ -10,6 +12,14 @@ later, and chosen ones move into CORE_MECHANICS.md.
   classification that drives spawn tables, hazards, lighting/fog, and other
   gameplay. A zone name is a unique poetic label for a place; flavor and
   exploration only. Biomes must look visually distinct from each other.
+- **One zone, one biome (Adam, 2026-10-14).** A biome is a property of
+  an entire surface zone and forms that zone's identity. Biomes do not
+  form patches inside a zone. The starting zone — zone (0, 0), the
+  current 100 m × 100 m map — is a meadow.
+- **Zone names should fit their biome.** Names are generated from
+  biome-specific word pools, so the name reinforces the ecology instead
+  of contradicting it. A meadow should not be named as though it were a
+  dry thicket or an ash waste.
 - **The host generates zones** (noise-based terrain, caves, ruins) and peers
   receive them via `world_sync`. Peers never regenerate the world themselves.
 - **World progression — the strangeness gradient (Adam, 2026-10-13).** The
@@ -47,6 +57,23 @@ later, and chosen ones move into CORE_MECHANICS.md.
   across zones (the host simulates the occupied ones); pets need a zone-hop
   rule (v1: a following pet reappears beside its owner after a transition).
   Only the occupied instance needs full simulation and rendering.
+
+## Implemented first pass (2026-10-14)
+
+The shipped ecological types are **meadow, wetland, fungal, and
+ember**. Zone biome is selected from the world seed + zone coordinates
+using hop distance from the spawn zone: immediate neighbors are meadow
+or wetland, fungal enters at two hops, ember at three, and ember
+dominates the far field. The current HUD can therefore identify the
+zone beyond each map edge — neighboring zone name + biome — even though
+travel between surface zones is not implemented yet.
+
+The four names formerly used as quadrant labels are no longer separate
+places. Their words survive in biome-appropriate name pools:
+*Turquoise Glade* (wetland), *Violet Cradle* (fungal), *Prismatic
+Verge* (ember), and *Amber Thicket* (fungal). The candidate biomes
+below remain a larger idea bank for future types and should not be read
+as the current four-type table.
 
 ## Candidate biomes — the nearer ring (earth-recognizable)
 

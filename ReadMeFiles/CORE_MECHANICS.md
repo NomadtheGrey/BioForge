@@ -1,7 +1,7 @@
 # BioForge — Core Gameplay Mechanics & Systems Specification
 
 > **Status:** Living Document  
-> **Last Updated:** October 7, 2026  
+> **Last Updated:** October 14, 2026
 > **Game Version:** v0.1.0  
 > **Aesthetic:** Prismatic Botanical Tech (High-contrast, vibrant, porcelain synthetics, neon bioluminescence)
 
@@ -111,7 +111,34 @@ Fauna are categorized into two behavioral classes:
   * Physical boundary collision against placed walls (`chitin_glass_wall`), closed doors (`iris_slit_door`), workstations (`bio_forge_station`), and dense hazardous flora (`snap_trap`, `sap_weaver`).
   * Smooth axis-independent sliding allows natural movement along base corridors and boundaries.
 
-### 4.6. Browser-Native P2P Multiplayer Architecture
+### 4.6. World Geography, Navigation & Radar
+
+* **Surface zones:** The world is organized as a grid of 100 m × 100 m
+  surface zones. The current playable map is the spawn zone, **(0, 0)**.
+  Each zone has one biome — its ecological identity — and a poetic name
+  generated from pools matched to that biome. The spawn zone is always
+  a meadow; stranger biomes occur farther away by zone-hop distance.
+* **Current zone readout:** The HUD names the current zone and shows
+  its biome and grid coordinates. Within 10 m of the map edge, it also
+  identifies the next zone in that direction by name and biome, giving
+  the player a horizon before inter-zone travel is implemented.
+* **Minimap & survey:** The minimap footer and world-survey header show
+  the current zone coordinates and identity. The survey's four colors
+  are sectors of the current zone, not separate zones or biomes.
+* **Spawn tracking:** The circular radar carries a small amber arrow on
+  its rim pointing toward the spawn point, so the player can always
+  recover the direction home. It disappears when the player is already
+  at spawn.
+* **Future intent — a built radar device (Adam, 2026-10-14):** At some
+  point the player will **assemble a radar device out of pieces and
+  parts**, rather than the navigation suite being only an abstract HUD
+  feature. The exact components, recipe, assembly location, and which
+  present-day radar functions belong to the device are undecided. The
+  design question to settle when this is built is what basic orientation
+  remains available before construction and what the completed device
+  adds or improves.
+
+### 4.7. Browser-Native P2P Multiplayer Architecture
 * **Host-Driven Sessions:** One browser acts as host authority; no external game servers required for casual play.
 * **Zero-Setup Room Codes:** Hosts share a 6-letter room code (e.g. `BIO77X`).
 * **State Synchronization:**

@@ -57,6 +57,26 @@ underground enclave, though the same thing "happened."
 - **The Becoming.** They didn't die or leave; they merged into the
   ecosystem. The Living Valley is not a metaphor, and some "creatures" are
   closer to citizens than animals.
+- **The War.** They destroyed themselves. Ruins are scarred and fortified,
+  grown weapons gone wild; some zones are old battlefields where nothing
+  tameable will settle.
+- **The Sickness.** Disease took them. Ruins are eerily intact — tools down
+  mid-task, projects finished, people gone. War scars a world; sickness
+  leaves it tidy and terrible.
+- **Taken Out.** Another civilization destroyed them. This fate introduces
+  a third party into the lore: the precursors were not the top power, and
+  the ruin damage isn't theirs and isn't natural.
+- **The Uplift.** Another civilization raised them up and took them in. The
+  kindest fate — ruins orderly, emptied, almost grateful — and it also
+  introduces the third party.
+- **The Departure.** Natives who simply left, by space travel or portal, in
+  good order and by choice. The ruins are a hometown emptied, not a disaster
+  site. (Distinct from the Gardeners: visitors finishing a job vs. a people
+  leaving home.)
+- **The Return to Water.** They became ocean- and river-dwelling and
+  dissociated from technology entirely. Fate and remnant in one: they may
+  still be *present* — in the water. Ties directly to the alien-rivers open
+  question in BIOMES_BRAINSTORM.md.
 
 ### Remnant states — what is left of them (Adam, 2026-10-13, brainstorm)
 
@@ -102,3 +122,8 @@ No exposition dumps. The story arrives through three channels:
   offer things crafting never can (unique effects)?
 - If a remnant state leaves precursors present, are they characters — met,
   traded with, spoken to — or kept ambient, glimpsed and never confirmed?
+- Were the precursors native to the world, or arrivals? (The Gardeners and
+  the Crash assume arrivals; the Departure assumes natives. Origin may be a
+  hidden third axis of a world's story.)
+- If a third party exists (Taken Out, the Uplift), are they still out
+  there — and do they ever appear, or are they forever offstage?

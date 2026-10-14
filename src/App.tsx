@@ -33,6 +33,8 @@ import { usePlayerState } from './hooks/usePlayerState';
 import { useWorldEntities, INITIAL_STRUCTURES } from './hooks/useWorldEntities';
 import { generateSeededWorld } from './game/worldGen';
 import { generateGameCavern, generateGameCavernLevel, cavernCellToWorld, cavernEntryYaw, cavernStratumName, type CavernResult } from './game/cavern';
+import { generateGameRuin, ruinEntryYaw, ruinCollisionGrid, type RuinResult } from './game/ruinInterior';
+import { FATE_STYLES, type RuinVariantId, type WorldFate } from './game/ruins';
 import { zoneInfo, zoneBiomeAt, biomeDisplayName, SPAWN_ZONE, zoneCoordsAt, zoneHops } from './game/zones';
 import { occupancyConflict, placementFor } from './game/placement';
 import { useToolInteractions } from './hooks/useToolInteractions';
@@ -458,9 +460,21 @@ export default function App() {
         /** 1-based depth level of `cavern` (Adam's deeper caves). */
         depth: number;
         parked: WorldSnapshot;
+      }
+    | {
+        kind: 'ruin';
+        landmarkId: string;
+        instanceId: string;
+        ruin: RuinResult;
+        /** The ruin grid normalized to '.'/'#' for the movement
+         *  controller (the result's own grid keeps its richer
+         *  alphabet — overgrowth, rubble, markers — for the renderer). */
+        collisionGrid: string[];
+        parked: WorldSnapshot;
       };
   const instanceRef = useRef<InstanceState>({ kind: 'surface' });
   const [inCavern, setInCavern] = useState(false);
+  const [inRuin, setInRuin] = useState(false);
   // The current depth level as STATE (the ref holds the truth; this
   // mirror exists so the HUD can name the stratum the player is in).
   const [cavernDepth, setCavernDepth] = useState(0);
@@ -477,17 +491,23 @@ export default function App() {
   }
   const caveStackRef = useRef<CaveFrame[]>([]);
 
-  /** 'surface', or the cavern instanceId the player is inside —
-   *  deeper levels suffix the depth so co-op peers on different
-   *  levels of the same cave stay invisible to each other. */
+  /** 'surface', or the instance the player is inside — cavern
+   *  levels suffix the depth so co-op peers on different levels of
+   *  the same cave stay invisible to each other; a ruin is one
+   *  level, keyed by its landmark's instanceId alone. */
   const currentZoneId = useCallback((): string => {
     const inst = instanceRef.current;
+    if (inst.kind === 'ruin') return inst.instanceId;
     if (inst.kind !== 'cavern') return 'surface';
     return inst.depth > 1 ? `${inst.instanceId}#${inst.depth}` : inst.instanceId;
   }, []);
 
-  const isInCavernNow = useCallback(
-    (): boolean => instanceRef.current.kind === 'cavern',
+  // The tool hook's instance guard: building and planting belong to
+  // the surface world; inside an instance the hook refuses them (the
+  // cavern additionally allows glow-spore planting — ruins allow
+  // nothing planted by hand).
+  const instanceKindNow = useCallback(
+    (): 'surface' | 'cavern' | 'ruin' => instanceRef.current.kind,
     []
   );
 
@@ -806,6 +826,132 @@ export default function App() {
     });
   }, [captureCavePlantings, exitToSurface]);
 
+  // Step through a ruin landmark into its instanced interior (P4
+  // interior stage): the interior derives from the landmark's link
+  // record alone — instanceId as the seed (the cavern precedent, so
+  // every client holding the landmark rebuilds the identical ruin),
+  // with the world's fate choosing the layout variant and style.
+  // The surface world parks; the instance's lists are the threshold
+  // portal plus the generator's features turned into structures:
+  // caches and the artifact heart (one-shot loot) and glyph stones
+  // (lore). 'Traces' landmarks never reach here — the hook refuses
+  // them with their remnant line first.
+  const handleEnterRuin = useCallback(
+    (landmark: StructureEntity): void => {
+      if (instanceRef.current.kind !== 'surface') return;
+      const link = landmark.ruin;
+      if (!link) {
+        postNotification('Sealed Shut', 'This ruin leads nowhere — its interior was never linked.', 'alert', '#fbbf24');
+        return;
+      }
+      const ruin = generateGameRuin(link.instanceId, {
+        instanceId: link.instanceId,
+        fate: link.fate as WorldFate,
+        variant: link.variant as RuinVariantId,
+        tier: link.tier,
+      });
+      if (!ruin) {
+        postNotification('Unstable Ruin', 'The way in collapses before it forms. (This ruin failed its validation — a bug, not a feature.)', 'alert', '#ef4444');
+        return;
+      }
+      const fate = link.fate as WorldFate;
+      const entry = cavernCellToWorld(ruin.entrance.cx, ruin.entrance.cy, ruin.width, ruin.height);
+      const entryYaw = ruinEntryYaw(ruin);
+      const structures: StructureEntity[] = [
+        {
+          id: `ruin_exit_${link.instanceId}`,
+          type: 'ruin_exit',
+          gridX: Math.round(entry.x / 2),
+          gridZ: Math.round(entry.z / 2),
+          worldX: entry.x,
+          worldZ: entry.z,
+          rotation: entryYaw,
+          health: 999,
+          maxHealth: 999,
+          doorOpenProgress: 0,
+          level: 0,
+        },
+      ];
+      // Features become the ruin's contents. A feature sitting on the
+      // entrance cell itself is skipped — the player materializes
+      // there. Ids are deterministic per instance + feature, so
+      // co-op peers inside the same ruin agree on every stone.
+      for (const f of ruin.features) {
+        if (f.cx === ruin.entrance.cx && f.cy === ruin.entrance.cy) continue;
+        const w = cavernCellToWorld(f.cx, f.cy, ruin.width, ruin.height);
+        const base = {
+          gridX: Math.round(w.x / 2),
+          gridZ: Math.round(w.z / 2),
+          worldX: w.x,
+          worldZ: w.z,
+          rotation: ((f.cx * 37 + f.cy * 91) % 628) / 100,
+          health: 999,
+          maxHealth: 999,
+          doorOpenProgress: 0,
+          level: 0,
+        };
+        if (f.type === 'cache') {
+          structures.push({ ...base, id: `ruincache_${link.instanceId}_${f.id}`, type: 'precursor_cache', ruinFeature: { fate, band: f.band } });
+        } else if (f.type === 'artifact_heart') {
+          structures.push({ ...base, id: `ruinheart_${link.instanceId}_${f.id}`, type: 'artifact_heart', ruinFeature: { fate, band: 'deep' } });
+        } else {
+          structures.push({
+            ...base,
+            id: `ruinglyph_${link.instanceId}_${f.id}`,
+            type: 'ruin_glyph',
+            ruinFeature: { fate, band: f.type === 'clue_deep' ? 'deep' : 'shallow' },
+          });
+        }
+      }
+      instanceRef.current = {
+        kind: 'ruin',
+        landmarkId: landmark.id,
+        instanceId: link.instanceId,
+        ruin,
+        collisionGrid: ruinCollisionGrid(ruin),
+        parked: {
+          flora: [...floraList],
+          fauna: [...faunaList],
+          structures: [...structuresList],
+          drops: [...droppedItems],
+        },
+      };
+      replaceWorld({ flora: [], fauna: [], structures, drops: [] });
+      engineRef.current?.setRuinMode(true, ruin, FATE_STYLES[fate]?.tint ?? 0xa8a29e);
+      applyPlayerLevel(0);
+      playerPosRef.current = { x: entry.x, z: entry.z, rotation: entryYaw };
+      engineRef.current?.setPlayerPosition(entry.x, entry.z, 0);
+      setInRuin(true);
+      postNotification(
+        'Precursor Ruin',
+        'You step through the gate into the precursor ruin. What the centuries left is yours to read — and the deepest room keeps the heart of the place.',
+        'system',
+        '#a5b4fc'
+      );
+    },
+    [floraList, faunaList, structuresList, droppedItems, postNotification, replaceWorld, applyPlayerLevel]
+  );
+
+  // Step back out of a ruin: restore the parked surface world and
+  // land the player at the landmark's stored exit anchor (2 m out
+  // along its facing — outside the portal, never re-triggering it).
+  const handleExitRuin = useCallback((): void => {
+    const inst = instanceRef.current;
+    if (inst.kind !== 'ruin') return;
+    const landmark = inst.parked.structures.find((s) => s.id === inst.landmarkId);
+    const exitX = landmark?.ruin?.exitX ?? 0;
+    const exitZ = landmark?.ruin?.exitZ ?? 0;
+    const facing = landmark ? Math.atan2(exitX - landmark.worldX, exitZ - landmark.worldZ) : 0;
+    replaceWorld(inst.parked);
+    engineRef.current?.setRuinMode(false);
+    instanceRef.current = { kind: 'surface' };
+    applyPlayerLevel(0);
+    playerPosRef.current = { x: exitX, z: exitZ, rotation: facing };
+    engineRef.current?.setPlayerPosition(exitX, exitZ, 0);
+    setInRuin(false);
+    postNotification('Surface', 'You step back out into the open air, the ruin\'s silence behind you.', 'system', '#38bdf8');
+  }, [replaceWorld, applyPlayerLevel, postNotification]);
+
   // Leaving an instance WITHOUT the portal (loading a save, starting
   // a new world, receiving a host's world): drop the cave so the
   // fresh world never opens inside a ghost instance.
@@ -814,7 +960,9 @@ export default function App() {
     instanceRef.current = { kind: 'surface' };
     caveStackRef.current = [];
     engineRef.current?.setCavernMode(false);
+    engineRef.current?.setRuinMode(false);
     setInCavern(false);
+    setInRuin(false);
     setCavernDepth(0);
   }, []);
 
@@ -849,7 +997,9 @@ export default function App() {
     onExitCave: handleExitCave,
     onDescendCave: handleDescendCave,
     onVineClimb: handleVineClimb,
-    isInCavern: isInCavernNow,
+    onEnterRuin: handleEnterRuin,
+    onExitRuin: handleExitRuin,
+    instanceKind: instanceKindNow,
     tameFauna,
     setFaunaCommand,
     setCodexList,
@@ -912,7 +1062,8 @@ export default function App() {
         const wantSprint = sprinting.current && staminaRef.current > 0;
         movementController.current.sprintMultiplier = wantSprint ? 1.6 : 1;
 
-        // Inside an instance, the cavern grid itself is the walls.
+        // Inside an instance, the instance grid itself is the walls
+        // (caverns use their grid raw; ruins pass the collision copy).
         const activeInstance = instanceRef.current;
         const cavernArg =
           activeInstance.kind === 'cavern'
@@ -921,7 +1072,13 @@ export default function App() {
                 width: activeInstance.cavern.width,
                 height: activeInstance.cavern.height,
               }
-            : null;
+            : activeInstance.kind === 'ruin'
+              ? {
+                  grid: activeInstance.collisionGrid,
+                  width: activeInstance.ruin.width,
+                  height: activeInstance.ruin.height,
+                }
+              : null;
 
         const moveResult = movementController.current.update(
           dt,
@@ -1352,7 +1509,7 @@ useEffect(() => {
 // the surface, which is where they'll arrive.
 const buildWorldSnapshot = (): WorldSnapshot => {
   const inst = instanceRef.current;
-  if (inst.kind === 'cavern') return inst.parked;
+  if (inst.kind !== 'surface') return inst.parked;
   const s = latestStateRef.current;
   return { flora: s.floraList, fauna: s.faunaList, structures: s.structuresList, drops: s.droppedItems };
 };
@@ -1364,6 +1521,21 @@ const buildWorldSnapshot = (): WorldSnapshot => {
 // wake up OUTSIDE the cave you were exploring, on solid ground.
 const buildCurrentPlayerState = () => {
   const inst = instanceRef.current;
+  if (inst.kind === 'ruin') {
+    // Wake up OUTSIDE the ruin, at its landmark's exit anchor.
+    const landmark = inst.parked.structures.find((s) => s.id === inst.landmarkId);
+    const exitX = landmark?.ruin?.exitX ?? playerPosRef.current.x;
+    const exitZ = landmark?.ruin?.exitZ ?? playerPosRef.current.z;
+    return {
+      ...latestStateRef.current.playerState,
+      x: exitX,
+      z: exitZ,
+      rotation: landmark
+        ? Math.atan2(exitX - landmark.worldX, exitZ - landmark.worldZ)
+        : playerPosRef.current.rotation,
+      level: 0,
+    };
+  }
   if (inst.kind === 'cavern') {
     const mouth = inst.parked.structures.find((s) => s.id === inst.mouthId);
     const exitX = mouth?.cave?.exitX ?? playerPosRef.current.x;
@@ -1587,10 +1759,10 @@ useEffect(() => {
   // Where the cave exit is, while inside a cavern — the radar's violet
   // way-out arrow (HUD → Minimap) aims at it. On the surface: null.
   const caveExitTarget = useMemo(() => {
-    if (!inCavern) return null;
-    const exit = structuresList.find((s) => s.type === 'cave_exit');
+    if (!inCavern && !inRuin) return null;
+    const exit = structuresList.find((s) => s.type === 'cave_exit' || s.type === 'ruin_exit');
     return exit ? { x: exit.worldX, z: exit.worldZ } : null;
-  }, [inCavern, structuresList]);
+  }, [inCavern, inRuin, structuresList]);
 
   const handleManualSave = (): void => {
     const meta = currentSaveRef.current;
@@ -1895,10 +2067,10 @@ useEffect(() => {
         onOpenControls={() => setActiveModal('controls')}
         onOpenDevTools={() => setActiveModal('devtools')}
         onSave={handleManualSave}
-        currentBiomeName={inCavern ? cavernStratumName(cavernDepth || 1) : currentZoneName}
-        currentBiomeType={inCavern ? 'Cavern' : currentZoneBiomeLabel}
-        edgeZoneLabel={inCavern ? null : edgeZoneLabel}
-        zoneCoordsLabel={inCavern ? 'Instanced Zone' : zoneCoordsLabel}
+        currentBiomeName={inCavern ? cavernStratumName(cavernDepth || 1) : inRuin ? 'Precursor Ruin' : currentZoneName}
+        currentBiomeType={inCavern ? 'Cavern' : inRuin ? 'Ruin Interior' : currentZoneBiomeLabel}
+        edgeZoneLabel={inCavern || inRuin ? null : edgeZoneLabel}
+        zoneCoordsLabel={inCavern || inRuin ? 'Instanced Zone' : zoneCoordsLabel}
         inventory={inventory}
         caveExitTarget={caveExitTarget}
         radarActive={playerState.heldItemId === 'prismatic_field_radar'}

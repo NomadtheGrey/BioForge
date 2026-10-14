@@ -71,6 +71,8 @@ export interface UseToolInteractionsParams {
   onEnterCave: (mouth: StructureEntity) => void;
   /** Step through a cave exit back to the surface. */
   onExitCave: () => void;
+  /** Step down a cave descent shaft to the next depth level. */
+  onDescendCave: (descent: StructureEntity) => void;
   /** True while the player is inside an instanced cavern — building and
    *  planting belong to the surface world and are refused underground. */
   isInCavern: () => boolean;
@@ -111,6 +113,7 @@ export function useToolInteractions({
   applyPlayerLevel,
   onEnterCave,
   onExitCave,
+  onDescendCave,
   isInCavern,
   tameFauna,
   setFaunaCommand,
@@ -1179,6 +1182,23 @@ export function useToolInteractions({
         return;
       }
       onExitCave();
+      return;
+    }
+    // The descent shaft is a portal of the same family: every
+    // ordinary tool steps DOWN it (App owns the level transition),
+    // solvent is refused, the scanner describes. It runs before the
+    // builder's base-block case for the same reason the exit does —
+    // a doorway is not a building block.
+    if (structure.type === 'cave_descent') {
+      if (activeTool === 'solvent_sprayer') {
+        postNotification('Undissolvable', 'The shaft is the cave\'s own throat — the solvent cannot take it.', 'alert', '#fbbf24');
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onDescendCave(structure);
       return;
     }
     if (

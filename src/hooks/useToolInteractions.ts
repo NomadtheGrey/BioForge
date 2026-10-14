@@ -130,6 +130,10 @@ export function useToolInteractions({
         // Harvesting a bounce-shroom gives its spore back (replant it
         // under another hole) plus the dew that collects on the cap.
         return { item: 'seed_bounce_shroom', count: flora.fertilizedYield ? 2 : 1, extras: [['dew_essence', 1]] };
+      case 'glow_spore_cluster':
+        // The cave-mouth plant: its orbs are picked for their spores,
+        // which hold the cluster's glow. The plant stays and regrows.
+        return { item: 'glow_spore', count: flora.fertilizedYield ? 4 : 2, extras: [['dew_essence', 1]] };
       case 'bell_bloom':
       default:
         return { item: 'dew_essence', count: flora.fertilizedYield ? 4 : 2, extras: [['soft_fiber', 1]] };

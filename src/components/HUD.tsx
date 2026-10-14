@@ -61,6 +61,9 @@ interface HUDProps {
   selectedStructureType: StructureType;
   selectedSeedId: ItemId;
   selectedFertilizerId: ItemId;
+  /** Live pouch contents — the hotbar and descriptors show counts for
+   *  anything a tool consumes, so the last item is never spent blind. */
+  inventory: Record<ItemId, number>;
   structures?: StructureEntity[];
   fauna?: FaunaEntity[];
   flora?: FloraEntity[];
@@ -94,6 +97,7 @@ export const HUD: React.FC<HUDProps> = ({
   selectedStructureType,
   selectedSeedId,
   selectedFertilizerId,
+  inventory,
   structures = [],
   fauna = [],
   flora = [],
@@ -175,11 +179,39 @@ export const HUD: React.FC<HUDProps> = ({
   const descriptorToolId = hoveredToolId ?? flashToolId;
   const descriptorTool = tools.find((t) => t.id === descriptorToolId) ?? null;
 
+  // ---------------------------------------------------------------------
+  // Inventory counts for consumables (Adam, 2026-10-14): anything a tool
+  // SPENDS shows how many are left — in the descriptor, in the active
+  // sub-selection panel, and as a badge on the hotbar tile itself — so
+  // the player never spends their last seed-node blind, and a 0 reads
+  // instantly as "go find more ingredients". Color code everywhere:
+  // 0 = red (none left), 1 = amber (that's your last one), else plain.
+  // ---------------------------------------------------------------------
+  // StructureType values are item ids too (structures live in ITEMS),
+  // but the unions are declared separately — hence the widened parameter.
+  const countOf = (id: ItemId | StructureType): number => inventory[id as ItemId] ?? 0;
+  const countTextClass = (n: number): string =>
+    n === 0 ? 'text-red-400' : n === 1 ? 'text-amber-300' : 'text-slate-200';
+  const countBorderClass = (n: number): string =>
+    n === 0 ? 'border-red-500/60' : n === 1 ? 'border-amber-500/60' : 'border-slate-600/60';
+
+  // The primary consumable per hotbar tile (the tile badge). The trowel's
+  // badge is its SEED (the planting click spends it); its fertilizer
+  // count rides the descriptor and sub-panel below. The lure's badge is
+  // its everyday bait, Sweet Nectar.
+  const tileBadgeCount: Partial<Record<ToolType, number>> = {
+    planter_trowel: countOf(selectedSeedId),
+    taming_lure: countOf('sweet_nectar'),
+    builder: countOf(selectedStructureType),
+  };
+
   let descriptorExtra: string | null = null;
   if (descriptorTool?.id === 'builder') {
-    descriptorExtra = `Selected Blueprint: ${ITEMS[selectedStructureType]?.name || selectedStructureType}`;
+    descriptorExtra = `Selected Blueprint: ${ITEMS[selectedStructureType]?.name || selectedStructureType} — ×${countOf(selectedStructureType)} in pouch`;
   } else if (descriptorTool?.id === 'planter_trowel') {
-    descriptorExtra = `Selected Seed: ${ITEMS[selectedSeedId]?.name || selectedSeedId} · Loaded Fertilizer: ${ITEMS[selectedFertilizerId]?.name || selectedFertilizerId}`;
+    descriptorExtra = `Selected Seed: ${ITEMS[selectedSeedId]?.name || selectedSeedId} — ×${countOf(selectedSeedId)} · Loaded Fertilizer: ${ITEMS[selectedFertilizerId]?.name || selectedFertilizerId} — ×${countOf(selectedFertilizerId)}`;
+  } else if (descriptorTool?.id === 'taming_lure') {
+    descriptorExtra = `Bait: Sweet Nectar ×${countOf('sweet_nectar')} · Carapace Scale ×${countOf('carapace_scale')}`;
   }
 
   return (
@@ -443,6 +475,9 @@ export const HUD: React.FC<HUDProps> = ({
             <span className="font-tech font-bold text-purple-300">
               {ITEMS[selectedStructureType]?.name || selectedStructureType}
             </span>
+            <span className={`font-mono font-bold ${countTextClass(countOf(selectedStructureType))}`}>
+              ×{countOf(selectedStructureType)} in pouch
+            </span>
             <span className="text-[10px] text-slate-400 font-mono">(Change in Bio-Forge [B] or Inventory [I])</span>
           </div>
         )}
@@ -453,9 +488,15 @@ export const HUD: React.FC<HUDProps> = ({
             <span className="font-tech font-bold text-emerald-300">
               {ITEMS[selectedSeedId]?.name || selectedSeedId}
             </span>
+            <span className={`font-mono font-bold ${countTextClass(countOf(selectedSeedId))}`}>
+              ×{countOf(selectedSeedId)}
+            </span>
             <span className="text-slate-400">Loaded Fertilizer:</span>
             <span className="font-tech font-bold text-teal-300">
               {ITEMS[selectedFertilizerId]?.name || selectedFertilizerId}
+            </span>
+            <span className={`font-mono font-bold ${countTextClass(countOf(selectedFertilizerId))}`}>
+              ×{countOf(selectedFertilizerId)}
             </span>
             <span className="text-[10px] text-slate-400 font-mono">(Wheel / ↑ ↓ switch fertilizer · click mounds to plant / fertilize)</span>
           </div>
@@ -540,6 +581,17 @@ export const HUD: React.FC<HUDProps> = ({
                 >
                   <span className="text-xl leading-none">{t.icon}</span>
                   <span className="text-[10px] font-tech font-bold mt-1 text-slate-200">{t.key}</span>
+
+                  {/* Consumable count badge: how many of the thing this
+                      tile SPENDS are left (see tileBadgeCount above).
+                      Red at 0, amber at 1 (your last one). */}
+                  {tileBadgeCount[t.id] !== undefined && (
+                    <span
+                      className={`absolute bottom-0.5 right-0.5 px-1 rounded-md text-[9px] font-mono font-bold border bg-slate-950/85 ${countTextClass(tileBadgeCount[t.id]!)} ${countBorderClass(tileBadgeCount[t.id]!)}`}
+                    >
+                      ×{tileBadgeCount[t.id]}
+                    </span>
+                  )}
 
                   {/* Active highlight glow dot */}
                   {isActive && (

@@ -470,8 +470,11 @@ export const HUD: React.FC<HUDProps> = ({
           HUD — glanceable in the bottom-left corner — instead of only
           inside the Controls Guide modal. Deliberately terse; the full
           guide is one [?] press away. Hidden on small screens so it
-          never crowds the hotbar. */}
-      <div className="absolute left-4 bottom-4 pointer-events-none hidden md:block">
+          never crowds the hotbar. It floats HIGH (bottom-52) so it sits
+          over — never over-lapping — the bottom bar's Bio-Forge /
+          Pouch / Codex windows row (Adam: the first placement, down at
+          bottom-4, obscured that row). */}
+      <div className="absolute left-4 bottom-52 pointer-events-none hidden md:block">
         <div className="glass-panel px-3 py-2.5 rounded-2xl border border-slate-700/50 shadow-lg">
           <div className="text-[9px] font-tech font-bold tracking-widest text-slate-400 uppercase mb-1.5">
             Controls

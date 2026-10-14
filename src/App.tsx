@@ -898,7 +898,9 @@ useEffect(() => {
     replaceWorld({
       flora: generated.flora,
       fauna: generated.fauna,
-      structures: INITIAL_STRUCTURES,
+      // Starter structures stay fixed (the homestead); world-grown
+      // structures (v4: the spawn zone's cave mouth) join them here.
+      structures: [...INITIAL_STRUCTURES, ...generated.structures],
       drops: [],
     });
     // The ground wears the spawn zone's biome tint (always meadow).

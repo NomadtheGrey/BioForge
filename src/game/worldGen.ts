@@ -52,15 +52,17 @@ import { createNoise2D, createSeededRandom, hashStringToSeed } from './motion';
 import { biomeDensityFactor, biomeWeightFactor } from './biomes';
 import type { BiomeId } from './biomes';
 import { zoneBiomeAt } from './zones';
-import type { FaunaEntity, FaunaSpecies, FloraEntity, FloraSpecies } from '../types/game';
+import type { FaunaEntity, FaunaSpecies, FloraEntity, FloraSpecies, StructureEntity } from '../types/game';
+import { generateCaveSurface, HOMESTEAD_BLOCKERS } from './caveSurface';
 
 /**
  * Stamp recorded on saves so future format/gen changes can migrate.
  * v1: the hybrid scatter (positions + distance species rule).
  * v2: + the biome layer, per-point (superseded within the day).
  * v3: biome layer at zone scope — one biome per zone (zones.ts).
+ * v4: + cave mouths on the surface (P3 surface half, caveSurface.ts).
  */
-export const WORLD_GEN_VERSION = 3;
+export const WORLD_GEN_VERSION = 4;
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -360,6 +362,10 @@ function placeFernRing(rng: () => number): PlacedPoint[] {
 export interface GeneratedWorld {
   flora: FloraEntity[];
   fauna: FaunaEntity[];
+  /** World-grown structures (v4: cave mouths). The caller merges these
+   *  with the fixed starter structures — mouths are wilderness, not
+   *  homestead, but they ride the same structures/save/sync pipeline. */
+  structures: StructureEntity[];
   /** Placements that needed the spacing safety valve (expect 0). */
   relaxedPlacements: number;
 }
@@ -474,9 +480,47 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
     animTime: 0,
   }));
 
+  // ---------------------------------------------------------------------
+  // Cave mouths (P3, surface half) — grown LAST, once the surface they
+  // must respect exists: mouths keep their footprint clear of the
+  // homestead (spawn zone only — it's the only zone with one) and of
+  // every plant and creature just dealt. The spawn zone always grows
+  // exactly one mouth (caveSurface.ts) — a findable first cave.
+  // ---------------------------------------------------------------------
+  const caveBlockers = [
+    ...(zoneZx === 0 && zoneZz === 0 ? HOMESTEAD_BLOCKERS : []),
+    ...flora.map((f) => ({ x: f.x, z: f.z, radius: 0.6 })),
+    ...fauna.map((f) => ({ x: f.x, z: f.z, radius: 1.2 })),
+  ];
+  const caveSection = generateCaveSurface(seedStr, {
+    zoneZx,
+    zoneZz,
+    zoneBiome,
+    blockers: caveBlockers,
+  });
+  const structures: StructureEntity[] = caveSection.mouths.map((m) => ({
+    id: m.id,
+    type: 'cave_mouth',
+    gridX: Math.round(m.anchor.x / 2),
+    gridZ: Math.round(m.anchor.z / 2),
+    worldX: m.anchor.x,
+    worldZ: m.anchor.z,
+    rotation: m.anchor.facing,
+    health: 9999,
+    maxHealth: 9999,
+    doorOpenProgress: 0,
+    cave: {
+      instanceId: m.instanceId,
+      exitX: m.surfaceExitSpawn.x,
+      exitZ: m.surfaceExitSpawn.z,
+      dressing: m.dressing,
+    },
+  }));
+
   return {
     flora,
     fauna,
+    structures,
     relaxedPlacements: floraScatter.relaxed + faunaScatter.relaxed,
   };
 }

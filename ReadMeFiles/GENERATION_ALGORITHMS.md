@@ -117,9 +117,10 @@ names; the quadrants are only sector shading on the current map.
   coordinates.
 - The radar rim carries a home arrow toward the spawn point. Its
   longer-term equipment framing is recorded in `CORE_MECHANICS.md`:
-  the player will eventually assemble a radar device from pieces and
-  parts rather than treating the full navigation suite as an abstract
-  permanent gift.
+  the player will eventually assemble a **Prismatic Field Radar** from
+  four biological subassemblies — including parts from two planned
+  species, Echo Reed and Vesper Glider — rather than treating the full
+  navigation suite as an abstract permanent gift.
 
 **Lab history:** the lab first modeled biome as a per-point field
 inside one map (distance rings + standardized noise). That experiment

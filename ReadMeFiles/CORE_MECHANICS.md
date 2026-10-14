@@ -129,14 +129,38 @@ Fauna are categorized into two behavioral classes:
   its rim pointing toward the spawn point, so the player can always
   recover the direction home. It disappears when the player is already
   at spawn.
-* **Future intent — a built radar device (Adam, 2026-10-14):** At some
-  point the player will **assemble a radar device out of pieces and
-  parts**, rather than the navigation suite being only an abstract HUD
-  feature. The exact components, recipe, assembly location, and which
-  present-day radar functions belong to the device are undecided. The
-  design question to settle when this is built is what basic orientation
-  remains available before construction and what the completed device
-  adds or improves.
+* **Future intent — a built radar device (Adam, 2026-10-14):** The
+  player will assemble a **Prismatic Field Radar** from four biological
+  subassemblies at a Bio-Forge, rather than the navigation suite being
+  only an abstract permanent HUD feature. Adam delegated the parts
+  list to Marlowe; the decided recipe is:
+
+  | Subassembly | Parts | Job in the device |
+  |---|---|---|
+  | **Resonant Antenna Fan** | 4 **Resonant Reeds** + 2 Ribbon Fiber | Sends and receives the radar pulse; the fibers carry the returning signal. |
+  | **Sonar Receiver** | 2 **Sonar Vanes** + 1 Prismatic Core | The vanes gather faint returns; the core focuses and interprets them. |
+  | **Chitin Housing** | 3 Carapace Scales + 2 Resin Sap | Rigid shell and antenna ribs, sealed with living resin. |
+  | **Biolume Power Cell** | 1 Lantern-Fern Spore + 2 Dew Essence + 2 Bio-Pellets | A grown, self-lit power source for the pulse and display. |
+
+  Final assembly consumes one of each subassembly. In raw materials:
+  4 Resonant Reeds, 2 Sonar Vanes, 1 Prismatic Core, 3 Carapace Scales,
+  2 Resin Sap, 2 Ribbon Fiber, 1 Lantern-Fern Spore, 2 Dew Essence, and
+  2 Bio-Pellets.
+
+* **Two upcoming species exist partly to feed that recipe:**
+  - **Echo Reed** *(new flora)* — a hollow-stalked reed suited to damp
+    ground and wetland zones. Its segmented stalks resonate when the
+    wind moves through them. A mature plant yields **Resonant Reeds**.
+  - **Vesper Glider** *(new fauna)* — a nocturnal gliding creature with
+    broad hearing vanes that navigates by emitted pulses. It naturally
+    sheds **Sonar Vanes**, so the part follows BioForge's non-lethal
+    byproduct pattern; no kill harvest is required. A tamed glider can
+    supply them over time like other companion byproducts.
+
+  Still open when the device is implemented: the Echo Reed's and Vesper
+  Glider's exact biome placement, and the navigation split — what basic
+  orientation remains available before construction, and which of the
+  present-day radar functions the completed device owns or improves.
 
 ### 4.7. Browser-Native P2P Multiplayer Architecture
 * **Host-Driven Sessions:** One browser acts as host authority; no external game servers required for casual play.

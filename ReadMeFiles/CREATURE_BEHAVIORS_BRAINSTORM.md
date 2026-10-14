@@ -76,6 +76,25 @@ Behaviors that could only happen on this planet.
    BioForge for.
 4. **Herd behavior:** unglamorous, but reusable across half the future roster.
 
+## Radar-linked fauna concept — Vesper Glider
+
+**Role decided (2026-10-14); behavior details remain brainstorm.** The
+Vesper Glider is planned partly because the future **Prismatic Field
+Radar** needs a biological receiver part (full recipe in
+`CORE_MECHANICS.md`).
+
+- A nocturnal glider with broad, sensitive hearing vanes. By day it
+  roosts in a high or sheltered place; at night it launches, glides,
+  and navigates by soft emitted pulses.
+- It naturally sheds **Sonar Vanes**. Wild gliders can leave them as
+  occasional finds; a tamed glider can supply them over time as a
+  companion byproduct. No kill harvest — the part follows BioForge's
+  non-lethal pattern.
+- Behavior hooks to explore when it ships: pulse/navigation sensing,
+  attraction to lantern light without being purely light-drinking, and
+  startle-flights that make its movement read differently from the
+  ground-bound fauna.
+
 ## Parked, related
 
 - **The wiggle pass** (procedural micro-motion so creatures feel alive in

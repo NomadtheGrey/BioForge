@@ -16,6 +16,7 @@ export type ItemId =
   | 'carapace_scale'
   | 'prismatic_core'
   | 'basic_compost'
+  | 'glow_spore'
   // Cultivation Seeds
   | 'seed_lantern_fern'
   | 'seed_sap_weaver'
@@ -70,7 +71,8 @@ export type FloraSpecies =
   | 'snap_trap'
   | 'bell_bloom'
   | 'bounce_shroom'
-  | 'ribbon_moss';
+  | 'ribbon_moss'
+  | 'glow_spore_cluster';
 
 export interface FloraEntity {
   id: string;

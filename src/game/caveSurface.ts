@@ -233,12 +233,12 @@ function placeMouth(
 // mouth to its zone. Local frame: `behind` runs along the inward
 // direction (into the rock), `side` perpendicular.
 
+// NOTE: no 'glow_spore_cluster' pieces here anymore — those became a
+// REAL harvestable plant (worldGen rings every mouth with living
+// clusters; Adam, 2026-10-14). Dressing accents are pure scenery.
 const BIOME_ACCENTS: Record<BiomeId, { type: CaveDressingType; count: number }[]> = {
-  meadow: [{ type: 'glow_spore_cluster', count: 2 }],
-  wetland: [
-    { type: 'reed_cluster', count: 3 },
-    { type: 'glow_spore_cluster', count: 2 },
-  ],
+  meadow: [],
+  wetland: [{ type: 'reed_cluster', count: 3 }],
   fungal: [{ type: 'glow_fungus_cluster', count: 4 }],
   ember: [
     { type: 'heat_cracked_stone', count: 3 },

@@ -92,6 +92,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'common',
     maxStack: 99,
   },
+  glow_spore: {
+    id: 'glow_spore',
+    name: 'Glow Spores',
+    category: 'raw',
+    description: 'Bioluminescent spores gathered from the clusters that grow around cave mouths. They hold a charge of light long after picking.',
+    iconName: 'Sparkles',
+    color: '#22d3ee',
+    rarity: 'uncommon',
+    maxStack: 99,
+  },
 
   // Cultivation Seeds
   seed_lantern_fern: {
@@ -716,6 +726,18 @@ export const INITIAL_CODEX: CodexEntry[] = [
     tamingOrCraftNotes: 'Only fires when jumped on (Space). Dropping onto it from above is perfectly safe — no rebound.',
     biome: 'Cultivated',
     iconColor: '#a855f7',
+  },
+  {
+    species: 'glow_spore_cluster',
+    name: 'Glow Spore Cluster',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A low cluster of luminous cyan orbs on dark stalks. It seeds itself around cave mouths, feeding on the cool breath of the caverns below.',
+    byproducts: ['Glow Spores', 'Dew Essence'],
+    tamingOrCraftNotes: 'Harvest the orbs with the glove; the cluster regrows. Wild only — it refuses domestic soil and keeps to cave mouths.',
+    biome: 'Cave Mouths',
+    iconColor: '#22d3ee',
   },
 ];
 

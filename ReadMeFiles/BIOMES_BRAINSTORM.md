@@ -95,6 +95,37 @@ Reserve these for distance, per the strangeness gradient.
 how you play rather than merely changing the wallpaper, and each gives
 several brainstormed behaviors a natural home.
 
+## World events — the turning (brainstorm, Adam 2026-10-13)
+
+An event layer above the biomes: every so often the world *turns* — briefly
+and terribly (the Pitch Black pattern: the safe world and the deadly world
+are the same place at different hours). Candidate triggers, each inverting
+a different rule:
+
+- **Eclipse.** Darkness at noon; hordes of vicious predators come out, and
+  things that fear lantern light stop fearing it.
+- **Solar flare.** The sky goes wrong; gauntlets spark and stutter;
+  light-drinking creatures gorge and glow mad.
+- **Tectonic stirring.** Vents open, volcanoes mutter, toxic gas pools in
+  the low places — and the caves breathe it out.
+- **The Fog.** Perfectly ordinary fog, except visibility drops to arm's
+  length and things move in it.
+
+Design rules proposed (unpinned):
+
+- **Rare enough to be legend, forecastable enough to be fair** — ruin
+  warnings, and artifact "weather organs" that twitch a day ahead.
+- **Survived with the game's verbs** — build the shelter, grow the light,
+  post the guard pets — never a raw damage check. In co-op it is the great
+  social moment: everyone home before it hits.
+- **A world may have a signature calamity**, tied to its fate (see
+  LORE_AND_ARTIFACTS_BRAINSTORM.md).
+- Event hordes are made of **untamables** (see CREATURE_BEHAVIORS_
+  BRAINSTORM.md). Open: what the hordes do in Peaceful mode.
+
+This is distinct from the deferred weather system below: these are rare
+calamities, not daily weather.
+
 ## Open questions — not yet handled (Adam, 2026-10-13)
 
 - **Terrain height.** The world is perfectly flat on the 2 m building grid
@@ -109,3 +140,4 @@ several brainstormed behaviors a natural home.
   gameplay (echo mimics and alarm calls behaving badly in fog) — is
   unhandled beyond biomes carrying lighting/fog hooks in their rules.
 - **Weather.** A weather system is explicitly deferred: handle later.
+  (Distinct from the rare world-event calamities above.)

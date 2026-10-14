@@ -83,3 +83,25 @@ Behaviors that could only happen on this planet.
   Brownian-style motion — implemented as *bounded/damped* jitter (tiny random
   nudges that settle back toward the creature's pose/anchor), never a raw
   random walk, which would accumulate drift.
+
+## Untamables (brainstorm, Adam 2026-10-13)
+
+Some creatures are **never tameable** and are always hostile in Normal and
+Hostile modes — the fight-only exception to the befriend-or-fight idea.
+Untameability should always have a *readable reason* a player can learn:
+
+- **Hive-controlled.** No individual mind to bond with; the colony is the
+  animal.
+- **Still on duty.** A precursor defense organism executing orders centuries
+  after its makers vanished. (Ties to ruins and world fates — e.g. the War.)
+- **Too alien.** Its mind doesn't map onto anything a lure can say.
+- **Epically large.** Scale itself is the reason: a creature the size of a
+  hill can't be a pet. At best it can be negotiated with, guided, warded
+  off, or endured like weather. The Leviathan Graveyard's bones imply at
+  least one may still be alive, far out.
+
+Open: what untamables do in Peaceful — appear as spectacle that hunts other
+fauna while players watch from lit doorways, or never appear at all.
+Untamables are also what world-event hordes are made of (see "World events"
+in BIOMES_BRAINSTORM.md), and they give guard pets something real to engage
+in Normal mode.

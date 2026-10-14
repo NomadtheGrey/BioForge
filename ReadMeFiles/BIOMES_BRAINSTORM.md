@@ -29,6 +29,15 @@ later, and chosen ones move into CORE_MECHANICS.md.
   magnetic dunes → navigation/tool stabilizer; deep caves → a light
   reservoir charged by lantern-ferns. Each biome teaches the player how to
   survive the next one.
+- **Instanced interior zones (Adam, 2026-10-13).** Caves, ruins, and similar
+  interiors are SEPARATE INSTANCES — their own zones — not spaces carved
+  into surface terrain. An entrance links to an instance with its own
+  layout, biome rules, and spawn tables, and the instance may sprawl far
+  beyond its surface footprint. Consequences noted for when zones are built:
+  entities, saves, and `world_sync` become zone-scoped; players may split
+  across zones (the host simulates the occupied ones); pets need a zone-hop
+  rule (v1: a following pet reappears beside its owner after a transition).
+  Only the occupied instance needs full simulation and rendering.
 
 ## Candidate biomes — the nearer ring (earth-recognizable)
 
@@ -85,3 +94,18 @@ Reserve these for distance, per the strangeness gradient.
 **Mirror Marsh, Fungal Hollow, Ember Scar, Biolume Caverns** — each changes
 how you play rather than merely changing the wallpaper, and each gives
 several brainstormed behaviors a natural home.
+
+## Open questions — not yet handled (Adam, 2026-10-13)
+
+- **Terrain height.** The world is perfectly flat on the 2 m building grid
+  today, and hills are known to fight the grid's placement, click, and
+  movement assumptions. Options on record, undecided: gentle height
+  variation with flattened build areas, or a flat play area with procedural
+  scenery beyond it. Instanced caves sidestep this underground only.
+- **Alien rivers.** Rivers flowing with weird liquids rather than water are
+  wanted but undesigned: courses and banks, what the liquid does (flow,
+  buoyancy, hazard, resource), and which creatures live in and around it.
+- **Foggy places.** Fog as a place property — visibility, mood, and
+  gameplay (echo mimics and alarm calls behaving badly in fog) — is
+  unhandled beyond biomes carrying lighting/fog hooks in their rules.
+- **Weather.** A weather system is explicitly deferred: handle later.

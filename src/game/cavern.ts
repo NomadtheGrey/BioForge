@@ -565,9 +565,9 @@ export interface GenerateCavernOptions {
   depthLevel?: number;
   /**
    * Probability (0–1) that this level grows a DESCENT to the next
-   * one. Undefined = no descent is possible here (deepest level).
-   * The roll draws on its own seeded stream, so it never perturbs
-   * the layout or feature streams.
+   * one. Undefined = no descent is on the table for this call. The
+   * roll draws on its own seeded stream, so it never perturbs the
+   * layout or feature streams.
    */
   descentChance?: number;
 }
@@ -638,14 +638,17 @@ export function generateCavern(seedStr: string, options: GenerateCavernOptions =
   };
 }
 
-/** The deepest a cave can go (Adam's depth cap for v1). */
-export const MAX_CAVERN_DEPTH = 3;
-
-/** Each depth level has a name — the HUD and the entry toast use it. */
+/** Each depth level has a name — the HUD and the entry toast use it.
+ *  Past the named strata the fallback is a plain depth count: how
+ *  deep a cave goes is the roll's business, not a cap's (Adam,
+ *  2026-10-14 — the generator permits any depth, so names run out
+ *  before the dark does). */
 export const CAVERN_STRATUM_NAMES: Record<number, string> = {
   1: 'Biolume Caverns',
   2: 'The Violet Deep',
   3: 'The Abyssal Dark',
+  4: 'The Lightless Deep',
+  5: 'The First Dark',
 };
 
 export function cavernStratumName(depthLevel: number): string {
@@ -662,8 +665,9 @@ export function generateGameCavern(
   worldSeed: string,
   instanceId: string,
   surfaceAnchor: { x: number; z: number; facing: number } | null,
+  zoneHopsFromSpawn = 0,
 ): CavernResult {
-  return generateGameCavernLevel(worldSeed, instanceId, 1, surfaceAnchor);
+  return generateGameCavernLevel(worldSeed, instanceId, 1, surfaceAnchor, zoneHopsFromSpawn);
 }
 
 /**
@@ -674,28 +678,31 @@ export function generateGameCavern(
  * every stage stream and grows a wholly different layout.
  *
  * The descent chance (Adam's rule: deeper is likelier the farther
- * the mouth sits from spawn) = a per-level base + a distance bonus.
- * The distance is measured from the mouth's stored position — data
- * every client holding the mouth entity has — so the roll lands the
- * same on host and guests alike. Deeper levels also deal RICHER
- * feature targets (greater depths, greater rewards): rares and
- * hazards scale fastest, fungus gently (light stays precious).
+ * the mouth sits from spawn) = a per-level base + a bonus per ZONE
+ * (biome) of distance — distance in this game is counted in zones,
+ * never meters (Adam, 2026-10-14). The hop count derives from the
+ * mouth's stored position — data every client holding the mouth
+ * entity has — so the roll lands the same on host and guests alike.
+ * Deeper levels also deal RICHER feature targets (greater depths,
+ * greater rewards): rares and hazards scale fastest, fungus gently
+ * (light stays precious).
  */
 export function generateGameCavernLevel(
   worldSeed: string,
   instanceId: string,
   depthLevel: number,
   surfaceAnchor: { x: number; z: number; facing: number } | null,
+  zoneHopsFromSpawn = 0,
 ): CavernResult {
   const zoneId = depthLevel <= 1 ? instanceId : `${instanceId}@d${depthLevel}`;
 
-  let descentChance: number | undefined;
-  if (depthLevel < MAX_CAVERN_DEPTH) {
-    const base = depthLevel === 1 ? 0.55 : 0.4;
-    const dist = surfaceAnchor ? Math.hypot(surfaceAnchor.x, surfaceAnchor.z) : 20;
-    const bonus = Math.min(1, Math.max(0, (dist - 20) / 22)) * 0.25;
-    descentChance = base + bonus;
-  }
+  // No depth cap: every level rolls for a way further down. The
+  // per-level chance (< 1) makes depth self-limiting in practice —
+  // each additional level multiplies the odds, so very deep caves
+  // exist but are rare legends rather than the norm.
+  const base = depthLevel === 1 ? 0.55 : 0.4;
+  const hopBonus = Math.min(zoneHopsFromSpawn * 0.05, 0.3);
+  const descentChance = base + hopBonus;
 
   const rich = 1 + 0.35 * (depthLevel - 1);
   const featureTargets =

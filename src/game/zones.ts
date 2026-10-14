@@ -49,6 +49,12 @@ export function zoneHops(zx: number, zz: number): number {
   return Math.abs(zx) + Math.abs(zz);
 }
 
+/** World position → the zone containing it. Zones are 100 m tiles
+ *  centered on the spawn zone: (−50…+50) on both axes is zone (0,0). */
+export function zoneCoordsAt(x: number, z: number): ZoneCoords {
+  return { zx: Math.floor((x + 50) / 100), zz: Math.floor((z + 50) / 100) };
+}
+
 // ---------------------------------------------------------------------------
 // Biome by zone — hop bands, seeded pick within the band
 // ---------------------------------------------------------------------------

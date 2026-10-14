@@ -15,6 +15,8 @@ import {
   FolderArchive,
   Map,
   Save,
+  Flashlight,
+  Radar,
 } from 'lucide-react';
 import {
   ToolType,
@@ -50,7 +52,10 @@ interface HUDProps {
   /** While inside a cavern: where the cave exit is (the radar draws a
    * violet way-out arrow toward it). Null on the surface. */
   caveExitTarget: { x: number; z: number } | null;
-  /** Click on the Left Hand slot: take the lantern into the hand, or stow it. */
+  /** True while the Prismatic Field Radar is the held Left-Hand
+   * instrument: the Minimap draws its find pings. */
+  radarActive: boolean;
+  /** Click on the Left Hand slot: cycle the owned instruments, or stow. */
   onToggleHeldItem: () => void;
   dayNightCycle: number;
   onToggleDayNight: () => void;
@@ -89,6 +94,7 @@ export const HUD: React.FC<HUDProps> = ({
   edgeZoneLabel,
   zoneCoordsLabel,
   caveExitTarget,
+  radarActive,
   onToggleHeldItem,
   dayNightCycle,
   onToggleDayNight,
@@ -291,6 +297,7 @@ export const HUD: React.FC<HUDProps> = ({
               currentBiomeType={currentBiomeType}
               zoneCoordsLabel={zoneCoordsLabel}
               exitTarget={caveExitTarget}
+              radarActive={radarActive}
             />
           )}
         </div>
@@ -620,17 +627,18 @@ export const HUD: React.FC<HUDProps> = ({
           {/* Tool Hotbar (1 - 6) */}
           {/* Hotbar Row: Left Hand slot beside the tools */}
           <div className="flex items-end gap-2">
-            {/* Left Hand (Adam, 2026-10-14): the off-hand slot. Click to
-                take the Hand Lantern-Fern into the hand, or stow it back
-                in the pouch. While held, its light follows the player
-                like a torch — see threeEngine.setHeldLight. */}
+            {/* Left Hand (Adam, 2026-10-14): the off-hand slot for
+                instruments. Click cycles the ones you own — the Hand
+                Lantern-Fern (a light that follows you; see
+                threeEngine.setHeldLight) and the Prismatic Field
+                Radar (minimap pings) — then stows. */}
             <button
               onClick={onToggleHeldItem}
-              title={playerState.heldItemId ? 'Left Hand: Hand Lantern-Fern — click to stow' : 'Left Hand: empty — click to hold a Hand Lantern-Fern'}
+              title={playerState.heldItemId === 'prismatic_field_radar' ? 'Left Hand: Prismatic Field Radar — click to cycle or stow' : playerState.heldItemId ? 'Left Hand: Hand Lantern-Fern — click to cycle or stow' : 'Left Hand: empty — click to hold an instrument (Lantern-Fern or Field Radar)'}
               className="pointer-events-auto glass-panel p-2 rounded-2xl flex flex-col items-center gap-1 shadow-2xl transition-all active:scale-95"
             >
-              <span className={`w-10 h-10 rounded-xl flex items-center justify-center border ${playerState.heldItemId ? 'bg-cyan-950/80 border-cyan-400/70 text-cyan-300 shadow-md shadow-cyan-500/30' : 'bg-slate-900/60 border-slate-700/60 text-slate-500'}`}>
-                <Sparkles className="w-5 h-5" />
+              <span className={`w-10 h-10 rounded-xl flex items-center justify-center border ${playerState.heldItemId === 'prismatic_field_radar' ? 'bg-violet-950/80 border-violet-400/70 text-violet-300 shadow-md shadow-violet-500/30' : playerState.heldItemId ? 'bg-cyan-950/80 border-cyan-400/70 text-cyan-300 shadow-md shadow-cyan-500/30' : 'bg-slate-900/60 border-slate-700/60 text-slate-500'}`}>
+                {playerState.heldItemId === 'prismatic_field_radar' ? <Radar className="w-5 h-5" /> : playerState.heldItemId ? <Flashlight className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
               </span>
               <span className="text-[8px] font-tech font-bold tracking-widest text-slate-400 uppercase">Left Hand</span>
             </button>

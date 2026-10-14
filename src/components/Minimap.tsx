@@ -33,6 +33,10 @@ export interface MinimapProps {
    * When set, the rim arrow points THERE (violet) instead of toward
    * the surface spawn, which isn't in this coordinate space. */
   exitTarget?: { x: number; z: number } | null;
+  /** True while the crafted Prismatic Field Radar is held in the
+   * Left Hand: the map pings caves, ruins, deep shafts, and rare
+   * lives (Adam, 2026-10-14 — the radar's reveal is the ping). */
+  radarActive?: boolean;
 }
 
 export type MinimapMode = 'radar' | 'world';
@@ -48,6 +52,7 @@ export const Minimap: React.FC<MinimapProps> = ({
   currentBiomeType,
   zoneCoordsLabel,
   exitTarget = null,
+  radarActive = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [mapMode, setMapMode] = useState<MinimapMode>('radar');
@@ -138,6 +143,29 @@ export const Minimap: React.FC<MinimapProps> = ({
   const exitArrowX = currentSize / 2 + Math.cos(exitAngle) * spawnRimR;
   const exitArrowY = currentSize / 2 + Math.sin(exitAngle) * spawnRimR;
   const exitArrowDeg = (exitAngle * 180) / Math.PI;
+
+  // Prismatic Field Radar pings: while the crafted radar is HELD,
+  // the finds worth walking for — cave mouths, ruin gates, the deep
+  // shafts underground, and the rare lives (stalker, snap-trap).
+  // Drawn as diamonds: on the scope when in range, riding the rim
+  // at their bearing when beyond it (the home arrow's language).
+  const pingTargets = useMemo(() => {
+    if (!radarActive) return [] as { id: string; x: number; z: number; color: string; label: string }[];
+    const out: { id: string; x: number; z: number; color: string; label: string }[] = [];
+    for (const s of structures) {
+      if (s.type === 'cave_mouth') out.push({ id: s.id, x: s.worldX, z: s.worldZ, color: '#a855f7', label: 'Cave Mouth' });
+      else if (s.type === 'ruin_landmark') out.push({ id: s.id, x: s.worldX, z: s.worldZ, color: '#f59e0b', label: s.ruin?.tier === 'traces' ? 'Scattered Remnant' : 'Precursor Ruin' });
+      else if (s.type === 'cave_descent') out.push({ id: s.id, x: s.worldX, z: s.worldZ, color: '#7c3aed', label: 'Cave Descent' });
+      else if (s.type === 'vine_shaft') out.push({ id: s.id, x: s.worldX, z: s.worldZ, color: '#34d399', label: 'Vine Shaft — the way up' });
+    }
+    for (const f of fauna) {
+      if (f.species === 'chitin_stalker') out.push({ id: f.id, x: f.x, z: f.z, color: '#ec4899', label: 'Chitin Stalker' });
+    }
+    for (const f of flora) {
+      if (f.species === 'snap_trap') out.push({ id: f.id, x: f.x, z: f.z, color: '#f43f5e', label: 'Snap-Trap' });
+    }
+    return out;
+  }, [radarActive, structures, fauna, flora]);
 
   return (
     <div className="pointer-events-auto flex flex-col gap-1.5 select-none animate-fade-in">
@@ -408,6 +436,31 @@ export const Minimap: React.FC<MinimapProps> = ({
                 <circle cx="0" cy="0" r="1.5" fill="#ffffff" />
               </g>
 
+              {/* Prismatic Field Radar pings (held radar only): a
+                  pulsing diamond on the scope when the find is in
+                  range; a smaller diamond riding the rim at its
+                  bearing when it is not. */}
+              {pingTargets.map((t) => {
+                const { cx, cy, dist } = toRadarCanvas(t.x, t.z, currentSize);
+                if (dist <= radarRadius) {
+                  return (
+                    <g key={`ping-${t.id}`} transform={`translate(${cx}, ${cy})`} className="animate-pulse">
+                      <title>{t.label}</title>
+                      <rect x={-3.4} y={-3.4} width={6.8} height={6.8} transform="rotate(45)" fill={t.color} stroke="#0f172a" strokeWidth="1" />
+                    </g>
+                  );
+                }
+                const a = Math.atan2(t.z - playerZ, t.x - playerX);
+                const rimX = currentSize / 2 + Math.cos(a) * spawnRimR;
+                const rimY = currentSize / 2 + Math.sin(a) * spawnRimR;
+                return (
+                  <g key={`ping-${t.id}`} transform={`translate(${rimX}, ${rimY})`} className="animate-pulse" opacity="0.9">
+                    <title>{t.label}</title>
+                    <rect x={-2.6} y={-2.6} width={5.2} height={5.2} transform="rotate(45)" fill={t.color} stroke="#0f172a" strokeWidth="0.8" />
+                  </g>
+                );
+              })}
+
               {/* Spawn-zone home arrow on the radar rim (see spawnAngle
                   above): an amber triangle pointing toward spawn. While
                   an exitTarget is set (inside a cavern), the VIOLET exit
@@ -583,6 +636,19 @@ export const Minimap: React.FC<MinimapProps> = ({
                     }
                     onMouseLeave={() => setHoveredEntity(null)}
                   />
+                );
+              })}
+
+              {/* Prismatic Field Radar pings (held radar only): a
+                  pulsing ring + diamond over each find on the survey. */}
+              {pingTargets.map((t) => {
+                const { cx, cy } = toWorldCanvas(t.x, t.z, currentSize);
+                return (
+                  <g key={`ping-${t.id}`}>
+                    <title>{t.label}</title>
+                    <circle cx={cx} cy={cy} r={5.5} fill="none" stroke={t.color} strokeWidth="1.4" className="animate-pulse" />
+                    <rect x={cx - 2.2} y={cy - 2.2} width={4.4} height={4.4} transform={`rotate(45 ${cx} ${cy})`} fill={t.color} />
+                  </g>
                 );
               })}
 

@@ -30,6 +30,7 @@ import { useNotifications } from './hooks/useNotifications';
 import { usePlayerState } from './hooks/usePlayerState';
 import { useWorldEntities, INITIAL_STRUCTURES } from './hooks/useWorldEntities';
 import { generateSeededWorld } from './game/worldGen';
+import { occupancyConflict, placementFor } from './game/placement';
 import { useToolInteractions } from './hooks/useToolInteractions';
 import {
   AUTOSAVE_INTERVAL_MS,
@@ -391,16 +392,21 @@ export default function App() {
         if (activeToolRef.current === 'builder') {
           const pt = engineRef.current.getAimGroundIntersection();
           if (pt) {
-            const gx = Math.round(pt.x / 2);
-            const gz = Math.round(pt.z / 2);
+            const type = selectedStructureRef.current;
+            const rotation = liveGameRefs.current.getPlacementRotation();
+            // Same placement math the click will use (game/placement.ts):
+            // panels preview on their EDGE, and the ghost turns red when
+            // the spot is already occupied — no promising what the click
+            // would refuse.
+            const spot = placementFor(type, pt.x, pt.z, rotation);
+            const blocked = occupancyConflict(type, spot, structuresListRef.current) !== undefined;
             engineRef.current.setGhostPreview(
-              selectedStructureRef.current,
+              type,
               true,
-              gx,
-              gz,
-              liveGameRefs.current.getPlacementRotation(),
-              liveGameRefs.current.hasItem(selectedStructureRef.current, 1)
-
+              spot.worldX,
+              spot.worldZ,
+              rotation,
+              liveGameRefs.current.hasItem(type, 1) && !blocked
             );
           }
         }

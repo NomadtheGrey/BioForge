@@ -20,12 +20,7 @@ import { ITEMS } from '../game/constants';
 import { soundEngine } from '../audio/soundEngine';
 import { multiplayerManager } from '../game/multiplayer';
 import { FLORA_MATURE_SECONDS, FERTILIZER_DURATION_SECONDS } from './useWorldEntities';
-
-// Placement layers: each 2m grid cell may hold ONE ground-layer structure
-// (a floor OR a mound) plus ONE upright structure standing on it (a wall,
-// a forge, a door...). Two of the same layer in one cell is a stack, and
-// stacking is rejected until real wall-stacking support lands.
-const GROUND_LAYER_TYPES: StructureType[] = ['root_tile_floor', 'cultivation_mound'];
+import { GROUND_LAYER_TYPES, isEdgePanel, occupancyConflict, placementFor } from '../game/placement';
 
 // A new plant must be at least this far (meters) from every existing one —
 // anything closer is a stack of seedlings on one spot, not a garden.
@@ -496,25 +491,36 @@ export function useToolInteractions({
         return;
       }
 
-      const gridX = Math.round(worldX / 2);
-      const gridZ = Math.round(worldZ / 2);
-
-      // Occupancy guard: one ground layer + one upright structure per
-      // cell. A floor under a wall is fine; a floor ON a floor is not.
-      const placingGroundLayer = GROUND_LAYER_TYPES.includes(selectedStructureType);
-      const sameLayerOccupied = structuresList.some((s) => {
-        if (s.gridX !== gridX || s.gridZ !== gridZ) return false;
-        return GROUND_LAYER_TYPES.includes(s.type) === placingGroundLayer;
-      });
-      if (sameLayerOccupied) {
-        postNotification(
-          placingGroundLayer ? 'Tile Already Floored' : 'Tile Occupied',
-          placingGroundLayer
-            ? 'That tile already has a floor or a mound — one ground layer per tile.'
-            : 'Something is already built on that tile. Dissolve it with the Solvent Sprayer [4] to rebuild.',
-          'alert',
-          '#fbbf24'
-        );
+      // Where the piece goes: cell pieces at the cell's center, wall/door
+      // PANELS on the cell edge nearest the aim (game/placement.ts) — and
+      // occupancy to match: one panel per edge; cell pieces keep the
+      // one-ground-layer + one-upright-per-cell rule.
+      const rotation = getPlacementRotation();
+      const spot = placementFor(selectedStructureType, worldX, worldZ, rotation);
+      const conflict = occupancyConflict(selectedStructureType, spot, structuresList);
+      if (conflict) {
+        if (isEdgePanel(selectedStructureType)) {
+          postNotification(
+            'Edge Occupied',
+            'A wall or door already stands on that edge. Dissolve it with the Solvent Sprayer [4] to rebuild.',
+            'alert',
+            '#fbbf24'
+          );
+        } else if (GROUND_LAYER_TYPES.includes(selectedStructureType)) {
+          postNotification(
+            'Tile Already Floored',
+            'That tile already has a floor or a mound — one ground layer per tile.',
+            'alert',
+            '#fbbf24'
+          );
+        } else {
+          postNotification(
+            'Tile Occupied',
+            'Something is already built on that tile. Dissolve it with the Solvent Sprayer [4] to rebuild.',
+            'alert',
+            '#fbbf24'
+          );
+        }
         return;
       }
 
@@ -524,13 +530,13 @@ export function useToolInteractions({
       const newStruct: StructureEntity = {
         id: 'struct_' + Math.random().toString(36).substring(2, 9),
         type: selectedStructureType,
-        gridX,
-        gridZ,
-        worldX: gridX * 2,
-        worldZ: gridZ * 2,
+        gridX: spot.gridX,
+        gridZ: spot.gridZ,
+        worldX: spot.worldX,
+        worldZ: spot.worldZ,
         // Faces the way the player faces (90° steps) so walls can turn
         // corners and doors open onto the room you built them for.
-        rotation: getPlacementRotation(),
+        rotation,
         health: 120,
         maxHealth: 120,
         doorOpenProgress: 0,

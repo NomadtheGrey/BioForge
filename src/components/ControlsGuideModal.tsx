@@ -62,6 +62,14 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({
                 <span className="text-slate-300">Collision Physics</span>
                 <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-emerald-300 font-bold">Solid Walls & Dense Flora</span>
               </div>
+              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex justify-between items-center">
+                <span className="text-slate-300">Bounce (on a mature Bounce-Shroom)</span>
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold">Spacebar</span>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex justify-between items-center">
+                <span className="text-slate-300">Climb a Vine Ladder</span>
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-emerald-300 font-bold">Click the Ladder</span>
+              </div>
             </div>
           </div>
 
@@ -116,7 +124,7 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({
                   <span className="font-mono bg-slate-800 px-1.5 py-0.2 rounded text-[11px]">[6]</span>
                   <span>Bio-Builder</span>
                 </div>
-                <p className="text-[11px] text-slate-400">Grows interlocking root floors, chitin-glass walls, and proximity iris doors on grid cells. Pieces face the way you face (90° steps) — turn to make corners. Click a wall with a wall selected to stack a story; with a floor selected to lay a ceiling over your side; then click a ceiling tile to grow it toward where you face, middle tiles included.</p>
+                <p className="text-[11px] text-slate-400">Grows interlocking root floors, chitin-glass walls, and proximity iris doors on grid cells. Pieces face the way you face (90° steps) — turn to make corners. Click a wall with a wall selected to stack a story; with a floor selected to lay a ceiling over your side; then click a ceiling tile to grow it toward where you face, middle tiles included. With a vine ladder selected, click a wall to grow a ladder up its face.</p>
               </div>
             </div>
           </div>

@@ -20,7 +20,7 @@ import { ITEMS } from '../game/constants';
 import { soundEngine } from '../audio/soundEngine';
 import { multiplayerManager } from '../game/multiplayer';
 import { FLORA_MATURE_SECONDS, FERTILIZER_DURATION_SECONDS } from './useWorldEntities';
-import { GROUND_LAYER_TYPES, isEdgePanel, occupancyConflict, placementFor } from '../game/placement';
+import { GROUND_LAYER_TYPES, isEdgePanel, isLadder, occupancyConflict, placementFor } from '../game/placement';
 
 // A new plant must be at least this far (meters) from every existing one —
 // anything closer is a stack of seedlings on one spot, not a garden.
@@ -54,6 +54,10 @@ export interface UseToolInteractionsParams {
   getPlacementRotation: () => number;
   /** Live player position — ceiling placement reads the player's side of a wall. */
   getPlayerPosition: () => { x: number; z: number };
+  /** The story the player stands on (ladder climbs read it). */
+  getPlayerLevel: () => number;
+  /** Move the player to another story (ladder climbs). */
+  applyPlayerLevel: (level: number) => void;
   tameFauna: (faunaId: string, customName: string, state: FaunaEntity['state']) => void;
   setFaunaCommand: (faunaId: string, cmd: 'follow' | 'stay' | 'guard') => void;
   setCodexList: React.Dispatch<React.SetStateAction<CodexEntry[]>>;
@@ -87,6 +91,8 @@ export function useToolInteractions({
   removeFlora,
   getPlacementRotation,
   getPlayerPosition,
+  getPlayerLevel,
+  applyPlayerLevel,
   tameFauna,
   setFaunaCommand,
   setCodexList,
@@ -112,6 +118,10 @@ export function useToolInteractions({
         return { item: 'vibrant_petal', count: flora.fertilizedYield ? 6 : 3, extras: [['sweet_nectar', 2]] };
       case 'snap_trap':
         return { item: 'carapace_scale', count: 1, extras: [] };
+      case 'bounce_shroom':
+        // Harvesting a bounce-shroom gives its spore back (replant it
+        // under another hole) plus the dew that collects on the cap.
+        return { item: 'seed_bounce_shroom', count: flora.fertilizedYield ? 2 : 1, extras: [['dew_essence', 1]] };
       case 'bell_bloom':
       default:
         return { item: 'dew_essence', count: flora.fertilizedYield ? 4 : 2, extras: [['soft_fiber', 1]] };
@@ -283,6 +293,7 @@ export function useToolInteractions({
       if (selectedSeedId === 'seed_petal_mill') species = 'petal_mill';
       if (selectedSeedId === 'seed_snap_trap') species = 'snap_trap';
       if (selectedSeedId === 'seed_bell_bloom') species = 'bell_bloom';
+      if (selectedSeedId === 'seed_bounce_shroom') species = 'bounce_shroom';
 
       const newFlora: FloraEntity = {
         id: 'flora_' + Math.random().toString(36).substring(2, 9),
@@ -764,6 +775,146 @@ export function useToolInteractions({
     [hasItem, deductInventoryItem, addStructure, postNotification, structuresList, getPlacementRotation]
   );
 
+  // ---- Vine ladders (Part 3): grow them on walls, click to climb -------
+  // A ladder segment hangs on a wall's edge at one story: it carries the
+  // player between that story and the one above, from EITHER side cell
+  // (you climb the wall face you're standing against). Segments stack as
+  // the wall grows: extending requires a wall at the next story up.
+
+  const ladderSpotOf = (panel: StructureEntity) => ({
+    gridX: panel.gridX,
+    gridZ: panel.gridZ,
+    worldX: panel.worldX,
+    worldZ: panel.worldZ,
+    level: panel.level ?? 0,
+  });
+
+  const placeLadderSegment = (spot: ReturnType<typeof ladderSpotOf>): void => {
+    deductInventoryItem('vine_ladder', 1);
+    soundEngine.playBuildPlace();
+    const newStruct: StructureEntity = {
+      id: 'struct_' + Math.random().toString(36).substring(2, 9),
+      type: 'vine_ladder',
+      gridX: spot.gridX,
+      gridZ: spot.gridZ,
+      worldX: spot.worldX,
+      worldZ: spot.worldZ,
+      rotation: structuresList.find(
+        (s) => isEdgePanel(s.type) && s.worldX === spot.worldX && s.worldZ === spot.worldZ && (s.level ?? 0) === spot.level,
+      )?.rotation ?? 0,
+      level: spot.level,
+      health: 120,
+      maxHealth: 120,
+      doorOpenProgress: 0,
+    };
+    addStructure(newStruct);
+    multiplayerManager.broadcastEntityUpsert('structure', newStruct);
+  };
+
+  const noLaddersToast = (): void =>
+    postNotification(
+      'Insufficient Seed-Nodes',
+      `No ${ITEMS['vine_ladder']?.name || 'vine_ladder'} remaining in pouch. Synthesize more at Bio-Forge [B].`,
+      'alert',
+      '#ef4444'
+    );
+
+  // Builder + ladder selected + click a WALL: grow the first segment.
+  const handlePlaceLadder = useCallback(
+    (panel: StructureEntity): void => {
+      if (!hasItem('vine_ladder', 1)) {
+        noLaddersToast();
+        return;
+      }
+      const spot = ladderSpotOf(panel);
+      if (occupancyConflict('vine_ladder', spot, structuresList)) {
+        postNotification('Ladder Already Grown', 'A vine ladder already climbs this wall at this height.', 'alert', '#fbbf24');
+        return;
+      }
+      placeLadderSegment(spot);
+      postNotification('Ladder Grown', 'A vine ladder climbs this wall. Click it to climb up.', 'craft', '#84cc16');
+    },
+    [hasItem, postNotification, structuresList, deductInventoryItem, addStructure]
+  );
+
+  // Builder + ladder selected + click a LADDER: grow it one story up.
+  const handleExtendLadder = useCallback(
+    (ladder: StructureEntity): void => {
+      if (!hasItem('vine_ladder', 1)) {
+        noLaddersToast();
+        return;
+      }
+      const level = (ladder.level ?? 0) + 1;
+      const wallAbove = structuresList.some(
+        (s) => isEdgePanel(s.type) && s.worldX === ladder.worldX && s.worldZ === ladder.worldZ && (s.level ?? 0) === level,
+      );
+      if (!wallAbove) {
+        postNotification('Nothing to Grow Onto', 'Ladders climb walls — stack a wall above this one first.', 'alert', '#fbbf24');
+        return;
+      }
+      const spot = { ...ladderSpotOf(ladder), level };
+      if (occupancyConflict('vine_ladder', spot, structuresList)) {
+        postNotification('Ladder Already Grown', 'The ladder already reaches that story here.', 'alert', '#fbbf24');
+        return;
+      }
+      placeLadderSegment(spot);
+      postNotification('Ladder Extended', `The vine ladder now reaches story ${level + 1}.`, 'craft', '#84cc16');
+    },
+    [hasItem, postNotification, structuresList, deductInventoryItem, addStructure]
+  );
+
+  // Any other tool + click a LADDER: climb it (up from its own story,
+  // down from the story above). You must stand in a cell the ladder's
+  // edge touches, and there must be footing on the far side.
+  const handleClimbLadder = useCallback(
+    (ladder: StructureEntity): void => {
+      const player = getPlayerPosition();
+      const playerLevel = getPlayerLevel();
+      const cellGX = Math.round(player.x / 2);
+      const cellGZ = Math.round(player.z / 2);
+
+      // Adjacency: the player's cell center must sit exactly one meter
+      // off the ladder's line, along the axis the ladder faces.
+      const runsEastWest = Math.abs(Math.sin(ladder.rotation)) < 0.7;
+      const adjacent = runsEastWest
+        ? cellGX * 2 === ladder.worldX && Math.abs(cellGZ * 2 - ladder.worldZ) === 1
+        : cellGZ * 2 === ladder.worldZ && Math.abs(cellGX * 2 - ladder.worldX) === 1;
+      if (!adjacent) {
+        postNotification('Too Far to Climb', 'Stand right beside the ladder, in a cell its wall touches.', 'alert', '#fbbf24');
+        return;
+      }
+
+      const ladderLevel = ladder.level ?? 0;
+      const hasFooting = (level: number): boolean =>
+        level === 0 ||
+        structuresList.some(
+          (s) => s.type === 'root_tile_floor' && (s.level ?? 0) === level && s.gridX === cellGX && s.gridZ === cellGZ,
+        );
+
+      if (playerLevel === ladderLevel) {
+        const target = ladderLevel + 1;
+        if (!hasFooting(target)) {
+          postNotification('Nothing to Stand On', 'Lay a ceiling floor above this side of the ladder first.', 'alert', '#fbbf24');
+          return;
+        }
+        applyPlayerLevel(target);
+        soundEngine.playBuildPlace();
+        return;
+      }
+      if (playerLevel === ladderLevel + 1) {
+        if (!hasFooting(ladderLevel)) {
+          postNotification('Nothing to Stand On', 'There is no floor below this side of the ladder anymore.', 'alert', '#fbbf24');
+          return;
+        }
+        applyPlayerLevel(ladderLevel);
+        soundEngine.playBuildPlace();
+        return;
+      }
+      postNotification('Out of Reach', 'This ladder does not reach the story you are standing on.', 'alert', '#fbbf24');
+    },
+    [getPlayerPosition, getPlayerLevel, applyPlayerLevel, structuresList, postNotification]
+  );
+
  const handleStructureInteract = useCallback(
   (structure: StructureEntity): void => {
     // Builder on a ceiling tile with a floor selected: grow the ceiling
@@ -808,6 +959,21 @@ export function useToolInteractions({
       handleBuilderOnPanel(structure);
       return;
     }
+    // Vine ladders: builder grows them (on a wall, or up from a ladder);
+    // every other tool CLIMBS them. Solvent and scanner keep their
+    // usual meanings on a ladder, so they are handled below as normal.
+    if (activeTool === 'builder' && selectedStructureType === 'vine_ladder' && isEdgePanel(structure.type)) {
+      handlePlaceLadder(structure);
+      return;
+    }
+    if (structure.type === 'vine_ladder' && activeTool !== 'solvent_sprayer' && activeTool !== 'bio_scanner') {
+      if (activeTool === 'builder' && selectedStructureType === 'vine_ladder') {
+        handleExtendLadder(structure);
+      } else {
+        handleClimbLadder(structure);
+      }
+      return;
+    }
     if (activeTool === 'solvent_sprayer') {
       handleSolventSprayer(structure);
       return;
@@ -821,7 +987,7 @@ export function useToolInteractions({
       return;
     }
   },
-  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, handleGroundClick, handlePlanterAction, selectedSeedId, selectedStructureType, handleBuilderOnPanel, handleGrowCeiling, postNotification]
+  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, handleGroundClick, handlePlanterAction, selectedSeedId, selectedStructureType, handleBuilderOnPanel, handleGrowCeiling, handlePlaceLadder, handleExtendLadder, handleClimbLadder, postNotification]
 );
 
   return {

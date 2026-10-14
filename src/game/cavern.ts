@@ -1,0 +1,609 @@
+// ============================================================================
+// cavern.ts — instanced cavern generation (P3 of the generation index)
+// ============================================================================
+//
+// A faithful in-game port of the gen lab's cavernLab.mjs (same stages,
+// same knobs, same seeded streams — layouts match the lab's maps). A
+// cavern is a SEPARATE INSTANCE (settled design, 2026-10-13): the
+// surface cave mouth is only a portal; the zone has its own layout,
+// bigger than the surface footprint, and its own rules (Biolume
+// Caverns = permanent dark).
+//
+//   Stage A — cellular automata: random wall fill, smoothed.
+//   Stage B — graph repair: keep big chambers, seal pockets, carve
+//             corridors (MST-style), then deliberate loops so no route
+//             is the only way through.
+//   Entrance — the southernmost floor cell; a BFS depth field from it
+//             grades the whole cave (shallow → deep).
+//   Stage C — features placed by depth band (generic types in v1:
+//             glow_fungus / common_resource / rare_mineral / hazard,
+//             plus the 'heart' — the deepest cell).
+//   Stage D — validation: one connected region, every feature
+//             reachable, corridors wide. A shipped cavern must pass.
+//
+// THE SURFACE-ANCHOR INVARIANT (load-bearing, from the lab): the
+// surface anchor is bookkeeping ONLY. It is echoed into the link
+// record and never reaches a random stream — the same (worldSeed,
+// instanceId) generates a byte-identical cave with or without it.
+//
+// Game sizing: the lab ran 64x64 cells (128 m). The game's movement
+// boundary is ±48 m, so in-game caverns generate at 44x44 cells
+// (88 m) — comfortably inside the boundary with wall margin to spare.
+// ============================================================================
+
+import { createSeededRandom, hashStringToSeed } from './motion';
+
+/** Cavern generator version. Stamped into every generated zone's meta. */
+export const CAVERN_GEN_VERSION = 1;
+
+/** In-game cavern size in cells (one cell = 2 m → an 88 m zone). */
+export const CAVERN_GRID_CELLS = 44;
+
+export type CavernFeatureType = 'glow_fungus' | 'common_resource' | 'rare_mineral' | 'hazard' | 'heart';
+
+export interface CavernFeature {
+  id: string;
+  type: CavernFeatureType;
+  cx: number;
+  cy: number;
+  depth: number;
+}
+
+export interface CavernLink {
+  zoneId: string;
+  surfaceAnchor: { x: number; z: number; facing: number } | null;
+  surfaceExitSpawn: { x: number; z: number; facing: number } | null;
+  zoneEntrance: { cx: number; cy: number };
+  zoneEntrySpawn: { cx: number; cy: number; facing: { dx: number; dy: number } };
+}
+
+export interface CavernResult {
+  seedStr: string;
+  zoneId: string;
+  width: number;
+  height: number;
+  cellMeters: number;
+  /** Row strings: '#' wall, '.' floor. Row 0 is the NORTH edge. */
+  grid: string[];
+  entrance: { x: number; y: number };
+  heart: { x: number; y: number } | null;
+  features: CavernFeature[];
+  depthStats: { maxDepth: number; bandCounts: { shallow: number; mid: number; deep: number } };
+  openShare: number;
+  link: CavernLink;
+  meta: { genVersion: number; validation: CavernValidation };
+}
+
+export interface CavernValidation {
+  featuresReachable: boolean;
+  singleFloorRegion: boolean;
+  openShare: number;
+  openBandOk: boolean;
+  corridorWidthShare: number;
+  corridorsWide: boolean;
+  pass: boolean;
+}
+
+interface CavernOpts {
+  width: number;
+  height: number;
+  cellMeters: number;
+  fillProb: number;
+  smoothIterations: number;
+  birthMin: number;
+  survivalMin: number;
+  borderWall: boolean;
+  minChamberSize: number;
+  corridorWidth: number;
+  extraLoops: number;
+  featureTargets: Record<string, number>;
+  featureMinSpacing: number;
+  exitOffsetMeters: number;
+  openBand: { min: number; max: number };
+}
+
+const CAVERN_DEFAULTS: CavernOpts = {
+  width: 64,
+  height: 64,
+  cellMeters: 2,
+  fillProb: 0.45,
+  smoothIterations: 5,
+  birthMin: 5,
+  survivalMin: 4,
+  borderWall: true,
+  minChamberSize: 24,
+  corridorWidth: 2,
+  extraLoops: 2,
+  featureTargets: {
+    glow_fungus: 36,
+    common_resource: 22,
+    rare_mineral: 12,
+    hazard: 6,
+  },
+  featureMinSpacing: 3,
+  exitOffsetMeters: 2,
+  openBand: { min: 0.25, max: 0.75 },
+};
+
+type Grid = number[][];
+
+/** Derive an independent deterministic stream: world seed + zone + stage. */
+function stageSeed(seedStr: string, zoneId: string, stage: string): number {
+  return hashStringToSeed(`${seedStr}:zone:${zoneId}:${stage}`);
+}
+
+function makeGrid(w: number, h: number, fill: number): Grid {
+  const g: Grid = new Array(h);
+  for (let y = 0; y < h; y++) {
+    g[y] = new Array(w);
+    for (let x = 0; x < w; x++) g[y][x] = fill;
+  }
+  return g;
+}
+
+/** Count wall neighbors (8-neighborhood); out-of-bounds counts as wall. */
+function wallNeighbors(g: Grid, w: number, h: number, x: number, y: number): number {
+  let n = 0;
+  for (let dy = -1; dy <= 1; dy++)
+    for (let dx = -1; dx <= 1; dx++) {
+      if (dx === 0 && dy === 0) continue;
+      const nx = x + dx, ny = y + dy;
+      if (nx < 0 || ny < 0 || nx >= w || ny >= h || g[ny][nx] === 1) n++;
+    }
+  return n;
+}
+
+/**
+ * Flood-fill all 4-connected floor regions, largest first. 4-connectivity
+ * is deliberate: diagonal-only "connections" would be a collision lie.
+ */
+function findRegions(g: Grid, w: number, h: number): [number, number][][] {
+  const seen = makeGrid(w, h, 0);
+  const regions: [number, number][][] = [];
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      if (g[y][x] !== 0 || seen[y][x]) continue;
+      const region: [number, number][] = [];
+      const stack: [number, number][] = [[x, y]];
+      seen[y][x] = 1;
+      while (stack.length) {
+        const [cx, cy] = stack.pop()!;
+        region.push([cx, cy]);
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+          const nx = cx + dx, ny = cy + dy;
+          if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+          if (g[ny][nx] !== 0 || seen[ny][nx]) continue;
+          seen[ny][nx] = 1;
+          stack.push([nx, ny]);
+        }
+      }
+      regions.push(region);
+    }
+  regions.sort((a, b) => b.length - a.length);
+  return regions;
+}
+
+/** BFS distances over floor from a start cell — the cave's depth field. */
+function bfsDepth(g: Grid, w: number, h: number, sx: number, sy: number): { dist: Grid; max: number } {
+  const dist = makeGrid(w, h, -1);
+  dist[sy][sx] = 0;
+  const queue: [number, number][] = [[sx, sy]];
+  let max = 0;
+  for (let qi = 0; qi < queue.length; qi++) {
+    const [cx, cy] = queue[qi];
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+      const nx = cx + dx, ny = cy + dy;
+      if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+      if (g[ny][nx] !== 0 || dist[ny][nx] !== -1) continue;
+      dist[ny][nx] = dist[cy][cx] + 1;
+      if (dist[ny][nx] > max) max = dist[ny][nx];
+      queue.push([nx, ny]);
+    }
+  }
+  return { dist, max };
+}
+
+function depthBand(r: number): 'shallow' | 'mid' | 'deep' {
+  if (r <= 0.33) return 'shallow';
+  if (r <= 0.66) return 'mid';
+  return 'deep';
+}
+
+const FEATURE_BAND_WEIGHTS: Record<string, { shallow: number; mid: number; deep: number }> = {
+  glow_fungus:     { shallow: 1.6,  mid: 1.0,  deep: 0.4  },
+  common_resource: { shallow: 1.4,  mid: 1.0,  deep: 0.6  },
+  rare_mineral:    { shallow: 0.3,  mid: 1.0,  deep: 1.8  },
+  hazard:          { shallow: 0.05, mid: 0.5,  deep: 1.5  },
+};
+
+// --------------------------------------------------------------------------
+// Stage A — cellular automata
+// --------------------------------------------------------------------------
+function stageCA(g: Grid, w: number, h: number, rng: () => number, opts: CavernOpts): void {
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      if (opts.borderWall && (x === 0 || y === 0 || x === w - 1 || y === h - 1)) {
+        g[y][x] = 1;
+      } else {
+        g[y][x] = rng() < opts.fillProb ? 1 : 0;
+      }
+    }
+  for (let it = 0; it < opts.smoothIterations; it++) {
+    const next = makeGrid(w, h, 1);
+    for (let y = 0; y < h; y++)
+      for (let x = 0; x < w; x++) {
+        if (opts.borderWall && (x === 0 || y === 0 || x === w - 1 || y === h - 1)) {
+          next[y][x] = 1;
+          continue;
+        }
+        const n = wallNeighbors(g, w, h, x, y);
+        if (g[y][x] === 1) next[y][x] = n >= opts.survivalMin ? 1 : 0;
+        else next[y][x] = n >= opts.birthMin ? 1 : 0;
+      }
+    for (let y = 0; y < h; y++)
+      for (let x = 0; x < w; x++) g[y][x] = next[y][x];
+  }
+}
+
+// --------------------------------------------------------------------------
+// Stage B — graph repair
+// --------------------------------------------------------------------------
+interface CarvedCorridor {
+  cells: [number, number, string][];
+  clamped: boolean;
+}
+
+function carveCorridor(g: Grid, w: number, h: number, x1: number, y1: number, x2: number, y2: number, cw: number): CarvedCorridor {
+  const cells: [number, number, string][] = [];
+  let clamped = false;
+  const clamp = (v: number, lo: number, hi: number): number => {
+    if (v < lo) { clamped = true; return lo; }
+    if (v > hi) { clamped = true; return hi; }
+    return v;
+  };
+  const stepX = x2 > x1 ? 1 : -1;
+  for (let x = x1; x !== x2 + stepX; x += stepX) {
+    const cx = clamp(x, 1, w - 2);
+    const cy = clamp(y1, 1, h - 2);
+    for (let dy = 0; dy < cw; dy++) g[clamp(y1 + dy, 1, h - 2)][cx] = 0;
+    cells.push([cx, cy, 'h']);
+  }
+  const stepY = y2 > y1 ? 1 : -1;
+  for (let y = y1; y !== y2 + stepY; y += stepY) {
+    const cy = clamp(y, 1, h - 2);
+    const cx = clamp(x2, 1, w - 2);
+    for (let dx = 0; dx < cw; dx++) g[cy][clamp(x2 + dx, 1, w - 2)] = 0;
+    cells.push([cx, cy, 'v']);
+  }
+  return { cells, clamped };
+}
+
+function closestPair(rng: () => number, regionA: [number, number][], regionB: [number, number][]): [[number, number], [number, number]] {
+  const sample = (region: [number, number][]): [number, number][] => {
+    const out: [number, number][] = [];
+    const n = Math.min(300, region.length);
+    for (let i = 0; i < n; i++) out.push(region[Math.floor(rng() * region.length)]);
+    return out;
+  };
+  const a = sample(regionA), b = sample(regionB);
+  let best: [[number, number], [number, number]] | null = null;
+  let bestD = Infinity;
+  for (const [ax, ay] of a)
+    for (const [bx, by] of b) {
+      const d = (ax - bx) * (ax - bx) + (ay - by) * (ay - by);
+      if (d < bestD) { bestD = d; best = [[ax, ay], [bx, by]]; }
+    }
+  return best!;
+}
+
+function stageRepair(g: Grid, w: number, h: number, rng: () => number, opts: CavernOpts) {
+  const preRegions = findRegions(g, w, h);
+  const preStats = {
+    count: preRegions.length,
+    largestShare: preRegions.length
+      ? preRegions[0].length / preRegions.reduce((s, r) => s + r.length, 0)
+      : 0,
+  };
+
+  const corridors: CarvedCorridor[] = [];
+  const keptChambers: [number, number][][] = [];
+  let filledPockets = 0;
+
+  const main = preRegions[0] || [];
+  const connected: [number, number][][] = [main];
+  for (const region of preRegions.slice(1)) {
+    if (region.length < opts.minChamberSize) {
+      for (const [x, y] of region) g[y][x] = 1;
+      filledPockets++;
+      continue;
+    }
+    keptChambers.push(region);
+    let bestD = Infinity;
+    let bestPair: [[number, number], [number, number]] | null = null;
+    for (let i = 0; i < connected.length; i++) {
+      const [ra, rb] = closestPair(rng, region, connected[i]);
+      const d = (ra[0] - rb[0]) ** 2 + (ra[1] - rb[1]) ** 2;
+      if (d < bestD) { bestD = d; bestPair = [ra, rb]; }
+    }
+    const [[ax, ay], [bx, by]] = bestPair!;
+    corridors.push(carveCorridor(g, w, h, ax, ay, bx, by, opts.corridorWidth));
+    connected.push(region);
+  }
+
+  // Deliberate loops: carve between far-apart already-connected points —
+  // the cycle created is an escape route.
+  const floor: [number, number][] = [];
+  for (let y = 1; y < h - 1; y++)
+    for (let x = 1; x < w - 1; x++)
+      if (g[y][x] === 0) floor.push([x, y]);
+  let loopsAdded = 0, loopAttempts = 0;
+  while (loopsAdded < opts.extraLoops && loopAttempts < 60 && floor.length > 2) {
+    loopAttempts++;
+    const a = floor[Math.floor(rng() * floor.length)];
+    const b = floor[Math.floor(rng() * floor.length)];
+    const d = Math.hypot(a[0] - b[0], a[1] - b[1]);
+    if (d < Math.min(w, h) / 2) continue;
+    corridors.push(carveCorridor(g, w, h, a[0], a[1], b[0], b[1], opts.corridorWidth));
+    loopsAdded++;
+  }
+
+  const postRegions = findRegions(g, w, h);
+  return {
+    preStats,
+    keptChambers: keptChambers.length,
+    filledPockets,
+    corridors,
+    loopsAdded,
+    postRegionCount: postRegions.length,
+  };
+}
+
+// --------------------------------------------------------------------------
+// Entrance + portal link
+// --------------------------------------------------------------------------
+function pickEntrance(g: Grid, w: number, h: number): { x: number; y: number } | null {
+  let best: [number, number] | null = null;
+  for (let y = 1; y < h - 1; y++)
+    for (let x = 1; x < w - 1; x++) {
+      if (g[y][x] !== 0) continue;
+      if (!best || y > best[1] || (y === best[1] && x < best[0])) best = [x, y];
+    }
+  if (!best) return null;
+  // Clear a small alcove so the player never spawns in a 1-wide crack.
+  for (let dy = -1; dy <= 1; dy++)
+    for (let dx = -1; dx <= 1; dx++) {
+      const nx = best[0] + dx, ny = best[1] + dy;
+      if (nx > 0 && ny > 0 && nx < w - 1 && ny < h - 1) g[ny][nx] = 0;
+    }
+  return { x: best[0], y: best[1] };
+}
+
+function buildPortalLink(
+  g: Grid, w: number, h: number,
+  entrance: { x: number; y: number },
+  zoneId: string,
+  surfaceAnchor: { x: number; z: number; facing: number } | null,
+  opts: CavernOpts,
+): CavernLink {
+  // Entry facing: from the entrance toward the floor centroid — always
+  // into the cave, since the entrance is the southernmost floor cell.
+  let floorN = 0, sumX = 0, sumY = 0;
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++)
+      if (g[y][x] === 0) { floorN++; sumX += x; sumY += y; }
+  let dx = sumX / floorN - entrance.x;
+  let dy = sumY / floorN - entrance.y;
+  const len = Math.hypot(dx, dy);
+  const facing = len > 1e-9 ? { dx: dx / len, dy: dy / len } : { dx: 0, dy: -1 };
+
+  let surfaceExitSpawn: CavernLink['surfaceExitSpawn'] = null;
+  if (surfaceAnchor) {
+    surfaceExitSpawn = {
+      x: surfaceAnchor.x + Math.cos(surfaceAnchor.facing) * opts.exitOffsetMeters,
+      z: surfaceAnchor.z + Math.sin(surfaceAnchor.facing) * opts.exitOffsetMeters,
+      facing: surfaceAnchor.facing,
+    };
+  }
+
+  return {
+    zoneId,
+    surfaceAnchor: surfaceAnchor
+      ? { x: surfaceAnchor.x, z: surfaceAnchor.z, facing: surfaceAnchor.facing }
+      : null,
+    surfaceExitSpawn,
+    zoneEntrance: { cx: entrance.x, cy: entrance.y },
+    zoneEntrySpawn: { cx: entrance.x, cy: entrance.y, facing },
+  };
+}
+
+// --------------------------------------------------------------------------
+// Stage C — features by depth band
+// --------------------------------------------------------------------------
+function stageFeatures(
+  rng: () => number, g: Grid, w: number, h: number,
+  depth: Grid, maxDepth: number, opts: CavernOpts,
+): { features: CavernFeature[]; heart: { x: number; y: number } | null } {
+  const floor: [number, number][] = [];
+  for (let y = 1; y < h - 1; y++)
+    for (let x = 1; x < w - 1; x++)
+      if (g[y][x] === 0) floor.push([x, y]);
+
+  const features: CavernFeature[] = [];
+  const bandOf = (x: number, y: number) => depthBand(maxDepth > 0 ? depth[y][x] / maxDepth : 0);
+  for (const type of Object.keys(opts.featureTargets)) {
+    const target = opts.featureTargets[type];
+    const weights = FEATURE_BAND_WEIGHTS[type];
+    const maxW = Math.max(weights.shallow, weights.mid, weights.deep);
+    let placed = 0, attempts = 0;
+    while (placed < target && attempts < target * 200) {
+      attempts++;
+      const [x, y] = floor[Math.floor(rng() * floor.length)];
+      if (rng() > weights[bandOf(x, y)] / maxW) continue;
+      let ok = true;
+      for (const f of features) {
+        if ((f.cx - x) ** 2 + (f.cy - y) ** 2 < opts.featureMinSpacing ** 2) {
+          ok = false;
+          break;
+        }
+      }
+      if (!ok) continue;
+      features.push({ id: `cf_${features.length}`, type: type as CavernFeatureType, cx: x, cy: y, depth: depth[y][x] });
+      placed++;
+    }
+  }
+
+  // The heart: the deepest floor cell (first in scan order on ties).
+  let heart: { x: number; y: number } | null = null;
+  for (let y = 1; y < h - 1 && !heart; y++)
+    for (let x = 1; x < w - 1; x++)
+      if (g[y][x] === 0 && depth[y][x] === maxDepth) { heart = { x, y }; break; }
+  if (heart) features.push({ id: 'cf_heart', type: 'heart', cx: heart.x, cy: heart.y, depth: maxDepth });
+
+  return { features, heart };
+}
+
+// --------------------------------------------------------------------------
+// Stage D — validation
+// --------------------------------------------------------------------------
+function validateCavern(
+  g: Grid, w: number, h: number,
+  entrance: { x: number; y: number },
+  features: CavernFeature[],
+  corridors: CarvedCorridor[],
+  opts: CavernOpts,
+): CavernValidation {
+  const { dist } = bfsDepth(g, w, h, entrance.x, entrance.y);
+  const featuresReachable = features.every((f) => dist[f.cy][f.cx] !== -1);
+  const singleFloorRegion = findRegions(g, w, h).length === 1;
+
+  let floorCount = 0;
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) if (g[y][x] === 0) floorCount++;
+  const openShare = floorCount / (w * h);
+  const openBandOk = openShare >= opts.openBand.min && openShare <= opts.openBand.max;
+
+  let checked = 0, good = 0;
+  for (const c of corridors) {
+    for (const [x, y, orient] of c.cells) {
+      checked++;
+      let ok = true;
+      for (let k = 0; k < opts.corridorWidth; k++) {
+        const nx = orient === 'v' ? x + k : x;
+        const ny = orient === 'h' ? y + k : y;
+        if (nx < 0 || ny < 0 || nx >= w || ny >= h || g[ny][nx] !== 0) { ok = false; break; }
+      }
+      if (ok) good++;
+    }
+  }
+  const corridorWidthShare = checked ? good / checked : 1;
+  const corridorsWide = corridorWidthShare >= 0.95;
+
+  return {
+    featuresReachable,
+    singleFloorRegion,
+    openShare,
+    openBandOk,
+    corridorWidthShare,
+    corridorsWide,
+    pass: featuresReachable && singleFloorRegion && openBandOk && corridorsWide,
+  };
+}
+
+// --------------------------------------------------------------------------
+// Public entry point
+// --------------------------------------------------------------------------
+export interface GenerateCavernOptions {
+  zoneId?: string;
+  width?: number;
+  height?: number;
+  /** Bookkeeping ONLY — never feeds generation (see the invariant). */
+  surfaceAnchor?: { x: number; z: number; facing: number } | null;
+}
+
+export function generateCavern(seedStr: string, options: GenerateCavernOptions = {}): CavernResult {
+  const { surfaceAnchor = null, ...overrides } = options;
+  const opts: CavernOpts = { ...CAVERN_DEFAULTS, ...overrides };
+  const zoneId = options.zoneId || 'cavern';
+  const { width: w, height: h } = opts;
+
+  const fillRng = createSeededRandom(stageSeed(seedStr, zoneId, 'fill'));
+  const repairRng = createSeededRandom(stageSeed(seedStr, zoneId, 'repair'));
+  const featureRng = createSeededRandom(stageSeed(seedStr, zoneId, 'features'));
+
+  const g = makeGrid(w, h, 1);
+  stageCA(g, w, h, fillRng, opts);
+  const repair = stageRepair(g, w, h, repairRng, opts);
+
+  const entrance = pickEntrance(g, w, h);
+  if (!entrance) throw new Error(`generateCavern: no floor for an entrance (seed ${seedStr})`);
+  const { dist, max: maxDepth } = bfsDepth(g, w, h, entrance.x, entrance.y);
+
+  const { features, heart } = stageFeatures(featureRng, g, w, h, dist, maxDepth, opts);
+  const link = buildPortalLink(g, w, h, entrance, zoneId, surfaceAnchor, opts);
+  const validation = validateCavern(g, w, h, entrance, features, repair.corridors, opts);
+
+  const grid = g.map((row) => row.map((c) => (c === 1 ? '#' : '.')).join(''));
+
+  const bandCounts = { shallow: 0, mid: 0, deep: 0 };
+  let open = 0;
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++)
+      if (g[y][x] === 0) {
+        open++;
+        bandCounts[depthBand(maxDepth > 0 ? dist[y][x] / maxDepth : 0)]++;
+      }
+
+  return {
+    seedStr,
+    zoneId,
+    width: w,
+    height: h,
+    cellMeters: opts.cellMeters,
+    grid,
+    entrance,
+    heart,
+    features,
+    depthStats: { maxDepth, bandCounts },
+    openShare: open / (w * h),
+    link,
+    meta: { genVersion: CAVERN_GEN_VERSION, validation },
+  };
+}
+
+/**
+ * The in-game entry point: a cavern for one cave mouth. The instanceId
+ * (stored on the mouth at world creation) is the zoneId, so each mouth
+ * owns a distinct, reproducible cave from the world seed alone — hosts
+ * and guests generate byte-identical interiors independently.
+ */
+export function generateGameCavern(
+  worldSeed: string,
+  instanceId: string,
+  surfaceAnchor: { x: number; z: number; facing: number } | null,
+): CavernResult {
+  return generateCavern(worldSeed, {
+    zoneId: instanceId,
+    width: CAVERN_GRID_CELLS,
+    height: CAVERN_GRID_CELLS,
+    surfaceAnchor,
+  });
+}
+
+/**
+ * Cell → world coordinates inside the instance. The cavern shares the
+ * surface's numeric space (centered on the origin) but none of its
+ * content: grid +x = world +x (east), grid +y = world +z (south), so
+ * the entrance (southernmost cell) lands at the south edge and the
+ * cave deepens northward. Cell centers sit on odd coordinates.
+ */
+export function cavernCellToWorld(cx: number, cy: number, width: number, height: number): { x: number; z: number } {
+  return {
+    x: (cx - (width - 1) / 2) * 2,
+    z: (cy - (height - 1) / 2) * 2,
+  };
+}
+
+/** Yaw (the game's atan2(x, z) convention) from the link's entry facing. */
+export function cavernEntryYaw(link: CavernLink): number {
+  return Math.atan2(link.zoneEntrySpawn.facing.dx, link.zoneEntrySpawn.facing.dy);
+}

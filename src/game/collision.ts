@@ -46,6 +46,13 @@ function isCollidingWithStructure(
       return false;
     }
 
+    // The cave exit is a portal, not an obstacle: the player ENTERS
+    // standing in its ring (the instance spawn is the entrance cell),
+    // so it must never push back.
+    if (s.type === 'cave_exit') {
+      return false;
+    }
+
     // Wall and closed door box collision
     if (s.type === 'chitin_glass_wall' || s.type === 'iris_slit_door') {
       const isRotated = Math.abs(Math.sin(s.rotation)) > 0.7;
@@ -97,6 +104,40 @@ function isCollidingWithFlora(
   });
 }
 
+/** The active cavern grid while the player is inside an instance. */
+export interface CavernGridRef {
+  grid: string[];
+  width: number;
+  height: number;
+}
+
+/**
+ * Cave walls collide as rock: sample the player circle's center and
+ * axis extremes; if any sample lands in a wall cell (or outside the
+ * grid), the move is blocked. Cell lookup inverts
+ * cavernCellToWorld (game/cavern.ts): cx = x/2 + (width-1)/2.
+ */
+export function isCollidingWithCavernWalls(
+  candidateX: number,
+  candidateZ: number,
+  cavern: CavernGridRef
+): boolean {
+  const samples: [number, number][] = [
+    [candidateX, candidateZ],
+    [candidateX + PLAYER_RADIUS, candidateZ],
+    [candidateX - PLAYER_RADIUS, candidateZ],
+    [candidateX, candidateZ + PLAYER_RADIUS],
+    [candidateX, candidateZ - PLAYER_RADIUS],
+  ];
+  for (const [sx, sz] of samples) {
+    const cx = Math.round(sx / 2 + (cavern.width - 1) / 2);
+    const cy = Math.round(sz / 2 + (cavern.height - 1) / 2);
+    if (cx < 0 || cy < 0 || cx >= cavern.width || cy >= cavern.height) return true;
+    if (cavern.grid[cy][cx] === '#') return true;
+  }
+  return false;
+}
+
 /**
  * Resolves movement with smooth sliding along obstacles
  */
@@ -107,7 +148,8 @@ export function resolveMovementWithCollision(
   desiredDeltaZ: number,
   structures: StructureEntity[],
   floraList: FloraEntity[],
-  playerLevel: number = 0
+  playerLevel: number = 0,
+  cavern: CavernGridRef | null = null
 ): { x: number; z: number } {
   // 1. Check full displacement
   const targetX = Math.max(-WORLD_BOUNDARY, Math.min(WORLD_BOUNDARY, currentX + desiredDeltaX));
@@ -115,7 +157,8 @@ export function resolveMovementWithCollision(
 
   const collidesFull =
     isCollidingWithStructure(targetX, targetZ, structures, playerLevel) ||
-    isCollidingWithFlora(targetX, targetZ, floraList, playerLevel);
+    isCollidingWithFlora(targetX, targetZ, floraList, playerLevel) ||
+    (cavern !== null && isCollidingWithCavernWalls(targetX, targetZ, cavern));
 
   if (!collidesFull) {
     return { x: targetX, z: targetZ };
@@ -124,12 +167,14 @@ export function resolveMovementWithCollision(
   // 2. Slide check on X axis independently
   const collidesXOnly =
     isCollidingWithStructure(targetX, currentZ, structures, playerLevel) ||
-    isCollidingWithFlora(targetX, currentZ, floraList, playerLevel);
+    isCollidingWithFlora(targetX, currentZ, floraList, playerLevel) ||
+    (cavern !== null && isCollidingWithCavernWalls(targetX, currentZ, cavern));
 
   // 3. Slide check on Z axis independently
   const collidesZOnly =
     isCollidingWithStructure(currentX, targetZ, structures, playerLevel) ||
-    isCollidingWithFlora(currentX, targetZ, floraList, playerLevel);
+    isCollidingWithFlora(currentX, targetZ, floraList, playerLevel) ||
+    (cavern !== null && isCollidingWithCavernWalls(currentX, targetZ, cavern));
 
   if (!collidesXOnly && collidesZOnly) {
     return { x: targetX, z: currentZ };

@@ -37,7 +37,8 @@ export type ItemId =
   | 'tamed_snap_trap_turret'
   | 'cultivation_mound'
   | 'vine_ladder'
-  | 'cave_mouth';
+  | 'cave_mouth'
+  | 'cave_exit';
 
 export type ToolType =
   | 'harvest_glove'
@@ -141,6 +142,7 @@ export type StructureType =
   | 'cultivation_mound'
   | 'vine_ladder'
   | 'cave_mouth'
+  | 'cave_exit'
   // Equipment
   | 'field_synthesizer_gauntlet';
 

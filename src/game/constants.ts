@@ -272,6 +272,19 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 1,
   },
+  // Also not a buildable: the cave exit is the portal HOME inside an
+  // instanced cavern (game/cavern.ts). It exists only in an instance's
+  // structure list — never in a save, a pouch, or the builder's cycle.
+  cave_exit: {
+    id: 'cave_exit',
+    name: 'Cave Exit',
+    category: 'structure',
+    description: 'A ring of living stone and violet light, humming with the way back. Step through to return to the surface mouth you entered by.',
+    iconName: 'Circle',
+    color: '#a855f7',
+    rarity: 'rare',
+    maxStack: 1,
+  },
   vine_ladder: {
     id: 'vine_ladder',
     name: 'Vine Ladder',
@@ -304,6 +317,14 @@ export const ITEMS: Record<ItemId, ItemDef> = {
 },
 
 };
+
+/**
+ * Structure-typed ITEMS a player can never build, hold, or cycle to:
+ * cave mouths are grown by world generation and cave exits exist only
+ * inside an instance. UI lists derived from ITEMS (the builder's
+ * blueprint cycle and panel) must filter these out.
+ */
+export const NON_BUILDABLE_STRUCTURE_IDS: ItemId[] = ['cave_mouth', 'cave_exit'];
 
 export const RECIPES: CraftingRecipe[] = [
   // Seeds

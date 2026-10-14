@@ -6,7 +6,7 @@
 
 import * as THREE from 'three';
 import { StructureEntity, FloraEntity } from '../types/game';
-import { resolveMovementWithCollision } from './collision';
+import { resolveMovementWithCollision, type CavernGridRef } from './collision';
 
 // Scratch vectors pre-allocated at module scope (Rule 3)
 const SCRATCH_FORWARD = new THREE.Vector3();
@@ -39,7 +39,8 @@ export class FirstPersonMovementController {
     isPaused: boolean,
     structures: StructureEntity[],
     flora: FloraEntity[],
-    playerLevel: number = 0
+    playerLevel: number = 0,
+    cavern: CavernGridRef | null = null
   ): { x: number; z: number; isMoving: boolean } {
     // Guard Clause 1: If Esc / pause mode is active, damp velocity immediately and return
     if (isPaused) {
@@ -143,7 +144,8 @@ export class FirstPersonMovementController {
       deltaZ,
       structures,
       flora,
-      playerLevel
+      playerLevel,
+      cavern
     );
 
     // If movement was blocked along an axis, zero out that velocity component

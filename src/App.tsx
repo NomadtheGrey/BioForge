@@ -32,8 +32,8 @@ import { useNotifications } from './hooks/useNotifications';
 import { usePlayerState } from './hooks/usePlayerState';
 import { useWorldEntities, INITIAL_STRUCTURES } from './hooks/useWorldEntities';
 import { generateSeededWorld } from './game/worldGen';
-import { generateGameCavern, generateGameCavernLevel, cavernCellToWorld, cavernEntryYaw, cavernStratumName, MAX_CAVERN_DEPTH, type CavernResult } from './game/cavern';
-import { zoneInfo, zoneBiomeAt, biomeDisplayName, SPAWN_ZONE } from './game/zones';
+import { generateGameCavern, generateGameCavernLevel, cavernCellToWorld, cavernEntryYaw, cavernStratumName, type CavernResult } from './game/cavern';
+import { zoneInfo, zoneBiomeAt, biomeDisplayName, SPAWN_ZONE, zoneCoordsAt, zoneHops } from './game/zones';
 import { occupancyConflict, placementFor } from './game/placement';
 import { useToolInteractions } from './hooks/useToolInteractions';
 import {
@@ -503,6 +503,15 @@ export default function App() {
   // untouched); deeper levels suffix their depth.
   const plantingsKey = (instanceId: string, depth: number): string =>
     depth <= 1 ? instanceId : `${instanceId}#${depth}`;
+  // How many ZONES (biomes) from spawn a cave mouth sits — the unit
+  // this game counts distance in (Adam, 2026-10-14). It feeds the
+  // descent roll: the farther out the mouth, the deeper its cave is
+  // likelier to go. Derived from the mouth's stored position, so
+  // every client holding the mouth computes the same number.
+  const mouthHops = (m: StructureEntity): number => {
+    const c = zoneCoordsAt(m.worldX, m.worldZ);
+    return zoneHops(c.zx, c.zz);
+  };
   const captureCavePlantings = useCallback((key: string): void => {
     cavePlantingsRef.current = {
       ...cavePlantingsRef.current,
@@ -629,7 +638,7 @@ export default function App() {
         x: mouth.worldX,
         z: mouth.worldZ,
         facing: anchorFacing,
-      });
+      }, mouthHops(mouth));
       if (!cavern.meta.validation.pass) {
         postNotification('Unstable Cavern', 'The way down collapses before it forms. (This cave failed its validation — a bug, not a feature.)', 'alert', '#ef4444');
         return;
@@ -667,7 +676,6 @@ export default function App() {
     (descent: StructureEntity): void => {
       const inst = instanceRef.current;
       if (inst.kind !== 'cavern') return;
-      if (inst.depth >= MAX_CAVERN_DEPTH) return;
       const mouth = inst.parked.structures.find((s) => s.id === inst.mouthId);
       if (!mouth?.cave) {
         postNotification('Sealed Shut', 'This shaft leads nowhere — its cavern was never linked.', 'alert', '#fbbf24');
@@ -678,7 +686,7 @@ export default function App() {
         x: mouth.worldX,
         z: mouth.worldZ,
         facing: anchorFacing,
-      });
+      }, mouthHops(mouth));
       if (!next.meta.validation.pass) {
         postNotification('Unstable Cavern', 'The shaft crumbles before it deepens. (This level failed its validation — a bug, not a feature.)', 'alert', '#ef4444');
         return;

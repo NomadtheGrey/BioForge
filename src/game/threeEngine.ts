@@ -188,6 +188,9 @@ export class BioForgeThreeEngine {
   private terrainGeometry: THREE.BufferGeometry | null = null;
   /** The current zone's biome (its identity); null = plain quadrant colors. */
   private zoneBiome: BiomeId | null = null;
+  // A variant's tint, when the current zone rolled one (biome graph,
+  // 2026-10-15): replaces the family tint for as long as it's set.
+  private zoneTintOverride: { color: number; strength: number } | null = null;
   private floraGroup: THREE.Group = new THREE.Group();
   private faunaGroup: THREE.Group = new THREE.Group();
   private structuresGroup: THREE.Group = new THREE.Group();
@@ -241,6 +244,12 @@ export class BioForgeThreeEngine {
     glow_fungus: { color: 0x22d3ee, intensity: 0.85, distance: 4.5, y: 0.5 },
     sunshard_cluster: { color: 0xf59e0b, intensity: 0.55, distance: 3.5, y: 0.5 },
     prism_cluster: { color: 0xa78bfa, intensity: 0.85, distance: 4.5, y: 0.7 },
+    // Fungal Hollow giants (2026-10-15): the senser's tips glow from
+    // its full height; the visor's face markings smolder faintly; the
+    // shelves barely — woody things, not lamps.
+    antenna_shroom: { color: 0x7c3aed, intensity: 0.8, distance: 4.5, y: 2.6 },
+    visor_shroom: { color: 0x7e57c2, intensity: 0.45, distance: 3, y: 1.5 },
+    shelf_shroom: { color: 0xd9a05b, intensity: 0.25, distance: 2.5, y: 1.6 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },
@@ -691,9 +700,10 @@ export class BioForgeThreeEngine {
    * created or loaded. Pass null for a pre-seed world (or no world):
    * the ground keeps its plain quadrant colors.
    */
-  public setZoneBiome(biome: BiomeId | null): void {
-    if (this.zoneBiome === biome) return;
+  public setZoneBiome(biome: BiomeId | null, tintOverride: { color: number; strength: number } | null = null): void {
+    if (this.zoneBiome === biome && this.zoneTintOverride === tintOverride) return;
     this.zoneBiome = biome;
+    this.zoneTintOverride = tintOverride;
     this.paintTerrainColors();
   }
 
@@ -715,7 +725,7 @@ export class BioForgeThreeEngine {
     const cAmber = new THREE.Color(0x2a1a08);
     const cPrismatic = new THREE.Color(0x191838);
     const cPath = new THREE.Color(0x273549);
-    const tint = this.zoneBiome ? BIOME_TINTS[this.zoneBiome] : null;
+    const tint = this.zoneTintOverride ?? (this.zoneBiome ? BIOME_TINTS[this.zoneBiome] : null);
     const tintColor = tint ? new THREE.Color(tint.color) : null;
 
     for (let i = 0; i < positions.count; i++) {

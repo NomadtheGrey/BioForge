@@ -213,3 +213,12 @@ signature, plus uniques for the Canopy and the Underroot — are
 EMPTY and belong to this chat. Something should live ON the
 bridges eventually; that is a creatures question, not a flora
 one.
+
+Flora note (Precursor, 2026-10-15): the Precursor Bloom is a
+too-perfect geometric flower — eight identical petals around a
+golden core — planted in Archimedean spirals in every Precursor
+zone (the gardeners' signature, still legible). Harvests to
+LIVING THREAD + dew; solvent returns the thread. Precursor's
+creature seats — family signature (the mimic guardian is the
+doc's standing candidate, if the machines become creatures) and
+a Tending Field unique — are EMPTY and belong to this chat.

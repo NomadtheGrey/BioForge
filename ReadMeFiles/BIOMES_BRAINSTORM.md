@@ -302,11 +302,26 @@ question round — the table below is the draft to argue with.
   *Hungry Valley* (min 5, rare). Treated above. *Questions: can a
   host's temperament be read before entering (edge signals)? Does
   feeding a hungry host change it — the ultimate taming?*
-- **Precursor** — family min 3. *Precursor Garden* (min 3,
-  uncommon): wild growth through engineered geometry, ruins that
-  still tend the ecosystem. *Questions: overlap with ruin sites —
-  is a Garden a zone WITH ruins, or its own thing? Do the tending
-  machines count as fauna (mimic guardians)?*
+- **Precursor** ✓ BUILT (2026-10-15) — the EIGHTH family built:
+  gardens of the vanished, nature growing through engineered
+  geometry. Tier 2, family min 3, uncommon; tended densities
+  (flora 1.1 / fauna 0.8); bands 15% at 3 hops. Adam's round
+  answers: (1) ruins roll in nearly any biome already — gardens
+  change nothing, no suppression; (2) the gardens pay TWICE —
+  LIVING THREAD and rich ordinary stock (bell blooms and sap
+  weavers hold census affinities here). PRECURSOR BLOOMS grow in
+  an ARCHIMEDEAN SPIRAL around a seeded center in every precursor
+  zone — planted order you can read from across the zone — and
+  harvest to living thread x2 + dew. Variants, all built:
+  *Precursor Garden* (min 3, uncommon — the spiral at full
+  strength, flora x1.25), *The Untended* (min 3, uncommon — the
+  spiral gone feral, jittered and dark), *The Tending Field*
+  (min 4, RARE — densest spirals; the old machinery still stands
+  in its rows in flavor). OPEN QUESTION (Adam's, plainly put):
+  the tending machines — statues (scenery dressing, ships with a
+  small follow-on) or creatures later (the mimic-guardian seat,
+  belonging to the creature phase)? The biome shipped without
+  them either way. WORLD_GEN_VERSION 11.
 
 First instantiation (Marlowe's recommendation, for Adam's call):
 **Fungal Hollow** — nearest to the shipped fungal, so the variant

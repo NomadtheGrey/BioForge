@@ -50,7 +50,8 @@ export type SpeciesProfile =
   | 'lizard'    // baskers and darters (sun_lizard)
   | 'turtle'    // unhurried to the template's limit (mud_turtle)
   | 'colony'    // the colony is the creature (hollow_hermit)
-  | 'territorial'; // defends one place, reluctantly (rootfall_bear)
+  | 'territorial' // defends one place, reluctantly (rootfall_bear)
+  | 'radial';   // no front to be curious with (kiln_star)
 
 export interface SpeciesByproduct {
   /** Item shed on the ground when the timer fires. */
@@ -776,6 +777,301 @@ export const SPECIES: Record<FaunaSpecies, SpeciesDef> = {
       speed: 1.1, // slow on land; the design respects both gaits
       speedJitter: 0.1,
       health: 30,
+    },
+  },
+
+  // ------------------------------------------------------------------
+  // Slice 4 (2026-10-15) — emblems + variant one-offs of the far
+  // families: Ember, Saltglass, Frost, Bone, Storm.
+  // ------------------------------------------------------------------
+
+  // #5 — the Ember emblem: the danger-leaning one, a true
+  // predator — coiled stillness, then burst speed; it does not
+  // wander, it WAITS, then it MOVES. Tameability LOWEST of the
+  // emblems at 15%, and the design says some individuals are
+  // effectively wild forever. Sheds Cinder Scales while
+  // basking — carapace's hot-country cousin. (Its hunt — burst
+  // ambushes from vent steam on Normal/Hostile, the ticking-
+  // scale tell on Peaceful — rides the danger behavior slice;
+  // v1 ships the hound on the standard lure flow.)
+  cinderhound: {
+    id: 'cinderhound',
+    name: 'Cinderhound',
+    profile: 'predator',
+    tameChance: 0.15,
+    bait: 'nectar',
+    petName: 'Cinderhound',
+    byproduct: { item: 'cinder_scale', seconds: 180, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['ember'],
+      count: 1,
+      minRadius: 14,
+      spacing: 8,
+      speed: 2.8, // burst speed; its stillness is the sim's wander pauses
+      speedJitter: 0.1,
+      health: 100,
+    },
+  },
+
+  // #7 — the Saltglass emblem: a crystalline grazer whose
+  // minerals accrete into its plates as it ages — the
+  // material's verb, on an animal. Where the grazers stand
+  // frozen, it is the dangerous bright hour; where they feed,
+  // it is safe to be out. 30% (the design's resonance taming
+  // is a later refinement; v1 ships the lure). Shed plates
+  // are SALTGLASS SHARD — the family's one shard economy.
+  shard_grazer: {
+    id: 'shard_grazer',
+    name: 'Shard Grazer',
+    profile: 'grazer',
+    tameChance: 0.3,
+    bait: 'nectar',
+    petName: 'Shard Grazer',
+    byproduct: { item: 'saltglass_shard', seconds: 240, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['saltglass'],
+      count: 2, // small herds
+      minRadius: 12,
+      spacing: 6,
+      speed: 1.0, // slow and placed — every step is also a listening
+      speedJitter: 0.05,
+      health: 100,
+    },
+  },
+
+  // #27 — the Frost emblem: the steady cold made flesh —
+  // unhurried in all weathers, a herd that rotates rest in
+  // shifts so a Frost Stag is awake and watching at every
+  // hour. 30%, and patience measured in days. Sheds Frost
+  // Velvet from its antlers — the cold country's own
+  // insulation, another soft thing given up willingly.
+  frost_stag: {
+    id: 'frost_stag',
+    name: 'Frost Stag',
+    profile: 'grazer',
+    tameChance: 0.3,
+    bait: 'nectar',
+    petName: 'Frost Stag',
+    byproduct: { item: 'frost_velvet', seconds: 300, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['frost'],
+      count: 1,
+      minRadius: 14,
+      spacing: 8,
+      speed: 1.1,
+      speedJitter: 0.05,
+      health: 140,
+    },
+  },
+
+  // #16 — the Flats' clock: a glass-shelled crab, a light-
+  // drinker that basks shell-up at noon storing glare and
+  // glows faintly through the bitter night on the proceeds.
+  // Crabs up and glowing means the safe hours; crabs buried
+  // means the glare is lying. 35% — it trades approach for
+  // shade. Sheds shell plates: SALTGLASS SHARD.
+  glass_crab: {
+    id: 'glass_crab',
+    name: 'Glass Crab',
+    profile: 'insect',
+    tameChance: 0.35,
+    bait: 'nectar',
+    petName: 'Glass Crab',
+    byproduct: { item: 'saltglass_shard', seconds: 240, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['saltglass'],
+      variant: 'saltglass_flats',
+      count: 2,
+      minRadius: 10,
+      spacing: 4,
+      speed: 1.6, // mid, bursty — sideways
+      speedJitter: 0.25,
+      health: 25,
+    },
+  },
+
+  // #17 — freeze-thaw made into a neighbor: a blind, ice-
+  // furred mole that lives the family's swing in its own
+  // body — active in the warm hours, frozen stiff as a stone
+  // at nightfall until the next thaw. 50% while thawed.
+  // (The freeze itself is a later behavior slice; v1 ships
+  // the mole awake.)
+  thawmole: {
+    id: 'thawmole',
+    name: 'Thawmole',
+    profile: 'rodent',
+    tameChance: 0.5,
+    bait: 'nectar',
+    petName: 'Thawmole',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['saltglass'],
+      variant: 'saltglass_thaw',
+      count: 2,
+      minRadius: 8,
+      spacing: 3,
+      speed: 0.9,
+      speedJitter: 0.1,
+      health: 15,
+    },
+  },
+
+  // #28 — the Prism Beds' living prism: a translucent frog —
+  // noon light through a Prism Frog comes out the other side
+  // sorted into colors. 40%: the lure is shade in glare
+  // country and a steady hand. Sheds its skin whole, in one
+  // glassy piece: Prism Skin, sorted light for later craft.
+  prism_frog: {
+    id: 'prism_frog',
+    name: 'Prism Frog',
+    profile: 'amphibian',
+    tameChance: 0.4,
+    bait: 'nectar',
+    petName: 'Prism Frog',
+    byproduct: { item: 'prism_skin', seconds: 300, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['saltglass'],
+      variant: 'saltglass_prism',
+      count: 2,
+      minRadius: 8,
+      spacing: 3,
+      speed: 2.2, // hop-fast, sit-still
+      speedJitter: 0.3,
+      health: 8,
+    },
+  },
+
+  // #19 — the Graveyard's cleanliness, maintained: a white-
+  // carapaced ant COLONY — bone dust that decided to move.
+  // A carcass the ants take is bone-clean in days. Untameable
+  // (the hive reason); dealt as a small river of individuals,
+  // only in the Leviathan Graveyard. (Its Clean Bone receipt
+  // — carrion left at the nest skull's eye socket — is a
+  // later encounter slice.)
+  skull_ants: {
+    id: 'skull_ants',
+    name: 'Skull Ants',
+    profile: 'colony',
+    tameChance: null,
+    bait: null,
+    petName: 'Skull Ants',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['bone'],
+      variant: 'leviathan_graveyard',
+      count: 4,
+      minRadius: 8,
+      spacing: 2,
+      speed: 1.2, // flowing
+      speedJitter: 0.2,
+      health: 3,
+    },
+  },
+
+  // #20 — compass trouble with a face: a faceted geode-body
+  // that travels by ROLLING — downhill is travel, uphill is a
+  // project. It eats the dunes' magnetic strangeness and
+  // wears the receipt. 30%: taming is a roller that has
+  // chosen your slope as its rest hollow. Sheds crust
+  // flakes: Lodestone Sand. (The roll itself is drawn as
+  // travel in v1; the tumbling animation is later polish.)
+  dune_roller: {
+    id: 'dune_roller',
+    name: 'Dune Roller',
+    profile: 'radial',
+    tameChance: 0.3,
+    bait: 'nectar',
+    petName: 'Dune Roller',
+    byproduct: { item: 'lodestone_sand', seconds: 200, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['storm'],
+      variant: 'magnetic_dunes',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      speed: 1.8, // wind-and-slope fast, self-slow
+      speedJitter: 0.2,
+      health: 40,
+    },
+  },
+
+  // #63 — the Bonefields' contemporary: an ancient tortoise,
+  // fragment-laden and moss-grown, crossing the fragment
+  // country the way weather crosses it — and arriving. It
+  // farms its own back by walking (fragments lodge, moss
+  // takes them, the tortoise grazes the moss). 40%, with the
+  // roster's strangest follow: it sets out toward its person
+  // and arrives when it arrives. Sheds Field Scutes on the
+  // circuit — distinct from the Fen Scute, on purpose.
+  boneback_tortoise: {
+    id: 'boneback_tortoise',
+    name: 'Boneback Tortoise',
+    profile: 'turtle',
+    tameChance: 0.4,
+    bait: 'nectar',
+    petName: 'Boneback Tortoise',
+    byproduct: { item: 'field_scute', seconds: 300, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['bone'],
+      variant: 'bonefields',
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 0.35, // slowest on the roster — and the roster has a slug
+      speedJitter: 0.02,
+      health: 150,
+    },
+  },
+
+  // #64 — the Marrow Flats' generosity with legs: a pale,
+  // bone-antlered deer, the healthiest-looking animal in a
+  // family of scavengers. Its antler-rubbing is the economy —
+  // rub-sites leave gatherable BONE MEAL, the biome program's
+  // item, at a second door. 35%: win the herd's matriarch and
+  // the flats' whole herd is at least polite.
+  marrow_deer: {
+    id: 'marrow_deer',
+    name: 'Marrow Deer',
+    profile: 'grazer',
+    tameChance: 0.35,
+    bait: 'nectar',
+    petName: 'Marrow Deer',
+    byproduct: { item: 'bone_meal', seconds: 240, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['bone'],
+      variant: 'marrow_flats',
+      count: 2,
+      minRadius: 12,
+      spacing: 5,
+      speed: 1.6,
+      speedJitter: 0.15,
+      health: 70,
+    },
+  },
+
+  // #66 — Ember x Saltglass: a star-bodied crawler that walks
+  // by TIPPING point-to-point, starfish logic at walking
+  // speed, on pans where heat fuses glass underfoot. UNTA-
+  // MABLE — there is no approach it recognizes as an approach.
+  // It leaves a shed point now and then, like a tooth of
+  // glass: SALTGLASS SHARD, the shard economy's fifth door,
+  // from the hybrid country this time.
+  kiln_star: {
+    id: 'kiln_star',
+    name: 'Kiln Star',
+    profile: 'radial',
+    tameChance: null,
+    bait: null,
+    petName: 'Kiln Star',
+    byproduct: { item: 'saltglass_shard', seconds: 300, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['ember', 'saltglass'],
+      count: 1,
+      minRadius: 12,
+      spacing: 6,
+      speed: 0.6, // tipping-slow; its geometry is its pace
+      speedJitter: 0.05,
+      health: 45,
     },
   },
 };

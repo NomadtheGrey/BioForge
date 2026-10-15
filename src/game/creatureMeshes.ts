@@ -1333,6 +1333,266 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'cinderhound': {
+        // Ember's pulse (slice 4): scale-plated, ember-eyed —
+        // you see its weather before you see it. Three heat-
+        // darkened plates ride the back; the eyes are lit coals.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 0.7 });
+        const plateMat = new THREE.MeshStandardMaterial({
+          color: 0x7f1d1d, roughness: 0.5, emissive: 0x991b1b, emissiveIntensity: 0.35,
+        });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.4, 0.8, 8, 12), hideMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.78;
+        body.castShadow = true;
+        group.add(body);
+        for (const pz of [0.3, 0, -0.3]) {
+          const plate = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.08, 0.24), plateMat);
+          plate.position.set(0, 1.16, pz);
+          group.add(plate);
+        }
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 12, 10), hideMat);
+        head.scale.set(0.85, 0.85, 1.3);
+        head.position.set(0, 0.85, 0.78);
+        group.add(head);
+        const eyeMat = new THREE.MeshStandardMaterial({
+          color: 0xffedd5, emissive: 0xea580c, emissiveIntensity: 2.2,
+        });
+        for (const side of [-1, 1]) {
+          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 5), eyeMat);
+          eye.position.set(side * 0.11, 0.92, 1.02);
+          group.add(eye);
+        }
+        break;
+      }
+
+      case 'shard_grazer': {
+        // The material's verb, on an animal (slice 4): a big
+        // pale grazer with crystal plates accreting along its
+        // back — where it stands frozen, it is the bright hour.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 0.85 });
+        const plateMat = new THREE.MeshStandardMaterial({
+          color: 0xa5f3fc, roughness: 0.2, emissive: 0x155e75, emissiveIntensity: 0.4,
+        });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.5, 0.9, 8, 12), hideMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.9;
+        body.castShadow = true;
+        group.add(body);
+        for (const [px, pz, s] of [[0, 0.35, 0.22], [-0.14, 0, 0.28], [0.14, -0.3, 0.2]] as const) {
+          const plate = new THREE.Mesh(new THREE.OctahedronGeometry(s), plateMat);
+          plate.scale.set(1, 0.5, 1);
+          plate.position.set(px, 1.38, pz);
+          group.add(plate);
+        }
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 10), hideMat);
+        head.scale.set(0.85, 0.9, 1.15);
+        head.position.set(0, 0.88, 0.9);
+        group.add(head);
+        break;
+      }
+
+      case 'frost_stag': {
+        // The steady cold made flesh (slice 4): a huge stag
+        // carrying ice sculpture — branched rime antlers that
+        // accrete until they read as chandeliers.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.9 });
+        const rimeMat = new THREE.MeshStandardMaterial({
+          color: 0xe0f2fe, roughness: 0.35, emissive: 0x38bdf8, emissiveIntensity: 0.25,
+        });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.55, 1.0, 8, 14), hideMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 1.05;
+        body.castShadow = true;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10), hideMat);
+        head.scale.set(0.8, 0.9, 1.3);
+        head.position.set(0, 1.35, 0.95);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const beam = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.7, 6), rimeMat);
+          beam.position.set(side * 0.22, 1.85, 0.85);
+          beam.rotation.z = side * -0.5;
+          group.add(beam);
+          const tine = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.4, 5), rimeMat);
+          tine.position.set(side * 0.38, 1.95, 0.82);
+          tine.rotation.z = side * -0.9;
+          group.add(tine);
+        }
+        break;
+      }
+
+      case 'glass_crab': {
+        // The Flats' clock (slice 4): a glass dome on six thin
+        // legs, shell-up to drink the noon.
+        const shellMat = new THREE.MeshStandardMaterial({
+          color: 0xcffafe, roughness: 0.15, transparent: true, opacity: 0.75,
+          emissive: 0x0e7490, emissiveIntensity: 0.3,
+        });
+        const shell = new THREE.Mesh(new THREE.SphereGeometry(0.32, 14, 10), shellMat);
+        shell.scale.set(1.15, 0.6, 1);
+        shell.position.y = 0.32;
+        shell.castShadow = true;
+        group.add(shell);
+        for (let i = 0; i < 3; i++) {
+          for (const side of [-1, 1]) {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 0.4, 5), shellMat);
+            leg.position.set(side * 0.34, 0.16, 0.18 - i * 0.18);
+            leg.rotation.z = side * 0.7;
+            group.add(leg);
+          }
+        }
+        for (const side of [-1, 1]) {
+          const claw = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), shellMat);
+          claw.scale.set(1, 0.7, 1.3);
+          claw.position.set(side * 0.22, 0.14, 0.34);
+          group.add(claw);
+        }
+        break;
+      }
+
+      case 'thawmole': {
+        // Freeze-thaw's neighbor (slice 4): a low ice-furred
+        // body with digging claws up front — drawn thawed.
+        const furMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 1 });
+        const clawMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.6 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), furMat);
+        body.scale.set(0.9, 0.7, 1.35);
+        body.position.y = 0.16;
+        group.add(body);
+        const snout = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.16, 8), furMat);
+        snout.rotation.x = Math.PI / 2;
+        snout.position.set(0, 0.13, 0.3);
+        group.add(snout);
+        for (const side of [-1, 1]) {
+          const claw = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.14, 5), clawMat);
+          claw.position.set(side * 0.14, 0.06, 0.24);
+          claw.rotation.x = 1.9;
+          group.add(claw);
+        }
+        break;
+      }
+
+      case 'prism_frog': {
+        // A living prism (slice 4): translucent, glass-skinned
+        // — light goes in white and the body keeps the colors.
+        const skinMat = new THREE.MeshStandardMaterial({
+          color: 0xf5d0fe, roughness: 0.15, transparent: true, opacity: 0.65,
+          emissive: 0xa21caf, emissiveIntensity: 0.35,
+        });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), skinMat);
+        body.scale.set(1.15, 0.75, 1);
+        body.position.y = 0.11;
+        group.add(body);
+        for (const side of [-1, 1]) {
+          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 5), skinMat);
+          eye.position.set(side * 0.08, 0.22, 0.04);
+          group.add(eye);
+        }
+        break;
+      }
+
+      case 'skull_ants': {
+        // Bone dust that decided to move (slice 4): at game
+        // scale an ant is three white specks in a row — the
+        // colony reads in numbers, not in individuals.
+        const antMat = new THREE.MeshStandardMaterial({ color: 0xe7e5e4, roughness: 0.8 });
+        for (const [az, s] of [[0.07, 0.03], [0, 0.042], [-0.07, 0.034]] as const) {
+          const seg = new THREE.Mesh(new THREE.SphereGeometry(s, 6, 5), antMat);
+          seg.position.set(0, 0.035, az);
+          group.add(seg);
+        }
+        break;
+      }
+
+      case 'dune_roller': {
+        // A wheel with opinions (slice 4): one faceted geode
+        // body, iron-crusted, flat-shaded so the facets read.
+        const crustMat = new THREE.MeshStandardMaterial({
+          color: 0x57534e, roughness: 0.55, metalness: 0.45, flatShading: true,
+          emissive: 0x292524, emissiveIntensity: 0.4,
+        });
+        const body = new THREE.Mesh(new THREE.IcosahedronGeometry(0.42, 0), crustMat);
+        body.position.y = 0.42;
+        body.castShadow = true;
+        group.add(body);
+        break;
+      }
+
+      case 'boneback_tortoise': {
+        // A closed loop wearing a shell (slice 4): a great dome
+        // with bone fragments lodged in it and moss taking
+        // them — the Fields, carried.
+        const shellMat = new THREE.MeshStandardMaterial({ color: 0x6b6257, roughness: 0.95 });
+        const fragMat = new THREE.MeshStandardMaterial({ color: 0xe7e5e4, roughness: 0.9 });
+        const mossMat = new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 1 });
+        const shell = new THREE.Mesh(new THREE.SphereGeometry(0.55, 16, 12), shellMat);
+        shell.scale.set(1, 0.6, 1.2);
+        shell.position.y = 0.36;
+        shell.castShadow = true;
+        group.add(shell);
+        for (const [fx, fz, fr] of [[-0.2, 0.2, 0.4], [0.25, -0.1, -0.3], [0, 0.42, 0.1]] as const) {
+          const frag = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.22, 5), fragMat);
+          frag.position.set(fx, 0.72, fz);
+          frag.rotation.z = fr;
+          group.add(frag);
+        }
+        const moss = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), mossMat);
+        moss.scale.set(1.1, 0.3, 1.1);
+        moss.position.y = 0.66;
+        group.add(moss);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), shellMat);
+        head.position.set(0, 0.3, 0.68);
+        group.add(head);
+        break;
+      }
+
+      case 'marrow_deer': {
+        // Simply, visibly well (slice 4): a pale deer with
+        // antlers of the country's own material, grown into a
+        // crown.
+        const coatMat = new THREE.MeshStandardMaterial({ color: 0xfef3c7, roughness: 0.9 });
+        const boneMat = new THREE.MeshStandardMaterial({ color: 0xe7e5e4, roughness: 0.85 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.36, 0.7, 8, 12), coatMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.85;
+        body.castShadow = true;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.21, 10, 8), coatMat);
+        head.scale.set(0.8, 0.9, 1.25);
+        head.position.set(0, 1.12, 0.68);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const antler = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.5, 6), boneMat);
+          antler.position.set(side * 0.14, 1.45, 0.6);
+          antler.rotation.z = side * -0.45;
+          group.add(antler);
+        }
+        break;
+      }
+
+      case 'kiln_star': {
+        // Starfish logic at walking speed (slice 4): five
+        // glassy points around a low dome — it walks by
+        // tipping, and noon belongs to it.
+        const starMat = new THREE.MeshStandardMaterial({
+          color: 0xfdba74, roughness: 0.3, emissive: 0x9a3412, emissiveIntensity: 0.45,
+        });
+        const dome = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 8), starMat);
+        dome.scale.set(1, 0.55, 1);
+        dome.position.y = 0.16;
+        group.add(dome);
+        for (let i = 0; i < 5; i++) {
+          const angle = (i / 5) * Math.PI * 2;
+          const point = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.5, 6), starMat);
+          point.position.set(Math.cos(angle) * 0.34, 0.1, Math.sin(angle) * 0.34);
+          point.rotation.z = Math.PI / 2;
+          point.rotation.y = -angle;
+          group.add(point);
+        }
+        break;
+      }
+
       default: {
         const body = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 12), materials.biolumAmber);
         body.position.y = 0.3;

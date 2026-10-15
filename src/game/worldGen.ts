@@ -73,7 +73,7 @@ import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
  *     layout in a different species cast; nobody had ever generated
  *     a second zone, so the sameness was theoretical until travel.
  */
-export const WORLD_GEN_VERSION = 10; // v10 (2026-10-15): rootwood, the 7th built family, joins the bands at 2 hops — and brings the root bridges
+export const WORLD_GEN_VERSION = 11; // v11 (2026-10-15): precursor, the 8th built family — the gardens join the bands at 3 hops
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -160,9 +160,9 @@ interface FaunaSpeciesDef {
 // wild beyond the yard.
 const FLORA_CENSUS: FloraSpeciesDef[] = [
   { species: 'lantern_fern', count: 2, baseWeight: 0.28, near: 1.8, far: 0.25, hazardous: false, biomes: 'all' },
-  { species: 'bell_bloom', count: 2, baseWeight: 0.22, near: 1.2, far: 0.8, hazardous: false, biomes: ['meadow', 'wetland'] },
+  { species: 'bell_bloom', count: 2, baseWeight: 0.22, near: 1.2, far: 0.8, hazardous: false, biomes: ['meadow', 'wetland', 'precursor'] },
   { species: 'petal_mill', count: 2, baseWeight: 0.20, near: 0.9, far: 1.15, hazardous: false, biomes: ['meadow', 'fungal', 'rootwood'] },
-  { species: 'sap_weaver', count: 1, baseWeight: 0.18, near: 0.6, far: 1.4, hazardous: false, biomes: ['fungal', 'ember', 'rootwood'] },
+  { species: 'sap_weaver', count: 1, baseWeight: 0.18, near: 0.6, far: 1.4, hazardous: false, biomes: ['fungal', 'ember', 'rootwood', 'precursor'] },
   { species: 'snap_trap', count: 1, baseWeight: 0.12, near: 0.03, far: 2.4, hazardous: true, biomes: ['wetland', 'fungal'] },
 ];
 
@@ -880,6 +880,54 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
         swayOffset: 1000 + plantedRoots,
       });
       plantedRoots++;
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Precursor bloom SPIRALS (Precursor, 2026-10-15) — family-wide
+  // BONUS life, planted in visible ORDER: an Archimedean spiral
+  // around a seeded center, the gardeners' signature still
+  // legible ten thousand years on. The Untended gets the same
+  // spiral with feral jitter; the Tending Field the densest ring.
+  // ---------------------------------------------------------------------
+  if (zoneBiome === 'precursor') {
+    const spiralRng = createSeededRandom(stream('flora:precursorbloom'));
+    const count = zoneVariant?.id === 'precursor_tending' ? 12
+      : zoneVariant?.id === 'precursor_garden' ? 9
+      : zoneVariant?.id === 'precursor_untended' ? 7 : 6;
+    const feral = zoneVariant?.id === 'precursor_untended';
+    const cx = (spiralRng() * 2 - 1) * 18;
+    const cz = (spiralRng() * 2 - 1) * 18;
+    const startAngle = spiralRng() * Math.PI * 2;
+    let plantedBlooms2 = 0;
+    for (let i = 0; i < count; i++) {
+      const t = i / Math.max(1, count - 1);
+      const angle = startAngle + t * Math.PI * 3.2; // ~1.6 turns
+      const radius = 2.5 + t * 9;
+      const jitter = feral ? 1.6 : 0.25;
+      const x = cx + Math.cos(angle) * radius + (spiralRng() * 2 - 1) * jitter;
+      const z = cz + Math.sin(angle) * radius + (spiralRng() * 2 - 1) * jitter;
+      if (Math.abs(x) > 46 || Math.abs(z) > 46) continue;
+      if (flora.some((f) => Math.hypot(f.x - x, f.z - z) < 1.2)) continue;
+      flora.push({
+        id: `flora_precursor_${plantedBlooms2}`,
+        species: 'precursor_bloom',
+        x,
+        z,
+        biome: zoneBiome,
+        rotation: spiralRng() * Math.PI * 2,
+        scale: 1.0 + spiralRng() * 0.4,
+        growthStage: 3,
+        growthProgress: 1,
+        fertilizedGrowth: false,
+        fertilizedYield: false,
+        fertilizerTimer: 0,
+        harvestReady: true,
+        harvestTimer: 0,
+        isHazardous: false,
+        swayOffset: 1100 + plantedBlooms2,
+      });
+      plantedBlooms2++;
     }
   }
 

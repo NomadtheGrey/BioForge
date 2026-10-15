@@ -351,6 +351,30 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'precursor_bloom': {
+        // Precursor (2026-10-15): a too-perfect flower — eight
+        // IDENTICAL petal boxes rotated at exact 45-degree steps
+        // around a golden octahedron core, on an unnaturally
+        // straight stem. Engineered geometry, grown.
+        const petalMat = new THREE.MeshStandardMaterial({ color: 0xe8f0c8, roughness: 0.5, emissive: 0x9db56b, emissiveIntensity: 0.35 });
+        const coreMat2 = new THREE.MeshStandardMaterial({ color: 0xf5c542, roughness: 0.3, emissive: 0xd9a41f, emissiveIntensity: 0.9 });
+        const stemMat3 = new THREE.MeshStandardMaterial({ color: 0x77894f, roughness: 0.8 });
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.05, 0.85, 6), stemMat3);
+        stem.position.y = 0.42; stem.castShadow = true; group.add(stem);
+        for (let i = 0; i < 8; i++) {
+          const petal = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.05, 0.14), petalMat);
+          const a = (i / 8) * Math.PI * 2;
+          petal.position.set(Math.cos(a) * 0.2, 0.88, Math.sin(a) * 0.2);
+          petal.rotation.y = -a;
+          petal.rotation.z = Math.cos(a) * 0.35;
+          group.add(petal);
+        }
+        const core = new THREE.Mesh(new THREE.OctahedronGeometry(0.1), coreMat2);
+        core.position.y = 0.9;
+        group.add(core);
+        break;
+      }
+
       case 'heartroot': {
         // Rootwood (2026-10-15): a buttress cluster — four arched
         // root slabs leaning into a dense heart bulb. Slab = a box

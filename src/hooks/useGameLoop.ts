@@ -31,7 +31,7 @@ import type { WorldSnapshot } from '../game/saveSystem';
 import type { InstanceState } from './useInstances';
 import type { PendingTravel } from './useZoneTravel';
 import type {
-  DroppedItemEntity, FaunaEntity, FloraEntity, GameNotification, HoverTarget,
+  DroppedItemEntity, FaunaEntity, FaunaSpecies, FloraEntity, GameNotification, HoverTarget,
   ItemId, PlayerState, StructureEntity, StructureType, ToolType,
 } from '../types/game';
 import type { TouchMoveInput } from '../components/TouchControls';
@@ -98,7 +98,7 @@ export interface GameLoopDeps {
   liveGameRefs: { current: {
     hasItem: (itemId: ItemId, quantity: number) => boolean;
     addInventoryItem: (itemId: ItemId, quantity: number) => void;
-    updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void) => void;
+    updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number) => void, attacksArmed?: boolean) => void;
     postNotification: (title: string, message: string, type?: GameNotification['type'], iconColor?: string) => void;
     getPlacementRotation: () => number;
   } };
@@ -587,7 +587,27 @@ export function useGameLoop(deps: GameLoopDeps): void {
               if (critterSpecies === 'chitin_stalker') {
                 liveGameRefs.current.postNotification('Carapace Shedding', 'Your guardian Chitin-Stalker shed a Reinforced Carapace Scale!', 'tame', '#8b5cf6');
               }
-            }
+            },
+            // Danger system (creature slice 5, 2026-10-15): a wild
+            // hunter's bite lands here. The damage pattern is the
+            // house one (scar heat / zot / grab): floor 1 while
+            // death is unarmed, 0 on armed worlds, where reaching
+            // 0 fires the respawn callback. Armed worlds are the
+            // only worlds where bites happen at all — the flag
+            // passed below IS deathArmed — so Peaceful never
+            // reaches this handler. In co-op the fauna sim runs
+            // on the host, so bites land on the host's player —
+            // the same accepted v1 simplification as pickups.
+            (_attackedBy, damage) => {
+              const floor = deathArmedRef.current ? 0 : 1;
+              healthRef.current = Math.max(floor, healthRef.current - damage);
+              setHealth(healthRef.current);
+              if (deathArmedRef.current && healthRef.current <= 0 && !playerDeadRef.current) {
+                playerDeadRef.current = true;
+                onPlayerDeathRef.current?.();
+              }
+            },
+            deathArmedRef.current
           );
         }
 

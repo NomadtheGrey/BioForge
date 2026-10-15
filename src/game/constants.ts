@@ -82,6 +82,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'prismatic',
     maxStack: 99,
   },
+  obsidian_shard: {
+    id: 'obsidian_shard',
+    name: 'Obsidian Shard',
+    category: 'raw',
+    description: 'A shard of black natural glass, petal-cut by heat. The Obsidian Garden grows them; the forge will have opinions.',
+    iconName: 'Gem',
+    color: '#7c3aed',
+    rarity: 'rare',
+    maxStack: 99,
+  },
   // Radar ingredients (2026-10-14): the Prismatic Field Radar's supply
   // chain — two new species yields plus the four Tier-1 subassemblies
   // they feed (recipes below; tier math in CORE_MECHANICS.md).
@@ -1407,6 +1417,18 @@ export const INITIAL_CODEX: CodexEntry[] = [
     tamingOrCraftNotes: 'Harvest with the glove — mind the hour. The scar is dangerous at noon and warm at midnight; the bloom keeps the same hours as the scar itself.',
     biome: 'Ember Scar zones',
     iconColor: '#ff7a2a',
+  },
+  {
+    species: 'obsidian_bloom',
+    name: 'Obsidian Bloom',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A flower of black glass in the Obsidian Garden — petals the old burning fused and froze mid-bloom. It should not be alive. It is in no hurry to explain.',
+    byproducts: ['Obsidian Shard', 'Dew Essence'],
+    tamingOrCraftNotes: 'Harvest with the glove for obsidian shards — glass the land cut itself. Mind the edges; they are exactly as sharp as they look.',
+    biome: 'Obsidian Garden zones',
+    iconColor: '#7c3aed',
   },
   {
     species: 'mirror_lily',

@@ -220,6 +220,49 @@ export const BIOME_VARIANTS: BiomeVariantDef[] = [
       second: ['Scar', 'Wound', 'Verge', 'Crown', 'Flats'],
     },
   },
+  {
+    // The Ashen Drift (Adam-approved slate, 2026-10-15): deep ash
+    // country where everything is muffled and light dies young —
+    // its pooled-light REACH is strangled to 0.6x (the Mirror
+    // Marsh trick, inverted). Subtraction is its content: fewer
+    // lights, close dark, quiet. No stamina tax; darkness is it.
+    id: 'ashen_drift',
+    family: 'ember',
+    name: 'Ashen Drift',
+    minHops: 4,
+    rarity: 'uncommon',
+    tint: { color: 0x8f8694, strength: 0.5 }, // ash grey-lavender
+    floraDensityMult: 0.8,
+    faunaDensityMult: 0.9,
+    effect: null,
+    lightDistanceMult: 0.6,
+    lightIntensityMult: 0.9,
+    nameParts: {
+      first: ['Silent', 'Grey', 'Muffled', 'Pale', 'Deep'],
+      second: ['Drift', 'Ashes', 'Quiet', 'Fall', 'Hush'],
+    },
+  },
+  {
+    // The Obsidian Garden (Adam-approved slate, 2026-10-15): the
+    // ember family's RICH variant — black glass flowers growing
+    // from old burning, and the game's first glass crafting
+    // material (obsidian_shard). No tax here; the garden pays.
+    id: 'obsidian_garden',
+    family: 'ember',
+    name: 'Obsidian Garden',
+    minHops: 4,
+    rarity: 'uncommon',
+    tint: { color: 0x2e2140, strength: 0.5 }, // deep violet-black
+    floraDensityMult: 1.1,
+    faunaDensityMult: 0.9,
+    effect: null,
+    lightDistanceMult: 1,
+    lightIntensityMult: 1.15, // glass glints carry a little farther
+    nameParts: {
+      first: ['Black', 'Glass', 'Violet', 'Silent', 'Sharp'],
+      second: ['Garden', 'Beds', 'Crown', 'Reach', 'Bloom'],
+    },
+  },
 ];
 
 /** A variant definition by id. */

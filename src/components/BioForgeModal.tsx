@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Sparkles, Check, AlertCircle, ArrowRight } from 'lucide-react';
 import { CraftingRecipe, ItemId, StructureType } from '../types/game';
-import { ITEMS, RECIPES, getRecipeTier, HELMET_GEAR_ITEM_IDS } from '../game/constants'
+import { ITEMS, RECIPES, getRecipeTier, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../game/constants'
 import { isGauntletUpgrade } from '../game/quests';
 import { soundEngine } from '../audio/soundEngine';
 import { RecipeFlowchart } from './RecipeFlowchart';
@@ -25,7 +25,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   onCraftRecipe,
   onSelectStructureBlueprint,
 }) => {
-  const [activeCategory, setActiveCategory] = useState<'all' | 'seeds' | 'fertilizers' | 'composites' | 'defenses' | 'gauntlet' | 'helmet'>('all');
+  const [activeCategory, setActiveCategory] = useState<'all' | 'seeds' | 'fertilizers' | 'composites' | 'defenses' | 'gauntlet' | 'helmet' | 'boots'>('all');
   const [selectedRecipe, setSelectedRecipe] = useState<CraftingRecipe>(RECIPES[0]);
   const [isCrafting, setIsCrafting] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'tree'>('list');
@@ -43,6 +43,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     // it is issued at arrival, not crafted.
     if (activeCategory === 'gauntlet') return isGauntletUpgrade(r.outputId);
     if (activeCategory === 'helmet') return HELMET_GEAR_ITEM_IDS.includes(r.outputId);
+    if (activeCategory === 'boots') return BOOTS_GEAR_ITEM_IDS.includes(r.outputId);
     return r.category === activeCategory;
   });
 
@@ -123,6 +124,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
             { id: 'all', label: 'All Synthetics' },
             { id: 'gauntlet', label: 'Gauntlet' },
             { id: 'helmet', label: 'Helmet' },
+            { id: 'boots', label: 'Boots' },
             { id: 'seeds', label: 'Spore & Seeds' },
             { id: 'fertilizers', label: 'Fertilizers' },
             { id: 'composites', label: 'Living Composites' },
@@ -171,6 +173,11 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
               />
             ) : (
               <div className="h-full overflow-y-auto p-4 space-y-2">
+                {filteredRecipes.length === 0 && (
+                  <div className="text-center text-slate-500 text-xs font-tech py-10">
+                    Nothing in this line yet.
+                  </div>
+                )}
                 {filteredRecipes.map((recipe) => {
               const item = ITEMS[recipe.outputId];
               const craftable = canCraft(recipe);

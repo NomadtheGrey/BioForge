@@ -865,6 +865,16 @@ export const HELMET_GEAR_ITEM_IDS: ItemId[] = [
   'prismatic_field_radar',
 ];
 
+/**
+ * Boots-line gear (Adam, 2026-10-15): the third platform's tab set,
+ * twin of HELMET_GEAR_ITEM_IDS above. EMPTY today — the boots are
+ * designed (one upgrade per impediment: wade, walk on water, swim,
+ * cross lava) but not yet built, and Adam wanted their tab standing
+ * beside the Gauntlet and Helmet tabs from the start. When the
+ * boots build lands, its item ids join this set one line at a time.
+ */
+export const BOOTS_GEAR_ITEM_IDS: ItemId[] = [];
+
 export const RECIPES: CraftingRecipe[] = [
   // Seeds
   {

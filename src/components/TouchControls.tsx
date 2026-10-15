@@ -244,9 +244,13 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
 
       {/* Thumbstick field: the lower-left. The stick is FLOATING —
           its base appears wherever the thumb lands in this field, so
-          the player never has to hunt for a fixed spot on the glass. */}
+          the player never has to hunt for a fixed spot on the glass.
+          On a SHORT screen (sideways phone) the field drops to the
+          very corner (bottom-3): a fixed 120px offset is a third of
+          a landscape screen, which floated the stick halfway up the
+          display (Adam's landscape playtest, 2026-10-14). */}
       <div
-        className="pointer-events-auto absolute bottom-30 left-0 h-[36dvh] w-[46%] [touch-action:none]"
+        className="pointer-events-auto absolute bottom-30 left-0 h-[36dvh] w-[46%] [touch-action:none] [@media(max-height:540px)]:bottom-3"
         data-testid="touch-stick-surface"
         onPointerDown={handleStickDown}
         onPointerMove={handleStickMove}
@@ -291,23 +295,27 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
         </div>
       )}
 
-      {/* Look hint: the right side has no visible control to find —
-          dragging IS the control — so until the player's first real
-          drag, a small cue floats at the right thumb's home height.
-          Pointer-events-none: thumbs drag straight through it into
-          the look field beneath. */}
-      {!lookUsed && (
-        <div className="pointer-events-none absolute right-5 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-1.5 opacity-90">
-          <div className="flex h-14 w-14 animate-pulse items-center justify-center rounded-full border-2 border-white/40 bg-slate-900/45 shadow-xl backdrop-blur-[2px]">
-            <Move className="h-6 w-6 text-white/85" />
-          </div>
-          <span className="text-center text-[10px] font-bold tracking-[0.2em] text-white/85 drop-shadow">
-            DRAG
-            <br />
-            TO LOOK
-          </span>
+      {/* Look cue: the right side has no visible control to find —
+          dragging IS the control — so a small marker floats at the
+          right thumb's home height. It STAYS (Adam, 2026-10-14:
+          "the rotation button should remain visible, not disappear
+          when touched") — it only stops pulsing once the first drag
+          has taught the gesture. Pointer-events-none: thumbs drag
+          straight through it into the look field beneath. */}
+      <div className="pointer-events-none absolute right-5 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-1.5 opacity-90">
+        <div
+          className={`flex h-14 w-14 items-center justify-center rounded-full border-2 border-white/40 bg-slate-900/45 shadow-xl backdrop-blur-[2px] ${
+            lookUsed ? '' : 'animate-pulse'
+          }`}
+        >
+          <Move className="h-6 w-6 text-white/85" />
         </div>
-      )}
+        <span className="text-center text-[10px] font-bold tracking-[0.2em] text-white/85 drop-shadow">
+          DRAG
+          <br />
+          TO LOOK
+        </span>
+      </div>
 
       {/* Thumb buttons: USE rides above JUMP at the right edge, in
           the arc of the right thumb and clear of the hotbar below.

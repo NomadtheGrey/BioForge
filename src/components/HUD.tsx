@@ -297,8 +297,17 @@ export const HUD: React.FC<HUDProps> = ({
           has to choose a phone arrangement — fixed desktop widths
           do not shrink on their own. */}
       <div className="flex items-start justify-between w-full gap-2">
-        {/* Left: Bio-Suit Vitals & Tactical Minimap Radar */}
-        <div className="flex min-w-0 flex-col gap-2.5">
+        {/* Left: Bio-Suit Vitals & Tactical Minimap Radar. On a
+            SHORT screen (a sideways phone) the stack turns into a
+            row — vitals and radar side by side — so the radar stays
+            visible without reaching down into the thumbstick's
+            field (Adam's landscape playtest, 2026-10-14: hiding it
+            sideways took his navigation away). */}
+        <div
+          className={`flex min-w-0 flex-col gap-2.5 ${
+            touchMode ? '[@media(max-height:540px)]:flex-row [@media(max-height:540px)]:items-start' : ''
+          }`}
+        >
           <div
             className={`pointer-events-auto flex flex-col glass-panel rounded-2xl ${
               touchMode ? 'w-52 gap-1.5 p-2.5' : 'w-72 gap-2 p-3.5'
@@ -354,12 +363,11 @@ export const HUD: React.FC<HUDProps> = ({
             </div>
           </div>
 
-          {/* Minimap Widget. On a short landscape phone the map is
-              the one top element that gives its height back: the
-              player can reopen it from the top bar when they stop
-              moving, and the cave-exit arrow returns with it. */}
+          {/* Minimap Widget. Always visible in play (Adam,
+              2026-10-14): sideways it rides beside the vitals card
+              in the row layout above instead of disappearing. */}
           {isMinimapVisible && (
-            <div className={touchMode ? '[@media(max-height:540px)]:hidden' : undefined}>
+            <div>
               <Minimap
               playerX={playerState.x}
               playerZ={playerState.z}

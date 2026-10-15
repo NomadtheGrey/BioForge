@@ -165,10 +165,15 @@ there hostile valleys that try to eat you?"):
 
 Adam's build order: **fill in the families, then put the biomes
 into code ONE BY ONE** (the generation-queue cadence — each proven
-in-game before the next). Each biome, when its turn comes, gets a
-short round of questions from Marlowe (its rules, its hazards,
-what makes it itself) plus variant proposals, and Adam's answers
-become its spec. Two properties every biome carries from birth:
+in-game before the next). Each PURE biome, when its turn comes,
+gets a short round of questions from Marlowe (its rules, its
+hazards, what makes it itself) plus variant proposals, and Adam's
+answers become its spec. **The HYBRIDS are the exception (Adam,
+2026-10-15): no one-by-one review — that would take weeks.** A
+hybrid is a blend of two parents that already had their question
+rounds; Marlowe drafts its name, tint, and rule deltas by best
+judgment, and Adam eyeballs the results in bulk. Two properties
+every biome carries from birth:
 
 - **Minimum distance** (`minHops`): no zone nearer than this to the
   starting zone may hold it — set by danger and exoticness. This

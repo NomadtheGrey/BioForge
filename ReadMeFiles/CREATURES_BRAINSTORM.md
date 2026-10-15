@@ -258,9 +258,14 @@ a new geometry per creature.
 2. **Quadruped** — four-legged beast. Chitin-Stalker today. The
    classic fauna read — and the rigging-risk plan (legged models
    are the known hard case for the Meshy pipeline).
-3. **Biped** — upright, two-legged. The plan that reads as
-   *person* — use sparingly; it carries NPC implications wherever
-   it appears (cf. the fate x remnant bunker-people idea).
+3. **Biped** — upright, two-legged. NOT a rare plan (Adam's
+   correction, 2026-10-15): Earth has apes, kangaroos, and more —
+   bipeds are ordinary, just less common than quadrupeds and the
+   many-legged plans. What reads as *person* is not the plan but
+   near-human PROPORTIONS; that narrower case keeps its NPC
+   weight (cf. the fate x remnant bunker-people idea) and is a
+   proportion call at species-design time, not a rarity rule on
+   the plan.
 4. **Serpentine** — long, legless, head-to-tail. Worms, snakes,
    eels; locomotion is usually slithering, swimming, or burrowing.
 5. **Segmented** — a chain of repeated sections. Caterpillar /
@@ -270,9 +275,13 @@ a new geometry per creature.
    no obvious front. The deepest-alien plan on the list; pairs
    with stationary, drifting, or tipping-rolling locomotion.
 7. **Winged** — the wings ARE the silhouette. Vesper Glider's
-   vanes today. NOTE: as the combination rule below shows, Winged
-   very often works as a *secondary* plan (wings on some other
-   body) — whether it keeps a primary seat is an open question.
+   vanes today. As the combination rule below shows, Winged very
+   often works as a *secondary* plan (wings on some other body) —
+   but it KEEPS its primary seat (Adam, 2026-10-15, adopting
+   Marlowe's lean: "keep flying like you recommend"), for the
+   creature that is *mostly* wing — a living kite, a sail with a
+   body for ballast. Expect most Winged entries to still be
+   secondaries in practice.
 8. **Finned** — the aquatic outline: fins, tail, streamlining.
    No shipped swimmer wears it yet — the swimmer seat is empty
    (see the type specimen below).
@@ -289,6 +298,17 @@ a new geometry per creature.
 12. **Cloud** — no single silhouette: a shifting aggregate with
     soft edges. Collective and Vapor life's home plan; the
     outline is a behavior, not a boundary.
+13. **Multiped** — one compact body carried on 6-8 legs (Adam's
+    addition, 2026-10-15). The insect / arachnid silhouette:
+    distinct from Quadruped (four legs, larger body language) and
+    from Segmented (a chain of sections — a Multiped has ONE
+    body; its legs are the multiplication, not its body). On
+    Earth this is the most successful animal plan there is, so
+    the roster should expect it to be COMMON — plausibly more
+    common than Quadruped. Budget note (hypothesis): many small
+    rigid legs can be stepped procedurally in a wave, which may
+    make Multiped cheaper to animate than one large rigged
+    Quadruped — to be tested when models work reaches it.
 
 ### Layer 2 — Modifiers (adjectives, not axis values)
 
@@ -397,17 +417,15 @@ plans is not.
 
 ### Open questions on this axis
 
-- **Does Winged keep a primary seat**, or does the roster treat
-  it as always-secondary (vanes / wings as additions)? Marlowe's
-  lean: keep the seat — a creature that is *mostly* wing (a
-  living kite, a sail with a body for ballast) deserves the
-  option — but expect most Winged entries to be secondaries.
-- **Plan roster size**: twelve drafted. Enough? The test is not
-  coverage of Earth but whether a new creature idea keeps failing
-  to find a home plan.
-- **Biped discipline**: how rare is rare enough that a biped
-  still lands as an event? (Ties to fate x remnant NPC design,
-  which is parked future work — noted, not opened.)
+- **Plan roster size**: thirteen drafted (Multiped added by Adam,
+  2026-10-15). Enough? The test is not coverage of Earth but
+  whether a new creature idea keeps failing to find a home plan.
+
+Resolved since the build: Winged keeps its primary seat (Adam,
+2026-10-15). Biped carries no rarity rule — bipeds are
+ordinary-uncommon; only near-human proportions carry person /
+NPC weight, judged per species (Adam's correction, 2026-10-15;
+the fate x remnant NPC design itself stays parked future work).
 
 A species design in this doc is not complete until it carries a
 shape line — primary plan, secondary plan if any, modifiers —

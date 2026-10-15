@@ -82,8 +82,13 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     designed species in the table, incl. the first 'all'-affinity
  *     bonus spawn (the Dew Gnat, the everywhere pest). Table-only
  *     change; the generator learns nothing new but the word 'all'.
+ * v18: creature build phase, slice 3 (2026-10-15) — nine more
+ *     species, and the bonus loop learns the VARIANT GATE: a
+ *     species whose table entry names a variant deals only there
+ *     (Hollow Hermit in fungal_hollow, Rootfall Bear in
+ *     rootwood_rootfall) — the biome-unique layer, in code.
  */
-export const WORLD_GEN_VERSION = 17; // v17 (2026-10-15): creature slice 2 — twelve more table species, first 'all' bonus spawn; v16 was designed-species slice 1
+export const WORLD_GEN_VERSION = 18; // v18 (2026-10-15): creature slice 3 — variant-gated bonus spawns; v17 was creature slice 2
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -860,6 +865,9 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
         spec.biomes.includes(zoneBiome) ||
         (zoneHybrid !== null && spec.biomes.includes(zoneHybrid.secondary));
       if (!homeHere) continue;
+      // Variant gate (slice 3): a variant-locked species deals only
+      // in its named place — the biome-unique layer.
+      if (spec.variant && zoneVariant?.id !== spec.variant) continue;
       const bonusRng = createSeededRandom(stream(`fauna:bonus:${def.id}`));
       let placed = 0;
       for (let attempt = 0; attempt < 40 && placed < spec.count; attempt++) {

@@ -261,10 +261,30 @@ question round — the table below is the draft to argue with.
   wooded one), so a frozen forest is shaped like a cross. It is
   recorded here as a hybrid candidate: **Frost x Rootwood → the
   Frozen Forest**, for the delegated hybrid pass.
-- **Rootwood** — family min 2. *Rootwood Canopy* (min 2,
-  uncommon): root walls and bridges, shade below, clearings above.
-  *Questions: are the root bridges walkable (vertical play without
-  building)? Does the canopy darken the ground like a roof?*
+- **Rootwood** ✓ BUILT (2026-10-15) — the SEVENTH family built:
+  the wooded one (there is no 'Forest' family; this is the seat).
+  Tier 1, family min 2, common; the lushest densities yet (flora
+  1.3 / fauna 1.0); bands 25% at 2 hops thinning to 5% at 4 and
+  GONE by 5 — home-country by design. Petal mills, sap weavers
+  and soft puffs hold census affinities here now. Variants, all
+  built: *Rootwood Canopy* (min 2, uncommon — signature; biggest
+  roots, bright clearings, 2 bridges), *The Underroot* (min 3,
+  uncommon — canopy gloom: light reach x0.7, the family's scar is
+  darkness), *The Rootfall* (min 3, uncommon — a fallen giant;
+  the gift variant, thickest heartroot). HEARTROOT stands grow in
+  every rootwood zone and harvest to HEARTWOOD, the premium
+  building wood. **THE BRIDGES — COMMITTED AND BUILT (Adam's
+  round answers):** walkable root decks strung tower to tower in
+  every rootwood zone (1-2 per zone), built from the game's own
+  structure types — wall towers, pre-grown vine ladders, level-1
+  root-tile decks — so they persist in snapshots and inherit
+  datum/support/solvent rules free. Adam's questions answered:
+  bridges ARE walkable (click a tower ladder up; bounce-shrooms
+  also serve; step off and the story rules drop you), and yes,
+  the canopy darkens the ground (the Underroot). HONEST LIMIT:
+  the 'ramp' is a ladder tower in v1 — true sloped walking is
+  P5-terrain machinery, and when terrain lands the towers can
+  grow real ramps. WORLD_GEN_VERSION 10.
 - **Bone** — family min 3. *Leviathan Graveyard* (min 3, RARE):
   one impossible skeleton, fertile soil, reverent quiet.
   *Questions: is a graveyard rolled like other zones, or is it a

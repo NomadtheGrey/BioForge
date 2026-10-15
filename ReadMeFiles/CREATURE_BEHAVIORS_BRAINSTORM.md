@@ -202,3 +202,14 @@ Saltglass is the swing). Harvests to NEVERMELT ICE; solvent
 returns the same (ice does not seed). Frost's creature seats —
 family signature, plus uniques for the Stillwhite and the Singing
 Ice — are EMPTY and belong to this chat.
+
+Flora note (Rootwood, 2026-10-15): the Heartroot is a buttress
+root cluster — arched living-wood slabs around a dense heart —
+growing in every Rootwood zone (thickest in the Rootfall) and
+harvesting to HEARTWOOD. The family's other furniture is the
+BRIDGES: walkable root decks between ladder towers, built from
+ordinary structure types. Rootwood's creature seats — family
+signature, plus uniques for the Canopy and the Underroot — are
+EMPTY and belong to this chat. Something should live ON the
+bridges eventually; that is a creatures question, not a flora
+one.

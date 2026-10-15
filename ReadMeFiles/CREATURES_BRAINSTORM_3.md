@@ -583,3 +583,333 @@ Roster designed total: 122. The wide-range layer stands
 founded at 12, with its second wave named (the Far Bat
 first) and its thin edges admitted in the header, where
 they belong.
+
+## Twelfth roster pass — the danger bench, round one
+
+Adam's call (2026-10-15): six-to-eight dangerous
+creatures for the whole world is "very very light."
+The bench is therefore built PER FAMILY, by judgment —
+one, two, three, or none per biome according to the
+biome's nature — and lands in two rounds of twelve.
+Round one: the Meadow's single courtesy, then Wetland,
+Fungal, Ember, Saltglass, Frost, and Rootwood's first.
+
+**The bench doctrine** (applies to every entry in both
+rounds, stated once): *(1) Every danger has a TELL* —
+a sound, a glow, a silence, a shadow — readable before
+it is fatal; the game's contract is that death is a
+reading failure, not a dice roll. *(2) Peaceful holds*
+— on Peaceful these are awareness only: they warn,
+display, face, and watch, at full theater and no cost;
+their attacks exist on Normal and mean it on Hostile.
+*(3) Danger is a job, not a personality* — each bench
+species eats, guards, or defends something specific in
+its family's web; the roster's gentle citizens are its
+reasons to exist. *(4) Taming floors stay honest* —
+most of the bench is 0% by nature; the few tamable
+entries are tamable the way fire is tamable: at the
+standard rate, with the standard scars.
+
+**123. Meadow Bull** — the Meadow (the family's ONE,
+by judgment: the Meadow is the gentle family by design,
+and its single danger is a courtesy — it teaches the
+reading of tells in the safest country there is).
+Fauna x Ordinary. Shape: Quadruped (meadowback plan,
+bull-built); modifier: scarred, solitary — an old male
+put out of the herds, wearing his exile in his temper.
+Locomotion: Walking. Spectra: AGGRESSIVE-defensive /
+SOLO, pointedly / slow until it isn't / LARGE / Diet
+grazer / diurnal / Curiosity inverted — it notices YOU
+first, and its whole entry is that noticing / Territory
+a claimed pasture, defended absolutely / Tameability
+0% — the herd's own verdict, seconded. THE TELL, the
+doctrine's type specimen: it warns in three full acts —
+the STARE, the PAWING (dust rises; the meadow's
+sparrows lift), the SNORT-and-lower — an entire
+education before any charge, and on Peaceful the
+theater is all there ever is; a player who reads the
+acts and steps off the pasture is never charged, in
+any difficulty. Drops: none taken. Hook: every world
+needs its first lesson in being watched back; the
+Meadow teaches it with a bull, at walking pace, with
+three warnings.
+
+**124. Fen Lurker** — Wetland (pools and marsh, the
+Mirror Marsh included). Fauna x Ordinary. Shape:
+Quadruped + Finned (a low, wide, log-bodied ambusher);
+modifier: log-still — at rest it IS a drowned log, bark
+texture, duckweed and all (the Logback's dark rhyme:
+one log is a citizen resting, the other is a mouth
+waiting, and the Wetland makes you learn the difference).
+Locomotion: Swimming + Walking, mostly WAITING. Spectra:
+patient-aggressive / SOLO / stillness, then the whole
+speed budget at once / LARGE / Diet ambush hunter —
+mud turtles taken at the lily's own game, heron-sized
+birds, the marsh's large slow life / day-night
+indifferent under duckweed / Curiosity none / Territory
+one pool, owned utterly / Tameability 0%. THE TELL:
+before a strike the pool's small life goes QUIET —
+minnow ribbons scatter from nothing, pond skaters flee
+a flat calm — the water itself files the report.
+Peaceful: the lurker surfaces, regards, sinks; the
+regard is the whole event and it is enough. Drops:
+shed teeth along its pool's edge, unlisted. Hook: the
+Wetland's stillness finally has an author.
+
+**125. Pool Snapper** — Wetland (the same ponds, the
+other disposition). Fauna x Ordinary. Shape: Quadruped
+(turtle plan, jaw-forward); modifier: algae-crowned.
+Locomotion: Swimming + Walking. It is the Mud Turtle's
+nightmare cousin — same ponds, opposite covenant: where
+the mud turtle basks in parliament, the snapper waits
+in ambush, and the design intends players to learn the
+two silhouettes the way birders learn hawks. Spectra:
+irritable-aggressive / SOLO / a lunge, otherwise stone /
+mid-LARGE / Diet snap opportunist — fish, frogs, wading
+birds, fingers in the wrong difficulty / diurnal /
+Curiosity food-shaped / Territory one sunken log /
+Tameability 0% (it will, however, accept offerings AT
+DISTANCE, and the codex says why: an occupied snapper
+is a safe snapper — feeding the hazard is a legitimate
+Wetland strategy and the entry blesses it). THE TELL:
+a crown of bubbles and the algae-crown breaking the
+surface like a small green island that was not there
+yesterday. Peaceful: it snaps at the AIR near an
+intruder — warning theater with real acoustics. Hook:
+the bench needs small print as well as headlines; the
+snapper is the pond's.
+
+**126. Sporeback** — Fungal (the groves' deep country).
+Fauna x Ordinary, in symbiosis so total the entry lists
+its material as Ordinary-with-fungal-tenancy (the Spore
+Stag's arrangement at brute scale). Shape: Quadruped;
+modifiers: fruiting towers — a walking grove of tall
+caps on its back, swaying as it moves. Locomotion:
+Walking, glacial. Spectra: placid until STARTLED, which
+is the entry's whole danger: a startled sporeback
+CHARGES, and charging shakes the towers, and the towers
+answer with SPORE CLOUDS — area denial as a panic reflex
+(the doctrine: its weapon is a startle, and the skill
+it teaches is approach discipline in the groves) /
+loose grove companies / slow, then not / LARGE, the
+stag's big sibling / Diet grazer of the groves' floor /
+day-night indifferent / Curiosity low / Territory a
+grove circuit / Tameability 10% — by never, ever
+surprising it: taming as a etiquette exam. THE TELL:
+the towers SWAY-SETTLE before a charge, one visible
+breath of stillness, and the glow-grubs at its feet go
+dark (they know). Peaceful: the charge stops short in
+a wall of drifting spores — a warning with production
+values. Drops: shaken-loose spores gather as Glow Spore,
+the economy's existing door, at hazard rates. Hook:
+the Fungal family's danger was always going to be
+weather the animals make.
+
+**127. Hollow Widow** — Fungal (the Hollow and the
+glow-dark edges). Fauna x Ordinary. Shape: Multiped
+(spider plan, long-legged); modifier: lure-lit — she
+WEBS GLOW GRUBS into her snares, alive, dimmed by silk,
+so her hunting webs glow exactly like safe fungal
+ground lighting (the Bench's cruelest camouflage: she
+weaponizes the family's lanterns). Locomotion: Climbing
++ Walking. Spectra: patient-aggressive / SOLO, widowed
+by habit / still, then total / mid / Diet ambush
+venom-hunter of the glow country's mid-sized life —
+grub-thieves, small grazers, the careless / nocturnal /
+Curiosity predatory / Territory one web-system,
+maintained like an instrument / Tameability 0%. THE
+TELL: her webs' glow DOESN'T FLICKER — real grub light
+breathes; silk-held light is steady, and a steady light
+in the Hollow is a held breath (the entry cross-
+references the Glow Grub: learn the honest light, live).
+Peaceful: she watches from the web's hub, many-eyed,
+and does nothing at all, which veterans agree is worse.
+Drops: her silk, cut from abandoned webs: **Widow Silk**
+(new item) — the dark country's thread, strong and
+spore-proof. Hook: a predator adapted to a world where
+prey navigates by light learns to SPEAK light; the
+widow is fluency as menace.
+
+**128. Slag Serpent** — Ember (the Ashen Drift, the
+Ember Scar). Fauna x Ordinary. Shape: Serpentine;
+modifier: heat-shimmer — its scales bend hot air, so at
+Drift distances it is a ripple BEFORE it is a snake
+(the doctrine notes its tell is optical and free). Locomotion:
+Slithering + Burrowing through ash (the Ashswimmer's
+guild, at predator scale and appetite). Spectra:
+ambush-aggressive / SOLO / strike-fast / LARGE / Diet
+hunter of ash-country life — newts, swimmers at surfacing,
+ash-pickers at their gleaning / crepuscular, riding the
+Drift's cooling hours / Curiosity none / Territory a
+slag hollow / Tameability 0%. THE TELL: ash-devils
+— its surfacing pushes a slow spiral of ash ahead of
+it, visible across the Drift; veterans navigate by them
+like sailors by waterspouts. Peaceful: it rises, hoods
+in cooling ash, watches; the display is enormous and
+that is the point of it. Drops: shed slag-scales,
+unlisted. Hook: the serpent is the graph's recurring
+answer to "what hunts here?" — Ember's wears the Drift
+itself as camouflage.
+
+**129. Vent Drake** — Ember (the Scar's vent fields).
+Fauna x Ordinary. Shape: Winged (lean drake plan);
+modifier: soot-sailed — its wings are built for vent
+thermals, broad and dark. Locomotion: Aerial, glider-
+leaning on vent updrafts (it is why the Ember Newt's
+belly-flush exists, though neither entry says so in
+its own file — the web is the text). Spectra: bold-
+aggressive / loose vent colonies, hunting solo / fast
+in the dive, lazy in the climb / mid / Diet dive-hunter —
+newts, gnats at scale, ember birds at their baths /
+diurnal, vent-timed: it hunts when the vents breathe /
+Curiosity predatory / Territory one vent and its sky /
+Tameability 10% — by provision at ITS vent, over weeks;
+a won drake is the Bench's proudest aerial pet and its
+most conditional. THE TELL: its shadow crosses the
+vent steam BEFORE the dive, and the steam itself
+shivers — the Scar's small life dives for cover as one,
+which is the actual alarm. Peaceful: stoops that pull
+up in a rush of hot wind, close enough to teach. Drops:
+molted soot-feathers at the vent's rim, unlisted. Hook:
+every vent field is a chimney; the drake is what the
+chimney is FOR, from the sky's side of the bargain.
+
+**130. Prism Cat** — Saltglass (the Flats, the Prism
+Beds). Fauna x Crystalline. Shape: Quadruped (cat plan,
+long and low); modifier: refractive — its coat is
+grown saltglass fur, bending noon light until the cat
+is a shimmer with paws. Locomotion: Walking, silk-
+silent (its pads are furred against the crust's ring).
+Spectra: patient-aggressive / SOLO / stillness and
+explosions / mid / Diet hunter of the flats' mid-sized
+life — pan lizards at their statues, voles at the thaw
+edge, pickers at their picking / DAY-HUNTER, the
+family's inversion: it hunts at high noon when its
+coat works and the glare blinds everything else (the
+Glass Crab stores noon; the cat SPENDS it) / Curiosity
+predatory / Territory a glare-ground / Tameability 0%
+— but shade-taming's inverse exists: it can be BAITED
+into shadow and held there a moment by a Glint Beetle's
+flash (the entry records the trick, not a friendship).
+THE TELL: at low sun its refraction fails into honesty —
+it casts a RAINBOW SHADOW, longer than itself, and the
+Flats' law is plain: where the rainbow falls, it is;
+at noon, watch for a shadow with no owner. Peaceful:
+it shows itself at the territory's edge, prismatic and
+deliberate, a warning you can see from a ridge. Drops:
+shed refractive hairs in its shadow-tracks —
+**Prism Hair** (new item), gathered at dawn from where
+it slept: light-reactive filament for the far bench's
+crafting. Hook: Saltglass needed a danger worthy of its
+beauty; the cat is the glare, hunting.
+
+**131. Salt Scorpion** — Saltglass (under the crust of
+the Flats and the Thaw's edges). Fauna x Ordinary;
+modifier: crust-tailed — its tail and claws are grown
+SALTGLASS, chiming faintly when it moves under the
+crust (the Pan Lizard's statue country, from below).
+Shape: Multiped + Segmented. Locomotion: Walking +
+Burrowing under crust. Spectra: defensive-aggressive /
+SOLO / a sting's speed in a slow body / mid / Diet
+ambush picker of crust-country life / nocturnal —
+days are spent under the crust in the cool it keeps /
+Curiosity none / Territory one crust-field / Tameability
+0%. THE TELL: the crust SINGS — a faint glassine
+ticking underfoot where it travels below, and a
+ring-crack pattern where it waits (the Singing Ice's
+small, mean cousin of a tell: both countries warn in
+music). Peaceful: it surfaces tail-first and HOLDS —
+a display of grown glass in moonlight — and does not
+sting a retreating guest. Drops: molted tail-segments
+work as SALTGLASS SHARD, the economy's seventh door,
+mined from a hazard's leavings. Hook: the family's
+ground itself is armed; the scorpion is just the part
+that can aim.
+
+**132. Fangwolf** — Frost (the Ice Fangs, the
+Stillwhite). Fauna x Ordinary. Shape: Quadruped (wolf
+plan). Locomotion: Walking/running. THE ROSTER'S FIRST
+TRUE PACK HUNTER — the social spectrum weaponized: a
+fang pack runs the Stag herds' rotation the way auditors
+run books, testing the resting shift, and the herd's
+never-sleeping watch (its emblem entry) finally has its
+reason named in both files. Spectra: bold-aggressive /
+PACK, the template's fullest social entry — pair bonds,
+a hierarchy you can learn by watching, pups at the den
+in the Fangs / pursuit-fast, endurance over burst /
+mid-LARGE / Diet herd-hunter: stag calves, voles under
+snow, the country's large life / crepuscular-night /
+Curiosity tactical / Territory a hunting circuit,
+marked and re-marked / Tameability 10% — the Bench's
+floor, and the entry is blunt about the method: not
+the pack, never the pack; a lone yearling, over a
+winter, at the 10% the dice barely allow — and it
+stays half-wild in the way that matters (its guard
+behavior is the roster's most serious). THE TELL: the
+howl-ledger — a pack taking a herd's measure sings in
+sequence around the valley, and the DIRECTION of the
+song is the direction of the test; the ice carries it
+for miles, by design of the country. Peaceful: the
+pack shadows at distance, professional and visible,
+and lets itself be counted. Drops: none. Hook: Frost
+is the STEADY family — winter that never thaws — and
+its danger is correspondingly patient, social, and
+organized; the fangwolf is winter with a plan.
+
+**133. Ice Maw** — Frost (under the Singing Ice).
+Fauna x Ordinary. Shape: Finned; modifier: shadow-
+first — it is met as a SHAPE MOVING UNDER THE ICE
+minutes before it is met as an animal. Locomotion:
+Swimming, under ice it cannot always break — which is
+its danger's shape: it strikes UP through thin ice at
+crossing points, and the Singing Ice's crossings are
+where the country is thinnest BY DESIGN (the ice sings
+its thickness; the maw hunts the low notes). Spectra:
+ambush-aggressive / SOLO, or mated pairs under the
+great lakes / sliding-fast / LARGE / Diet hunter of
+lake life and whatever crosses wrong / day-night
+irrelevant under ice / Curiosity none / Territory a
+lake / Tameability 0%. THE TELL: THE ICE CHANGES PITCH
+over it — a traveling low note under the song, the
+roster's most musical warning, and the Lake Glider
+(teaches the ice's singing) is retroactively its
+tutor: learn the glider's music and the maw announces
+itself. Peaceful: the shadow paces a crossing player
+below, unhurried, entirely visible, never striking —
+a escort of dread at zero cost. Drops: none. Hook:
+Frost's second danger lives in the family's other
+element; between the pack above and the maw below,
+the white country's whole stack is spoken for.
+
+**134. Crown Cat** — Rootwood (the Canopy). Fauna x
+Ordinary. Shape: Quadruped (cat plan, long-tailed);
+modifier: moss-still — it hunts by becoming canopy
+texture above the bridges. Locomotion: Climbing
+primary + Walking — the Rootborer's country inverted:
+the borer eats the wood from inside, the cat owns it
+from above. Spectra: patient-aggressive / SOLO /
+gravity-fast / mid / Diet drop-hunter — canopy sloths
+at their slowest (the sloth's famous unhurriedness is
+PARTLY this cat's long tuition, the entry notes
+dryly), deck birds, bridge-crossing mid-sized life /
+crepuscular / Curiosity predatory / Territory a crown
+and its bridge-approaches / Tameability 15% — the
+Bench's highest round-one floor, earned the Bonepicker
+way, by provision over days, at ITS tree; a won crown
+cat guards a bridge like a toll-keeper of one.
+THE TELL: the canopy's birds go quiet IN SEQUENCE
+along its path — a moving silence-mapping — and the
+Deck Weaver feels it first: its webs tremble at the
+cat's passing weight-hours before, and a weaver
+abandoning a strand is the bridges' fire bell.
+Peaceful: it lies along a branch in open view and
+watches the crossing traffic with its tail tip moving,
+cat-advertising: presence as policy. Drops: shed fur
+on its branches, unlisted. Hook: Rootwood's heights
+needed a reason for the country's famous caution; the
+crown cat is the reason, wearing the moss.
+
+Round one closes: twelve dangers, seven families
+seated. Round two takes Rootwood's depths, Bone, Storm,
+the Living, Precursor, and four hybrid countries.
+Roster designed total: 134.

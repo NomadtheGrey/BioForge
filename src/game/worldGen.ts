@@ -51,7 +51,7 @@
 import { createNoise2D, createSeededRandom, hashStringToSeed } from './motion';
 import { biomeDensityFactor, biomeWeightFactor } from './biomes';
 import type { BiomeId } from './biomes';
-import { zoneBiomeAt } from './zones';
+import { zoneBiomeAt, zoneVariantAt } from './zones';
 import type { FaunaEntity, FaunaSpecies, FloraEntity, FloraSpecies, StructureEntity } from '../types/game';
 import { generateCaveSurface, HOMESTEAD_BLOCKERS } from './caveSurface';
 import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
@@ -404,6 +404,9 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
   // The zone's single biome — its identity — drives every biome rule
   // below for the whole zone.
   const zoneBiome: BiomeId = zoneBiomeAt(seedStr, zoneZx, zoneZz);
+  // The zone's VARIANT, when it rolled one (biome graph, 2026-10-15):
+  // density deltas and variant-only life hang off this below.
+  const zoneVariant = zoneVariantAt(seedStr, zoneZx, zoneZz);
   const isSpawnZone = zoneZx === 0 && zoneZz === 0;
   // Per-zone dice (zone travel, 2026-10-15): until travel existed,
   // the streams below were seeded from the world seed ALONE — every
@@ -456,8 +459,8 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
   // The zone biome's density gates the scatter — one factor per kind
   // for the whole zone (flora and fauna densities differ per biome:
   // a fungal zone grows plants fine but its fauna runs sparse).
-  const floraDensityAt = (): number => biomeDensityFactor('flora', zoneBiome);
-  const faunaDensityAt = (): number => biomeDensityFactor('fauna', zoneBiome);
+  const floraDensityAt = (): number => biomeDensityFactor('flora', zoneBiome) * (zoneVariant?.floraDensityMult ?? 1);
+  const faunaDensityAt = (): number => biomeDensityFactor('fauna', zoneBiome) * (zoneVariant?.faunaDensityMult ?? 1);
 
   const floraScatter = scatterClustered(
     floraPosRng, floraField, floraOx, floraOz,
@@ -593,6 +596,49 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
         animTime: 0,
       });
       break;
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Fungal Hollow giants (Adam's first variant, 2026-10-15) — variant-
+  // gated BONUS life, dealt outside the census like the radar species:
+  // in a Fungal Hollow zone, a stand of GIANT mushrooms rises among
+  // the ordinary fungal cast — several kinds, as on Earth (Adam):
+  // antenna'd sensers, an almost-faced kind, and flat shelf stacks
+  // (the climbable kind, once climbing lands). All harvestable.
+  // ---------------------------------------------------------------------
+  if (zoneVariant?.id === 'fungal_hollow') {
+    const hollowRng = createSeededRandom(stream('flora:hollowshrooms'));
+    const hollowKinds: FloraSpecies[] = [
+      'antenna_shroom', 'antenna_shroom', 'antenna_shroom', 'antenna_shroom', 'antenna_shroom',
+      'visor_shroom', 'visor_shroom', 'visor_shroom', 'visor_shroom',
+      'shelf_shroom', 'shelf_shroom', 'shelf_shroom',
+    ];
+    let plantedGiants = 0;
+    for (let attempt = 0; attempt < 80 && plantedGiants < hollowKinds.length; attempt++) {
+      const x = (hollowRng() * 2 - 1) * 44;
+      const z = (hollowRng() * 2 - 1) * 44;
+      if (Math.hypot(x, z) < 10) continue; // giants never crowd the entry point
+      if (flora.some((f) => Math.hypot(f.x - x, f.z - z) < 2.4)) continue;
+      flora.push({
+        id: `flora_hollow_${plantedGiants}`,
+        species: hollowKinds[plantedGiants],
+        x,
+        z,
+        biome: zoneBiome,
+        rotation: hollowRng() * Math.PI * 2,
+        scale: 1.7 + hollowRng() * 1.0, // giants: well above the ordinary cast
+        growthStage: 3,
+        growthProgress: 1,
+        fertilizedGrowth: false,
+        fertilizedYield: false,
+        fertilizerTimer: 0,
+        harvestReady: true,
+        harvestTimer: 0,
+        isHazardous: false,
+        swayOffset: 400 + plantedGiants,
+      });
+      plantedGiants++;
     }
   }
 

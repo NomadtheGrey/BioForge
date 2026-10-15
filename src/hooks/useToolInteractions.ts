@@ -225,6 +225,10 @@ export function useToolInteractions({
       case 'shelf_shroom':
         // Bracket shelves: fibrous and tough, like growing leather.
         return { item: 'soft_fiber', count: flora.fertilizedYield ? 4 : 2, extras: [['basic_compost', 1]] };
+      case 'cinder_bloom':
+        // Ember Scar (2026-10-15): heat-cured resin beads in the
+        // bloom's cup — the scar pays in sap for those who time it.
+        return { item: 'resin_sap', count: flora.fertilizedYield ? 3 : 2, extras: [['dew_essence', 1]] };
       case 'mirror_lily':
         // Mirror Marsh (2026-10-15): the pads cup the doubled light
         // and bead it as dew; a reed sometimes roots alongside.

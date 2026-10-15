@@ -245,6 +245,10 @@ export function useToolInteractions({
         // Rootwood (2026-10-15): the premium building wood, plus
         // the fibrous bark the slabs shed.
         return { item: 'heartwood', count: flora.fertilizedYield ? 3 : 2, extras: [['soft_fiber', 1]] };
+      case 'stormcatcher':
+        // Storm (2026-10-15): the crown fuses its gathered charge
+        // into fulgurite glass; dew beads on the reed after rain.
+        return { item: 'fulgurite_shard', count: flora.fertilizedYield ? 3 : 2, extras: [['dew_essence', 1]] };
       case 'gravebloom':
         // Bone (2026-10-15): bone meal from the bloom, dew in the cup.
         return { item: 'bone_meal', count: flora.fertilizedYield ? 3 : 2, extras: [['dew_essence', 1]] };
@@ -585,6 +589,8 @@ export function useToolInteractions({
                             ? 'living_thread' // grown thread is its own propagule
                             : flora.species === 'gravebloom'
                               ? 'bone_meal' // the bloom regrows from the country's stock, not a pouch
+                              : flora.species === 'stormcatcher'
+                                ? 'fulgurite_shard' // the storm regrows its glass
                     : (`seed_${flora.species}` as ItemId);
       const rawName = flora.species.replace(/_/g, ' ');
       const speciesName = rawName.charAt(0).toUpperCase() + rawName.slice(1);

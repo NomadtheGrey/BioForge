@@ -51,6 +51,43 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
     return item.category === activeTab;
   });
 
+  // Second tab row (Adam, 2026-10-15): a TIER filter composing
+  // with the category/gear tabs, twin of the BioForge screen's.
+  // A pouch item's band is its craft tier (gearTierOf — the
+  // recipe graph, with the radar's pinned ladder tier), and Raw
+  // is everything never crafted: the drops and gatherables. In a
+  // tier view the grid groups by item type, with full-width
+  // heading cells between the groups.
+  const [tierFilter, setTierFilter] = useState<'all' | 'raw' | 1 | 2 | 3>('all');
+  const itemTierBand = (id: ItemId): number => gearTierOf(id) ?? 0;
+  const tierVisibleItem = (id: ItemId): boolean => {
+    if (tierFilter === 'all') return true;
+    if (tierFilter === 'raw') return itemTierBand(id) === 0;
+    return itemTierBand(id) === tierFilter;
+  };
+  const visibleItems = filteredItems.filter(tierVisibleItem);
+  const TYPE_GROUPS: { id: string; label: string }[] = [
+    { id: 'equipment', label: 'Equipment' },
+    { id: 'structure', label: 'Structures' },
+    { id: 'fertilizer', label: 'Fertilizers' },
+    { id: 'seed', label: 'Seeds' },
+    { id: 'raw', label: 'Raw Materials' },
+  ];
+  type GridEntry =
+    | { kind: 'heading'; label: string }
+    | { kind: 'item'; id: ItemId };
+  const gridEntries: GridEntry[] = [];
+  if (tierFilter === 'all') {
+    visibleItems.forEach((id) => gridEntries.push({ kind: 'item', id }));
+  } else {
+    for (const g of TYPE_GROUPS) {
+      const ids = visibleItems.filter((id) => ITEMS[id]?.category === g.id);
+      if (ids.length === 0) continue;
+      gridEntries.push({ kind: 'heading', label: g.label });
+      ids.forEach((id) => gridEntries.push({ kind: 'item', id }));
+    }
+  }
+
   const activeItem = selectedItemId ? ITEMS[selectedItemId] : filteredItems.length > 0 ? ITEMS[filteredItems[0]] : null;
 
   const handleEquip = () => {
@@ -135,18 +172,50 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
           ))}
         </div>
 
+        {/* Tier Row — the second tab row (Adam, 2026-10-15) */}
+        <div className="px-6 py-2 border-b border-slate-800/70 bg-slate-900/20 flex items-center gap-2 overflow-x-auto">
+          <span className="text-[10px] font-tech uppercase tracking-wider text-slate-500 mr-1">Tier</span>
+          {[
+            { id: 'all', label: 'All Tiers' },
+            { id: 'raw', label: 'Raw' },
+            { id: 1, label: 'Tier 1' },
+            { id: 2, label: 'Tier 2' },
+            { id: 3, label: 'Tier 3' },
+          ].map((t) => (
+            <button
+              key={String(t.id)}
+              onClick={() => setTierFilter(t.id as typeof tierFilter)}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-medium font-tech transition-all ${
+                tierFilter === t.id
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
         {/* Main Content */}
         <div className="flex-1 flex overflow-hidden">
           {/* Left Grid */}
           <div className="w-7/12 border-r border-slate-800/80 overflow-y-auto p-4">
-            {filteredItems.length === 0 ? (
+            {visibleItems.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-slate-500 text-xs">
                 <Backpack className="w-8 h-8 mb-2 opacity-40" />
                 <span>No bio-specimens stored in this category.</span>
               </div>
             ) : (
               <div className="grid grid-cols-4 gap-2.5">
-                {filteredItems.map((id) => {
+                {gridEntries.map((entry) => {
+                  if (entry.kind === 'heading') {
+                    return (
+                      <div key={entry.label} className="col-span-4 pt-2 pb-0.5 text-[10px] font-tech font-bold uppercase tracking-wider text-slate-500">
+                        {entry.label}
+                      </div>
+                    );
+                  }
+                  const id = entry.id;
                   const item = ITEMS[id];
                   const count = inventory[id] || 0;
                   const isSelected = activeItem?.id === id;

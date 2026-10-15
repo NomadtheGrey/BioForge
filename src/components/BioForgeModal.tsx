@@ -47,6 +47,42 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     return r.category === activeCategory;
   });
 
+  // Second tab row (Adam, 2026-10-15): a TIER filter that composes
+  // with the category/gear tabs. Numeric bands read the ACCESS
+  // tier (so the label and the lock keep agreeing); the forge's
+  // Raw band means crafts that MAKE raw materials — ingredient
+  // goods like compost and subassemblies — since a recipe itself
+  // is never uncrafted. In a tier view the list groups by item
+  // type (the output's category), per Adam's shape.
+  const [tierFilter, setTierFilter] = useState<'all' | 'raw' | 1 | 2 | 3>('all');
+  const tierVisible = (r: CraftingRecipe): boolean => {
+    if (tierFilter === 'all') return true;
+    if (tierFilter === 'raw') return ITEMS[r.outputId]?.category === 'raw';
+    return accessTierOf(r) === tierFilter;
+  };
+  const visibleRecipes = filteredRecipes.filter(tierVisible);
+  const TYPE_GROUPS: { id: string; label: string }[] = [
+    { id: 'equipment', label: 'Equipment' },
+    { id: 'structure', label: 'Structures' },
+    { id: 'fertilizer', label: 'Fertilizers' },
+    { id: 'seed', label: 'Seeds' },
+    { id: 'raw', label: 'Raw Materials' },
+  ];
+  type ListEntry =
+    | { kind: 'heading'; label: string }
+    | { kind: 'recipe'; recipe: CraftingRecipe };
+  const listEntries: ListEntry[] = [];
+  if (tierFilter === 'all') {
+    visibleRecipes.forEach((recipe) => listEntries.push({ kind: 'recipe', recipe }));
+  } else {
+    for (const g of TYPE_GROUPS) {
+      const rs = visibleRecipes.filter((r) => ITEMS[r.outputId]?.category === g.id);
+      if (rs.length === 0) continue;
+      listEntries.push({ kind: 'heading', label: g.label });
+      rs.forEach((recipe) => listEntries.push({ kind: 'recipe', recipe }));
+    }
+  }
+
   const hasIngredients = (recipe: CraftingRecipe) => {
     return recipe.ingredients.every((ing) => (inventory[ing.id] || 0) >= ing.count);
   };
@@ -159,6 +195,30 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
           </div>
         </div>
 
+        {/* Tier Row — the second tab row (Adam, 2026-10-15) */}
+        <div className="px-6 py-2 border-b border-slate-800/70 bg-slate-900/20 flex items-center gap-2 overflow-x-auto">
+          <span className="text-[10px] font-tech uppercase tracking-wider text-slate-500 mr-1">Tier</span>
+          {[
+            { id: 'all', label: 'All Tiers' },
+            { id: 'raw', label: 'Raw' },
+            { id: 1, label: 'Tier 1' },
+            { id: 2, label: 'Tier 2' },
+            { id: 3, label: 'Tier 3' },
+          ].map((t) => (
+            <button
+              key={String(t.id)}
+              onClick={() => setTierFilter(t.id as typeof tierFilter)}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-medium font-tech transition-all ${
+                tierFilter === t.id
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
         {/* Content Body */}
         <div className="flex-1 flex overflow-hidden">
           {/* Left: Recipe List / Tree */}
@@ -173,12 +233,20 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
               />
             ) : (
               <div className="h-full overflow-y-auto p-4 space-y-2">
-                {filteredRecipes.length === 0 && (
+                {visibleRecipes.length === 0 && (
                   <div className="text-center text-slate-500 text-xs font-tech py-10">
-                    Nothing in this line yet.
+                    Nothing here yet.
                   </div>
                 )}
-                {filteredRecipes.map((recipe) => {
+                {listEntries.map((entry) => {
+              if (entry.kind === 'heading') {
+                return (
+                  <div key={entry.label} className="pt-2 pb-0.5 text-[10px] font-tech font-bold uppercase tracking-wider text-slate-500">
+                    {entry.label}
+                  </div>
+                );
+              }
+              const recipe = entry.recipe;
               const item = ITEMS[recipe.outputId];
               const craftable = canCraft(recipe);
               const isSelected = selectedRecipe.id === recipe.id;

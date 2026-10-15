@@ -19,7 +19,13 @@ import {
   ToolType,
   QuestProgressState,
 } from './types/game';
-import { INITIAL_CODEX, ITEMS, NON_BUILDABLE_STRUCTURE_IDS, getRecipeTier } from './game/constants';
+import {
+  INITIAL_CODEX,
+  ITEMS,
+  NON_BUILDABLE_STRUCTURE_IDS,
+  getRecipeTier,
+  DEBUG_KIT,
+} from './game/constants';
 import { BioForgeThreeEngine } from './game/threeEngine';
 import { soundEngine } from './audio/soundEngine';
 import { multiplayerManager, EntityKind, EntitySnapshot } from './game/multiplayer';
@@ -37,7 +43,17 @@ import { generateSeededWorld } from './game/worldGen';
 import { generateGameCavern, generateGameCavernLevel, cavernCellToWorld, cavernEntryYaw, cavernStratumName, type CavernResult } from './game/cavern';
 import { generateGameRuin, ruinEntryYaw, ruinCollisionGrid, type RuinResult } from './game/ruinInterior';
 import { FATE_STYLES, type RuinVariantId, type WorldFate } from './game/ruins';
-import { zoneInfo, zoneBiomeAt, biomeDisplayName, SPAWN_ZONE, zoneCoordsAt, zoneHops, zoneKey, type ZoneCoords } from './game/zones';
+import {
+  zoneInfo,
+  zoneBiomeAt,
+  biomeDisplayName,
+  SPAWN_ZONE,
+  zoneCoordsAt,
+  zoneHops,
+  zoneKey,
+  zoneHudLabels,
+  type ZoneCoords,
+} from './game/zones';
 import { routeForZoneTag, storeEntityEvent, snapshotOf, buildZoneSyncTravel as buildZoneSyncTravelPayload, type ZoneStores } from './game/zoneSync';
 import { occupancyConflict, placementFor } from './game/placement';
 import { useToolInteractions } from './hooks/useToolInteractions';
@@ -60,13 +76,8 @@ import { StartScreenModal } from './components/StartScreenModal';
 // UI Components
 import { HUD } from './components/HUD';
 import { QuestLogModal } from './components/QuestLogModal';
-import {
-  QUESTS,
-  deriveUnlockedTools,
-  questView,
-  trackedQuest,
-  TOOL_NAMES,
-} from './game/quests';
+import { TOOL_NAMES } from './game/quests';
+import { useQuests } from './hooks/useQuests';
 import { TouchControls, type TouchMoveInput } from './components/TouchControls';
 import { BioForgeModal } from './components/BioForgeModal';
 import { InventoryModal } from './components/InventoryModal';
@@ -1601,6 +1612,12 @@ export default function App() {
         setActiveModal((prev) => (prev === 'quests' ? null : 'quests'));
         return;
       }
+      // ` swaps the pouch to the debug kit and back (development
+      // tool, 2026-10-15 — see toggleDebugKit).
+      if (e.code === 'Backquote') {
+        toggleDebugKit();
+        return;
+      }
       if (e.key === '?') {
         setActiveModal((prev) => (prev === 'controls' ? null : 'controls'));
         return;
@@ -1729,27 +1746,26 @@ const currentSaveRef = useRef<SaveMetadata | null>(null);
   // ------------------------------------------------------------------
   // Gauntlet modules + mini-quests (Adam, 2026-10-15)
   // ------------------------------------------------------------------
-  // The gauntlet is the early game's progression spine: it starts
-  // able to harvest only, and each other tool is a module crafted
-  // at the forge (game/quests.ts holds the chain). Unlocks are
-  // DERIVED from the pouch — owning a module item is the unlock —
-  // with one exception: worlds created before the module system
-  // existed are grandfathered to the full set (they earned their
-  // tools under the old rules; nobody gets demoted). Co-op guests
-  // have no local save and are grandfathered too — a host's world
-  // shouldn't strand a guest without tools.
+  // The derivation, the quest views, the completion latch, and the
+  // progress writes live in hooks/useQuests.ts (extracted under the
+  // App push-size trigger). What remains here is the grandfather
+  // call — worlds created before the module system existed keep
+  // the full tool set, and co-op guests (no local save) are
+  // grandfathered too: a host's world shouldn't strand a guest
+  // without tools — plus the gated tool selector below.
   const modulesGrandfathered =
     !currentSaveRef.current ||
     (currentSaveRef.current.createdAt ?? 0) < GAUNTLET_MODULE_EPOCH_MS;
-  const unlockedTools = deriveUnlockedTools(inventory, modulesGrandfathered);
-  const questViews = QUESTS.map((def) => questView(def, inventory, unlockedTools));
   const questProgress = playerState.questProgress;
-  const trackedView = trackedQuest(
-    questProgress?.completedIds ?? [],
-    questProgress?.trackedId ?? null,
-    questViews,
-  );
-  const showQuestHud = questProgress?.showHud ?? false;
+  const { unlockedTools, questViews, trackedView, showQuestHud, updateQuestProgress } =
+    useQuests({
+      inventory,
+      grandfathered: modulesGrandfathered,
+      questProgress,
+      setQuestProgress,
+      postNotification,
+      hasStarted,
+    });
 
   // Tool selection, gated: every path that can switch tools (the
   // 1-6 keys, hotbar clicks) funnels through here, so a locked tool
@@ -1766,55 +1782,6 @@ const currentSaveRef = useRef<SaveMetadata | null>(null);
     }
     setActiveTool(tool);
   };
-
-  // Quest-progress writes, with silent adoption for veterans: the
-  // first time a pre-quest save touches the system, everything its
-  // (grandfathered) progress already satisfies is marked complete —
-  // no toast parade for a chain finished under the old rules.
-  const updateQuestProgress = (patch: Partial<QuestProgressState>): void => {
-    if (questProgress) {
-      setQuestProgress({ ...questProgress, ...patch });
-      return;
-    }
-    setQuestProgress({
-      completedIds: questViews.filter((v) => v.complete).map((v) => v.def.id),
-      trackedId: null,
-      showHud: false,
-      ...patch,
-    });
-  };
-
-  // Latch quest completions the moment they're earned: gather
-  // objectives un-meet when the items get spent, so completion is
-  // recorded, not re-derived forever. Veterans (no questProgress)
-  // never latch — their adoption above seeds completions silently.
-  const latchQuestKey = questProgress
-    ? questViews
-        .filter((v) => v.complete && !questProgress.completedIds.includes(v.def.id))
-        .map((v) => v.def.id)
-        .join(',')
-    : '';
-  useEffect(() => {
-    if (!hasStarted || !latchQuestKey || !questProgress) return;
-    const doneIds = latchQuestKey.split(',');
-    setQuestProgress({
-      ...questProgress,
-      completedIds: [...questProgress.completedIds, ...doneIds],
-    });
-    doneIds.forEach((id) => {
-      const def = QUESTS.find((q) => q.id === id);
-      if (def) {
-        postNotification(
-          'Mini-Quest Complete',
-          `${def.title} — nicely done. Press Q for the quest list and what comes next.`,
-          'discover',
-          '#34d399',
-        );
-      }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [latchQuestKey, hasStarted]);
-
 
 // A mirror of every state slice a save needs, refreshed each render.
 // Timers and network callbacks read from here so they never act on
@@ -1921,7 +1888,9 @@ const saveNow = useCallback((): void => {
   if (instanceRef.current.kind === 'cavern') {
     captureCavePlantings(plantingsKey(instanceRef.current.instanceId, instanceRef.current.depth));
   }
-  const record = buildSavedGame(meta, buildWorldSnapshot(), s.inventory, buildCurrentPlayerState(), s.dayNightCycle, s.codexList, cavePlantingsRef.current);
+  // While a debug-kit swap is active, the STASH is the pouch of
+  // record — saves never see the kit (see toggleDebugKit).
+  const record = buildSavedGame(meta, buildWorldSnapshot(), debugStashRef.current ?? s.inventory, buildCurrentPlayerState(), s.dayNightCycle, s.codexList, cavePlantingsRef.current);
   // Zone travel (2026-10-15): the record also carries every visited
   // zone's snapshot plus where the player is standing. The `world`
   // field above already holds the CURRENT zone's snapshot (the save
@@ -1938,6 +1907,31 @@ const saveNow = useCallback((): void => {
   // buildWorldSnapshot/buildCurrentPlayerState only read refs, so this
   // callback safely stays stable for the interval/pagehide effects.
 }, []);
+
+// Debug kit swap (Adam, 2026-10-15 — a for-now development tool
+// while the starter throttle settles): the backquote key swaps the
+// pouch for the full DEBUG_KIT and back. The real pouch waits in
+// debugStashRef, and saveNow writes the stash while a swap is
+// active — a debug session can never pollute a save with free
+// goods. Creating or loading a world clears the swap (see
+// handleCreateSave / applySavedGame).
+const debugStashRef = useRef<Record<ItemId, number> | null>(null);
+const toggleDebugKit = useCallback((): void => {
+  if (debugStashRef.current === null) {
+    debugStashRef.current = { ...latestStateRef.current.inventory };
+    restoreInventory({ ...DEBUG_KIT });
+    postNotification(
+      'Debug Kit ON',
+      'Pouch swapped to the full debug kit — press ` again to swap back. Saves keep your real pouch.',
+      'system',
+      '#f59e0b',
+    );
+  } else {
+    restoreInventory(debugStashRef.current);
+    debugStashRef.current = null;
+    postNotification('Debug Kit OFF', 'Your real pouch is back.', 'system', '#34d399');
+  }
+}, [restoreInventory, postNotification]);
 
 // Load the save library once at boot, for the start screen.
 useEffect(() => {
@@ -2008,6 +2002,7 @@ const GAUNTLET_TYPES_PASS_EPOCH_MS = Date.UTC(2026, 9, 15, 4, 0, 0);
     ) {
       migratedInventory['gauntlet_synthesizer_upgrade'] = 1;
     }
+    debugStashRef.current = null;
     restoreInventory(migratedInventory);
     restorePlayerState(record.playerState);
     playerPosRef.current = {
@@ -2048,6 +2043,7 @@ const GAUNTLET_TYPES_PASS_EPOCH_MS = Date.UTC(2026, 9, 15, 4, 0, 0);
     enterFullscreenOnTouch();
     resetInstanceState();
     cavePlantingsRef.current = {};
+    debugStashRef.current = null;
     const meta = createSaveMetadata(name, difficulty, worldSeed);
     currentSaveRef.current = meta;
     // A new world starts the mini-quest chain fresh (2026-10-15):
@@ -2652,45 +2648,23 @@ const GAUNTLET_TYPES_PASS_EPOCH_MS = Date.UTC(2026, 9, 15, 4, 0, 0);
 
   // Trowel hover hint: tell the player when a plant can (or can't) be fertilized
   // ------------------------------------------------------------------------
-  // Zone identity for the HUD (per-zone model — zones.ts)
-  // ------------------------------------------------------------------------
-  // The zone the player is standing in, from state (travel moves
-  // it). Its name and biome derive from the world seed — BUT zone
-  // identification is a HELMET feature (Adam, 2026-10-15): until a
-  // helmet with the zone-identifier upgrade exists, the label does
-  // not name the land. It carries the unidentified placeholder plus
-  // the upgrade message in the sub-line; the coordinates stay,
-  // because counting zones from home is dead reckoning, not a
-  // sensor reading. Seedless contexts get the plain fallback.
+  // Zone identity for the HUD: the label set (current zone + the
+  // country beyond the nearest edge) is computed by zones.ts
+  // zoneHudLabels — helmet gate included (extracted 2026-10-15
+  // under the App push-size trigger).
   const activeSeed = sessionSeed;
-  const currentZone = activeSeed ? zoneInfo(activeSeed, playerZone.zx, playerZone.zz) : null;
-  const currentZoneName = !currentZone ? 'Starting Zone' : ZONE_ID_INSTALLED ? currentZone.name : 'Unidentified Country';
-  const currentZoneBiomeLabel = !currentZone
-    ? null
-    : ZONE_ID_INSTALLED
-      ? biomeDisplayName(currentZone.biome)
-      : 'Zone Identifier not installed — a helmet upgrade reads the land';
-  const zoneCoordsLabel = `Zone ${playerZone.zx}, ${playerZone.zz}`;
-
-  // Edge label: within 10 m of the map border, name the zone beyond
-  // the nearest edge — with the same helmet gate: pre-helmet you can
-  // see there IS country that way (and push through into it), you
-  // just can't name it. North is -Z, per the minimap's orientation.
-  const edgeZoneLabel: string | null = (() => {
-    if (!activeSeed) return null;
-    const { x, z } = playerPosRef.current;
-    const edges = [
-      { dir: 'North', dist: 50 + z, zx: playerZone.zx, zz: playerZone.zz - 1 },
-      { dir: 'South', dist: 50 - z, zx: playerZone.zx, zz: playerZone.zz + 1 },
-      { dir: 'West', dist: 50 + x, zx: playerZone.zx - 1, zz: playerZone.zz },
-      { dir: 'East', dist: 50 - x, zx: playerZone.zx + 1, zz: playerZone.zz },
-    ];
-    const nearest = edges.reduce((a, b) => (b.dist < a.dist ? b : a));
-    if (nearest.dist > 10) return null;
-    if (!ZONE_ID_INSTALLED) return `${nearest.dir} — Unidentified Country`;
-    const beyond = zoneInfo(activeSeed, nearest.zx, nearest.zz);
-    return `${nearest.dir} — ${beyond.name} · ${biomeDisplayName(beyond.biome)}`;
-  })();
+  const {
+    name: currentZoneName,
+    biomeLabel: currentZoneBiomeLabel,
+    coordsLabel: zoneCoordsLabel,
+    edgeLabel: edgeZoneLabel,
+  } = zoneHudLabels(
+    activeSeed,
+    playerZone,
+    playerPosRef.current.x,
+    playerPosRef.current.z,
+    ZONE_ID_INSTALLED,
+  );
 
   const hoverHint: string | null = (() => {
     if (playerState.activeTool !== 'planter_trowel' || hoverInfo?.type !== 'flora') return null;

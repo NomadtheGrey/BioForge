@@ -14,6 +14,8 @@ import {
   Moon,
   FolderArchive,
   Map,
+  Maximize2,
+  Minimize2,
   Save,
   Flashlight,
   Radar,
@@ -107,6 +109,11 @@ interface HUDProps {
   // True on touch-first devices: no pointer lock exists there, so
   // the click-to-lock invitation is never shown.
   touchMode: boolean;
+  /** Full screen state + toggle (Adam, 2026-10-14): the browser's
+   * own chrome eats the play screen on a phone. Optional — the
+   * button renders only when App wires the toggle. */
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
   onRequestLock: () => void;
   hoverInfo: HoverTarget;
   hoverHint?: string | null;
@@ -150,6 +157,8 @@ export const HUD: React.FC<HUDProps> = ({
   onToggleMute,
   isPointerLocked,
   touchMode,
+  isFullscreen = false,
+  onToggleFullscreen,
   onRequestLock,
   hoverInfo,
   hoverHint,
@@ -363,6 +372,7 @@ export const HUD: React.FC<HUDProps> = ({
               zoneCoordsLabel={zoneCoordsLabel}
               exitTarget={caveExitTarget}
               radarActive={radarActive}
+              compact={touchMode}
               />
             </div>
           )}
@@ -490,6 +500,26 @@ export const HUD: React.FC<HUDProps> = ({
             <Map className="w-4 h-4 text-cyan-400" />
             <span className="text-[11px] font-mono font-medium hidden md:inline">Map</span>
           </button>
+
+          {/* Full Screen toggle: hands the whole display to the
+              game — no URL bar, no browser buttons eating the
+              play screen. Both directions: tap again to leave. */}
+          {onToggleFullscreen && (
+            <button
+              onClick={onToggleFullscreen}
+              title={isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
+              className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/70 transition-colors flex items-center gap-1.5"
+            >
+              {isFullscreen ? (
+                <Minimize2 className="w-4 h-4 text-cyan-400" />
+              ) : (
+                <Maximize2 className="w-4 h-4 text-cyan-400" />
+              )}
+              <span className="text-[11px] font-mono font-medium hidden md:inline">
+                {isFullscreen ? 'Windowed' : 'Full Screen'}
+              </span>
+            </button>
+          )}
 
           {/* Controls Guide */}
           <button

@@ -286,6 +286,46 @@ export default function App() {
   const selectedStructureRef = useRef(playerState.selectedStructureType);
   const isPointerLockedRef = useRef(isPointerLocked);
   const touchModeRef = useRef(touchMode);
+
+  // ------------------------------------------------------------------
+  // Full screen (Adam, 2026-10-14): "the browser borders obscure the
+  // play screen." The browser's chrome — URL bar, nav buttons — is
+  // not ours to style away, but the Fullscreen API hands us the
+  // whole display. Two doors in: the HUD's toggle button (the
+  // option, both directions, everyone), and an automatic request
+  // when a TOUCH player enters a world — the tap that starts play
+  // is the user gesture the browser demands, so it costs the player
+  // nothing. iPhone Safari has no element fullscreen API; the calls
+  // no-op there (caught) and the button simply never flips state.
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  useEffect(() => {
+    const onFullscreenChange = (): void => setIsFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+  }, []);
+  const requestGameFullscreen = (): void => {
+    try {
+      void document.documentElement.requestFullscreen().catch(() => {
+        /* refused (no gesture, or unsupported) — the HUD button remains */
+      });
+    } catch {
+      /* no Fullscreen API on this browser */
+    }
+  };
+  const toggleGameFullscreen = (): void => {
+    if (document.fullscreenElement) {
+      try {
+        void document.exitFullscreen().catch(() => {});
+      } catch {
+        /* no-op */
+      }
+    } else {
+      requestGameFullscreen();
+    }
+  };
+  const enterFullscreenOnTouch = (): void => {
+    if (touchModeRef.current && !document.fullscreenElement) requestGameFullscreen();
+  };
   const activeModalRef = useRef(activeModal);
   const structuresListRef = useRef(structuresList);
   const floraListRef = useRef(floraList);
@@ -1678,6 +1718,7 @@ useEffect(() => {
         return;
       }
       applySavedGame(record);
+      enterFullscreenOnTouch();
       currentSaveRef.current = {
         id: record.id, name: record.name, difficulty: record.difficulty,
         worldSeed: record.worldSeed ?? '',
@@ -1697,6 +1738,7 @@ useEffect(() => {
   };
 
   const handleCreateSave = (name: string, difficulty: GameDifficulty, worldSeed: string): void => {
+    enterFullscreenOnTouch();
     resetInstanceState();
     cavePlantingsRef.current = {};
     const meta = createSaveMetadata(name, difficulty, worldSeed);
@@ -1738,6 +1780,7 @@ useEffect(() => {
   // The co-op door: no local save involved. The guest plays in the
   // host's world; saveNow stays disarmed because currentSaveRef is null.
   const handleJoinCoopFromStart = (): void => {
+    enterFullscreenOnTouch();
     setHasStarted(true);
     setActiveModal('multiplayer');
   };
@@ -2158,6 +2201,8 @@ useEffect(() => {
         }}
         isPointerLocked={isPointerLocked}
         touchMode={touchMode}
+        isFullscreen={isFullscreen}
+        onToggleFullscreen={toggleGameFullscreen}
         onRequestLock={() => { if (!touchMode) engineRef.current?.requestPointerLock(); }}
         hoverInfo={hoverInfo}
         hoverHint={hoverHint}

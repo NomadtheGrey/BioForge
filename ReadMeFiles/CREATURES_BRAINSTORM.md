@@ -21,9 +21,14 @@ document outgrew the per-push size cap (~141K against
 - **CREATURES_BRAINSTORM_2.md** — **roster passes 4-9**
   (species #27-98): the new families' seats, hybrid
   waves, and the background casts.
-- **CREATURES_BRAINSTORM_3.md** — **roster passes 10
-  onward** (species #99-...): opened with the hundredth
-  species (the Hearth Dog).
+- **CREATURES_BRAINSTORM_3.md** — **roster passes 10-16**
+  (species #99-182): opened with the hundredth species
+  (the Hearth Dog); holds the semi-ubiquitous
+  foundation, the danger bench, the thin corners, the
+  hybrid waves, and the water column.
+- **CREATURES_BRAINSTORM_4.md** — **roster passes 17
+  onward** (species #183-...): opened with the epic
+  blanks and the epic distribution ruling.
 
 New batches (of about twelve, per Adam's standing order)
 append to the highest-numbered part; when it nears the
@@ -36,9 +41,9 @@ the biome program's shipped-behavior stubs and flora
 notes (this design inherits from it; it is a different
 file, kept by the biome chat).
 
-**Roster count:** 182 species designed (through the
-sixteenth pass), plus the shipped cast already in the
-game. Layers complete so far: family emblems 11 of 11;
+**Roster count:** 194 species designed (through the
+seventeenth pass), plus the shipped cast already in
+the game. Layers complete so far: family emblems 11 of 11;
 a one-off for every built biome variant; hybrid
 creatures for 33 of 55 pairings; background casts under
 way in every family; and the wide-range (semi-

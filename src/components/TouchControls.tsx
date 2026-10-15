@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowBigUp, Hand } from 'lucide-react';
+import { ArrowBigUp, Hand, Move } from 'lucide-react';
 
 // ============================================================================
 // TouchControls — the phone's second input backend
@@ -90,6 +90,14 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
   const lookLast = useRef<Point | null>(null);
   const lookStart = useRef<{ point: Point; at: number; dragged: boolean } | null>(null);
 
+  // First-run teaching cues (Adam's first phone playtest, 2026-10-14:
+  // "the movement controls need to be visible so I know where, or if,
+  // to touch them"). The resting stick and the look hint START fully
+  // visible and stop asking for attention once the player has used
+  // each gesture once — discovery help, not permanent furniture.
+  const [stickUsed, setStickUsed] = useState(false);
+  const [lookUsed, setLookUsed] = useState(false);
+
   const stopStick = useCallback(() => {
     stickPointerId.current = null;
     stickOrigin.current = null;
@@ -146,6 +154,7 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
     stickPointerId.current = e.pointerId;
+    setStickUsed(true);
     const point = localPoint(e.clientX, e.clientY);
     stickOrigin.current = point;
     setStickBase(point);
@@ -184,6 +193,7 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
     const start = lookStart.current;
     if (start && Math.hypot(point.x - start.point.x, point.y - start.point.y) > TAP_MAX_DISTANCE_PX) {
       start.dragged = true;
+      setLookUsed(true);
     }
     if (deltaX !== 0 || deltaY !== 0) onLook(deltaX, deltaY);
   };
@@ -243,11 +253,25 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
         onPointerUp={handleStickEnd}
         onPointerCancel={handleStickEnd}
       >
-        {/* Resting guide: where the stick will wake up, drawn only
-            while no thumb is down. */}
+        {/* Resting stick: VISIBLE at rest (Adam's playtest call —
+            an invisible control is an undiscoverable one). It sits
+            at the natural left-thumb spot; the moment a thumb lands
+            anywhere in the field, the live stick takes over at the
+            thumb itself and this guide steps aside. Until the first
+            use it breathes gently to draw the eye; after that it
+            sits still. */}
         {!stickBase && (
-          <div className="pointer-events-none absolute bottom-5 left-5 flex h-28 w-28 items-center justify-center rounded-full border border-cyan-200/25 bg-slate-950/25">
-            <div className="h-14 w-14 rounded-full border border-cyan-100/30 bg-cyan-300/10" />
+          <div className="pointer-events-none absolute bottom-5 left-5 flex flex-col items-center gap-1.5">
+            <div
+              className={`flex h-28 w-28 items-center justify-center rounded-full border-2 border-cyan-100/60 bg-slate-900/50 shadow-xl shadow-slate-950/40 backdrop-blur-[2px] ${
+                stickUsed ? '' : 'animate-pulse'
+              }`}
+            >
+              <div className="h-14 w-14 rounded-full border border-cyan-100/70 bg-cyan-200/30 shadow-inner" />
+            </div>
+            <span className="text-[10px] font-bold tracking-[0.2em] text-cyan-100/85 drop-shadow">
+              MOVE
+            </span>
           </div>
         )}
       </div>
@@ -264,6 +288,24 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
               transform: `translate(${stickKnob.x}px, ${stickKnob.y}px)`,
             }}
           />
+        </div>
+      )}
+
+      {/* Look hint: the right side has no visible control to find —
+          dragging IS the control — so until the player's first real
+          drag, a small cue floats at the right thumb's home height.
+          Pointer-events-none: thumbs drag straight through it into
+          the look field beneath. */}
+      {!lookUsed && (
+        <div className="pointer-events-none absolute right-5 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-1.5 opacity-90">
+          <div className="flex h-14 w-14 animate-pulse items-center justify-center rounded-full border-2 border-white/40 bg-slate-900/45 shadow-xl backdrop-blur-[2px]">
+            <Move className="h-6 w-6 text-white/85" />
+          </div>
+          <span className="text-center text-[10px] font-bold tracking-[0.2em] text-white/85 drop-shadow">
+            DRAG
+            <br />
+            TO LOOK
+          </span>
         </div>
       )}
 

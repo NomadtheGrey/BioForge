@@ -81,6 +81,20 @@ own, because both parents already exist.
   name pool, spawn seasoning, and one or two signature features.
   The four shipped biomes (meadow, wetland, fungal, ember) are the
   first families; the twelve candidates below slot in as variants.
+- **THE VARIANT RULE (Adam, 2026-10-15): a variant belongs to ONE
+  family, full stop.** It must read as its parent's own country —
+  same materials, same weathers, pushed further — and never as a
+  cross between two families. The working test: if a pitch needs
+  a SECOND family's materials or weather to explain itself, it is
+  not a variant; it is a HYBRID and waits for the hybrid pass.
+  (First application, same day: the 'frozen forest' draft failed
+  the test — no Forest family exists, Rootwood is the wooded one —
+  and became the Ice Fangs as a variant, the Frozen Forest as a
+  Frost x Rootwood hybrid candidate. Audit of the eleven shipped
+  variants against the rule: all pass. Note glass appears in two
+  families by two births — fire-fused in Ember's Obsidian Garden,
+  salt-fused in Saltglass's Prism Beds — which the rule allows:
+  the material is each family's own, made its own way.)
 - **Combinations.** A zone may be a crossfade of two families. A
   hybrid inherits both parents' affinity lists (a species at home
   in either parent can appear) and blends their rules; its own

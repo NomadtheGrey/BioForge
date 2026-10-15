@@ -351,6 +351,27 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'prism_reed': {
+        // Prism Beds (Saltglass, 2026-10-15): a cluster of crystal
+        // blades — translucent cones leaning at seeded angles
+        // around a fused shard heart. Transparency + emissive
+        // gives the grown-glass read.
+        const bladeMat = new THREE.MeshStandardMaterial({ color: 0xbfe8e2, transparent: true, opacity: 0.72, metalness: 0.3, roughness: 0.15, emissive: 0x9fd8d0, emissiveIntensity: 0.4 });
+        const heartMat2 = new THREE.MeshStandardMaterial({ color: 0xe0f5f0, roughness: 0.2, emissive: 0x5eead4, emissiveIntensity: 0.7 });
+        for (let i = 0; i < 5; i++) {
+          const blade = new THREE.Mesh(new THREE.ConeGeometry(0.07, 1.1 + (i % 3) * 0.25, 5), bladeMat);
+          const a = (i / 5) * Math.PI * 2;
+          blade.position.set(Math.cos(a) * 0.16, 0.55, Math.sin(a) * 0.16);
+          blade.rotation.set(Math.sin(a) * 0.22, 0, -Math.cos(a) * 0.22);
+          blade.castShadow = true;
+          group.add(blade);
+        }
+        const heart = new THREE.Mesh(new THREE.OctahedronGeometry(0.11), heartMat2);
+        heart.position.y = 0.16;
+        group.add(heart);
+        break;
+      }
+
       case 'obsidian_bloom': {
         // Obsidian Garden (2026-10-15): a flower of fused black
         // glass — flattened shard-petals around a violet heart.

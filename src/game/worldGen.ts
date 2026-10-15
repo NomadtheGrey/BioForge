@@ -73,7 +73,7 @@ import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
  *     layout in a different species cast; nobody had ever generated
  *     a second zone, so the sameness was theoretical until travel.
  */
-export const WORLD_GEN_VERSION = 7;
+export const WORLD_GEN_VERSION = 8; // v8 (2026-10-15): saltglass, the 5th family, joins the zone bands
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -773,6 +773,41 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
         swayOffset: 700 + plantedGlass,
       });
       plantedGlass++;
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Prism Beds reeds (Saltglass, 2026-10-15) — variant-gated BONUS
+  // life: crystal reeds fused from salt and light, the source of
+  // the saltglass_shard crafting material.
+  // ---------------------------------------------------------------------
+  if (zoneVariant?.id === 'saltglass_prism') {
+    const prismRng = createSeededRandom(stream('flora:prismreed'));
+    let plantedReeds = 0;
+    for (let attempt = 0; attempt < 60 && plantedReeds < 7; attempt++) {
+      const x = (prismRng() * 2 - 1) * 44;
+      const z = (prismRng() * 2 - 1) * 44;
+      if (Math.hypot(x, z) < 8) continue;
+      if (flora.some((f) => Math.hypot(f.x - x, f.z - z) < 2.0)) continue;
+      flora.push({
+        id: `flora_prism_${plantedReeds}`,
+        species: 'prism_reed',
+        x,
+        z,
+        biome: zoneBiome,
+        rotation: prismRng() * Math.PI * 2,
+        scale: 1.0 + prismRng() * 0.6,
+        growthStage: 3,
+        growthProgress: 1,
+        fertilizedGrowth: false,
+        fertilizedYield: false,
+        fertilizerTimer: 0,
+        harvestReady: true,
+        harvestTimer: 0,
+        isHazardous: false,
+        swayOffset: 800 + plantedReeds,
+      });
+      plantedReeds++;
     }
   }
 

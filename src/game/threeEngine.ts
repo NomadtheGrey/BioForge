@@ -191,6 +191,11 @@ export class BioForgeThreeEngine {
   // A variant's tint, when the current zone rolled one (biome graph,
   // 2026-10-15): replaces the family tint for as long as it's set.
   private zoneTintOverride: { color: number; strength: number } | null = null;
+  // The variant's light trick (Mirror Marsh: reach x2, strength
+  // x1.2 — Adam, 2026-10-15), applied where the pool assigns its
+  // lights. 1/1 anywhere else.
+  private zoneLightDistanceMult = 1;
+  private zoneLightIntensityMult = 1;
   private floraGroup: THREE.Group = new THREE.Group();
   private faunaGroup: THREE.Group = new THREE.Group();
   private structuresGroup: THREE.Group = new THREE.Group();
@@ -250,6 +255,10 @@ export class BioForgeThreeEngine {
     antenna_shroom: { color: 0x7c3aed, intensity: 0.8, distance: 4.5, y: 2.6 },
     visor_shroom: { color: 0x7e57c2, intensity: 0.45, distance: 3, y: 1.5 },
     shelf_shroom: { color: 0xd9a05b, intensity: 0.25, distance: 2.5, y: 1.6 },
+    // Mirror lily (2026-10-15): a low silver gleam on the pool —
+    // its reach is the marsh's doing (the zone light multiplier),
+    // not the flower's.
+    mirror_lily: { color: 0x9fd8d4, intensity: 0.6, distance: 3.5, y: 0.3 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },
@@ -700,10 +709,15 @@ export class BioForgeThreeEngine {
    * created or loaded. Pass null for a pre-seed world (or no world):
    * the ground keeps its plain quadrant colors.
    */
-  public setZoneBiome(biome: BiomeId | null, tintOverride: { color: number; strength: number } | null = null): void {
-    if (this.zoneBiome === biome && this.zoneTintOverride === tintOverride) return;
+  public setZoneBiome(biome: BiomeId | null, tintOverride: { color: number; strength: number } | null = null, light: { distanceMult: number; intensityMult: number } | null = null): void {
+    const distMult = light?.distanceMult ?? 1;
+    const intMult = light?.intensityMult ?? 1;
+    if (this.zoneBiome === biome && this.zoneTintOverride === tintOverride
+      && this.zoneLightDistanceMult === distMult && this.zoneLightIntensityMult === intMult) return;
     this.zoneBiome = biome;
     this.zoneTintOverride = tintOverride;
+    this.zoneLightDistanceMult = distMult;
+    this.zoneLightIntensityMult = intMult;
     this.paintTerrainColors();
   }
 
@@ -1302,8 +1316,8 @@ export class BioForgeThreeEngine {
       pl.visible = true;
       pl.position.set(entry.cx, entry.cy, entry.cz);
       pl.color.copy(entry.color);
-      pl.intensity = entry.mergedI;
-      pl.distance = entry.mergedD;
+      pl.intensity = entry.mergedI * this.zoneLightIntensityMult;
+      pl.distance = entry.mergedD * this.zoneLightDistanceMult;
     });
     for (let i = ranked.length; i < this.lightPool.length; i++) {
       this.lightPool[i].visible = false;
@@ -1327,7 +1341,7 @@ export class BioForgeThreeEngine {
         this.glowSprites.set(entry.key, sprite);
       }
       sprite.position.set(entry.cx, entry.cy, entry.cz);
-      const sc = entry.mergedD * 0.85;
+      const sc = entry.mergedD * this.zoneLightDistanceMult * 0.85;
       sprite.scale.set(sc, sc, 1);
       (sprite.material as THREE.SpriteMaterial).color.copy(entry.color);
     });

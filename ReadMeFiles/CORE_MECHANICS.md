@@ -192,6 +192,34 @@ Fauna are categorized into two behavioral classes:
   arrow turns violet and points to the cave exit portal — the way
   back up — taking the spawn arrow's place while underground (the
   surface spawn is not in the cavern's coordinate space).
+* **The gauntlet is the progression spine (live 2026-10-15):** the
+  explorer's gauntlet is issued at start knowing ONE function —
+  harvest. Every other tool is a **module**, crafted at the Bio-Forge
+  from simple spawn-zone ingredients and grafted on: Scanner
+  (2 Dew Essence + 1 Carapace Scale), Planter (2 Soft Fiber +
+  1 Basic Compost), Builder (3 Resin Sap + 2 Soft Fiber), Solvent
+  (2 Dew Essence + 1 Resin Sap), Taming Lure (2 Soft Fiber + 2 Dew
+  Essence). Owning the module item is the unlock; locked hotbar
+  tiles show as lock silhouettes and explain themselves when
+  clicked. Worlds created before modules existed keep their full
+  tool set (nobody gets demoted), as do co-op guests. Crafting away
+  from the forge is **Field Synthesis** — the gauntlet ladder's
+  tier 2, granted by the Synthesizer Graft (3 Carapace + 3 Resin +
+  2 Dew); tier-3 recipes stay forge-tethered regardless.
+* **Mini-quests (live 2026-10-15):** the tutorial is a chain of
+  little quests that mirror what the player does anyway, in
+  complexity order: First Harvest → the five module crafts →
+  Field Synthesis. A small **tracker HUD** follows one quest with a
+  checkmark per gathered ingredient (checks light as items land in
+  the pouch; completions latch, so spending the items keeps the
+  credit). The **quest list** — top-row Quests button or the **Q**
+  hotkey — groups the quests by tier, holds the tracking pick, and
+  owns the tracker's visibility through its "Show the quest HUD"
+  checkbox. Progress rides the save inside the player state.
+  (Also fixed 2026-10-15: cave **prism clusters yield the Prismatic
+  Core** the Sonar Receiver needs — before, the Core dropped
+  nowhere and the cluster's Violet Prism fed no recipe; prisms
+  remain ruin-cache treasure.)
 * **The Left Hand:** A dedicated off-hand slot beside the hotbar
   holds passive gear. Its citizens are the **Hand Lantern-Fern**
   (crafted: 1 Lantern-Fern Seed + 1 Organic Compost): carried in the

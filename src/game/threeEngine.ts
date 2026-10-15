@@ -106,7 +106,7 @@ const STORY_HEIGHT = 2.4;
 // pointer-lock look uses Three's own 0.002 factor; a finger drag is a
 // shorter physical travel for the same turn, so touch gets a larger
 // step. The pitch clamp matches PointerLockControls' vertical range.
-const TOUCH_LOOK_SENSITIVITY = 0.0042;
+const TOUCH_LOOK_SENSITIVITY = 0.0056; // raised 2026-10-15 from 0.0042 (a 180° turn took ~750px ≈ two full swipes; now ~560px)
 const TOUCH_LOOK_MAX_PITCH = Math.PI / 2;
 
 
@@ -2200,7 +2200,16 @@ private initEventListeners() {
   private animate = () => {
     this.animFrameId = requestAnimationFrame(this.animate);
     const now = performance.now();
-    const delta = Math.min((now - this.lastTime) / 1000, 0.05);
+    // Real delta time (Adam, 2026-10-15: "a delta time thing, not a
+    // framerate clamp"). The old 0.05 cap DISCARDED elapsed time
+    // below 20 fps, so a struggling device did not just stutter —
+    // the whole game ran in slow motion (Clarissa's playtest:
+    // movement and turning feel sluggish). The 0.25 ceiling is a
+    // tab-return guard only: after a long background pause the sim
+    // must not fast-forward seconds in one frame. In live play it
+    // never engages; the game loop sub-steps long frames so
+    // movement and jump physics stay stable at any real rate.
+    const delta = Math.min((now - this.lastTime) / 1000, 0.25);
     this.lastTime = now;
     this.elapsedTime += delta;
 

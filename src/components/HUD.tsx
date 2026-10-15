@@ -62,6 +62,9 @@ interface HUDProps {
   isMuted: boolean;
   onToggleMute: () => void;
   isPointerLocked: boolean;
+  // True on touch-first devices: no pointer lock exists there, so
+  // the click-to-lock invitation is never shown.
+  touchMode: boolean;
   onRequestLock: () => void;
   hoverInfo: HoverTarget;
   hoverHint?: string | null;
@@ -101,6 +104,7 @@ export const HUD: React.FC<HUDProps> = ({
   isMuted,
   onToggleMute,
   isPointerLocked,
+  touchMode,
   onRequestLock,
   hoverInfo,
   hoverHint,
@@ -442,8 +446,9 @@ export const HUD: React.FC<HUDProps> = ({
 
       {/* Pointer Lock Invitation + Hover Inspector, parked just below the reticle */}
       <div className="absolute inset-x-0 top-1/2 mt-10 flex flex-col items-center gap-2 pointer-events-none">
-        {/* Pointer Lock Invitation (Visible when cursor is unlocked) */}
-        {!isPointerLocked && (
+        {/* Pointer Lock Invitation (mouse devices, while unlocked;
+            touch devices have no lock to invite into) */}
+        {!isPointerLocked && !touchMode && (
           <button
             onClick={onRequestLock}
             className="pointer-events-auto glass-panel-biolum px-5 py-2 rounded-2xl flex items-center gap-2.5 text-xs font-tech font-bold text-cyan-300 hover:scale-105 active:scale-95 transition-all shadow-xl border border-cyan-500/50 cursor-pointer"

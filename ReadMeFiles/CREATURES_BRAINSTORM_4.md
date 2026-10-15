@@ -1970,3 +1970,263 @@ kingdom stands at ~38 designed, with its forms
 diversified and every family seated twice.
 Roster designed total: 288. Fungus Flood Two
 follows in the standing order.
+
+## Twenty-third roster pass — Fungus Flood Two (24)
+
+The places' fungi, as Flora Flood Two planted the
+places' plants: variant specialists and hybrid-
+country citizens, so the named corners of the world
+have their own third kingdom and not only their
+families' cast.
+
+**289. Scar Cap** — Ember (the Ember Scar). *Fungus*
+x Ordinary. A squat cap fruiting in vent ash at the
+Scar's rim (the Scar Orchid blooms in the steam
+above it; cap below, orchid above — the Scar's two
+kingdoms divide the vent between them by height).
+Stationary. Harvest: **Scar Cap** (item) — peppery,
+vent-cured: the vent country's seasoning.
+
+**290. Drift Mold** — Ember (the Ashen Drift).
+*Fungus* x Ordinary. A gray mold sheeting the ash
+in soft patches (where Ashveil the FLORA grows in
+felts, the drift mold grows in FILMS — two kingdoms'
+gray on one gray country; the Ashswimmer reads the
+mold's parting the way it reads the veil's, and the
+entry declines to say which it prefers). Stationary.
+Harvest: none — it binds ash against wind; the
+Drift's skin is not a crop.
+
+**291. Glass Mold** — Ember (the Obsidian Garden).
+*Fungus* x Ordinary. A mold growing ON glass — on
+the Garden's blooms and shards, filming them green-
+black (the Shardwing nests above its worst patches;
+where the mold films a bloom, the bloom's shine
+dims — the Garden's patina is a fungus, and the
+entry credits it with the country's famous gloom).
+Stationary. Harvest: scraped mold, unlisted — a
+polishing grit, used on the Garden's own glass.
+
+**292. Strike Cap** — Storm (the Charged Flats).
+*Fungus* x Ordinary. A cap fruiting in fulgurite
+fields in the DAYS AFTER a strike (it eats strike-
+glass grit; a field's strike caps are its strike
+HISTORY, readable by size — the Static Cap ticks
+the present, the strike cap files the past).
+Stationary. Harvest: **Strike Cap** (item) — gritty,
+mineral, an acquired taste the flats defend.
+
+**293. Dune Cap** — Storm (the Magnetic Dunes).
+*Fungus* x Ordinary. A cap fruiting under dune
+crests, surfacing after dew nights (the Dune
+Whale's passages churn its beds up like a plow —
+the whale is its unwitting gardener, and the cap's
+fruiting lines map the whale's roads under the
+sand). Stationary. Harvest: caps, unlisted — the
+dunes' buried provision, found by following whales.
+
+**294. Basin Puff** — Storm (Skyfall Basin).
+*Fungus* x Ordinary. A puffball that FILLS WITH
+UP-RAIN (it drinks the sky's delivery through its
+skin and swells; children of the Basin — of every
+species — bounce them, and the entry protects the
+custom). Stationary. Harvest: a full puff is a
+water-skin that grew: **Basin Puff** (item) — burst
+it over a cup; the Basin's canteen, disposable and
+renewable.
+
+**295. Thaw Jelly** — Saltglass (the Thaw).
+*Fungus* x Ordinary. A jelly fruiting in melt pools
+in the Thaw's brief plenty (the Thaw Rose times the
+crossing by bloom; the thaw jelly times it by
+JELLY — when the pools clear of jelly, the melt is
+ending: two kingdoms, one calendar, read at ankle
+height). Stationary. Harvest: **Thaw Jelly**
+(item) — the crossing's refreshment, gathered
+bare-handed at the melt's edge.
+
+**296. Prism Cap** — Saltglass (the Prism Beds).
+*Fungus* x **Crystalline** — the kingdom's third
+crystal citizen. A cap whose GILLS are grown
+saltglass blades (the Glass Cap stores the Beds'
+noon in its cap; the prism cap sorts it in its
+gills, throwing small rainbows under itself at
+midday — the Beds' floor has a third light-worker,
+and the Prism Frog hunts in all three lights).
+Stationary. Harvest: one gill-blade, taken singly:
+**Prism Gill** (new item) — a razor lens of grown
+glass, the far opticians' stock.
+
+**297. Still Cap** — Frost (the Stillwhite).
+*Fungus* x Ordinary. A cap fruiting standing in
+open snow, unmelting, unsnowed — its cap sheds
+snow as it falls (the Stillwhite's few verticals:
+stag, spire, and this small white tower; Driftworm
+ridges detour around its colonies, and the entry
+records the detour as the worm's only known
+courtesy). Stationary. Harvest: **Still Cap**
+(item) — eaten fresh at the snowfield's edge, cold
+and clean as the country.
+
+**298. Fang Shelf** — Frost (the Ice Fangs).
+*Fungus* x Ordinary. A bracket of the Fang cliffs,
+shelves rimed like the teeth they grow under (the
+Spire Bats' SECOND roof — shelves for rain, the
+Aurora Vine's tangles for light: the Fangs' bats
+keep two landlords, and the entry files both).
+Stationary. Harvest: old shelves, unlisted —
+bracket stock, winter grade.
+
+**299. Song Cap** — Frost (the Singing Ice).
+*Fungus* x Ordinary. A cap fruiting on the lake's
+shore ice whose hollow stem RESONATES with the
+ice's singing (a struck shore rings in fungi — the
+cap is the lake's tuning fork left in the ground;
+when the Ice Maw's low note travels, the song caps
+answer a half-tone flat, and the entry adds this to
+the maw's tell-file: the caps hear it first).
+Stationary. Harvest: none — the shore's instrument
+is not cut; it is consulted.
+
+**300. Canopy Cap** — Rootwood (the Canopy).
+*Fungus* x Ordinary. A tiny cap fruiting on canopy
+LEAVES, in the high light (the Canopy Orchid grows
+in the crowns as flora; the canopy cap is the
+crowns' fungus, ant-small, in drifts along the
+leaf-veins — the Canopy Sloth eats them in passing
+like a grazer at a hedge, and its famous slowness
+is partly a meal schedule). Stationary. Harvest:
+a leaf's worth, unlisted — the canopy's spice,
+gathered by climbers.
+
+**301. Gloom Cap** — Rootwood (the Underroot).
+*Fungus* x Ordinary. A dark cap with GLOWING GILLS
+— the Glowcap's deep cousin: cap black, light below
+(the Gloom Slug's trails pass under its drifts and
+the slug's glow and the cap's answer each other
+like two lamps of one street; the Root Serpent's
+ground is read by where the caps STOP, which the
+entry adds to that file's tell-list). Stationary.
+Harvest: caps, **Gloom Cap** (item) — the dark
+country's provision, glow-side down in the basket,
+per custom.
+
+**302. Fall Shelf** — Rootwood (the Rootfall).
+*Fungus* x Ordinary. A great bracket of the fallen
+giant's trunk (the Fall Orchid perfumes the bear's
+den from above; the fall shelf is the trunk's other
+tenant, at stair scale — bears climb its shelves to
+the orchid's level, and the entry permits itself
+the image of the Rootfall Bear taking the stairs).
+Stationary. Harvest: fallen shelves, unlisted —
+the fallen-only custom, as with the Heart Shelf.
+
+**303. Row Cap** — Precursor (the Tending Field).
+*Fungus* x Ordinary. A cap fruiting ALONG the
+spiral rows at the Row Moss's spacing (the moss is
+the Field's ruler; the row cap is its punctuation —
+a cap at every row's turning, as if the Field were
+counting; the Second Tenant's walk passes them at
+its half-beat, and the caps, which fruit by the
+Field's true rhythm, make the flaw visible twice).
+Stationary. Harvest: **Row Cap** (item) — row-
+abiding, mild: the Field's kitchen, self-organized.
+
+**304. Wild Cap** — Precursor (the Untended).
+*Fungus* x Ordinary. The Bed Cap GONE WILD:
+descended from the gardens' kitchen rows, fruiting
+now in thickets, doubled in size, variable in
+temperament (the Feral Rose's fungal mirror — two
+kingdoms' domesticates, feral in the same parish;
+the codex marks the wild cap QUESTIONABLE in the
+old hand: some thickets are the bed cap remembered,
+some are the bed cap's opinion of freedom, and the
+distinction is a mycologist's season). Stationary.
+Harvest: the remembered ones, **Wild Cap** (item) —
+with the codex's caution copied onto the basket.
+
+**305. Dust Cap** — Bone (the Bonefields). *Fungus*
+x Ordinary. A cap fruiting in bone dust at the
+fields' heart (the Bone Orchid blooms at the dry
+edge and the Dust Rose at the wet; the dust cap
+takes the middle — the Bonefields' three florists
+are two kingdoms and one fungus, and the fields are
+fully staffed). Stationary. Harvest: **Dust Cap**
+(item) — pale, floury, the fields' flour-and-meal
+in one organism.
+
+**306. Marrow Cap** — Bone (the Marrow Flats).
+*Fungus* x Ordinary. A cap fruiting at the pale
+pools' rims, in marrow silt (the Marrow Reed keeps
+the pools opal; the marrow cap fruits in what the
+reed filters out — filter and fruit, the Flats'
+small sewage-and-kitchen in two citizens).
+Stationary. Harvest: caps, unlisted — the Flats'
+fresh course, eaten at the pools by every traveler
+the reeds have kept water for.
+
+**307. Rib Cap** — Bone (the Leviathan Graveyard).
+*Fungus* x Ordinary. A cap fruiting INSIDE the
+ribcages, on the shaded bone (the Marrow Mold works
+the marrow dark; the rib cap takes the rib LIGHT —
+the Graveyard's interior has two fungal tenants
+dividing one skeleton by illumination, and the Rib
+Spider's lines cross both tenancies without
+comment). Stationary. Harvest: **Rib Cap** (item)
+— the Graveyard's provision, gathered rib by rib,
+in the spider's off hours, per the ants' advice.
+
+**308. Scald Cap** — Wetland x Ember (the Scalding
+Fens). *Fungus* x Ordinary. A cap fruiting at the
+scalding pools' rims, in the steam's cool edge (the
+Scald Fern roots IN the water; the scald cap stands
+at its rim — fern in the bath, cap on the towel
+rail: the Fens' two kingdoms divide the pool
+between them by temperature). Stationary.
+Harvest: **Scald Cap** (item) — eaten hot, by
+country custom, straight from the rim.
+
+**309. Compost Cap** — Meadow x Fungal (the
+Mulchwood). *Fungus* x Ordinary. A cap fruiting on
+the Mulch Beetles' FINISHED compost (the Mulch
+Rose blooms from the same beds in the other
+kingdom — the Mulchwood's two flags on one soil;
+the Spore Wolves' patrols pass the beds at a
+respectful distance, because the beetles' finished
+work is the wood's treasury and everyone knows it).
+Stationary. Harvest: **Compost Cap** (item) — the
+wood's rich course, dark and earthy.
+
+**310. Brine Cap** — Wetland x Saltglass (the Brine
+Shallows). *Fungus* x Ordinary. A cap fruiting at
+the brine pools' rims, salt-rinded (the Saltcap
+takes the pure family's crust; the brine cap takes
+the shallow's edge — its rind is BRINE-cured rather
+than glass-grown, and the entry keeps the two
+distinct as the graph requires). Stationary.
+Harvest: **Brine Cap** (item) — pre-salted by its
+own life: the Shallows' provision, ready as grown.
+
+**311. Iron Cap** — Ember x Storm (the Iron Ashes).
+*Fungus* x Ordinary. A cap with a metallic sheen,
+fruiting on slag (it eats the Ashes' waste the way
+the Ironjaw eats its industry — cap and jaw, the
+Ashes are recycled at both ends; its flesh is
+iron-dark and its spores rust-red). Stationary.
+Harvest: **Iron Cap** (item) — the Ashes' strong
+course, eaten by the smelt-minded, with the codex's
+portion note attached.
+
+**312. Hedge Cap** — Meadow x Rootwood (the
+Hedgewood). *Fungus* x Ordinary. A cap fruiting at
+the Hedge Roses' roots, in the hedges' shade (the
+rose walls have a ground floor: caps in the leaf-
+litter, hips above, Bramblebacks planting the whole
+arrangement by walking — the Hedgewood's stack in
+one sentence, three kingdoms deep). Stationary.
+Harvest: caps, unlisted — the hedge country's
+understory course, gathered where the hips are
+gathered, in the same basket, by the same hands.
+
+Fungus Flood Two closes: the places are fungused as
+they were planted. Roster designed total: 312.

@@ -102,6 +102,10 @@ export interface QuestDef {
    * module craft). When absent, it completes when every gather
    * objective is met (latched by App). */
   unlockTool?: ToolType;
+  /** When set, the quest completes when this ITEM is owned (the
+   * pouch upgrade, the storage pod, the Graft). Gather lists still
+   * mirror the item's recipe, so the checkmarks lead the way. */
+  completeItem?: ItemId;
 }
 
 /**
@@ -120,6 +124,20 @@ export const QUESTS: QuestDef[] = [
       { itemId: 'soft_fiber', count: 3 },
       { itemId: 'dew_essence', count: 2 },
     ],
+  },
+  {
+    // The carrying ladder joins the quests (Adam, 2026-10-15):
+    // pockets hold 10 of a thing; a woven pouch makes it 25.
+    id: 'q_pouch',
+    tier: 1,
+    title: 'Room to Breathe',
+    blurb:
+      'Your pockets hold 10 of anything, and the meadow is generous. Weave a Woven Pouch at the Bio-Forge — every stack you carry grows to 25.',
+    gather: [
+      { itemId: 'soft_fiber', count: 6 },
+      { itemId: 'dew_essence', count: 2 },
+    ],
+    completeItem: 'woven_pouch',
   },
   {
     id: 'q_scanner',
@@ -158,6 +176,22 @@ export const QUESTS: QuestDef[] = [
     unlockTool: 'builder',
   },
   {
+    // The storage line joins the quests (Adam, 2026-10-15): a home
+    // needs a place for things. Sits after the Builder quest
+    // because a pod is only useful once you can place it.
+    id: 'q_storage',
+    tier: 1,
+    title: 'A Place for Things',
+    blurb:
+      'Grow a Storage Pod at the Bio-Forge and place it with the Bio-Builder: a home for the surplus. Click the pod to open it — growth kits make it a Hutch, then a Vault.',
+    gather: [
+      { itemId: 'resin_sap', count: 4 },
+      { itemId: 'soft_fiber', count: 4 },
+      { itemId: 'carapace_scale', count: 2 },
+    ],
+    completeItem: 'storage_pod',
+  },
+  {
     id: 'q_solvent',
     tier: 1,
     title: 'Nothing Wasted',
@@ -192,15 +226,12 @@ export const QUESTS: QuestDef[] = [
       { itemId: 'resin_sap', count: 3 },
       { itemId: 'dew_essence', count: 2 },
     ],
-    // Not a tool unlock — this quest completes on the GRAFT unlock,
-    // which App tracks through the same latch: it derives complete
-    // when the graft item is owned (see isQuestComplete's caller
-    // note in App; the def's completion item is special-cased
-    // there via FIELD_SYNTHESIS_QUEST_ID).
+    // Not a tool unlock — completes when the GRAFT item is owned.
+    completeItem: 'gauntlet_synthesizer_upgrade',
   },
 ];
 
-/** The tier-2 quest's completion is owning the graft item. */
+/** Kept for the gen-lab harness's parity checks. */
 export const FIELD_SYNTHESIS_QUEST_ID = 'q_field_synthesis';
 export const FIELD_SYNTHESIS_ITEM_ID: ItemId = 'gauntlet_synthesizer_upgrade';
 
@@ -231,8 +262,8 @@ export function questView(
   let complete: boolean;
   if (def.unlockTool) {
     complete = unlockedTools.includes(def.unlockTool);
-  } else if (def.id === FIELD_SYNTHESIS_QUEST_ID) {
-    complete = (inventory[FIELD_SYNTHESIS_ITEM_ID] ?? 0) > 0;
+  } else if (def.completeItem) {
+    complete = (inventory[def.completeItem] ?? 0) > 0;
   } else {
     complete = gather.every((g) => g.done);
   }

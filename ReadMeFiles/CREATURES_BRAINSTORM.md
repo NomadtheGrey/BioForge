@@ -1656,6 +1656,300 @@ special layers is now filled: 11 of 11 emblems, and a
 one-off for every named variant the biome program has built
 so far, excepting the Untended.
 
+## Fifth roster pass — the last special seat + background cast, wave two
+
+Written under the same standing orders: batches of about
+twelve, no permission asked, the variation bar on every
+entry. A note on process, because it matters to how this
+doc stays true: this chat is NOT waiting on the biome
+program. Design proceeds independently; the only thing the
+biome program gates is the eventual CODE phase (their file
+claims), and new seats reach this doc by reading their
+biome / behavior docs at the start of each batch — as this
+one did (no new families built since the fourth pass; the
+seat list is unchanged, and closes below).
+
+### The special layers, completed
+
+**39. Feral Tender** — the Untended (Precursor). *The last
+named special seat: with this entry, every emblem (11) and
+every one-off for every built variant is filled.* Fauna x
+Forged. Shape: Multiped; modifiers: tool-armed (as the Row
+Tender — same chassis family), overgrown (feral bloom grows
+THROUGH the frame in two places, and it works around its own
+garden). Locomotion: Walking — a perfect Archimedean spiral,
+walked through growth that no longer holds a spiral at all.
+The Row Tender tends a row that exists; the Feral Tender
+tends a row it REMEMBERS, clearing and trimming a ghost
+spiral through the feral field, and the cleared spiral
+regrows behind it within days — so the Untended always
+contains exactly one perfect, temporary, useless road.
+Spectra: temperament absorbed, as its sibling — it does not
+startle, it pauses / SOLO / Speed slow, exact / Size mid /
+Diet NONE (the garden's old arrangements) / Day-night:
+always; lamp-end lit at night — in the Untended, the small
+moving light among feral blooms is the Tender, still
+working / Curiosity none for players; total for its spiral /
+Territory the remembered row, which exists nowhere but in
+its walking / UNTAMABLE — still on duty, at a duty that no
+longer exists, which is the saddest sentence in the roster
+and the entry intends it. Player use, and it is real: WALK
+BEHIND IT. The cleared spiral is safe passage through the
+Untended for as long as it lasts, and the Tender tolerates
+a follower the way weather tolerates a hill. Gift behavior:
+none — it gives nothing, drops nothing, and is not a
+resource; some citizens are just still at work. Hook: the
+Precursor family in one family portrait — the Vine tends
+the plants, the Tender of the Field tends its row, the
+Warden tends the boundary, and the Feral Tender tends the
+memory of a row in a field gone wild. The gardeners are
+gone. The gardening is not.
+
+### Background cast, wave two
+
+**40. Meadow Hopper** — Meadow (family cast). Fauna x
+Ordinary. Shape: Multiped (small, spring-legged); modifier:
+grass-green, wing-cased. Locomotion: Bouncing / Hopping +
+short Aerial bursts (flyer-leaning at insect scale — the
+flight spectrum's smallest honest citizen). Spectra: timid
+in the specific way of things that are mostly food / Social
+CLOUDS — a walked-through meadow rises around the player in
+hoppers, the grass itself briefly animal / Speed bursts /
+Size tiny / Diet grazer of grass seed-heads / diurnal /
+Curiosity none / Territory a grass patch / Tameability n/a —
+too small and simple to bond; the codex line: "you cannot
+tame the weather of a meadow, and the hoppers are its
+weather." Role, and it is structural: the meadow's food-web
+floor — Bonepickers, frogs, and half the roster eat hoppers;
+a family with nothing small in it feels staged, and the
+Meadow now rustles.
+
+**41. Pond Skater** — Wetland (family cast). Fauna x
+Ordinary. Shape: Multiped; modifiers: long-legged,
+mirror-footed (the Lake Glider's rhyme, at the opposite
+scale and the opposite element: it walks on LIQUID water the
+way the glider walks on frozen). Locomotion: Walking on the
+surface film — the Skating / Skimming fold, honored as a
+flavor of walking, exactly as Axis 2 ruled; its whole world
+is the top millimeter of a pond. Spectra: serene / loose
+pond gatherings / quick darts, long stillnesses / tiny /
+Diet hunter of whatever lands on the film — it eats the
+surface's news / diurnal / Curiosity mid — skaters converge
+on ripples, including the player's wading rings (a pond
+reads you back) / Territory one pond / Tameability n/a, same
+smallness reason as the hopper. Drops: none; presence only.
+Hook: between the skater (on the water), the Mirror Jelly
+(in it), the Glidefin (through it, and out), and the Moth
+(above it), the Wetland family's water now has a citizen at
+every depth and one on the roof.
+
+**42. Ember Newt** — Ember (family cast). Fauna x Ordinary.
+Shape: Finned primary + Quadruped secondary (a swimmer that
+walks, the flying-fish composition at knee height and in
+reverse); modifier: coal-skinned, ember-bellied. Locomotion:
+Swimming primary + Walking secondary, in the family's warm
+runoff channels and ash-edge pools. Spectra: shy / loose
+channel groups / still, then a dart / small / Diet hunter of
+ash-midges, grazer of heat-algae / nocturnal-leaning — it
+endures the family's days in the channels' coolest inch /
+Curiosity low / Territory one channel bend / Tameability 50%
+— the lure is cool water carried in your hands, and the
+newt's whole ethics is temperature: it bonds to whoever is
+a refuge. Tell: startled, its belly FLUSHES — a coal fanned
+once — the Ember family's smallest telegraph, teaching the
+player the family's language (glow = feeling) at newt scale
+before a Cinderhound ever teaches it at hound scale. Sheds:
+skin in the channels, ash-fine, unlisted — compost-grade,
+like the Ashswimmer's rings; Ember's small citizens pay in
+presence, its big ones in materials.
+
+**43. Rainback** — Meadow / Wetland edges (two-family cast;
+affinity recorded for both). *Gel, second design.* Fauna x
+Gel. Shape: Blob; modifier: rain-skinned — it IS a puddle,
+with opinions. Locomotion: Drifting / Floating, active end
+of the drift spectrum — it pulses slowly across wet ground
+in the hours after rain (jellyfish logic on land: no brain,
+clear preferences about direction). Spectra: placid /
+appears singly, in companies after storms / slowest / small,
+spread thin / Diet drinker and filterer — it eats the rain
+itself, and whatever the rain brought down / Day-night:
+WEATHER-locked, the roster's first: it exists above ground
+only in the wet hours; by the next noon it has soaked away
+to wherever rainbacks wait out the dry (the design does not
+say where; the codex should wonder, briefly) / Curiosity
+none / Territory the wet / Tameability n/a — it is a
+weather with a metabolism. Role: it makes RAIN a cast
+member: after a storm, the meadow is briefly inhabited by
+its weather, and players learn to go out after rain the way
+you go out after snow — to see who's visiting.
+
+**44. Fog Calf** — Wetland (family cast). *Vapor, third
+design.* Fauna x Vapor. Shape: Cloud given a quadruped's
+ghost of an outline — it reads as a calf the way a cloud
+reads as a ship: completely, from some angles, in the right
+light. Locomotion: Drifting / Floating, mid-spectrum — it
+holds the low air over morning pools and grazes the mist
+itself, drifting pool to pool as the sun allows. Spectra:
+gentle / small dawn gatherings / slow / mid, mostly rumor /
+Diet mist-drinker (condensation and the pool-breath; the
+Raincatcher's economy at calf scale) / Day-night DAWN-locked
+— it is a morning animal; by mid-morning it has thinned to
+nothing and the pools stand empty (its day-night line is a
+dissolution schedule, recorded honestly as such) / Curiosity
+mid — a still player at dawn acquires a calf at the edge of
+sight, and loses it by looking directly, sometimes / Territory
+the mist over one pool / UNTAMABLE — a lure cannot feed a
+weather (the Vent Wisp's line, and still the law for vapor).
+Hook: the roster's ghost story, told kindly: every family
+should have one creature players are half-sure they imagined,
+and the Wetland's keeps dawn hours.
+
+**45. Glint Beetle** — Saltglass (family cast). Fauna x
+Crystalline (small-scale: a beetle grown of the family's
+material rather than merely living in it). Shape: Multiped;
+modifier: facet-backed. Locomotion: Walking + Bouncing
+(hop-flights at glare hours). Spectra: industrious / loose
+flat colonies / quick / tiny / Diet grazer of salt film and
+the flats' mineral bloom / diurnal, glare-driven — a LIGHT-
+DRINKER at beetle scale (the Glass Crab's bargain, miniaturized):
+it spends the noon storing glare in its facets and the dusk
+SPENDING it, flashing slow signals across the flats as it
+cools — the flats at dusk tick with beetle-light, a semaphore
+nobody has translated, including the beetles / Curiosity low /
+Territory a salt pan / Tameability n/a — smallness; but its
+dusk-flashing can be ANSWERED: a player flashing a lantern in
+rough time gets flashes back (not taming; conversation — the
+helmet's light answers a beetle, and the codex leaves it at
+that). Sheds facets rarely: SALTGLASS SHARD, small-grade —
+the family's one shard, now from reed, grazer, stilt, and
+beetle: four doors.
+
+**46. Mote Swarm** — Storm (family cast). *Collective,
+second design.* Fauna x Vapor, COLONY property. Shape:
+Cloud (a weather of individuals); modifier: static-flecked.
+Locomotion: Drifting / Floating, passive end with a
+collective opinion — the swarm rides storm-wind as one slow
+animal the size of a weather system (the illustrative cell
+from Axis 2, promoted). Spectra: temperament n/a individual,
+patient collective / Social TOTAL — the swarm is the animal;
+a single mote is a rumor of one / Speed the wind's, plus
+judgment / Size tiny x landscape / Diet filterer of storm-
+lifted dust and seed / Day-night storm-locked rather than
+clock-locked — it GATHERS before storms (a living barometer:
+motes low and dense over the dunes means the sky is about to
+have an opinion, and a player who reads motes owns the
+Storm family's forecast) / Curiosity collective: it
+investigates updrafts, including a forge's chimney heat /
+Territory the family's whole sky, seasonally / UNTAMABLE —
+hive reason, weather reason, take your pick. Drops: after a
+storm, settled motes dust the ground where they rested:
+**Mote Dust** (new item) — storm-sorted fine dust; light,
+charged, and (later design will say) a stabilizer's cousin.
+Hook: the Storm Kite owns the family's sky as an individual;
+the swarm owns it as a population, and between them the
+family's air is fully tenanted.
+
+**47. Hearthroot** — the Living Valley (family cast, both
+temperaments). Flora x Ordinary. Shape: Plantiform;
+modifier: reaching. Locomotion: Stationary (what it does
+with its reach is its behavior, not its travel). A root-
+flower that grows TOWARD dwellings — in a Welcoming valley,
+it puts its roots under your doorstep and its blooms along
+your path, and a house kept a year in the valley is
+upholstered in hearthroot like the Rootfall is in moss: the
+valley's hello, at flora scale, arriving slowly. In a
+Hungry valley it is THE SAME PLANT — spectra template's
+mirror discipline applied to flora — growing toward
+dwellings to get IN: blooms along the path are a promise,
+and the promise is the problem. Spectra (flora reading):
+Social house-by-house / Diet light, soil, and PROXIMITY —
+it is fed, measurably, by being lived near (a flora that
+farms company; in the Hungry reading, a flora that farms
+the company it eats) / Day-night indifferent / Territory
+one dwelling's ground / Cultivation: cannot be planted,
+only ENCOURAGED (live somewhere loved, or somewhere
+watched, and it comes) / Harvest: doorstep blooms, **Hearth
+Bloom** (new item) — in a Welcoming valley, a comfort-craft
+material; in a Hungry one, the same item, and the codex
+entry declines to finish its sentence. Hook: the Greeter is
+the family's argument at creature scale; the hearthroot is
+the same argument at garden scale, and slower, which makes
+it worse and better.
+
+**48. Glow Grub** — Fungal (family cast). Fauna x Ordinary.
+Shape: Segmented; modifier: biolume-banded. Locomotion:
+Slithering / Crawling + Burrowing secondary (through cap-
+flesh and mulch). Spectra: placid / loose cap colonies /
+slow / small / Diet decomposer, first in line — it eats the
+Antenna / Visor / Shelf Shrooms' spent flesh and the
+Hollow's fall, and its glow is its digestion showing /
+nocturnal-glow — it shines brightest in the fungal dark,
+which in the Hollow is all hours / Curiosity none /
+Territory one cap / Tameability n/a (smallness) — but it is
+the Chitin-Stalker's larder and the Hollow Hermit's
+nightlight, and a player carrying grubs is feeding the
+family's whole web at once (a bait item hiding in plain
+sight: Glow Grub, harvestable from spent caps, the fungal
+country's general-purpose offering). Hook: background cast
+should do economy work without new systems — the grub is
+bait, light, and food-web in one small segmented body.
+
+**49. Brine Jelly** — the Brine Shallows (Wetland x
+Saltglass; second hybrid-place cast member after the
+Stilt). *Gel, third design.* Fauna x Gel. Shape: Blob;
+modifier: salt-crusted at the rim, clear at the heart.
+Locomotion: Drifting / Floating, active end + Swimming —
+it pulses the shallows' warm brine, riding the tide-lines
+between the Stilt's patrol. Spectra: placid / loose drifts /
+slowest / mid / Diet filterer of brine film / diurnal /
+Curiosity none / Territory the tide-line / UNTAMABLE — the
+Mirror Jelly's reason (no mind at the lure's address),
+restated for salt water. Its one law: it is a creature of
+CONCENTRATION — in fresh rain-pools it shrinks and sulks
+at the bottom until the sun re-salts its world (a creature
+you can read the weather's effect on: jelly high and clear,
+the shallows are themselves; jelly sunk and small, the
+rains have been at them). Drops: none — scooping a brine
+jelly gets you the shallows, temporarily, in your hands,
+and the codex says to put the country back. Hook: the two
+jellies are the roster's rhyme for the gel material itself
+— Mirror Jelly in still fresh water, Brine Jelly in moving
+salt — same body, two waters, and a player who has met both
+understands Gel the way meeting two stags teaches Forest.
+
+**50. Canopy Cup** — Rootwood (family cast). Flora x
+Ordinary. Shape: Plantiform; modifier: cupped — a broad
+living bowl on the canopy's branches, holding rain. It is a
+POND IN THE SKY: a cup fills in the rains and stays full for
+weeks, and things live in it — froglets, skater-kin, a whole
+wetland the size of a soup bowl, thirty meters above the
+Wetland family. Spectra (flora reading): Social groves of
+cups along a branch / Diet light and rain (it drinks the
+sky directly; the Raincatcher is its only rival in the
+roster for drinking upward weather, and they have never
+met) / Day-night indifferent / Territory one branch /
+Cultivation: plantable ONLY as a carried cutting, and only
+ON a branch — a cup planted on the ground is a bowl, and
+dies of being right about the wrong thing / Harvest: the
+cup's water, **Cup Water** (item) — canopy rain, unhurried,
+the cleanest drink in the family; the cup refills and does
+not mind, within reason. Hook: the Rootwood already had a
+canopy that behaves like a country (sloth above, borer
+within, weaver under the bridges); the cup gives that
+country its weather — stored rain, held up in a leaf, with
+tenants.
+
+Roster designed total: 50. State of the layers: ubiquitous
+2 designed + 2 shipped (gnat, puff, mouse, plus the
+stalker's two-family range) / emblems 11 of 11 / one-offs
+for every built variant / named hybrids 4, hybrid cast 2 /
+background cast 9 and growing by batch. Remaining by the
+count given to Adam: the long tail — remaining hybrid
+pairings (51 potential, each a place that may or may not
+ever border), background casts to fullness (~3–5 per family
+= roughly 25–45 more), and then the caves, when Adam calls
+the overworld done.
+
 ## Build note — species as data (Adam's question, 2026-10-15)
 
 Adam asked whether each creature / plant needs its own code

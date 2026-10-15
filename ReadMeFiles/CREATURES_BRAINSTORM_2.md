@@ -1313,3 +1313,336 @@ rib-tenant (mystery in reserve), a Poolcap for the
 Wetland's fungus chair, a Listening Fern for the Living —
 first seats of the next wave.
 
+## Eighth roster pass — deferred seats kept + hybrid wave three
+
+Sync at batch start: Storm is BUILT (the tenth family, and
+the first of Tier 3) with a new common face — the Charged
+Flats — and a family-wide weather law: the ZOT, lightning
+on a timer with a still-bright warning banner ~2.5s before
+each strike, shelter under any roof. Stormcatcher reeds
+drink the strikes and harvest to FULGURITE SHARDS.. Its
+seat note names the signature and the Magnetic Dunes unique,
+both already filled in this roster (Storm Kite, Dune
+Roller); the genuinely new seat is the Charged Flats. It
+is taken below, along with the three seats the seventh
+pass deferred on purpose.
+
+### The deferred seats, kept
+
+**75. Rib Walker** — Leviathan Graveyard (Bone). *What
+lives IN the ribs (the biome program's question, answered).*
+Fauna x Ordinary. Shape: Multiped; modifiers: long-legged,
+pale, unhurried. Locomotion: Climbing + Walking — on the
+ribcage itself: its whole world is the leviathan's ribs,
+which it walks the way the Deck Weaver walks bridges, and
+it does not come down — the ground is another country, and
+it has never applied for citizenship. Spectra: serene /
+loose rib companies, one per few ribs / slow, exact / mid /
+Diet picker of dust moths, moss spores, and the small
+weather that collects in high bone (it eats the Graveyard's
+air traffic) / nocturnal — by day it stills in the rib-
+shade; by night it WALKS, and the ribs answer: a walker's
+weight on old bone at night makes the whole cage HUM,
+faintly, note by note of its crossing (the Graveyard's
+second music, after the ants' silence) / Curiosity mid —
+faces appear at rib-edges, upside down, to regard climbers
+/ Territory one skeleton, vertically held — its territory
+is a PLACE IN THE AIR, recorded proudly: the spectra
+template survives a three-dimensional territory / Tameability
+35% — offerings left on a rib are collected at night; a
+walker that accepts your rib-gifts will walk YOUR ribs
+too, should you build anything rib-like and tall, which
+the Rootwood bridge-builders will take as a compliment or
+a review. Drops: none — it is staff, like the moth. Hook:
+the Graveyard was built as scenery with a crew (picker
+above, ants below, moss on the bone); the walker is its
+resident — the skeleton is not a monument, it is a HOUSE,
+and something lives in the rafters.
+
+**76. Zot Hopper** — the Charged Flats (Storm). Fauna x
+Ordinary, copper-crested. Shape: Multiped; modifier:
+crest-finned (a coppery fan it raises at the banner).
+Locomotion: Bouncing / Hopping — the flats' quick citizen.
+Its whole design is the family's new law, read fluently:
+when the still-bright banner comes (the ~2.5s warning),
+everything in Storm country shelters — and the hopper
+shelters LIKE A PROFESSIONAL, flat under any lip of ground —
+and when the strike lands, the hopper does what nothing
+else on the flats does: it races TO the strike point, first
+thing, every time, to eat what the lightning made — fresh
+fulgurite edges, cooked midges, the mineral bloom of a
+strike (it is a strike-follower; the zot is its dinner
+bell, and it has never once been wrong about the banner).
+Spectra: alert, bright / loose flats scatter, converging
+on strikes / burst-fast / small / Diet strike-scavenger
+and grazer of charged film / Day-night storm-locked — the
+flats' clock is the zot interval, and the hopper keeps it /
+Curiosity high — a sheltering player acquires hoppers:
+they shelter WITH you, under your roof's edge, in a row,
+waiting out the banner in a line like commuters — and the
+design names this plainly: the family's killing weather,
+turned into a bonding ritual by a knee-high hopper /
+Territory the flats between strikes / Tameability 30% —
+by shelter-sharing across a storm; a hopper that has waited
+out three banners under your roof considers the matter
+settled. Sheds crest-scales after storms: FULGURITE SHARD,
+small-grade — the stormcatcher's item, a second door, per
+the house discipline. Hook: Tier 3's first country teaches
+its law with a banner; the hopper is the citizen who makes
+the law look like a LIFESTYLE.
+
+**77. Poolcap** — Wetland (family cast). Fungus x Ordinary.
+Shape: Plantiform (a raft of small caps); modifier:
+sail-backed. Locomotion: Drifting / Floating, passive end —
+the cap-raft rides wind and pool-current as one slow
+sailing (the matrix's travelling fungus, at the surface
+this time: the colony moves, the caps are its sails AND
+its fruit). Spectra (fungus reading): Social RAFTS — a
+poolcap is one organism introducing itself as an archipelago /
+Diet decomposer of the surface film — it skims the pool's
+skin and keeps it bright (the sumpfish keeps the sump
+sweet below; the poolcap polishes above) / Day-night
+indifferent / Territory one pool, toured / Cultivation:
+a torn fragment starts a new raft wherever it lands wet —
+the Wetland's most portable fungus / Harvest: caps pinched
+from the raft's edge, **Poolcap** (item, its name) — the
+raft sails on, diminished and unbothered. Hook: the
+Wetland's fungus chair, held since the family had a chair
+open — and the roster's gentlest proof that even its still
+kingdoms travel.
+
+**78. Listening Fern** — the Living Valley (family cast).
+Flora x Ordinary. Shape: Plantiform; modifiers: ear-fronded,
+slow-turning. Locomotion: Stationary. It TURNS — a leaf at
+a time, over minutes — toward sound: toward the Greeter's
+rustle, toward birdsong, toward a player's voice at the
+valley's edge (arrive talking, in a Welcoming valley, and
+the ferns along the path are all facing you by the time
+you reach the middle, which is the valley listening with
+its garden). In a Hungry valley, the same fern, the same
+turning — toward HEARTBEATS. It does not hunt; it is flora.
+It simply keeps the valley informed, the way an ear keeps
+a head informed, and what the valley does with the
+information is the valley's affair. Spectra (flora
+reading): Social path-lines and clearing rings — the
+valley's hearing, distributed / Diet light, soil, and
+SOUND, measurably: a fern by a much-talked-to path grows
+larger (the Hearthroot farms proximity; the fern farms
+attention; the family's flora are all in the same trade) /
+Day-night indifferent, though it turns toward night's
+sounds more visibly in the quiet / Territory one hearing-
+circle / Cultivation: cannot be planted — it comes where
+it is listened FOR (encouraged, like the hearthroot, by
+residence and habit) / Harvest: turned fronds, cut kindly,
+**Listening Frond** (new item) — recorded without a use;
+some items are the world's texture, and a frond that was
+facing you is a souvenir with a direction. Hook: the
+Greeter hears you with a face; the fern hears you with a
+garden; the family's thesis, at flora scale, is that in
+this valley, you are NEVER unheard — which is comfort or
+warning depending on the valley, and the fern does not
+say which.
+
+### Hybrid wave three
+
+**79. Brambleback** — Meadow x Rootwood (place name draft:
+the Hedgewood). Fauna x Ordinary. Shape: Quadruped;
+modifiers: spine-carpeted — its back is a thicket of soft
+spines, and every spine carries SEEDS (it plants the hedge
+by walking: where a brambleback has been, next season is
+hedged). Locomotion: Walking, pushing-through. Spectra:
+placid, stubborn / loose hedge companies / slow / mid /
+Diet browser of hedge-fruit and the family's shared edge /
+diurnal / Curiosity low-mid / Territory a hedge-line,
+extended by existing / Tameability 50%, with the roster's
+slowest follow-consequence: a tame brambleback SHEDS SEED
+ALONG ITS ROUTE — follow it home often enough and a path
+of young hedge grows behind its commute; a long-kept
+brambleback gardens the walk between your door and its
+country without being asked (a pet whose love language is
+landscaping). Drops: shaken spines at season's turn,
+**Bramble Seed** (new item) — plantable hedge, the hybrid
+country in a pouch. Hook: the Meadow gives it manners, the
+Rootwood gives it mass, and the hybrid is a citizen whose
+whole locomotion is GARDENING — the roster's second
+creature (after the borer) whose movement is an ecology
+service with feet.
+
+**80. Saltcap** — Fungal x Saltglass (place name draft:
+the Salt Hollows). *Fungus x Crystalline — the material
+crossover, in the kind where it is strangest.* Fungus x
+Crystalline. Shape: Plantiform; modifiers: crystal-rinded
+— the cap grows a rind of the family's glass over a living
+fungus heart, and the caps stand in the hollows like small
+frozen fountains. Locomotion: Stationary. Spectra (fungus
+reading): Social hollow colonies / Diet decomposer of what
+the flats bury — wind-buried carrion, old roots, the
+Thaw's yearly giving-up / Day-night: it GROWS at the thaw
+hours and armors at the freeze — its calendar is the
+family's swing, written in rind (a cut cap shows rings:
+thaw-lines, like a tree, in glass) / Territory one hollow /
+Cultivation: startable on salt-ground from rind-dust —
+slow beyond patience, and the design says so / Harvest:
+the rind is SALTGLASS SHARD (the family's one shard, its
+SIXTH door, and the first mushroom that pays in glass);
+the heart beneath is **Saltcap Heart** (new item) — a
+brined, mineral fungus-flesh, the flats' only rich food,
+eaten by everything in the family that can reach it,
+Thawmice first. Hook: two of the driest words on the
+roster — fungus, crystal — make the flats' one delicacy,
+and half the family's food web queues at a mushroom.
+
+**81. Static Crab** — Storm x Saltglass (the glass-storm
+margin; the Dunes' charged cousins). Fauna x Crystalline
+(shell-grown). Shape: Multiped; modifiers: copper-jointed,
+bristle-backed. Locomotion: Walking, sideways (the crab
+gait, second citizen). It STORES the margin's weather: its
+bristles drink static until the crab carries a visible
+corona in dry air — and at a threat, or a banner, it
+GROUNDS itself with a crack and a smell of struck salt
+(in Peaceful, this is the whole performance: a pose, a
+snap, a smell; the flats' wildlife applauds by leaving).
+Spectra: wary-proud / loose charged gatherings around
+strike-fresh ground (it and the Zot Hopper read the same
+newspaper) / mid, sidling / mid / Diet mineral grazer of
+strike-cooked film and iron filings (the Dune Roller's
+diet, at crab scale and with cutlery) / Day-night storm-
+locked / Curiosity mid / Territory a strike-ground circuit /
+Tameability 25% — by offering iron filings through a
+storm, which is to say by auditioning. Drops: a grounded
+crab leaves its spent bristle-charge in the salt: FULGURITE
+SHARD dust, gathered where it posed — the stormcatcher's
+item again; the margin pays its citizens in one currency.
+Hook: the Glass Crab stores LIGHT; the static crab stores
+WEATHER; the Saltglass family's two crabs are its two
+treasuries, and the hybrid margin keeps the louder one.
+
+**82. Smoke Tree** — Ember x Rootwood (place name draft:
+the Charwood). Flora x Ordinary. Shape: Plantiform;
+modifiers: smolder-hearted, smoke-canopied. Locomotion:
+Stationary. It SMOLDERS — heartwood at a permanent ember,
+never flame, never out — and its canopy is a low, slow
+smoke that the tree makes of its own leaves and breathes
+back (the charwood's stands stand in their own weather,
+and the Cinderhound hunts under smoke the way other
+hounds hunt under cloud). Spectra (flora reading): Social
+smolder-groves, canopies merged into one hanging dusk /
+Diet light, ash-soil, and its own smoke, recycled / Day-
+night: the smolder dims at night to a coal-glow in the
+trunk's seams — the grove at night is a stand of trees
+with fire in their joints, breathing slowly / Territory
+one ash-hollow, deepened by its own fall (a smoke tree's
+ash feeds smoke trees; the grove is a slow fire that
+plants itself) / Cultivation: plantable from a carried
+EMBER-COAL of its heartwood — you do not plant a smoke
+tree, you TRANSPLANT A FIRE, carefully, once / Harvest:
+shed plates, **Smoke Bark** (new item) — smolder-grade
+bark that holds a coal for days: the roster's portable
+warmth, Ember's answer to a lantern. Hook: Rootwood's
+thesis was living wood; Ember's was beautiful damage; the
+child is a tree that is permanently, peacefully ON FIRE
+at the heart, and has made a climate of it.
+
+**83. Pan Piper** — Meadow x Saltglass (place name draft:
+the Pan Meadows). Fauna x Ordinary. Shape: Biped (a piper
+bird, all legs and whistle); modifier: salt-crested.
+Locomotion: Walking / Running on the pans and pan-meadow
+grass, with short Aerial bursts. Spectra: bright, busy /
+loose piping companies / quick / small / Diet picker of
+pan-film seeds and the flats' dawn insects (a colleague
+of the Pan Lizard, at the other end of the day) / diurnal /
+Curiosity mid — pipers approach a sound to identify it;
+a whistling player acquires an audience that whistles
+back, approximately, with improvements / Territory a pan
+edge / Tameability 45% — it is a confiding bird, and its
+PIPING is the entry's real design: in the flattest country
+on the roster, the piper's calls CARRY — a player learns
+the pan country by ear, piper to piper, the way the marsh
+taught pool-reading and the Stillwhite taught ridge-
+reading (every far family gets one species that teaches
+its country as a LANGUAGE; the piper is Saltglass's,
+sharing the duty with the crabs' glow). Drops: molted
+crest feathers, unlisted. Hook: the hybrid of the
+gentlest family and the harshest light produces the
+roster's town crier — small, loud, and certain the news
+matters.
+
+### Background cast, wave five
+
+**84. Harvest Shrew** — Meadow (family cast). Fauna x
+Ordinary. Shape: Multiped (shrew-plan, nose-first);
+modifier: harvest-rust colored. Locomotion: Walking /
+Running, ground-hugging, with burrow darts. Spectra:
+frantic — a shrew is a heartbeat with a hunting license /
+SOLO, and rude about it / FAST at ground level / tiny /
+Diet HUNTER of the Meadow Hopper above all — the hopper
+clouds rise, and the shrew is why they must (the meadow's
+food web, floor to hunter, now complete at small scale) /
+Day-night both, in shifts — a shrew sleeps in minutes and
+hunts in the cracks between / Curiosity nose-led, total
+at whisker range / Territory a grass-run / Tameability
+n/a — too fast-lived to bond; the codex keeps its line
+kind: "it has no time to be your friend, and eats too
+much to be your guest." Drops: none. Hook: every family's
+cast needs its small urgency; the Meadow's idyll now has
+a predator the size of a thumb keeping it honest.
+
+**85. Spiral Moth** — Precursor (family cast). Fauna x
+Ordinary. Shape: Winged (moth plan); modifiers:
+spiral-marked — its wings carry the gardeners' Archimedean
+spiral, one per wing, exact. Locomotion: Aerial, obligate
+flyer, flutter-class (the Mirror Moth's far cousin; the
+roster's moths are becoming a comparative study, which
+the design allows: three moths, three families, three
+arguments). Spectra: gentle / loose bloom companies /
+slow flutter / tiny / Diet the Precursor Bloom's partner —
+it drinks the blooms and carries their thread-pollen
+spiral to spiral (LIVING THREAD's first step is a moth's
+errand; the garden's economy has wings at the bottom of
+it) / crepuscular — it flies the gardens' lamp-hours /
+Curiosity mid / Territory one spiral planting / Tameability
+n/a — smallness; but a still hand in a garden at dusk
+collects moths the way it collects compliments. ITS TELL,
+the entry's design: in the UNTENDED, the moths' spirals
+run BACKWARD — wing-mirrors wound the wrong way, feral at
+the pattern level (a player who learns to read the moths
+can tell an Untended garden from a kept one at thirty
+paces, by insects). Drops: none. Hook: the smallest
+citizen carrying the family's whole signature — order,
+legible at moth scale, and disorder legible the same way.
+
+**86. Snowbell** — Frost (family cast). Flora x Crystalline
+(petals of grown ice). Shape: Plantiform; modifiers:
+bell-formed, frost-tuned. Locomotion: Stationary. A small
+bell of ice-crystal petals on a living stalk — it RINGS:
+when frost forms fast (a cold front, a Stillwhite dusk),
+the petals chime as they grow, one faint note per bell,
+and a snowbell bank at a weather-turn is a carillon played
+by the cold arriving (the family's third music: the lake
+sings under the glider, the worm's country is silent, the
+bells announce the changes). Spectra (flora reading):
+Social banks along cold seeps / Diet light in the day's
+pale hours, and cold itself, in the sense that matters —
+it grows BY freezing / Day-night: it blooms in the cold
+hours and seals at any thaw-touch (in Frost there is no
+thaw; the family is its paradise and its prison is
+anywhere else) / Territory one seep-bank / Cultivation:
+plantable ONLY in Frost country, from a kept-cold cutting
+— it is the roster's most place-bound flora, and the codex
+says so without apology / Harvest: **Ice Petal** (new item)
+— a petal that MELTS by the next warm hour unless kept
+cold (the roster's first perishable material: a crafting
+ingredient with a deadline — what it makes must be worth
+hurrying for; later design will price it). Hook: Frost's
+flora chair was held by geology (the Rime Spires); the
+family deserved one flower of its own — a bell the cold
+rings by growing it.
+
+Roster designed total: 86. Hybrid cast 21 of 55 pairings;
+background cast 25; every family now holds at least four
+designed citizens beyond its emblem, and both Tier-3
+families on the board (Storm built; the Living still
+awaits its build) are cast. Remaining: the long tail —
+hybrid pairings 22-55 as the graph earns them, casts to
+fullness, and the caves, last, at Adam's word.
+

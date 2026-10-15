@@ -308,7 +308,10 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   prismatic_field_radar: {
     id: 'prismatic_field_radar',
     name: 'Prismatic Field Radar',
-    category: 'raw',
+    // Equipment, not a raw material — it is held in the left hand
+    // and read as gear by every other system (wart fix, 2026-10-15,
+    // spotted by the dev chat's tier-tab landing).
+    category: 'equipment',
     description: 'The four subassemblies, grown together into one listening instrument. Hold it in your Left Hand and the minimap pings what is worth walking for: cave mouths, precursor ruins, deep shafts, and the rare lives.',
     iconName: 'Radar',
     color: '#a855f7',
@@ -343,7 +346,9 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   hand_lantern_fern: {
     id: 'hand_lantern_fern',
     name: 'Hand Lantern-Fern',
-    category: 'raw',
+    // Equipment, not a raw material — a hand-held light source
+    // (wart fix, 2026-10-15; see prismatic_field_radar above).
+    category: 'equipment',
     description: 'A young lantern-fern rooted in a woven compost cup. Carried in the LEFT HAND, it lights the way like a torch — generous cyan light wherever you go.',
     iconName: 'Flashlight',
     color: '#22d3ee',

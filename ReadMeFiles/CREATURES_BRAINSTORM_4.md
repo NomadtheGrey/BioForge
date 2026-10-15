@@ -1661,3 +1661,312 @@ Flora Flood Two closes: 48 flood flora across two
 waves; variants and hybrid countries planted; the
 rose census at nine. Roster designed total: 264.
 The fungus flood follows, by Adam's order.
+
+## Twenty-second roster pass — Fungus Flood One (24)
+
+The third kingdom's census, at the floods' scale:
+twenty-four fungi, two per family plus a wide-range
+pair. The kingdom's forms diversify on purpose —
+caps, jellies, puffs, brackets, cups, rusts, and
+molds — because a flood of twenty-four "caps" would
+be a warehouse, not a kingdom. Existing citizens
+(Meltcap, Puffbell, Field Cap, the Anvil and Quiver
+Caps, Saltcap, Stormcap, Poolcap, Tomb Cap, the
+Greeting and Frost Caps, Charnel Bloom, and the
+Mother Grove above them all) stand as the flood's
+elders; these are their countries' companies.
+
+**265. Haycap** — Meadow. *Fungus* x Ordinary. A
+pasture cap fruiting on hay and herd-leavings (the
+Long Grazer's and Meadowback's recycler: what the
+herds drop, the haycap renders, and the meadow's
+famous fertility is mostly this small citizen
+working at ankle height). Stationary; fruits after
+rains. Harvest: **Haycap** (item, its name) — the
+meadow's second plain food, after the Field Cap,
+with the entry noting the two divide the kingdom's
+kitchen between grove and pasture.
+
+**266. Ring Cap** — Meadow. *Fungus* x Ordinary. A
+FAIRY RING made honest: an expanding ring-colony
+whose circle greens the grass along its front
+(Meadowbacks graze the ring grass preferentially —
+the ring is a slow circle of the country's best
+grazing, drawn by a fungus at a pace of a hand's
+width a year; old rings are meadow landmarks, and
+homesteads are founded inside lucky ones, by a
+custom the entry records without endorsing the luck).
+Stationary, expanding. Harvest: ring caps,
+unlisted — the ring is the yield.
+
+**267. Bog Jelly** — Wetland. *Fungus* x Ordinary.
+A jelly fungus on drowned wood (amber, quivering,
+the Bog Cow's incidental garden — cows surface
+wearing it after long wades, and the entry counts
+this as distribution). Stationary; fruits in the
+wettest months. Harvest: **Bog Jelly** (item) — a
+setting agent for the wet country's kitchens and
+the Gloom Gel's marsh cousin, gathered by the
+handful from any drowned log.
+
+**268. Reed Rust** — Wetland. *Fungus* x Ordinary.
+A rust fungus of the reed stands (orange dust on
+the stems; the Reedbird's stands are its country,
+and a rust year is read by every marsh farmer as
+the reeds' opinion of the season — heavy rust, thin
+reeds, poor thatch: the fungus is the Wetland's
+crop report, written in orange on the crop itself).
+Stationary; spore-dust travels on wind and wader
+alike. Harvest: none — its yield is the warning.
+
+**269. Glowcap** — Fungal (the groves). *Fungus* x
+Ordinary. THE classic glowing cap, at grove scale —
+the entry owns the archetype plainly: this is the
+mushroom of the family's postcards, gill-lit green,
+in rings and drifts under the groves (the Glow Grub
+is an ANIMAL that glows; the glowcap is the light
+the grub evolved inside of, and the Hollow Widow's
+steady-light tell is measured against the glowcap's
+honest flicker). Stationary; lights at dusk.
+Harvest: never for the cap — its shed spores are
+Glow Spore, the economy's standing door, gathered
+from the air of its rings at fruiting.
+
+**270. Veil Cap** — Fungal (the Hollow's edges).
+*Fungus* x Ordinary. A veiled cap: its partial veil
+is a spore-proof silk membrane (the Hollow's
+travelers cut veils as FILTERS — against spore
+clouds, against the Sporeback's weather, against
+the deep groves' worst air: the veil cap is the
+fungus kingdom's own protective equipment, grown).
+Stationary. Harvest: veils, carefully: **Veil Cloth**
+(new item) — filter-grade, the grove country's mask
+and bandage in one.
+
+**271. Coal Cap** — Ember. *Fungus* x Ordinary. A
+black cap fruiting on charcoal and coal beds (it is
+the Flame Lily's other half: the lily waits for
+fire; the coal cap ARRIVES after it, fruiting in
+the burn's first cool week — between them, the
+Ember country's calendar of fire has a beginning
+and an end, both botanical... the entry corrects
+itself: one botanical, one fungal, both punctual).
+Stationary. Harvest: **Coal Cap** (item) — dense,
+smoky, the Ashes' winter store.
+
+**272. Ash Puff** — Ember (the Ashen Drift).
+*Fungus* x Ordinary. A puffball that puffs WARM:
+stepped on or struck, it exhales a breath of heated
+spore-dust (the Drift's small theater — Ashswimmer
+trails are dotted with its puffs like punctuation;
+travelers learn its silhouette the way they learn
+the Slag Serpent's ash-devils: one is a joke, one
+isn't, and the Drift enjoys the confusion at a
+distance). Stationary. Harvest: unpuffed balls,
+**Ash Puff** (item) — a hand-warmer that works once,
+by being squeezed: the country's disposable comfort.
+
+**273. Salt Jelly** — Saltglass (the Flats' crust
+cracks). *Fungus* x Ordinary. A jelly fungus living
+in salt-crust fissures, fruiting after the Thaw's
+brine runs (it is the crust's tenant the way the
+Salt Scorpion is its guard — jelly in the crack,
+scorpion under the plate, and the flats' cross-
+section is a society). Stationary. Harvest:
+**Salt Jelly** (item) — brined, clear, the flats'
+pickle and preserve in one organism.
+
+**274. Glass Cap** — Saltglass (the Prism Beds).
+*Fungus* x **Crystalline** — the kingdom's second
+crystal citizen, after the Saltcap. A translucent
+cap grown through with saltglass, fruiting among
+the Prism Moss (the Beds' floor has two light-
+workers now: the moss sorts the noon, the cap
+STORES it — at dusk a glass cap grove glows back
+the day it drank, and the Beds keep their colors
+an hour past sunset by fungal courtesy).
+Stationary. Harvest: a whole cap, **Glass Cap**
+(item) — a natural lamp-shade and lens blank, in
+one careful piece.
+
+**275. Snow Morel** — Frost. *Fungus* x Ordinary. A
+morel fruiting at the MELT LINES — where snowfields
+retreat, the morels advance in a dark honeycomb
+front (the Stillwhite's spring is edible and brief;
+Frost Voles cache them, Rime Puffs shelter under
+them, and the family's whole cast times its year by
+the morel line the way the Thaw times its rose).
+Stationary. Harvest: **Snow Morel** (item) — the
+cold country's delicacy, dried for the deep winter:
+Frost's kitchens finally have their fungus.
+
+**276. Ice Shelf** — Frost (the Ice Fangs' cliffs).
+*Fungus* x Ordinary. A bracket fungus of cliff and
+ice-side stone, fruiting in pale SHELVES up the
+Fangs' shaded faces (Spire Bats roost under the big
+shelves in rain — the bats' umbrellas, grown; the
+shelf colonies map the Fangs' dry lines better than
+any survey). Stationary; grows a ring a year.
+Harvest: old shelves, **Ice Shelf** (item) — a
+light, strong bracket: the winter country's tray,
+sledge-runner, and emergency snowshoe, per the
+codex's driest footnote.
+
+**277. Heart Shelf** — Rootwood (the heartroot
+stands). *Fungus* x Ordinary. A great bracket of
+the Heartroot country — woody shelves at climbing
+intervals up the stands (the Canopy Sloth's RESTING
+PLATFORMS: a sloth's route is shelf to shelf, and
+an old stand is a staircase the fungus built for
+the animal that fertilizes it — the entry records
+the arrangement as Rootwood's most comfortable
+treaty). Stationary. Harvest: fallen shelves,
+unlisted, timber grade — the shelf that is cut is
+the shelf that ends the staircase, and the custom
+is fallen-only.
+
+**278. Root Cup** — Rootwood (the Underroot).
+*Fungus* x Ordinary. A cup fungus of the root bases,
+catching DRIP — each cup a small cistern of root-
+water, kept clean by the cup's own chemistry (the
+Gloom Slug's drinking places and the Underroot's
+water system at plant... at FUNGAL scale: travelers
+in the dark country drink from root cups by a
+custom the slugs enforce by simply being there
+first). Stationary. Harvest: the water, freely; the
+cups themselves are infrastructure, not crops.
+
+**279. Bone Puff** — Bone (the Bonefields).
+*Fungus* x Ordinary. A white puffball of the bone
+fields, fruiting round and pale as the country's
+own moons (when it puffs, the spore-dust is white
+on white and the fields seem to breathe out — the
+Dust Hawk hunts through its puffs, using the white
+weather as cover: the fields' fungus is the hawk's
+smoke screen, and the entry braids them). Stationary.
+Harvest: young puffs, **Bone Puff** (item) — the
+Bone country's provision, mild as the fields are
+not.
+
+**280. Marrow Mold** — Bone (the Leviathan
+Graveyard). *Fungus* x Ordinary. A mold colonizing
+MARROW CAVITIES — the Graveyard's innermost tenant
+(the Marrow Vine flowers from within the bones as
+FLORA; the marrow mold is the FUNGUS already there,
+and the two share addresses like tenants of
+different centuries — the vine in the rib's light,
+the mold in the marrow's dark). Stationary.
+Harvest: it renders old marrow to a rich black
+earth: **Marrow Earth** (new item) — the Graveyard's
+soil-maker, gathered from spent bones: the death
+country's compost, final form.
+
+**281. Static Cap** — Storm (the Charged Flats).
+*Fungus* x Ordinary. A cap that CRACKLES — it
+gathers static in charged air, hair standing on its
+cap before a front (its spores are slightly
+conductive, and its colonies along a strike field
+make a faint ticking map of the field's temper —
+the Zot Star turns its face up; the static cap
+ticks; between flora and fungus, the flats are
+fully instrumented). Stationary. Harvest: **Static
+Cap** (item) — a tingling spice for storm-country
+kitchens, eaten for luck before crossings, per
+custom the entry records and the codex allows.
+
+**282. Wind Puff** — Storm (the open country).
+*Fungus* x Ordinary. A puffball whose puff RIDES
+THE FRONT — a single fruiting body can seed three
+zones in one storm (the Stormcap detaches a cap;
+the wind puff merely EXHALES, at national scale —
+the kingdom's two storm strategies, the emigrant
+and the broadcaster, and the family's storm
+citizens now include both). Stationary. Harvest:
+unpuffed, unlisted — its yield is its range.
+
+**283. Door Cap** — The Living (the valley's
+homesteads). *Fungus* x Ordinary. A cap fruiting on
+DOORFRAMES (the Doorstep Rose signs the threshold
+in flowers; the door cap signs it in fungus — both
+kingdoms keep the valley's register). Mirror, by
+placement, as the family requires: in a Welcoming
+valley it fruits OUTSIDE the door, in a neat row,
+like a welcome mat that grew. In a Hungry valley it
+fruits INSIDE — and a door cap found indoors is the
+codex's plainest sentence about which valley you
+are keeping house in. Stationary. Harvest: the
+outside ones, **Door Cap** (item) — a mild keeper's
+mushroom; the inside ones are left, with the door
+shut, per the same codex.
+
+**284. Hearth Cap** — The Living (kept hearths,
+valley-wide and beyond). *Fungus* x Ordinary. A cap
+fruiting in hearth ash — ONLY over good fires (the
+Hearth Wisp certifies the fire; the hearth cap is
+the certification you can eat: it fruits in the ash
+of a hearth that has burned clean and kind for a
+season, and a hearth that sours loses its caps
+before its wisp, making the cap the earlier warning
+of the two). Stationary. Harvest: **Hearth Cap**
+(item) — the homestead fungus, smoky and sustaining:
+the roster's most domestic mushroom, and the
+valley's quiet blessing on a kept home.
+
+**285. Bed Cap** — Precursor (the Garden). *Fungus*
+x Ordinary. A BRED cap, fruiting in the garden
+beds' rows — the Clock Blooms' fungal company (it
+was the gardens' kitchen mushroom, planted in
+spirals beside the flowers, and it still fruits in
+rows in the Untended where no bed remains: the
+Feral Tender walks past its rows at a slower step,
+and the entry adds this to the staff's growing file
+of nostalgia). Stationary. Harvest: **Bed Cap**
+(item) — the roster's third plain food fungus, and
+the gardens' gift to every kitchen since: mild,
+reliable, row-abiding.
+
+**286. Glyph Cap** — Precursor (the ruins' edges).
+*Fungus* x Ordinary. A cap whose GILLS form
+glyph-like patterns — radial script in flesh (the
+Glyph Vine writes in leaves and the Glyph Carp in
+scales; the fungus writes in gills, briefly, at
+fruiting — the made world's third living script,
+and the shortest-lived: a glyph cap's sentence
+lasts a day, and the chroniclers' race to copy them
+is the ruins' gentlest sport). Stationary.
+Harvest: the cap is food, unlisted; the PATTERN,
+copied, is the yield — the entry files it under
+treasures that are free.
+
+**287. Path Puff** — wide-range (Temperate + Open
+ranges). *Fungus* x Ordinary. A path-side puffball,
+fruiting along trails in seven families (the
+Roadweed marks the route by surviving it; the path
+puff marks it by FEEDING on it — path-dust and
+bootfall are its diet, and a well-walked road puffs
+white at its edges after rains like the road is
+exhaling). Stationary. Harvest: young puffs,
+unlisted — roadside provision, free, like the
+roadweed's salve: between them, a traveler eats
+and heals at the road's expense.
+
+**288. Dew Mold** — wide-range (Wet + Temperate
+ranges, and every family's mornings). *Fungus* x
+Ordinary. A fine mold that grows ON MORNING DEW —
+a silver film on leaves at dawn, gone by mid-
+morning, everywhere (it is the Dew Gnat's first
+food and the morning's own fungus: spore-sight
+through the helmet reads dew mold as the health
+signature of air itself — WHERE DEW MOLD FAILS,
+THE AIR IS WRONG, in any family, at any hop: the
+kingdom's smallest citizen is the world's air
+gauge, and the entry gives it the flood's closing
+line because the smallest instruments are the ones
+everyone carries). Stationary, daily. Harvest:
+none — its yield is the reading.
+
+Fungus Flood One closes: twenty-four fungi; the
+kingdom stands at ~38 designed, with its forms
+diversified and every family seated twice.
+Roster designed total: 288. Fungus Flood Two
+follows in the standing order.

@@ -369,7 +369,7 @@ export default function App() {
   const {
     playerZone, setPlayerZone, playerZoneRef, visitedZonesRef, worldSeedRef,
     sessionSeed, setSessionSeed, edgePushRef, pendingTravelRef, cancelPendingTravel,
-    travelToZoneRef, zoneStores, buildZoneSyncTravel, completeTravel,
+    travelToZoneRef, zoneStores, buildZoneSyncTravel, completeTravel, respawnAtSpawn,
   } = useZoneTravel({
     engineRef,
     playerPosRef,
@@ -646,6 +646,15 @@ const {
   const scarHeatRef = useRef(false);
   const healthRef = useRef(100);
   const lastHealthSync = useRef(0);
+  // Death + respawn (Adam, 2026-10-15): the loop fires
+  // onPlayerDeathRef when health reaches 0 on a world where death
+  // is armed (Normal/Hostile — Peaceful floors health at 1). The
+  // handler restores the vitals and wakes the player at the
+  // ORIGINAL SPAWN BASE via the travel hook. The pouch is
+  // untouched: the land took your strength, not your things.
+  const deathArmedRef = useRef(false);
+  const playerDeadRef = useRef(false);
+  const onPlayerDeathRef = useRef<(() => void) | null>(null);
   // The loop drains healthRef under scar heat; player state is the
   // record of truth whenever anything else writes it (loads, heals).
   useEffect(() => {
@@ -654,6 +663,7 @@ const {
   const variantAlertedRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     const variant = sessionSeed ? zoneVariantAt(sessionSeed, playerZone.zx, playerZone.zz) : null;
+    deathArmedRef.current = (currentSaveRef.current?.difficulty ?? 'peaceful') !== 'peaceful';
     sporeStaminaRef.current = variant?.effect === 'spore_stamina';
     marshSluggishRef.current = variant?.effect === 'marsh_sluggish';
     scarHeatRef.current = variant?.effect === 'scar_heat';
@@ -687,10 +697,26 @@ const {
     }
   }, [sessionSeed, playerZone, postNotification]);
 
+  const handlePlayerDeath = useCallback((): void => {
+    healthRef.current = playerState.maxHealth;
+    setHealth(playerState.maxHealth);
+    staminaRef.current = 100;
+    setStamina(100);
+    postNotification(
+      'Taken by the Land',
+      'You wake at the spawn base, whole and breathing. The country keeps its dangers; it does not keep you.',
+      'system',
+      '#f87171',
+    );
+    respawnAtSpawn();
+    playerDeadRef.current = false;
+  }, [playerState.maxHealth, setHealth, setStamina, postNotification, respawnAtSpawn]);
+  onPlayerDeathRef.current = handlePlayerDeath;
+
   useGameLoop({
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
     jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, lastStaminaSync,
-    sprinting, sporeStaminaRef, marshSluggishRef, scarHeatRef, healthRef, lastHealthSync, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
+    sprinting, sporeStaminaRef, marshSluggishRef, scarHeatRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef,

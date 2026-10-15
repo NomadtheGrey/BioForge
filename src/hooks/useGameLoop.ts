@@ -55,6 +55,11 @@ export interface GameLoopDeps {
   scarHeatRef: { current: boolean };
   healthRef: { current: number };
   lastHealthSync: { current: number };
+  /** Death is armed on Normal/Hostile worlds (Adam's pin). */
+  deathArmedRef: { current: boolean };
+  /** Latched while a death is being answered (respawn in flight). */
+  playerDeadRef: { current: boolean };
+  onPlayerDeathRef: { current: (() => void) | null };
   lastStaminaSync: { current: number };
   sprinting: { current: boolean };
   edgePushRef: { current: { dir: 'N' | 'S' | 'E' | 'W'; since: number } | null };
@@ -108,7 +113,7 @@ export interface GameLoopDeps {
 export function useGameLoop(deps: GameLoopDeps): void {
   const {
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
-    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, scarHeatRef, healthRef, lastHealthSync, lastStaminaSync,
+    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, scarHeatRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
     sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
@@ -326,10 +331,15 @@ export function useGameLoop(deps: GameLoopDeps): void {
           if (isDay) {
             staminaRef.current = Math.max(0, staminaRef.current - 16 * dt);
             if (staminaRef.current <= 0) {
-              healthRef.current = Math.max(1, healthRef.current - 1.2 * dt);
+              const floor = deathArmedRef.current ? 0 : 1;
+              healthRef.current = Math.max(floor, healthRef.current - 1.2 * dt);
               if (performance.now() - lastHealthSync.current > 100) {
                 lastHealthSync.current = performance.now();
                 setHealth(healthRef.current);
+              }
+              if (deathArmedRef.current && healthRef.current <= 0 && !playerDeadRef.current) {
+                playerDeadRef.current = true;
+                onPlayerDeathRef.current?.();
               }
             }
           } else {

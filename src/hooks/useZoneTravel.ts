@@ -96,6 +96,7 @@ export interface UseZoneTravelResult {
   zoneStores: () => ZoneStores;
   buildZoneSyncTravel: () => { zone: string; zones: Record<string, WorldSnapshot>; worldSeed: string };
   completeTravel: (nx: number, nz: number, entry: { x: number; z: number }, hostSnapshot?: WorldSnapshot) => void;
+  respawnAtSpawn: () => void;
 }
 
 export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
@@ -286,9 +287,43 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
   };
   travelToZoneRef.current = travelToZone;
 
+  // Death respawn (Adam, 2026-10-15): wake at the ORIGINAL SPAWN
+  // BASE — the spawn zone, at its heart (0, 0). Solo players and
+  // hosts complete at once through the same arrival path as any
+  // crossing; a guest asks the host for the spawn zone like any
+  // other zone — the host is the truth — and steps through when
+  // it arrives (the sync layer completes pending travels from
+  // their fields, this one included). Surface only in v1: the
+  // game's one health-drain today (scar heat) is a surface
+  // effect; instance deaths join when cave/ruin dangers exist.
+  const respawnAtSpawn = (): void => {
+    if (instanceRef.current.kind !== 'surface') return;
+    if (!worldSeedRef.current) return;
+    const entry = { x: 0, z: 0 };
+    if (multiplayerManager.isConnected && !multiplayerManager.isHost) {
+      if (pendingTravelRef.current) return; // a crossing is already waiting
+      const pending: PendingTravel = { dir: 'N', nx: SPAWN_ZONE.zx, nz: SPAWN_ZONE.zz, entryX: entry.x, entryZ: entry.z, slowTimer: 0, failTimer: 0 };
+      pending.slowTimer = window.setTimeout(() => {
+        if (pendingTravelRef.current === pending) {
+          postNotification('Waking…', 'Waiting on the host to send the spawn zone.', 'system', '#94a3b8');
+        }
+      }, 900);
+      pending.failTimer = window.setTimeout(() => {
+        if (pendingTravelRef.current === pending) {
+          cancelPendingTravel();
+          postNotification('No Answer From the Host', 'The way home never arrived — you remain where you fell, alive but far from base.', 'system', '#f59e0b');
+        }
+      }, 6000);
+      pendingTravelRef.current = pending;
+      multiplayerManager.broadcastZoneRequest(zoneKey(SPAWN_ZONE.zx, SPAWN_ZONE.zz));
+      return;
+    }
+    completeTravel(SPAWN_ZONE.zx, SPAWN_ZONE.zz, entry);
+  };
+
   return {
     playerZone, setPlayerZone, playerZoneRef, visitedZonesRef, worldSeedRef,
     sessionSeed, setSessionSeed, edgePushRef, pendingTravelRef, cancelPendingTravel,
-    travelToZoneRef, zoneStores, buildZoneSyncTravel, completeTravel,
+    travelToZoneRef, zoneStores, buildZoneSyncTravel, completeTravel, respawnAtSpawn,
   };
 }

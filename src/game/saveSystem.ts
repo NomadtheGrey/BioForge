@@ -58,9 +58,11 @@ const SAVE_STORE_NAME = 'saves';
 // ---------------------------------------------------------------------------
 
 /**
- * World difficulty. Only 'peaceful' is playable today — normal and hostile
- * need hostile creature AI that doesn't exist yet — but saves record the
- * choice from day one so the field never needs a format migration later.
+ * World difficulty. 'peaceful' and 'normal' are playable today —
+ * normal arms DEATH (respawn at the spawn base; Adam, 2026-10-15)
+ * while hostile creature AI is still to come, and 'hostile' waits
+ * for that AI plus PvP. Saves have recorded the choice from day
+ * one so the field never needs a format migration later.
  */
 export type GameDifficulty = 'peaceful' | 'normal' | 'hostile';
 

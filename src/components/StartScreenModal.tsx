@@ -46,7 +46,7 @@ interface StartScreenModalProps {
  */
 const DIFFICULTY_OPTIONS: { id: GameDifficulty; label: string; blurb: string; playable: boolean }[] = [
   { id: 'peaceful', label: 'PEACEFUL', blurb: 'Creatures never attack. Tend, tame, build.', playable: true },
-  { id: 'normal', label: 'NORMAL', blurb: 'Wild creatures can turn hostile.', playable: false },
+  { id: 'normal', label: 'NORMAL', blurb: 'The land itself can kill you — death wakes you at the spawn base. Wild creatures still keep their peace, for now.', playable: true },
   { id: 'hostile', label: 'HOSTILE', blurb: 'Normal, plus explorers can fight each other.', playable: false },
 ];
 

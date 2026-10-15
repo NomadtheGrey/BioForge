@@ -301,10 +301,23 @@ question round — the table below is the draft to argue with.
   bone zone. GRAVEBLOOM — a pale flower rooted in bone —
   harvests to bone meal x2 + dew; vesper gliders hold the
   scavenger sky here. WORLD_GEN_VERSION 12.
-- **Storm** — family min 3 per the GATE CAP (rarity does the far
-  work). *Magnetic Dunes* (RARE): black sand, storms reshape it,
-  caches surface and vanish. *Skyfall Basin* (RARE): nutrient
-  rain falls up.
+- **Storm** ✓ BUILT (2026-10-15) — the TENTH family built and
+  the FIRST OF TIER 3 (the Far Weird has a citizen). Family min
+  3 per the GATE CAP; bands 5%. Adam's round: the Charged
+  Flats approved as the common face; LIGHTNING ZOTS approved —
+  and built: family-wide on the surface, a still-bright warning
+  banner ~2.5s before each strike, shelter under any floor or
+  roof (root bridges count), a hit costs 15 health + emptied
+  stamina under scar heat's death rules. Rates ride a new
+  optional zotIntervalSec on variant defs (plain Storm 35s).
+  Variants, all built: *The Charged Flats* (min 3, COMMON —
+  the everyday face: humming air, fulgurite fingers, zots
+  ~30s), *Magnetic Dunes* (min 4, RARE — black sand, zots
+  ~16s, fulgurite thickets), *Skyfall Basin* (min 4, RARE —
+  the basin drinks the charge: zots ~60s, flora x1.3; the
+  falling-up rain stays a report, not a claim, until weather
+  VFX exists). STORMCATCHER reeds drink the lightning and
+  harvest to FULGURITE SHARDS. WORLD_GEN_VERSION 13.
   *Questions (both): how rare is rare — one eligible roll in ten?
   For Dunes: does the minimap/compass actually fail (helmet
   stabilizer as the answer)? For Skyfall: are the updrafts a

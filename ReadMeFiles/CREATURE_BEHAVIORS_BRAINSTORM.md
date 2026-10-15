@@ -236,3 +236,11 @@ solvent returns the meal. Bone country's creature seats —
 family signature (a scavenger; the gliders already hold the
 sky here by census) and a Leviathan Graveyard unique (what
 lives IN the ribs?) — are EMPTY and belong to this chat.
+
+Flora note (Storm, 2026-10-15): the Stormcatcher — a tall reed
+with a coppery whorl crown that drinks lightning — grows
+across Storm country (Magnetic Dunes thickest) and harvests
+to FULGURITE SHARDS + dew; solvent returns the shard. Storm's
+creature seats — family signature (a storm-rider; the gliders
+hold census here) and a Magnetic Dunes unique — are EMPTY and
+belong to this chat.

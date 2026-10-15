@@ -220,6 +220,24 @@ Fauna are categorized into two behavioral classes:
   Core** the Sonar Receiver needs — before, the Core dropped
   nowhere and the cluster's Violet Prism fed no recipe; prisms
   remain ruin-cache treasure.)
+* **Carrying capacity is a ladder too (live 2026-10-15):** new
+  explorers start with an **empty pouch** (the worn gauntlet is the
+  whole starter kit) and **stacks capped at 10**. Crafted pouch
+  upgrades raise the cap — **Woven Pouch 25** (6 Fiber + 2 Dew),
+  **Resin-Bound Satchel 50** (4 Resin + 4 Resonant Reed + 2 Fiber),
+  **Living Rucksack 100** (4 Carapace + 1 Prismatic Core +
+  4 Fiber); owning the item is the tier, and equipment (own max 1)
+  never stacks. Caps bind every gain (harvest, loot, craft output);
+  **overflow falls on the ground** at the player's feet — nothing
+  vanishes. Two mini-quests teach the ladder: *Room to Breathe*
+  after First Harvest, and *A Place for Things* after the Builder
+  quest — the **Storage Pod** (4 Resin + 4 Fiber + 2 Carapace),
+  placed with the Bio-Builder and clicked to open: **4 kinds × 25**,
+  grown in place by kits into a **Hutch (8 × 50)** and a **Vault
+  (12 × 100)**. Dissolving a pod spills its contents at its feet.
+  (Development convenience, for now: the **backquote key** swaps
+  the pouch with a full debug kit; saves always record the real
+  pouch, never the kit.)
 * **The Left Hand:** A dedicated off-hand slot beside the hotbar
   holds passive gear. Its citizens are the **Hand Lantern-Fern**
   (crafted: 1 Lantern-Fern Seed + 1 Organic Compost): carried in the

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Backpack, Sparkles, Sprout, Hammer, ArrowUpRight } from 'lucide-react';
 import { ItemId, StructureType, ToolType } from '../types/game';
 import { ITEMS } from '../game/constants';
+import { POUCH_TIER_CAPS, POUCH_TIER_NAMES, pouchTierOf } from '../game/pouch';
 
 interface InventoryModalProps {
   isOpen: boolean;
@@ -24,6 +25,9 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'all' | 'raw' | 'seed' | 'fertilizer' | 'structure'>('all');
   const [selectedItemId, setSelectedItemId] = useState<ItemId | null>(null);
+
+  // The pouch tier derives from the upgrade items in the pouch.
+  const pouchTier = pouchTierOf(inventory);
 
   if (!isOpen) return null;
 
@@ -80,6 +84,11 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
               </h2>
               <p className="text-xs text-slate-400">
                 Botanical Specimens, Bio-Seeds & Living Composite Inventory
+              </p>
+              {/* The carrying ladder, at a glance (Adam, 2026-10-15):
+                  your pouch tier and what a full stack means today. */}
+              <p className="text-[11px] font-mono text-amber-300/90 mt-0.5">
+                {POUCH_TIER_NAMES[pouchTier]} · stacks hold {POUCH_TIER_CAPS[pouchTier]}
               </p>
             </div>
           </div>

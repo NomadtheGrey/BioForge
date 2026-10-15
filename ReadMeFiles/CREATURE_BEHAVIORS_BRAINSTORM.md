@@ -156,3 +156,21 @@ Fungal Hollow trio — Antenna Shroom (senses the air), Visor Shroom
 (the almost-face; watches nothing, probably), Shelf Shroom (the
 future climbable) — and the Mirror Lily (cups light, beads dew).
 Flora behavior proper belongs to the Living Valley design.
+
+## The three-layer roster (Adam's distribution model, 2026-10-15)
+
+Every creature sits in exactly one layer:
+
+1. **Ubiquitous** — almost everywhere; the world's background cast
+   (Soft-Puff, Burrow Mouse). Affinity 'all'.
+2. **Family signature** — ONE creature per biome FAMILY, found
+   across the whole family, variants included. None shipped yet as
+   a pure single-family signature — the roster's open seats are
+   meadow, wetland, fungal, ember.
+3. **Biome-unique** — ONE creature per specific biome/variant, found
+   nowhere else (Mirror Moth in the Mirror Marsh). The Fungal
+   Hollow's unique seat is still empty — its trio is all flora.
+
+The affinity machinery already speaks all three layers: census
+affinity 'all', census affinity [family], and variant-gated bonus
+life. New species design should name its layer first.

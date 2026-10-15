@@ -502,11 +502,11 @@ export const BIOME_VARIANTS: BiomeVariantDef[] = [
     },
   },
   {
-    // The Tending Field (Precursor, 2026-10-15): where the
-    // cultivation machinery still stands in the rows — the
-    // densest bloom spirals in the world. Rare. (The machines
-    // themselves: Adam's call pending — statues as dressing, or
-    // creatures in the later creature phase.)
+    // The Tending Field (Precursor, 2026-10-15): the densest
+    // bloom spirals in the world, where the tenders still stand
+    // in the rows — FORGED creatures, grown for garden work,
+    // biggish and long dead (Adam's ruling: no machines on this
+    // biological planet). Their husks generate as scenery.
     id: 'precursor_tending',
     family: 'precursor',
     name: 'The Tending Field',

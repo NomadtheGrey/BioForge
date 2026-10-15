@@ -295,6 +295,9 @@ export class BioForgeThreeEngine {
     // the caverns' permanent dark.
     vine_shaft: { color: 0x34d399, intensity: 0.85, distance: 4.5, y: 2.0 },
     ruin_landmark: { color: 0xa5b4fc, intensity: 0.5, distance: 3.5, y: 1.2 },
+    // Tender husks are DEAD — the faintest bone-pale halo only,
+    // so a husk reads in the dark without pretending to glow.
+    tender_husk: { color: 0xd6cdb4, intensity: 0.15, distance: 2.5, y: 1.4 },
     ruin_exit: { color: 0x2dd4bf, intensity: 0.9, distance: 4.5, y: 1.4 },
     precursor_cache: { color: 0x67e8f9, intensity: 0.55, distance: 3, y: 0.8 },
     artifact_heart: { color: 0xfb7185, intensity: 1.1, distance: 5.5, y: 1.5 },

@@ -51,7 +51,7 @@
 import { createNoise2D, createSeededRandom, hashStringToSeed } from './motion';
 import { biomeDensityFactor, biomeWeightFactor } from './biomes';
 import type { BiomeId } from './biomes';
-import { zoneBiomeAt, zoneVariantAt, livingHeartAt } from './zones';
+import { zoneBiomeAt, zoneVariantAt, zoneHybridAt, livingHeartAt } from './zones';
 import type { FaunaEntity, FaunaSpecies, FloraEntity, FloraSpecies, StructureEntity } from '../types/game';
 import { generateCaveSurface, HOMESTEAD_BLOCKERS } from './caveSurface';
 import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
@@ -73,7 +73,7 @@ import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
  *     layout in a different species cast; nobody had ever generated
  *     a second zone, so the sameness was theoretical until travel.
  */
-export const WORLD_GEN_VERSION = 14; // v14 (2026-10-15): living, the 11th and FINAL family — one organism per valley; the roster is complete
+export const WORLD_GEN_VERSION = 15; // v15 (2026-10-15): HYBRIDS — border-derived margins (zoneHybridAt) admix census, densities, and signature stands; hybrid zones carry no variant
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -406,7 +406,11 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
   const zoneBiome: BiomeId = zoneBiomeAt(seedStr, zoneZx, zoneZz);
   // The zone's VARIANT, when it rolled one (biome graph, 2026-10-15):
   // density deltas and variant-only life hang off this below.
-  const zoneVariant = zoneVariantAt(seedStr, zoneZx, zoneZz);
+  // The margin check (2026-10-15): a hybrid zone takes the
+  // hybrid INSTEAD of a variant — the border identity is the
+  // stronger fact about the place (zones.ts zoneHybridAt).
+  const zoneHybrid = zoneHybridAt(seedStr, zoneZx, zoneZz);
+  const zoneVariant = zoneHybrid ? null : zoneVariantAt(seedStr, zoneZx, zoneZz);
   const isSpawnZone = zoneZx === 0 && zoneZz === 0;
   // Per-zone dice (zone travel, 2026-10-15): until travel existed,
   // the streams below were seeded from the world seed ALONE — every
@@ -440,12 +444,17 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
   // cultivated homestead ground and always deals the classic census,
   // so the first session's economy never changes.
   // (isSpawnZone is declared with the dice streams above.)
+  // Hybrid admixture (2026-10-15): a margin zone's census opens
+  // to BOTH families — the blend is in the cast list itself,
+  // before any density or weight is applied.
+  const censusMatch = (d: { biomes: BiomeId[] | 'all' }): boolean =>
+    d.biomes === 'all' || d.biomes.includes(zoneBiome) || (zoneHybrid !== null && d.biomes.includes(zoneHybrid.secondary));
   const floraCensusHere = isSpawnZone
     ? floraCensusRest
-    : floraCensusRest.filter((d) => d.biomes === 'all' || d.biomes.includes(zoneBiome));
+    : floraCensusRest.filter(censusMatch);
   const faunaCensusHere = isSpawnZone
     ? FAUNA_CENSUS
-    : FAUNA_CENSUS.filter((d) => d.biomes === 'all' || d.biomes.includes(zoneBiome));
+    : FAUNA_CENSUS.filter(censusMatch);
 
   // One cluster field per kind, offset so flora groves and fauna herds
   // don't trace the same shapes.
@@ -459,8 +468,12 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
   // The zone biome's density gates the scatter — one factor per kind
   // for the whole zone (flora and fauna densities differ per biome:
   // a fungal zone grows plants fine but its fauna runs sparse).
-  const floraDensityAt = (): number => biomeDensityFactor('flora', zoneBiome) * (zoneVariant?.floraDensityMult ?? 1);
-  const faunaDensityAt = (): number => biomeDensityFactor('fauna', zoneBiome) * (zoneVariant?.faunaDensityMult ?? 1);
+  const floraDensityAt = (): number => zoneHybrid
+    ? ((biomeDensityFactor('flora', zoneBiome) + biomeDensityFactor('flora', zoneHybrid.secondary)) / 2) * zoneHybrid.def.floraDensityMult
+    : biomeDensityFactor('flora', zoneBiome) * (zoneVariant?.floraDensityMult ?? 1);
+  const faunaDensityAt = (): number => zoneHybrid
+    ? ((biomeDensityFactor('fauna', zoneBiome) + biomeDensityFactor('fauna', zoneHybrid.secondary)) / 2) * zoneHybrid.def.faunaDensityMult
+    : biomeDensityFactor('fauna', zoneBiome) * (zoneVariant?.faunaDensityMult ?? 1);
 
   const floraScatter = scatterClustered(
     floraPosRng, floraField, floraOx, floraOz,
@@ -482,12 +495,14 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
   const floraDealt: { def: FloraSpeciesDef; point: PlacedPoint }[] = [
     ...fernPoints.map((point) => ({ def: fernDef, point })),
     ...assignSpecies(floraScatter.points, floraCensusHere, floraSpRng, (def, p) =>
-      distanceWeight(def, p.x, p.z) * biomeWeightFactor(def.biomes, zoneBiome),
+      // Hybrid zones weigh a species by the BETTER of its two
+      // families' fits — margin life thrives from both sides.
+      distanceWeight(def, p.x, p.z) * Math.max(biomeWeightFactor(def.biomes, zoneBiome), zoneHybrid ? biomeWeightFactor(def.biomes, zoneHybrid.secondary) : 0),
     ),
   ];
   const faunaDealt = assignSpecies(
     faunaScatter.points, faunaCensusHere, faunaSpRng, (def, p) =>
-      distanceWeight(def, p.x, p.z) * biomeWeightFactor(def.biomes, zoneBiome),
+      distanceWeight(def, p.x, p.z) * Math.max(biomeWeightFactor(def.biomes, zoneBiome), zoneHybrid ? biomeWeightFactor(def.biomes, zoneHybrid.secondary) : 0),
   );
 
   // Build full entities with the shipped starter world's shape: mature,
@@ -639,6 +654,46 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
         swayOffset: 400 + plantedGiants,
       });
       plantedGiants++;
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Hybrid signature stand (2026-10-15): whatever else the census
+  // deals, a margin zone GUARANTEES a stand of the neighbor
+  // family's emblem flora — the visible proof of the blend,
+  // readable from the zone edge.
+  // ---------------------------------------------------------------------
+  if (zoneHybrid) {
+    const SIGNATURE: Record<BiomeId, FloraSpecies> = {
+      meadow: 'petal_mill', wetland: 'mirror_lily', fungal: 'antenna_shroom',
+      ember: 'cinder_bloom', saltglass: 'prism_reed', frost: 'rime_spire',
+      rootwood: 'heartroot', precursor: 'precursor_bloom', bone: 'gravebloom',
+      storm: 'stormcatcher', living: 'dusk_grass',
+    };
+    const sigRng = createSeededRandom(stream('flora:hybridstand'));
+    let plantedSig = 0;
+    for (let attempt = 0; attempt < 50 && plantedSig < 5; attempt++) {
+      const x = (sigRng() * 2 - 1) * 44;
+      const z = (sigRng() * 2 - 1) * 44;
+      if (flora.some((f) => Math.hypot(f.x - x, f.z - z) < 2)) continue;
+      flora.push({
+        id: `flora_hybrid_${plantedSig}`,
+        species: SIGNATURE[zoneHybrid.secondary],
+        x, z,
+        biome: zoneBiome,
+        rotation: sigRng() * Math.PI * 2,
+        scale: 0.95 + sigRng() * 0.5,
+        growthStage: 3,
+        growthProgress: 1,
+        fertilizedGrowth: false,
+        fertilizedYield: false,
+        fertilizerTimer: 0,
+        harvestReady: true,
+        harvestTimer: 0,
+        isHazardous: false,
+        swayOffset: 2100 + plantedSig,
+      });
+      plantedSig++;
     }
   }
 

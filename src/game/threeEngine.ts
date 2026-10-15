@@ -264,6 +264,7 @@ export class BioForgeThreeEngine {
     obsidian_bloom: { color: 0x8b5cf6, intensity: 0.5, distance: 3.5, y: 0.8 },
     prism_reed: { color: 0xa8e6e0, intensity: 0.4, distance: 3, y: 0.9 },
     rime_spire: { color: 0xa5d8ff, intensity: 0.4, distance: 3, y: 1.0 },
+    heartroot: { color: 0xd9a05b, intensity: 0.35, distance: 2.5, y: 0.5 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },

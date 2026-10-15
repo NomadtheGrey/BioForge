@@ -73,7 +73,7 @@ import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
  *     layout in a different species cast; nobody had ever generated
  *     a second zone, so the sameness was theoretical until travel.
  */
-export const WORLD_GEN_VERSION = 9; // v9 (2026-10-15): frost, the 6th built family, joins the bands at 3 hops (family gates cap at 3 — rarity does the far work)
+export const WORLD_GEN_VERSION = 10; // v10 (2026-10-15): rootwood, the 7th built family, joins the bands at 2 hops — and brings the root bridges
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -161,14 +161,14 @@ interface FaunaSpeciesDef {
 const FLORA_CENSUS: FloraSpeciesDef[] = [
   { species: 'lantern_fern', count: 2, baseWeight: 0.28, near: 1.8, far: 0.25, hazardous: false, biomes: 'all' },
   { species: 'bell_bloom', count: 2, baseWeight: 0.22, near: 1.2, far: 0.8, hazardous: false, biomes: ['meadow', 'wetland'] },
-  { species: 'petal_mill', count: 2, baseWeight: 0.20, near: 0.9, far: 1.15, hazardous: false, biomes: ['meadow', 'fungal'] },
-  { species: 'sap_weaver', count: 1, baseWeight: 0.18, near: 0.6, far: 1.4, hazardous: false, biomes: ['fungal', 'ember'] },
+  { species: 'petal_mill', count: 2, baseWeight: 0.20, near: 0.9, far: 1.15, hazardous: false, biomes: ['meadow', 'fungal', 'rootwood'] },
+  { species: 'sap_weaver', count: 1, baseWeight: 0.18, near: 0.6, far: 1.4, hazardous: false, biomes: ['fungal', 'ember', 'rootwood'] },
   { species: 'snap_trap', count: 1, baseWeight: 0.12, near: 0.03, far: 2.4, hazardous: true, biomes: ['wetland', 'fungal'] },
 ];
 
 // 2 soft-puffs, 2 burrow mice, 1 chitin stalker — the shipped five.
 const FAUNA_CENSUS: FaunaSpeciesDef[] = [
-  { species: 'soft_puff', count: 2, baseWeight: 0.45, near: 1.6, far: 0.35, speed: 1.7, speedJitter: 0.1, health: 40, biomes: ['meadow', 'wetland'] },
+  { species: 'soft_puff', count: 2, baseWeight: 0.45, near: 1.6, far: 0.35, speed: 1.7, speedJitter: 0.1, health: 40, biomes: ['meadow', 'wetland', 'rootwood'] },
   { species: 'burrow_mouse', count: 2, baseWeight: 0.35, near: 1.0, far: 1.0, speed: 1.85, speedJitter: 0.15, health: 30, biomes: 'all' },
   { species: 'chitin_stalker', count: 1, baseWeight: 0.20, near: 0.03, far: 2.6, speed: 2.4, speedJitter: 0, health: 120, biomes: ['ember', 'fungal'] },
 ];
@@ -846,6 +846,44 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
   }
 
   // ---------------------------------------------------------------------
+  // Heartroot stands (Rootwood, 2026-10-15) — family-wide BONUS
+  // life: buttress root clusters, the heartwood source. Thickest
+  // in the Rootfall, where a giant came down.
+  // ---------------------------------------------------------------------
+  if (zoneBiome === 'rootwood') {
+    const rootRng = createSeededRandom(stream('flora:heartroot'));
+    const target = zoneVariant?.id === 'rootwood_rootfall' ? 8
+      : zoneVariant?.id === 'rootwood_canopy' ? 5
+      : zoneVariant?.id === 'rootwood_underroot' ? 4 : 3;
+    let plantedRoots = 0;
+    for (let attempt = 0; attempt < 60 && plantedRoots < target; attempt++) {
+      const x = (rootRng() * 2 - 1) * 44;
+      const z = (rootRng() * 2 - 1) * 44;
+      if (Math.hypot(x, z) < 8) continue;
+      if (flora.some((f) => Math.hypot(f.x - x, f.z - z) < 2.4)) continue;
+      flora.push({
+        id: `flora_heartroot_${plantedRoots}`,
+        species: 'heartroot',
+        x,
+        z,
+        biome: zoneBiome,
+        rotation: rootRng() * Math.PI * 2,
+        scale: 1.1 + rootRng() * 0.6,
+        growthStage: 3,
+        growthProgress: 1,
+        fertilizedGrowth: false,
+        fertilizedYield: false,
+        fertilizerTimer: 0,
+        harvestReady: true,
+        harvestTimer: 0,
+        isHazardous: false,
+        swayOffset: 1000 + plantedRoots,
+      });
+      plantedRoots++;
+    }
+  }
+
+  // ---------------------------------------------------------------------
   // Cave mouths (P3, surface half) — grown LAST, once the surface they
   // must respect exists: mouths keep their footprint clear of the
   // homestead (spawn zone only — it's the only zone with one) and of
@@ -973,10 +1011,71 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
     },
   }));
 
+  // ---------------------------------------------------------------------
+  // ROOT BRIDGES (Rootwood, 2026-10-15) — Adam committed to
+  // walkable root bridges: generated assemblies of EXISTING
+  // structure types, so they persist in zone snapshots and obey
+  // every building rule (datums, story support, solvent) for
+  // free. Each bridge: a wall tower at both ends with a pre-grown
+  // vine ladder, and a deck of root_tile_floor at level 1 across
+  // the span. The taught verbs are the way up (click the ladder;
+  // bounce-shrooms work too) and the story-support check is the
+  // way across — step off and you drop, as anywhere. True sloped
+  // ramps are P5-terrain machinery; the ladder tower is the
+  // ramp's v1 form, dressed as root.
+  // ---------------------------------------------------------------------
+  const bridgeStructures: StructureEntity[] = [];
+  if (zoneBiome === 'rootwood') {
+    const bridgeRng = createSeededRandom(stream('structures:rootbridges'));
+    const bridgeCount = zoneVariant?.id === 'rootwood_canopy' || zoneVariant?.id === 'rootwood_rootfall' ? 2 : 1;
+    const occupied = new Set<string>([
+      ...structures.map((st) => `${st.gridX},${st.gridZ}`),
+      ...ruinStructures.map((st) => `${st.gridX},${st.gridZ}`),
+    ]);
+    let builtBridges = 0;
+    for (let attempt = 0; attempt < 24 && builtBridges < bridgeCount; attempt++) {
+      const alongX = bridgeRng() < 0.5;
+      const len = 5 + Math.floor(bridgeRng() * 3); // 5-7 cells = 10-14 m
+      const gx = Math.floor(bridgeRng() * 25) - 12;
+      const gz = Math.floor(bridgeRng() * 25) - 12;
+      const cells: { x: number; z: number }[] = [];
+      let okRun = true;
+      for (let i = 0; i < len; i++) {
+        const cx = alongX ? gx + i : gx;
+        const cz = alongX ? gz : gz + i;
+        if (Math.abs(cx) > 19 || Math.abs(cz) > 19 || occupied.has(`${cx},${cz}`)) { okRun = false; break; }
+        cells.push({ x: cx, z: cz });
+      }
+      if (!okRun) continue;
+      const rot = alongX ? Math.PI / 2 : 0;
+      [cells[0], cells[cells.length - 1]].forEach((c, ei) => {
+        bridgeStructures.push({
+          id: `struct_rootwall_${builtBridges}_${ei}`, type: 'chitin_glass_wall',
+          gridX: c.x, gridZ: c.z, worldX: c.x * 2, worldZ: c.z * 2, rotation: rot,
+          level: 0, health: 200, maxHealth: 200, doorOpenProgress: 0,
+        });
+        bridgeStructures.push({
+          id: `struct_rootladder_${builtBridges}_${ei}`, type: 'vine_ladder',
+          gridX: c.x, gridZ: c.z, worldX: c.x * 2, worldZ: c.z * 2, rotation: rot,
+          level: 0, health: 120, maxHealth: 120, doorOpenProgress: 0,
+        });
+      });
+      cells.forEach((c, ci) => {
+        bridgeStructures.push({
+          id: `struct_rootdeck_${builtBridges}_${ci}`, type: 'root_tile_floor',
+          gridX: c.x, gridZ: c.z, worldX: c.x * 2, worldZ: c.z * 2, rotation: 0,
+          level: 1, health: 200, maxHealth: 200, doorOpenProgress: 0,
+        });
+        occupied.add(`${c.x},${c.z}`);
+      });
+      builtBridges++;
+    }
+  }
+
   return {
     flora: [...flora, ...caveFlora],
     fauna,
-    structures: [...structures, ...ruinStructures],
+    structures: [...structures, ...ruinStructures, ...bridgeStructures],
     relaxedPlacements: floraScatter.relaxed + faunaScatter.relaxed,
   };
 }

@@ -351,6 +351,27 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'heartroot': {
+        // Rootwood (2026-10-15): a buttress cluster — four arched
+        // root slabs leaning into a dense heart bulb. Slab = a box
+        // tilted inward; the heart catches a warm low light.
+        const rootMat = new THREE.MeshStandardMaterial({ color: 0x6b4f2a, roughness: 0.95 });
+        const heartMat3 = new THREE.MeshStandardMaterial({ color: 0xb08968, roughness: 0.7, emissive: 0x59331a, emissiveIntensity: 0.35 });
+        for (let i = 0; i < 4; i++) {
+          const slab = new THREE.Mesh(new THREE.BoxGeometry(0.22, 1.1, 0.5), rootMat);
+          const a = (i / 4) * Math.PI * 2 + 0.3;
+          slab.position.set(Math.cos(a) * 0.42, 0.5, Math.sin(a) * 0.42);
+          slab.rotation.set(Math.sin(a) * 0.5, a, -Math.cos(a) * 0.5);
+          slab.castShadow = true;
+          group.add(slab);
+        }
+        const heart = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), heartMat3);
+        heart.position.y = 0.32;
+        heart.scale.y = 0.8;
+        group.add(heart);
+        break;
+      }
+
       case 'rime_spire': {
         // Ice Fangs (Frost, 2026-10-15): a frozen geyser — clustered
         // ice teeth leaning from a shared base, translucent pale

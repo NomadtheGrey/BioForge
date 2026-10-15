@@ -33,6 +33,8 @@ export interface MultiplayerMessage {
     | 'chat_message'
     | 'entity_upsert'
     | 'entity_remove'
+    | 'zone_request'
+    | 'zone_snapshot'
     | 'day_night';
   id: string;
   senderId: string;
@@ -59,6 +61,12 @@ export interface MultiplayerCallbacks {
   // happened in. Receivers route on it (App owns the routing rules).
   onEntityUpsert?: (kind: EntityKind, entity: EntitySnapshot, zone?: string) => void;
   onEntityRemove?: (kind: EntityKind, id: string, zone?: string) => void;
+  // Zone travel is host-authoritative (Adam, 2026-10-15): a guest
+  // never rolls a zone itself — it ASKS, and the host sends the
+  // zone (rolling it fresh from the seed itself when nobody has
+  // visited). One source of truth, like everything else in co-op.
+  onZoneRequest?: (zone: string) => void;
+  onZoneSnapshot?: (data: { zone: string; world: WorldSnapshot; worldSeed: string }) => void;
   onDayNight?: (value: number) => void;
 }
 
@@ -406,6 +414,24 @@ export class MultiplayerManager {
         break;
       }
 
+      case 'zone_request': {
+        // Only the host answers: it owns the world's zones.
+        if (this.isHost) {
+          const { zone } = msg.payload as { zone: string };
+          this.callbacks.onZoneRequest?.(zone);
+        }
+        break;
+      }
+
+      case 'zone_snapshot': {
+        if (!this.isHost) {
+          this.callbacks.onZoneSnapshot?.(
+            msg.payload as { zone: string; world: WorldSnapshot; worldSeed: string }
+          );
+        }
+        break;
+      }
+
       case 'day_night': {
         const { value } = msg.payload as { value: number };
         this.callbacks.onDayNight?.(value);
@@ -473,6 +499,17 @@ export class MultiplayerManager {
       dayNightCycle,
       ...(travel ? { zone: travel.zone, zones: travel.zones, worldSeed: travel.worldSeed } : {}),
     });
+  }
+
+  /** A guest asks the host for a zone it wants to cross into. */
+  public broadcastZoneRequest(zone: string) {
+    this.broadcastMessage('zone_request', { zone });
+  }
+
+  /** The host's answer: the zone's snapshot, from its own record
+   *  (rolled by the host itself if the zone is new to everyone). */
+  public broadcastZoneSnapshot(zone: string, world: WorldSnapshot, worldSeed: string) {
+    this.broadcastMessage('zone_snapshot', { zone, world, worldSeed });
   }
 
   public broadcastChat(text: string) {

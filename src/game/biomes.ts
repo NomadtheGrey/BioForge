@@ -26,7 +26,7 @@
 // that here; the lab keeps its own copy for the record.
 // ============================================================================
 
-export type BiomeId = 'meadow' | 'wetland' | 'fungal' | 'ember' | 'saltglass' | 'frost' | 'rootwood' | 'precursor';
+export type BiomeId = 'meadow' | 'wetland' | 'fungal' | 'ember' | 'saltglass' | 'frost' | 'rootwood' | 'precursor' | 'bone';
 
 /** How often a biome shows up among the rolls it's eligible for. */
 export type BiomeRarity = 'common' | 'uncommon' | 'rare';
@@ -68,6 +68,7 @@ export const BIOMES: BiomeDef[] = [
   { id: 'frost', floraDensity: 0.7, faunaDensity: 0.75, tier: 2, minHops: 3, rarity: 'uncommon' }, // the 6th family built (11th on the roster): the steady state — it never thaws. Family gates cap at 3 hops (Adam, 2026-10-15); rarity does the far-country work.
   { id: 'rootwood', floraDensity: 1.3, faunaDensity: 1.0, tier: 1, minHops: 2, rarity: 'common' }, // the 7th family built: the wooded one — giant living roots as architecture; the lushest country in the game
   { id: 'precursor', floraDensity: 1.1, faunaDensity: 0.8, tier: 2, minHops: 3, rarity: 'uncommon' }, // the 8th family built: gardens of the vanished — nature growing through engineered geometry
+  { id: 'bone', floraDensity: 0.9, faunaDensity: 0.9, tier: 2, minHops: 3, rarity: 'uncommon' }, // the 9th family built: graveyard country — death-fertile, scavenger land
 ];
 
 /** A biome's exoticness/danger tier (0 = hearthlands … 3 = far weird). */
@@ -102,6 +103,7 @@ export const BIOME_TINTS: Record<BiomeId, { color: number; strength: number }> =
   frost: { color: 0xcfe4f5, strength: 0.5 }, // ice blue-white
   rootwood: { color: 0x4a5d23, strength: 0.5 }, // deep green-brown
   precursor: { color: 0xa8b56b, strength: 0.45 }, // pale gold-green, cultivated light
+  bone: { color: 0xd8cfb8, strength: 0.5 }, // parchment bone-pale
 };
 
 /** Weight bonus a biome-affined species gets inside its home biome(s). */
@@ -521,6 +523,70 @@ export const BIOME_VARIANTS: BiomeVariantDef[] = [
     nameParts: {
       first: ['Standing', 'Patient', 'Iron', 'Bright', 'Old'],
       second: ['Tending', 'Field', 'Rows', 'Works', 'Court'],
+    },
+  },
+  {
+    // The Bonefields (Bone, 2026-10-15): the family's common
+    // face — fragments and rib-shards everywhere (generated bone
+    // scenery), and flora sheltering in their shade. The soil
+    // remembers everything that ever died here, and feeds it
+    // forward.
+    id: 'bonefields',
+    family: 'bone',
+    name: 'The Bonefields',
+    minHops: 3,
+    rarity: 'uncommon',
+    tint: { color: 0xe2dac6, strength: 0.55 }, // paler, bleached
+    floraDensityMult: 1.0,
+    faunaDensityMult: 1.0,
+    effect: null,
+    lightDistanceMult: 1,
+    lightIntensityMult: 1.05,
+    nameParts: {
+      first: ['Bleached', 'Quiet', 'Old', 'Patient', 'Dry'],
+      second: ['Fields', 'Bones', 'Rest', 'Shards', 'Flats'],
+    },
+  },
+  {
+    // The Marrow Flats (Bone, 2026-10-15): the generous face —
+    // the richest bone-soil in the world, gravebloom standing
+    // thick. Death, fully composted into generosity.
+    id: 'marrow_flats',
+    family: 'bone',
+    name: 'The Marrow Flats',
+    minHops: 3,
+    rarity: 'uncommon',
+    tint: { color: 0xcfc39e, strength: 0.5 }, // warmer marrow tone
+    floraDensityMult: 1.3,
+    faunaDensityMult: 0.9,
+    effect: null,
+    lightDistanceMult: 1,
+    lightIntensityMult: 1,
+    nameParts: {
+      first: ['Rich', 'Warm', 'Deep', 'Quiet', 'Old'],
+      second: ['Marrow', 'Flats', 'Fields', 'Rest', 'Soil'],
+    },
+  },
+  {
+    // Leviathan Graveyard (Bone, 2026-10-15): ONE impossible
+    // skeleton — ribs you walk under, a skull like a house —
+    // as generated scenery. Adam's call: it ROLLS as a rare
+    // variant; rarity does the scarcity work, no landmark
+    // bookkeeping. Reverent quiet country.
+    id: 'leviathan_graveyard',
+    family: 'bone',
+    name: 'Leviathan Graveyard',
+    minHops: 4,
+    rarity: 'rare',
+    tint: { color: 0xdcd2ba, strength: 0.5 },
+    floraDensityMult: 1.1,
+    faunaDensityMult: 0.8,
+    effect: null,
+    lightDistanceMult: 1,
+    lightIntensityMult: 1.05,
+    nameParts: {
+      first: ['Great', 'Silent', 'Ancient', 'Patient', 'Vast'],
+      second: ['Rest', 'Graveyard', 'Ribs', 'Quiet', 'Fall'],
     },
   },
 ];

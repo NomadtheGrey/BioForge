@@ -265,6 +265,7 @@ export class BioForgeThreeEngine {
     prism_reed: { color: 0xa8e6e0, intensity: 0.4, distance: 3, y: 0.9 },
     rime_spire: { color: 0xa5d8ff, intensity: 0.4, distance: 3, y: 1.0 },
     heartroot: { color: 0xd9a05b, intensity: 0.35, distance: 2.5, y: 0.5 },
+    gravebloom: { color: 0xf0d9a0, intensity: 0.3, distance: 2.5, y: 0.7 },
     precursor_bloom: { color: 0xf5d76e, intensity: 0.45, distance: 3, y: 0.9 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
@@ -298,6 +299,8 @@ export class BioForgeThreeEngine {
     // Tender husks are DEAD — the faintest bone-pale halo only,
     // so a husk reads in the dark without pretending to glow.
     tender_husk: { color: 0xd6cdb4, intensity: 0.15, distance: 2.5, y: 1.4 },
+    bone_fragment: { color: 0xd8cfb8, intensity: 0.1, distance: 2, y: 0.5 },
+    leviathan_ribs: { color: 0xe2dac6, intensity: 0.2, distance: 4.5, y: 3 },
     ruin_exit: { color: 0x2dd4bf, intensity: 0.9, distance: 4.5, y: 1.4 },
     precursor_cache: { color: 0x67e8f9, intensity: 0.55, distance: 3, y: 0.8 },
     artifact_heart: { color: 0xfb7185, intensity: 1.1, distance: 5.5, y: 1.5 },

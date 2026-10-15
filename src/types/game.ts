@@ -16,6 +16,7 @@ export type ItemId =
   | 'cinder_scale'
   | 'frost_velvet'
   | 'prism_skin'
+  | 'prism_hair'
   | 'lodestone_sand'
   | 'field_scute'
   | 'dew_essence'
@@ -239,7 +240,15 @@ export type FaunaSpecies =
   | 'dune_roller'
   | 'boneback_tortoise'
   | 'marrow_deer'
-  | 'kiln_star';
+  | 'kiln_star'
+  // Slice 5 (2026-10-15) — the danger bench's first hunters.
+  | 'fangwolf'
+  | 'salt_scorpion'
+  | 'slag_serpent'
+  | 'prism_cat'
+  | 'fen_lurker'
+  | 'hollow_widow'
+  | 'sporeback';
 
 export interface FaunaEntity {
   id: string;
@@ -257,6 +266,10 @@ export interface FaunaEntity {
   health: number;
   maxHealth: number;
   byproductTimer: number; // spawns bio_pellet or carapace_scale
+  /** Seconds until a wild hunter may bite again (slice 5 hunt
+   *  system). Optional: absent on saves from before the danger
+   *  slice; the sim treats absent as ready. */
+  biteTimer?: number;
   animTime: number;
   /** Biome TYPE this creature spawned in (world-gen stamp; absent on old saves). */
   biome?: BiomeId;

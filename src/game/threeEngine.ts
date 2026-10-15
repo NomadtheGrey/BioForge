@@ -400,8 +400,22 @@ export class BioForgeThreeEngine {
     });
   }
 
+  /**
+   * Pointer lock exists only on fine-pointer (mouse) setups — touch
+   * browsers never engage it, and the game must still run there
+   * (Adam, 2026-10-14: the game wouldn't START on a phone, because
+   * every tap was being swallowed into a lock request that could
+   * never succeed). One availability check, shared by the lock
+   * request and the click routing below.
+   */
+  private pointerLockAvailable(): boolean {
+    if (!('requestPointerLock' in HTMLElement.prototype)) return false;
+    return !(typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches);
+  }
+
   public requestPointerLock() {
     if (this.controls.isLocked) return;
+    if (!this.pointerLockAvailable()) return;
     this.controls.lock();
   }
 
@@ -1691,13 +1705,17 @@ private initEventListeners() {
     const el = this.container;
 
     el.addEventListener('click', () => {
-      // If pointer is unlocked, first click requests lock
-      if (!this.controls.isLocked) {
+      // If pointer is unlocked, first click requests lock — EXCEPT
+      // where pointer lock doesn't exist (touch): there a tap is a
+      // tool tap, and swallowing it into a lock request that can
+      // never succeed would eat every interaction on the phone.
+      if (!this.controls.isLocked && this.pointerLockAvailable()) {
         this.requestPointerLock();
         return;
       }
 
-      // If pointer is locked, trigger active tool interaction
+      // If pointer is locked (or lock doesn't exist here), trigger
+      // the active tool interaction.
       this.handleCenterClick();
     });
 

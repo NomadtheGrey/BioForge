@@ -119,7 +119,7 @@ not temperament or social structure.
 **The strangeness gradient applies to movement too** (draft):
 near spawn, familiar modes (stationary, walking, hopping,
 burrowing); mid-distance, the less obvious ones (swimming,
-climbing, gliding, slithering); far out, the oddities (rolling,
+climbing, aerial, slithering); far out, the oddities (rolling,
 drifting colonies, phasing). Preparation stays the gate — never
 a lock — per the settled biome rules.
 
@@ -137,9 +137,27 @@ a lock — per the settled biome rules.
    today; procedural squash-and-stretch carries it. Also the
    bounce-shroom's lesson: the world itself can lend this mode to
    the player.
-4. **Flying** — powered flight; the creature chooses its path
-   through the air and can gain height at will. (See the gliding
-   note below on the shipped moth / glider wording.)
+4. **Aerial (flying <-> gliding)** — travel through the air,
+   recorded as ONE mode with a mandatory per-species spectrum,
+   the **flight spectrum**: powered <-> glide. (Adam's framing,
+   2026-10-15: the two are really a spectrum; the split-vs-merge
+   call was delegated to Marlowe, who merged them — see item 7
+   and the resolved question below.) Anchors: **obligate flyer**
+   (a fly — powered or grounded, nothing between); **flyer-
+   leaning** (a robin — flies as a rule, glides in snatches);
+   **glider-leaning** (an albatross — glides as a rule, flaps
+   when it must); **obligate glider** (a flying squirrel, the
+   Vesper Glider — height is a resource it spends and must
+   re-earn from launches, slopes, or thermals). Where a species
+   sits decides its energy story and its follow behavior: a
+   powered flyer follows anywhere; an obligate glider follows
+   in arcs between high points and sometimes simply cannot —
+   which is information, not a defect. This also vindicates the
+   shipped stubs, which record both the Mirror Moth and the
+   Vesper Glider under "flying": correct at the mode level, with
+   the spectrum now carrying the difference (Moth: powered
+   flutter / hover, mid-spectrum; Glider: the obligate-glide
+   end).
 5. **Swimming** — travel through liquid, bound to it. Needs real
    liquid to live in: marsh pools, flooded caves, whatever the
    Wetland family grows. A swimmer out of its element is beached,
@@ -152,15 +170,10 @@ a lock — per the settled biome rules.
 
 ### Marlowe's additions (2026-10-15, unapproved)
 
-7. **Gliding / Soaring** — unpowered or semi-powered air travel:
-   height is a resource the creature spends and must re-earn from
-   thermals, slopes, or launches. Proposed as *distinct* from
-   flying because the energy story — and the follow behavior —
-   differ completely. NOTE: the shipped behavior stubs currently
-   record both the Mirror Moth ("flying — low hover-drift") and
-   the Vesper Glider ("flying — glide + bob") under *flying*; this
-   split is a design-chat refinement proposal, not a rewrite of
-   shipped fact, and needs Adam's call.
+7. **Gliding / Soaring** — NOT a separate mode: it is the glide
+   end of the Aerial spectrum (item 4). This stub stays in the
+   numbering so earlier references to "item 7" still land in the
+   right place.
 8. **Slithering / Crawling** — legless, belly-driven travel.
    Snakes, worms, slugs — and the only honest option for Gel life.
    Cheap procedurally; reads beautifully at small scale.
@@ -172,7 +185,7 @@ a lock — per the settled biome rules.
     The creature influences its course more than it chooses it.
     Spores, vapor life, floating flora, drifting colonies. (The
     Mirror Moth's pool-to-pool drift is a near neighbor of this
-    mode wearing flying's clothes — see the gliding note.)
+    mode wearing aerial's clothes — see item 4's spectrum.)
 11. **Rolling** — travel as a living wheel. Sounds like a joke
     until a Crystalline geode-creature rolls slowly across
     Saltglass, gathering mineral crust as it goes. Nearly free to
@@ -221,8 +234,14 @@ a lock — per the settled biome rules.
   crawls)? Marlowe's lean: primary + optional secondary, because
   the transformation moment ("wait — it can *fly* now?") is a
   discovery the game should be able to give. Awaiting Adam.
-- **The flying / gliding split** (item 7 above): adopt, or keep
-  the shipped stubs' single "flying" with flavor notes?
+- **The flying / gliding split** — RESOLVED (2026-10-15): no
+  split. Aerial is one mode (item 4) with a mandatory per-species
+  flight spectrum, powered <-> glide. Adam supplied the spectrum
+  framing and delegated the call; Marlowe merged rather than
+  split, because a binary split would have misfiled every
+  robin and albatross in between — and because the stubs'
+  existing single "flying" label turns out to be right at the
+  mode level.
 - **Element honesty:** does a mode its home cannot support (a
   swimmer rolled into a dry zone) simply never spawn there —
   affinity enforced, as with biomes — or can the world strand
@@ -398,8 +417,8 @@ Adam's example exercises the whole system at once, so it is
 recorded as the composition rule's type specimen (an illustration,
 not yet a species design): **Life Type Fauna; Shape Finned
 primary + Winged secondary; Locomotion Swimming primary +
-Gliding secondary** (flying fish glide — they do not fly — one
-more vote for the Axis 2 flying/gliding split). It is also a
+Aerial secondary, at the obligate-glide end of the flight
+spectrum** (flying fish glide — they do not fly). It is also a
 standing candidate shape for the open **Wetland family signature**
 seat: the swimmer seat is currently empty — the marsh has pools,
 a flying moth, and a floating lily, and nothing in the water.

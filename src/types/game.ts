@@ -19,6 +19,7 @@ export type ItemId =
   | 'saltglass_shard'
   | 'nevermelt_ice'
   | 'heartwood'
+  | 'living_thread'
   | 'basic_compost'
   | 'glow_spore'
   | 'hand_lantern_fern'
@@ -145,7 +146,8 @@ export type FloraSpecies =
   | 'obsidian_bloom'
   | 'prism_reed'
   | 'rime_spire'
-  | 'heartroot';
+  | 'heartroot'
+  | 'precursor_bloom';
 
 export interface FloraEntity {
   id: string;

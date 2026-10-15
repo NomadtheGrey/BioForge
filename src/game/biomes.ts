@@ -26,7 +26,7 @@
 // that here; the lab keeps its own copy for the record.
 // ============================================================================
 
-export type BiomeId = 'meadow' | 'wetland' | 'fungal' | 'ember' | 'saltglass' | 'frost' | 'rootwood';
+export type BiomeId = 'meadow' | 'wetland' | 'fungal' | 'ember' | 'saltglass' | 'frost' | 'rootwood' | 'precursor';
 
 /** How often a biome shows up among the rolls it's eligible for. */
 export type BiomeRarity = 'common' | 'uncommon' | 'rare';
@@ -67,6 +67,7 @@ export const BIOMES: BiomeDef[] = [
   { id: 'saltglass', floraDensity: 0.75, faunaDensity: 0.7, tier: 2, minHops: 3, rarity: 'uncommon' }, // the 5th family (2026-10-15): salt, crystal, glare — the sparsest country yet
   { id: 'frost', floraDensity: 0.7, faunaDensity: 0.75, tier: 2, minHops: 3, rarity: 'uncommon' }, // the 6th family built (11th on the roster): the steady state — it never thaws. Family gates cap at 3 hops (Adam, 2026-10-15); rarity does the far-country work.
   { id: 'rootwood', floraDensity: 1.3, faunaDensity: 1.0, tier: 1, minHops: 2, rarity: 'common' }, // the 7th family built: the wooded one — giant living roots as architecture; the lushest country in the game
+  { id: 'precursor', floraDensity: 1.1, faunaDensity: 0.8, tier: 2, minHops: 3, rarity: 'uncommon' }, // the 8th family built: gardens of the vanished — nature growing through engineered geometry
 ];
 
 /** A biome's exoticness/danger tier (0 = hearthlands … 3 = far weird). */
@@ -100,6 +101,7 @@ export const BIOME_TINTS: Record<BiomeId, { color: number; strength: number }> =
   saltglass: { color: 0xd8e2dc, strength: 0.45 }, // pale salt-green-white
   frost: { color: 0xcfe4f5, strength: 0.5 }, // ice blue-white
   rootwood: { color: 0x4a5d23, strength: 0.5 }, // deep green-brown
+  precursor: { color: 0xa8b56b, strength: 0.45 }, // pale gold-green, cultivated light
 };
 
 /** Weight bonus a biome-affined species gets inside its home biome(s). */
@@ -456,6 +458,69 @@ export const BIOME_VARIANTS: BiomeVariantDef[] = [
     nameParts: {
       first: ['Fallen', 'Great', 'Split', 'Old', 'Resting'],
       second: ['Rootfall', 'Giant', 'Rest', 'Reach', 'Grave'],
+    },
+  },
+  {
+    // Precursor Garden (2026-10-15): the signature face — the
+    // tended geometry at full strength. Blooms grow in a visible
+    // spiral here (worldGen plants the pattern), and the garden
+    // pays double: Living Thread AND rich ordinary stock (Adam).
+    id: 'precursor_garden',
+    family: 'precursor',
+    name: 'Precursor Garden',
+    minHops: 3,
+    rarity: 'uncommon',
+    tint: { color: 0xbcc97e, strength: 0.5 }, // brighter cultivated gold
+    floraDensityMult: 1.25,
+    faunaDensityMult: 0.9,
+    effect: null,
+    lightDistanceMult: 1,
+    lightIntensityMult: 1.05,
+    nameParts: {
+      first: ['Golden', 'Patient', 'Ordered', 'Bright', 'Old'],
+      second: ['Garden', 'Rows', 'Spiral', 'Terrace', 'Court'],
+    },
+  },
+  {
+    // The Untended (Precursor, 2026-10-15): the same garden,
+    // ten thousand years without a gardener — the spiral gone
+    // feral, lush and dark. The family's wild face.
+    id: 'precursor_untended',
+    family: 'precursor',
+    name: 'The Untended',
+    minHops: 3,
+    rarity: 'uncommon',
+    tint: { color: 0x3d5222, strength: 0.6 }, // deep wild green
+    floraDensityMult: 1.3,
+    faunaDensityMult: 1.1,
+    effect: null,
+    lightDistanceMult: 1,
+    lightIntensityMult: 0.9,
+    nameParts: {
+      first: ['Wild', 'Feral', 'Lost', 'Tangled', 'Deep'],
+      second: ['Untended', 'Garden', 'Tangle', 'Rows', 'Deep'],
+    },
+  },
+  {
+    // The Tending Field (Precursor, 2026-10-15): where the
+    // cultivation machinery still stands in the rows — the
+    // densest bloom spirals in the world. Rare. (The machines
+    // themselves: Adam's call pending — statues as dressing, or
+    // creatures in the later creature phase.)
+    id: 'precursor_tending',
+    family: 'precursor',
+    name: 'The Tending Field',
+    minHops: 4,
+    rarity: 'rare',
+    tint: { color: 0xc2cf8a, strength: 0.45 },
+    floraDensityMult: 1.1,
+    faunaDensityMult: 0.8,
+    effect: null,
+    lightDistanceMult: 1,
+    lightIntensityMult: 1.1,
+    nameParts: {
+      first: ['Standing', 'Patient', 'Iron', 'Bright', 'Old'],
+      second: ['Tending', 'Field', 'Rows', 'Works', 'Court'],
     },
   },
 ];

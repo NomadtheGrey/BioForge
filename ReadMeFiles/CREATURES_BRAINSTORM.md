@@ -45,15 +45,16 @@ the biome program's shipped-behavior stubs and flora
 notes (this design inherits from it; it is a different
 file, kept by the biome chat).
 
-**Roster count:** 348 species designed (through the
-twenty-fifth pass), plus the shipped cast already in
+**Roster count:** 358 species designed (through the
+twenty-sixth pass), plus the shipped cast already in
 the game. The hybrid graph stands complete (55 of
 55 pairings), the epic set is seated, the water
 column and the alien rivers are populated; the
 flora floods (48), the fungus floods (72), and both
-wide-range waves (24) are in. The design backlog is
-empty — what remains is events: the Living family's
-build seats, and the caves, at Adam's word. Layers complete so far: family emblems 11 of 11;
+wide-range waves (24) are in; and with the Living
+family built, its seats are filled — every built
+variant in the game now holds a designed one-off.
+What remains is the caves, at Adam's word. Layers complete so far: family emblems 11 of 11;
 a one-off for every built biome variant; hybrid
 creatures for 33 of 55 pairings; background casts under
 way in every family; and the wide-range (semi-

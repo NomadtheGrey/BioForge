@@ -560,3 +560,284 @@ work — its variant seats will be filled in the
 batch after it lands), and the caves, at Adam's
 word — bestiary, and the tenth epic chair, waiting
 in the dark where he left them.
+
+## Twenty-sixth roster pass — The Living, seated (10)
+
+The Living is BUILT (the biome program, 2026-10-15),
+and the build named its seats, as every build has.
+The facts this pass honors, from their doc: the
+family's variants ARE its two faces — *Welcoming
+Valley* (min 4, rare) and *Hungry Valley* (min 5,
+rare) — so the variant seats are one creature for
+each temperament. Their flora stands planted:
+DUSKGRASS (black-violet, the family's ground) and
+the HEARTBLOOM — one per zone at its seeded heart
+point, harvesting to HEART SAP, double when fed,
+and accepting fertilizer as a MEAL that satiates a
+hungry valley. Their note stands over the whole
+pass: "the valley itself is the organism — its
+signature 'creature' may be the valley entire."
+Our Greeter and the Valley Heart answered that at
+family scale; this pass seats the two faces and the
+Heartbloom's citizenry.
+
+**349. Gladhand** — Welcoming Valley ONLY (the
+face's one-off; it does not exist in Hungry valleys,
+and its absence at a valley's edge is itself data).
+Fauna x Ordinary. Shape: Plantiform (the Greeter's
+kin at walking scale); modifier: many-handed — a
+dozen leaf-hands along its arms, all of them
+offered. Locomotion: Walking. Its profession is
+USHER: it meets visitors at the valley's edge,
+takes a hand (a gauntlet serves; it holds gently
+and lets go the instant the hold is resisted — the
+family's covenant, kept in miniature), and walks
+you by the pleasant route to the Heartbloom.
+Spectra: welcoming past the template's vocabulary /
+Social, one per approach-path / unhurried / mid /
+Diet light and regard / diurnal / Curiosity
+ceremonial / Territory the valley's approaches /
+Tameability: it is not tamed; it is MET (the entry
+records bonding as N/A and hospitality as total).
+Drops: none. Hook: every Welcoming valley keeps an
+usher at its gate; the Gladhand is why arriving in
+the valley feels like being expected.
+
+**350. Taster** — Hungry Valley ONLY (the other
+face's one-off). Fauna x Ordinary. Shape: Serpentine
++ Multiped (a low, long taster on many small legs);
+modifier: tongue-fanned — it TASTES THE AIR
+constantly, in the direction of visitors (the biome
+doc's own image — "bushes leaning in to taste the
+air" — given legs and a profession: it samples
+guests for the valley, and where a taster LINGERS,
+the valley is deciding). Locomotion: Slithering +
+Walking. Spectra: curious-aggressive in the
+valley's service / SOLO, reporting to a country /
+slow, deliberate / mid / Diet it does not eat what
+it tastes; it eats what the valley leaves / day-
+night both, slower at night / Curiosity gustatory
+and total / Territory a tasting-circuit near the
+approaches / UNTAMABLE — it is staff. Tell, per the
+bench doctrine, and the entry makes it generous:
+a taster that turns AWAY has filed a favorable
+report; a taster that follows at tasting distance,
+at your pace, for a hundred paces, is the Hungry
+Valley's whole sentence, and the correct response
+is the Threshold Hound's: let something walk you
+OUT. Peaceful: it tastes, considers, withdraws —
+the consideration is the event. Drops: none.
+Hook: the Hungry face's one-off is not its teeth;
+it is its tongue — the valley's decision, made
+visible at ankle height, in time to matter.
+
+**351. Heartbearer** — the Living (both faces).
+Fauna x Ordinary. Shape: Quadruped (porter plan,
+broad-backed); modifier: heart-scented — it carries
+the Heartbloom's smell on its coat, and the whole
+valley reads the scent as SAFE CONDUCT. Locomotion:
+Walking — a SUPPLY LINE with legs: it carries food
+(fallen fruit, compost, offerings, the Meal Moth's
+dust included) from the valley's edges to the heart
+point, in all weathers, on paths it keeps. Spectra:
+dutiful / loose bearer companies on the great paths /
+steady / LARGE / Diet it eats at the heart, from
+the heart's leavings / diurnal / Curiosity route-
+shaped / Territory the heart-paths / Tameability:
+not applicable — but a player may ADD to its load
+(the entry is plain about the mechanic: anything
+edible placed on a heartbearer's back is DELIVERED
+— feeding the valley, the ultimate taming of the
+biome doc's open question, has a supply chain, and
+this is it; a fed heart blooms double, and a satiated
+Hungry valley is the bearer's work as much as the
+feeder's). Drops: none. Hook: the Heartbloom accepts
+meals; the heartbearer is how the valley feeds
+itself between miracles — follow one, and you will
+be led, by the country's own road, to its heart.
+
+**352. Dusk Grazer** — the Living (both faces).
+Fauna x Ordinary. Shape: Quadruped (low grazer
+plan); modifier: dusk-coated — it eats DUSKGRASS,
+and its coat takes the grass's black-violet in
+season (the family's lawnkeeper: a grazed valley is
+a healthy one — heartward paths stay open where
+grazers work, and the Heartbearer walks behind
+them the way wagons follow mowers). Locomotion:
+Walking. Spectra: placid / loose valley herds /
+slow / mid / Diet duskgrass, entirely — and the
+entry notes the consequence: it is the only citizen
+that can eat the family's ground flora in bulk,
+which makes it the valley's stomach at animal scale /
+diurnal / Curiosity low / Territory a grazing
+circuit / Tameability 50% — the valley's Meadowback:
+kept grazers at a homestead's edge keep the
+duskgrass from the door, which valley homesteads
+count as rent paid in both directions. Drops: shed
+violet wool in season: **Dusk Wool** (new item) —
+black-violet, light-drinking: the family's textile.
+Hook: every organism needs its digestion; the
+valley's walks on four legs and wears the color of
+what it eats.
+
+**353. Edge Wren** — the Living (the BORDERS, both
+faces). Fauna x Ordinary. Shape: Winged (wren plan);
+modifier: border-true — it lives at valley edges
+and NOWHERE else (its whole range is a line).
+Locomotion: Aerial, flyer-leaning + Hopping. It
+answers the biome doc's open question — "can a
+host's temperament be read before entering?" — in
+creature form: at a WELCOMING valley's edge, edge
+wrens SING visitors across, hopping ahead along the
+path like a dotted line that approves of you. At a
+HUNGRY valley's edge, the wrens are PRESENT at a
+distance, silent, and leave as you approach — the
+silence is the reading, and it is never wrong (the
+entry ranks it with the Threshold Hound's direction
+and the ivies' warmth as the family's three honest
+signs — and first of the three, because it speaks
+before the border itself). Spectra: bright / edge
+companies / quick / tiny / Diet border insects /
+diurnal / Curiosity high / Territory the edge,
+absolutely / Tameability 45% at a border homestead —
+the only taming address it recognizes is an edge.
+Drops: none. Hook: the valley can be read before
+it is entered; the wren is the reading, with wings.
+
+**354. Meal Moth** — the Living (both faces).
+Fauna x Ordinary. Shape: Winged (moth plan);
+modifier: dust-laden — it carries COMPOST DUST on
+its wings from the valley's rot-rich edges to the
+Heartbloom, dusting the bloom at dusk (the Spiral
+Moth pollinates the Precursor's blooms on schedule;
+the meal moth FEEDS the Living's, on appetite — two
+moths, two far families, two kinds of errand: order
+and dinner). Locomotion: Aerial, glider-leaning.
+Spectra: industrious / dusk companies / drifting /
+small / Diet nectar at the edges, paid in dust
+carried / dusk-night / Curiosity bloom-led /
+Territory the edge-to-heart commute / Tameability
+0% — but a homestead that keeps a compost heap at
+the valley's edge becomes a stop on its route
+within a season, and a stopped-at heap is a fed
+valley in miniature (the entry calls this the
+smallest unit of the ultimate taming: you do not
+feed the valley; you stock the moth's pantry, and
+the moth does the diplomacy). Drops: none.
+Hook: the Heartbloom's meals arrive by air, at
+dusk, on a moth's wings — the valley's room service,
+older than the zones.
+
+**355. Heart Beetle** — the Living (the heart
+points). Fauna x Ordinary. Shape: Multiped (beetle
+plan); modifier: sap-glossed — it drinks HEART SAP
+at the bloom's base and wears the shine (the bloom's
+commensal and cleaner: it eats the bloom's pests,
+trims its dead petals, and its clusters are the
+heart's HEALTH READOUT — a ring of glossy beetles
+means a thriving heart; a heart point without
+beetles is a valley to worry about, and the entry
+files the worry as mechanics, not mood).
+Locomotion: Walking + Climbing at heart scale.
+Spectra: busy / heart colonies / quick / small /
+Diet sap, pests, petal-fall / diurnal / Curiosity
+low / Territory one heart point, utterly /
+Tameability: not applicable in the Stillmouth's
+sense — you keep a heart beetle by keeping a heart,
+which is the valley's whole covenant restated at
+beetle scale. Drops: shed gloss-shells at the
+bloom's base, unlisted — gathered with the heart's
+permission, which is to say at a Welcoming heart,
+in season, leaving the ring unbroken. Hook: the
+family's largest idea (the valley is one organism)
+keeps needing small citizens to be legible; the
+beetle is the heart's pulse, outsourced to legs.
+
+**356. Answer Deer** — the Living (both faces).
+Fauna x Ordinary. Shape: Quadruped (deer plan);
+modifier: visitor-tuned — the Answer Tree replies
+in leaves; the answer deer replies in TEMPERAMENT:
+it mirrors the visitor it is with (calm for the
+calm, still for the still, skittish for the loud —
+a personal mirror at animal scale, under the
+valley's collective one). Locomotion: Walking.
+Spectra: temperament ECHO (the template's slot
+records it without flinching) / loose valley herds /
+graceful / mid / Diet duskgrass shoots and heart-
+fruit fall / crepuscular / Curiosity social /
+Territory a heart's grazing ring / Tameability
+55% — by BEING calm, over days: it is the roster's
+only tame whose method is the tamer's own state,
+and the codex's note is one line ("it keeps what
+you bring it"). In a Hungry valley, answer deer
+are the early warning with hooves: a herd that
+mirrors NOTHING — standing tuned to an appetite
+that isn't yours — is the valley's mood at grazing
+distance, and the entry advises believing them.
+Drops: shed antler velvet, unlisted. Hook: the
+valley answers countries; the deer answers PERSONS
+— the mirror, at the scale of a conversation.
+
+**357. Walking Root** — the Living (both faces).
+*Fauna* x Ordinary — the family's founding
+sentence ("does the flora almost behave like
+fauna?") as a citizen. Shape: Plantiform +
+Multiped (a root cluster that WALKS — slowly,
+seasonally, on root-legs, a meter a day in its
+moving weeks, then rooting down for a season in
+better ground). Locomotion: Walking, at the
+spectrum's geological end, with Stationary seasons
+(the template records both, and the species is the
+locomotion axis's own edge case, kept proudly).
+Spectra: patient / SOLO — a root walks alone, and
+valleys mark its road for decades / the roster's
+second honest SLOWEST, in a tie with a snail in
+amber / LARGE when rooted, mid when walking / Diet
+soil, light, and the valley's regard / Day-night:
+it walks at night, roots by day — the opposite of
+everything, on root logic / Curiosity ground-shaped /
+Territory a lifetime's slow circuit / UNTAMABLE
+and unbothered. Drops: its ROOTED seasons leave a
+root-crown behind — **Root Crown** (new item) — a
+living stool of heartwood-grade root that keeps
+growing where it was left: the valley's furniture,
+abandoned on a schedule of decades. Hook: the
+pass's strangest seat goes to the citizen that
+could not decide which kingdom's locomotion to
+use, and uses both, at a meter a day, forever.
+
+**358. Heartling** — the Living (both faces).
+Fauna x Ordinary. Shape: Quadruped (small, round,
+mouse-adjacent — and the entry places it carefully:
+it is NOT a mouse; it is the valley's own small
+citizen, and the distinction is its dignity);
+modifier: pulse-synced — its heartbeat SYNCs to
+the valley's heart point: the nearer the heart,
+the stronger and steadier its pulse (a living
+compass: valley travelers navigate by a heartling
+in a pocket the way sailors navigate by a needle —
+its quickening finds the heart through any fog,
+any dark, either temperament: in a Hungry valley,
+a heartling's pulse is the one honest instrument,
+and it does not lie about hurrying). Locomotion:
+Walking + Hopping. Spectra: gentle / burrow
+companies near paths / quick / small / Diet
+duskgrass seed and heart-fruit crumbs / day-night
+both, pulse-led / Curiosity warm / Territory a
+burrow and its heart-road / Tameability 70% — the
+family's highest: it WANTS the pocket; a heartling
+kept is a heart kept, in the small, and the codex
+notes that valley homesteads measure their standing
+by whether the heartlings stayed. Drops: none.
+Hook: the Living's seats close with its smallest
+citizen and its largest idea in one body — the
+valley has a heart, the heart has a point, and the
+point has a compass that is alive and likes you.
+
+**The Living is seated.** With this pass, every
+built variant in the game — all 27, across eleven
+families — holds a designed one-off, and the last
+unbuilt family has its cast: two faces seated, the
+Heartbloom's citizenry in place, the Duskgrass
+grazed, the borders read by wrens. Roster designed
+total: 358.

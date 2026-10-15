@@ -559,6 +559,234 @@ A species design in this doc is not complete until it carries a
 spectra line — all ten fields, even if the entry is "mid / n/a"
 with a reason.
 
+## First roster pass — the six open seats (designed 2026-10-15)
+
+Designed by Marlowe under Adam's species delegation ("work each
+species; we'll be here for weeks if I have to approve every
+one"), filling the open seats named by the distribution model:
+one ubiquitous pest, four family emblems (meadow / wetland /
+fungal / ember), one biome-unique (the Fungal Hollow). All six
+are complete template entries: Kind x Material, Shape line,
+Locomotion line, the full ten-field spectra, home, drops,
+taming, and hook. Names follow the shipped plain-compound style
+(Soft-Puff, Burrow Mouse, Mirror Moth) per Adam's instruction —
+nothing AI-ified. Everything here is draft until Adam's
+end-of-work review; cleanup of any wonkiness is expected and
+welcome.
+
+### 1. Dew Gnat — the everywhere pest (ubiquitous layer)
+
+- **Life**: Fauna x Ordinary. **Layer**: ubiquitous — census
+  'all', every family, minHops 0, including cave mouths'
+  approaches (not deep caves; even pests respect the dark a
+  little).
+- **Shape**: Multiped primary (six legs, mosquito-true) +
+  Winged secondary; no modifiers — at this size the wings and
+  the whine ARE the identity.
+- **Locomotion**: Aerial, obligate-flyer end of the spectrum
+  (the fly anchor, made literal). Short darting flights between
+  leaves, lanterns, and the player.
+- **Spectra**: Temperament timid but brazen around light /
+  Social loose swarm (no bond; numbers gather where dew is) /
+  Speed fast, erratic / Size tiny — the pest end of the axis /
+  Diet dew-sipper (drinks dew off leaves at dawn; sips, never
+  bites — harmless by design) / Day-night crepuscular, dusk-
+  leaning / Curiosity high — comes to look at you, lands on the
+  gauntlet, inspects the lantern / Territory none, roaming /
+  Tameability wild forever — too small and simple for a lure to
+  say anything to; this is its readable untamable reason.
+- **Hook**: the world's metronome. Dawn: gnats over dewy leaves
+  tell you where dew essence gathers. Dusk: they cloud around
+  lantern light. They are also FOOD — Glidefins leap for them,
+  moths share air with them — so a gnat-thin zone reads as an
+  empty pantry to a watching player. Discipline: the whine is
+  quiet and distance-capped; a pest you cannot escape hearing
+  would fail the seat. No drops, no taming, no guard — its job
+  is to be everywhere and be believed.
+
+### 2. Meadowback — the meadow emblem (family layer)
+
+- **Life**: Fauna x Ordinary. **Layer**: family emblem —
+  census [meadow] (appears in meadow-family hybrids per the
+  hybrid affinity rule).
+- **Shape**: Quadruped primary; modifiers: broad-backed,
+  long-tailed. The back is the feature — flat, warm, and wide
+  enough to ride on, and things do.
+- **Locomotion**: Walking (slow, unhurried; it has never once
+  hurried).
+- **Spectra**: Temperament calm, far timid of aggressive /
+  Social HERD with sentinel rotation — the toolbox's herd-and-
+  sentinel entry, made the emblem's headline / Speed slow /
+  Size large (short of apex; a hill that grazes) / Diet grazer
+  (grasses, bell blooms) / Day-night diurnal / Curiosity low-
+  mid — a raised head, a long look, back to grazing / Territory
+  wide-roaming on a slow graze circuit / Tameability mid —
+  40% per lure attempt; taming is a herd negotiation as much as
+  an individual's (the toolbox's "tame one, earn the herd's
+  tolerance" applies).
+- **Taming life**: Follow = ambles behind, late and unbothered;
+  Stay = parks and grazes; **Guard = SENTINEL** — a new guard
+  flavor for the template: it watches, and its alarm call (a
+  low bell-note) warns the player of threats in Normal /
+  Hostile, and merely announces visitors in Peaceful.
+- **Drops**: sheds Soft Fiber tufts periodically when tame
+  (the vesper-vane pattern — patience, not harm); wild ones
+  drop the same tufts rarely where they bedded down.
+- **Hook**: a walking piece of meadow. Burrow Mice and gnats
+  ride its back (the hitchhiking relationship, earning its
+  keep); its graze circuit keeps a visible path worn through
+  its home zone, so a player learns the zone by following
+  yesterday's Meadowback.
+
+### 3. Glidefin — the wetland emblem (family layer)
+
+- **Life**: Fauna x Ordinary. **Layer**: family emblem —
+  census [wetland]; Mirror Marsh pools are its showcase home.
+- **Shape**: Finned primary + Winged secondary — the flying-
+  fish composition from Axis 3, as a real design. Modifiers:
+  iridescent-scaled.
+- **Locomotion**: Swimming primary + Aerial secondary at the
+  obligate-glide end of the flight spectrum. It does not fly.
+  It LEAVES — arcs out of the water after gnats, hangs a
+  moment, and is water again.
+- **Spectra**: Temperament timid / Social loose school /
+  Speed fast in bursts, still between / Size small-mid / Diet
+  hunter — of Dew Gnats and surface insects (the pest seat
+  feeds the emblem seat; the web closes) / Day-night
+  crepuscular — dawn and dusk glides, when the gnats are up /
+  Curiosity mid — surfaces to look at things on the bank /
+  Territory one pool system, roaming within it / Tameability
+  low-mid — 35% at the shoreline; the lure must be offered at
+  the water's edge, which is where its world and yours touch.
+- **Taming life**: Follow = shore-parallel — it meets you at
+  banks and crossings (Axis 2's swimmer rule, in its first
+  real design); Stay = holds its pool; Guard = patrols the
+  pool and leaps at pests and small threats at the surface.
+- **Drops**: on a glide that ends near a friendly player,
+  occasionally sheds an **Iridescent Scale** (new item,
+  created under the items delegation) — a light-bending scale;
+  candidate material for glare-country gear in later design,
+  deliberately not load-bearing for any recipe yet.
+- **Hook**: the marsh, moving. A zone with Glidefins feels
+  fished-in and alive at its surface; their leaps also MARK
+  the pools — a new player finds the water by watching where
+  the silver arcs are.
+
+### 4. Spore Stag — the fungal emblem (family layer)
+
+- **Life**: Fauna x Ordinary, in open symbiosis with fungus
+  (it is an animal that a garden uses as much as it uses the
+  garden). **Layer**: family emblem — census [fungal].
+- **Shape**: Quadruped primary; modifiers: antlered (broad,
+  shelf-branched), pale-eyed. Shelf fungus grows on the
+  antlers in seeded patterns.
+- **Locomotion**: Walking — slow, deliberate, almost silent
+  for its size.
+- **Spectra**: Temperament calm, near-indifferent / Social
+  solo or pair / Speed slow / Size large-mid / Diet decomposer-
+  grazer — fallen caps, rot fruit, compost-rich litter /
+  Day-night nocturnal-leaning (the Hollow's hours) / Curiosity
+  LOW — it has seen your kind of thing before, or thinks it
+  has / Territory defends one compost grove — the first
+  strongly territorial emblem / Tameability low — 25%, the
+  stalker's number; trust here is a season, not a snack.
+- **Taming life**: Follow = a presence ten paces back; Stay =
+  returns to its grove if it has one; Guard = grove guardian,
+  a slow patrol ring with a spore-puff display before any
+  charge (in Peaceful: display only — the warning is the
+  behavior).
+- **Drops / yields**: non-lethal antler harvest when tame and
+  calm — Glow Spore + Basic Compost (its garden pays rent).
+  Wild: where it has walked, a faint spore trail settles;
+  flora rooted in a fresh trail get a small growth nudge (the
+  walking-fertilizer hook; numbers are a build-phase question,
+  the behavior is the design).
+- **Hook**: the fungal country's memory. Its grove is a place
+  a player can find again by ecology rather than by map: the
+  richest compost, the oldest caps, and the stag standing in
+  it like it grew there — because, in the way that matters
+  here, it did.
+
+### 5. Cinderhound — the ember emblem (family layer)
+
+- **Life**: Fauna x Ordinary. **Layer**: family emblem —
+  census [ember]. The danger-leaning emblem, per the design
+  default Adam let stand: ember is the danger family and its
+  emblem should feel like it.
+- **Shape**: Quadruped primary; modifiers: scale-plated,
+  ember-eyed. Heat shimmer above its back on cold mornings is
+  part of the silhouette — you see its weather before you see
+  it.
+- **Locomotion**: Walking / Running — coiled stillness, then
+  burst speed. It does not wander; it WAITS, then it MOVES.
+- **Spectra**: Temperament AGGRESSIVE end — the roster's first
+  true predator emblem / Social solo or mated pair / Speed
+  fast in bursts / Size mid-large / Diet hunter (small game;
+  in ember country, whatever the ash fields feed) / Day-night
+  INVERTED against its family: day = heat-torpid basking on
+  vent stone (ember is draining by day; so is everything in
+  it), night = the hunting hours, when ember country turns
+  comfortable / Curiosity mid-high and UNSETTLING — it comes
+  to look at you the way the curious do, and the looking is
+  also a measuring / Territory defends a vent cluster; scent-
+  marks the vents (the toolbox's territory-and-scent entry) /
+  Tameability LOWEST of the emblems — 15%; some individuals
+  effectively wild forever, and the codex should say so
+  honestly.
+- **Difficulty contract**: Peaceful = awareness only, with a
+  readable tell — scales tick and glow faintly as they shed
+  heat when it notices you (the aggression is announced, per
+  the pinned Peaceful pattern). Normal / Hostile = a real
+  hunter with burst ambushes from vent steam; guard pets
+  finally have an opposite number.
+- **Drops**: sheds **Cinder Scales** (new item, under the
+  items delegation) when basking — heat-darkened scale plates;
+  candidate heat-gear material in later design, not load-
+  bearing yet. Carapace's hot-country cousin, deliberately.
+- **Hook**: ember country, with a pulse. A player learns the
+  family from this animal: bask by day at a respectful
+  distance, give the vents a wide berth at night, and never
+  mistake its curiosity for the Meadowback's.
+
+### 6. Hollow Hermit — the Fungal Hollow one-off (unique layer)
+
+- **Life**: Fungus x Ordinary, COLONY property (Axis 1's
+  colony rule, in its first real design: the colony is the
+  creature). **Layer**: biome-unique — variant-gated to
+  Fungal Hollow zones only. There is one per Hollow, if that.
+- **Shape**: Husk primary (a giant hollow shroom shell, big
+  enough to mistake for part of the Hollow — which is the
+  point) + Multiped secondary (a skirt of small legs under the
+  husk, visible only when it walks). Modifier: lantern-lit —
+  a faint glow from inside the husk seams.
+- **Locomotion**: Stationary by day (it is scenery; players
+  will walk past it, and that is the design working) / Walking
+  by night, very slow, only when unobserved if it can manage
+  it. Primary recorded as Walking with a stationary habit —
+  the doc's open primary/secondary question, answered by this
+  species in favor of "both, by schedule."
+- **Spectra**: Temperament fully timid — seals shut at
+  approach, light, or noise / Social colony-solo (one colony,
+  one husk) / Speed slowest on the roster / Size large (the
+  husk; the colony is many small nothings) / Diet decomposer —
+  it eats the Hollow's floor, slowly, from inside its house /
+  Day-night STRICTLY nocturnal / Curiosity very low outward,
+  but it WATCHES — the Visor Shroom's "watches nothing,
+  probably" gets its answer here: something was watching /
+  Territory one Hollow, absolutely / Tameability wild forever
+  — you cannot tame a colony in a house; the untamable reason
+  is the hive-controlled one from the behavior doc.
+- **The encounter instead of taming**: stillness and dim light.
+  A player who stays quiet near it at night, lantern low, may
+  be LEFT something at dawn: a **Hollow Heart Spore** (new
+  item, under the items delegation) set at the husk's base —
+  the colony's trade, on the colony's terms. Repeatable
+  rarely; never farmable on a timer a player can see.
+- **Hook**: the Hollow keeps a secret, and the secret is a
+  landlord. It also retroactively explains the Hollow: the
+  richest compost, the tended-looking groves near the husk —
+  someone has been gardening the dark for a long time.
+
 ## Build note — species as data (Adam's question, 2026-10-15)
 
 Adam asked whether each creature / plant needs its own code

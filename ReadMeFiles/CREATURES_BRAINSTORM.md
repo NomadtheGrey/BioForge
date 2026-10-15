@@ -1324,6 +1324,338 @@ Iron Ashes' toll — progress makes noise, noise makes
 worms; the hybrid country taxes industry itself, and the
 tax collector is twenty segments long.
 
+## Fourth roster pass — the new families' seats + first background cast
+
+Adam's standing instruction (2026-10-15): proceed without
+asking permission, gathering creatures in batches of about
+twelve. And his variation bar, which this and every later
+batch is written under: enough variation that everything
+"feels" different, alien, or oddly familiar. Working
+translation used below: no two entries in a batch share a
+shape + locomotion + temperament corner; where two entries
+DO rhyme (two segmented burrowers appear below), the rhyme
+is the point — same body plan, different country, different
+creature: oddly familiar on purpose.
+
+Since the third pass, the biome program has BUILT Frost,
+Rootwood, and Precursor, and completed Ember's roster (the
+Ashen Drift is its fourth face). Their flora notes name this
+chat's open seats outright; this batch closes them.
+
+### The emblem layer, completed (again — the roster grew)
+
+**27. Frost Stag** — Frost (family emblem; the family is
+Adam's own addition, relayed from this chat and built by the
+biome program the same day). Fauna x Ordinary, rime-crusted.
+Shape: Quadruped; modifiers: antlered (the antlers accrete
+rime until they read as ice sculpture the stag is carrying
+somewhere), huge. Locomotion: Walking — unhurried in all
+weathers; the family's STEADY cold made flesh: the stag does
+not hurry, shelter, or sleep through anything. Spectra:
+calm-stoic / HERD / slow / LARGE / Diet grazer of buried
+lichen and frost-cured grasses, dug from under snow with one
+forefoot / Day-night NONE — the roster's second metronome:
+the herd rotates rest in shifts, so a Frost Stag is awake
+and watching at every hour the player arrives; the family
+that never thaws keeps a creature that never fully sleeps /
+Curiosity low / Territory a grazing circuit, walked like a
+border / Tameability 30% — offerings of the minerals it digs
+for (a salt-taste in the lure), and patience measured in
+days. Tamed: the herd-guard flavor of guard, perfected — a
+tame stag positions itself between its person and the WIND,
+a living windbreak (follow: it walks the windward side,
+which in Frost country is a real service and everywhere else
+a personality). Sheds rime-velvet from the antlers each
+season: **Frost Velvet** (new item) — the cold country's own
+insulation material. Hook: the emblem test — a player should
+be able to say what Frost IS from this animal alone: steady,
+vast, unimpressed by weather that kills.
+
+### Variant one-offs — the seats the flora notes named
+
+**28. Prism Frog** — the Prism Beds (Saltglass). Fauna x
+Crystalline (lightly — it is translucent, and noon light
+through a Prism Frog comes out the other side sorted into
+colors; it is a living prism sitting among mineral ones).
+Shape: Quadruped (small, squat, honest frog proportions);
+modifier: glass-skinned. Locomotion: Bouncing / Hopping
+primary + Swimming secondary (the beds are shallow). Spectra:
+timid / loose bed gatherings / hop-fast, sit-still / tiny /
+Diet hunter of gnats and reed-midges (the Dew Gnat's far
+cousin problem: even here, something must eat the small
+fliers) / diurnal — it needs the noon the reeds hum at /
+Curiosity mid — it watches players with both eyes, being a
+frog / Territory one reed cluster / Tameability 40% — the
+lure is shade in glare country and a steady hand; it will
+ride a gauntlet like a warm stone. Sheds its skin whole, in
+one glassy piece: **Prism Skin** (new item), a sheet of
+sorted light for later lens-and-visor crafting. Hook: in the
+Beds, the flora hums at noon and the fauna shines; the
+family's glare turned gentle, at frog scale.
+
+**29. Driftworm** — the Stillwhite (Frost). Fauna x Ordinary.
+Shape: Segmented; modifiers: white-furred, blind. Locomotion:
+Burrowing — THROUGH SNOWPACK (the mode reads its substrate
+honestly, as with the Rootborer and wood): it swims the
+snowpack like a slow sea, and the Stillwhite's surface shows
+its travel as a moving RIDGE, with a little spout of blown
+snow where it breathes. Spectra: timid / loose drifts of
+worms / slow, unceasing / mid-long / Diet grazer of buried
+lichen beds (the Frost Stag digs from above; the driftworm
+farms from below — the family's whole food web is under the
+snow, and both its big animals are ways of reaching it) /
+Day-night none — under the snow there is no day / Curiosity
+none / Territory a lichen bed / Tameability 35% — surface
+offerings at a breathing spout; it learns the spout, not the
+player. Hook: the Stillwhite looks empty and is not; the
+ridges are its handwriting, and a player who can read them
+is never alone in the white — or unwarned.
+
+**30. Spire Bat** — the Ice Fangs (Frost). Fauna x Ordinary.
+Shape: Winged primary + Multiped secondary (it climbs the
+teeth it hangs from); modifiers: frost-downed, huge-eared
+for a small animal. Locomotion: Aerial, flyer-leaning +
+Climbing. Spectra: wary / COLONY — it roosts in hundreds
+under the spire ledges, a hanging forest of bats (the Fangs'
+second set of teeth, soft ones) / fast / small / Diet hunter
+of ice-midges over the frozen seeps / nocturnal — the colony
+empties at dusk in one held breath / Curiosity low /
+Territory the roost ledge / Tameability 20%, colony-logic: a
+bat bonds to a roost, not a person; a player who builds a
+sheltered ledge near home may acquire the colony's overflow,
+which is the Frost version of being chosen. Sheds down from
+the roost floor: **Spire Down** (new item), insulation-kin
+to Frost Velvet — the family's cold answered at two scales,
+stag and bat. Hook: the Fangs are geysers that froze
+mid-eruption; the bats are the eruption, still going on at
+night, on wings.
+
+**31. Lake Glider** — the Singing Ice (Frost). Fauna x
+Ordinary, crystal-padded. Shape: Multiped; modifiers:
+long-legged, mirror-footed. Locomotion: surface gliding on
+ice — the folded Skating / Skimming candidate, promoted by
+this species into a headline (recorded honestly: Walking
+variant on ice, at speed, with glide arcs; if a later design
+pass wants skating as a full mode, this creature is the
+evidence). The ice SINGS under its feet — thin notes, chord
+by chord of its weight — so the lake announces it long
+before it arrives, and a gliding party of them is the
+Singing Ice's whole music: the variant is named for the
+sound its creature makes by walking on it. Spectra: serene /
+loose gliding parties / fast on the flat, helpless in deep
+snow (its element is a surface, and off it, it is a tall
+animal in a hole — zone-edge honesty) / mid, tall / Diet
+picker — it cracks the ice film with a foot-pad and takes
+what was frozen mid-swim / diurnal / Curiosity mid-high, and
+rhythmic: it approaches players who move SMOOTHLY and
+startles at jerks and stomps (a curiosity read a player can
+learn and use) / Territory a shoreline circuit of the lake /
+Tameability 25% — by gliding alongside, matched pace, no
+sudden anything. Drops: it renews its foot-pads on shore:
+NEVERMELT ICE offcuts — explicitly NOT a second source of
+the item (the Rime Spires are the source of record); the
+glider's pads are scenery-grade, and the codex should say
+so to keep the economy honest.
+
+**32. Gloom Slug** — the Underroot (Rootwood). Fauna x
+Ordinary (its slime is a gel it makes, not a gel it is).
+Shape: Blob; modifier: dark-backed, pale-bellied. Locomotion:
+Slithering + Climbing — it travels the undersides of the
+canopy's roots, in the family's dimmest country (light
+reach x0.7), eating the gloom-fungus that grows where the
+light gives up. Spectra: placid / loose congregations on a
+good root / slowest / mid, long / Diet decomposer of
+darkness itself, by way of what grows in it / nocturnal by
+address — it lives where it is always nearly night /
+Curiosity none / Territory one root's underside / Tameability
+45% — it follows a carried light the way a moth does not:
+slowly, and to EAT what the light wakes (its follow is a
+foraging follow; a lantern-bearer in the Underroot acquires
+a slug the way a ship acquires a wake). Its slime trail
+GLOWS, faintly, for hours — the Underroot's breadcrumbs are
+laid by its animal, and a player learns to read slug-roads
+the way the marsh taught pool-reading. Yields: slime
+gathered from trails, **Gloom Gel** (new item) — a light-
+bearing gel; what it crafts into is a later design's
+business, but a gel that remembers light is a helmet
+material if anything is.
+
+**33. Rootfall Bear** — the Rootfall (Rootwood). Fauna x
+Ordinary. Shape: Quadruped; modifiers: moss-grown, huge,
+one ear down (the roster is allowed a face). Locomotion:
+Walking. It dens in the fallen giant's hollow heart — the
+variant is a single event (a tree fell) and the bear is the
+event's inheritor. Spectra: temperament sleepy-territorial —
+it defends the hollow with enormous reluctance and total
+conviction, in that order / SOLO / Speed: none, then all of
+it, once / Size LARGE (the Rootwood cast's apex mass) / Diet
+omnivore of the heart: heartroot sap, grubs from the rot,
+whatever the fall feeds it / Day-night crepuscular, mostly
+naps — its day has the shape of a comma / Curiosity low
+until food, then total / Territory the hollow and its
+clearing / Tameability 20%, over days, with heart-sap —
+effectively a landlord negotiation (tamed, it remains a den
+animal: its guard is the game's strongest stay/guard and its
+follow is a rumor). Sheds / yields: it cracks heartroot
+nuts and sap-scabs at the hollow mouth — **Heart Sap** (new
+item), premium food-craft — left as the landlord's rent,
+collectable without waking him, if you're quiet. Hook: every
+family needs one creature that is not a resource or a pet
+but a RESIDENT; the Rootfall has a bear the way a house has
+a previous owner.
+
+**34. Ashswimmer** — the Ashen Drift (Ember). Fauna x
+Ordinary, ash-fed. Shape: Segmented; modifier: finned along
+the rings (it is the Driftworm's rhyme — same plan, opposite
+country: where the worm swims snow in the coldest family,
+the swimmer arcs through ash in the hottest). Locomotion:
+Burrowing through ASH — ash is its water; it travels in
+dives and surfaces in arcs, dolphin-style, shaking off gray
+in the dim country (the Drift's light reach is x0.6: its
+arcs are seen as shapes in gloom, announced by the ash-fall
+of its landing). Spectra: shy-bold / loose drift parties /
+burst-fast, then still / LONG / Diet hunter of ash-buried
+things and the Drift's small burrowers / crepuscular —
+it hunts the dim hours in a place that is always dim; its
+clock is appetite / Curiosity mid / Territory a drift
+circuit / Tameability 15% (things in the Ember family do
+not come easily, and the Drift is Ember at its most
+withholding). Drops: shed fin-rings on the surface: ASH
+FIN — recorded WITHOUT a new item on purpose: the rings are
+ash and chitin, compost-grade, and the codex says they go
+to Basic Compost; not every creature owes the economy a
+named material, and the roster stays honest by having some
+that don't. Hook: the Drift inverted the marsh's trick —
+there, light doubled; here, light drowns — and its animal
+answers by not needing to see: it reads the ash by pressure,
+and the player learns the place by watching something be at
+home in the dark.
+
+**35. Row Tender** — the Tending Field (Precursor). *The
+unique seat the biome program's flora note names outright.*
+Fauna x Forged. Shape: Multiped; modifiers: tool-armed (four
+of its legs end in implements — trimmer, probe, seeder,
+lamp), patient. Locomotion: Walking — ONE ROW, its row, the
+length of an Archimedean spiral, walked for centuries. It
+is the Garden Warden's counterpart and opposite: the Warden
+faces OUTWARD (defense, judgment); the Tender faces DOWNWARD
+(work, repetition). Spectra: temperament absorbed — it does
+not startle; it PAUSES / Social: one per field, aware of the
+Warden the way staff are aware of management / Speed slow,
+exact / Size mid / Diet recorded as the Warden's was: NONE
+— it runs on the garden's old arrangements / Day-night:
+always; its lamp-end lights its work at night, a small
+moving light in the rows that players learn to navigate by /
+Curiosity none for players, total for disorder — a trampled
+row gets its attention before a visitor does / Territory
+one spiral row, absolute / UNTAMABLE — still on duty, like
+the Warden; negotiable the same way: walk its row's END,
+not its middle; leave offerings where the row turns; in
+time it trims AROUND your plantings instead of through
+them, which from a Tender is a treaty. Gift behavior, the
+"Row's Courtesy": once a player is tolerated, finished
+**LIVING THREAD** cuttings appear at the row's turn — the
+Precursor Bloom's own harvest, delivered by the staff (the
+flora note makes Living Thread the Garden's material; the
+Tender is how the Field pays it to the polite). Hook:
+between them, the Vine that tends plants, the Tender that
+tends rows, and the Warden that tends the boundary, the
+Precursor family is a workplace that outlived its owners —
+three citizens, three directions of attention, one garden.
+
+### Background cast — first entries (the layer the count lives in)
+
+**36. Deck Weaver** — Rootwood, wherever the bridges are
+(the biome program's flora note asks outright: "Something
+should live ON the bridges eventually"). Fauna x Ordinary.
+Shape: Multiped; modifier: long-limbed, flat-bodied — it
+belongs to the UNDERSIDE of the decks, hanging in the
+bridge's shadow, and commutes at dusk to the top side to
+hunt what the day warmed. Locomotion: Climbing (its road
+network is the bridges themselves — a weaver's territory is
+a LINE, tower to tower, the roster's first linear territory).
+Spectra: wary / loose line-communities / quick in bursts /
+small-mid / Diet hunter of canopy fliers, taken at the
+deck's edge at dusk / crepuscular / Curiosity mid — faces
+peer over deck edges at walkers, from below, which the
+first time is an event / Territory one bridge-span /
+Tameability 35% — it approves of regulars: cross the same
+bridge at the same hour with offerings and a weaver will
+commute WITH you (follow, along the underside; you will
+mostly know it by its shadow keeping pace above the ground
+and below the deck). Drops: it sheds silk anchor-lines when
+it re-rigs: **Deck Silk** (new item), bridge-grade fiber.
+Hook: Rootwood's bridges were built as scenery; the weaver
+makes them habitat — infrastructure is just a biome that
+hasn't been moved into yet.
+
+**37. Meltcap** — Fungal (background cast). Fungus x
+Ordinary. Shape: Plantiform (a cap on a stalk; fungus wears
+flora's silhouette and its own verbs). Locomotion:
+Stationary. Its whole design is a clock: it fruits in the
+DARK — a pale cap by moonlight, sweet-smelling, standing
+proud at midnight — and by full morning it has MELTED,
+deliquesced into a dark pool that stains the ground in a
+ring (the cap is the advertisement; the melt is the
+reproduction — the pool seeds next year's ring). Spectra
+(fungus reading): Social RINGS — it fruits in fairy rings,
+and a ring is one organism introducing itself at intervals /
+Diet decomposer of leaf-fall / Day-night the roster's
+strictest: fruiting is a night act, and a player who sleeps
+through the fungal country's nights never sees one standing
+/ Territory the ring, which moves outward a hand's width a
+year / Cultivation: transplantable as melt — scoop the
+morning pool and pour it where you want a ring to begin
+(the game's oddest planting verb yet, and a fair trade: you
+can move it, but only at the hour it isn't beautiful).
+Harvest: a cap cut at MIDNIGHT, exactly, keeps: **Meltcap**
+(the item carries the creature's name, mushroom-fashion) —
+cut at dawn it collapses in the pouch, which the codex
+warns about in the voice of experience. Hook: the fungal
+family needed a background species with a TIME LOCK for a
+face — a reminder that the world's cast keeps hours the
+player doesn't.
+
+**38. Bonemoss** — Bone (background cast). Flora x Ordinary.
+Shape: Plantiform (a moss — a sheet with ambitions);
+modifier: bone-fed. Locomotion: Stationary. It grows ONLY
+on bone — never soil, never stone: a green so deep it reads
+black in shade, softening every skeleton it takes, until a
+cleaned ribcage looks upholstered. It is the Skull Ants'
+treaty made visible: the ants clean the bone, the moss
+keeps it, and between them the Graveyard is a maintained
+garden that happens to be made of the dead. Spectra (flora
+reading): Social sheets and successions / Diet light, and
+the bone's slow mineral weather — it EATS the monument,
+over centuries, which is the Graveyard's mercy: nothing
+there is permanent, only tended / Day-night indifferent /
+Territory one skeleton, then the next — moss crosses between
+bones only on the ants' carried fragments (the treaty again:
+the colony is the moss's road) / Cultivation: it can be
+started anywhere bone is laid — a player who places bone
+material in a garden and waits gets a green thought of the
+Graveyard, which builders will do on purpose and the codex
+should acknowledge without judgment. Harvest: handfuls,
+**Bonemoss** (item, its name again — moss-fashion), a dye-
+dark green material for later craft. Hook: the Bone family
+had a scavenger for an emblem and a colony for a grounds
+crew; it needed its GARDENER, and the gardener is a moss.
+(It also answers the biome program's standing question —
+"what grows in bone-soil that grows nowhere else?" This.
+Only this, and only on the bone itself.)
+
+Roster designed total: 38. Seats closed by this batch:
+Frost emblem (emblem layer complete at 11 families), Prism
+Beds, Stillwhite, Ice Fangs, Singing Ice, Underroot,
+Rootfall, Ashen Drift, Tending Field. Named seats still
+open for future batches: the Untended (Precursor) unique;
+the Living family's Welcoming / Hungry flavor of unique, if
+the Greeter's mirror design doesn't cover both (it is
+written to; flagged, not reopened). Everything else in the
+special layers is now filled: 11 of 11 emblems, and a
+one-off for every named variant the biome program has built
+so far, excepting the Untended.
+
 ## Build note — species as data (Adam's question, 2026-10-15)
 
 Adam asked whether each creature / plant needs its own code

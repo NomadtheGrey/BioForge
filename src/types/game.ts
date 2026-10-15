@@ -22,6 +22,7 @@ export type ItemId =
   | 'living_thread'
   | 'bone_meal'
   | 'fulgurite_shard'
+  | 'heart_sap'
   | 'basic_compost'
   | 'glow_spore'
   | 'hand_lantern_fern'
@@ -155,7 +156,9 @@ export type FloraSpecies =
   | 'heartroot'
   | 'precursor_bloom'
   | 'gravebloom'
-  | 'stormcatcher';
+  | 'stormcatcher'
+  | 'dusk_grass'
+  | 'heartbloom';
 
 export interface FloraEntity {
   id: string;

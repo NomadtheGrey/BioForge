@@ -80,9 +80,9 @@ export const ZONE_BIOME_BANDS: { maxHops: number; table: [BiomeId, number][] }[]
   { maxHops: 0, table: [['meadow', 1]] },
   { maxHops: 1, table: [['meadow', 0.45], ['wetland', 0.55]] },
   { maxHops: 2, table: [['meadow', 0.15], ['wetland', 0.3], ['fungal', 0.3], ['rootwood', 0.25]] },
-  { maxHops: 3, table: [['wetland', 0.1], ['fungal', 0.18], ['ember', 0.18], ['saltglass', 0.1], ['frost', 0.1], ['rootwood', 0.05], ['precursor', 0.14], ['bone', 0.1], ['storm', 0.05]] },
-  { maxHops: 4, table: [['fungal', 0.2], ['ember', 0.27], ['saltglass', 0.14], ['frost', 0.14], ['rootwood', 0.05], ['precursor', 0.1], ['bone', 0.05], ['storm', 0.05]] },
-  { maxHops: Infinity, table: [['fungal', 0.15], ['ember', 0.31], ['saltglass', 0.19], ['frost', 0.15], ['precursor', 0.1], ['bone', 0.05], ['storm', 0.05]] },
+  { maxHops: 3, table: [['wetland', 0.1], ['fungal', 0.18], ['ember', 0.16], ['saltglass', 0.1], ['frost', 0.1], ['rootwood', 0.05], ['precursor', 0.13], ['bone', 0.1], ['storm', 0.05], ['living', 0.03]] },
+  { maxHops: 4, table: [['fungal', 0.2], ['ember', 0.25], ['saltglass', 0.14], ['frost', 0.14], ['rootwood', 0.05], ['precursor', 0.1], ['bone', 0.05], ['storm', 0.04], ['living', 0.03]] },
+  { maxHops: Infinity, table: [['fungal', 0.15], ['ember', 0.28], ['saltglass', 0.18], ['frost', 0.15], ['precursor', 0.1], ['bone', 0.05], ['storm', 0.05], ['living', 0.04]] },
 ];
 
 /** A zone's biome: pure function of world seed + zone coordinates. */
@@ -151,6 +151,10 @@ export const ZONE_NAME_PARTS: Record<BiomeId, { first: string[]; second: string[
   storm: {
     first: ['Charged', 'Humming', 'Restless', 'Bright', 'Far'],
     second: ['Reach', 'Flats', 'Fields', 'Sands', 'Country'],
+  },
+  living: {
+    first: ['Breathing', 'Patient', 'Vast', 'Gentle', 'Deep'],
+    second: ['Valley', 'Vale', 'Reach', 'Hollow', 'Body'],
   },
 };
 
@@ -258,4 +262,15 @@ export function zoneHudLabels(
 
 export function biomeDisplayName(biome: BiomeId): string {
   return biome.charAt(0).toUpperCase() + biome.slice(1);
+}
+
+
+// The Living's heart (2026-10-15): every Living zone has ONE
+// heart point (where its heartbloom grows). In a Two-Minded
+// valley the heart's patch — the HEART THICKET, radius r — is
+// the hungry ground; the rest of the valley welcomes. Pure
+// function of (seed, coords), like every zone roll.
+export function livingHeartAt(seed: string, zx: number, zz: number): { x: number; z: number; r: number } {
+  const rng = createSeededRandom(hashStringToSeed(`${seed}:zone-livingheart:${zx},${zz}`));
+  return { x: (rng() * 2 - 1) * 22, z: (rng() * 2 - 1) * 22, r: 15 + rng() * 6 };
 }

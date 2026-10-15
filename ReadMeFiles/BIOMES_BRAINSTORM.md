@@ -351,6 +351,14 @@ question round — the table below is the draft to argue with.
   Living Forged tenders (the mimic-guardian seat) remain a
   creature-phase question. WORLD_GEN_VERSION 11.
 
+THE GRADIENT STEP ✓ BUILT (2026-10-15, Adam's directive):
+distance now drives ALL of it — ruin presence and second-site
+chances rise with hops (0.62/0.12 at home → 0.88/0.30 far),
+joining the ruin size tiers and interior density that already
+ramped; cavern grids grow with their mouth's zone hops (44
+cells near home, byte-identical at 0–2 hops, up to 56 far);
+level-1 cavern richness scales with hops, rares fastest.
+
 FUNGI FILL-IN ✓ BUILT (2026-10-15, Adam's go-ahead): the
 first family's roster completed — *The Mycelium Web* (min 2,
 uncommon: the Hollow's giants planted in a seeded RING, spore

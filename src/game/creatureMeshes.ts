@@ -351,6 +351,27 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'stormcatcher': {
+        // Storm (2026-10-15): a tall ribbed reed crowned with a
+        // coppery whorl and a charge-bright orb — a plant that
+        // drinks lightning and grows glass in its crown.
+        const reedMat = new THREE.MeshStandardMaterial({ color: 0x7a6a4f, roughness: 0.85 });
+        const copperMat = new THREE.MeshStandardMaterial({ color: 0xb87333, roughness: 0.35, metalness: 0.55 });
+        const orbMat = new THREE.MeshStandardMaterial({ color: 0xfde68a, roughness: 0.25, emissive: 0xf59e0b, emissiveIntensity: 1.1 });
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.07, 1.5, 6), reedMat);
+        stalk.position.y = 0.75; stalk.castShadow = true; group.add(stalk);
+        for (let i = 0; i < 5; i++) {
+          const blade = new THREE.Mesh(new THREE.TorusGeometry(0.16 - i * 0.018, 0.016, 5, 10), copperMat);
+          blade.position.y = 1.28 + i * 0.07;
+          blade.rotation.x = Math.PI / 2;
+          group.add(blade);
+        }
+        const orb = new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 8), orbMat);
+        orb.position.y = 1.62;
+        group.add(orb);
+        break;
+      }
+
       case 'gravebloom': {
         // Bone (2026-10-15): a flower rooted in bone — a pale rib
         // shard for a base, bleached-silk petals, a marrow-gold

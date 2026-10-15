@@ -73,7 +73,7 @@ import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
  *     layout in a different species cast; nobody had ever generated
  *     a second zone, so the sameness was theoretical until travel.
  */
-export const WORLD_GEN_VERSION = 12; // v12 (2026-10-15): bone, the 9th built family — graveyard country joins the bands at 3 hops
+export const WORLD_GEN_VERSION = 13; // v13 (2026-10-15): storm, the 10th built family and the first of Tier 3 — charged country joins the bands at 3 hops
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -1121,6 +1121,43 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
   }
 
   // ---------------------------------------------------------------------
+  // Stormcatcher stands + fulgurite (Storm, 2026-10-15) —
+  // family-wide BONUS life: tall reeds that drink lightning,
+  // and the glass fingers the strikes leave behind (scenery;
+  // the Dunes grow them thickest).
+  // ---------------------------------------------------------------------
+  if (zoneBiome === 'storm') {
+    const stormRng = createSeededRandom(stream('flora:stormcatcher'));
+    const reedCount = zoneVariant?.id === 'magnetic_dunes' ? 8
+      : zoneVariant?.id === 'charged_flats' ? 6
+      : zoneVariant?.id === 'skyfall_basin' ? 5 : 4;
+    let plantedReeds = 0;
+    for (let attempt = 0; attempt < reedCount * 6 && plantedReeds < reedCount; attempt++) {
+      const x = (stormRng() * 2 - 1) * 44;
+      const z = (stormRng() * 2 - 1) * 44;
+      if (flora.some((f) => Math.hypot(f.x - x, f.z - z) < 1.4)) continue;
+      flora.push({
+        id: `flora_stormcatcher_${plantedReeds}`,
+        species: 'stormcatcher',
+        x, z,
+        biome: zoneBiome,
+        rotation: stormRng() * Math.PI * 2,
+        scale: 0.95 + stormRng() * 0.5,
+        growthStage: 3,
+        growthProgress: 1,
+        fertilizedGrowth: false,
+        fertilizedYield: false,
+        fertilizerTimer: 0,
+        harvestReady: true,
+        harvestTimer: 0,
+        isHazardous: false,
+        swayOffset: 1500 + plantedReeds,
+      });
+      plantedReeds++;
+    }
+  }
+
+  // ---------------------------------------------------------------------
   // Gravebloom stands (Bone, 2026-10-15) — family-wide BONUS
   // life: pale flowers rooted in bone, thickest in the Marrow
   // Flats. Plus the family's SCENERY: fragments in every bone
@@ -1231,10 +1268,34 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
     }
   }
 
+  // Fulgurite scenery (Storm, 2026-10-15): glass fingers where
+  // the lightning kissed the sand — across Storm country.
+  const stormStructures: StructureEntity[] = [];
+  if (zoneBiome === 'storm') {
+    const fulgRng = createSeededRandom(stream('structures:fulgurite'));
+    const fulgCount = zoneVariant?.id === 'magnetic_dunes' ? 7
+      : zoneVariant?.id === 'charged_flats' ? 4 : 2;
+    let placedFulg = 0;
+    for (let attempt = 0; attempt < fulgCount * 6 && placedFulg < fulgCount; attempt++) {
+      const x = (fulgRng() * 2 - 1) * 42;
+      const z = (fulgRng() * 2 - 1) * 42;
+      if ([...structures, ...ruinStructures].some((st) => Math.hypot(st.worldX - x, st.worldZ - z) < 5)) continue;
+      stormStructures.push({
+        id: `fulgurite_${zoneZx}_${zoneZz}_${placedFulg}`,
+        type: 'fulgurite',
+        gridX: Math.round(x / 2), gridZ: Math.round(z / 2),
+        worldX: x, worldZ: z,
+        rotation: fulgRng() * Math.PI * 2,
+        level: 0, health: 9999, maxHealth: 9999, doorOpenProgress: 0,
+      });
+      placedFulg++;
+    }
+  }
+
   return {
     flora: [...flora, ...caveFlora],
     fauna,
-    structures: [...structures, ...ruinStructures, ...bridgeStructures, ...huskStructures, ...boneStructures],
+    structures: [...structures, ...ruinStructures, ...bridgeStructures, ...huskStructures, ...boneStructures, ...stormStructures],
     relaxedPlacements: floraScatter.relaxed + faunaScatter.relaxed,
   };
 }

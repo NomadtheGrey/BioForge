@@ -193,6 +193,23 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       jaw.position.set(0, 0.25, 12.5); jaw.rotation.x = 0.12; group.add(jaw);
       return group;
     },
+    // Fulgurite (2026-10-15): jagged glass fingers — sand fused
+    // by a lightning strike, keeping the strike's shape.
+    'fulgurite': () => {
+      const group = new THREE.Group();
+      const glassMat = new THREE.MeshStandardMaterial({ color: 0xf5c35c, roughness: 0.25, emissive: 0xd97706, emissiveIntensity: 0.35 });
+      const darkMat2 = new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 1 });
+      for (let i = 0; i < 5; i++) {
+        const a = (i / 5) * Math.PI * 2 + 0.4;
+        const finger = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.7 + (i % 3) * 0.25, 5), glassMat);
+        finger.position.set(Math.cos(a) * 0.28, 0.35, Math.sin(a) * 0.28);
+        finger.rotation.set(Math.sin(a) * 0.35, 0, Math.cos(a) * 0.35);
+        finger.castShadow = true; group.add(finger);
+      }
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.65, 0.14, 8), darkMat2);
+      base.position.y = 0.05; group.add(base);
+      return group;
+    },
     // The portal home inside an instanced cavern: a standing ring of
     // dark rock and violet light (kin to the iris door's frame, so it
     // reads as "door" at a glance), with a translucent inner disc —

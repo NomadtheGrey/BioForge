@@ -329,7 +329,7 @@ export function useMultiplayerSync(deps: MultiplayerSyncDeps): UseMultiplayerSyn
           drops: data.drops,
         });
         if (worldSeedRef.current) {
-          engineRef.current?.setZoneBiome(zoneBiomeAt(worldSeedRef.current, hostZone.zx, hostZone.zz), zoneVariantAt(worldSeedRef.current, hostZone.zx, hostZone.zz)?.tint ?? null);
+          engineRef.current?.setZoneBiome(zoneBiomeAt(worldSeedRef.current, hostZone.zx, hostZone.zz), zoneVariantAt(worldSeedRef.current, hostZone.zx, hostZone.zz)?.tint ?? null, zoneVariantAt(worldSeedRef.current, hostZone.zx, hostZone.zz) ? { distanceMult: zoneVariantAt(worldSeedRef.current, hostZone.zx, hostZone.zz)!.lightDistanceMult, intensityMult: zoneVariantAt(worldSeedRef.current, hostZone.zx, hostZone.zz)!.lightIntensityMult } : null);
         }
         setDayNightCycle(data.dayNightCycle);
       },

@@ -217,7 +217,7 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
     // 3. Stand there: identity, paint, position, story, momentum.
     playerZoneRef.current = { zx: nx, zz: nz };
     setPlayerZone({ zx: nx, zz: nz });
-    engineRef.current?.setZoneBiome(zoneBiomeAt(seed, nx, nz), zoneVariantAt(seed, nx, nz)?.tint ?? null);
+    engineRef.current?.setZoneBiome(zoneBiomeAt(seed, nx, nz), zoneVariantAt(seed, nx, nz)?.tint ?? null, zoneVariantAt(seed, nx, nz) ? { distanceMult: zoneVariantAt(seed, nx, nz)!.lightDistanceMult, intensityMult: zoneVariantAt(seed, nx, nz)!.lightIntensityMult } : null);
     applyPlayerLevel(0);
     jumpRef.current = { y: 0, vy: 0, bounceFlip: false };
     playerPosRef.current = { x: entry.x, z: entry.z, rotation: pos.rotation };

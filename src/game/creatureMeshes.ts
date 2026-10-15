@@ -11,6 +11,7 @@
  */
 import * as THREE from 'three';
 import type { FloraEntity, FaunaEntity } from '../types/game';
+import { speciesDef } from './species';
 import { BrownianWiggle, hashStringToSeed, type WiggleOptions } from './motion';
 import type { StructureMaterials } from './structureBuilders';
 
@@ -1783,6 +1784,137 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'bonepicker': {
+        // Death, made useful and visible (slice 6): a broad-
+        // winged scavenger, bare-headed — on the ground it
+        // stands biped-style; here it is drawn as it lives,
+        // on the wing. Wings named for the generic flap.
+        const featherMat = new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 0.9, side: THREE.DoubleSide });
+        const skinMat = new THREE.MeshStandardMaterial({ color: 0xfda4af, roughness: 0.7 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 0.5, 6, 10), featherMat);
+        body.rotation.x = Math.PI / 2;
+        group.add(body);
+        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.09, 0.3, 6), skinMat);
+        neck.rotation.x = 1.1;
+        neck.position.set(0, 0.08, 0.42);
+        group.add(neck);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 6), skinMat);
+        head.position.set(0, 0.16, 0.58);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.6), featherMat);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          wing.position.set(side * 0.85, 0.05, -0.02);
+          wing.rotation.x = -Math.PI / 2 + 0.1;
+          group.add(wing);
+        }
+        break;
+      }
+
+      case 'storm_kite': {
+        // MOSTLY WING (slice 6): a slight body on a huge span,
+        // and the ribbon tail — rudder, anchor-line, and
+        // signature — streaming behind in two streamers.
+        const wingMat = new THREE.MeshStandardMaterial({
+          color: 0x7dd3fc, roughness: 0.5, side: THREE.DoubleSide,
+          emissive: 0x075985, emissiveIntensity: 0.35,
+        });
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0xe0f2fe, roughness: 0.6 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.11, 0.4, 6, 8), bodyMat);
+        body.rotation.x = Math.PI / 2;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), bodyMat);
+        head.position.set(0, 0.02, 0.34);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 0.7), wingMat);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          wing.position.set(side * 1.0, 0.04, -0.02);
+          wing.rotation.x = -Math.PI / 2 + 0.08;
+          group.add(wing);
+          const ribbon = new THREE.Mesh(new THREE.PlaneGeometry(0.09, 1.1), wingMat);
+          ribbon.position.set(side * 0.09, 0, -0.85);
+          ribbon.rotation.x = -Math.PI / 2 + 0.35;
+          group.add(ribbon);
+        }
+        break;
+      }
+
+      case 'vent_drake': {
+        // What the chimney is for (slice 6): a lean drake on
+        // broad soot-dark sails built for vent thermals.
+        const scaleMat = new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 0.6 });
+        const sailMat = new THREE.MeshStandardMaterial({
+          color: 0x292524, roughness: 0.7, side: THREE.DoubleSide,
+          emissive: 0x7c2d12, emissiveIntensity: 0.25,
+        });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.6, 6, 10), scaleMat);
+        body.rotation.x = Math.PI / 2;
+        body.castShadow = true;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), scaleMat);
+        head.scale.set(0.85, 0.85, 1.35);
+        head.position.set(0, 0.06, 0.55);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const horn = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.18, 5), scaleMat);
+          horn.position.set(side * 0.09, 0.2, 0.5);
+          horn.rotation.x = -0.5;
+          group.add(horn);
+          const wing = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.55), sailMat);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          wing.position.set(side * 0.72, 0.08, -0.02);
+          wing.rotation.x = -Math.PI / 2 + 0.1;
+          group.add(wing);
+        }
+        break;
+      }
+
+      case 'spire_bat': {
+        // The Fangs' soft teeth (slice 6): a small frost-downed
+        // body, huge ears, and quick membrane wings — a flyer,
+        // not a glider, and the flap rate says so.
+        const furMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.95 });
+        const membraneMat = new THREE.MeshStandardMaterial({
+          color: 0x94a3b8, roughness: 0.7, transparent: true, opacity: 0.8, side: THREE.DoubleSide,
+        });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), furMat);
+        body.scale.set(0.9, 0.95, 1.15);
+        group.add(body);
+        for (const side of [-1, 1]) {
+          const ear = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.2, 5), furMat);
+          ear.position.set(side * 0.08, 0.16, 0.05);
+          group.add(ear);
+          const wing = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.35), membraneMat);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          wing.position.set(side * 0.45, 0.03, -0.02);
+          wing.rotation.x = -Math.PI / 2 + 0.1;
+          group.add(wing);
+        }
+        break;
+      }
+
+      case 'dust_moth': {
+        // The Graveyard's courier (slice 6): a tiny pale moth,
+        // dusted — the mirror moth's idiom at half the scale
+        // and none of the marsh's light.
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 0.95 });
+        const wingMat = new THREE.MeshStandardMaterial({
+          color: 0xe7e5e4, roughness: 0.6, transparent: true, opacity: 0.7, side: THREE.DoubleSide,
+        });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), bodyMat);
+        body.scale.set(0.8, 0.8, 1.6);
+        group.add(body);
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 6), wingMat);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          wing.scale.set(1, 0.06, 0.55);
+          wing.position.set(side * 0.19, 0.03, -0.01);
+          group.add(wing);
+        }
+        break;
+      }
+
       default: {
         const body = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 12), materials.biolumAmber);
         body.position.y = 0.3;
@@ -1804,6 +1936,26 @@ export function createCreatureMeshKit(
     mesh.position.set(fauna.x, groundY + fauna.y, fauna.z);
     mesh.rotation.y = fauna.rotation;
     mesh.userData.entity = fauna;
+
+    // GENERIC FLIGHT (creature build phase, slice 6, 2026-10-15):
+    // any species whose table entry carries a flight spec rides
+    // at its cruise altitude with its rise-and-settle bob, and
+    // flaps if it names a flap rate — meshes name their wings
+    // 'wingL'/'wingR' to be flapped. This branch runs FIRST: the
+    // bespoke branches below (the glider's glide, the gnat's
+    // dart) still draw their own species exactly as shipped,
+    // overriding this one's numbers with their identical own.
+    const flight = speciesDef(fauna.species)?.flight;
+    if (flight) {
+      mesh.position.y = groundY + flight.altitude + Math.sin(fauna.animTime * flight.bobRate) * flight.bobHeight;
+      if (flight.flapRate !== undefined) {
+        const flap = Math.sin(fauna.animTime * flight.flapRate) * 0.3;
+        const wingL = mesh.getObjectByName('wingL');
+        const wingR = mesh.getObjectByName('wingR');
+        if (wingL) wingL.rotation.z = -0.08 - flap;
+        if (wingR) wingR.rotation.z = 0.08 + flap;
+      }
+    }
 
     if (fauna.species === 'soft_puff' || fauna.species === 'rime_puff') {
       // The rime puff is the soft-puff's deliberate mirror — same

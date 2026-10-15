@@ -351,6 +351,15 @@ question round — the table below is the draft to argue with.
   Living Forged tenders (the mimic-guardian seat) remain a
   creature-phase question. WORLD_GEN_VERSION 11.
 
+WEATHER ✓ BUILT (2026-10-15, Adam's go-ahead): one engine
+particle sky, resolved per zone face by zoneWeatherAt — the
+Skyfall's rain falls UP (its alert copy no longer calls it a
+report), Storm country rains (the zot's missing half), Frost
+snows, Ember sheds ash (the Ashen Drift heaviest), Wetland
+drizzles, the Mirror Marsh stays STILL on purpose, margins
+take their own skies where named (Iron Ashes rain, Frozen
+Forest snow). Weather hides itself inside caves and ruins.
+
 HYBRID PASS ✓ BUILT (2026-10-15, Adam's go-ahead; BORDER-
 DERIVED per his ruling): zoneHybridAt reads a zone's four
 neighbors' pure family rolls — where a tabled pair meets and

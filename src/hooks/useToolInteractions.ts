@@ -241,6 +241,10 @@ export function useToolInteractions({
         // Ice Fangs (2026-10-15): portable winter — nevermelt ice
         // plus the melt-dew beaded on the teeth at dawn.
         return { item: 'nevermelt_ice', count: flora.fertilizedYield ? 3 : 2, extras: [['dew_essence', 1]] };
+      case 'heartroot':
+        // Rootwood (2026-10-15): the premium building wood, plus
+        // the fibrous bark the slabs shed.
+        return { item: 'heartwood', count: flora.fertilizedYield ? 3 : 2, extras: [['soft_fiber', 1]] };
       case 'mirror_lily':
         // Mirror Marsh (2026-10-15): the pads cup the doubled light
         // and bead it as dew; a reed sometimes roots alongside.
@@ -568,6 +572,8 @@ export function useToolInteractions({
                       ? 'saltglass_shard' // crystal does not seed either
                       : flora.species === 'rime_spire'
                         ? 'nevermelt_ice' // ice does not seed; a carried piece is the stock
+                        : flora.species === 'heartroot'
+                          ? 'heartwood' // a cut heart is the stock; roots regrow from the giant, not from seed pouches
                     : (`seed_${flora.species}` as ItemId);
       const rawName = flora.species.replace(/_/g, ' ');
       const speciesName = rawName.charAt(0).toUpperCase() + rawName.slice(1);

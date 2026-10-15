@@ -125,6 +125,9 @@ export interface ThreeEngineCallbacks {
   onGroundClick?: (worldX: number, worldZ: number) => void;
   onEntityHover?: (target: HoverTarget) => void;
   onLockChange?: (isLocked: boolean) => void;
+  /** Fired when a frame gap says the tab was backgrounded (Adam,
+   *  2026-10-15: background return goes to PAUSE MODE). */
+  onBackgroundReturn?: () => void;
   onFrame?: (dt: number) => void;
 }
 
@@ -2200,16 +2203,27 @@ private initEventListeners() {
   private animate = () => {
     this.animFrameId = requestAnimationFrame(this.animate);
     const now = performance.now();
-    // Real delta time (Adam, 2026-10-15: "a delta time thing, not a
-    // framerate clamp"). The old 0.05 cap DISCARDED elapsed time
-    // below 20 fps, so a struggling device did not just stutter —
-    // the whole game ran in slow motion (Clarissa's playtest:
-    // movement and turning feel sluggish). The 0.25 ceiling is a
-    // tab-return guard only: after a long background pause the sim
-    // must not fast-forward seconds in one frame. In live play it
-    // never engages; the game loop sub-steps long frames so
-    // movement and jump physics stay stable at any real rate.
-    const delta = Math.min((now - this.lastTime) / 1000, 0.25);
+    // Real delta time (Adam, 2026-10-15: "a delta time thing, not
+    // a framerate clamp" — and for background return, "put it in
+    // pause mode"). No ceiling: a frame simulates exactly the time
+    // that passed; the game loop sub-steps long frames so physics
+    // stays stable at any rate. (The pre-fix 0.05 cap DISCARDED
+    // elapsed time below 20 fps — a struggling device ran the whole
+    // game in slow motion: Clarissa's "movement and turning feel
+    // sluggish".)
+    const rawDelta = (now - this.lastTime) / 1000;
+    // A gap over a second is never live play: the tab was
+    // backgrounded (rAF stops entirely down there) or the process
+    // froze. Simulating the whole absence would fast-forward the
+    // world, so the absence is discarded — this frame simulates
+    // nothing — and App latches PAUSE MODE; the player returns to
+    // a held world and resumes deliberately.
+    const backgroundReturn = rawDelta > 1;
+    const delta = backgroundReturn ? 0 : rawDelta;
+    if (backgroundReturn) {
+      this.unlockPointer();
+      this.callbacks.onBackgroundReturn?.();
+    }
     this.lastTime = now;
     this.elapsedTime += delta;
 

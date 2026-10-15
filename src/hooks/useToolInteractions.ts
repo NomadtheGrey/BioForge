@@ -125,6 +125,10 @@ export interface UseToolInteractionsParams {
     iconColor?: string
   ) => void;
   onOpenBioForgeModal: () => void;
+  /** Open a storage pod's panel (App shows StorageModal). */
+  onOpenStorage: (structure: StructureEntity) => void;
+  /** Spawn a dropped item in the world (storage spills, overflow). */
+  spawnDroppedItem: (itemId: ItemId, count: number, x: number, z: number) => void;
   triggerHarvestFx: (x: number, z: number) => void;
   triggerSolventFx: (x: number, z: number) => void;
 }
@@ -162,6 +166,8 @@ export function useToolInteractions({
   setCodexList,
   postNotification,
   onOpenBioForgeModal,
+  onOpenStorage,
+  spawnDroppedItem,
   triggerHarvestFx,
   triggerSolventFx,
 }: UseToolInteractionsParams) {
@@ -465,6 +471,18 @@ export function useToolInteractions({
       soundEngine.playSolventSpray();
       triggerSolventFx(structure.worldX, structure.worldZ);
 
+      // A storage pod SPILLS before it dissolves (Adam, 2026-10-15):
+      // everything inside drops at the pod's feet, then the pod
+      // itself returns to the pouch like any structure. Nothing a
+      // player stored is ever deleted by a misclick of solvent.
+      if (structure.type === 'storage_pod' && structure.storage) {
+        Object.entries(structure.storage.items).forEach(([itemId, count]) => {
+          if ((count ?? 0) > 0) {
+            spawnDroppedItem(itemId as ItemId, count as number, structure.worldX, structure.worldZ);
+          }
+        });
+      }
+
       // Return 100% of seed-nodes to inventory
       addInventoryItem(structure.type as ItemId, 1);
       removeStructure(structure.id);
@@ -478,7 +496,7 @@ export function useToolInteractions({
 
       multiplayerManager.broadcastEntityRemove('structure', structure.id);
     },
-    [addInventoryItem, removeStructure, triggerSolventFx, postNotification]
+    [addInventoryItem, removeStructure, triggerSolventFx, postNotification, spawnDroppedItem]
   );
 
   // 4b. Solvent Sprayer on flora — dissolve & reclaim (Adam, 2026-10-14:
@@ -907,6 +925,10 @@ export function useToolInteractions({
         health: 120,
         maxHealth: 120,
         doorOpenProgress: 0,
+        // A storage pod is born tier 1 and empty (Adam, 2026-10-15).
+        ...(selectedStructureType === 'storage_pod'
+          ? { storage: { tier: 1, items: {} } }
+          : {}),
       };
 
       addStructure(newStruct);
@@ -1416,6 +1438,23 @@ export function useToolInteractions({
       }
       return;
     }
+    // Storage pods (Adam, 2026-10-15): any tool except the builder
+    // OPENS the pod's panel — solvent and scanner keep their
+    // meanings (solvent dissolves WITH a spill, handled inside).
+    // The builder falls through, so a pod still works as a base
+    // block to build on, like any upright piece.
+    if (structure.type === 'storage_pod' && activeTool !== 'builder') {
+      if (activeTool === 'solvent_sprayer') {
+        handleSolventSprayer(structure);
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onOpenStorage(structure);
+      return;
+    }
     if (activeTool === 'solvent_sprayer') {
       handleSolventSprayer(structure);
       return;
@@ -1429,7 +1468,7 @@ export function useToolInteractions({
       return;
     }
   },
-  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, handleGroundClick, handlePlanterAction, selectedSeedId, selectedStructureType, handleBuilderOnPanel, handleBuilderOnBaseBlock, handleGrowCeiling, handlePlaceLadder, handleExtendLadder, handleClimbLadder, postNotification, onEnterCave, onExitCave]
+  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, onOpenStorage, handleGroundClick, handlePlanterAction, selectedSeedId, selectedStructureType, handleBuilderOnPanel, handleBuilderOnBaseBlock, handleGrowCeiling, handlePlaceLadder, handleExtendLadder, handleClimbLadder, postNotification, onEnterCave, onExitCave]
 );
 
   return {

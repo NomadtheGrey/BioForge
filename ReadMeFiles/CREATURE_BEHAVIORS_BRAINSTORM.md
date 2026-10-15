@@ -195,6 +195,17 @@ bloom, crystal does not seed — solvent returns the shard. The
 Saltglass family's creature seats (family signature + the Thaw's
 and Flats' unique seats) are EMPTY and belong to this chat.
 
+Flora note (Living, 2026-10-15): DUSKGRASS (black-violet —
+alien photosynthesis, no chlorophyll assumption; green stays
+legal where it fits, per Adam) and the HEARTBLOOM — one per
+Living zone at its seeded heart point — which harvests to
+HEART SAP (double when fed) and accepts fertilizer as a MEAL
+that satiates a hungry valley (~5 min, session-scoped v1).
+The Living's creature seats are the strangest in the game:
+the valley itself is the organism — its signature 'creature'
+may be the valley entire, and its fauna seats belong to this
+chat.
+
 Flora note (Ice Fangs, Frost, 2026-10-15): the Rime Spire is a
 geyser frozen mid-eruption — clustered ice teeth around a brighter
 core tooth — in Frost, the sixth built family (the steady cold;

@@ -1037,17 +1037,33 @@ const {
   }, [playerState.maxHealth, setHealth, setStamina, postNotification, respawnAtSpawn]);
   onPlayerDeathRef.current = handlePlayerDeath;
 
+  // Pause mode on background return (Adam, 2026-10-15): the engine
+  // reports a long frame gap (the tab was away); latch the pause —
+  // the ref flips first, so the very next frame already holds —
+  // and the HUD overlay offers the deliberate resume.
+  const [returnPaused, setReturnPaused] = useState(false);
+  const returnPausedRef = useRef(false);
+  const onBackgroundReturn = () => {
+    returnPausedRef.current = true;
+    setReturnPaused(true);
+  };
+  const resumeFromReturn = () => {
+    returnPausedRef.current = false;
+    setReturnPaused(false);
+    if (!touchMode) engineRef.current?.requestPointerLock();
+  };
+
   useGameLoop({
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
     jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, lastStaminaSync,
     sprinting, sporeStaminaRef, marshSluggishRef, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
-    touchModeRef, isPointerLockedRef, activeModalRef,
+    touchModeRef, isPointerLockedRef, activeModalRef, returnPausedRef,
     structuresListRef, floraListRef,
     activeToolRef, lastBroadcastTime, lastMinimapUpdateTime, latestStateRef, currentZoneId,
     applyPlayerLevel, postNotification, setStamina, setHealth, setMinimapPos,
-    setDayNightCycle, setHoverInfo, setIsPointerLocked,
+    setDayNightCycle, setHoverInfo, setIsPointerLocked, onBackgroundReturn,
     activeModal, playerState, floraList, faunaList, structuresList, droppedItems, dayNightCycle,
   });
 
@@ -1289,6 +1305,8 @@ const {
           setIsMuted(next);
         }}
         isPointerLocked={isPointerLocked}
+        isReturnPaused={returnPaused}
+        onResumeFromReturn={resumeFromReturn}
         touchMode={touchMode}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleGameFullscreen}

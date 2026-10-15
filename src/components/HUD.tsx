@@ -120,6 +120,10 @@ interface HUDProps {
   isMuted: boolean;
   onToggleMute: () => void;
   isPointerLocked: boolean;
+  /** Pause-mode latch (Adam, 2026-10-15): set when the player
+   *  returns from a background tab; the overlay offers resume. */
+  isReturnPaused: boolean;
+  onResumeFromReturn: () => void;
   // True on touch-first devices: no pointer lock exists there, so
   // the click-to-lock invitation is never shown.
   touchMode: boolean;
@@ -179,6 +183,8 @@ export const HUD: React.FC<HUDProps> = ({
   isMuted,
   onToggleMute,
   isPointerLocked,
+  isReturnPaused,
+  onResumeFromReturn,
   touchMode,
   isFullscreen = false,
   onToggleFullscreen,
@@ -608,6 +614,23 @@ export const HUD: React.FC<HUDProps> = ({
           <div className="absolute -right-1 w-0.5 h-1.5 bg-cyan-400/60" />
         </div>
       </div>
+
+      {/* Pause Mode — background return (Adam, 2026-10-15): the sim
+          is latched on hold; resuming is a deliberate tap. */}
+      {isReturnPaused && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-slate-950/50 pointer-events-auto">
+          <div className="glass-panel-biolum px-6 py-4 rounded-2xl flex flex-col items-center gap-3 border border-cyan-500/50 shadow-2xl">
+            <span className="font-tech text-sm tracking-widest text-cyan-200 font-bold">PAUSED</span>
+            <span className="text-xs text-slate-300">You stepped away — the world waited.</span>
+            <button
+              onClick={onResumeFromReturn}
+              className="px-5 py-2 rounded-2xl text-xs font-tech font-bold text-cyan-300 border border-cyan-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            >
+              RESUME
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Pointer Lock Invitation + Hover Inspector, parked just below the reticle */}
       <div className="absolute inset-x-0 top-1/2 mt-10 flex flex-col items-center gap-2 pointer-events-none">

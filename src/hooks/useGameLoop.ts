@@ -53,6 +53,7 @@ export interface GameLoopDeps {
   marshSluggishRef: { current: boolean };
   /** True while the player stands in an Ember Scar zone. */
   scarHeatRef: { current: boolean };
+  thawColdRef: { current: boolean };
   healthRef: { current: number };
   lastHealthSync: { current: number };
   /** Death is armed on Normal/Hostile worlds (Adam's pin). */
@@ -113,7 +114,7 @@ export interface GameLoopDeps {
 export function useGameLoop(deps: GameLoopDeps): void {
   const {
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
-    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, scarHeatRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
+    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, scarHeatRef, thawColdRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
     sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
@@ -322,9 +323,9 @@ export function useGameLoop(deps: GameLoopDeps): void {
         // shade-timing is the only answer — and at empty stamina
         // the heat starts on HEALTH at 1.2/s. By night the ground
         // is warm instead: +8/s stamina while you rest in it.
-        // Surface only. NOTE the health floor of 1: death/respawn
-        // is a pinned rule awaiting its own build; until it lands,
-        // the scar can bring you to the edge but not past it.
+        // Surface only. Death (Adam, 2026-10-15): on Normal/
+        // Hostile worlds health may reach 0, firing the respawn
+        // callback; on Peaceful the floor stays 1.
         if (scarHeatRef.current && activeInstance.kind === 'surface') {
           const cycle = latestStateRef.current.dayNightCycle;
           const isDay = cycle > 0.25 && cycle < 0.75;
@@ -344,6 +345,20 @@ export function useGameLoop(deps: GameLoopDeps): void {
             }
           } else {
             staminaRef.current = Math.min(100, staminaRef.current + 8 * dt);
+          }
+        }
+
+        // Variant effect (2026-10-15): THE THAW'S COLD — the Scar's
+        // mirror. Where the scar burns by day, the thaw country
+        // freezes by NIGHT (outside the 0.25-0.75 day band): the
+        // cold drinks stamina at 6/s on the surface. No health
+        // stage — the cold pressures you home or to a light; it
+        // does not take you. Cross the Thaw by daylight.
+        if (thawColdRef.current && activeInstance.kind === 'surface') {
+          const cycle = latestStateRef.current.dayNightCycle;
+          const isNight = cycle <= 0.25 || cycle >= 0.75;
+          if (isNight) {
+            staminaRef.current = Math.max(0, staminaRef.current - 6 * dt);
           }
         }
         if (performance.now() - lastStaminaSync.current > 100) {

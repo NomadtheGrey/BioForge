@@ -644,6 +644,7 @@ const {
   const sporeStaminaRef = useRef(false);
   const marshSluggishRef = useRef(false);
   const scarHeatRef = useRef(false);
+  const thawColdRef = useRef(false);
   const healthRef = useRef(100);
   const lastHealthSync = useRef(0);
   // Death + respawn (Adam, 2026-10-15): the loop fires
@@ -667,6 +668,7 @@ const {
     sporeStaminaRef.current = variant?.effect === 'spore_stamina';
     marshSluggishRef.current = variant?.effect === 'marsh_sluggish';
     scarHeatRef.current = variant?.effect === 'scar_heat';
+    thawColdRef.current = variant?.effect === 'thaw_cold';
     if (variant && sessionSeed) {
       const key = `${sessionSeed}:${variant.id}`;
       if (!variantAlertedRef.current.has(key)) {
@@ -699,6 +701,27 @@ const {
             'system',
             '#c4b5fd',
           );
+        } else if (variant.id === 'saltglass_flats') {
+          postNotification(
+            'The Flats',
+            'An endless salt pan under a doubled sun-glare — every light you carry burns half again as bright, and there is nothing else here at all.',
+            'system',
+            '#e2e8f0',
+          );
+        } else if (variant.id === 'saltglass_thaw') {
+          postNotification(
+            'The Thaw',
+            'Freeze-thaw country, mild by day — but its nights bite: the cold drinks your stamina after dark. Cross by daylight, or do not stop moving.',
+            'system',
+            '#93c5d8',
+          );
+        } else if (variant.id === 'saltglass_prism') {
+          postNotification(
+            'The Prism Beds',
+            'Crystal reeds grow here in fused beds, humming faintly at noon — saltglass the desert grew itself. Harvest the blades for shards.',
+            'system',
+            '#5eead4',
+          );
         } else if (variant.id === 'mirror_marsh') {
           postNotification(
             'The Mirror Marsh',
@@ -730,7 +753,7 @@ const {
   useGameLoop({
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
     jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, lastStaminaSync,
-    sprinting, sporeStaminaRef, marshSluggishRef, scarHeatRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
+    sprinting, sporeStaminaRef, marshSluggishRef, scarHeatRef, thawColdRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef,

@@ -1646,3 +1646,355 @@ awaits its build) are cast. Remaining: the long tail —
 hybrid pairings 22-55 as the graph earns them, casts to
 fullness, and the caves, last, at Adam's word.
 
+## Ninth roster pass — the empty chairs of the framework itself
+
+Sync at batch start: no new builds since the eighth pass
+(the Living still awaits). So this batch turns inward:
+the framework itself has empty chairs — locomotion modes
+with no citizen (Phasing), shape plans never used as a
+primary (Husk, Radial flora), matrix cells still at the
+illustrative stage (Gel Flora) — and a roster that claims
+a system should be able to show a citizen in every chair
+it built. Twelve entries, aimed at the gaps.
+
+**87. Second Tenant** — the Tending Field (Precursor).
+Fauna x Forged (the husk) with the COLLECTIVE property —
+the Cloud + Husk context ruling, cashed in at full scale.
+Shape: Husk primary (a dead tender's ribcage-and-dome
+frame) worn by Multiped machinery of legs underneath.
+Locomotion: Walking — the husk's own stilt legs, OPERATED:
+a swarm of small forged-kin (the garden's lesser servitors,
+mindless singly) has moved into a dead Tender's frame and
+learned, collectively, to drive it. It walks the rows
+again. WRONG — a half-beat late in the turns, the dome
+tilted at an angle no living Tender ever held, one leg
+dragging a rhythm the rows remember differently. Spectra:
+temperament distributed — the swarm is curious, the husk
+is nothing / Social TOTAL (the tenants) in a body built
+for one / Speed the husk's old pace, imperfectly / Size
+the Tender's / Diet NONE for the husk; the tenants eat
+light and order, as their kind does / Day-night: always —
+the tenants do not sleep the way a crew doesn't / Curiosity
+TOTAL and clumsy — it comes to look at visitors with a
+dead gardener's whole body, and means only greeting /
+Territory the dead Tender's row, re-walked / UNTAMABLE —
+you cannot tame a tenancy; you can, over weeks, be
+RECOGNIZED by it, and a recognized player's plantings get
+tended-around by the husk too, a half-beat late, forever —
+which the design counts as the Precursor family's most
+advanced relationship state: inherited staff. Drops: none.
+Hook: the biome program ruled the tenders dead and left
+ONE seat — "if one ever wakes." This is the waking the
+doc allows: not the Tender returned, but the Tender
+RE-INHABITED. The gardeners are gone; the gardening is
+not; and now some of the gardening is done by the house
+itself, wearing the gardener.
+
+**88. Blink Hare** — far Precursor country and the Storm
+margin (affinity recorded for both; deep minHops only).
+*Phasing's first citizen.* Fauna x Vapor (its outline
+thins at the edges, permanently, like a held breath).
+Shape: Quadruped (hare-plan, ears and all); modifier:
+edge-faded. Locomotion: PHASING primary + Bouncing /
+Hopping secondary — between blinks, it hops, with total
+commitment to being a hare; the blink itself is a short
+hop THROUGH, ten meters at a time, with a soft tick of
+displaced air and a smell of struck flint. Spectra:
+startled, professionally / SOLO / instantaneous, or hare-
+fast / small / Diet grazer of the far country's pale
+grasses, taken in many places briefly / crepuscular /
+Curiosity mid — it blinks CLOSER to look at things, which
+is how you know it's curious and also how it startles
+players out of their skins weekly / Territory huge and
+mostly theoretical / Tameability 10% — the roster's
+floor, shared with the Ironworm and the Glass Snake:
+you do not tame a rumor with good ears. Its one reliable
+sign: a line of TICK sounds crossing open ground where
+nothing is — the hare is commuting, and the far country's
+silence has a metronome after all. Drops: none living;
+its shed edge-fur is vapor and keeps the habit — a tuft
+blinks once, shortly after collection, and is gone (the
+codex records this without further comment). Hook: Axis 2
+kept Phasing as its far-out promise; the hare is the
+promise kept at the smallest, least threatening scale —
+the far country introduces its strangest verb through a
+rabbit-shaped door.
+
+**89. Sky Jelly** — Skyfall Basin (Storm). *Gel, fourth
+design; the Basin's second citizen.* Fauna x Gel. Shape:
+Blob; modifier: rain-clear. Locomotion: Drifting /
+Floating + Swimming — it ARRIVES by the Basin's own
+weather: carried up in the nutrient rain as a polyp of
+gel, it lands in the pools already a jelly (the roster's
+only citizen whose immigration is meteorological). Spectra:
+placid / pool companies after up-rain / slow / small-mid /
+Diet filterer of the Basin's rich water — it eats the
+rain's cargo a second time, from inside / Day-night
+indifferent / Curiosity none / Territory one pool /
+UNTAMABLE — the Mirror Jelly's reason, restated for the
+sky's water. Role: it is the Raincatcher's congregation —
+where the great vapor flora makes the weather, the little
+gel fauna is what the weather DELIVERS, and a pool stocked
+with sky jellies after an up-rain is the Basin's proof
+that its strange loop works: rain rises, jellies fall,
+pools thicken, catchers drink. Drops: none (scooping one
+is possible and pointless — the codex reuses the Mirror
+Jelly's kind sentence, and means it as a house style).
+Hook: the Basin needed an animal as improbable as its
+rain, delivered by it.
+
+**90. Lightcreep** — Fungal Hollow (Fungal). *Gel Flora —
+the Axis 1 illustrative cell, promoted to a design.*
+Flora x Gel. Shape: Blob (a ground-sheet with a leading
+edge); modifier: light-clear, slow-gleaming. Locomotion:
+Stationary, by the letter — and the entry argues with the
+letter honestly: it FLOWS, centimeters a day, toward the
+Hollow's dim green light, so that a lightcreep sheet found
+in spring is found a hand's width on by summer (recorded
+Stationary with a flow note; if any flora earns a
+locomotion footnote, it's this one — the template bends,
+the design says where). Spectra (flora reading): Social
+sheets, merging on contact into one larger citizen / Diet
+light, and the Hollow's rich fall — it eats by lying on
+things for a season / Day-night indifferent (its light
+is the shrooms') / Territory a floor, slowly re-decided /
+Cultivation: a cut piece carried in a dark pouch starts a
+new sheet where it's laid lit — the Hollow's most portable
+flora / Harvest: scooped handfuls, **Lightcreep Gel** (new
+item) — a clear, faintly glowing gel; the Gloom Slug's
+Gloom Gel is made BY an animal, this one IS the animal
+kingdom's other answer: gel that grows toward light,
+harvested by the scoop, regrown from what you leave (the
+Axis 1 cell said exactly this, in sketch; the design
+keeps the sketch's verbs). Hook: the Hollow's floor is
+not floor — it's a slow citizen, and the Hermit's house
+walks on a plant that is also moving, at the speed of
+geology's patience.
+
+**91. Wrongbloom** — the Untended (Precursor). Flora x
+Forged. Shape: Plantiform; modifiers: geometric (eight
+petals, as the true bloom), spiral-REVERSED. Locomotion:
+Stationary. The Precursor Bloom grows in Archimedean
+spirals wound one way; the Untended's bloom winds the
+OTHER — same gold core, same eightfold order, the whole
+plant a mirror of the garden's signature — and nothing
+about it is broken: it is healthy, vigorous, and entirely
+the garden's grammar spoken with a left hand. Spectra
+(flora reading): Social feral spirals, wound inward /
+Diet light and the garden's old irrigation, found by
+roots that read the land's memory / Day-night indifferent /
+Territory the feral rows / Cultivation: cannot be started
+— it starts itself, where keeping lapses (a garden's
+first wrongbloom is its diagnosis: the Untended is not a
+place, it is a PROCESS, and the bloom is how you see it
+coming — the Spiral Moth's backward wings are the same
+news at insect scale; the family warns at every size) /
+Harvest: it yields **Wrong Thread** (new item) — recorded
+as a NON-material: it looks like Living Thread, spools
+like it, and UNWINDS in the hand over hours (crafts made
+with it come politely apart; the codex carries exactly
+one warning line, in the voice of experience: "Check the
+winding."). Hook: the roster's counterfeit — every
+economy with a signature material earns a forgery, and
+the Forged family's forgery is grown by its own gardens,
+in mirror writing.
+
+**92. Zot Star** — the Charged Flats (Storm). *Radial
+flora — the shape plan's second citizen, and its first
+plant.* Flora x Crystalline. Shape: Radial; modifiers:
+fulgurite-rooted, glass-petaled. Locomotion: Stationary —
+rooted IN the strike glass: it grows only where lightning
+has been, a star of crystal petals around a heart of sand
+turned to glass by the family's own weather (its seed
+germinates in a strike's heat; no zot, no star). Spectra
+(flora reading): Social strike-scatter — a flats map of
+zot stars IS a map of where the lightning has been, which
+makes the plant the family's archive / Diet light, and
+the strike's leavings / Day-night: it OPENS toward the
+banner — at the warning light, every star on the flats
+turns its face up at once (the flats' congregation,
+answering the sky's raised hand; players learn to read
+the stars as a second banner, closer and quieter) /
+Territory one strike-point, permanent / Cultivation:
+cannot be planted — it can only be INVITED, by being
+struck near (the design leaves the method as an exercise
+in Storm-country courage) / Harvest: shed petals at
+season's turn, **Star Petal** (new item) — fulgurite-edged,
+for the lightning-craft that will come later. Hook: the
+Kiln Star walks by tipping; the zot star answers by
+staying — the Radial plan's two citizens are the roster's
+proof that a shape is a question, not an answer.
+
+**93. Tumble Sage** — Meadow x Storm (place name draft:
+the Wind Plains). *Rolling, the mode's plant citizen.*
+Flora x Ordinary. Shape: Plantiform (a sage ball);
+modifier: detachable — at season's turn the whole plant
+lets go of its root and becomes its own seed-head.
+Locomotion: ROLLING — wind-driven across the plains,
+bouncing, shedding seed at every bounce (the geode roller
+gathers; the sage SCATTERS — the mode's two citizens are
+opposite economies on the same verb). Spectra (flora
+reading): Social plains companies, becalmed together in
+hollows / Diet light and soil, before the letting-go /
+Day-night indifferent / Territory the wind's, which is to
+say a direction / Cultivation: plantable only as a caught
+ball — chase one down, anchor it, and it roots where it's
+held (the roster's most athletic planting verb) / Harvest:
+a rooted sage yields **Sage Leaf** (new item) — plains
+herb, storm-cured. Its encounter, the entry's delight: a
+tumble sage crossing a player's path in full roll is the
+plains' hello — and a STORM of them, a whole company's
+worth loosed by one wind, is the Wind Plains' migration,
+the hybrid country briefly animal at landscape scale.
+Hook: the Meadow's stillness and the Storm's motion,
+compromised in a ball of sage that is a plant, a vehicle,
+and a seed, in that order, seasonally.
+
+**94. Gulp Lily** — Wetland pools (Mirror Marsh first
+among them). *The snap trap's aquatic rhyme — the hazard
+the Sumpfish entry promised the water.* Flora x Ordinary.
+Shape: Plantiform + Husk (its pod); modifier: patient.
+Locomotion: Stationary, floating-anchored. A lily whose
+pad is a POD: small fauna stepping to drink find the pad
+fold — GULP — and the pod holds them, gently, in green
+dark, full of pool-water and indignation, and lets them
+go (Peaceful discipline, observed by a plant: it holds,
+it does not harm; on the harder modes it holds LONGER,
+which is the whole difference, and the design keeps it
+that clean). Spectra (flora reading): Social pool scatter /
+Diet sunlight, and the pool's small traffic, borrowed /
+Day-night: it gulps by day and sleeps open by night (the
+marsh's small citizens learn its hours the way landsmen
+learn the Meltcap's) / Territory one pool's bright patch /
+Cultivation: transplantable as a rooted pod — a player
+may, on purpose, garden a moat (the design sees them, and
+approves, and says the moat's tenants will be released
+unharmed and furious) / Harvest: unopened pods, **Gulp
+Pod** (new item) — a sealed mouthful of living pool; what
+it crafts into is later, but a portable gulp is a tool
+looking for its problem. Hook: the Wetland's water had a
+citizen at every depth and one on the roof; now it has a
+SURPRISE, which is the last thing a habitat owes its
+visitors.
+
+**95. Hayfinch** — Meadow x Ember (place name draft: the
+Warm Meadows). Fauna x Ordinary. Shape: Winged (finch
+plan); modifier: ash-flecked. Locomotion: Aerial,
+obligate flyer, dart-class. Spectra: cheerful, busy /
+loose warm-grass companies / quick / tiny / Diet seed-
+picker of the meadow's sun-cured heads and the margin's
+ash-grass / diurnal / Curiosity mid / Territory a warm
+grass stand / Tameability n/a (smallness) — its design is
+its NESTING: it builds in the warmest grass, and a
+hayfinch colony's chosen stand is measurably warmer,
+week over week, than the grass around it (whether the
+birds warm the grass or read it better than instruments
+is left, deliberately, as the hybrid's small mystery —
+the codex presents both theories and prefers the birds).
+Role: it is the margin's thermometer and its music — the
+Warm Meadows announce themselves in finch-song an hour
+before the ground feels different. Drops: none. Hook:
+hybrid casts should include the small change, not only
+the wonders — a finch with ash on its wings does more for
+the Warm Meadows' reality than a dragon would.
+
+**96. Threshold Hound** — the Living Valley (family cast).
+Fauna x Ordinary — with the family's asterisk: it is the
+valley's own animal, grown the way the Greeter is grown,
+and its spectra run the mirror rule like everything in
+that family. Shape: Quadruped (hound plan, long and
+patient); modifier: valley-marked (its coat carries the
+valley's green in any season). Locomotion: Walking. Its
+office is the THRESHOLD: a threshold hound adopts a
+visitor at the valley's edge and escorts them — in a
+Welcoming valley, IN: at your heel, unhurried, showing
+the paths by taking them, a guide with no hands to point
+with and no need of any. In a Hungry valley, the same
+hound, the same office, performed the other way: it
+escorts you OUT — at your heel, unhurried, walking you to
+the edge with perfect courtesy, and the courtesy is the
+warning, because it will walk you out over any objection
+you can make on foot, and it does not tire, and neither
+does the valley. Spectra: dutiful / SOLO per visitor,
+loosely collegial with its own kind / steady, indehastable /
+mid-large / Diet the valley feeds it (recorded as given;
+the template does not ask the valley for receipts) /
+Day-night: always — thresholds keep all hours / Curiosity
+visitors are its whole subject, as with the Guest Bird
+(its colleague at the other scale: the bird announces,
+the hound escorts; the valley's border has a full staff) /
+Territory the edge, walked / UNTAMABLE by design in both
+readings — it is not a pet, it is a USAGE of the valley;
+you do not keep it, you are kept by it, briefly, in one
+direction or the other. Drops: none. Hook: the family's
+third greeter — face, bird, hound — and the hound is the
+one that makes the mirror physical: the same animal, the
+same walk, opposite destinations, and the player learns
+which valley they're in by which way the dog is walking
+them.
+
+**97. Dust Hawk** — Bone (family cast). Fauna x Ordinary.
+Shape: Winged; modifiers: pale-barred, long-winged.
+Locomotion: Aerial, glider-leaning — it owns the
+Graveyard's middle sky (picker above all, gliders on
+census, hawk between: the family's air is now staffed at
+three heights). Spectra: keen, solitary / SOLO / still
+circles, vertical decisions / mid / Diet hunter of dust
+moths and pan lizards' far cousins — it eats the
+Graveyard's small citizens and is eaten by nothing, which
+makes it the family's ceiling / diurnal / Curiosity low /
+Territory the whole Graveyard, at hawk scale / Tameability
+15% — hawks are a negotiation between sovereignties; a
+bonded dust hawk is a rumor with a return address (its
+guard flavor: it watches from altitude and its shadow
+crossing you is its report). Drops: molted primaries at
+its roost crags, **Hawk Feather** (new item) — recorded
+DISTINCT from the Bonepicker's Grave Feather on purpose:
+same family, two skies' worth of feathers, different
+birds, different crafts to come. Hook: background cast
+done right gives a family a full sky; Bone's took four
+batches (picker, glider, moth, hawk) and the design
+notes the patience as the point.
+
+**98. Frost Fisher** — Frost (family cast; the Singing
+Ice and the Stillwhite's coasts). *The Winged + Swimming
+ruling, cashed in.* Fauna x Ordinary. Shape: Winged
+primary — used as FLIPPERS (penguin logic, exactly as the
+shape pass ruled: shape says wings; locomotion decides
+what they're for today); modifier: ice-bellied.
+Locomotion: Swimming primary + Walking secondary (a
+waddle, honestly recorded — on land it is a citizen
+visiting; in the water it is a rumor with a wake).
+Spectra: brisk, comic on land, entirely serious below /
+loose coast companies / fast in its element, dignified
+out of it / mid / Diet hunter of what freezes mid-swim
+beneath the lake film — it and the Lake Glider divide the
+Singing Ice: the glider picks the surface, the fisher
+takes the underneath, and the lake is eaten honestly from
+both sides / diurnal / Curiosity mid-high — a fisher
+inspects a seated player through the clear ice, face to
+face through the floor of its world / Territory a stretch
+of ice-edge / Tameability 30% — by fish-offerings at the
+edge, and by being, over days, a reliable hole-keeper: a
+player who keeps a fishing hole open acquires fishers
+(the Frost family's bargains are all like this: service,
+answered). Drops: it molts flightless feathers at the
+edge: **Fisher Down** (new item) — insulation's fourth
+door in this family, and the design closes the series on
+purpose: stag velvet, bat down, puff down, fisher down —
+Frost is the family whose cold is answered, at every
+scale, by something soft a creature gave up willingly.
+Hook: the roster's penguin, arriving by the front door of
+its own shape ruling — and a reminder that the axes were
+built to be USED, not admired.
+
+Roster designed total: 98 — two short of the hundred.
+Hybrid cast 23 of 55 pairings; background cast 34.
+Framework chairs filled by this pass: Phasing (Blink
+Hare), Husk-primary (Second Tenant), Gel Flora
+(Lightcreep), Radial flora (Zot Star), Rolling flora
+(Tumble Sage), Winged-swimming (Frost Fisher). Part 2
+nears its size cap with this pass; the tenth pass opens
+Part 3, and the roster's hundredth species gets the
+honor of the new part's first entry.
+

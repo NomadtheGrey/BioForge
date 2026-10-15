@@ -1136,7 +1136,7 @@ const {
         'Synthesis Blocked',
         forgeOnly
           ? 'Advanced synthesis requires a bio-forge station.'
-          : 'Too far from a bio-forge station — graft a Field Synthesizer onto your gauntlet to craft in the field.',
+          : 'Too far from a bio-forge station — the Field Synthesizer lets you craft in the field.',
         'craft',
         '#f59e0b'
       );

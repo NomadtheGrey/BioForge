@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Backpack, Sparkles, Sprout, Hammer, ArrowUpRight } from 'lucide-react';
 import { ItemId, StructureType, ToolType } from '../types/game';
-import { ITEMS } from '../game/constants';
+import { ITEMS, HELMET_GEAR_ITEM_IDS } from '../game/constants';
 import { isGauntletUpgrade } from '../game/quests';
 import { POUCH_TIER_CAPS, POUCH_TIER_NAMES, pouchTierOf } from '../game/pouch';
 
@@ -24,7 +24,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
   onSelectFertilizer,
   onSelectTool,
 }) => {
-  const [activeTab, setActiveTab] = useState<'all' | 'raw' | 'seed' | 'fertilizer' | 'structure'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'raw' | 'seed' | 'fertilizer' | 'structure' | 'gauntlet' | 'helmet'>('all');
   const [selectedItemId, setSelectedItemId] = useState<ItemId | null>(null);
 
   // The pouch tier derives from the upgrade items in the pouch.
@@ -40,7 +40,14 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
   const filteredItems = ownedItems.filter((id) => {
     const item = ITEMS[id];
     if (!item) return false;
-    return activeTab === 'all' || item.category === activeTab;
+    if (activeTab === 'all') return true;
+    // Gear tabs (Adam, 2026-10-15) mirror the BioForge screen's:
+    // Gauntlet gathers the worn upgrades (each already marked
+    // EQUIPPED on its tile), Helmet the helmet-line set — the two
+    // platforms get a home in the pouch as well as at the forge.
+    if (activeTab === 'gauntlet') return isGauntletUpgrade(id);
+    if (activeTab === 'helmet') return HELMET_GEAR_ITEM_IDS.includes(id);
+    return item.category === activeTab;
   });
 
   const activeItem = selectedItemId ? ITEMS[selectedItemId] : filteredItems.length > 0 ? ITEMS[filteredItems[0]] : null;
@@ -105,6 +112,8 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
         <div className="px-6 py-3 border-b border-slate-800/70 bg-slate-900/30 flex items-center gap-2 overflow-x-auto">
           {[
             { id: 'all', label: 'All Items' },
+            { id: 'gauntlet', label: 'Gauntlet' },
+            { id: 'helmet', label: 'Helmet' },
             { id: 'raw', label: 'Raw Harvests' },
             { id: 'seed', label: 'Flora Seeds' },
             { id: 'fertilizer', label: 'Fertilizers' },

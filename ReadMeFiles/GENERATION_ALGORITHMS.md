@@ -296,3 +296,17 @@ lab's generators are being built as composable layers with this in mind.
 | lab surface experiments | GEN_VERSION | 1 |
 | caverns | CAVERN_GEN_VERSION | 1 |
 | ruins | RUIN_GEN_VERSION | 1 |
+
+
+## Cave resemblance ✓ BUILT (2026-10-15, Adam's design)
+
+Caves wear the biome they're dug under — as a SKIN over the
+strata skeleton. generateCavern accepts a surfaceBiome and
+stamps meta.biomeTint: the family grade color at strength
+0.55 (L1) → 0.40 → 0.25 → 0.12 → 0.05 (L5). Adam's rule, and
+now the fade table: the deep forgets the surface. The tint
+reads no RNG stream — layouts are byte-identical with or
+without it (harness-proven) — and the engine blends cave fog
+and background toward it in setCavernMode. Depth still owns
+layout, darkness, and descent; the biome owns the color of
+the dark.

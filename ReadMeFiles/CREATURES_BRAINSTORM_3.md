@@ -1605,3 +1605,332 @@ tenant, stationary fauna's first, the collective's
 fourth, Crystalline flora's second, drifting flora's
 second, and the Forged kingdom's small end. The
 matrix has no empty cells left standing.
+
+## Fifteenth roster pass — hybrid wave five: the near empties
+
+Twenty-two hybrid pairings stood empty. This wave
+takes twelve — the nearer, more plausible countries —
+and leaves the ten far pairings (the Bone/Living/
+Precursor edges, where the graph itself gets strange)
+for the next wave, as a set. One seat was pulled
+forward out of order on Adam's question about epic
+scale: Bone x Storm closes this pass with the roster's
+third landscape-class citizen.
+
+**159. Pale Grazer** — Meadow x Bone (place name
+draft: the Old Fields — meadow growing over bone-soil
+so old the fields are white at the roots). Fauna x
+Ordinary. Shape: Quadruped; modifier: bone-pale — its
+coat is the color of the country it eats. Locomotion:
+Walking. Spectra: calm / herd / slow / LARGE / Diet
+grazer with a mineral habit: it practices OSTEOPHAGY,
+chewing weathered bone for what grass lacks (Earth's
+deer do this, and the entry says so — the oddly
+familiar license, cited) — which makes it the Old
+Fields' recycling made visible: meadow eats bone,
+bone feeds meadow, and the grazer is the hinge /
+diurnal / Curiosity low / Territory a field circuit /
+Tameability 40% — meadow manners, bone appetite; a
+kept pale grazer is a fertilizer system with opinions
+about fences. Drops: shed antler-nubs (it grows and
+sheds small ones yearly), unlisted; its real yield is
+its droppings, which the Old Fields' flowers prefer
+to all other soils. Hook: the gentlest possible
+citizen for a Meadow x Bone country — death, grazed.
+
+**160. Row Grazer** — Meadow x Precursor (place name
+draft: the Garden Meadows). Fauna x Ordinary. Shape:
+Quadruped. Locomotion: Walking — IN ROWS. It crops
+grass along the Tending Fields' spiral logic even in
+open meadow: generations of grazing beside the
+gardeners' order taught its herds a geometry, and
+now it mows spirals into wild grass, beautifully,
+uselessly, exactly (builders follow its rows as
+survey lines; farmers love it in spring and curse it
+at harvest — it will not be hurried out of a row
+half-finished). Spectra: placid / herd / slow / mid /
+Diet grazer / diurnal / Curiosity low / Territory a
+meadow and its pattern / Tameability 45% — and the
+entry's one flourish: a tamed row grazer will mow a
+homestead's lawn in spirals if the lawn is laid out
+to deserve it, which homesteaders count as the
+garden's last compliment. Drops: none. Hook: culture
+leaks; the Meadow x Precursor country's citizen is a
+wild animal with table manners it learned from ruins.
+
+**161. Marrow Leech** — Wetland x Bone (place name
+draft: the Drowned Graveyard — where the Graveyard's
+low edge floods and the bones stand in black water).
+Fauna x Ordinary. Shape: Segmented (leech plan,
+arm-long at the great end); modifier: bone-white.
+Locomotion: Swimming + Slithering along the drowned
+bones. Spectra: placid / loose drowned companies /
+slow / mid / Diet marrow-film and drowned-rot — it
+cleans the submerged bones the ants can't reach (the
+Graveyard's upkeep has a wet shift, and this is it —
+the ants above, the leeches below, the moss between,
+and the moth over all) / nocturnal / Curiosity none /
+Territory a drowned rib-cage and its pool / Tameability
+0%, and the entry declines to make it sinister: it
+does not want your blood; it wants the bones' weather.
+Contact is a cold, brief investigation, released.
+Drops: none. Hook: every house in the roster has a
+staff; the skeleton's includes a night cleaner, and
+the Drowned Graveyard is a PLACE now, with a citizen.
+
+**162. Hello Frog** — Wetland x Living (place name
+draft: the Thirsty Marsh — the marsh the valley
+drinks from). Fauna x Ordinary. Shape: Quadruped
+(frog plan); modifier: throat-fanned, in the
+Greeter's own leaf-green. Locomotion: Bouncing /
+Hopping + Swimming. Its call is a GREETING — a round,
+hospitable croak, answered antiphonally across the
+marsh at dusk (the Greeter's mirror-law at frog scale:
+in a Welcoming-fed marsh the chorus greets everything,
+including rain; the call is the marsh saying hello
+with its whole body). Spectra: cheerful / CHORUS,
+the social spectrum's wettest entry / burst / small /
+Diet marsh insects — the gnats' fourth check, sung /
+dusk-night / Curiosity vocal / Territory one pond's
+rim / Tameability 50% — it will chorus from a
+homestead pond within a season of being sung to (the
+entry is serious: reciprocal calling is the method).
+THE MIRROR, kept: in a Hungry-fed marsh, the chorus
+calls from the reeds BEHIND the listener — the same
+greeting, ventriloquized — and the design leaves what
+that means at the marsh's edge, with the Guest Bird's
+file cross-referenced. Drops: none. Hook: the
+valley's temperament reaches the water table; the
+frog is how the marsh reports which valley feeds it.
+
+**163. Frostcap** — *Fungus* x Ordinary — Fungal x
+Frost (place name draft: the Cold Groves). Shape:
+Plantiform (towers of pale caps stepping up a stalk);
+modifier: frost-furred — its caps wear rime like the
+Stag wears velvet. Locomotion: Stationary; it fruits
+THROUGH snow, in the still cold, on the Frozen
+Forest's fungal side (the Meltcap keeps the night,
+the Stormcap rides weather, the frostcap keeps the
+WINTER: the kingdom's clocks gain a season). Spectra
+(fungus reading): Social grove-rings in the cold
+groves / Diet deep rot, winter-slow / Day-night:
+fruits in the coldest dark and holds till thaw /
+Cultivation: spore-dust carried to cold grove soil
+takes in a season — the Rime Puff ferries it
+unknowingly in its down (the food web's quiet
+courier work) / Harvest: **Frostcap** (item, its
+name) — winter provisions that keep: sliced, it dries
+to a pale leather that travels (the cold country's
+journey-food, and Frost's kitchens finally have a
+citizen of their own kingdom). Hook: the Fungus x
+Frost cell stood empty in two kingdoms at once; the
+frostcap is what grows where rot meets the STEADY
+cold and decides to be architecture.
+
+**164. Saltroot** — *Flora* x Crystalline — Saltglass
+x Rootwood (place name draft: the Glasswood — trees
+growing where the flats give up). Shape: Plantiform
+(tree plan); modifier: glass-rooted — its roots grow
+SALTGLASS as they grow: living conduits of crystal
+threading the soil, so an old saltroot's root-plate,
+excavated by weather, is a chandelier lying in the
+dirt (the Glass Snake shelters in root-glass; the
+Deck Weaver's country and the flats' country share a
+basement). Locomotion: Stationary. Spectra (flora
+reading): Social glasswood stands, root-grafted to
+their neighbors — a stand is one slow conversation
+in crystal / Diet light, salt soil, and time /
+Day-night: the roots conduct noon's glare BELOW
+ground, so the glasswood's soil is lit from beneath
+at midday (things live in that light that live
+nowhere else; the entry leaves the census of the
+root-light to a later pass, deliberately) /
+Cultivation: a root-cutting takes only in salty
+wood-soil — both parents' conditions, like the Grave
+Vine / Harvest: fallen root-glass, gathered:
+**Saltroot Glass** (new item) — naturally tubed
+crystal: the far crafters' piping and lens-blanks.
+Hook: two families that build — one in wood, one in
+glass — meet in a tree that does both, downward.
+
+**165. Grave Owl** — Bone x Frost (place name draft:
+the White Graveyard — the Graveyard's cold face).
+Fauna x Ordinary. Shape: Winged (owl plan, broad and
+silent); modifier: bone-dusted — its plumage is
+whitened by the fields it hunts, permanently.
+Locomotion: Aerial, obligate-flyer-leaning with the
+owl's silent wing. Spectra: patient / SOLO and mated
+pairs / stillness, then a dropped silence / mid /
+Diet hunter of the white country's small life — Frost
+Voles at the Graveyard's edge, skull-her... it hunts
+the vole-fields where Bone meets Frost (the vole's
+third predator, after worm and — the entry cross-
+references — the owl is why voles bless the snowpack:
+under it, they are safe from THIS) / nocturnal /
+Curiosity owlish, which is to say judicial /
+Territory a hunting circuit over the white fields /
+Tameability 15% — provision-earned at a roost, the
+pickers' rule flown at night; a won grave owl is a
+homestead's silent watch. Drops: its pellets, found
+at roosts, contain Clean Bone fragments in harvestable
+form — the economy's strangest door, unlisted,
+recorded here for the census-keepers. Hook: the Rime
+Owl hunts the forest's rime; the grave owl hunts the
+fields' white — Frost's cold, read by two owls in two
+of its hybrid countries.
+
+**166. Blizzard Kite** — Storm x Frost (place name
+draft: the White Storm). Fauna x Ordinary. Shape:
+Winged (the Storm Kite's plan, winter-built);
+modifier: pennant-tailed — its ribbon tail freezes in
+flight into stiff bright pennants that crackle as it
+turns (the Kite Ribbon's winter source, gathered
+where they snap off in the cold — the entry notes the
+ribbon economy has a season). Locomotion: Aerial,
+flyer-leaning, and WEATHER-LOCKED by preference
+where the Roc is locked by nature: it flies IN
+blizzards — whiteout is its clear sky; in calm it
+roosts in the Fangs' lee, grounded and (the entry's
+word) bored. Spectra: exuberant / storm companies,
+kite-kin sociability at winter scale / fast / mid /
+Diet storm-hunter of whiteout life — snow finches at
+their sheets, whatever the blizzard carries /
+blizzard-diurnal (its day is the storm's) /
+Curiosity mid / Territory a storm's duration /
+Tameability 25%, by the Storm Kite's rule — build it
+a high perch above the storm line and keep it through
+one winter. Drops: shed pennants, as above. Hook:
+Storm x Frost is the graph's loudest weather; its
+citizen treats a blizzard the way the kite treats a
+gust — as the only honest air.
+
+**167. Answer Tree** — *Flora* x Ordinary — Rootwood
+x Living (place name draft: the Speaking Wood).
+Shape: Plantiform (tree plan); modifier:
+responsive-leaved — its leaves rustle in PATTERNS:
+wind gives noise; the answer tree gives REPLIES —
+a rustle that follows a voice's rhythm, a creak that
+answers a knock, in a conversation just below words
+(the Listening Fern at tree scale, and the valley's
+habit rooted in wood country: in a Welcoming-fed
+wood, travelers talk to the trees and the trees,
+politely, talk around them). Locomotion: Stationary.
+Spectra (flora reading): Social speaking stands —
+one tree's reply teaches its graft-neighbors (the
+Glasswood's crystal conversation has a wooden cousin)
+/ Diet light and attention — it grows measurably
+faster along paths where people SPEAK (the entry
+records the fact and declines the mechanism) /
+Day-night: it answers by day; by night it repeats
+the day's loudest sounds, softly, to itself /
+Cultivation: a cutting planted by a path and talked
+to — the roster's most literal gardening note /
+Harvest: its fallen reply-leaves, unlisted. THE
+MIRROR, kept plainly: in a Hungry-fed wood, an
+answer tree answers in the voice of whoever is
+NOT present (the Guest Bird's rule, in leaves) —
+and the wood's other citizens go quiet around it,
+which is the traveler's sufficient warning. Hook:
+Rootwood built the bridges; the Living taught the
+valley to greet; the Speaking Wood is where the
+forest itself learned the family's first word.
+
+**168. Greeting Cap** — *Fungus* x Ordinary — Fungal
+x Living (place name draft: the Hungry Groves —
+named for one side of the mirror, as the valley
+itself is named for both). Shape: Plantiform (a cap
+on a leaning stalk); modifier: GREETING — it LEANS
+toward passersby, a slow bow that follows you along
+its arc as you pass (Hearthroot's fungal mirror: the
+valley's habit wearing the fungus kingdom's body).
+Locomotion: Stationary, with the lean. Spectra
+(fungus reading): Social groves lean in shifts, like
+an audience / Diet grove rot and valley weather /
+Day-night: it leans by day and straightens at night
+— the grove asleep is upright, which travelers find
+worse / Cultivation: grove-soil and company (a lone
+greeting cap in a pot leans toward the door; the
+entry leaves this image alone) / Harvest: honestly
+recorded as VARIABLE: in Welcoming-fed groves the
+cap is **Greeting Cap** (item) — a mild, lemony
+provision. In Hungry-fed groves the same cap leans
+ACROSS the path, fruits heavier, and is marked in
+the codex with the valley's own warning: it is the
+only fungus whose edibility is a temperament roll,
+and the design keeps both readings in one entry,
+as the Greeter's file taught it. Hook: three
+kingdoms now carry the valley's mirror — a fauna, a
+flora, and a fungus — and the fungus is the one that
+bows.
+
+**169. Forge Bloom** — *Flora* x Forged — Ember x
+Precursor (place name draft: the Kiln Gardens).
+Shape: Plantiform (a spiral-bedded ember flower);
+modifier: warm-petaled — its petals HOLD HEAT: picked
+at dusk, a forge bloom petal is hand-warm till dawn
+(the gardeners bred a flower as a hand-warmer; it has
+bloomed unattended in spiral beds for centuries,
+self-seeding in rows, because order was bred into it
+deeper than obedience). Locomotion: Stationary.
+Spectra (flora reading): Social spiral beds, still
+legible / Diet ember soil, vent warmth, garden order /
+Day-night: it opens at the vents' evening breath /
+Cultivation: bed-order matters — planted out of
+spiral it sulks to an ordinary ember flower (the
+entry records the sulking as temperament, where it
+belongs) / Harvest: **Forge Petal** (new item) — a
+petal that keeps warmth: pockets, gloves, and winter
+camps across the cold graph will pay for the Kiln
+Gardens' flower. One grace note, recorded plainly:
+the Feral Tender tends one row of forge blooms in
+the Untended, inexplicably, perfectly — the staff's
+one act of nostalgia, and the Feral Warden lets it.
+Hook: Ember x Precursor is where the gardeners
+gardened in fire; the bloom is the garden still
+keeping its own hours.
+
+**170. Storm Leviathan** — Bone x Storm (place name
+draft: the Storm Graveyard — the far flats where the
+Graveyard's weather is made): **the roster's third
+LANDSCAPE-scale citizen**, pulled forward on Adam's
+epic question. Fauna x Ordinary. Shape: Quadruped at
+the leviathan plan — the living answer to the
+Leviathan Graveyard's bones: those were its KIND,
+in their season; this is one, in its own. Locomotion:
+Walking — its stride is a weather event at ground
+level; it migrates with the storm fronts across the
+far Bone x Storm country, and where it walks, the
+zot keeps a respectful distance (the entry states it
+flatly and lets the world's rules argue: the strikes
+fall AROUND it — the flats' oldest citizens say the
+lightning is herding, not hunting; the codex records
+the saying without endorsing it). Spectra: abyssal
+calm / SOLO, an entourage of storm kites and grave
+owls attending its weather / Speed a season's / Size
+LANDSCAPE — the template's top word, used for the
+third time, each use earned / Diet grazer of storm-
+country fields at acre scale / Day-night: it sleeps
+standing through whole fronts / Curiosity none /
+Territory a migration older than the zones /
+UNTAMABLE — geography, walking a second road: the
+Grass Leviathan's road is meadow; this one's is
+storm, and the Graveyard is where its kind's roads
+have always ended. Drops: none taken. Shedding, along
+its route, its kind leaves weather-bells of rib-bone
+that the flats' peoples hang... the entry stops
+itself: that is a culture note, and the cultures
+aren't designed yet. Hook: the Graveyard asked a
+question for nine passes — WHERE DID THE BONES COME
+FROM — and the hybrid graph answers it: from the
+storm country, walking, in the rain, at the scale
+of the sky's own patience. The bones are not a
+mystery anymore. They're a migration route.
+
+Wave five closes: hybrid pairings 45 of 55. The ten
+remaining are the far set — Wetland x Precursor,
+Fungal x Precursor, Ember x Living, Saltglass x
+Living, Saltglass x Precursor, Bone x Living, Bone x
+Precursor, Storm x Living, Living x Frost, Precursor
+x Frost — reserved for wave six, where they belong:
+the graph's strange edge, taken whole.
+Roster designed total: 170.

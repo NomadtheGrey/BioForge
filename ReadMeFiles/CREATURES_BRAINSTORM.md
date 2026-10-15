@@ -36,8 +36,8 @@ the biome program's shipped-behavior stubs and flora
 notes (this design inherits from it; it is a different
 file, kept by the biome chat).
 
-**Roster count:** 158 species designed (through the
-fourteenth pass), plus the shipped cast already in the
+**Roster count:** 170 species designed (through the
+fifteenth pass), plus the shipped cast already in the
 game. Layers complete so far: family emblems 11 of 11;
 a one-off for every built biome variant; hybrid
 creatures for 33 of 55 pairings; background casts under

@@ -787,6 +787,27 @@ const {
             'system',
             '#e7f0b0',
           );
+        } else if (variant.id === 'bonefields') {
+          postNotification(
+            'The Bonefields',
+            'Fragments everywhere — ribs, shards, half a jaw — and flowers sheltering in their shade. The soil here remembers everything, and feeds it forward. Harvest gravebloom for bone meal.',
+            'system',
+            '#e2dac6',
+          );
+        } else if (variant.id === 'marrow_flats') {
+          postNotification(
+            'The Marrow Flats',
+            'The richest soil in the world: death, fully composted into generosity. Gravebloom stands thick here.',
+            'system',
+            '#d9c88f',
+          );
+        } else if (variant.id === 'leviathan_graveyard') {
+          postNotification(
+            'Leviathan Graveyard',
+            'Ribs you walk under. A skull like a house. Whatever this was, it was the biggest thing in its world — and its world ended anyway. Walk quietly.',
+            'system',
+            '#efe9d8',
+          );
         } else if (variant.id === 'mirror_marsh') {
           postNotification(
             'The Mirror Marsh',

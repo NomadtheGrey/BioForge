@@ -245,6 +245,9 @@ export function useToolInteractions({
         // Rootwood (2026-10-15): the premium building wood, plus
         // the fibrous bark the slabs shed.
         return { item: 'heartwood', count: flora.fertilizedYield ? 3 : 2, extras: [['soft_fiber', 1]] };
+      case 'gravebloom':
+        // Bone (2026-10-15): bone meal from the bloom, dew in the cup.
+        return { item: 'bone_meal', count: flora.fertilizedYield ? 3 : 2, extras: [['dew_essence', 1]] };
       case 'precursor_bloom':
         // Precursor (2026-10-15): living thread from the petals,
         // dew beaded in the golden core — the gardens pay twice.
@@ -580,6 +583,8 @@ export function useToolInteractions({
                           ? 'heartwood' // a cut heart is the stock; roots regrow from the giant, not from seed pouches
                           : flora.species === 'precursor_bloom'
                             ? 'living_thread' // grown thread is its own propagule
+                            : flora.species === 'gravebloom'
+                              ? 'bone_meal' // the bloom regrows from the country's stock, not a pouch
                     : (`seed_${flora.species}` as ItemId);
       const rawName = flora.species.replace(/_/g, ' ');
       const speciesName = rawName.charAt(0).toUpperCase() + rawName.slice(1);

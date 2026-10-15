@@ -745,6 +745,27 @@ const {
             'system',
             '#dbeafe',
           );
+        } else if (variant.id === 'rootwood_canopy') {
+          postNotification(
+            'Rootwood Canopy',
+            'The biggest roots in the world, with bright clearings between them — and bridges: root decks strung tower to tower. Click a vine ladder at a tower to climb up and walk the span.',
+            'system',
+            '#84cc16',
+          );
+        } else if (variant.id === 'rootwood_underroot') {
+          postNotification(
+            'The Underroot',
+            'The canopy closes overhead here and the ground lives in gloom — light carries barely half as far. Walk by your lanterns.',
+            'system',
+            '#65a30d',
+          );
+        } else if (variant.id === 'rootwood_rootfall') {
+          postNotification(
+            'The Rootfall',
+            'A giant came down here, long ago — split heartwood, rich soil, and heartroot stands growing thick in the wreck. Generous country.',
+            'system',
+            '#d9a05b',
+          );
         } else if (variant.id === 'mirror_marsh') {
           postNotification(
             'The Mirror Marsh',

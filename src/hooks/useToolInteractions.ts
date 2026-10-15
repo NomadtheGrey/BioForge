@@ -229,6 +229,10 @@ export function useToolInteractions({
         // Ember Scar (2026-10-15): heat-cured resin beads in the
         // bloom's cup — the scar pays in sap for those who time it.
         return { item: 'resin_sap', count: flora.fertilizedYield ? 3 : 2, extras: [['dew_essence', 1]] };
+      case 'obsidian_bloom':
+        // Obsidian Garden (2026-10-15): the land's own glass —
+        // shards petal-cut by heat, plus the dew the glass sweats.
+        return { item: 'obsidian_shard', count: flora.fertilizedYield ? 3 : 2, extras: [['dew_essence', 1]] };
       case 'mirror_lily':
         // Mirror Marsh (2026-10-15): the pads cup the doubled light
         // and bead it as dew; a reed sometimes roots alongside.
@@ -540,12 +544,19 @@ export function useToolInteractions({
       // phantom item into the pouch.
       const seedId: ItemId =
         flora.species === 'glow_spore_cluster' || flora.species === 'glow_fungus'
-          ? 'glow_spore'
+        || flora.species === 'antenna_shroom' || flora.species === 'visor_shroom' || flora.species === 'shelf_shroom'
+          ? 'glow_spore' // the fungal variant species spore-propagate too
           : flora.species === 'sunshard_cluster'
             ? 'sunshard'
             : flora.species === 'prism_cluster'
               ? 'prismatic_core'
-              : (`seed_${flora.species}` as ItemId);
+              : flora.species === 'mirror_lily'
+                ? 'dew_essence' // lilies spread by rhizome — dew is their stock
+                : flora.species === 'cinder_bloom'
+                  ? 'resin_sap' // no seed survives the vents; sap is the stock
+                  : flora.species === 'obsidian_bloom'
+                    ? 'obsidian_shard' // glass does not seed; a shard is the stock
+                    : (`seed_${flora.species}` as ItemId);
       const rawName = flora.species.replace(/_/g, ' ');
       const speciesName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
 

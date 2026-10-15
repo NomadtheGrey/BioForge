@@ -685,6 +685,20 @@ const {
             'system',
             '#fb923c',
           );
+        } else if (variant.id === 'ashen_drift') {
+          postNotification(
+            'The Ashen Drift',
+            'Deep ash swallows light here — every lantern dies young and the dark leans close. Walk by your brightest lights, and keep them near.',
+            'system',
+            '#a8a29e',
+          );
+        } else if (variant.id === 'obsidian_garden') {
+          postNotification(
+            'The Obsidian Garden',
+            'Black glass flowers grow from the old burning — beautiful, sharp, and worth a shard to anyone building with light in mind.',
+            'system',
+            '#c4b5fd',
+          );
         } else if (variant.id === 'mirror_marsh') {
           postNotification(
             'The Mirror Marsh',

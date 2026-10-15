@@ -559,6 +559,41 @@ A species design in this doc is not complete until it carries a
 spectra line — all ten fields, even if the entry is "mid / n/a"
 with a reason.
 
+## Build note — species as data (Adam's question, 2026-10-15)
+
+Adam asked whether each creature / plant needs its own code
+file, or whether a data file could carry them. Answer recorded
+here for the eventual build phase (this chat builds nothing):
+
+- **No per-species code files.** The game is already halfway
+  data-driven: census tables, biome affinity lists, codex text,
+  recipes, and yields are tables today (constants / biomes /
+  worldGen). A species becomes **one entry in one species table**
+  (a .ts data file in the biomes.ts pattern, so tsc — currently
+  at zero errors — catches a malformed entry at build time).
+- **The entry's fields are this doc's template.** Kind, Material,
+  Shape (plan + secondary + modifiers), Locomotion (+ flight
+  spectrum), all ten spectra, distribution layer + biome homes,
+  drops / shed item + interval, tame percentage, guard style,
+  codex text, size, palette. The design template and the data
+  schema are the same list wearing two hats — that is deliberate.
+- **Shared code is written once**: the wander / follow / guard
+  engine, the taming roll, shed timers, and a mesh builder that
+  assembles a placeholder body from Shape plan + palette + size
+  (a blob is a squashed sphere; a multiped is a body on stepped
+  leg cylinders; a winged thing is a body plus vane planes). A
+  bespoke model, when one exists, overrides the placeholder by
+  species id — one optional field, not a code fork.
+- **Genuinely new behaviors are the only code** — and they are
+  written once as named toolbox hooks (shedder, light-drinker,
+  collector-guard) that data entries then reference by name.
+  A new species that only remixes existing hooks is a data
+  entry, full stop. Flora is even easier: growth stages, yields,
+  and seeds are already pure data.
+- **Honest limit**: data removes per-species *code*, not
+  per-species *judgment* — balance, readability, and playtest
+  still happen species by species. That part is this chat.
+
 ## Cross-references
 
 - BIOMES_BRAINSTORM.md — the family x hybrid graph; creature

@@ -12,6 +12,7 @@ import {
   DroppedItemEntity,
 } from '../types/game';
 import { multiplayerManager } from '../game/multiplayer';
+import { speciesDef } from '../game/species';
 import type { WorldSnapshot } from '../game/saveSystem';
 
 
@@ -706,38 +707,21 @@ export function useWorldEntities(): UseWorldEntitiesResult {
 
           byproductTimer += dt;
 
-          // Soft-Puff byproduct (Bio-Pellets)
-          if (isTamed && fauna.species === 'soft_puff' && byproductTimer > 25) {
+          // Byproduct sheds — TABLE-DRIVEN (creature build phase,
+          // slice 1, 2026-10-15): item, interval, and the tamed-only
+          // rule all live in the species table (game/species.ts), so
+          // a new species sheds by gaining an entry, not a branch
+          // here. The two shipped patterns are preserved in the data:
+          // tamed-only producers (soft-puff pellets, stalker scales)
+          // and WILD shedders whose supply chains must never require
+          // harming or taming the species (Adam, 2026-10-14: the
+          // glider's vanes are a non-lethal byproduct; the moth's
+          // dew and the pale hare's fur follow the same ruling).
+          const shed = speciesDef(fauna.species).byproduct;
+          if (shed && byproductTimer > shed.seconds && (!shed.tamedOnly || isTamed)) {
             byproductTimer = 0;
-            spawnDroppedItem('bio_pellet', 1, x, z);
-            onCritterExcrete?.('soft_puff');
-          }
-
-          // Chitin-Stalker byproduct (Carapace Scales)
-          if (isTamed && fauna.species === 'chitin_stalker' && byproductTimer > 35) {
-            byproductTimer = 0;
-            spawnDroppedItem('carapace_scale', 1, x, z);
-            onCritterExcrete?.('chitin_stalker');
-          }
-
-          // Vesper Glider byproduct (Sonar Vanes) — NATURAL shedding:
-          // unlike the tamed-only producers above, a glider drops its
-          // worn vanes whether it is wild or tame (the radar's supply
-          // chain must never require harming one — Adam, 2026-10-14:
-          // the vanes are a non-lethal byproduct).
-          // Mirror Moth byproduct (Dew Essence) — pollinators shake
-          // dew from the mirror lilies as they drift; wild or tame,
-          // the marsh provides (2026-10-15).
-          if (fauna.species === 'mirror_moth' && byproductTimer > 50) {
-            byproductTimer = 0;
-            spawnDroppedItem('dew_essence', 1, x, z);
-            onCritterExcrete?.('mirror_moth');
-          }
-
-          if (fauna.species === 'vesper_glider' && byproductTimer > 45) {
-            byproductTimer = 0;
-            spawnDroppedItem('sonar_vane', 1, x, z);
-            onCritterExcrete?.('vesper_glider');
+            spawnDroppedItem(shed.item, 1, x, z);
+            onCritterExcrete?.(fauna.species);
           }
 
           const nextFauna = {

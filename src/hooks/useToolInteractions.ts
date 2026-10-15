@@ -22,6 +22,7 @@ import { ruinLoreLine } from '../game/ruinInterior';
 import { soundEngine } from '../audio/soundEngine';
 import { multiplayerManager } from '../game/multiplayer';
 import { FLORA_MATURE_SECONDS, FERTILIZER_DURATION_SECONDS } from './useWorldEntities';
+import { speciesDef } from '../game/species';
 import { GROUND_LAYER_TYPES, isEdgePanel, isLadder, occupancyConflict, placementFor } from '../game/placement';
 
 // A new plant must be at least this far (meters) from every existing one —
@@ -64,12 +65,13 @@ const rollRuinCacheLoot = (cacheId: string, band: 'shallow' | 'mid' | 'deep'): [
   return [...loot.entries()];
 };
 
-// Taming odds per lure attempt, by species. The bait is eaten either way —
-// a failed attempt is a snack, not a refund. Docile species rarely refuse;
-// the stalker is a predator and tames on its own terms.
-const TAME_CHANCE_SOFT_PUFF = 0.8;
-const TAME_CHANCE_BURROW_MOUSE = 0.6;
-const TAME_CHANCE_CHITIN_STALKER = 0.25;
+// Taming odds per lure attempt live in the SPECIES TABLE now
+// (game/species.ts — creature build phase, slice 1, 2026-10-15): the
+// puff's 0.8, the mouse's 0.6, and the stalker's 0.25 moved there with
+// every other species' design values, so a new species tames by
+// gaining an entry, not a constant and a branch. The rule is
+// unchanged: the bait is eaten either way — a failed attempt is a
+// snack, not a refund.
 
 export interface UseToolInteractionsParams {
   activeTool: ToolType;
@@ -691,9 +693,13 @@ export function useToolInteractions({
         return;
       }
 
+      // Species data (display name, tame odds, pet name, bait flow)
+      // comes from the species table — see game/species.ts.
+      const def = speciesDef(fauna.species);
+
       if (fauna.species === 'soft_puff' || fauna.species === 'burrow_mouse') {
         if (!hasItem('sweet_nectar', 1)) {
-          postNotification('Sweet Nectar Needed', 'Harvest Sweet Nectar from Petal-Mills or craft bait in the Bio-Forge [B] to tame Soft-Puffs.', 'alert', '#fbbf24');
+          postNotification('Sweet Nectar Needed', `Harvest Sweet Nectar from Petal-Mills or craft bait in the Bio-Forge [B] to tame a ${def.name}.`, 'alert', '#fbbf24');
           return;
         }
 
@@ -701,11 +707,11 @@ export function useToolInteractions({
 
         // The roll: the nectar is gone either way. On a failure the
         // critter enjoys the snack and stays wild — bring more bait.
-        const tameChance = fauna.species === 'soft_puff' ? TAME_CHANCE_SOFT_PUFF : TAME_CHANCE_BURROW_MOUSE;
+        const tameChance = def.tameChance ?? 0;
         if (Math.random() > tameChance) {
           postNotification(
             'It Darted Away',
-            `The ${fauna.species === 'soft_puff' ? 'Soft-Puff' : 'Burrow Mouse'} took the nectar and slipped off, still wild.`,
+            `The ${def.name} took the nectar and slipped off, still wild.`,
             'alert',
             '#fbbf24'
           );
@@ -713,11 +719,11 @@ export function useToolInteractions({
         }
 
         soundEngine.playTameCritter();
-        tameFauna(fauna.id, fauna.species === 'soft_puff' ? 'Luminescent Puff' : 'Burrow Scout', 'following');
+        tameFauna(fauna.id, def.petName, 'following');
 
         postNotification(
           'Companion Domesticated!',
-          `${fauna.species === 'soft_puff' ? 'Soft-Puff' : 'Burrow Mouse'} tamed! It follows you${fauna.species === 'soft_puff' ? ' and excretes high-grade Bio-Pellets' : ''}. Lure it again to order it to stay or guard.`,
+          `${def.name} tamed! It follows you${def.byproduct?.tamedOnly ? ` and sheds ${ITEMS[def.byproduct.item]?.name || 'byproducts'}` : ''}. Lure it again to order it to stay or guard.`,
           'tame',
           '#2dd4bf'
         );
@@ -745,7 +751,7 @@ export function useToolInteractions({
         // The roll: a predator usually decides you are not worth it. The
         // offering is eaten either way — three failures in four is normal,
         // which is what makes a tamed stalker worth having.
-        if (Math.random() > TAME_CHANCE_CHITIN_STALKER) {
+        if (Math.random() > (def.tameChance ?? 0)) {
           postNotification(
             'The Stalker Backs Off',
             'It snatched the offering and melted back, still wild. Stalkers tame on their own terms — bring more bait.',
@@ -766,6 +772,57 @@ export function useToolInteractions({
         );
 
         multiplayerManager.broadcastFaunaTame(fauna.id, multiplayerManager.playerName);
+      }
+
+      // Generic nectar flow (creature build phase, slice 1) — every
+      // species whose table entry names the standard lure bait tames
+      // here, with its odds, name, and pet name read from the table.
+      // A species is added to the game by adding its table entry; this
+      // branch never grows a per-species arm.
+      if (def.bait === 'nectar') {
+        if (!hasItem('sweet_nectar', 1)) {
+          postNotification('Sweet Nectar Needed', `Harvest Sweet Nectar from Petal-Mills or craft bait in the Bio-Forge [B] to tame a ${def.name}.`, 'alert', '#fbbf24');
+          return;
+        }
+
+        deductInventoryItem('sweet_nectar', 1);
+
+        // The roll: the nectar is gone either way — bring more bait.
+        if (Math.random() > (def.tameChance ?? 0)) {
+          postNotification(
+            'It Darted Away',
+            `The ${def.name} took the nectar and slipped off, still wild.`,
+            'alert',
+            '#fbbf24'
+          );
+          return;
+        }
+
+        soundEngine.playTameCritter();
+        tameFauna(fauna.id, def.petName, 'following');
+
+        postNotification(
+          'Companion Domesticated!',
+          `${def.name} tamed! It follows you${def.byproduct?.tamedOnly ? ` and sheds ${ITEMS[def.byproduct.item]?.name || 'byproducts'}` : ''}. Lure it again to order it to stay or guard.`,
+          'tame',
+          '#2dd4bf'
+        );
+
+        multiplayerManager.broadcastFaunaTame(fauna.id, multiplayerManager.playerName);
+        return;
+      }
+
+      // Untamable by design (the table says so): the lure is refused
+      // politely instead of silently — the mirror moth is fully timid,
+      // and no amount of nectar changes that.
+      if (def.bait === null) {
+        postNotification(
+          'It Won\'t Be Lured',
+          `The ${def.name} wants nothing from the lure. Some creatures are company, not companions.`,
+          'alert',
+          '#94a3b8'
+        );
+        return;
       }
     },
     [hasItem, deductInventoryItem, tameFauna, postNotification]

@@ -1950,6 +1950,338 @@ ever border), background casts to fullness (~3–5 per family
 = roughly 25–45 more), and then the caves, when Adam calls
 the overworld done.
 
+## Sixth roster pass — hybrid wave one + background cast, wave three
+
+Two pieces of housekeeping before the creatures. First, a
+SYNC NOTE from the biome program (their docs, 2026-10-15):
+Adam's no-machines ruling stands — the gardeners' tenders
+were Forged creatures (grown, not built), and the ones
+standing in the game today are DEAD: ribcage-and-skull
+husks generating as scenery, thickest in the Tending
+Field. A LIVING tender is expressly left as a design seat
+for this chat ("if one ever wakes"). Reconciliation,
+recorded here so both docs read true at once: the living
+Forged staff in this roster — the Garden Warden, the Row
+Tender, the Feral Tender — are the RARE exceptions, not the
+standard issue. Most of their kind are husks. A garden with
+a living Tender is a marked garden; a Warden still on duty
+is one in many gardens, not every garden. Read their entries
+with that scarcity applied; their designs do not change.
+
+Second: this batch opens the HYBRID WAVE. The four named
+hybrid places were designed in the third pass; the graph
+holds 55 pairings at 11 families, and hybrids are delegated
+to this chat's judgment. Six pairings get creatures below,
+chosen by the graph's own rules — plausible neighbors, plus
+one clash-margin (Ember x Frost never border; their hybrid
+is the margin between them, per the biome doc's own note).
+Place names for the new pairings are DRAFT, as all hybrid
+names are until the biome program settles them; the
+creatures are designed to the pairing, not the name.
+
+### Hybrid wave one
+
+**51. Rime Owl** — Frost x Rootwood (the Frozen Forest, the
+hybrid candidate the biome doc names outright). Fauna x
+Ordinary. Shape: Winged; modifiers: frost-rimed, silent-
+feathered (its flight makes no sound the snow doesn't make
+first). Locomotion: Aerial, glider-leaning — it hunts by
+falling politely. Spectra: calm-predator / SOLO / still,
+then vertical / mid / Diet hunter of the frozen forest's
+small climbers and the Glow Grub's cold cousins / nocturnal
+— the frozen forest's night is its office / Curiosity low /
+Territory a stand of frozen heartroot / Tameability 15% —
+owls do not negotiate much, and a frost one less. Role: it
+is the hybrid's proof of concept — neither Frost's open-sky
+hunter (the Kite is Storm's; Frost had none) nor Rootwood's
+canopy life, but the thing the two make together: a forest
+predator for a forest that rings like glass when the wind
+takes it, hunting by the sounds things make freezing.
+Drops: molted feathers where it roosts, **Rime Feather**
+(new item) — silent-flight feathers, for whatever quiet
+crafting comes later.
+
+**52. Sedge Hen** — Meadow x Wetland. Fauna x Ordinary.
+Shape: Biped (the shape axis's honest non-human biped: a
+bird, all legs and opinions); modifier: reed-striped.
+Locomotion: Walking, wading variant — it lives in the
+shallow margin where meadow grass gives up and becomes
+marsh, walking the wet like it owns a deed. Spectra:
+brisk, fussy / small flocks with strict internal politics /
+quick steps, long freezes / mid / Diet picker — seeds from
+the meadow side, larvae from the water side; it eats the
+border itself / diurnal / Curiosity mid-high — hens
+investigate in a body, arriving as a committee / Territory
+a shoreline stretch, patrolled in single file / Tameability
+45% — it is halfway to domesticated by temperament and
+knows it; the first roster entry a player will describe as
+"basically a chicken," and the design accepts the
+compliment: oddly familiar is a flavor, and this is its
+type specimen. Eggs: it lays in the reeds — SEDGE EGG,
+recorded as a food item plainly (the roster's first egg;
+foraging economies need ordinary miracles too).
+
+**53. Cinder Toad** — Fungal x Ember (Chitin-Stalker
+country — the shipped census already pairs these families).
+Fauna x Ordinary, fungus-hosting. Shape: Quadruped
+(squat, wide, a toad that has given up on hurrying);
+modifiers: cap-backed (a small ember-tolerant mushroom
+grows from its shoulders — the Mulch Beetle's farming at
+toad scale, except the toad didn't plant it and doesn't
+know), coal-warted. Locomotion: Bouncing / Hopping, short
+and final. Spectra: phlegmatic / loose warm-rock gatherings /
+none, then one hop / small-mid / Diet hunter of ash-midges
+and ember gnats, taken by tongue at conversational range /
+crepuscular / Curiosity none detectable / Territory one
+warm rock, shared under protest / Tameability 55% — the
+lure is a warm flat stone near your fire, and the toad's
+demand is simply to be allowed to sit on your life at its
+edges (follow exists; it hops along a full minute behind
+and arrives eventually, which the design counts as a
+personality, not a bug). The cap on its back fruits in
+heat: harvested gently, **Toadcap** (new item) — an
+ember-side mushroom with a tenant's permission implied.
+Hook: the hybrid at its most domestic — two frightening
+families meet and produce a toad by the fire.
+
+**54. Glass Snake** — Saltglass x Frost. Fauna x
+Crystalline. Shape: Serpentine; modifiers: clear-bodied
+(you see its last meal as a silhouette, which is the
+encounter), frost-veined. Locomotion: Slithering — over
+ice and glass both, and it is the only creature in the
+roster equally dressed for either parent: Saltglass gave
+it the material, Frost gave it the weather. Spectra: patient /
+SOLO / slow, with a strike's exception / mid-long / Diet
+hunter of thawmice and the flats' small sleepers, taken in
+the cold hours when warm blood is findable / nocturnal /
+Curiosity low / Territory a crack system in the ice-glass
+margin / Tameability 10% — the roster keeps its floor
+honest: some creatures are weather with a spine. Drops:
+it sheds whole, in one clear tube that holds a snake's
+shape for a day: **Glass Shed** (new item) — a natural
+tube of the family's material, for later glasswork; the
+sheds are findable at crack mouths at dawn, no snake
+required to be persuaded. Hook: in the margin of the two
+glass countries, even the predators are transparent, and
+the danger is not that you won't see it — it's that you'll
+see THROUGH it, and mistake it for the country.
+
+**55. Valley Goat** — Meadow x Living. Fauna x Ordinary.
+Shape: Quadruped; modifiers: bell-flowered (hearthroot
+blooms in its coat where the valley has petted it — the
+coat is a garden the valley keeps), sure-footed. Locomotion:
+Walking + Climbing secondary (it goes up the valley's
+slopes and, given time, its ruins). Spectra: serene,
+stubborn in the goat manner / small herds / unhurried /
+mid / Diet grazer-trimmer — and here is its office: it eats
+the hello-vines back. In a Welcoming valley, a goat herd is
+the valley's manners made sustainable (the hello stays a
+hello because the goats prune it); in a Hungry valley the
+same herds are the valley's OPPOSITION — the grab gets
+trimmed before it finishes, and the valley is measurably
+less hungry where goats range, which gives the player a
+lever on the scariest family in the game: bring goats
+(numbers and mechanics are build-phase; the ecology is the
+design) / diurnal / Curiosity goat-standard: total /
+Territory a slope and its trimmings / Tameability 60% —
+it was halfway the valley's pet already. Drops: shed coat-
+blooms in spring, Hearth Bloom again (the flora's item,
+by the goat's delivery — second door, same rule as the
+shard). Hook: the Living family's danger was designed as
+absolute — the valley decides. The goat is the roster's
+answer: nothing in BioForge is absolute where ecology is
+awake; even a hungry valley has something it has to argue
+with, and it argues with goats.
+
+**56. Steam Eel** — Ember x Frost (the CLASH MARGIN: the
+two families never touch, per the graph; where their
+countries face off, the argument makes a place — meltwater
+channels in black rock, steam standing in cold air). Fauna
+x Ordinary. Shape: Finned primary + Serpentine secondary;
+modifier: gradient-skinned — one end of it is always
+warmer than the other, and it knows which end it is by
+touch. Locomotion: Swimming, in water that is ice at one
+bank and near-boiling at the other; the eel's whole life
+is a temperature held between two deaths. Spectra: evasive /
+loose channel companies / liquid-quick / LONG / Diet
+picker of whatever the melt washes down from the ice side
+and the vents push up from the fire side — it eats the
+border dispute / Day-night none: its channels never freeze
+and never cool; the margin keeps no hours / Curiosity low /
+Territory one channel / Tameability 20% — the lure is a
+hand's warmth held at the channel's middle, and the eel
+decides about gradients the way cats decide about laps.
+Drops: none living; a spent eel at a channel's end is the
+margin's tithe to the Bonepicker's cousins of the far
+country, and the codex leaves it there. Hook: the graph
+said these two families can never meet; the eel is what
+lives in the shape of their refusal — every clash on the
+graph is a habitat wearing a grudge, and something will
+always move in.
+
+### Background cast, wave three
+
+**57. Rime Puff** — Frost (family cast). Fauna x Ordinary.
+Shape: Blob-rounded quadruped — recorded honestly: it is
+the Soft-Puff's deliberate mirror, the game's first creature
+re-imagined by the steadiest cold (the variation bar's
+"oddly familiar" at maximum: same round body, same hop,
+wholly other country). Locomotion: Bouncing / Hopping, low
+and dense — a rime puff lands like a snowball with plans.
+Spectra: gentle / loose white companies, easily mistaken
+for a drift of snowballs until the drift hops / slow-mid /
+SMALL / Diet grazer of frost-cured moss under the snow's
+edge / diurnal / Curiosity high, puff-standard — it comes
+to look at you, being a puff in all weathers / Territory
+none worth the name / Tameability 70% — the Frost family's
+kindness at small scale: in the family's killing cold, the
+tamest thing on the roster waits at knee height (the
+emblem test inverted: the stag teaches Frost is vast; the
+puff teaches it is survivable, and company is available).
+Sheds: winter coat in the thaws-that-aren't (Frost doesn't
+thaw; the puff sheds on its own calendar): **Puff Down**
+(new item) — insulation-kin to Frost Velvet and Spire
+Down: the family's cold answered at three scales now, and
+the answer is always something soft that a creature gave
+up willingly.
+
+**58. Guest Bird** — the Living Valley (family cast). Fauna
+x Ordinary. Shape: Winged; modifier: bright-throated.
+Locomotion: Aerial, flyer-leaning. It lives at the valley's
+EDGE, in the last ordinary trees before the family's
+ground, and its office is announcement: in a Welcoming
+valley, a guest bird SINGS a visitor in — a clear carrying
+call that the Greeter's vines answer by opening (the
+valley's doorbell, staffed). In a Hungry valley, the same
+bird, the same post, the same duty — performed in a voice
+it has learned: it calls the visitor by an approximation of
+a FAMILIAR voice (never a name it could know; a tone, a
+cadence, the shape of someone you trust, from the trees).
+Peaceful holds the line, as everywhere: it only calls. It
+has only ever called. Spectra: dutiful / edge pairs /
+quick / small / Diet picker of edge-fruit and the valley's
+offerings / diurnal / Curiosity total — visitors are its
+whole subject / Territory the edge, which it treats as a
+desk / Tameability 30% in a Welcoming valley; recorded
+UNTAMABLE in a Hungry one — not because it refuses, but
+because the design refuses to let a player keep the thing
+that does the voice, as a pet, in the place where it does
+it. Drops: molted bright feathers at the edge trees,
+unnamed, unlisted — some casts are atmosphere with a
+wage of feathers. Hook: the Greeter's mirror was the
+hello that might be a grab; the bird is the announcement
+that might be a lure — the family argues its thesis at
+every scale it touches, bird included.
+
+**59. Puffbell** — Fungal (family cast). Fungus x Ordinary.
+Shape: Plantiform (a bell on a stalk); modifier:
+spore-laden. Locomotion: Stationary. The fungal family's
+second clock (the Meltcap keeps the night; the puffbell
+keeps the HOUR): at intervals a mature bell draws in,
+swells, and PUFFS — a visible ring of spore-smoke and a
+soft percussive note, felt in the ribs more than heard —
+and in a grove, the bells synchronize within a day of each
+other arriving (nobody teaches them; the grove is one
+organism remembering it has a tempo). Spectra (fungus
+reading): Social groves, synchronized / Diet decomposer of
+standing deadwood — it fruits on the family's fallen, the
+Rootfall's inland cousins / Day-night indifferent; the
+puffs keep their own time in any light / Territory the
+grove, which is also the clock / Cultivation: plantable by
+spore-smoke — stand in a puff at the hour, walk to your
+ground, and you have sown it without ever holding a seed
+(the roster's most accidental planting verb, and the
+codex's favorite) / Harvest: bells cut BEFORE the puff are
+**Puffbell** (item, its name, mushroom-fashion again) — a
+spice-grade fungus; cut after, it's smoke and regret.
+Hook: a family whose background cast includes two clocks
+is a family that experiences time differently, and the
+player learns the fungal country the way you learn a
+house with a grandfather clock: by living in its hours.
+
+**60. Banner Vine** — Storm (family cast). Flora x
+Ordinary. Shape: Plantiform; modifiers: wind-shaped,
+streaming. Locomotion: Stationary. It grows UP — from
+cracks in the family's high rocks, a vine that anchors
+hard and then gives its length to the wind, streaming
+horizontal in storm weather like a banner from a pole (the
+Storm Kite's flora rhyme: the kite is a living banner with
+a ribbon; the vine is a banner that stayed home). Spectra
+(flora reading): Social ridge-lines of vines, all streaming
+the same way — a Storm hillside reads as a fleet at anchor /
+Diet light, rain, and the wind's deliveries (storm-lifted
+seed and dust catch in its length; it eats the weather's
+cargo) / Day-night indifferent / Territory one crack, held
+against weather that has moved dunes — the vine is the
+family's counter-argument: in the country where everything
+travels, one thing's whole design is staying / Cultivation:
+plantable on high rock only; a vine in a sheltered garden
+grows up, finds no wind, and becomes ordinary ivy with a
+past (the codex line is the vine's whole biography).
+Harvest: cut lengths, **Banner Fiber** (new item) — storm-
+grade fiber, kin to Kite Ribbon in the crafting family:
+the Storm economy pays in things that hold against wind.
+Hook: every family's flora should state the family's
+thesis; Storm's is usually motion — the vine states the
+other half: what the wind can't take.
+
+**61. Dust Moth** — Bone (family cast). Fauna x Ordinary.
+Shape: Winged (small moth plan); modifiers: pale-dusted,
+grave-quiet. Locomotion: Aerial, obligate flyer at moth
+scale — flutter and settle. Spectra: gentle / loose
+dusk companies over the bones / slow / tiny / Diet the
+treaty's third signatory: it eats Bonemoss spores and
+carries them bone to bone on its dusted wings — the ants
+clean the bone, the moss keeps it, the moth CONNECTS it;
+the Graveyard's maintenance is a three-party ecology and
+the moth is its courier / crepuscular / Curiosity mid —
+it settles on still players, briefly, like everything in
+the Graveyard eventually does / Territory the Graveyard,
+at moth scale, which makes it enormous / Tameability n/a —
+smallness; but a player dusted with bonemoss spores is a
+vehicle, and the moths will use you as one, which is the
+Graveyard's whole relationship with the living in one
+image. Drops: none; the Graveyard's small citizens are
+staff, not stock. Hook: it completes a circuit the roster
+built across four entries (Bonepicker above, ants below,
+moss on the bone, moth between) — background cast, done
+right, is a machine with wings.
+
+**62. Hearth Wisp** — everywhere (ubiquitous layer; the
+layer's third designed member, after the Dew Gnat — the
+two shipped citizens are the puff and the mouse). *Vapor,
+fourth design.* Fauna x Vapor. Shape: Cloud at kettle
+scale; modifier: ember-hearted (a small warm light at its
+center, visible at dusk). Locomotion: Drifting / Floating,
+active end — it HOLDS over warm rising air: forge chimneys,
+campfires, a sleeping herd's breath, a hot spring's face.
+The Mote Swarm investigates chimney heat before storms; the
+hearth wisp is what LIVES there year-round. Spectra: gentle,
+unstartlable / loose chimney companies, one per good fire /
+still, with a bob / tiny / Diet heat-drinker and smoke-
+sipper — it eats the top of your fire, the part you weren't
+using / Day-night dusk-forward — visible when the light is
+low and the fires are lit, which is when you want it /
+Curiosity resident — it is curious about the household,
+permanently / Territory one updraft, defended by ignoring
+rivals completely / UNTAMABLE — a lure cannot feed a
+weather, and a hearth wisp is a weather that chose your
+house. Its service, recorded plainly: a hearth wisp over a
+fire means the fire is HEALTHY — clean draw, good wood,
+no smother; a fire losing its wisp is a fire about to
+smoke, sour, or die (a base-keeping telegraph with a face;
+the roster's smallest guardian, and it guards the hearth
+because the hearth is where it lives). Drops: none. It
+would be like charging rent to a blessing. Hook: the
+ubiquitous layer needed a citizen for the player's own
+ground — the gnat is the world's pest, the mouse is the
+world's neighbor; the wisp is the HOME's.
+
+Roster designed total: 62. Hybrid cast now 10 of 55
+pairings; background cast 15. The remaining work is the
+long tail Adam ordered: hybrid pairings as the graph earns
+them, family casts to fullness, and the caves last.
+
 ## Build note — species as data (Adam's question, 2026-10-15)
 
 Adam asked whether each creature / plant needs its own code

@@ -250,6 +250,8 @@ export class BioForgeThreeEngine {
     bio_forge_station: { color: 0x22d3ee, intensity: 0.9, distance: 3.5, y: 1.4 },
     tamed_snap_trap_turret: { color: 0xef4444, intensity: 0.7, distance: 3, y: 1.1 },
     cultivation_mound: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.6 },
+    // The storage pod's amber seam breathes a low, warm halo.
+    storage_pod: { color: 0xf59e0b, intensity: 0.5, distance: 2.4, y: 0.8 },
     // The living ladder drinks light all day and gives a little
     // back at dusk — a soft leaf-green halo at climbing height.
     // (This entry was one of the two the pre-2026-10-15 type union

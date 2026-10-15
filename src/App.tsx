@@ -49,6 +49,7 @@ import {
   zoneHops,
   zoneKey,
   zoneHudLabels,
+  zoneVariantAt,
   type ZoneCoords,
 } from './game/zones';
 import { routeForZoneTag, storeEntityEvent, snapshotOf, buildZoneSyncTravel as buildZoneSyncTravelPayload, type ZoneStores } from './game/zoneSync';
@@ -633,10 +634,32 @@ const {
   // the engine-wiring effects live in the hook now. It returns
   // nothing: the loop reads the world through refs and writes back
   // through the same refs and setters it always used.
+  // Fungal Hollow spore air (Adam, 2026-10-15): the loop reads this
+  // ref each tick to tax stamina in a spore-effect variant zone; the
+  // effect below keeps it honest as the player crosses zones, and
+  // posts the one-time-per-world alert naming the eventual answer
+  // (a helmet with a filter upgrade).
+  const sporeStaminaRef = useRef(false);
+  const sporeAlertedSeedRef = useRef<string | null>(null);
+  useEffect(() => {
+    const variant = sessionSeed ? zoneVariantAt(sessionSeed, playerZone.zx, playerZone.zz) : null;
+    const inSpores = variant?.effect === 'spore_stamina';
+    sporeStaminaRef.current = inSpores;
+    if (inSpores && sporeAlertedSeedRef.current !== sessionSeed) {
+      sporeAlertedSeedRef.current = sessionSeed;
+      postNotification(
+        'Spore-Thick Air',
+        'Spore-thick air fills this Fungal Hollow, and it taxes your stamina as you move. A helmet with a filter upgrade will answer it; until then, cross briskly and rest at the edges.',
+        'system',
+        '#a78bfa',
+      );
+    }
+  }, [sessionSeed, playerZone, postNotification]);
+
   useGameLoop({
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
     jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, lastStaminaSync,
-    sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
+    sprinting, sporeStaminaRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef,

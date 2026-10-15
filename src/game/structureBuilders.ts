@@ -407,6 +407,44 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       group.add(mound);
       return group;
     },
+    // The storage pod (Adam, 2026-10-15): a squat grown bulb with a
+    // latched lid — root-wood body, a porcelain rim ring, and an
+    // amber glow seam where the lid seals. One mesh serves all
+    // three tiers; the tier lives in the entity's storage record
+    // and in the pod's panel, not in the silhouette (v1).
+    'storage_pod': () => {
+      const group = new THREE.Group();
+
+      // Squashed-sphere body, rooted in a low wood collar.
+      const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.86, 0.18, 14), materials.woodRoot);
+      collar.position.y = 0.09;
+      collar.castShadow = true;
+      group.add(collar);
+
+      const body = new THREE.Mesh(new THREE.SphereGeometry(0.68, 18, 14), materials.porcelainWhite);
+      body.scale.y = 0.78;
+      body.position.y = 0.62;
+      body.castShadow = true;
+      group.add(body);
+
+      // The lid: a shallow dome cap with an amber seam under it.
+      const seam = new THREE.Mesh(new THREE.TorusGeometry(0.52, 0.045, 8, 24), materials.biolumAmber);
+      seam.rotation.x = Math.PI / 2;
+      seam.position.y = 0.98;
+      group.add(seam);
+
+      const lid = new THREE.Mesh(new THREE.SphereGeometry(0.54, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2.4), materials.chitinGlass);
+      lid.position.y = 0.97;
+      lid.castShadow = true;
+      group.add(lid);
+
+      // A little latch nub on the front — the "click me" affordance.
+      const latch = new THREE.Mesh(new THREE.OctahedronGeometry(0.09, 0), materials.biolumAmber);
+      latch.position.set(0, 0.72, 0.66);
+      group.add(latch);
+
+      return group;
+    },
     'tamed_snap_trap_turret': () => {
       const group = new THREE.Group();
       // Pedestal

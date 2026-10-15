@@ -643,6 +643,76 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
   }
 
   // ---------------------------------------------------------------------
+  // Fungal fill-ins (2026-10-15): the WEB plants its giants in a
+  // RING (the network made visible); the GLOWFEN grows cave
+  // glow-fungus TOPSIDE; the GROVE stands its dead as stone.
+  // ---------------------------------------------------------------------
+  if (zoneVariant?.id === 'mycelium_web') {
+    const webRng = createSeededRandom(stream('flora:webshrooms'));
+    const webKinds: FloraSpecies[] = [
+      'antenna_shroom', 'visor_shroom', 'shelf_shroom', 'antenna_shroom', 'shelf_shroom',
+      'visor_shroom', 'antenna_shroom', 'shelf_shroom', 'visor_shroom', 'antenna_shroom',
+    ];
+    const wcx = (webRng() * 2 - 1) * 16;
+    const wcz = (webRng() * 2 - 1) * 16;
+    const wr = 9 + webRng() * 5;
+    const wStart = webRng() * Math.PI * 2;
+    let plantedWeb = 0;
+    for (let i = 0; i < webKinds.length; i++) {
+      const a = wStart + (i / webKinds.length) * Math.PI * 2;
+      const x = wcx + Math.cos(a) * wr + (webRng() * 2 - 1) * 1.1;
+      const z = wcz + Math.sin(a) * wr + (webRng() * 2 - 1) * 1.1;
+      if (Math.abs(x) > 46 || Math.abs(z) > 46) continue;
+      if (flora.some((f) => Math.hypot(f.x - x, f.z - z) < 2.2)) continue;
+      flora.push({
+        id: `flora_web_${plantedWeb}`,
+        species: webKinds[i],
+        x, z,
+        biome: zoneBiome,
+        rotation: webRng() * Math.PI * 2,
+        scale: 1.6 + webRng() * 0.9,
+        growthStage: 3,
+        growthProgress: 1,
+        fertilizedGrowth: false,
+        fertilizedYield: false,
+        fertilizerTimer: 0,
+        harvestReady: true,
+        harvestTimer: 0,
+        isHazardous: false,
+        swayOffset: 1900 + plantedWeb,
+      });
+      plantedWeb++;
+    }
+  }
+  if (zoneVariant?.id === 'glowfen') {
+    const fenRng = createSeededRandom(stream('flora:glowfen'));
+    let plantedFen = 0;
+    for (let attempt = 0; attempt < 50 && plantedFen < 6; attempt++) {
+      const x = (fenRng() * 2 - 1) * 44;
+      const z = (fenRng() * 2 - 1) * 44;
+      if (flora.some((f) => Math.hypot(f.x - x, f.z - z) < 1.7)) continue;
+      flora.push({
+        id: `flora_glowfen_${plantedFen}`,
+        species: 'glow_fungus',
+        x, z,
+        biome: zoneBiome,
+        rotation: fenRng() * Math.PI * 2,
+        scale: 1.2 + fenRng() * 0.6,
+        growthStage: 3,
+        growthProgress: 1,
+        fertilizedGrowth: false,
+        fertilizedYield: false,
+        fertilizerTimer: 0,
+        harvestReady: true,
+        harvestTimer: 0,
+        isHazardous: false,
+        swayOffset: 1950 + plantedFen,
+      });
+      plantedFen++;
+    }
+  }
+
+  // ---------------------------------------------------------------------
   // Mirror Marsh life (Adam, 2026-10-15) — variant-gated BONUS life:
   // mirror lilies floating on their reflective pools (the pool IS
   // the lily's mesh — a silver disc under the pads), and pollinator
@@ -1348,10 +1418,33 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
     }
   }
 
+  // Petrified grove scenery (2026-10-15): stone giants standing
+  // in the sparse country — 5 per grove zone.
+  const groveStructures: StructureEntity[] = [];
+  if (zoneVariant?.id === 'petrified_grove') {
+    const groveRng = createSeededRandom(stream('structures:petrified'));
+    let placedGrove = 0;
+    for (let attempt = 0; attempt < 40 && placedGrove < 5; attempt++) {
+      const x = (groveRng() * 2 - 1) * 42;
+      const z = (groveRng() * 2 - 1) * 42;
+      if ([...structures, ...ruinStructures].some((st) => Math.hypot(st.worldX - x, st.worldZ - z) < 6)) continue;
+      if (groveStructures.some((st) => Math.hypot(st.worldX - x, st.worldZ - z) < 8)) continue;
+      groveStructures.push({
+        id: `petrified_${zoneZx}_${zoneZz}_${placedGrove}`,
+        type: 'petrified_shroom',
+        gridX: Math.round(x / 2), gridZ: Math.round(z / 2),
+        worldX: x, worldZ: z,
+        rotation: groveRng() * Math.PI * 2,
+        level: 0, health: 9999, maxHealth: 9999, doorOpenProgress: 0,
+      });
+      placedGrove++;
+    }
+  }
+
   return {
     flora: [...flora, ...caveFlora],
     fauna,
-    structures: [...structures, ...ruinStructures, ...bridgeStructures, ...huskStructures, ...boneStructures, ...stormStructures],
+    structures: [...structures, ...ruinStructures, ...bridgeStructures, ...huskStructures, ...boneStructures, ...stormStructures, ...groveStructures],
     relaxedPlacements: floraScatter.relaxed + faunaScatter.relaxed,
   };
 }

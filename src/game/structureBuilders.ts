@@ -210,6 +210,23 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       base.position.y = 0.05; group.add(base);
       return group;
     },
+    // Petrified giant (2026-10-15): a stone mushroom — thick
+    // tapered stem, a wide cracked cap, gill rings underneath.
+    // Grey, silent, permanent: the Grove's standing dead.
+    'petrified_shroom': () => {
+      const group = new THREE.Group();
+      const stoneMat = new THREE.MeshStandardMaterial({ color: 0x8f8a94, roughness: 1 });
+      const darkStone = new THREE.MeshStandardMaterial({ color: 0x625d6b, roughness: 1 });
+      const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.95, 3.4, 9), stoneMat);
+      stem.position.y = 1.7; stem.castShadow = true; group.add(stem);
+      const cap = new THREE.Mesh(new THREE.SphereGeometry(1.9, 11, 7, 0, Math.PI * 2, 0, Math.PI * 0.52), stoneMat);
+      cap.position.y = 3.35; cap.scale.y = 0.62; cap.castShadow = true; group.add(cap);
+      const gills = new THREE.Mesh(new THREE.CylinderGeometry(1.55, 1.55, 0.16, 11), darkStone);
+      gills.position.y = 3.3; group.add(gills);
+      const shardA = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.5, 0.6), darkStone);
+      shardA.position.set(1.3, 0.25, 0.7); shardA.rotation.y = 0.6; group.add(shardA);
+      return group;
+    },
     // The portal home inside an instanced cavern: a standing ring of
     // dark rock and violet light (kin to the iris door's frame, so it
     // reads as "door" at a glance), with a translucent inner disc —

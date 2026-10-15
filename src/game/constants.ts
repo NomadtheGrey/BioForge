@@ -518,7 +518,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     id: 'field_synthesizer_gauntlet',
     name: 'Field Synthesizer Gauntlet',
     category: 'equipment',
-    description: 'Your living gauntlet — the action platform issued on arrival. Its modes are your tools: harvest glove, trowel, builder, and the rest. Graft a Field Synthesizer onto it to craft away from a forge.',
+    description: 'Your living gauntlet — the action platform issued on arrival. It wakes knowing how to harvest; every other mode is a module you craft at the forge and graft on, one function at a time. Graft a Field Synthesizer onto it to craft away from a forge.',
     iconName: 'Zap',
     color: '#f59e0b',
     rarity: 'rare',
@@ -537,6 +537,62 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     iconName: 'Cpu',
     color: '#f59e0b',
     rarity: 'rare',
+    maxStack: 1,
+  },
+  // Gauntlet MODULES (Adam, 2026-10-15): the gauntlet starts able to
+  // harvest only; each of these simple forge crafts grafts one more
+  // function onto it. Owning the item IS the unlock (equipment —
+  // kept in the pouch, never spent; App derives unlocked tools from
+  // ownership, see game/quests.ts). Icons/colors match the hotbar
+  // tiles they light up.
+  gauntlet_scanner_module: {
+    id: 'gauntlet_scanner_module',
+    name: 'Gauntlet Scanner Module',
+    category: 'equipment',
+    description: 'A dew-lens and a polished carapace shell, grafted on as your gauntlet\'s eye. Unlocks the Bio-Scanner (tool 2): scan lifeforms to fill the codex.',
+    iconName: 'Radar',
+    color: '#38bdf8',
+    rarity: 'uncommon',
+    maxStack: 1,
+  },
+  gauntlet_planter_module: {
+    id: 'gauntlet_planter_module',
+    name: 'Gauntlet Planter Module',
+    category: 'equipment',
+    description: 'A compost-fed trowel grown into your gauntlet\'s palm. Unlocks the Planter Trowel (tool 3): plant seeds and apply fertilizers.',
+    iconName: 'Sprout',
+    color: '#4ade80',
+    rarity: 'uncommon',
+    maxStack: 1,
+  },
+  gauntlet_builder_module: {
+    id: 'gauntlet_builder_module',
+    name: 'Gauntlet Builder Module',
+    category: 'equipment',
+    description: 'Resin channels and fiber scaffolding, grafted on as your gauntlet\'s second thumb. Unlocks the Bio-Builder (tool 6): grow living structures.',
+    iconName: 'Hammer',
+    color: '#a855f7',
+    rarity: 'uncommon',
+    maxStack: 1,
+  },
+  gauntlet_solvent_module: {
+    id: 'gauntlet_solvent_module',
+    name: 'Gauntlet Solvent Module',
+    category: 'equipment',
+    description: 'A dew-and-sap sprayer grafted along your gauntlet\'s wrist. Unlocks the Solvent Sprayer (tool 4): dissolve structures back into raw materials.',
+    iconName: 'Droplets',
+    color: '#f43f5e',
+    rarity: 'uncommon',
+    maxStack: 1,
+  },
+  gauntlet_lure_module: {
+    id: 'gauntlet_lure_module',
+    name: 'Gauntlet Lure Module',
+    category: 'equipment',
+    description: 'A sweet-woven scent emitter grafted under your gauntlet\'s fingers. Unlocks the Taming Lure (tool 5): offer treats and make friends.',
+    iconName: 'Bell',
+    color: '#f59e0b',
+    rarity: 'uncommon',
     maxStack: 1,
   },
 
@@ -816,6 +872,75 @@ export const RECIPES: CraftingRecipe[] = [
       { id: 'dew_essence', count: 2 },
     ],
     craftTimeMs: 3000,
+  },
+  // Gauntlet MODULES (Adam, 2026-10-15): simple crafts, all from
+  // spawn-zone ingredients, each grafting one tool onto the gauntlet
+  // the player already wears. The quest chain in game/quests.ts
+  // mirrors these ingredient lists exactly — keep them in step.
+  {
+    id: 'craft_scanner_module',
+    outputId: 'gauntlet_scanner_module',
+    outputCount: 1,
+    name: 'Scanner Module',
+    description: 'Graft an eye onto your gauntlet — unlocks the Bio-Scanner (tool 2).',
+    category: 'composites',
+    ingredients: [
+      { id: 'dew_essence', count: 2 },
+      { id: 'carapace_scale', count: 1 },
+    ],
+    craftTimeMs: 2000,
+  },
+  {
+    id: 'craft_planter_module',
+    outputId: 'gauntlet_planter_module',
+    outputCount: 1,
+    name: 'Planter Module',
+    description: 'Graft a green thumb onto your gauntlet — unlocks the Planter Trowel (tool 3).',
+    category: 'composites',
+    ingredients: [
+      { id: 'soft_fiber', count: 2 },
+      { id: 'basic_compost', count: 1 },
+    ],
+    craftTimeMs: 2000,
+  },
+  {
+    id: 'craft_builder_module',
+    outputId: 'gauntlet_builder_module',
+    outputCount: 1,
+    name: 'Builder Module',
+    description: 'Graft a builder\'s thumb onto your gauntlet — unlocks the Bio-Builder (tool 6).',
+    category: 'composites',
+    ingredients: [
+      { id: 'resin_sap', count: 3 },
+      { id: 'soft_fiber', count: 2 },
+    ],
+    craftTimeMs: 2000,
+  },
+  {
+    id: 'craft_solvent_module',
+    outputId: 'gauntlet_solvent_module',
+    outputCount: 1,
+    name: 'Solvent Module',
+    description: 'Graft a solvent sprayer onto your gauntlet — unlocks the Solvent Sprayer (tool 4).',
+    category: 'composites',
+    ingredients: [
+      { id: 'dew_essence', count: 2 },
+      { id: 'resin_sap', count: 1 },
+    ],
+    craftTimeMs: 2000,
+  },
+  {
+    id: 'craft_lure_module',
+    outputId: 'gauntlet_lure_module',
+    outputCount: 1,
+    name: 'Taming Lure Module',
+    description: 'Graft a sweet lure onto your gauntlet — unlocks the Taming Lure (tool 5).',
+    category: 'composites',
+    ingredients: [
+      { id: 'soft_fiber', count: 2 },
+      { id: 'dew_essence', count: 2 },
+    ],
+    craftTimeMs: 2000,
   },
   // Prismatic Field Radar — subassemblies (Tier 1 by the recipe
   // graph: every ingredient is a Tier 0 raw). The radar itself

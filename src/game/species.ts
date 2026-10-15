@@ -42,7 +42,13 @@ export type SpeciesProfile =
   | 'predator'  // territorial hunter (chitin_stalker)
   | 'drifter'   // airborne, unhurried, untamable (mirror_moth)
   | 'glider'    // airborne, wary (vesper_glider)
-  | 'hare';     // burst-fast prey animal (pale_hare)
+  | 'hare'      // burst-fast prey animal (pale_hare)
+  | 'insect'    // tiny background life (dew_gnat, glint_beetle)
+  | 'bird'      // ground birds with opinions (sedge_hen)
+  | 'amphibian' // water-edge small life (ember_newt)
+  | 'slug'      // the slow end of the world (gloom_slug)
+  | 'lizard'    // baskers and darters (sun_lizard)
+  | 'turtle';   // unhurried to the template's limit (mud_turtle)
 
 export interface SpeciesByproduct {
   /** Item shed on the ground when the timer fires. */
@@ -60,8 +66,9 @@ export interface SpeciesByproduct {
 
 export interface SpeciesBonusSpawn {
   /** Family affinities — the zone's biome OR a hybrid's secondary
-   *  family both count, the same admixture rule the census uses. */
-  biomes: BiomeId[];
+   *  family both count, the same admixture rule the census uses.
+   *  'all' is the ubiquitous layer: every family, every zone. */
+  biomes: BiomeId[] | 'all';
   /** Individuals dealt per eligible zone. */
   count: number;
   /** Keep this far from the zone center (the radar species use 10). */
@@ -240,6 +247,295 @@ export const SPECIES: Record<FaunaSpecies, SpeciesDef> = {
       speed: 1.9,
       speedJitter: 0.15,
       health: 20,
+    },
+  },
+
+  // ------------------------------------------------------------------
+  // Slice 2 (2026-10-15) — family casts + the everywhere pest.
+  // Numbers are the design doc's spectra, translated plainly.
+  // ------------------------------------------------------------------
+
+  // #1 — the everywhere pest: a dew-sipping gnat, harmless by
+  // design, wild forever (too small and simple for a lure to say
+  // anything to). The world's metronome: where gnats gather, dew
+  // gathers — and half the food web eats them.
+  dew_gnat: {
+    id: 'dew_gnat',
+    name: 'Dew Gnat',
+    profile: 'insect',
+    tameChance: null,
+    bait: null,
+    petName: 'Dew Gnat',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: 'all',
+      count: 3,
+      minRadius: 6,
+      spacing: 3,
+      speed: 2.6, // fast, erratic
+      speedJitter: 0.4,
+      health: 5,
+    },
+  },
+
+  // #40 — the meadow's weather: spring-legged hoppers that rise
+  // around a walking player in clouds. The family's food-web
+  // floor; "you cannot tame the weather of a meadow."
+  meadow_hopper: {
+    id: 'meadow_hopper',
+    name: 'Meadow Hopper',
+    profile: 'insect',
+    tameChance: null,
+    bait: null,
+    petName: 'Meadow Hopper',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['meadow'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      speed: 2.2,
+      speedJitter: 0.3,
+      health: 5,
+    },
+  },
+
+  // #42 — a coal-skinned, ember-bellied newt of the warm runoff
+  // channels. Startled, its belly flushes — the Ember family's
+  // smallest telegraph (glow = feeling). 50%: it bonds to whoever
+  // is a refuge. (Design bait is cool water in hand; slice 2 ships
+  // the standard lure flow.)
+  ember_newt: {
+    id: 'ember_newt',
+    name: 'Ember Newt',
+    profile: 'amphibian',
+    tameChance: 0.5,
+    bait: 'nectar',
+    petName: 'Ember Newt',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['ember'],
+      count: 2,
+      minRadius: 10,
+      spacing: 4,
+      speed: 1.4, // still, then a dart
+      speedJitter: 0.2,
+      health: 15,
+    },
+  },
+
+  // #45 — a crystalline beetle grown of Saltglass's own material.
+  // It stores glare at noon and spends it at dusk, flashing slow
+  // signals across the flats. Sheds facets rarely: SALTGLASS
+  // SHARD, wild — the family's shard economy gains its fourth
+  // door (reed, grazer, stilt, beetle).
+  glint_beetle: {
+    id: 'glint_beetle',
+    name: 'Glint Beetle',
+    profile: 'insect',
+    tameChance: null,
+    bait: null,
+    petName: 'Glint Beetle',
+    byproduct: { item: 'saltglass_shard', seconds: 240, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['saltglass'],
+      count: 2,
+      minRadius: 8,
+      spacing: 3,
+      speed: 1.8,
+      speedJitter: 0.2,
+      health: 8,
+    },
+  },
+
+  // #48 — a biolume-banded grub, decomposer first in line: it
+  // eats the Hollow's spent cap-flesh and its glow is its
+  // digestion showing. Bait, light, and food-web in one small
+  // segmented body (its bait-item harvest is a later slice).
+  glow_grub: {
+    id: 'glow_grub',
+    name: 'Glow Grub',
+    profile: 'insect',
+    tameChance: null,
+    bait: null,
+    petName: 'Glow Grub',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['fungal'],
+      count: 3,
+      minRadius: 8,
+      spacing: 2.5,
+      speed: 0.5,
+      speedJitter: 0.05,
+      health: 8,
+    },
+  },
+
+  // #52 — Meadow x Wetland: an honest non-human biped, all legs
+  // and opinions, patrolling the shoreline where grass gives up
+  // and becomes marsh. 45% — halfway to domesticated by
+  // temperament, and it knows it. (Its Sedge Eggs are recorded
+  // in the design as the roster's first egg — a later economy
+  // slice lays them.)
+  sedge_hen: {
+    id: 'sedge_hen',
+    name: 'Sedge Hen',
+    profile: 'bird',
+    tameChance: 0.45,
+    bait: 'nectar',
+    petName: 'Sedge Hen',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['meadow', 'wetland'],
+      count: 2,
+      minRadius: 10,
+      spacing: 4,
+      speed: 1.7,
+      speedJitter: 0.15,
+      health: 20,
+    },
+  },
+
+  // #55 — Meadow x Living: the valley's opposition and its
+  // manners — goat herds trim the hello-vines back, so in a
+  // Welcoming valley the hello stays a hello, and in a Hungry
+  // one the grab gets trimmed before it finishes. 60%: it was
+  // halfway the valley's pet already. (The trimming office
+  // itself is a later behavior slice.)
+  valley_goat: {
+    id: 'valley_goat',
+    name: 'Valley Goat',
+    profile: 'grazer',
+    tameChance: 0.6,
+    bait: 'nectar',
+    petName: 'Valley Goat',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['meadow', 'living'],
+      count: 2,
+      minRadius: 12,
+      spacing: 5,
+      speed: 1.3,
+      speedJitter: 0.1,
+      health: 60,
+    },
+  },
+
+  // #57 — the Soft-Puff's deliberate mirror, re-imagined by the
+  // steadiest cold: same round body, wholly other country. 70%
+  // — in the family's killing cold, the tamest thing on the
+  // roster waits at knee height. Sheds Puff Down wild or tame,
+  // on its own calendar (the cold series' soft-answer rule).
+  rime_puff: {
+    id: 'rime_puff',
+    name: 'Rime Puff',
+    profile: 'grazer',
+    tameChance: 0.7,
+    bait: 'nectar',
+    petName: 'Rime Puff',
+    byproduct: { item: 'puff_down', seconds: 75, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['frost'],
+      count: 2,
+      minRadius: 10,
+      spacing: 4,
+      speed: 1.5,
+      speedJitter: 0.15,
+      health: 30,
+    },
+  },
+
+  // #32 — the Underroot's citizen: a dark-backed slug traveling
+  // the undersides of roots, eating what grows where the light
+  // gives up. Its slime trail glows faintly for hours — the
+  // Underroot's breadcrumbs are laid by its animal. 45%: it
+  // follows a carried light slowly, to eat what the light
+  // wakes. (Trail-glow and the Gloom Gel yield are later
+  // slices; the slug itself ships whole.)
+  gloom_slug: {
+    id: 'gloom_slug',
+    name: 'Gloom Slug',
+    profile: 'slug',
+    tameChance: 0.45,
+    bait: 'nectar',
+    petName: 'Gloom Slug',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['rootwood'],
+      count: 2,
+      minRadius: 10,
+      spacing: 4,
+      speed: 0.4, // the honest slowest, shared with a snail in amber
+      speedJitter: 0.05,
+      health: 25,
+    },
+  },
+
+  // #116 — the Warm Range's doorstep animal: a basker keeping a
+  // daily circuit of stones, each lizard a small solar
+  // calendar, and the Dew Gnat's second check. 30% — warm-hand
+  // learning: it will sit on a still, warm gauntlet.
+  sun_lizard: {
+    id: 'sun_lizard',
+    name: 'Sun Lizard',
+    profile: 'lizard',
+    tameChance: 0.3,
+    bait: 'nectar',
+    petName: 'Sun Lizard',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['ember', 'saltglass', 'meadow'],
+      count: 2,
+      minRadius: 8,
+      spacing: 4,
+      speed: 1.6,
+      speedJitter: 0.3,
+      health: 18,
+    },
+  },
+
+  // #118 — the Wet Range's slow citizen: a pond-edge turtle,
+  // precisely lily-sized trouble, whose parliaments are
+  // basking logs. 50% — the oldest pet-shape there is.
+  mud_turtle: {
+    id: 'mud_turtle',
+    name: 'Mud Turtle',
+    profile: 'turtle',
+    tameChance: 0.5,
+    bait: 'nectar',
+    petName: 'Mud Turtle',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['wetland', 'meadow', 'rootwood'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      speed: 0.7,
+      speedJitter: 0.05,
+      health: 35,
+    },
+  },
+
+  // #180 — the Wetland's great grazer: hippo-hearted, pondweed-
+  // draped, belly-deep in the wade for hours, grazing the
+  // submerged meadows with its head under for a minute at a
+  // time. 50%, placid and immovable.
+  bog_cow: {
+    id: 'bog_cow',
+    name: 'Bog Cow',
+    profile: 'grazer',
+    tameChance: 0.5,
+    bait: 'nectar',
+    petName: 'Bog Cow',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['wetland', 'meadow'],
+      count: 2,
+      minRadius: 12,
+      spacing: 6,
+      speed: 0.9,
+      speedJitter: 0.05,
+      health: 130,
     },
   },
 };

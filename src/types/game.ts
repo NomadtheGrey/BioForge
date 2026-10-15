@@ -12,6 +12,7 @@ export type ItemId =
   | 'sweet_nectar'
   | 'soft_fiber'
   | 'pale_fur'
+  | 'puff_down'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -197,7 +198,20 @@ export type FaunaSpecies =
   // src/game/species.ts, and they spawn via its generic bonus route.
   | 'meadowback'
   | 'pale_hare'
-  | 'frost_vole';
+  | 'frost_vole'
+  // Slice 2 (2026-10-15) — family casts + the everywhere pest.
+  | 'dew_gnat'
+  | 'meadow_hopper'
+  | 'ember_newt'
+  | 'glint_beetle'
+  | 'glow_grub'
+  | 'sedge_hen'
+  | 'valley_goat'
+  | 'rime_puff'
+  | 'gloom_slug'
+  | 'sun_lizard'
+  | 'mud_turtle'
+  | 'bog_cow';
 
 export interface FaunaEntity {
   id: string;

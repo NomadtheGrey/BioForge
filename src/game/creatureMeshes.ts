@@ -828,6 +828,286 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'dew_gnat': {
+        // The everywhere pest (slice 2): a speck with wings. Drawn
+        // hovering — updateFaunaMesh holds it at dart height with a
+        // quick bob, so the body sits at local y 0.
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x3f6212, roughness: 0.6 });
+        const wingMat = new THREE.MeshStandardMaterial({
+          color: 0xecfccb, roughness: 0.3, transparent: true, opacity: 0.5, side: THREE.DoubleSide,
+        });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), bodyMat);
+        body.scale.set(0.8, 0.8, 1.5);
+        group.add(body);
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 5), wingMat);
+          wing.scale.set(1, 0.08, 0.5);
+          wing.position.set(side * 0.08, 0.04, -0.01);
+          wing.rotation.z = side * 0.4;
+          group.add(wing);
+        }
+        break;
+      }
+
+      case 'meadow_hopper': {
+        // The meadow's weather (slice 2): a small green hopper —
+        // wing-cased body, spring legs folded long behind it.
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x4ade80, roughness: 0.7 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), bodyMat);
+        body.scale.set(0.8, 0.85, 1.5);
+        body.position.y = 0.14;
+        group.add(body);
+        for (const side of [-1, 1]) {
+          const leg = new THREE.Mesh(new THREE.CapsuleGeometry(0.02, 0.2, 4, 6), bodyMat);
+          leg.position.set(side * 0.08, 0.1, -0.12);
+          leg.rotation.x = 0.9;
+          group.add(leg);
+        }
+        break;
+      }
+
+      case 'ember_newt': {
+        // Ember's smallest telegraph (slice 2): coal skin over an
+        // ember belly — the glow is the feeling, drawn lit.
+        const skinMat = new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.85 });
+        const bellyMat = new THREE.MeshStandardMaterial({
+          color: 0xea580c, roughness: 0.5, emissive: 0xc2410c, emissiveIntensity: 0.9,
+        });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.13, 0.3, 6, 10), skinMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.16;
+        group.add(body);
+        const belly = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), bellyMat);
+        belly.scale.set(0.9, 0.45, 1.9);
+        belly.position.y = 0.09;
+        group.add(belly);
+        const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.04, 0.28, 4, 6), skinMat);
+        tail.position.set(0, 0.13, -0.36);
+        tail.rotation.x = Math.PI / 2 - 0.2;
+        group.add(tail);
+        break;
+      }
+
+      case 'glint_beetle': {
+        // A beetle grown of Saltglass itself (slice 2): a rounded
+        // shell with crystal facets standing on its back, catching
+        // the light it stores by day and spends at dusk.
+        const shellMat = new THREE.MeshStandardMaterial({
+          color: 0xa5f3fc, roughness: 0.25, metalness: 0.1,
+          emissive: 0x0e7490, emissiveIntensity: 0.35,
+        });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), shellMat);
+        body.scale.set(1, 0.7, 1.3);
+        body.position.y = 0.11;
+        body.castShadow = true;
+        group.add(body);
+        for (const [fx, fz] of [[0, 0.08], [-0.06, -0.05], [0.06, -0.05]] as const) {
+          const facet = new THREE.Mesh(new THREE.OctahedronGeometry(0.045), shellMat);
+          facet.position.set(fx, 0.2, fz);
+          group.add(facet);
+        }
+        break;
+      }
+
+      case 'glow_grub': {
+        // A segmented grub whose glow is its digestion (slice 2):
+        // three body rings, the middle one lit from inside.
+        const skinMat = new THREE.MeshStandardMaterial({ color: 0xd9f99d, roughness: 0.7 });
+        const glowMat = new THREE.MeshStandardMaterial({
+          color: 0x86efac, roughness: 0.4, emissive: 0x22c55e, emissiveIntensity: 1.1,
+        });
+        const segments: Array<[number, THREE.Material]> = [[0.16, skinMat], [0, glowMat], [-0.16, skinMat]];
+        for (const [sz, mat] of segments) {
+          const seg = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), mat);
+          seg.scale.set(1, 0.75, 1);
+          seg.position.set(0, 0.09, sz);
+          group.add(seg);
+        }
+        break;
+      }
+
+      case 'sedge_hen': {
+        // An honest biped (slice 2): body, neck, opinions. The
+        // legs are the silhouette — two reed-thin stilts under a
+        // striped, upright body.
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.85 });
+        const bandMat = new THREE.MeshStandardMaterial({ color: 0xfde68a, roughness: 0.85 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 10), bodyMat);
+        body.scale.set(0.85, 1, 1.15);
+        body.position.y = 0.52;
+        body.castShadow = true;
+        group.add(body);
+        const band = new THREE.Mesh(new THREE.SphereGeometry(0.245, 12, 8), bandMat);
+        band.scale.set(0.87, 0.35, 1.17);
+        band.position.y = 0.52;
+        group.add(band);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), bodyMat);
+        head.position.set(0, 0.88, 0.14);
+        group.add(head);
+        const beak = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.16, 6), bandMat);
+        beak.rotation.x = Math.PI / 2;
+        beak.position.set(0, 0.86, 0.3);
+        group.add(beak);
+        for (const side of [-1, 1]) {
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.34, 6), bodyMat);
+          leg.position.set(side * 0.09, 0.17, 0);
+          group.add(leg);
+        }
+        const tail = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.22, 0.12), bodyMat);
+        tail.position.set(0, 0.68, -0.26);
+        tail.rotation.x = -0.6;
+        group.add(tail);
+        break;
+      }
+
+      case 'valley_goat': {
+        // The valley's opposition (slice 2): a sure-footed grazer
+        // with hearthroot blooms in its coat where the valley has
+        // petted it — three small flowers ride the back.
+        const coatMat = new THREE.MeshStandardMaterial({ color: 0xa8a29e, roughness: 0.95 });
+        const bloomMat = new THREE.MeshStandardMaterial({
+          color: 0xf9a8d4, roughness: 0.6, emissive: 0x9d174d, emissiveIntensity: 0.3,
+        });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.34, 0.55, 8, 12), coatMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.72;
+        body.castShadow = true;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), coatMat);
+        head.scale.set(0.8, 0.9, 1.2);
+        head.position.set(0, 0.92, 0.55);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const horn = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.26, 6), coatMat);
+          horn.position.set(side * 0.11, 1.12, 0.45);
+          horn.rotation.x = -0.7;
+          group.add(horn);
+        }
+        for (const [bx, bz] of [[-0.12, 0.15], [0.1, -0.05], [0, 0.32]] as const) {
+          const bloom = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 5), bloomMat);
+          bloom.position.set(bx, 1.08, bz);
+          group.add(bloom);
+        }
+        break;
+      }
+
+      case 'rime_puff': {
+        // The Soft-Puff's mirror in the steadiest cold (slice 2):
+        // same round body, same antenna bead — frost colors, and
+        // it hops like its cousin (updateFaunaMesh shares the hop).
+        const bodyMat = new THREE.MeshStandardMaterial({
+          color: fauna.isTamed ? 0xbae6fd : 0xe0f2fe,
+          roughness: 0.5,
+          emissive: fauna.isTamed ? 0x0369a1 : 0x0c4a6e,
+          emissiveIntensity: 0.3,
+        });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 16), bodyMat);
+        body.position.y = 0.4;
+        body.castShadow = true;
+        group.add(body);
+        const ant = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 10), materials.biolumCyan);
+        ant.position.set(0, 0.9, 0.18);
+        group.add(ant);
+        break;
+      }
+
+      case 'gloom_slug': {
+        // The Underroot's breadcrumb-layer (slice 2): a long,
+        // dark-backed body over a pale belly, eye stalks up.
+        const backMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.6 });
+        const bellyMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.7 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.17, 0.55, 8, 12), backMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.17;
+        group.add(body);
+        const belly = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), bellyMat);
+        belly.scale.set(0.95, 0.4, 2.6);
+        belly.position.y = 0.07;
+        group.add(belly);
+        for (const side of [-1, 1]) {
+          const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.16, 5), backMat);
+          stalk.position.set(side * 0.06, 0.36, 0.42);
+          group.add(stalk);
+          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.03, 6, 5), bellyMat);
+          eye.position.set(side * 0.06, 0.45, 0.42);
+          group.add(eye);
+        }
+        break;
+      }
+
+      case 'sun_lizard': {
+        // A small solar calendar (slice 2): low body, wedge head,
+        // a ridge of spines drinking the light along its back.
+        const skinMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.8 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.11, 0.34, 6, 10), skinMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.14;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.22, 6), skinMat);
+        head.rotation.x = Math.PI / 2;
+        head.position.set(0, 0.13, 0.36);
+        group.add(head);
+        for (const rz of [0.12, 0, -0.12]) {
+          const spine = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.09, 5), skinMat);
+          spine.position.set(0, 0.26, rz);
+          group.add(spine);
+        }
+        const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.03, 0.34, 4, 6), skinMat);
+        tail.position.set(0, 0.1, -0.42);
+        tail.rotation.x = Math.PI / 2 - 0.15;
+        group.add(tail);
+        break;
+      }
+
+      case 'mud_turtle': {
+        // Precisely lily-sized trouble (slice 2): a domed shell,
+        // a patient head, four flippers for the pond's walking.
+        const shellMat = new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 0.9 });
+        const skinMat = new THREE.MeshStandardMaterial({ color: 0x84cc16, roughness: 0.85 });
+        const shell = new THREE.Mesh(new THREE.SphereGeometry(0.3, 14, 10), shellMat);
+        shell.scale.set(1, 0.55, 1.2);
+        shell.position.y = 0.2;
+        shell.castShadow = true;
+        group.add(shell);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), skinMat);
+        head.position.set(0, 0.18, 0.4);
+        group.add(head);
+        for (const [fx, fz] of [[-0.26, 0.2], [0.26, 0.2], [-0.26, -0.22], [0.26, -0.22]] as const) {
+          const flipper = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.04, 0.1), skinMat);
+          flipper.position.set(fx, 0.06, fz);
+          group.add(flipper);
+        }
+        break;
+      }
+
+      case 'bog_cow': {
+        // Hippo-hearted and pondweed-draped (slice 2): a big marsh
+        // body wearing the pond — three weed mats across the back.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.95 });
+        const weedMat = new THREE.MeshStandardMaterial({ color: 0x365314, roughness: 1 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.52, 0.9, 8, 12), hideMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.85;
+        body.castShadow = true;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.32, 12, 10), hideMat);
+        head.scale.set(1.05, 0.85, 1);
+        head.position.set(0, 0.78, 0.92);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const ear = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), hideMat);
+          ear.position.set(side * 0.3, 1.02, 0.85);
+          group.add(ear);
+        }
+        for (const [wx, wz, wr] of [[-0.2, 0.25, 0.3], [0.15, -0.1, -0.2], [0, 0.55, 0.1]] as const) {
+          const weed = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.05, 0.3), weedMat);
+          weed.position.set(wx, 1.36, wz);
+          weed.rotation.y = wr;
+          group.add(weed);
+        }
+        break;
+      }
+
       default: {
         const body = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 12), materials.biolumAmber);
         body.position.y = 0.3;
@@ -850,9 +1130,18 @@ export function createCreatureMeshKit(
     mesh.rotation.y = fauna.rotation;
     mesh.userData.entity = fauna;
 
-    if (fauna.species === 'soft_puff') {
+    if (fauna.species === 'soft_puff' || fauna.species === 'rime_puff') {
+      // The rime puff is the soft-puff's deliberate mirror — same
+      // round body, same hop, wholly other country (slice 2).
       const hop = Math.abs(Math.sin(fauna.animTime * 6)) * 0.25;
       mesh.position.y = groundY + hop;
+    }
+
+    if (fauna.species === 'dew_gnat') {
+      // Airborne by nature (slice 2): a low, darting hover with a
+      // quick double-bob — the mesh rides at pest height while the
+      // simulation stays 2D, exactly like the glider's glide.
+      mesh.position.y = groundY + 0.55 + Math.sin(fauna.animTime * 7.3) * 0.13;
     }
 
     if (fauna.species === 'vesper_glider') {

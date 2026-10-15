@@ -1,0 +1,483 @@
+// ============================================================================
+// structureBuilders.ts — how every structure TYPE looks in the world
+// ============================================================================
+//
+// Extracted from threeEngine.ts (2026-10-14, Adam's refactor call):
+// the engine file had grown to the whole-file push channel's size
+// ceiling, and the builders are its biggest self-contained block.
+// This module is a pure factory — give it the engine's shared
+// materials and it returns the type -> builder record the engine's
+// sync/ghost code consumes. No behavior lives here beyond "what a
+// thing of this type looks like"; placement, collision, and lights
+// stay with the engine and the game data.
+//
+// Builders share the engine's materials (never disposed with a
+// mesh — the engine owns their lifetime) and otherwise allocate
+// fresh geometries/materials per build, which the engine's mesh
+// disposal expects.
+// ============================================================================
+
+import * as THREE from 'three';
+import type { StructureType } from '../types/game';
+
+/** The engine's shared material palette, as the builders use it. */
+export interface StructureMaterials {
+  porcelainWhite: THREE.MeshStandardMaterial;
+  chitinGlass: THREE.MeshPhysicalMaterial;
+  biolumCyan: THREE.MeshStandardMaterial;
+  biolumAmber: THREE.MeshStandardMaterial;
+  biolumPink: THREE.MeshStandardMaterial;
+  biolumViolet: THREE.MeshStandardMaterial;
+  woodRoot: THREE.MeshStandardMaterial;
+  ghostValid: THREE.MeshBasicMaterial;
+  ghostInvalid: THREE.MeshBasicMaterial;
+}
+
+/** Build the structure-type -> mesh-builder record for an engine. */
+export function createStructureBuilders(materials: StructureMaterials): Record<StructureType, () => THREE.Group> {
+  return {
+    'root_tile_floor': () => {
+      const group = new THREE.Group();
+      const floor = new THREE.Mesh(new THREE.BoxGeometry(2, 0.12, 2), materials.woodRoot);
+      floor.position.y = 0.06;
+      floor.receiveShadow = true;
+      group.add(floor);
+      return group;
+    },
+    'chitin_glass_wall': () => {
+      const group = new THREE.Group();
+      const postGeom = new THREE.CylinderGeometry(0.12, 0.12, 2.4, 8);
+      const leftPost = new THREE.Mesh(postGeom, materials.porcelainWhite);
+      leftPost.position.set(-0.95, 1.2, 0);
+      const rightPost = leftPost.clone();
+      rightPost.position.x = 0.95;
+      group.add(leftPost);
+      group.add(rightPost);
+
+      const pane = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.2, 0.1), materials.chitinGlass);
+      pane.position.set(0, 1.2, 0);
+      pane.castShadow = true;
+      group.add(pane);
+      return group;
+    },
+    // Vine ladder: two springy rails + rungs, standing in the wall's
+    // plane so it reads from either face. One segment spans one story.
+    'vine_ladder': () => {
+      const group = new THREE.Group();
+      const railMat = new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 0.85 });
+      const rungMat = new THREE.MeshStandardMaterial({ color: 0x84cc16, roughness: 0.7, emissive: 0x3f6212, emissiveIntensity: 0.35 });
+      const railGeom = new THREE.BoxGeometry(0.07, 2.4, 0.07);
+      const leftRail = new THREE.Mesh(railGeom, railMat);
+      leftRail.position.set(-0.7, 1.2, 0);
+      const rightRail = leftRail.clone();
+      rightRail.position.x = 0.7;
+      group.add(leftRail);
+      group.add(rightRail);
+      const rungGeom = new THREE.CylinderGeometry(0.03, 0.03, 1.4, 6);
+      for (let i = 0; i < 6; i++) {
+        const rung = new THREE.Mesh(rungGeom, rungMat);
+        rung.rotation.z = Math.PI / 2;
+        rung.position.set(0, 0.3 + i * 0.36, 0);
+        group.add(rung);
+      }
+      return group;
+    },
+    // Cave mouth: the registry needs an entry, but a mouth's real look
+    // is its per-entity DRESSING (game/caveSurface.ts) — boulders, rock
+    // lips, the dark opening — which only the entity knows. This base
+    // is just a rocky mound so a mouth never renders as nothing;
+    // createStructureMesh layers the dressing on top of it.
+    'cave_mouth': () => {
+      const group = new THREE.Group();
+      const mound = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(1.9, 0),
+        new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.95 }),
+      );
+      mound.position.y = 0.55;
+      mound.scale.set(1.25, 0.72, 1.1);
+      mound.castShadow = true;
+      group.add(mound);
+      return group;
+    },
+    // Ruin landmark: the registry needs an entry, but a ruin's real
+    // look is its per-entity DRESSING (game/ruins.ts) — broken pillars
+    // and stubs tinted by the world's fate — which only the entity
+    // knows. This base is a low stone dais so a landmark never renders
+    // as nothing; createStructureMesh layers the dressing on top.
+    'ruin_landmark': () => {
+      const group = new THREE.Group();
+      const dais = new THREE.Mesh(
+        new THREE.CylinderGeometry(2.3, 2.6, 0.28, 9),
+        new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.95 }),
+      );
+      dais.position.y = 0.12;
+      dais.castShadow = true;
+      group.add(dais);
+      return group;
+    },
+    // The portal home inside an instanced cavern: a standing ring of
+    // dark rock and violet light (kin to the iris door's frame, so it
+    // reads as "door" at a glance), with a translucent inner disc —
+    // the surface, seen from below. Clicking it exits the instance.
+    'cave_exit': () => {
+      const group = new THREE.Group();
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(1.05, 0.14, 8, 24),
+        new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 0.9, emissive: 0x7c3aed, emissiveIntensity: 0.55 })
+      );
+      ring.position.set(0, 1.35, 0);
+      ring.castShadow = true;
+      group.add(ring);
+      const disc = new THREE.Mesh(
+        new THREE.CircleGeometry(0.98, 24),
+        new THREE.MeshBasicMaterial({ color: 0xa855f7, transparent: true, opacity: 0.32, side: THREE.DoubleSide })
+      );
+      disc.name = 'caveExitDisc';
+      disc.position.set(0, 1.35, 0);
+      group.add(disc);
+      const base = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(0.8, 0),
+        new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.95 })
+      );
+      base.position.y = 0.15;
+      base.scale.set(1.3, 0.45, 1.0);
+      group.add(base);
+      return group;
+    },
+    // The shaft DOWN to the next depth level (Adam's deeper caves):
+    // a rock collar around a black pit, cold violet light breathing
+    // up from below. Where the exit portal stands tall ("door"), the
+    // descent lies flat ("hole") — the two read oppositely at a
+    // glance, which is the point. Clicking it descends.
+    'cave_descent': () => {
+      const group = new THREE.Group();
+      const collar = new THREE.Mesh(
+        new THREE.TorusGeometry(1.05, 0.17, 8, 24),
+        new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 0.9, emissive: 0x5b21b6, emissiveIntensity: 0.5 })
+      );
+      collar.rotation.x = Math.PI / 2;
+      collar.position.y = 0.1;
+      collar.castShadow = true;
+      group.add(collar);
+      const pit = new THREE.Mesh(
+        new THREE.CircleGeometry(1.0, 24),
+        new THREE.MeshBasicMaterial({ color: 0x010103 })
+      );
+      pit.name = 'caveDescentPit';
+      pit.rotation.x = -Math.PI / 2;
+      pit.position.y = 0.05;
+      group.add(pit);
+      const breath = new THREE.Mesh(
+        new THREE.CircleGeometry(0.62, 24),
+        new THREE.MeshBasicMaterial({ color: 0x7c3aed, transparent: true, opacity: 0.3, side: THREE.DoubleSide })
+      );
+      breath.name = 'caveDescentGlow';
+      breath.rotation.x = -Math.PI / 2;
+      breath.position.y = 0.08;
+      group.add(breath);
+      for (let i = 0; i < 3; i++) {
+        const rock = new THREE.Mesh(
+          new THREE.DodecahedronGeometry(0.42, 0),
+          new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.95 })
+        );
+        const a = (i / 3) * Math.PI * 2 + 0.5;
+        rock.position.set(Math.cos(a) * 1.3, 0.12, Math.sin(a) * 1.3);
+        rock.scale.set(1, 0.6, 1);
+        group.add(rock);
+      }
+      return group;
+    },
+    // The vine shaft (Adam's deep-cave elevator): an alien vine
+    // through a crack in the cavern roof — the hanging doorway
+    // (exit stands, descent lies flat, the vine HANGS). Trunk and
+    // tendrils rise the full 4.6 m; glow-leaves mark it living.
+    'vine_shaft': () => {
+      const group = new THREE.Group();
+      const barkMat = new THREE.MeshStandardMaterial({ color: 0x365314, roughness: 0.9 });
+      const leafMat = new THREE.MeshStandardMaterial({ color: 0x166534, emissive: 0x34d399, emissiveIntensity: 0.85, roughness: 0.6 });
+      // Root collar where the vine meets the cavern floor.
+      const collar = new THREE.Mesh(new THREE.DodecahedronGeometry(0.85, 0), barkMat);
+      collar.position.y = 0.18;
+      collar.scale.set(1.25, 0.45, 1.25);
+      collar.castShadow = true;
+      group.add(collar);
+      // The trunk: thick as a mast, climbing to the ceiling crack.
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.26, 4.6, 7), barkMat);
+      trunk.position.y = 2.3;
+      trunk.rotation.z = 0.03;
+      trunk.castShadow = true;
+      group.add(trunk);
+      // Tendrils spiraling off the trunk — handholds, in fiction.
+      for (let i = 0; i < 3; i++) {
+        const tendril = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.08, 2.6, 5), barkMat);
+        const a = (i / 3) * Math.PI * 2 + 0.6;
+        tendril.position.set(Math.cos(a) * 0.3, 2.5, Math.sin(a) * 0.3);
+        tendril.rotation.set(Math.sin(a) * 0.35, 0, Math.cos(a) * 0.35);
+        group.add(tendril);
+      }
+      // Glow-leaves along the upper trunk — the vine's own light.
+      for (let i = 0; i < 6; i++) {
+        const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.16, 6, 5), leafMat);
+        const a = (i / 6) * Math.PI * 2 + 0.3;
+        leaf.position.set(Math.cos(a) * 0.34, 3.1 + (i % 3) * 0.55, Math.sin(a) * 0.34);
+        leaf.scale.set(1, 0.45, 1.6);
+        leaf.rotation.y = -a;
+        group.add(leaf);
+      }
+      // The crack it climbs through: a dark disc on the ceiling.
+      const crack = new THREE.Mesh(
+        new THREE.CircleGeometry(0.8, 16),
+        new THREE.MeshBasicMaterial({ color: 0x010103 })
+      );
+      crack.name = 'vineShaftCrack';
+      crack.rotation.x = Math.PI / 2;
+      crack.position.y = 4.58;
+      group.add(crack);
+      return group;
+    },
+    // The threshold OUT of a ruin interior: two broken pillars and
+    // a tilted lintel — the cave exit's door grammar in precursor
+    // stone — with a teal daylight shimmer between them.
+    'ruin_exit': () => {
+      const group = new THREE.Group();
+      const stone = new THREE.MeshStandardMaterial({ color: 0x6b6560, roughness: 0.95 });
+      const pillarGeom = new THREE.BoxGeometry(0.38, 2.6, 0.38);
+      const leftPillar = new THREE.Mesh(pillarGeom, stone);
+      leftPillar.position.set(-0.95, 1.3, 0);
+      leftPillar.castShadow = true;
+      const rightPillar = leftPillar.clone();
+      rightPillar.position.x = 0.95;
+      rightPillar.scale.y = 0.82; // the right pillar broke shorter
+      rightPillar.position.y = 1.07;
+      group.add(leftPillar);
+      group.add(rightPillar);
+      const lintel = new THREE.Mesh(new THREE.BoxGeometry(2.35, 0.34, 0.42), stone);
+      lintel.position.set(0, 2.62, 0);
+      lintel.rotation.z = 0.045; // settled with the centuries
+      lintel.castShadow = true;
+      group.add(lintel);
+      const shimmer = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.65, 2.3),
+        new THREE.MeshBasicMaterial({ color: 0x2dd4bf, transparent: true, opacity: 0.26, side: THREE.DoubleSide })
+      );
+      shimmer.name = 'ruinExitShimmer';
+      shimmer.position.set(0, 1.2, 0);
+      group.add(shimmer);
+      const slab = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.14, 1.1), stone);
+      slab.position.y = 0.07;
+      slab.receiveShadow = true;
+      group.add(slab);
+      return group;
+    },
+    // A precursor cache: a stone coffer with a cold cyan seam — the
+    // seal the precursors trusted to outlast them. Opened with the
+    // harvest glove (useToolInteractions resolves its seeded loot).
+    'precursor_cache': () => {
+      const group = new THREE.Group();
+      const stone = new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.95 });
+      const body = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.68, 0.82), stone);
+      body.position.y = 0.34;
+      body.castShadow = true;
+      group.add(body);
+      const lid = new THREE.Mesh(new THREE.BoxGeometry(1.28, 0.2, 0.94), stone);
+      lid.position.y = 0.76;
+      lid.rotation.z = 0.03;
+      lid.castShadow = true;
+      group.add(lid);
+      // The seal seam: a thin emissive line where lid meets body.
+      const seam = new THREE.Mesh(
+        new THREE.BoxGeometry(1.17, 0.045, 0.84),
+        new THREE.MeshStandardMaterial({ color: 0x164e63, emissive: 0x22d3ee, emissiveIntensity: 1.1, roughness: 0.4 })
+      );
+      seam.position.y = 0.67;
+      group.add(seam);
+      return group;
+    },
+    // The artifact heart: the deepest room's prize on its pedestal —
+    // a warm rose crystal that still pulses, ringed by shardlets.
+    'artifact_heart': () => {
+      const group = new THREE.Group();
+      const pedestal = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.55, 0.75, 0.9, 8),
+        new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.95 })
+      );
+      pedestal.position.y = 0.45;
+      pedestal.castShadow = true;
+      group.add(pedestal);
+      const heart = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.62),
+        new THREE.MeshStandardMaterial({ color: 0x881337, emissive: 0xf43f5e, emissiveIntensity: 1.7, roughness: 0.25 })
+      );
+      heart.name = 'artifactHeartCrystal';
+      heart.position.y = 1.55;
+      group.add(heart);
+      for (let i = 0; i < 3; i++) {
+        const shard = new THREE.Mesh(
+          new THREE.OctahedronGeometry(0.16),
+          new THREE.MeshStandardMaterial({ color: 0x881337, emissive: 0xfb7185, emissiveIntensity: 1.2, roughness: 0.3 })
+        );
+        const a = (i / 3) * Math.PI * 2 + 0.4;
+        shard.position.set(Math.cos(a) * 0.95, 1.25 + (i % 2) * 0.35, Math.sin(a) * 0.95);
+        group.add(shard);
+      }
+      return group;
+    },
+    // A ruin glyph: a stone tablet on a rubble base, its indigo
+    // script-lines still lit. Clicking reads the stone's memory
+    // (useToolInteractions serves the fate's lore lines).
+    'ruin_glyph': () => {
+      const group = new THREE.Group();
+      const stone = new THREE.MeshStandardMaterial({ color: 0x605a54, roughness: 0.95 });
+      const base = new THREE.Mesh(new THREE.DodecahedronGeometry(0.7, 0), stone);
+      base.position.y = 0.16;
+      base.scale.set(1.25, 0.5, 1);
+      group.add(base);
+      const tablet = new THREE.Mesh(new THREE.BoxGeometry(0.95, 1.5, 0.16), stone);
+      tablet.position.y = 1.05;
+      tablet.rotation.x = -0.1; // leaning back on its base, reading angle
+      tablet.castShadow = true;
+      group.add(tablet);
+      // Script lines: three lit bars of descending length on the face.
+      const scriptMat = new THREE.MeshBasicMaterial({ color: 0xa5b4fc });
+      [0.34, 0.22, 0.27].forEach((len, i) => {
+        const line = new THREE.Mesh(new THREE.BoxGeometry(len * 2, 0.045, 0.02), scriptMat);
+        line.position.set(-0.32 + len, 1.42 - i * 0.3, 0.1);
+        line.rotation.x = -0.1;
+        group.add(line);
+      });
+      return group;
+    },
+    'iris_slit_door': () => {
+      const group = new THREE.Group();
+      const frame = new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.12, 8, 24), materials.porcelainWhite);
+      frame.position.set(0, 1.2, 0);
+      group.add(frame);
+
+      // Blades lie flat in the frame plane (XY, facing ±Z): rotation.x = 90°
+      // turns the cylinder's thin axis (Y) into Z. Left leaf covers the -X
+      // half (thetaStart PI), right leaf the +X half (thetaStart 0), so the
+      // straight edges meet along x = 0 when closed.
+      const irisLeft = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.85, 0.85, 0.08, 16, 1, false, Math.PI, Math.PI),
+        materials.biolumPink
+      );
+      irisLeft.name = 'irisLeft';
+      irisLeft.rotation.x = Math.PI / 2;
+      irisLeft.position.set(0, 1.2, 0);
+      group.add(irisLeft);
+
+      const irisRight = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.85, 0.85, 0.08, 16, 1, false, 0, Math.PI),
+        materials.biolumPink
+      );
+      irisRight.name = 'irisRight';
+      irisRight.rotation.x = Math.PI / 2;
+      irisRight.position.set(0, 1.2, 0);
+      group.add(irisRight);
+      return group;
+    },
+    'lantern_fern_post': () => {
+      const group = new THREE.Group();
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.16, 2.6, 8), materials.woodRoot);
+      pole.position.y = 1.3;
+      group.add(pole);
+
+      const orb = new THREE.Mesh(new THREE.SphereGeometry(0.38, 16, 16), materials.biolumCyan);
+      orb.position.y = 2.7;
+      group.add(orb);
+
+      return group;
+    },
+    'bio_forge_station': () => {
+      const group = new THREE.Group();
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.1, 0.6, 16), materials.porcelainWhite);
+      base.position.y = 0.3;
+      group.add(base);
+
+      const core = new THREE.Mesh(new THREE.OctahedronGeometry(0.35, 1), materials.biolumCyan);
+      core.name = 'forgeCore';
+      core.position.y = 1.1;
+      group.add(core);
+      return group;
+    },
+    'cultivation_mound': () => {
+      const group = new THREE.Group();
+      const mound = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 1.0, 0.22, 16), materials.woodRoot);
+      mound.position.y = 0.11;
+      group.add(mound);
+      return group;
+    },
+    'tamed_snap_trap_turret': () => {
+      const group = new THREE.Group();
+      // Pedestal
+      const pedestal = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.42, 0.58, 0.55, 10),
+        materials.woodRoot
+      );
+      pedestal.position.y = 0.275;
+      pedestal.castShadow = true;
+      group.add(pedestal);
+
+      // Swivel head (named for future targeting in normal/hostile modes)
+      const head = new THREE.Group();
+      head.name = 'turretHead';
+      head.position.y = 0.85;
+
+      const skull = new THREE.Mesh(
+        new THREE.SphereGeometry(0.3, 12, 12),
+        materials.porcelainWhite
+      );
+      skull.castShadow = true;
+      head.add(skull);
+
+      // Jaws mirror the wild snap-trap flora so it reads as the same creature
+      const jawMat = new THREE.MeshStandardMaterial({
+        color: 0xef4444,
+        roughness: 0.35,
+        emissive: 0x7f1d1d,
+        emissiveIntensity: 0.5,
+      });
+      const upperJaw = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.5, 6), jawMat);
+      upperJaw.rotation.x = Math.PI / 4;
+      upperJaw.position.set(0, 0.18, 0.18);
+      const lowerJaw = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.5, 6), jawMat);
+      lowerJaw.rotation.x = -Math.PI / 4;
+      lowerJaw.position.set(0, -0.18, 0.18);
+      head.add(upperJaw);
+      head.add(lowerJaw);
+
+      group.add(head);
+      return group;
+    },
+    'spore_canopy': () => {
+      const group = new THREE.Group();
+      // Four corner posts
+      const postGeom = new THREE.CylinderGeometry(0.09, 0.12, 2.4, 8);
+      const corners: Array<[number, number]> = [[-0.85, -0.85], [0.85, -0.85], [-0.85, 0.85], [0.85, 0.85]];
+      corners.forEach(([px, pz]) => {
+        const post = new THREE.Mesh(postGeom, materials.woodRoot);
+        post.position.set(px, 1.2, pz);
+        post.castShadow = true;
+        group.add(post);
+      });
+
+      // Dome cap
+      const dome = new THREE.Mesh(
+        new THREE.SphereGeometry(1.55, 18, 10, 0, Math.PI * 2, 0, Math.PI * 0.42),
+        materials.biolumViolet
+      );
+      dome.position.y = 2.1;
+      dome.castShadow = true;
+      group.add(dome);
+
+      // Dew-collector orb at the apex (emissive only — no new light, protects the light budget)
+      const orb = new THREE.Mesh(
+        new THREE.SphereGeometry(0.22, 12, 12),
+        materials.biolumCyan
+      );
+      orb.position.y = 3.7;
+      group.add(orb);
+      return group;
+    },
+  };
+}

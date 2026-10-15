@@ -1287,3 +1287,321 @@ family by the nature of the place: the Meadow its one
 courteous bull, Ember and Fungal their full hands,
 the far families their single, serious signatures.
 Roster designed total: 146.
+
+## Fourteenth roster pass — the thin corners
+
+The matrix promised combinations the roster never
+seated: whole Kind x Material cells standing empty
+(no Forged fungus, no Gel fungus), locomotion modes
+with a single citizen (Phasing, Rolling), a shape with
+one tenant (Radial fauna, Geometric fauna), and an
+entire way of being an animal — sitting still — with
+no surface citizen at all. This pass fills twelve of
+the thinnest corners by judgment, and cashes two of
+the audit's depth debts (deep water, weather) on its
+way through.
+
+**147. Anvil Cap** — *Fungus x Forged* (the empty
+cell, filled first, as the pass's thesis). The
+gardeners grew a fungus as a TOOL: its fruiting
+bodies are brackets — flat, dense, tool-hard — that
+served the gardens as anvils, shelves, and worktops.
+Locomotion: Stationary. Spectra (fungus reading):
+Social in rows where they were planted — tool-rows,
+still legible in the Garden; in the Untended they
+grow UNtended into furniture forests, brackets on
+brackets, a workshop dreaming / Diet stone-leavings
+and garden soil / Day-night indifferent, like all good
+furniture / Cultivation: startable from bracket-scrap
+in garden soil — the one Forged species a player can
+still propagate, because it was designed to be copied
+/ Harvest: **Anvil Bracket** (new item) — a shelf that
+is also a seed: builders mount them, and a mounted
+bracket may, given years and damp, fruit (the roster's
+slowest joke, kept straight-faced). Hook: the Forged
+kingdom was all fauna and flora; its fungus is a
+workbench that outlived the workers, still holding
+its shape in the rain.
+
+**148. Quiver Cap** — *Fungus x Gel* (the second
+empty cell). An Underroot-edge fungus whose cap is
+GEL: it quivers at footsteps, sweats clear beads, and
+reproduces by DRIPPING — spore-beads roll downhill in
+gel skins and root where they stop (a fungus that
+uses Rolling without having it: the pass notes the
+distinction proudly). Locomotion: Stationary. Shape:
+Plantiform, translucent-capped. Spectra (fungus
+reading): Social bead-trails down every slope it
+fruits above / Diet gloom-country rot, at Rainback
+hours — it fruits in the wet and slumps in the dry,
+a rain gauge with opinions / Cultivation: a bead,
+carried and set on damp rot, roots in a day (the
+easiest fungus on the roster to move, by design of
+its anatomy) / Harvest: **Quiver Gel** (new item) —
+a trembling, spore-live gel: alchemy's pet, and the
+Gloom Gel's cultivated cousin. Hook: two empty cells
+stood in the matrix for a week of design; both were
+fungus-shaped. The kingdom was waiting to be weird
+in the two materials it hadn't tried.
+
+**149. Gap Moth** — *Fauna x Vapor* — PHASING's
+second citizen (the far Precursor/Storm margins).
+Shape: Winged (moth plan, ruin-dusted). Locomotion:
+Phasing + Aerial, glider-leaning — and its phasing is
+by ATTENTION, where the Blink Hare's is by ticks:
+the moth is simply always in the ruin you are not
+looking at; turning your head is the sound it travels
+by (the entry states the mechanic honestly: it phases
+in the unwatched intervals, so a watched pot never
+blinks — two players CAN corner it by watching each
+other's ruins, which makes it the co-op game's phasing
+citizen). Spectra: serene / SOLO / unhurried / mid
+for a moth / Diet ruin-dust nectar: it sips the
+Precursor Blooms' night faces / NOCTURNAL — the pass's
+night-shift tithe / Curiosity reversed: it studies
+YOU, from the unwatched ruin / Territory a ruin-field,
+all of it, none of it / Tameability 0%. Drops: its
+after-image lingers on retinas and (the codex swears)
+on the helmet's glyph layer for a breath after it
+goes — a shed nothing, unlisted. Hook: Phasing had
+one citizen and she was a hare of the far gardens;
+the moth is the mode's night priest, and the two
+have never been seen in the same ruin, for reasons
+that are the same reason.
+
+**150. Tumble Crab** — *Fauna x Ordinary* — ROLLING's
+third citizen (the Magnetic Dunes, Saltglass's slopes).
+Shape: Multiped (crab plan); modifier: tuck-built —
+its legs fold flush and its shell is a true wheel's
+rim. Locomotion: Rolling primary + Walking: it walks
+the flats UP and ROLLS the dunes DOWN, steering by
+dragging one claw as a rudder, braking in a fan of
+sand at the bottom (the Dune Roller gathers as it
+rolls; the Tumble Sage scatters; the crab COMMUTES —
+three rollers on one hill, three relationships to
+gravity). Spectra: cheerful / slope companies at the
+good dunes / gravity-fast / small / Diet picker of
+dune-fall: what the slopes shake loose / diurnal /
+Curiosity mid / Territory one dune and its run-out /
+Tameability 45% — it can be taught to roll TO a call
+(the roster's most trainable trick, useless and
+perfect). Drops: none. Hook: a locomotion mode with
+two citizens is a coincidence; with three, it's a
+country's accent.
+
+**151. Stillmouth** — *Fauna x Ordinary* — STATIONARY
+FAUNA's first surface citizen (Wetland lakeshores,
+Rootwood pools). Shape: RADIAL (a crown of filtering
+fans around a central mouth — the pass fills two
+corners with one animal and says so); modifier:
+cemented — it builds itself a stone collar and does
+not move again, ever. Locomotion: Stationary, by
+anatomy, for life. Spectra: patient beyond the
+template's vocabulary / Social shore COLONIES, each
+mouth a citizen of a stone parliament / Speed: the
+fans', which is weather / mid / Diet filterer of
+lake water — and its fans' rhythm is a water-quality
+readout at animal scale: where stillmouths gape
+wide, the water is GOOD (the Brook Minnow's stationary
+partner in the wet country's diagnostics: one swims
+the report, one sits it) / Day-night: fans follow the
+light's angle like slow sunflowers / Curiosity none /
+Territory one stone / Tameability: not applicable and
+the entry refuses the joke — you cannot tame a
+citizen who cannot leave; you can only be the kind of
+neighbor it opens for (a well-kept shore is its
+taming, recorded in the Cultivation slot's stead).
+Drops: its collar-stones outlive it by centuries,
+unlisted. Hook: the stationary-fauna chair stood
+empty through 146 designs because the roster kept
+giving stillness to plants; the stillmouth is the
+animal kingdom sitting down, finally, and meaning it.
+
+**152. Drift Krill** — *Fauna x Ordinary* — COLLECTIVE
+#4, and the audit's deep-water debt paid (the great
+lakes of Wetland and Frost's under-ice margins).
+Shape: Segmented (krill plan, finger-long); the
+CITIZEN is the cloud — a drifting, turning body of
+ten thousand, moving like slow weather under water.
+Locomotion: Swimming, collective — currents propose,
+the cloud disposes. Spectra: temperament a shimmer /
+Social COLLECTIVE at the template's ceiling — solo
+is not a survivable setting / Speed the lake's / Size:
+small, and also the size of a meadow, both true /
+Diet lake plankton-equivalents and glow-fall /
+Day-night VERTICAL: the cloud rises at night to the
+moonlit surface and sinks at dawn (the lakes' second
+clock; Ice Maw shadows follow the rising, and the
+entry braids the two files) / Curiosity none /
+Territory a lake's whole volume / UNTAMABLE, and
+unharvestable at scale — a netted handful is bait
+and food, unlisted; the cloud is the citizen. Hook:
+deep water needed a reason to be DEEP; the krill
+cloud is the lakes' weather system, and everything
+with fins schedules around it.
+
+**153. Glass Fern** — *Flora x Crystalline* — the
+Obsidian Garden (glass soils; Saltglass's garden
+edges secondarily). Shape: Plantiform (fern plan, in
+grown glass); modifier: light-piped — its fronds are
+lenses in series: light enters the crown and is
+delivered sorted to the roots, so a glass fern STAND
+glows at ground level at noon, lit from inside its
+own plumbing (the Shardwing nests in that glow; the
+Prism Frog is its honorary citizen in another
+country). Locomotion: Stationary. Spectra (flora
+reading): Social glass groves / Diet light, entirely,
+at jeweler's efficiency — it grows in soils too poor
+for green life because it wastes nothing / Day-night:
+stores noon in its root-glass and spends it by
+luminescence — the Garden's paths are fern-lit after
+dark / Cultivation: a frond-cutting roots in GLASS
+soil only (crushed shard beds — the economy's shard,
+spent as earth: the entry closes a small loop on
+purpose) / Harvest: a cut frond, **Glass Frond** (new
+item) — a lens that was grown, not ground; the far
+crafters' optics begin here. Hook: Crystalline flora
+had exactly one citizen (a bell in the snow); the
+fern is the material's second voice, in the family's
+strangest garden.
+
+**154. Facet Beetle** — *Fauna x Ordinary* — GEOMETRIC
+fauna's second citizen (Bone's fields, Saltglass's
+pans — the flat, bright countries). Shape: GEOMETRIC
+primary (a beetle whose shell is a faceted solid,
+each face a grown plate) + Segmented secondary.
+Locomotion: Walking, face by face — it does not
+stride so much as TIP from facet to facet in a slow,
+exact clatter (the Kiln Star tips at radial scale in
+fire country; the beetle tips at pocket scale in the
+flats: the shape rhymes down the sizes). Spectra:
+methodical / SOLO / slow / small / Diet picker of
+flat-country grit and seed / diurnal — it navigates
+by the SUN's facet: one face is a light-sensor array,
+and it steers by which face is lit (a compass you
+can catch) / Curiosity low / Territory a pan /
+Tameability 50% — it is the roster's most keepable
+beetle: a pocket sundial that eats crumbs and has
+never once been anywhere in a hurry. Drops: shed
+facets, unlisted, used by children of every species
+as dice (the entry's one joke, left unguarded).
+Hook: the Geometric plan spent nine passes as a
+crystal and a star; the beetle makes it an animal
+you can hold.
+
+**155. Cloud Whale** — *Fauna x Vapor* — CLOUD
+shape's grand citizen (the high Storm country, above
+Skyfall). Shape: CLOUD primary (a whale plan drawn
+in vapor, at landscape-adjacent scale — the sky's
+answer to the Grass Leviathan, and the entry pairs
+them deliberately: one walks the plains as weather,
+one swims the fronts as weather). Locomotion:
+Drifting / FLOATING at the active end — it trims
+buoyancy by breathing cloud in and out, holds station
+over a front for hours, and migrates between storm
+systems on a calendar older than the zones. Spectra:
+abyssally calm, the leviathan's temperament at
+altitude / SOLO, attended — Relay Wisps blink along
+its flanks like running lights, and Storm Kites rest
+in its lee (the sky's whole traffic treats it as a
+harbor) / Speed a front's / Size: second only to the
+leviathan, in a lighter medium / Diet sky-plankton
+and spore-fall — it filter-feeds on what the storms
+lift, including, in season, Stormcap falls: the
+fungus's emigrants end as the whale's harvest, and
+neither file apologizes / Day-night: it follows the
+fronts' / Curiosity none / Territory the weather /
+UNTAMABLE — geography again, one floor up. Drops:
+none; its shed vapor-rain falls as the cleanest
+water in the world (Skyfall's basins catch it, and
+their name, the entry notes, may not be about the
+rain that falls UP). Hook: the Cloud plan needed a
+citizen that makes players look up and stop talking;
+the whale is scheduled accordingly.
+
+**156. Skull Hermit** — *Fauna x Ordinary* — HUSK's
+second tenant by the natural road (the Leviathan
+Graveyard). Shape: Quadruped-soft (a soft-bodied
+grazer) + HUSK secondary, WORN — it backs into a
+discarded skull (ant-sized to fox-sized skulls, by
+growth stage) and carries the Graveyard's architecture
+as armor and address: a hermit in a skull is a house
+that walks (the Second Tenant pilots a dead Tender;
+the hermit wears a dead stranger; the Graveyard's
+housing market has two tiers and both are occupied).
+Locomotion: Walking, encumbered and proud. Spectra:
+wary / SOLO, but skull-swapping is a SOCIAL season —
+hermits gather at good skulls like a market day /
+slow under armor, quick bare (it can abandon the
+skull, once, and the entry prices the shame) / small /
+Diet grazer-picker of the bonefields' low growth /
+diurnal / Curiosity house-shaped / Territory a skull
+and its grazing / Tameability 40% — by offering a
+BETTER skull (the roster's most honest barter: you
+are not feeding it, you are outbidding its landlord
+situation). Drops: abandoned skulls are **Worn Skull**
+(new item) — a helmet-shaped truth the builders will
+find uses for. Hook: the Husk plan was two rulings
+and a tenancy; the hermit makes it a lifestyle.
+
+**157. Balloon Vine** — *Flora x Vapor* — DRIFTING
+FLORA's second citizen (Skyfall Basin, Storm's
+gardens). Shape: Plantiform; modifier: cradle-podded
+— its seed-pods inflate with warm gas at ripeness
+and LIFT their cuttings clear of the mother vine, to
+drift the Basin and root where they ground (the
+Stormcap's flora mirror, recorded as kinship: the
+fungus detaches a cap, the vine detaches a cradle;
+two kingdoms, one emigration). Locomotion: Stationary
+as a vine, Drifting as a generation. Spectra (flora
+reading): Social basin-wide cousinhood, all descended
+from a handful of mothers / Diet rain and basin light
+— the Raincatcher's neighbor and occasional tenant-
+landlord (pods ground on the gas-bags and ride a
+while, rent-free) / Day-night: pods lift at the warm
+hours, when their gas is willing / Cultivation: a
+grounded pod, kept, roots eagerly — the far country's
+easiest exotic / Harvest: pod-gas bladders, spent:
+**Drift Silk** (new item) — the pod's skin, lighter
+than paper, tougher than it has any right to be.
+Hook: Vapor flora stood at one citizen, a plant that
+IS a weather system; the vine is the material's
+gardener — it doesn't ride the sky, it SENDS.
+
+**158. Path Beetle** — *Fauna x Forged* — the Forged
+kingdom's SMALL end, its missing scale (the Garden,
+the Untended). Shape: Multiped (beetle plan, palm-
+sized); modifier: brush-footed — its feet are brooms,
+and its whole remaining function is SWEEPING: it
+walks the spiral paths of the gardens and keeps them
+clean, in rows, forever (this is why the Untended's
+spirals remain walkable under the Feral Warden's
+patrol: the smallest staff never stopped). Locomotion:
+Walking, in rows. Spectra: industrious / staff
+COLLECTIVE — dozens per garden, unranked, unbothered
+by the Warden, the Tender, or the centuries /
+methodical / small / Diet path-dust and leaf-fall
+(it composts as it sweeps; the gardens' soil is
+partly its work) / Day-night: it works the hours the
+paths are empty — dawn and dusk, mostly / Curiosity
+none / Territory one path, the whole path, only the
+path / UNTAMABLE and UNNEEDING — but a player who
+keeps a homestead path swept to its standard will
+find, some seasons in, that the sweeping is being
+DONE at dawn (it adopts good paths: the Forged
+kingdom's smallest citizen judges homes the way the
+Hearth Dog does, from the doorstep's other side).
+Drops: none. Hook: the Forged had wardens and tenders
+— officers and staff; the beetle is the kingdom with
+its sleeves rolled, still at work, and the pass's
+closing argument that scale was the thinnest corner
+of all.
+
+Roster designed total: 158. Thin corners filled:
+Forged fungus, Gel fungus, Phasing's second citizen,
+Rolling's third, Radial fauna's second, Geometric
+fauna's second, Cloud's grand citizen, Husk's natural
+tenant, stationary fauna's first, the collective's
+fourth, Crystalline flora's second, drifting flora's
+second, and the Forged kingdom's small end. The
+matrix has no empty cells left standing.

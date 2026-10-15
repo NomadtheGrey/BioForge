@@ -215,6 +215,16 @@ export function useToolInteractions({
         // The radar's listening half: hollow resonant stalks, cut
         // above the root so the reed stands back up and regrows.
         return { item: 'resonant_reed', count: flora.fertilizedYield ? 4 : 2, extras: [['dew_essence', 1]] };
+      case 'antenna_shroom':
+        // Fungal Hollow giants (2026-10-15): the sensing kind —
+        // its antennae drink the spore air and bead it as dew.
+        return { item: 'glow_spore', count: flora.fertilizedYield ? 4 : 2, extras: [['dew_essence', 1]] };
+      case 'visor_shroom':
+        // The almost-face kind: dense, rich flesh — compost gold.
+        return { item: 'basic_compost', count: flora.fertilizedYield ? 3 : 2, extras: [['glow_spore', 1]] };
+      case 'shelf_shroom':
+        // Bracket shelves: fibrous and tough, like growing leather.
+        return { item: 'soft_fiber', count: flora.fertilizedYield ? 4 : 2, extras: [['basic_compost', 1]] };
       case 'bell_bloom':
       default:
         return { item: 'dew_essence', count: flora.fertilizedYield ? 4 : 2, extras: [['soft_fiber', 1]] };

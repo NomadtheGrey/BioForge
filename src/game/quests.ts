@@ -31,6 +31,7 @@
  */
 
 import type { ItemId, ToolType } from '../types/game';
+import { RECIPES, getRecipeTier, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from './constants';
 
 /** Every tool the hotbar can hold, in hotbar order. */
 export const ALL_TOOLS: ToolType[] = [
@@ -256,6 +257,46 @@ export const GAUNTLET_UPGRADE_ITEM_IDS: ItemId[] = [
 /** True when `id` is one of the one-time gauntlet upgrades above. */
 export function isGauntletUpgrade(id: ItemId): boolean {
   return GAUNTLET_UPGRADE_ITEM_IDS.includes(id);
+}
+
+/** True when `id` belongs to any of the three gear platforms. */
+export function isGearItem(id: ItemId): boolean {
+  return (
+    isGauntletUpgrade(id) ||
+    HELMET_GEAR_ITEM_IDS.includes(id) ||
+    BOOTS_GEAR_ITEM_IDS.includes(id)
+  );
+}
+
+/**
+ * Display-tier pins (Adam, 2026-10-15): an item's tier DERIVES from
+ * the recipe graph (getRecipeTier — the same number the forge
+ * tether enforces), so a label can never promise what a lock
+ * contradicts. The one pinned exception is the prismatic radar:
+ * Adam tiers the radar by its LADDER — Tier 1 is the helmet's base
+ * wayfinding (the home arrow, even across zones), Tier 2 the
+ * prismatic upgrade (creatures + walls) — even though its craft
+ * graph runs to depth 3 through the Tier 2 power cell. The label
+ * says 2; the graph still governs where it can be assembled (the
+ * final assembly stays at the forge). The Field Synthesizer needs
+ * no pin: Adam calls it Tier 1, which is what the graph says.
+ */
+const GEAR_DISPLAY_TIER: Partial<Record<ItemId, number>> = {
+  prismatic_field_radar: 2,
+};
+
+/**
+ * The tier a gear part SHOWS the player, or null when it has none
+ * (the Living Gauntlet itself — issued at arrival, never crafted;
+ * the pouch prints 'Issued' for it). Derives from the item's recipe
+ * unless pinned above.
+ */
+export function gearTierOf(id: ItemId): number | null {
+  const pinned = GEAR_DISPLAY_TIER[id];
+  if (pinned !== undefined) return pinned;
+  const recipe = RECIPES.find((r) => r.outputId === id);
+  if (!recipe) return null;
+  return getRecipeTier(recipe);
 }
 
 /** Live progress for one gather objective. */

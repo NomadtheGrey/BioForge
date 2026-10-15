@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Sparkles, Check, AlertCircle, ArrowRight } from 'lucide-react';
 import { CraftingRecipe, ItemId, StructureType } from '../types/game';
 import { ITEMS, RECIPES, getRecipeTier, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../game/constants'
-import { isGauntletUpgrade } from '../game/quests';
+import { isGauntletUpgrade, isGearItem, gearTierOf } from '../game/quests';
 import { soundEngine } from '../audio/soundEngine';
 import { RecipeFlowchart } from './RecipeFlowchart';
 
@@ -205,7 +205,17 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                       {recipe.outputCount}x
                     </div>
                     <div>
-                      <h4 className="text-sm font-semibold text-slate-100">{recipe.name}</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-semibold text-slate-100">{recipe.name}</h4>
+                        {/* Gear parts carry their tier (Adam,
+                            2026-10-15) — graph-derived, see
+                            gearTierOf in game/quests.ts. */}
+                        {isGearItem(recipe.outputId) && gearTierOf(recipe.outputId) !== null && (
+                          <span className="text-[9px] font-tech font-bold px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                            TIER {gearTierOf(recipe.outputId)}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[11px] text-slate-400 line-clamp-1">{recipe.description}</p>
                     </div>
                   </div>
@@ -249,6 +259,11 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                     <span className="text-[10px] uppercase font-tech px-2 py-0.5 rounded-full bg-slate-800 text-cyan-300 border border-slate-700">
                       {outputItem.rarity}
                     </span>
+                    {isGearItem(outputItem.id) && gearTierOf(outputItem.id) !== null && (
+                      <span className="text-[10px] uppercase font-tech font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                        Tier {gearTierOf(outputItem.id)}
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-slate-300 mt-1 leading-relaxed">
                     {outputItem.description}

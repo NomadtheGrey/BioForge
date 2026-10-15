@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Backpack, Sparkles, Sprout, Hammer, ArrowUpRight } from 'lucide-react';
 import { ItemId, StructureType, ToolType } from '../types/game';
 import { ITEMS, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../game/constants';
-import { isGauntletUpgrade } from '../game/quests';
+import { isGauntletUpgrade, isGearItem, gearTierOf } from '../game/quests';
 import { POUCH_TIER_CAPS, POUCH_TIER_NAMES, pouchTierOf } from '../game/pouch';
 
 interface InventoryModalProps {
@@ -241,7 +241,27 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                         <span className="font-tech uppercase text-emerald-300">Equipped — on your gauntlet</span>
                       </div>
                     )}
+                    {isGearItem(activeItem.id) && (
+                      <div className="flex justify-between py-1.5 border-b border-slate-800 text-slate-400">
+                        <span>Tier</span>
+                        <span className="font-tech uppercase text-amber-300">
+                          {gearTierOf(activeItem.id) !== null
+                            ? `Tier ${gearTierOf(activeItem.id)}`
+                            : 'Issued — starter platform'}
+                        </span>
+                      </div>
+                    )}
                   </div>
+                  {/* What a tier IS, said once where players look
+                      at parts (Adam, 2026-10-15): the number counts
+                      the recipe's depth, and it is the same number
+                      the forge tether enforces. */}
+                  {isGearItem(activeItem.id) && (
+                    <p className="text-[11px] text-slate-500 leading-relaxed mt-3">
+                      A part's tier counts its recipe's depth — every crafted ingredient adds one.
+                      Tier 3 work happens at the forge.
+                    </p>
+                  )}
                 </div>
 
                 {/* Quick Equip / Action Button */}

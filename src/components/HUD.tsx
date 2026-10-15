@@ -147,6 +147,7 @@ interface HUDProps {
 
 import { QuestTracker } from './QuestTracker';
 import type { QuestProgressView } from '../game/quests';
+import { MODULE_FOR_TOOL, gearTierOf } from '../game/quests';
 
 export const HUD: React.FC<HUDProps> = ({
   playerState,
@@ -297,6 +298,14 @@ export const HUD: React.FC<HUDProps> = ({
     taming_lure: countOf('sweet_nectar'),
     builder: countOf(selectedStructureType),
   };
+
+  // Gear tier on the tool descriptor (Adam, 2026-10-15): a gauntlet
+  // tool exists because a module grafted it on, and the module
+  // carries a tier — say so where the player reads about the tool.
+  const descriptorModuleId = descriptorTool ? MODULE_FOR_TOOL[descriptorTool.id] : undefined;
+  const descriptorTierLine = descriptorModuleId
+    ? `Gauntlet module · Tier ${gearTierOf(descriptorModuleId) ?? 1}`
+    : null;
 
   let descriptorExtra: string | null = null;
   if (descriptorTool?.id === 'builder') {
@@ -779,6 +788,9 @@ export const HUD: React.FC<HUDProps> = ({
                 )}
               </div>
               <p className="text-xs text-slate-300 mt-0.5">{descriptorTool.desc}</p>
+              {descriptorTierLine && (
+                <p className="text-[11px] text-amber-300/90 font-medium mt-0.5">{descriptorTierLine}</p>
+              )}
               {descriptorExtra && (
                 <p className="text-[11px] text-cyan-300/90 font-medium mt-0.5">{descriptorExtra}</p>
               )}

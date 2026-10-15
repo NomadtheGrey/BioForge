@@ -132,6 +132,7 @@ export default function App() {
     setQuestProgress,
     setPlayerTransform,
     setStamina,
+    setHealth,
     setPlayerLevel,
     restorePlayerState,
   } = usePlayerState();
@@ -642,11 +643,20 @@ const {
   // Waders boots for the marsh drag).
   const sporeStaminaRef = useRef(false);
   const marshSluggishRef = useRef(false);
+  const scarHeatRef = useRef(false);
+  const healthRef = useRef(100);
+  const lastHealthSync = useRef(0);
+  // The loop drains healthRef under scar heat; player state is the
+  // record of truth whenever anything else writes it (loads, heals).
+  useEffect(() => {
+    healthRef.current = playerState.health;
+  }, [playerState.health]);
   const variantAlertedRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     const variant = sessionSeed ? zoneVariantAt(sessionSeed, playerZone.zx, playerZone.zz) : null;
     sporeStaminaRef.current = variant?.effect === 'spore_stamina';
     marshSluggishRef.current = variant?.effect === 'marsh_sluggish';
+    scarHeatRef.current = variant?.effect === 'scar_heat';
     if (variant && sessionSeed) {
       const key = `${sessionSeed}:${variant.id}`;
       if (!variantAlertedRef.current.has(key)) {
@@ -657,6 +667,13 @@ const {
             'Spore-thick air fills this Fungal Hollow, and it taxes your stamina as you move. A helmet with a filter upgrade will answer it; until then, cross briskly and rest at the edges.',
             'system',
             '#a78bfa',
+          );
+        } else if (variant.id === 'ember_scar') {
+          postNotification(
+            'The Ember Scar',
+            'By day, the heat of this place drinks your stamina — and at empty stamina it starts on your health. But its nights are warm: rest here after dark and strength returns fast. Cross at dawn.',
+            'system',
+            '#fb923c',
           );
         } else if (variant.id === 'mirror_marsh') {
           postNotification(
@@ -673,13 +690,13 @@ const {
   useGameLoop({
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
     jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, lastStaminaSync,
-    sprinting, sporeStaminaRef, marshSluggishRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
+    sprinting, sporeStaminaRef, marshSluggishRef, scarHeatRef, healthRef, lastHealthSync, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef,
     structuresListRef, floraListRef,
     activeToolRef, lastBroadcastTime, lastMinimapUpdateTime, latestStateRef, currentZoneId,
-    applyPlayerLevel, postNotification, setStamina, setMinimapPos,
+    applyPlayerLevel, postNotification, setStamina, setHealth, setMinimapPos,
     setDayNightCycle, setHoverInfo, setIsPointerLocked,
     activeModal, playerState, floraList, faunaList, structuresList, droppedItems, dayNightCycle,
   });

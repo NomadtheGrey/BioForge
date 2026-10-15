@@ -35,13 +35,10 @@ Axes so far:
 1. **Life Type** — what the creature is alive *as*.
 2. **Locomotion** — how the creature gets around. **Built out
    below.**
-3. **(Open slot — candidate raised.)** Adam senses there is a
-   third axis. On 2026-10-15 he raised **Shape** — what a creature
-   looks like — as likely being it. The approach is under
-   discussion; the slot stays open until the approach is agreed,
-   and Shape is NOT part of the spectra template below (spectra
-   describe behavior; shape would be a matrix axis like Life Type
-   and Locomotion).
+3. **Shape** — what a creature looks like: its body plan.
+   **Built out below** (Adam's go, 2026-10-15). Shape is a matrix
+   axis like the other two, NOT a spectra field — the triad is
+   substance x motion x form.
 
 A separate, free grid falls out of the biomes work: **Life Type x
 Biome Family** as the roster map — who lives where — again with
@@ -234,6 +231,187 @@ a lock — per the settled biome rules.
 - **Stationary fauna and the codex:** when is a stationary animal
   a *creature* rather than scenery? Proposal: the moment it can
   react — reach, lure, snap, sing. Awaiting Adam.
+
+## Axis 3 — Shape (built out 2026-10-15)
+
+**Definition.** Shape is a creature's body plan — what it looks
+like, its silhouette. With Life Type (substance) and Locomotion
+(motion), it completes the matrix triad: **what it's alive as x
+how it moves x what form it takes.** The three are independent —
+a Serpentine shape can be Fauna, Gel, or Crystalline — which is
+what makes Shape an axis rather than a description.
+
+**The "almost unique" standard (Adam, 2026-10-15).** Making every
+shape *truly* unique does not scale, and Earth does not do it
+either — a few dozen body plans carry everything alive, and
+identity comes from plan + proportions + modifiers + combinations
++ material (Life Type). So the standard here is Adam's: **almost
+unique.** The silhouette test, softened to match: two species
+sharing a plan should still be tellable apart at a glance (on a
+phone screen, at distance, in silhouette); nobody has to invent
+a new geometry per creature.
+
+### The plan roster (draft — Marlowe's list, Adam approved building it)
+
+1. **Blob** — round, amorphous, no fixed outline. Soft-Puff today.
+   Procedural squash carries it; the cheapest plan there is.
+2. **Quadruped** — four-legged beast. Chitin-Stalker today. The
+   classic fauna read — and the rigging-risk plan (legged models
+   are the known hard case for the Meshy pipeline).
+3. **Biped** — upright, two-legged. The plan that reads as
+   *person* — use sparingly; it carries NPC implications wherever
+   it appears (cf. the fate x remnant bunker-people idea).
+4. **Serpentine** — long, legless, head-to-tail. Worms, snakes,
+   eels; locomotion is usually slithering, swimming, or burrowing.
+5. **Segmented** — a chain of repeated sections. Caterpillar /
+   millipede logic; each segment can carry a feature (a light, an
+   eye, a shard), so the plan advertises its own variations.
+6. **Radial** — star / disc symmetry, the same from every side,
+   no obvious front. The deepest-alien plan on the list; pairs
+   with stationary, drifting, or tipping-rolling locomotion.
+7. **Winged** — the wings ARE the silhouette. Vesper Glider's
+   vanes today. NOTE: as the combination rule below shows, Winged
+   very often works as a *secondary* plan (wings on some other
+   body) — whether it keeps a primary seat is an open question.
+8. **Finned** — the aquatic outline: fins, tail, streamlining.
+   No shipped swimmer wears it yet — the swimmer seat is empty
+   (see the type specimen below).
+9. **Plantiform** — looks like a plant: trunk, canopy, root-mass.
+   Deception built into the shape — the creature is read as
+   scenery until it behaves otherwise. The Living family's home
+   plan, and the flora/fauna border dispute made visible.
+10. **Geometric** — straight edges, flat faces, true angles that
+    organic growth does not make. Crystalline life's home plan,
+    and an instant "not from here" read at any distance.
+11. **Husk** — the visible thing is a container: shell, dome, pod.
+    The creature itself is implied, hidden, or *between* states.
+    Pairs with dormancy, ambush, and life-stage changes.
+12. **Cloud** — no single silhouette: a shifting aggregate with
+    soft edges. Collective and Vapor life's home plan; the
+    outline is a behavior, not a boundary.
+
+### Layer 2 — Modifiers (adjectives, not axis values)
+
+A species is **plan + one or two modifiers**: horned, spined,
+frilled, eye-stalked, long-tailed, many-eyed, blind-smooth,
+shelled, crested, lantern-lit. Modifiers are how two Quadrupeds
+stop being the same animal; they never multiply the axis.
+
+### The composition rule (Adam, 2026-10-15)
+
+Body plans **combine**: a species may carry a **primary plan +
+a secondary plan** — the primary is what the creature *is*, the
+secondary is what it *also has*. Adam's founding examples:
+
+- **Serpentine + Winged** — a sky-serpent: the serpent is the
+  body, the wings are the addition. (This is why Winged so often
+  reads as secondary.)
+- **Plantiform + Husk** — a blooming pod: a plant-shaped shell
+  that opens; scenery with something inside it.
+
+Composition is the biome graph's hybrid logic one level down —
+two parents, a crossfade child — and, like hybrids, combinations
+are filtered for coherence rather than banned by category.
+
+### Nonsense combos — Marlowe's rulings (delegated by Adam)
+
+Adam delegated the nonsense hunt ("I trust you to find the
+nonsense combos"). Rulings are **brainstorm law, revisable by
+Adam**; every one carries its physics reason so he can overrule
+the reasoning, not just the verdict. Four verdicts: FINE,
+STAGE-SPLIT ONLY (legal across life stages, illegal within one),
+CONTEXT-DEPENDENT (legal where the world supplies the condition),
+NONSENSE (for now).
+
+Shape x shape:
+
+- Serpentine + Winged — **FINE** (Adam's example; gliding or
+  powered, the wings ride a body built to undulate between
+  wingbeats).
+- Plantiform + Husk — **FINE** (Adam's example; seeds and pods
+  are already this on Earth).
+- Geometric + Blob as a single primary — **NONSENSE**: the
+  silhouette languages contradict (hard angles vs. no fixed
+  outline). Rescued as Husk + Geometric worn by Gel life — a soft
+  creature in an angular found shell is a *story*, not nonsense.
+- Radial + Biped as co-primaries — **NONSENSE**: radial symmetry
+  has no front; biped IS a front. Radial features survive fine as
+  modifiers (a radial frill or crown on a biped).
+- Cloud + Husk — **CONTEXT-DEPENDENT**: nonsense for a lone
+  creature (a container with nothing fixed to contain); FINE for
+  Collective life — a swarm that has moved into a borrowed shell,
+  hermit-crab logic at colony scale.
+
+Shape x locomotion (the physics filter):
+
+- Winged + Burrowing — **STAGE-SPLIT ONLY** (Adam's catch).
+  Within one stage it fails physics: wings are large, fragile,
+  drag-heavy surfaces, and a tunnel is the worst place for them.
+  Across stages Earth does it constantly — burrowing cicada
+  nymph, flying adult. This ruling doubles as evidence for the
+  primary + secondary locomotion question in Axis 2.
+- Finned + Burrowing — **CONTEXT-DEPENDENT**: nonsense in rock;
+  FINE in soft substrate — lungfish and eels burrow in mud and
+  sand, which is exactly Wetland ground.
+- Husk + Flying — **split verdict**: powered flight NONSENSE (a
+  pod is a passenger, not an aircraft); gliding / drifting FINE —
+  samara seeds are flying husks, and a husk that rides the wind
+  to a new home is a dispersal stage, not a vehicle.
+- Winged + Swimming — **FINE**: wings as flippers (penguin logic)
+  or fins that glide (see below). Shape says wings; locomotion
+  decides what they're *for* today.
+- Quadruped + Burrowing — **FINE**: legs are digging tools as
+  readily as walking tools (mole logic); the silhouette barely
+  changes, the limbs' job does.
+- Cloud + Stationary — **NONSENSE for now**: an unanchored cloud
+  cannot stay; staying is the one thing it cannot do. A tethered
+  or vent-fed vapor that hovers over one spot is Drifting with
+  an anchor, and gets designed as such.
+- Radial + Walking — **FINE, flagged oddity**: a radial creature
+  walks by tipping point-to-point, starfish logic at speed. It
+  looks wrong in the best way; kept as a deliberate far-zone
+  possibility rather than ruled nonsense.
+
+### Type specimen — the flying fish (Adam, 2026-10-15)
+
+Adam's example exercises the whole system at once, so it is
+recorded as the composition rule's type specimen (an illustration,
+not yet a species design): **Life Type Fauna; Shape Finned
+primary + Winged secondary; Locomotion Swimming primary +
+Gliding secondary** (flying fish glide — they do not fly — one
+more vote for the Axis 2 flying/gliding split). It is also a
+standing candidate shape for the open **Wetland family signature**
+seat: the swimmer seat is currently empty — the marsh has pools,
+a flying moth, and a floating lily, and nothing in the water.
+
+### Shape is also a budget (brief — the full note lives in Axis 2)
+
+Each plan maps to a known animation class from the models work:
+Blob / Cloud / Husk are procedural-cheap; Plantiform is engine
+sway; Biped rides Mixamo; Quadruped / Serpentine / Segmented
+carry rigging cost. Choosing a shape chooses its cost — the axis
+doubles as the roster's budget sheet, which is what makes
+"almost unique" affordable: uniqueness bought with modifiers and
+proportions is nearly free; uniqueness bought with new rigged
+plans is not.
+
+### Open questions on this axis
+
+- **Does Winged keep a primary seat**, or does the roster treat
+  it as always-secondary (vanes / wings as additions)? Marlowe's
+  lean: keep the seat — a creature that is *mostly* wing (a
+  living kite, a sail with a body for ballast) deserves the
+  option — but expect most Winged entries to be secondaries.
+- **Plan roster size**: twelve drafted. Enough? The test is not
+  coverage of Earth but whether a new creature idea keeps failing
+  to find a home plan.
+- **Biped discipline**: how rare is rare enough that a biped
+  still lands as an event? (Ties to fate x remnant NPC design,
+  which is parked future work — noted, not opened.)
+
+A species design in this doc is not complete until it carries a
+shape line — primary plan, secondary plan if any, modifiers —
+alongside its spectra line.
 
 ## The spectra template (per-species behavior profile)
 

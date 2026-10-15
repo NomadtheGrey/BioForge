@@ -27,7 +27,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { CraftingRecipe, ItemId } from '../types/game';
-import { ITEMS, RECIPES } from '../game/constants';
+import { ITEMS, RECIPES, getRecipeTier } from '../game/constants';
 
 const ICONS: Record<string, LucideIcon> = {
   AlertTriangle,
@@ -59,7 +59,7 @@ const ICONS: Record<string, LucideIcon> = {
 interface RecipeFlowchartProps {
   inventory: Record<ItemId, number>;
   nearForge: boolean;
-  hasGauntlet: boolean;
+  hasSynthesizer: boolean;
   selectedRecipeId: string;
   onSelectRecipe: (recipe: CraftingRecipe) => void;
 }
@@ -75,7 +75,7 @@ type NodeStatus = 'ready' | 'locked' | 'missing';
 export const RecipeFlowchart: React.FC<RecipeFlowchartProps> = ({
   inventory,
   nearForge,
-  hasGauntlet,
+  hasSynthesizer,
   selectedRecipeId,
   onSelectRecipe,
 }) => {
@@ -141,10 +141,13 @@ export const RecipeFlowchart: React.FC<RecipeFlowchartProps> = ({
     if (nearForge) {
       return 'ready';
     }
-    if (r.tier === 3) {
+    // Tier comes from the recipe graph, never a stored field —
+    // this read r.tier (undefined) until the 2026-10-15 types
+    // pass, so tier-3 nodes never showed as forge-locked here.
+    if (getRecipeTier(r) >= 3) {
       return 'locked';
     }
-    return hasGauntlet ? 'ready' : 'locked';
+    return hasSynthesizer ? 'ready' : 'locked';
   };
 
   const statusStyle: Record<NodeStatus, { border: string; label: string; labelColor: string }> = {
@@ -246,7 +249,7 @@ export const RecipeFlowchart: React.FC<RecipeFlowchartProps> = ({
                       style={{ color: style.labelColor }}
                     >
                       {style.label}
-                      {r.tier === 3 ? ' · T3' : ''}
+                      {getRecipeTier(r) >= 3 ? ' · T3' : ''}
                     </div>
                   </div>
                 </div>

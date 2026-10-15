@@ -56,7 +56,16 @@ export type ItemId =
   | 'ruin_exit'
   | 'precursor_cache'
   | 'artifact_heart'
-  | 'ruin_glyph';
+  | 'ruin_glyph'
+  // Worn Equipment — the two platforms (settled 2026-10-13/14): the
+  // GAUNTLET is the action platform (the hotbar tools are its modes);
+  // the HELMET, when it arrives, is the sensory platform and joins
+  // this same section. Equipment is WORN, never built — these ids
+  // are ItemIds only, NOT StructureTypes. The gauntlet spent a month
+  // inside StructureType, forcing impossible entries into every
+  // Record keyed on it; the types pass of 2026-10-15 set that right.
+  | 'field_synthesizer_gauntlet'
+  | 'gauntlet_synthesizer_upgrade';
 
 export type ToolType =
   | 'harvest_glove'
@@ -69,7 +78,10 @@ export type ToolType =
 export interface ItemDef {
   id: ItemId;
   name: string;
-  category: 'raw' | 'seed' | 'fertilizer' | 'structure';
+  // 'equipment' joined the union in the 2026-10-15 types pass: worn
+  // platforms (gauntlet, its graft, the future helmet) are their own
+  // category, not raw materials with ambitions.
+  category: 'raw' | 'seed' | 'fertilizer' | 'structure' | 'equipment';
   description: string;
   iconName: string;
   color: string;
@@ -172,9 +184,12 @@ export type StructureType =
   | 'ruin_exit'
   | 'precursor_cache'
   | 'artifact_heart'
-  | 'ruin_glyph'
-  // Equipment
-  | 'field_synthesizer_gauntlet';
+  | 'ruin_glyph';
+  // NOTE: worn equipment (the gauntlet and its kin) is NOT a
+  // structure — it cannot be built, placed, or stood on. It lives in
+  // ItemId's equipment section. (It lived HERE until 2026-10-15,
+  // which is why the engine's structure tables demanded a world
+  // model and a glow entry for a glove.)
 
 /** Dressing piece types a cave mouth wears (see game/caveSurface.ts). */
 export type CaveDressingType =

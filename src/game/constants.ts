@@ -510,16 +510,35 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'uncommon',
     maxStack: 50,
   },
+  // The gauntlet: issued, not earned (Adam's pin, 2026-10-14 — "isn't
+  // that how they harvest and plant?"). The player starts wearing
+  // it; the hotbar tools are its modes. Remote crafting is NOT the
+  // base gauntlet's gift — that arrives with the graft below.
   field_synthesizer_gauntlet: {
-  id: 'field_synthesizer_gauntlet',
-  name: 'Field Synthesizer Gauntlet',
-  category: 'equipment',
-  description: 'A living gauntlet hosting a miniature bio-forge — synthesize tier 1-2 recipes anywhere in the field.',
-  iconName: 'Zap',
-  color: '#f59e0b',
-  rarity: 'rare',
-  maxStack: 1,
-},
+    id: 'field_synthesizer_gauntlet',
+    name: 'Field Synthesizer Gauntlet',
+    category: 'equipment',
+    description: 'Your living gauntlet — the action platform issued on arrival. Its modes are your tools: harvest glove, trowel, builder, and the rest. Graft a Field Synthesizer onto it to craft away from a forge.',
+    iconName: 'Zap',
+    color: '#f59e0b',
+    rarity: 'rare',
+    maxStack: 1,
+  },
+  // The old gauntlet recipe's new target (types pass, 2026-10-15):
+  // same ingredients, same Tier-2-by-graph goal, same forge-tether
+  // arc — but what you grow is the miniature forge itself, grafted
+  // onto the gauntlet you already wear. checkCraftAccess reads THIS
+  // item for field synthesis; tier 3 stays forge-only regardless.
+  gauntlet_synthesizer_upgrade: {
+    id: 'gauntlet_synthesizer_upgrade',
+    name: 'Field Synthesizer Graft',
+    category: 'equipment',
+    description: 'A miniature bio-forge grafted onto your gauntlet — synthesize tier 1-2 recipes anywhere in the field. Tier 3 still needs a real forge.',
+    iconName: 'Cpu',
+    color: '#f59e0b',
+    rarity: 'rare',
+    maxStack: 1,
+  },
 
 };
 
@@ -782,11 +801,14 @@ export const RECIPES: CraftingRecipe[] = [
     craftTimeMs: 3000,
   },
   {
-    id: 'craft_field_gauntlet',
-    outputId: 'field_synthesizer_gauntlet',
+    // Was craft_field_gauntlet until the 2026-10-15 types pass: the
+    // gauntlet itself is issued at start now, so this recipe grows
+    // the SYNTHESIZER GRAFT for it — same ingredients, same arc.
+    id: 'craft_synthesizer_graft',
+    outputId: 'gauntlet_synthesizer_upgrade',
     outputCount: 1,
-    name: 'Field Synthesizer Gauntlet',
-    description: 'Grow a wearable miniature bio-forge for remote tier 1-2 synthesis.',
+    name: 'Field Synthesizer Graft',
+    description: 'Graft a miniature bio-forge onto your gauntlet for remote tier 1-2 synthesis.',
     category: 'composites',
     ingredients: [
       { id: 'carapace_scale', count: 3 },
@@ -1133,6 +1155,9 @@ export const INITIAL_INVENTORY = [
   { id: 'bio_forge_station', count: 1 },
   { id: 'vine_ladder', count: 4 },
   { id: 'seed_bounce_shroom', count: 2 },
+  // Worn from minute one (Adam's pin, 2026-10-14): the gauntlet is
+  // issued equipment, not a craft — its upgrade is the craft.
+  { id: 'field_synthesizer_gauntlet', count: 1 },
 ] as const;
 
 export const BIOMES = [

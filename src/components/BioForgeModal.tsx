@@ -10,7 +10,7 @@ interface BioForgeModalProps {
   onClose: () => void;
   inventory: Record<ItemId, number>;
   nearForge: boolean;
-  hasGauntlet: boolean;
+  hasSynthesizer: boolean;
   onCraftRecipe: (recipe: CraftingRecipe) => void;
   onSelectStructureBlueprint?: (type: StructureType) => void;
 }
@@ -20,7 +20,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   onClose,
   inventory,
   nearForge,
-  hasGauntlet,
+  hasSynthesizer,
   onCraftRecipe,
   onSelectStructureBlueprint,
 }) => {
@@ -43,14 +43,14 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     if (!hasIngredients(recipe)) return false;
     if (nearForge) return true;
     if (getRecipeTier(recipe) >= 3) return false;
-    return hasGauntlet;
+    return hasSynthesizer;
   };
 
   const craftBlockReason = (recipe: CraftingRecipe): string | null => {
     if (!hasIngredients(recipe)) return 'Missing ingredients';
     if (nearForge) return null;
     if (getRecipeTier(recipe) >= 3) return 'Advanced synthesis requires a bio-forge station';
-    if (!hasGauntlet) return 'Too far from a bio-forge — synthesize a Field Synthesizer Gauntlet';
+    if (!hasSynthesizer) return 'Too far from a bio-forge — graft a Field Synthesizer onto your gauntlet';
     return null;
   };
 
@@ -144,7 +144,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
               <RecipeFlowchart
                 inventory={inventory}
                 nearForge={nearForge}
-                hasGauntlet={hasGauntlet}
+                hasSynthesizer={hasSynthesizer}
                 selectedRecipeId={selectedRecipe.id}
                 onSelectRecipe={setSelectedRecipe}
               />

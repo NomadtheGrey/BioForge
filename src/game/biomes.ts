@@ -26,7 +26,7 @@
 // that here; the lab keeps its own copy for the record.
 // ============================================================================
 
-export type BiomeId = 'meadow' | 'wetland' | 'fungal' | 'ember' | 'saltglass' | 'frost' | 'rootwood' | 'precursor' | 'bone';
+export type BiomeId = 'meadow' | 'wetland' | 'fungal' | 'ember' | 'saltglass' | 'frost' | 'rootwood' | 'precursor' | 'bone' | 'storm';
 
 /** How often a biome shows up among the rolls it's eligible for. */
 export type BiomeRarity = 'common' | 'uncommon' | 'rare';
@@ -69,6 +69,7 @@ export const BIOMES: BiomeDef[] = [
   { id: 'rootwood', floraDensity: 1.3, faunaDensity: 1.0, tier: 1, minHops: 2, rarity: 'common' }, // the 7th family built: the wooded one — giant living roots as architecture; the lushest country in the game
   { id: 'precursor', floraDensity: 1.1, faunaDensity: 0.8, tier: 2, minHops: 3, rarity: 'uncommon' }, // the 8th family built: gardens of the vanished — nature growing through engineered geometry
   { id: 'bone', floraDensity: 0.9, faunaDensity: 0.9, tier: 2, minHops: 3, rarity: 'uncommon' }, // the 9th family built: graveyard country — death-fertile, scavenger land
+  { id: 'storm', floraDensity: 0.85, faunaDensity: 0.8, tier: 3, minHops: 3, rarity: 'uncommon' }, // the 10th family built: the FIRST Tier 3 family — charged country, lightning that occasionally zots the player (Adam)
 ];
 
 /** A biome's exoticness/danger tier (0 = hearthlands … 3 = far weird). */
@@ -104,6 +105,7 @@ export const BIOME_TINTS: Record<BiomeId, { color: number; strength: number }> =
   rootwood: { color: 0x4a5d23, strength: 0.5 }, // deep green-brown
   precursor: { color: 0xa8b56b, strength: 0.45 }, // pale gold-green, cultivated light
   bone: { color: 0xd8cfb8, strength: 0.5 }, // parchment bone-pale
+  storm: { color: 0x6b7c8c, strength: 0.5 }, // slate storm-grey
 };
 
 /** Weight bonus a biome-affined species gets inside its home biome(s). */
@@ -128,7 +130,7 @@ export const BIOME_HOME_BONUS = 1.5;
 // zone (weight 1) — most eligible zones stay plain.
 
 /** The player-facing effect a variant carries, if any. */
-export type BiomeEffectId = 'spore_stamina' | 'marsh_sluggish' | 'scar_heat' | 'thaw_cold' | 'frost_stillcold';
+export type BiomeEffectId = 'spore_stamina' | 'marsh_sluggish' | 'scar_heat' | 'thaw_cold' | 'frost_stillcold' | 'storm_zot';
 
 export interface BiomeVariantDef {
   id: string;
@@ -153,6 +155,10 @@ export interface BiomeVariantDef {
    */
   lightDistanceMult: number;
   lightIntensityMult: number;
+  /** Storm only (2026-10-15): mean seconds between lightning
+   *  zots in this variant — the loop jitters it. Absent = the
+   *  family default (35s) for plain Storm zones. */
+  zotIntervalSec?: number;
   /** Zone-name pools for zones of this variant. */
   nameParts: { first: string[]; second: string[] };
 }
@@ -587,6 +593,74 @@ export const BIOME_VARIANTS: BiomeVariantDef[] = [
     nameParts: {
       first: ['Great', 'Silent', 'Ancient', 'Patient', 'Vast'],
       second: ['Rest', 'Graveyard', 'Ribs', 'Quiet', 'Fall'],
+    },
+  },
+  {
+    // The Charged Flats (Storm, 2026-10-15): the family's
+    // COMMON face (Adam's approval) — humming air, static on
+    // the skin, scorched-glass patches and fulgurite fingers
+    // where the lightning has kissed the ground. Zots every
+    // ~30s: warned, shelterable, survivable — the tax of
+    // charged country.
+    id: 'charged_flats',
+    family: 'storm',
+    name: 'The Charged Flats',
+    minHops: 3,
+    rarity: 'common',
+    tint: { color: 0x7d93a8, strength: 0.5 }, // brighter slate-blue
+    floraDensityMult: 1.05,
+    faunaDensityMult: 1.0,
+    effect: 'storm_zot',
+    zotIntervalSec: 30,
+    lightDistanceMult: 1,
+    lightIntensityMult: 1.05,
+    nameParts: {
+      first: ['Charged', 'Humming', 'Bright', 'Static', 'Open'],
+      second: ['Flats', 'Fields', 'Reach', 'Plains', 'Sands'],
+    },
+  },
+  {
+    // Magnetic Dunes (Storm, 2026-10-15): black sand, the
+    // charge at its angriest — zots every ~16s. RARE, per the
+    // gate cap: the family gates at 3, the weird faces price
+    // themselves in rarity.
+    id: 'magnetic_dunes',
+    family: 'storm',
+    name: 'Magnetic Dunes',
+    minHops: 4,
+    rarity: 'rare',
+    tint: { color: 0x2b2b30, strength: 0.6 }, // near-black sand
+    floraDensityMult: 0.7,
+    faunaDensityMult: 0.8,
+    effect: 'storm_zot',
+    zotIntervalSec: 16,
+    lightDistanceMult: 1,
+    lightIntensityMult: 0.95,
+    nameParts: {
+      first: ['Black', 'Iron', 'Singing', 'Dark', 'Deep'],
+      second: ['Dunes', 'Sands', 'Fields', 'Reach', 'Drift'],
+    },
+  },
+  {
+    // Skyfall Basin (Storm, 2026-10-15): the basin DRINKS the
+    // charge — zots rare here (~60s), the flora richest in
+    // Storm country. Old reports say the rain falls up in the
+    // basin; the calm is real whatever the rain does.
+    id: 'skyfall_basin',
+    family: 'storm',
+    name: 'Skyfall Basin',
+    minHops: 4,
+    rarity: 'rare',
+    tint: { color: 0xa8c8d8, strength: 0.45 }, // pale sky-cyan
+    floraDensityMult: 1.3,
+    faunaDensityMult: 0.9,
+    effect: 'storm_zot',
+    zotIntervalSec: 60,
+    lightDistanceMult: 1.1,
+    lightIntensityMult: 1.1,
+    nameParts: {
+      first: ['Calm', 'Bright', 'Open', 'Patient', 'High'],
+      second: ['Basin', 'Skyfall', 'Bowl', 'Fields', 'Rest'],
     },
   },
 ];

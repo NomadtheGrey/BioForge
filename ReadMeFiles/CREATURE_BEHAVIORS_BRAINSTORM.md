@@ -220,5 +220,11 @@ golden core — planted in Archimedean spirals in every Precursor
 zone (the gardeners' signature, still legible). Harvests to
 LIVING THREAD + dew; solvent returns the thread. Precursor's
 creature seats — family signature (the mimic guardian is the
-doc's standing candidate, if the machines become creatures) and
-a Tending Field unique — are EMPTY and belong to this chat.
+doc's standing candidate) and a Tending Field unique — are
+EMPTY and belong to this chat. THE TENDERS (Adam's ruling,
+2026-10-15): there are no machines on this planet; the
+gardeners' tenders were FORGED creatures — this taxonomy's own
+Forged category — and the ones standing in the game today are
+DEAD: big ribcage-and-skull husks generating as scenery,
+thickest in the Tending Field. A LIVING tender (if one ever
+wakes) is a Forged Fauna design seat for this chat.

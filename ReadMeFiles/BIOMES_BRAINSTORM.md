@@ -316,12 +316,16 @@ question round — the table below is the draft to argue with.
   *Precursor Garden* (min 3, uncommon — the spiral at full
   strength, flora x1.25), *The Untended* (min 3, uncommon — the
   spiral gone feral, jittered and dark), *The Tending Field*
-  (min 4, RARE — densest spirals; the old machinery still stands
-  in its rows in flavor). OPEN QUESTION (Adam's, plainly put):
-  the tending machines — statues (scenery dressing, ships with a
-  small follow-on) or creatures later (the mimic-guardian seat,
-  belonging to the creature phase)? The biome shipped without
-  them either way. WORLD_GEN_VERSION 11.
+  (min 4, RARE — densest spirals). THE TENDERS, RESOLVED
+  (Adam, 2026-10-15): there are no machines in BioForge — this
+  is a biological planet. The tenders are FORGED creatures
+  (the creatures taxonomy's own category: precursor-made,
+  grown not evolved), purpose-shaped for garden work, biggish
+  and LONG DEAD. Their husks now generate as scenery — a
+  ribcage-and-skull-dome structure, thickest in the Tending
+  Field — and the alert copy was corrected: grown, not built.
+  Living Forged tenders (the mimic-guardian seat) remain a
+  creature-phase question. WORLD_GEN_VERSION 11.
 
 First instantiation (Marlowe's recommendation, for Adam's call):
 **Fungal Hollow** — nearest to the shipped fungal, so the variant

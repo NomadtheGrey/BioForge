@@ -174,3 +174,7 @@ Every creature sits in exactly one layer:
 The affinity machinery already speaks all three layers: census
 affinity 'all', census affinity [family], and variant-gated bonus
 life. New species design should name its layer first.
+
+Flora note (Ember Scar, 2026-10-15): the Cinder Bloom grows on the
+scar's vents and keeps the scar's hours — dangerous country at noon,
+warm at midnight. It drinks the heat everything else suffers from.

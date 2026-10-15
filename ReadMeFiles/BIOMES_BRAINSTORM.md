@@ -405,3 +405,14 @@ verbs, three platforms; no stats, no set bonuses, no paper doll.
 Boots are their own later build (question round included); biomes
 ship ahead of them with alerts naming the answers (filter, Waders),
 exactly as the Hollow shipped ahead of the helmet.
+
+**EMBER SCAR — SHIPPED (2026-10-15).** Ember variant, Tier 2, min 4
+hops, uncommon. Cinder blooms grow on the vents (resin sap x2 + dew).
+THE HEAT (Adam's escalation): by day the scar drains stamina at 16/s
+— faster than any regen — and at empty stamina it takes HEALTH at
+1.2/s; by night the warm ground restores stamina +8/s. Its alert
+teaches the rhythm: cross at dawn, rest after dark. (Health currently
+floors at 1: death/respawn is a pinned rule awaiting its own build.)
+Ember roster slate (approved 2026-10-15, built one at a time):
+Ember Scar ✓, **the Ashen Drift** (light-eating ash, reach x0.6),
+**the Obsidian Garden** (glass flowers, a crafting shard).

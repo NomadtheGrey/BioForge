@@ -385,3 +385,23 @@ VariantDef registry (tint/densities/effect), variant name pools, HUD kind
 labels, engine tint override. CLIMBING is deferred to Adam's parked idea:
 a cheap, opaque base WALL that supports a vine ladder — that will be how
 players climb, shelves included.
+
+**MIRROR MARSH — SHIPPED (2026-10-15, live bundle index-LC2kEKSG.js).**
+Wetland variant, Tier 0, min 2 hops, uncommon. The pools are dressed
+ground for now (the lily's mesh carries its own reflective pool disc;
+real water is the P5 conversation). THE LIGHT TRICK (Adam's numbers):
+light DISTANCE x2, intensity x1.2 in the marsh — the merge formula
+already amplifies brightness, so reach is what reflection buys; the
+registry field (lightDistanceMult/lightIntensityMult) lets future
+biomes reuse it. Life: 8 Mirror Lilies (dew x3 + reed), 3 Mirror Moths
+(pollinators; shed dew essence wild or tame). Effect: marsh_sluggish —
+surface movement x0.85; its alert names the future answer, Waders.
+
+**THE THREE PLATFORMS (Adam asked for the call, 2026-10-15; Marlowe's
+call, accepted):** boots WILL be instantiated — as the third and FINAL
+equipment platform. Gauntlet = ACT, Helmet = KNOW, Boots = MOVE. The
+anti-suit rule: a platform may exist only if it owns a verb; three
+verbs, three platforms; no stats, no set bonuses, no paper doll.
+Boots are their own later build (question round included); biomes
+ship ahead of them with alerts naming the answers (filter, Waders),
+exactly as the Hollow shipped ahead of the helmet.

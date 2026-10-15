@@ -209,21 +209,70 @@ export function useGameLoop(deps: GameLoopDeps): void {
                 }
               : null;
 
-        const moveResult = movementController.current.update(
-          dt,
-          playerPosRef.current.x,
-          playerPosRef.current.z,
-          engineRef.current.camera,
-          inputState,
-          isPaused,
-          structuresListRef.current,
-          floraListRef.current,
-          playerLevelRef.current,
-          cavernArg
-        );
+        // Sub-stepped movement + jump (2026-10-15): the engine now
+        // hands over REAL delta time (see threeEngine.animate — the
+        // old 0.05s cap threw elapsed time away under 20 fps and
+        // the game ran in slow motion; Clarissa's "movement and
+        // turning feel sluggish"). A long real frame integrates
+        // here in slices of at most 1/30s, so collision stays
+        // honest (no tunneling through thin walls at low fps) and
+        // jump arcs stay smooth, while game TIME advances at true
+        // speed. Rates that merely accumulate (stamina, variant
+        // effects, timers further down) still consume the frame's
+        // full dt exactly once.
+        const jump = jumpRef.current;
+        const stepCount = Math.max(1, Math.ceil(dt / (1 / 30)));
+        const stepDt = dt / stepCount;
+        let moveResult = {
+          x: playerPosRef.current.x,
+          z: playerPosRef.current.z,
+          isMoving: false,
+        };
+        for (let step = 0; step < stepCount; step++) {
+          moveResult = movementController.current.update(
+            stepDt,
+            playerPosRef.current.x,
+            playerPosRef.current.z,
+            engineRef.current.camera,
+            inputState,
+            isPaused,
+            structuresListRef.current,
+            floraListRef.current,
+            playerLevelRef.current,
+            cavernArg
+          );
+          playerPosRef.current.x = moveResult.x;
+          playerPosRef.current.z = moveResult.z;
 
-        playerPosRef.current.x = moveResult.x;
-        playerPosRef.current.z = moveResult.z;
+          // Jump arc, per step: gravity pulls the cosmetic Y back
+          // to the floor. Movement input kept working during the
+          // move above — that IS the air control. A bounce launch
+          // flips the player's story as the arc crosses story
+          // height: camera height is the SUM (level x story +
+          // jumpY), so subtracting the story from jumpY in the
+          // same step keeps the view perfectly continuous while
+          // collision and support switch to the upper floor.
+          if (jump.vy !== 0 || jump.y > 0) {
+            jump.vy -= JUMP_GRAVITY * stepDt;
+            jump.y += jump.vy * stepDt;
+            if (jump.bounceFlip && playerLevelRef.current === 0 && jump.y >= STORY_HEIGHT_METERS) {
+              applyPlayerLevel(1);
+              jump.y -= STORY_HEIGHT_METERS;
+              jump.bounceFlip = false;
+            }
+            if (jump.y <= 0) {
+              jump.y = 0;
+              jump.vy = 0;
+              jump.bounceFlip = false;
+              // Touching down on the upper story: a short grace
+              // to finish the step onto a tile before support is
+              // judged (the support check runs once, below).
+              if (playerLevelRef.current > 0) {
+                bounceGraceUntil.current = Math.max(bounceGraceUntil.current, performance.now() + 350);
+              }
+            }
+          }
+        }
 
         // Zone travel — push-through crossing (2026-10-15). On the
         // surface, leaning your movement into the world's edge for a
@@ -279,33 +328,8 @@ export function useGameLoop(deps: GameLoopDeps): void {
           edgePushRef.current = null;
         }
 
-        // Jump arc: gravity pulls the cosmetic Y back to the floor.
-        // Movement input kept working during the move above — that IS
-        // the air control. A bounce launch flips the player's story
-        // as the arc crosses story height: camera height is the SUM
-        // (level × story + jumpY), so subtracting the story from
-        // jumpY in the same frame keeps the view perfectly continuous
-        // while collision and support switch to the upper floor.
-        const jump = jumpRef.current;
-        if (jump.vy !== 0 || jump.y > 0) {
-          jump.vy -= JUMP_GRAVITY * dt;
-          jump.y += jump.vy * dt;
-          if (jump.bounceFlip && playerLevelRef.current === 0 && jump.y >= STORY_HEIGHT_METERS) {
-            applyPlayerLevel(1);
-            jump.y -= STORY_HEIGHT_METERS;
-            jump.bounceFlip = false;
-          }
-          if (jump.y <= 0) {
-            jump.y = 0;
-            jump.vy = 0;
-            jump.bounceFlip = false;
-            // Touching down on the upper story: a short grace to
-            // finish the step onto a tile before support is judged.
-            if (playerLevelRef.current > 0) {
-              bounceGraceUntil.current = Math.max(bounceGraceUntil.current, performance.now() + 350);
-            }
-          }
-        }
+        // (The jump arc integrates inside the sub-stepped movement
+        // loop above — see the note there.)
 
         // Story support: above the ground story you stand on ceiling
         // floors. Step off one (or have it dissolved under you) and you

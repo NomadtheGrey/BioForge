@@ -1593,6 +1593,196 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'fangwolf': {
+        // Winter with a plan (slice 5): a lean wolf — pale,
+        // long-legged, ears up. The pack reads in numbers.
+        const coatMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.95 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 0.65, 8, 12), coatMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.72;
+        body.castShadow = true;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), coatMat);
+        head.scale.set(0.8, 0.85, 1.4);
+        head.position.set(0, 0.82, 0.62);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const ear = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.16, 4), coatMat);
+          ear.position.set(side * 0.1, 1.02, 0.55);
+          group.add(ear);
+        }
+        const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.35, 4, 6), coatMat);
+        tail.rotation.x = 1.1;
+        tail.position.set(0, 0.72, -0.6);
+        group.add(tail);
+        break;
+      }
+
+      case 'salt_scorpion': {
+        // The ground, armed (slice 5): a low segmented body,
+        // two crust claws, and a tail arcing up to a grown-
+        // glass sting that catches the light.
+        const crustMat = new THREE.MeshStandardMaterial({ color: 0xd6d3a8, roughness: 0.7 });
+        const glassMat = new THREE.MeshStandardMaterial({
+          color: 0xa5f3fc, roughness: 0.2, emissive: 0x155e75, emissiveIntensity: 0.5,
+        });
+        for (const [sz, ss] of [[0.16, 0.2], [0, 0.23], [-0.17, 0.19]] as const) {
+          const seg = new THREE.Mesh(new THREE.SphereGeometry(ss, 10, 8), crustMat);
+          seg.scale.set(1.1, 0.6, 1);
+          seg.position.set(0, 0.16, sz);
+          group.add(seg);
+        }
+        for (const side of [-1, 1]) {
+          const claw = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), glassMat);
+          claw.scale.set(1, 0.7, 1.2);
+          claw.position.set(side * 0.22, 0.14, 0.3);
+          group.add(claw);
+        }
+        for (let i = 0; i < 3; i++) {
+          const tseg = new THREE.Mesh(new THREE.SphereGeometry(0.07 - i * 0.012, 8, 6), crustMat);
+          tseg.position.set(0, 0.22 + i * 0.13, -0.3 - i * 0.05);
+          group.add(tseg);
+        }
+        const sting = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.16, 6), glassMat);
+        sting.position.set(0, 0.66, -0.42);
+        sting.rotation.x = 0.7;
+        group.add(sting);
+        break;
+      }
+
+      case 'slag_serpent': {
+        // A ripple before it is a snake (slice 5): a long low
+        // body and a hood that rises in cooling ash.
+        const scaleMat = new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.55 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 1.3, 8, 10), scaleMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.22;
+        body.castShadow = true;
+        group.add(body);
+        const hood = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 8), scaleMat);
+        hood.scale.set(1.25, 0.9, 0.5);
+        hood.position.set(0, 0.42, 0.85);
+        group.add(hood);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), scaleMat);
+        head.scale.set(0.85, 0.8, 1.3);
+        head.position.set(0, 0.4, 1.05);
+        group.add(head);
+        break;
+      }
+
+      case 'prism_cat': {
+        // A shimmer with paws (slice 5): long and low, in a
+        // coat that bends the noon — drawn translucent, with
+        // the ears and tail honest.
+        const coatMat = new THREE.MeshStandardMaterial({
+          color: 0xf5d0fe, roughness: 0.2, transparent: true, opacity: 0.8,
+          emissive: 0x86198f, emissiveIntensity: 0.3,
+        });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.6, 8, 10), coatMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.42;
+        body.castShadow = true;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 8), coatMat);
+        head.position.set(0, 0.5, 0.55);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const ear = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.12, 4), coatMat);
+          ear.position.set(side * 0.08, 0.65, 0.52);
+          group.add(ear);
+        }
+        const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.045, 0.4, 4, 6), coatMat);
+        tail.rotation.x = 1.2;
+        tail.position.set(0, 0.45, -0.55);
+        group.add(tail);
+        break;
+      }
+
+      case 'fen_lurker': {
+        // One log is a citizen; the other is a mouth (slice 5):
+        // a wide, bark-brown log body wearing duckweed, with
+        // eyes riding on top like a periscope's whole crew.
+        const barkMat = new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 1 });
+        const weedMat = new THREE.MeshStandardMaterial({ color: 0x365314, roughness: 1 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.42, 1.1, 8, 12), barkMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.36;
+        body.castShadow = true;
+        group.add(body);
+        const weed = new THREE.Mesh(new THREE.SphereGeometry(0.4, 10, 8), weedMat);
+        weed.scale.set(1, 0.3, 1.3);
+        weed.position.y = 0.72;
+        group.add(weed);
+        const jaw = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), barkMat);
+        jaw.scale.set(1.15, 0.6, 1.1);
+        jaw.position.set(0, 0.28, 0.85);
+        group.add(jaw);
+        for (const side of [-1, 1]) {
+          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 5), barkMat);
+          eye.position.set(side * 0.14, 0.72, 0.7);
+          group.add(eye);
+        }
+        break;
+      }
+
+      case 'hollow_widow': {
+        // Fluency as menace (slice 5): a dark many-legged body,
+        // and beneath it the lure — one grub's worth of steady,
+        // unflickering light.
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.6 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10), bodyMat);
+        body.scale.set(0.9, 0.8, 1.2);
+        body.position.y = 0.62;
+        body.castShadow = true;
+        group.add(body);
+        for (let i = 0; i < 4; i++) {
+          for (const side of [-1, 1]) {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.01, 0.72, 4), bodyMat);
+            leg.position.set(side * 0.34, 0.34, 0.27 - i * 0.18);
+            leg.rotation.z = side * 0.85;
+            leg.rotation.x = (i - 1.5) * 0.18;
+            group.add(leg);
+          }
+        }
+        const lure = new THREE.Mesh(
+          new THREE.SphereGeometry(0.06, 8, 6),
+          new THREE.MeshStandardMaterial({ color: 0xfde68a, emissive: 0xf59e0b, emissiveIntensity: 1.6 })
+        );
+        lure.position.set(0, 0.42, 0.3);
+        group.add(lure);
+        break;
+      }
+
+      case 'sporeback': {
+        // The groves' weather (slice 5): a brute grazer
+        // carrying a grove — fruiting towers on stems, swaying
+        // as it moves, drawn mid-sway.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.95 });
+        const stemMat = new THREE.MeshStandardMaterial({ color: 0xd6d3a8, roughness: 0.85 });
+        const capMat = new THREE.MeshStandardMaterial({
+          color: 0xa3e635, roughness: 0.7, emissive: 0x3f6212, emissiveIntensity: 0.4,
+        });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.6, 1.1, 8, 14), hideMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.95;
+        body.castShadow = true;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.32, 12, 10), hideMat);
+        head.scale.set(0.9, 0.9, 1.15);
+        head.position.set(0, 0.85, 1.05);
+        group.add(head);
+        for (const [tx, tz, th] of [[-0.25, 0.3, 1.0], [0.2, 0, 1.3], [-0.1, -0.4, 0.9], [0.28, -0.35, 1.15]] as const) {
+          const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.06, th, 6), stemMat);
+          stem.position.set(tx, 1.45 + th / 2, tz);
+          group.add(stem);
+          const cap = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 6), capMat);
+          cap.scale.set(1.2, 0.45, 1.2);
+          cap.position.set(tx, 1.45 + th, tz);
+          group.add(cap);
+        }
+        break;
+      }
+
       default: {
         const body = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 12), materials.biolumAmber);
         body.position.y = 0.3;

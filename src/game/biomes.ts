@@ -26,7 +26,7 @@
 // that here; the lab keeps its own copy for the record.
 // ============================================================================
 
-export type BiomeId = 'meadow' | 'wetland' | 'fungal' | 'ember' | 'saltglass';
+export type BiomeId = 'meadow' | 'wetland' | 'fungal' | 'ember' | 'saltglass' | 'frost';
 
 /** How often a biome shows up among the rolls it's eligible for. */
 export type BiomeRarity = 'common' | 'uncommon' | 'rare';
@@ -65,6 +65,7 @@ export const BIOMES: BiomeDef[] = [
   { id: 'fungal', floraDensity: 1.0, faunaDensity: 0.8, tier: 1, minHops: 2, rarity: 'common' }, // sparser life in the dark
   { id: 'ember', floraDensity: 0.8, faunaDensity: 0.9, tier: 2, minHops: 3, rarity: 'uncommon' }, // harsher ground, thinner cover
   { id: 'saltglass', floraDensity: 0.75, faunaDensity: 0.7, tier: 2, minHops: 3, rarity: 'uncommon' }, // the 5th family (2026-10-15): salt, crystal, glare — the sparsest country yet
+  { id: 'frost', floraDensity: 0.7, faunaDensity: 0.75, tier: 2, minHops: 3, rarity: 'uncommon' }, // the 6th family built (11th on the roster): the steady state — it never thaws. Family gates cap at 3 hops (Adam, 2026-10-15); rarity does the far-country work.
 ];
 
 /** A biome's exoticness/danger tier (0 = hearthlands … 3 = far weird). */
@@ -96,6 +97,7 @@ export const BIOME_TINTS: Record<BiomeId, { color: number; strength: number }> =
   fungal: { color: 0x7a2ea0, strength: 0.5 },
   ember: { color: 0xc2571b, strength: 0.55 },
   saltglass: { color: 0xd8e2dc, strength: 0.45 }, // pale salt-green-white
+  frost: { color: 0xcfe4f5, strength: 0.5 }, // ice blue-white
 };
 
 /** Weight bonus a biome-affined species gets inside its home biome(s). */
@@ -120,7 +122,7 @@ export const BIOME_HOME_BONUS = 1.5;
 // zone (weight 1) — most eligible zones stay plain.
 
 /** The player-facing effect a variant carries, if any. */
-export type BiomeEffectId = 'spore_stamina' | 'marsh_sluggish' | 'scar_heat' | 'thaw_cold';
+export type BiomeEffectId = 'spore_stamina' | 'marsh_sluggish' | 'scar_heat' | 'thaw_cold' | 'frost_stillcold';
 
 export interface BiomeVariantDef {
   id: string;
@@ -325,6 +327,72 @@ export const BIOME_VARIANTS: BiomeVariantDef[] = [
     nameParts: {
       first: ['Prism', 'Rainbow', 'Singing', 'Glass', 'Bright'],
       second: ['Beds', 'Garden', 'Reach', 'Fields', 'Crown'],
+    },
+  },
+  {
+    // The Stillwhite (Frost, 2026-10-15): the family's scar —
+    // total white stillness where the cold taxes stamina at 4/s
+    // ALWAYS, day and night alike. The Scar burns by day and the
+    // Thaw bites by night; the Stillwhite has no warm hour at
+    // all. Gentle rate, no respite.
+    id: 'frost_stillwhite',
+    family: 'frost',
+    name: 'The Stillwhite',
+    minHops: 3,
+    rarity: 'uncommon',
+    tint: { color: 0xe6f0f8, strength: 0.6 }, // the whitest blue
+    floraDensityMult: 0.85,
+    faunaDensityMult: 0.9,
+    effect: 'frost_stillcold',
+    lightDistanceMult: 1,
+    lightIntensityMult: 1,
+    nameParts: {
+      first: ['Still', 'White', 'Silent', 'Patient', 'Vast'],
+      second: ['White', 'Stillness', 'Reach', 'Quiet', 'Plain'],
+    },
+  },
+  {
+    // The Ice Fangs (Frost, 2026-10-15): standing ice formations
+    // — frozen geysers and pressure spires — that harvest to
+    // NEVERMELT ICE. (Adam caught the first draft: a 'frozen
+    // forest' is shaped like a Frost x Rootwood hybrid, not a
+    // variant. The forest waits for the hybrid pass; the Fangs
+    // are purely Frost's own growth.)
+    id: 'frost_fangs',
+    family: 'frost',
+    name: 'The Ice Fangs',
+    minHops: 4,
+    rarity: 'uncommon',
+    tint: { color: 0xbcd8ee, strength: 0.5 },
+    floraDensityMult: 1.1,
+    faunaDensityMult: 0.85,
+    effect: null,
+    lightDistanceMult: 1,
+    lightIntensityMult: 1.1,
+    nameParts: {
+      first: ['Brittle', 'Sharp', 'Frozen', 'Pale', 'Tall'],
+      second: ['Fangs', 'Teeth', 'Spires', 'Reach', 'Stand'],
+    },
+  },
+  {
+    // The Singing Ice (Frost, 2026-10-15): a frozen lake-field
+    // that booms under pressure and throws light far through the
+    // ice (reach x1.3). The family's gift variant — beauty, no
+    // tax. Rare.
+    id: 'frost_singing',
+    family: 'frost',
+    name: 'The Singing Ice',
+    minHops: 4,
+    rarity: 'rare',
+    tint: { color: 0xd6ecfa, strength: 0.5 },
+    floraDensityMult: 0.9,
+    faunaDensityMult: 0.9,
+    effect: null,
+    lightDistanceMult: 1.3,
+    lightIntensityMult: 1.1,
+    nameParts: {
+      first: ['Singing', 'Booming', 'Bright', 'Glass', 'Patient'],
+      second: ['Ice', 'Lake', 'Mirror', 'Field', 'Deep'],
     },
   },
 ];

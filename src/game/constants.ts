@@ -102,6 +102,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 99,
   },
+  nevermelt_ice: {
+    id: 'nevermelt_ice',
+    name: 'Nevermelt Ice',
+    category: 'raw',
+    description: 'Ice from the Ice Fangs that refuses the sun — cold you can carry. What the forge will do with portable winter is a good question.',
+    iconName: 'Snowflake',
+    color: '#a5d8ff',
+    rarity: 'rare',
+    maxStack: 99,
+  },
   // Radar ingredients (2026-10-14): the Prismatic Field Radar's supply
   // chain — two new species yields plus the four Tier-1 subassemblies
   // they feed (recipes below; tier math in CORE_MECHANICS.md).
@@ -1451,6 +1461,18 @@ export const INITIAL_CODEX: CodexEntry[] = [
     tamingOrCraftNotes: 'Harvest with the glove for saltglass shards. The beds only grow far out, past the third zone — bring light; the country is bright but empty.',
     biome: 'Prism Beds zones',
     iconColor: '#5eead4',
+  },
+  {
+    species: 'rime_spire',
+    name: 'Rime Spire',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A standing tooth of ice in the Ice Fangs — a geyser that froze mid-eruption a thousand years ago and never came down. It grows a finger-width a century. The cold in it is older than the world market for cold.',
+    byproducts: ['Nevermelt Ice', 'Dew Essence'],
+    tamingOrCraftNotes: 'Harvest with the glove for nevermelt ice. Mind your stamina in Frost country — and twice over in the Stillwhite, where there is no warm hour.',
+    biome: 'Ice Fangs zones',
+    iconColor: '#a5d8ff',
   },
   {
     species: 'mirror_lily',

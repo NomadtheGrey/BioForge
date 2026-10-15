@@ -247,6 +247,8 @@ const BIOME_ACCENTS: Record<BiomeId, { type: CaveDressingType; count: number }[]
   // Saltglass (2026-10-15): salt crust cracks like baked earth —
   // the cracked-stone dressing reads as crust at a cave mouth.
   saltglass: [{ type: 'heat_cracked_stone', count: 3 }],
+  // Frost (2026-10-15): rime-crusted cracked stone at the mouth.
+  frost: [{ type: 'heat_cracked_stone', count: 2 }],
 };
 
 function dressMouth(rng: () => number, anchor: { x: number; z: number; facing: number }, biome: BiomeId): CaveDressingPiece[] {

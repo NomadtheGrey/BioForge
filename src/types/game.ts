@@ -17,6 +17,7 @@ export type ItemId =
   | 'prismatic_core'
   | 'obsidian_shard'
   | 'saltglass_shard'
+  | 'nevermelt_ice'
   | 'basic_compost'
   | 'glow_spore'
   | 'hand_lantern_fern'
@@ -141,7 +142,8 @@ export type FloraSpecies =
   | 'mirror_lily'
   | 'cinder_bloom'
   | 'obsidian_bloom'
-  | 'prism_reed';
+  | 'prism_reed'
+  | 'rime_spire';
 
 export interface FloraEntity {
   id: string;

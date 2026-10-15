@@ -567,6 +567,18 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'uncommon',
     maxStack: 1,
   },
+  // Petrified grove scenery (2026-10-15): fungal giants that
+  // turned to stone — generation grows them in the Grove.
+  petrified_shroom: {
+    id: 'petrified_shroom',
+    name: 'Petrified Giant',
+    category: 'structure',
+    description: 'A mushroom the size of a tree, turned entirely to stone — cap, stem, gills, all of it, mid-sway. Whatever ends a fungal giant, it ends it all at once.',
+    iconName: 'Mountain',
+    color: '#a8a29e',
+    rarity: 'rare',
+    maxStack: 1,
+  },
   // Ruin interior structures (P4 interior stage, game/ruinInterior.ts):
   // like the cave portals, these exist only inside an instance's
   // structure list — never in a save, a pouch, or the builder's cycle.

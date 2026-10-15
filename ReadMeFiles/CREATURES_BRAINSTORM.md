@@ -825,8 +825,10 @@ these followed the shipped families'.
   statues in shade; Guard = VIBRATION SENTINEL — it feels
   approach through the ground and stamps once, a warning that
   arrives through the player's feet before their eyes.
-- **Drops**: plates shed with age — **Saltglass Shards** (new
-  item), the surface cousin of the caves' Sunshard.
+- **Drops**: plates shed with age — **SALTGLASS SHARD**, the
+  same item the biome program's Prism Reed harvests to (name
+  aligned with their flora note, 2026-10-15; one shard economy
+  for the whole family, flora and fauna alike).
 - **Hook**: glare country's answer to eyesight. Where the
   grazers stand frozen, it is the dangerous bright hour; where
   they feed, it is safe to be out. The family, readable at a
@@ -1015,6 +1017,290 @@ these followed the shipped families'.
   Gardeners and the Departure, which it will not confirm,
   because fates are never named in the UI and the Warden
   keeps the makers' rules better than anyone.
+
+## Third roster pass — place one-offs, gel & vapor, hybrids
+
+Adam's direction (2026-10-15): continue with the one-offs per
+biome, no permission needed; include gel & vapor creatures and
+the hybrid-place creatures; cave creatures wait until the
+overworld is done. And his scale ruling, which this pass is
+built under: the roster ambition is HUNDREDS of individual
+creatures — "this IS BioForge. Bio being key" — and the same
+process runs for flora and fungus, not fauna alone. Entries
+here are therefore a touch more compact than the emblem
+entries: at this scale the template has to be fast to fill
+without getting thin. (Terminology, from the distribution
+model of record: one-offs are the biome-unique layer — ONE per
+specific biome / variant, found nowhere else. The per-family
+creature is the emblem, second pass. A family's full special
+cast = its emblem + one one-off per variant.)
+
+### Variant one-offs (biome-unique layer)
+
+**13. Mirror Jelly** — Mirror Marsh (Wetland). *Gel's flagship.*
+Fauna x Gel. Shape: Blob; modifier: clear-skinned — its top
+surface is a still mirror, the marsh's trick in animal form.
+Locomotion: Drifting + Swimming, pool-bound. Spectra: fully
+timid / loose gatherings / slowest / mid, pool-wide and
+hand-deep / Diet grazer — filters dew and gnats from the
+surface film / dusk-leaning / Curiosity mid — it rises under
+faces that lean over it / no territory / UNTAMABLE — there is
+no mind at the lure's address, only appetite and weather;
+readable reason: too simple. Hook: a pool with a jelly reads
+DOUBLED — its mirror back deepens the marsh's light trick, and
+Glidefins hunt through it, so the marsh's whole food web is
+visible in one pool. Young stage: buds of gel that read as
+flora until they move — gel's plant-animal border, in the
+open. No drops; scooping one is possible and pointless, and
+the codex should say exactly that, kindly.
+
+**14. Vent Wisp** — Ember Scar (Ember). *Vapor's flagship.*
+Fauna x Vapor. Shape: Cloud; modifier: ember-lit from inside
+when it feeds. Locomotion: Drifting, riding vent steam — it
+is only ever fully THERE inside a steam column. Spectra:
+timid / loose columns / wind-fast, direction-poor / small /
+Diet steam-sipper — condenses minerals from vent vapor (the
+Cinder Bloom's neighbor and opposite: the bloom drinks the
+heat standing still; the wisp drinks it by leaving) /
+nocturnal — the scar is warm at midnight and so is it /
+Curiosity high — wisps gather over a still player like
+breath on a mirror / vent-territory / UNTAMABLE — a lure
+cannot feed a weather. Drops: standing in its column as it
+feeds sometimes condenses **Scar Mist** (new item) on the
+player's gear — a bottled breath of the scar, in later design
+a heat-country consumable; deliberately minor. Hook: the
+scar's mood made visible — a tall calm column is a safe vent;
+a torn, scattered one is about to misbehave.
+
+**15. Shardwing** — Obsidian Garden (Ember). *The nester the
+biome program asked about* ("whether anything NESTS in the
+glass gardens is an open, lovely question" — yes: this).
+Fauna x Crystalline (lightly — its wings grow glassy on a
+diet of obsidian dust). Shape: Multiped primary + Winged
+secondary; modifier: glass-winged. Locomotion: Aerial,
+flyer-leaning; ground = careful walking on petal edges.
+Spectra: timid / nesting pairs / fast / tiny-mid / Diet
+dust-grazer — obsidian fines and bloom nectar / diurnal /
+Curiosity low / Territory one bloom, defended with surprising
+rudeness / Tameability 30%, gardeners only — it bonds to a
+place, and a player who keeps a garden keeps shardwings.
+Nests in Obsidian Bloom cups (the bloom does not seed; the
+shardwing is not a pollinator, it is a TENANT — its nursery
+is why the gardens feel inhabited). Sheds broken wing-glass:
+OBSIDIAN SHARD, the bloom's own material, by the tenant's
+housekeeping.
+
+**16. Glass Crab** — Saltglass Flats (Saltglass). Fauna x
+Crystalline. Shape: Multiped; modifiers: glass-shelled,
+side-walking (the crab's honest gait, folded into Walking
+with a sideways note — see Axis 2 folds). Locomotion:
+Walking, sideways. Spectra: wary / loose flats gatherings /
+mid, bursty / mid / Diet grazer-scavenger of the flats'
+edges / diurnal — it is a LIGHT-DRINKER (behavior toolbox):
+basks shell-up at noon, storing the glare hour in its shell,
+and glows faintly through the bitter night on the proceeds /
+Curiosity mid / Territory a basking patch / Tameability 35% —
+it trades approach for shade: stand so your shadow covers
+it and it will tolerate almost anything (a taming verb made
+of the family's own hazard). Sheds shell plates: SALTGLASS
+SHARD. Hook: the flats' clock — crabs up and glowing means
+the safe hours; crabs buried means the glare is lying.
+
+**17. Thawmole** — the Thaw (Saltglass). Fauna x Ordinary.
+Shape: Quadruped; modifiers: blind, ice-furred. Locomotion:
+Burrowing primary + Walking secondary. Spectra: timid /
+family burrows / slow / small / Diet grazer of thaw-edge
+roots / Day-night EXTREME, the roster's metronome entry — it
+lives the family's swing in its own body: active in the warm
+hours, and at nightfall it burrows shallow and lets the
+freeze take it, frozen stiff as a stone until the next thaw;
+players find them as frost-furred lumps and learn the Thaw
+by being wrong about one / Curiosity none while frozen, low
+while thawed / Territory one burrow / Tameability 50% while
+thawed (it is a simple, cold, hungry animal and the lure is
+warm food). Drops: none — but a thawmole burrow is a marked
+cache: it sleeps on stored roots, and its waking is a
+season-clock players can read. Hook: freeze-thaw, made into
+a neighbor.
+
+**18. Rootborer** — Rootwood Canopy (Rootwood). Fauna x
+Ordinary. Shape: Segmented; modifiers: bore-headed,
+resin-gummed. Locomotion: Burrowing — THROUGH WOOD (the mode
+reads the substrate honestly: its tunnels are in roots and
+dead canopy, not soil) + Climbing secondary. Spectra: timid /
+solitary galleries / slow / mid-long / Diet decomposer of
+dead rootwood / nocturnal / Curiosity none — it flees light
+down its own tunnels / Territory one gallery system /
+Tameability 20%, and mostly pointless — its use is wild: a
+rootborer's galleries AERATE the canopy's roots, and trees
+with borers grow measurably better (numbers are build-phase;
+the relationship is the design). Yields: following its
+frass trails leads to resin pockets it has exposed — it is
+a prospector that does not know it is one. Hook: the
+canopy's plumbing, alive.
+
+**19. Skull Ants** — Leviathan Graveyard (Bone). Fauna x
+Ordinary, COLONY property. Shape: Multiped (times ten
+thousand); modifier: white-carapaced — they read as bone
+dust that decided to move. Locomotion: Walking, as a river.
+Spectra: temperament n/a at the individual, implacable at
+the colony / Social colony-total / Speed flowing / Size
+tiny x landscape / Diet SCAVENGER perfected — a carcass the
+ants take is bone-clean in days (the Graveyard's cleanliness
+is THEIRS) / diurnal / Curiosity colony-level: new carrion
+is investigated within the hour / Territory the graveyard,
+held jointly with the Bonepickers in an old arrangement
+(the pickers take the high meat, the ants take everything
+else; the roster's first interspecies treaty, recorded as
+flavor and as ecology) / UNTAMABLE — hive reason. Encounter
+instead of taming: follow a carrying column home and the
+nest is a leviathan SKULL, its eye sockets doorways; leave
+carrion at the socket and the colony leaves, in time, a
+**Clean Bone** (new item) — picked-clean bone material, the
+ants' receipt. Hook: the graveyard is not haunted; it is
+MAINTAINED.
+
+**20. Dune Roller** — Magnetic Dunes (Storm). *Axis 3's
+illustrative cell, promoted to a design.* Fauna x
+Crystalline. Shape: Geometric primary (a faceted geode-body);
+modifiers: iron-crusted. Locomotion: ROLLING — it travels by
+being a wheel with opinions; downhill is travel, uphill is
+a project. Spectra: calm / loose drifts of rollers / wind-
+and-slope fast, self-slow / mid / Diet mineral grazer —
+iron filings and magnetic sand accrete its crust (it eats
+the dunes' strangeness and wears the receipt) / diurnal,
+storm-roused / Curiosity mid — rollers detour toward metal
+sounds; a dropped tool gathers an audience / Territory the
+dune field / Tameability 30% — it cannot follow on the flat
+and will not be carried; taming = a roller that has chosen
+your base's slope as its rest hollow. Sheds crust flakes:
+**Lodestone Sand** (new item) — magnetic grit; the Storm
+family's stabilizer lesson in material form, for later
+recipes. Hook: compass trouble with a face — near rollers,
+needles wander; so does anything else that trusts iron.
+
+**21. Raincatcher** — Skyfall Basin (Storm). *Vapor flora,
+the context-ruled cell, designed.* Flora x Vapor. Shape:
+Cloud primary + Blob secondary (a gas-bag canopy over a
+soft heart); modifier: rain-bellied. Locomotion: Drifting —
+it lives on the basin's updrafts and comes down only when
+heavy with caught rain. Spectra (flora reading): temperament
+n/a — recorded as serene, for the codex's sake / Social
+loose flotillas / Speed the updraft's / Size large, mostly
+sky / Diet the Axis-1 extension at work: rain-drinker and
+light-feeder — it eats the basin's upward weather / Day-
+night diurnal, sinking at night to drink from the pools its
+own rain made (a closed loop with a pulse) / Territory the
+basin's air / Cultivation (the flora counterpart of
+tameability): CANNOT be planted or moved — a Raincatcher is
+a citizen of one sky; what a player can do is keep its pools
+clean, and be rained on gratefully. Harvest: none taken —
+when one finally bursts with age, it rains out over its
+pool and sows **Skyseed** (new item) on the water; the
+planting, when it happens, is the plant's own idea. Hook:
+the basin's weather has a gardener, and it is a garden.
+
+**22. Tending Vine** — Precursor Garden (Precursor).
+*Forged flora, Axis 1's illustrative cell, designed.*
+Flora x Forged. Shape: Plantiform; modifiers: tool-tipped
+(its tendril ends are shaped — pruners, probes, a small
+lamp), patient. Locomotion: Stationary. Spectra (flora
+reading): Social networked to its garden / Diet light,
+water, and INFORMATION — it tastes soil the way the Warden
+reads intruders / Day-night always, lamp-lit at night /
+Territory one garden bed-row, kept for centuries /
+Cultivation: it cannot be transplanted, but it ACCEPTS
+ASSIGNMENTS — plant something in its row and it will tend
+yours alongside its own (the garden's second negotiable
+citizen; between Vine and Warden, a tolerated player has
+staff). Harvest: it prunes itself of excess and leaves the
+cuttings stacked, neatly, where a gardener would — taking
+them is permitted; taking more is noticed. Hook: the garden
+is not abandoned, it is EMPLOYED — the Vine is why the
+Warden has something to defend, and together they are the
+Precursor family's whole argument in two citizens.
+
+### Hybrid-place creatures
+
+**23. Scaldback** — the Scalding Fens (Wetland x Ember).
+Fauna x Ordinary. Shape: Finned primary + Husk secondary (a
+thick domed back that breaks the surface like a hot stone).
+Locomotion: Swimming — in water that would cook anything
+else on this list; the fens' pools are its fortress. Spectra:
+wary-bold / loose pool groups / still, then sudden / mid /
+Diet grazer-hunter — fen algae and whatever falls in /
+crepuscular / Curiosity low / Territory one pool, its whole
+world / Tameability 25% at the pool's COOL edge, the only
+place a meeting can happen. Hook: the fens made flesh — it is
+the preparation gate wearing scales: where Scaldbacks swim,
+the player needs the ember-and-water answer before following
+(and cannot: its follow is pool-to-pool at dawn, overland in
+steam and mud, a procession worth watching and impossible to
+join). Sheds dome scutes in spring: **Fen Scute** (new item),
+heat-and-water proof both, the hybrid's whole argument as a
+material.
+
+**24. Mulch Beetle** — the Mulchwood (Meadow x Fungal).
+Fauna x Ordinary, farming fungus (the hybrid reads in its
+diet). Shape: Multiped; modifiers: dome-backed, garden-
+carrying (a tended fungus comb rides its back, the Spore
+Stag's symbiosis at beetle scale and with intent). Locomotion:
+Walking + Burrowing secondary (its nursery is underground).
+Spectra: industrious-calm / Social colonies with shared
+nursery burrows / Speed steady / Size small / Diet FARMER —
+the diet field's second extension: it harvests trimmings,
+feeds them to its comb, and eats the comb's fruit; the
+meadow's surplus becomes the fungal country's food, carried
+on six legs / diurnal / Curiosity low / Territory the burrow
+and its trimming-grounds / Tameability 40% — a beetle that
+farms understands an offering; taming = a reliable trimming
+supply. Economy hook: a working beetle colony is a compost
+ENGINE — finished compost appears at the burrow mouth (the
+creature economy shaking hands with the crafting economy,
+numbers deferred to build phase). Hook: the Mulchwood's
+thesis — sunlit rot, at peace, on legs.
+
+**25. Brine Stilt** — the Brine Shallows (Wetland x
+Saltglass). Fauna x Crystalline (its legs grow salt-crystal
+stilts it renews by standing in brine — the material as a
+tool it makes). Shape: Multiped primary (six stilt legs,
+body held high and dry); modifier: mirror-eyed (the marsh's
+light, the flats' glare — it is built for doubled light).
+Locomotion: Walking, wading variant (Axis 2's fold, paying
+off: it is the wading argument standing on six legs above
+the drag). Spectra: serene / loose wading lines / slow,
+stately / mid, tall / Diet sipper-grazer — brine minerals
+and marsh film / diurnal / Curiosity mid-high — stilts bring
+their eyes down to yours for a look / Territory a shoreline,
+patrolled at wading pace / Tameability 35% — it approves of
+still, patient players, being one. Drops: shed stilt-crystals
+when it renews them: SALTGLASS SHARD again (the family's one
+shard, from reed, grazer, and stilt alike — an economy with
+three doors). Hook: the shallows' elegance — a line of
+stilts at dawn, bodies dry above the shining mud, is the
+Brine Shallows' postcard and its promise: this country can
+be crossed gracefully, at a price of patience.
+
+**26. Ironworm** — the Iron Ashes (Ember x Storm). Fauna x
+Ordinary, iron-fed. Shape: Segmented; modifiers: plate-
+ringed, rust-red. Locomotion: Burrowing through magnetic
+sand (its ground rumbles with a metallic note — the family
+blend audible in its telegraph). Spectra: bold / solo /
+bursts under sand / Size LONG (the roster's first truly
+long animal) / Diet hunter-mineral — small burrowers, and
+iron; it is drawn to worked metal the way moths are drawn
+to light / Day-night nocturnal (the ashes cool; it hunts) /
+Curiosity DANGEROUSLY specific: a running forge, a swung
+pick, a gauntlet's hum — industry is its dinner bell
+(Peaceful: it surfaces and watches your tools, which is
+warning enough; Normal / Hostile: it may take the argument
+further) / Territory an ash-field circuit / Tameability
+10% — the roster's floor among the tamable; effectively a
+legend when it happens. Drops: shed ring-plates: **Ironworm
+Plate** (new item), magnetic and heat-marked. Hook: the
+Iron Ashes' toll — progress makes noise, noise makes
+worms; the hybrid country taxes industry itself, and the
+tax collector is twenty segments long.
 
 ## Build note — species as data (Adam's question, 2026-10-15)
 

@@ -96,6 +96,83 @@ export function biomeRarity(id: BiomeId): BiomeRarity {
  * home ground should mostly feel like itself — while the far, strange
  * biomes lean hard enough to read at a glance.
  */
+// =====================================================================
+// HYBRIDS (2026-10-15, Adam's biome graph + border rule): where two
+// families meet at a zone border, their hybrid can grow as the
+// MARGIN between them (zones.ts zoneHybridAt does the border
+// check). A pair gets one of three answers: a NAMED hybrid below,
+// a default blend (synthesized by hybridForPair), or NO ENTRY —
+// the pair is impossible and the border stays pure. Hybrids are
+// DELEGATED design (Adam): rows upgrade in place as the creature
+// dossiers name more countries.
+// =====================================================================
+export interface HybridDef {
+  /** Pair key, alphabetical: 'ember|wetland'. */
+  id: string;
+  name: string;
+  families: [BiomeId, BiomeId];
+  /** Explicit tint, or null to blend the two family tints. */
+  tint: { color: number; strength: number } | null;
+  floraDensityMult: number;
+  faunaDensityMult: number;
+  effect: BiomeEffectId | null;
+  /** Chance the margin takes where this pair borders (per zone). */
+  strength: number;
+  named: boolean;
+}
+
+export const HYBRID_DEFS: HybridDef[] = [
+  { id: 'ember|wetland', name: 'The Scalding Fens', families: ['ember', 'wetland'], tint: { color: 0x6b7a6e, strength: 0.5 }, floraDensityMult: 1.05, faunaDensityMult: 0.9, effect: 'scar_heat', strength: 0.4, named: true },
+  { id: 'fungal|meadow', name: 'The Mulchwood', families: ['fungal', 'meadow'], tint: null, floraDensityMult: 1.2, faunaDensityMult: 0.95, effect: 'spore_stamina', strength: 0.35, named: true },
+  { id: 'saltglass|wetland', name: 'The Brine Shallows', families: ['saltglass', 'wetland'], tint: null, floraDensityMult: 1.0, faunaDensityMult: 1.0, effect: null, strength: 0.35, named: true },
+  { id: 'ember|storm', name: 'The Iron Ashes', families: ['ember', 'storm'], tint: { color: 0x5d5648, strength: 0.55 }, floraDensityMult: 0.85, faunaDensityMult: 0.85, effect: 'storm_zot', strength: 0.3, named: true },
+  { id: 'frost|rootwood', name: 'The Frozen Forest', families: ['frost', 'rootwood'], tint: { color: 0x9db8a6, strength: 0.45 }, floraDensityMult: 1.0, faunaDensityMult: 0.9, effect: null, strength: 0.35, named: true },
+  { id: 'frost|wetland', name: 'The Cold Marsh', families: ['frost', 'wetland'], tint: null, floraDensityMult: 0.95, faunaDensityMult: 0.9, effect: null, strength: 0.3, named: true },
+  { id: 'meadow|rootwood', name: 'The Hedgewood', families: ['meadow', 'rootwood'], tint: null, floraDensityMult: 1.15, faunaDensityMult: 1.0, effect: null, strength: 0.35, named: true },
+];
+
+/** Pairs that can NEVER margin: the influence does not take. */
+export const NO_HYBRID_PAIRS: ReadonlySet<string> = new Set(['ember|frost']);
+
+export function hybridPairKey(a: BiomeId, b: BiomeId): string {
+  return a < b ? `${a}|${b}` : `${b}|${a}`;
+}
+
+/** The pair table's answer for two families: a named hybrid, a
+ *  default blend, or null (impossible / same family). */
+export function hybridForPair(a: BiomeId, b: BiomeId): HybridDef | null {
+  if (a === b) return null;
+  const key = hybridPairKey(a, b);
+  if (NO_HYBRID_PAIRS.has(key)) return null;
+  const named = HYBRID_DEFS.find((h) => h.id === key);
+  if (named) return named;
+  const [fa, fb] = (a < b ? [a, b] : [b, a]) as [BiomeId, BiomeId];
+  return {
+    id: key,
+    // (biomeDisplayName lives in zones.ts, which imports this
+    // file — capitalizing the id here avoids the circle. Family
+    // ids are single words, so this is faithful.)
+    name: `The ${fb.charAt(0).toUpperCase() + fb.slice(1)} Marches`,
+    families: [fa, fb],
+    tint: null,
+    floraDensityMult: 1,
+    faunaDensityMult: 1,
+    effect: null,
+    strength: 0.18,
+    named: false,
+  };
+}
+
+/** A hybrid's working tint: its explicit tint, or the two family
+ *  tints blended channel-wise with averaged strength. */
+export function hybridTint(def: HybridDef): { color: number; strength: number } {
+  if (def.tint) return def.tint;
+  const ta = BIOME_TINTS[def.families[0]];
+  const tb = BIOME_TINTS[def.families[1]];
+  const mix = (shift: number) => Math.round((((ta.color >> shift) & 0xff) + ((tb.color >> shift) & 0xff)) / 2);
+  return { color: (mix(16) << 16) | (mix(8) << 8) | mix(0), strength: (ta.strength + tb.strength) / 2 };
+}
+
 export const BIOME_TINTS: Record<BiomeId, { color: number; strength: number }> = {
   meadow: { color: 0x3a6b35, strength: 0.25 },
   wetland: { color: 0x0e7a6d, strength: 0.5 },

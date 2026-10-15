@@ -28,7 +28,7 @@
 // ============================================================================
 
 import { createSeededRandom, hashStringToSeed } from './motion';
-import { RARITY_ROLL_WEIGHT, variantsForFamily, type BiomeId, type BiomeVariantDef } from './biomes';
+import { RARITY_ROLL_WEIGHT, variantsForFamily, hybridForPair, hybridTint, type BiomeId, type BiomeVariantDef, type HybridDef } from './biomes';
 
 export interface ZoneCoords {
   zx: number;
@@ -39,6 +39,11 @@ export interface ZoneInfo extends ZoneCoords {
   biome: BiomeId;
   /** The zone's variant, when it rolled one (null = plain family). */
   variant: BiomeVariantDef | null;
+  /** The zone's hybrid margin, when one grew here (2026-10-15):
+   *  the def plus this zone's side of the pair — primary is THIS
+   *  zone's own family, secondary the neighbor it margins with.
+   *  A hybrid zone carries no variant: the margin IS its face. */
+  hybrid: { def: HybridDef; primary: BiomeId; secondary: BiomeId } | null;
   name: string;
   /** Zone-graph distance from the spawn zone (Manhattan / BFS hops). */
   hops: number;
@@ -183,14 +188,71 @@ export function zoneVariantAt(seedStr: string, zx: number, zz: number): BiomeVar
   return options[options.length - 1];
 }
 
+/**
+ * A zone's HYBRID (2026-10-15, Adam's border rule): the zone
+ * looks at its four neighbors' PURE family rolls — all pure
+ * functions of seed + coords, so the border check is too, and
+ * host and guests agree without speaking. Where a neighbor's
+ * family pairs with this zone's in the pair table (named hybrid,
+ * default blend, or no entry for impossible pairs) and the
+ * strength roll passes, the margin grows HERE. Home country
+ * (0-1 hops) never margins: the near map stays legible.
+ */
+export function zoneHybridAt(seedStr: string, zx: number, zz: number): { def: HybridDef; primary: BiomeId; secondary: BiomeId } | null {
+  if (zoneHops(zx, zz) < 2) return null;
+  const family = zoneBiomeAt(seedStr, zx, zz);
+  const rng = createSeededRandom(hashStringToSeed(`${seedStr}:zone-hybrid:${zx},${zz}`));
+  const roll = rng();
+  let best: { def: HybridDef; primary: BiomeId; secondary: BiomeId } | null = null;
+  for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+    const nf = zoneBiomeAt(seedStr, zx + dx, zz + dz);
+    if (nf === family) continue;
+    const def = hybridForPair(family, nf);
+    if (!def) continue; // impossible pair: the influence does not take
+    if (roll >= def.strength) continue; // the border stays clean this time
+    if (!best || def.strength > best.def.strength) best = { def, primary: family, secondary: nf };
+  }
+  return best;
+}
+
+/**
+ * A zone's FACE — the tint / light / effect the renderer and the
+ * loop consume, resolved in ONE place (2026-10-15): the variant
+ * when it has one, else its hybrid margin, else null (the plain
+ * family face). Every setZoneBiome call site reads this so a
+ * hybrid zone grades and behaves identically however the player
+ * arrived (walk, load, or host sync).
+ */
+export function zoneFaceAt(seedStr: string, zx: number, zz: number): { tint: { color: number; strength: number }; lightDistanceMult: number; lightIntensityMult: number; effect: string | null } | null {
+  const hybrid = zoneHybridAt(seedStr, zx, zz);
+  if (hybrid) {
+    return { tint: hybridTint(hybrid.def), lightDistanceMult: 1, lightIntensityMult: 1, effect: hybrid.def.effect };
+  }
+  const variant = zoneVariantAt(seedStr, zx, zz);
+  if (variant) {
+    return { tint: variant.tint, lightDistanceMult: variant.lightDistanceMult, lightIntensityMult: variant.lightIntensityMult, effect: variant.effect };
+  }
+  return null;
+}
+
 /** What the HUD calls a zone's kind: its variant when it has one. */
 export function zoneKindLabel(info: ZoneInfo): string {
+  if (info.hybrid) return info.hybrid.def.name;
   return info.variant ? info.variant.name : biomeDisplayName(info.biome);
 }
 
 /** A zone's name: pure function of world seed + coordinates + biome. */
-export function zoneNameFor(seedStr: string, zx: number, zz: number, biome: BiomeId, variant?: BiomeVariantDef | null): string {
-  const parts = variant ? variant.nameParts : ZONE_NAME_PARTS[biome];
+export function zoneNameFor(seedStr: string, zx: number, zz: number, biome: BiomeId, variant?: BiomeVariantDef | null, hybrid?: { def: HybridDef; primary: BiomeId; secondary: BiomeId } | null): string {
+  // A hybrid zone names itself from BOTH families' pools mixed —
+  // the name should sound like the margin it is.
+  const parts = variant
+    ? variant.nameParts
+    : hybrid
+      ? {
+          first: [...ZONE_NAME_PARTS[hybrid.primary].first, ...ZONE_NAME_PARTS[hybrid.secondary].first],
+          second: [...ZONE_NAME_PARTS[hybrid.primary].second, ...ZONE_NAME_PARTS[hybrid.secondary].second],
+        }
+      : ZONE_NAME_PARTS[biome];
   const rng = createSeededRandom(hashStringToSeed(`${seedStr}:zone-name:${zx},${zz}`));
   const first = parts.first[Math.floor(rng() * parts.first.length)];
   const second = parts.second[Math.floor(rng() * parts.second.length)];
@@ -200,8 +262,9 @@ export function zoneNameFor(seedStr: string, zx: number, zz: number, biome: Biom
 /** Everything the game needs to know about a zone, in one lookup. */
 export function zoneInfo(seedStr: string, zx: number, zz: number): ZoneInfo {
   const biome = zoneBiomeAt(seedStr, zx, zz);
-  const variant = zoneVariantAt(seedStr, zx, zz);
-  return { zx, zz, biome, variant, name: zoneNameFor(seedStr, zx, zz, biome, variant), hops: zoneHops(zx, zz) };
+  const hybrid = zoneHybridAt(seedStr, zx, zz);
+  const variant = hybrid ? null : zoneVariantAt(seedStr, zx, zz);
+  return { zx, zz, biome, variant, hybrid, name: zoneNameFor(seedStr, zx, zz, biome, variant, hybrid), hops: zoneHops(zx, zz) };
 }
 
 /** Display form of a biome id: 'fungal' -> 'Fungal'. */

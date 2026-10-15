@@ -29,8 +29,6 @@ import { BioForgeThreeEngine } from './game/threeEngine';
 import { soundEngine } from './audio/soundEngine';
 import { multiplayerManager, EntityKind, EntitySnapshot } from './game/multiplayer';
 
-const CHAT_TOAST_DURATION_MS = 5000;
-const MAX_CHAT_TOASTS = 5;
 import { FirstPersonMovementController, ControllerInputState } from './game/controller';
 
 // Modular Domain Hooks (Enforces CODE_MANIFESTO.md Rule 8)
@@ -82,6 +80,7 @@ import { useDebugKit } from './hooks/useDebugKit';
 import { useZoneTravel, ZONE_ID_INSTALLED, WORLD_EDGE_COORD, ZONE_PUSH_SECONDS, ZONE_PUSH_MIN_COMPONENT } from './hooks/useZoneTravel';
 import { useInstances } from './hooks/useInstances';
 import { useSaveSession } from './hooks/useSaveSession';
+import { useMultiplayerSync } from './hooks/useMultiplayerSync';
 import { TouchControls, type TouchMoveInput } from './components/TouchControls';
 import { BioForgeModal } from './components/BioForgeModal';
 import { InventoryModal } from './components/InventoryModal';
@@ -263,20 +262,6 @@ export default function App() {
 
   // Memoized workspace virtual file map for Developer Exporter Tool
   const workspaceFiles = useMemo(() => getProjectWorkspaceFiles(), []);
-
-  // 3. Multiplayer States
-  const [roomCode, setRoomCode] = useState<string>('');
-  const [isHost, setIsHost] = useState<boolean>(false);
-  const [isConnected, setIsConnected] = useState<boolean>(false);
-  const [peers, setPeers] = useState(multiplayerManager.getConnectedPeers());
-  const [chatMessages, setChatMessages] = useState<{ sender: string; text: string; color: string; time: string }[]>([]);
-  const [chatToasts, setChatToasts] = useState<{ id: number; sender: string; text: string; color: string }[]>([]);
-
-  // Invite links: when the game is opened from a shared link
-  // (…/?room=CODE), the code is parked here at boot and handed to the
-  // multiplayer modal, which pre-fills its join field. Empty string
-  // means "no invite" — the modal then behaves exactly as before.
-  const [inviteRoomCode, setInviteRoomCode] = useState<string>('');
 
   // Minimap position state updated smoothly during frame/tick
   const [minimapPos, setMinimapPos] = useState({ x: playerState.x, z: playerState.z, rotation: playerState.rotation });
@@ -1344,39 +1329,28 @@ const pouchTierNow = pouchTierOf(inventory);
 // now that saveNow exists.
 saveNowRef.current = saveNow;
 
-  // The co-op door: no local save involved. The guest plays in the
-  // host's world; saveNow stays disarmed because currentSaveRef is null.
-  const handleJoinCoopFromStart = (): void => {
-    enterFullscreenOnTouch();
-    setHasStarted(true);
-    setActiveModal('multiplayer');
-  };
+// --------------------------------------------------------------------------
+// Multiplayer sync (hooks/useMultiplayerSync.ts — seam 4 of the App refactor)
+// --------------------------------------------------------------------------
+// Session state, the manager callbacks, the zone-tag + heartbeat
+// effects, and the session verbs live in the hook now; the
+// destructured names are the ones the rest of App already uses.
+const {
+  roomCode, isHost, isConnected, peers, chatMessages, chatToasts, inviteRoomCode,
+  handleJoinCoopFromStart, handleHostSession, handleJoinSession, handleLeaveSession,
+  handleSendChatMessage,
+} = useMultiplayerSync({
+  engineRef, playerPosRef, playerLevelRef, activeToolRef, currentZoneId,
+  playerZone, inCavern, inRuin,
+  playerZoneRef, setPlayerZone, visitedZonesRef, worldSeedRef, setSessionSeed,
+  zoneStores, buildZoneSyncTravel, completeTravel, cancelPendingTravel, pendingTravelRef,
+  buildWorldSnapshot, latestStateRef, setHasStarted, setDayNightCycle, resetInstanceState,
+  postNotification, enterFullscreenOnTouch, setActiveModal,
+  upsertFlora, upsertFauna, upsertStructure, upsertDroppedItem,
+  removeFlora, removeFauna, removeStructure, removeDroppedItem,
+  addStructure, resetFloraHarvest, tameFauna, replaceWorld,
+});
 
-  // ------------------------------------------------------------------------
-  // Invite Links — landing side
-  // ------------------------------------------------------------------------
-  // A host shares a link like bioforgegame.netlify.app/?room=BIO77X.
-  // On boot we lift the code out of the URL so the join flow can start
-  // pre-filled: the guest lands on the start screen, takes the co-op
-  // door, and the code is already waiting in the join field — all that
-  // is left is typing their name and pressing JOIN SESSION.
-  // The parameter is sanitized to the room-code alphabet (letters and
-  // digits, 6 max) and must be at least 3 characters, matching what the
-  // join field itself accepts. The URL is left untouched; the code also
-  // stays parked here until a session actually starts, so closing the
-  // modal and reopening it keeps the pre-fill.
-  useEffect(() => {
-    const rawCode = new URLSearchParams(window.location.search).get('room');
-    if (!rawCode) return;
-    const cleanCode = rawCode.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
-    if (cleanCode.length < 3) return;
-    setInviteRoomCode(cleanCode);
-    postNotification('Invite Link Detected', `Room code ${cleanCode} is filled in and waiting — take the co-op door to join your host!`, 'system', '#a855f7');
-  }, []);
-
-  // The HUD's Save button. saveNow() itself silently no-ops in exactly
-  // the two cases guarded below, so this handler checks them first and
-  // tells the player what happened instead of letting a click vanish.
   // ------------------------------------------------------------------------
   // Left Hand (Adam, 2026-10-14): the off-hand slot for INSTRUMENTS —
   // the Hand Lantern-Fern (a living torch) and the Prismatic Field
@@ -1436,272 +1410,6 @@ saveNowRef.current = saveNow;
     const exit = structuresList.find((s) => s.type === 'cave_exit' || s.type === 'ruin_exit');
     return exit ? { x: exit.worldX, z: exit.worldZ } : null;
   }, [inCavern, inRuin, structuresList, playerZone]);
-
-
-  // --------------------------------------------------------------------------
-  // Multiplayer Event Setup
-  // --------------------------------------------------------------------------
-  useEffect(() => {
-    multiplayerManager.setCallbacks({
-      onPeerJoin: (peer) => {
-        setPeers(multiplayerManager.getConnectedPeers());
-        postNotification('Explorer Joined', `${peer.name} entered sector. Co-Op synced!`, 'system', peer.color);
-        // Host duty: a new explorer's game booted with the starter world
-        // (or their own saved one). If it isn't OUR world, it's wrong —
-        // send the full snapshot so they play in the same place we do.
-        if (multiplayerManager.isHost) {
-          multiplayerManager.broadcastWorldSync(buildWorldSnapshot(), latestStateRef.current.dayNightCycle, buildZoneSyncTravel());
-        }
-      },
-      onPeerLeave: (peerId) => {
-        setPeers(multiplayerManager.getConnectedPeers());
-        engineRef.current?.removePeerAvatar(peerId);
-      },
-      onPeerMove: (peerId, px, pz, prot, _tool, level, zone) => {
-        // Instances are separate spaces: a peer on the surface is not
-        // standing in your cave, nor you in theirs — hide cross-zone
-        // avatars instead of drawing them in the wrong world. (Old
-        // builds tagged every surface position 'surface': read that
-        // as the spawn zone, the only surface they knew.)
-        const peerTag = zone === undefined || zone === 'surface' ? `zone:${zoneKey(SPAWN_ZONE.zx, SPAWN_ZONE.zz)}` : zone;
-        if (peerTag !== currentZoneId()) {
-          engineRef.current?.removePeerAvatar(peerId);
-          return;
-        }
-        const peer = peers.find((p) => p.id === peerId);
-        engineRef.current?.updatePeerAvatar(peerId, peer?.name || 'Explorer', px, pz, prot, peer?.color || '#38bdf8', level ?? 0);
-      },
-      onBuildPlaced: (structure) => {
-        addStructure(structure);
-        soundEngine.playBuildPlace();
-      },
-      onBuildRemoved: (structId) => {
-        removeStructure(structId);
-        soundEngine.playSolventSpray();
-      },
-      onFloraHarvested: (floraId) => {
-        resetFloraHarvest(floraId, 18);
-      },
-      onFaunaTamed: (faunaId, tamedBy) => {
-        tameFauna(faunaId, `${tamedBy}'s Companion`, 'following');
-        postNotification('Wildlife Domesticated', `${tamedBy} tamed a companion for the base!`, 'tame', '#a855f7');
-      },
-      onChatMessage: (sender, text, color) => {
-        setChatMessages((prev) => [
-          ...prev,
-          { sender, text, color, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
-        ]);
-        const toastId = Date.now() + Math.random();
-        setChatToasts((prev) => [...prev.slice(-MAX_CHAT_TOASTS), { id: toastId, sender, text, color }]);
-        setTimeout(() => {
-          setChatToasts((prev) => prev.filter((t) => t.id !== toastId));
-        }, CHAT_TOAST_DURATION_MS);
-      },
-      onEntityUpsert: (kind: EntityKind, entity: EntitySnapshot, zone?: string) => {
-        // Zone routing: an upsert only touches the lists of the
-        // zone it happened in (see routeForZoneTag). Untagged
-        // events (older peers) keep the original live behavior.
-        const route = zone === undefined ? 'live' : routeForZoneTag(zone, currentZoneId(), zoneKey(playerZoneRef.current.zx, playerZoneRef.current.zz), multiplayerManager.isHost);
-        if (route === 'store') {
-          storeEntityEvent(zoneStores(), zone as string, kind, entity);
-          return;
-        }
-        if (route === 'drop') return;
-        switch (kind) {
-          case 'flora':
-            upsertFlora(entity as FloraEntity);
-            break;
-          case 'fauna':
-            upsertFauna(entity as FaunaEntity);
-            break;
-          case 'structure':
-            upsertStructure(entity as StructureEntity);
-            break;
-          case 'drop':
-            upsertDroppedItem(entity as DroppedItemEntity);
-            break;
-        }
-      },
-      onEntityRemove: (kind: EntityKind, id: string, zone?: string) => {
-        const route = zone === undefined ? 'live' : routeForZoneTag(zone, currentZoneId(), zoneKey(playerZoneRef.current.zx, playerZoneRef.current.zz), multiplayerManager.isHost);
-        if (route === 'store') {
-          storeEntityEvent(zoneStores(), zone as string, kind, null, id);
-          return;
-        }
-        if (route === 'drop') return;
-        switch (kind) {
-          case 'flora':
-            removeFlora(id);
-            break;
-          case 'fauna':
-            removeFauna(id);
-            break;
-          case 'structure':
-            removeStructure(id);
-            break;
-          case 'drop':
-            removeDroppedItem(id);
-            break;
-        }
-      },
-      onZoneRequest: (zone: string) => {
-        // Host duty (the manager only calls this on the host): send
-        // the zone from OUR record — the zone we're standing in
-        // comes from the live/parked lists, a visited one from the
-        // map, and a brand-new one we roll ourselves from our seed
-        // and keep, so our record stays the only truth.
-        const curKey = zoneKey(playerZoneRef.current.zx, playerZoneRef.current.zz);
-        let snap = zone === curKey ? buildWorldSnapshot() : visitedZonesRef.current.get(zone);
-        if (!snap) {
-          const [zx, zz] = zone.split(',').map(Number);
-          const seed = worldSeedRef.current;
-          if (!seed || Number.isNaN(zx) || Number.isNaN(zz)) return;
-          const gen = generateSeededWorld(seed, zx, zz);
-          snap = { flora: gen.flora, fauna: gen.fauna, structures: gen.structures, drops: [] };
-          visitedZonesRef.current.set(zone, snap);
-        }
-        multiplayerManager.broadcastZoneSnapshot(zone, snap, worldSeedRef.current);
-      },
-      onZoneSnapshot: (data) => {
-        if (data.worldSeed && !worldSeedRef.current) {
-          worldSeedRef.current = data.worldSeed;
-          setSessionSeed(data.worldSeed);
-        }
-        const pending = pendingTravelRef.current;
-        if (pending && zoneKey(pending.nx, pending.nz) === data.zone) {
-          // The zone I asked for: complete the crossing with the
-          // host's copy. (If I'd walked away, the tick already
-          // cancelled the pending — this branch can't fire stale.)
-          cancelPendingTravel();
-          completeTravel(pending.nx, pending.nz, { x: pending.entryX, z: pending.entryZ }, data.world);
-          return;
-        }
-        // Someone else's crossing, overheard: freshen my map with
-        // the host's truth — unless it's the zone I'm standing in,
-        // where my live lists and the event stream are fresher.
-        if (data.zone !== zoneKey(playerZoneRef.current.zx, playerZoneRef.current.zz)) {
-          visitedZonesRef.current.set(data.zone, data.world);
-        }
-      },
-      onDayNight: (value) => {
-        setDayNightCycle(value);
-      },
-      onWorldSync: (data) => {
-        // The host's world replaces ours wholesale. This is memory only:
-        // our own save file on disk is untouched, and autosave is gated
-        // off while we are guests, so their world can never overwrite it.
-        resetInstanceState();
-        // Zone travel (2026-10-15): the sync also lands us in the
-        // host's CURRENT zone, adopts the host's visited-zones map
-        // (their record of every zone's changes) and the world seed
-        // — after this, we can wander off on our own and generate
-        // the same wilderness the host would. Hosts on older builds
-        // send none of it: the spawn-zone defaults below hold.
-        if (data.worldSeed) {
-          worldSeedRef.current = data.worldSeed;
-          setSessionSeed(data.worldSeed);
-        }
-        const [hzx, hzz] = (data.zone ?? '0,0').split(',').map(Number);
-        const hostZone: ZoneCoords = {
-          zx: Number.isNaN(hzx) ? SPAWN_ZONE.zx : hzx,
-          zz: Number.isNaN(hzz) ? SPAWN_ZONE.zz : hzz,
-        };
-        visitedZonesRef.current = new Map(Object.entries(data.zones ?? {}));
-        playerZoneRef.current = hostZone;
-        setPlayerZone(hostZone);
-        replaceWorld({
-          flora: data.flora,
-          fauna: data.fauna,
-          structures: data.structures,
-          drops: data.drops,
-        });
-        if (worldSeedRef.current) {
-          engineRef.current?.setZoneBiome(zoneBiomeAt(worldSeedRef.current, hostZone.zx, hostZone.zz));
-        }
-        setDayNightCycle(data.dayNightCycle);
-      },
-    });
-  }, [peers, addStructure, removeStructure, resetFloraHarvest, tameFauna, postNotification, upsertFlora, removeFlora, upsertFauna, removeFauna, upsertStructure, upsertDroppedItem, removeDroppedItem, replaceWorld]);
-
-  // Keep the multiplayer manager's zone stamp current: every entity
-  // event this client sends is tagged with the zone it happened in
-  // (the manager stamps centrally — see multiplayer.ts). The tag
-  // changes exactly when zone identity does: travel (playerZone),
-  // entering an instance (inCavern/inRuin), or leaving one.
-  useEffect(() => {
-    multiplayerManager.setCurrentZoneTag(currentZoneId());
-  }, [playerZone, inCavern, inRuin, currentZoneId]);
-
-  // ------------------------------------------------------------------------
-  // Presence heartbeat — appear on join, stay visible standing still
-  // ------------------------------------------------------------------------
-  // The movement broadcast in the game loop only fires while the player is
-  // actually moving, so a peer who joins and stands still never sends a
-  // position — and because remote avatars are only drawn when a peer_move
-  // arrives, that player stays invisible to everyone until they walk.
-  // While connected, this heartbeat re-sends our current position once a
-  // second whether we are moving or not. A joiner materializes for the
-  // room almost immediately; the room materializes for the joiner too,
-  // because everyone else's heartbeats keep arriving; and nobody vanishes
-  // for the crime of standing still. Position truth is playerPosRef, the
-  // same source the movement broadcast uses.
-  const PEER_PRESENCE_HEARTBEAT_MS = 1000;
-  useEffect(() => {
-    if (!isConnected) return;
-    const sendPresence = () => {
-      const pos = playerPosRef.current;
-      multiplayerManager.broadcastPlayerMove(pos.x, pos.z, pos.rotation, activeToolRef.current, playerLevelRef.current, currentZoneId());
-    };
-    sendPresence();
-    const heartbeatId = setInterval(sendPresence, PEER_PRESENCE_HEARTBEAT_MS);
-    return () => clearInterval(heartbeatId);
-  }, [isConnected]);
-
-  const handleHostSession = () => {
-    const code = multiplayerManager.hostSession();
-    setRoomCode(code);
-    setIsHost(true);
-    setIsConnected(true);
-    // A session has started, so any parked invite code has done its job
-    // (or was never meant for us). Clear it so it can't pre-fill later.
-    setInviteRoomCode('');
-    postNotification('Host Session Created', `Room Code: ${code}. Share the code — or copy your invite link from the multiplayer panel — to bring fellow explorers into your world!`, 'system', '#10b981');
-  };
-
-  const handleJoinSession = (code: string) => {
-    const success = multiplayerManager.joinSession(code);
-    if (success) {
-      setRoomCode(code);
-      setIsHost(false);
-      setIsConnected(true);
-      // Joined — the parked invite code is spent. Clear it (see
-      // handleHostSession for why).
-      setInviteRoomCode('');
-      postNotification('Session Joined', `Connected to room ${code}! Co-Op base building active.`, 'system', '#a855f7');
-    }
-  };
-
-  const handleLeaveSession = () => {
-    multiplayerManager.leaveSession();
-    setRoomCode('');
-    setIsHost(false);
-    setIsConnected(false);
-    setPeers([]);
-    postNotification('Session Disconnected', 'Returned to local single-explorer mode.', 'system', '#64748b');
-  };
-
-  const handleSendChatMessage = (text: string) => {
-    multiplayerManager.broadcastChat(text);
-    setChatMessages((prev) => [
-      ...prev,
-      {
-        sender: 'You',
-        text,
-        color: multiplayerManager.playerColor,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      },
-    ]);
-  };
 
   // Crafting access: within 6m of a bio-forge station, or wearing a
   // gauntlet with the Field Synthesizer GRAFT. The base gauntlet is

@@ -78,8 +78,12 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     (src/game/species.ts) outside the census, biome-gated, never in
  *     the spawn zone; the census promise is untouched, exactly like
  *     the radar species at v6. Existing saves keep their snapshots.
+ * v17: creature build phase, slice 2 (2026-10-15) — twelve more
+ *     designed species in the table, incl. the first 'all'-affinity
+ *     bonus spawn (the Dew Gnat, the everywhere pest). Table-only
+ *     change; the generator learns nothing new but the word 'all'.
  */
-export const WORLD_GEN_VERSION = 16; // v16 (2026-10-15): designed species — generic bonus spawns from the species table (species.ts); v15 was HYBRIDS (border-derived margins)
+export const WORLD_GEN_VERSION = 17; // v17 (2026-10-15): creature slice 2 — twelve more table species, first 'all' bonus spawn; v16 was designed-species slice 1
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -852,6 +856,7 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
       const spec = def.bonusSpawn;
       if (!spec) continue;
       const homeHere =
+        spec.biomes === 'all' ||
         spec.biomes.includes(zoneBiome) ||
         (zoneHybrid !== null && spec.biomes.includes(zoneHybrid.secondary));
       if (!homeHere) continue;

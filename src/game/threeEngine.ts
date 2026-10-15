@@ -146,6 +146,24 @@ interface LightBase {
   y: number;
 }
 
+// Weather streak texture (2026-10-15): a thin vertical gradient —
+// falling water drawn as lines, not dots.
+function makeStreakTexture(): THREE.Texture {
+  const c = document.createElement('canvas');
+  c.width = 16;
+  c.height = 64;
+  const ctx = c.getContext('2d');
+  if (ctx) {
+    const grad = ctx.createLinearGradient(0, 0, 0, 64);
+    grad.addColorStop(0, 'rgba(255,255,255,0)');
+    grad.addColorStop(0.5, 'rgba(255,255,255,0.9)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(6, 0, 4, 64);
+  }
+  return new THREE.CanvasTexture(c);
+}
+
 // Shared radial-gradient texture for glow sprites (one texture, many sprites).
 function makeGlowTexture(): THREE.Texture {
   const c = document.createElement('canvas');
@@ -334,6 +352,17 @@ export class BioForgeThreeEngine {
 
   // Spore particles
   private sporeParticles: THREE.Points | null = null;
+  // Weather (2026-10-15): ONE particle field whose behavior is set
+  // per zone (game/zones.ts zoneWeatherAt resolves the sky; App
+  // calls setWeather on zone change). The field rides a group that
+  // follows the camera, and particles wrap inside a local box, so
+  // the weather is endless in every direction. Hidden indoors:
+  // cavernMode / ruinMode gate visibility in the frame update.
+  private weatherPoints: THREE.Points | null = null;
+  private weatherGroup: THREE.Group = new THREE.Group();
+  private weatherMode: 'none' | 'rain' | 'uprain' | 'snow' | 'ash' = 'none';
+  private weatherIntensity = 1;
+  private weatherSeed: Float32Array | null = null; // per-particle speed/sway jitter
   private transientParticles: { mesh: THREE.Points | THREE.Mesh; life: number; maxLife: number; vel: THREE.Vector3 }[] = [];
 
   // Entity mesh maps
@@ -737,6 +766,99 @@ export class BioForgeThreeEngine {
     this.zoneLightDistanceMult = distMult;
     this.zoneLightIntensityMult = intMult;
     this.paintTerrainColors();
+  }
+
+  /** Set the sky (2026-10-15): mode + intensity from the zone
+   *  resolver. Material character is per mode — rain and its
+   *  rising twin draw as streaks; snow and ash as soft motes. */
+  public setWeather(mode: 'none' | 'rain' | 'uprain' | 'snow' | 'ash', intensity: number): void {
+    if (mode === this.weatherMode && intensity === this.weatherIntensity && this.weatherPoints) return;
+    this.weatherMode = mode;
+    this.weatherIntensity = intensity;
+    if (!this.weatherPoints) this.buildWeatherField();
+    if (!this.weatherPoints) return;
+    const mat = this.weatherPoints.material as THREE.PointsMaterial;
+    const COUNT = 750;
+    this.weatherPoints.geometry.setDrawRange(0, Math.max(0, Math.min(COUNT, Math.round(COUNT * intensity))));
+    switch (mode) {
+      case 'rain':
+        mat.map = makeStreakTexture(); mat.color.set(0x9db8d9); mat.size = 1.15; mat.opacity = 0.55; break;
+      case 'uprain':
+        mat.map = makeStreakTexture(); mat.color.set(0xa5f3fc); mat.size = 1.05; mat.opacity = 0.6; break;
+      case 'snow':
+        mat.map = makeGlowTexture(); mat.color.set(0xffffff); mat.size = 0.34; mat.opacity = 0.9; break;
+      case 'ash':
+        mat.map = makeGlowTexture(); mat.color.set(0xb8b0a4); mat.size = 0.3; mat.opacity = 0.7; break;
+      default: break;
+    }
+    mat.needsUpdate = true;
+    this.weatherPoints.visible = mode !== 'none';
+  }
+
+  /** Build the weather field once: particles fill a local box
+   *  (56 wide, 26 tall); the group follows the camera and local
+   *  wrapping keeps the sky endless. */
+  private buildWeatherField(): void {
+    const COUNT = 750;
+    const positions = new Float32Array(COUNT * 3);
+    this.weatherSeed = new Float32Array(COUNT);
+    for (let i = 0; i < COUNT; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 56;
+      positions[i * 3 + 1] = Math.random() * 26;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 56;
+      this.weatherSeed[i] = Math.random();
+    }
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const mat = new THREE.PointsMaterial({
+      size: 1,
+      transparent: true,
+      opacity: 0.6,
+      depthWrite: false,
+      blending: THREE.NormalBlending,
+    });
+    this.weatherPoints = new THREE.Points(geom, mat);
+    this.weatherPoints.visible = false;
+    this.weatherPoints.frustumCulled = false;
+    this.weatherGroup.add(this.weatherPoints);
+    this.scene.add(this.weatherGroup);
+  }
+
+  /** Per-frame weather motion: velocity is the mode's signature
+   *  (rain fast down, the Skyfall's rain slow UP, snow and ash
+   *  drifting). Runs only when a sky is set; gates itself off
+   *  inside caves and ruins. */
+  private updateWeather(delta: number): void {
+    if (!this.weatherPoints || this.weatherMode === 'none' || !this.weatherSeed) return;
+    const indoors = this.cavernMode || this.ruinMode;
+    this.weatherPoints.visible = !indoors;
+    if (indoors) return;
+    // The field follows the player: group rides the camera's x/z,
+    // particles wrap locally, so the sky never runs out.
+    this.weatherGroup.position.set(this.camera.position.x, 0, this.camera.position.z);
+    const vy = this.weatherMode === 'rain' ? -23 : this.weatherMode === 'uprain' ? 8.5 : this.weatherMode === 'snow' ? -1.7 : -2.8;
+    const positions = this.weatherPoints.geometry.attributes.position as THREE.BufferAttribute;
+    const count = positions.count;
+    for (let i = 0; i < count; i++) {
+      const jitter = 0.7 + this.weatherSeed[i] * 0.6;
+      let x = positions.getX(i);
+      let y = positions.getY(i) + vy * jitter * delta;
+      let z = positions.getZ(i);
+      if (this.weatherMode === 'snow' || this.weatherMode === 'ash') {
+        x += Math.sin(this.elapsedTime * 0.9 + i * 1.7) * 0.55 * delta;
+        z += Math.cos(this.elapsedTime * 0.7 + i * 1.3) * 0.55 * delta;
+      } else {
+        x -= 1.6 * delta; // weather leans slightly west, rain and uprain alike
+      }
+      if (y < 0) y += 26;
+      if (y > 26) y -= 26;
+      if (x > 28) x -= 56;
+      if (x < -28) x += 56;
+      if (z > 28) z -= 56;
+      if (z < -28) z += 56;
+      positions.setXYZ(i, x, y, z);
+    }
+    positions.needsUpdate = true;
   }
 
   /**
@@ -2122,6 +2244,9 @@ private initEventListeners() {
       }
       positions.needsUpdate = true;
     }
+
+    // Weather motion (2026-10-15) — every frame; rain needs speed.
+    this.updateWeather(delta);
 
     // Animate transient particles (solvent spray / harvest sparkle)
     for (let i = this.transientParticles.length - 1; i >= 0; i--) {

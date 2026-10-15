@@ -235,6 +235,49 @@ export function zoneFaceAt(seedStr: string, zx: number, zz: number): { tint: { c
   return null;
 }
 
+// =====================================================================
+// WEATHER (2026-10-15): every zone face resolves to a sky. One
+// pure table — variant overrides first (the Skyfall's rain falls
+// UP; the Mirror Marsh stays still on purpose), then the hybrid
+// margins with weather of their own, then the family defaults:
+// storm rains, frost snows, ember sheds ash, wetland drizzles.
+// The engine renders it (threeEngine.setWeather); this function
+// is the whole decision, so the lab can test the sky without a
+// renderer.
+// =====================================================================
+export type WeatherMode = 'none' | 'rain' | 'uprain' | 'snow' | 'ash';
+
+export function zoneWeatherAt(seedStr: string, zx: number, zz: number): { mode: WeatherMode; intensity: number } {
+  const hybrid = zoneHybridAt(seedStr, zx, zz);
+  const variant = hybrid ? null : zoneVariantAt(seedStr, zx, zz);
+  if (variant) {
+    switch (variant.id) {
+      case 'skyfall_basin': return { mode: 'uprain', intensity: 1.2 };
+      case 'mirror_marsh': return { mode: 'none', intensity: 0 }; // stillness is the marsh's whole fiction
+      case 'ashen_drift': return { mode: 'ash', intensity: 1.35 };
+      case 'stillwhite': return { mode: 'snow', intensity: 1.25 };
+      case 'magnetic_dunes': return { mode: 'ash', intensity: 0.8 }; // wind-blown grit, not rain
+      case 'charged_flats': return { mode: 'rain', intensity: 0.85 };
+      default: break;
+    }
+  }
+  if (hybrid) {
+    switch (hybrid.def.id) {
+      case 'ember|storm': return { mode: 'rain', intensity: 0.8 };
+      case 'frost|rootwood': return { mode: 'snow', intensity: 0.8 };
+      case 'frost|wetland': return { mode: 'snow', intensity: 0.5 };
+      default: break; // other margins take their primary family's sky
+    }
+  }
+  switch (zoneBiomeAt(seedStr, zx, zz)) {
+    case 'storm': return { mode: 'rain', intensity: 1 };
+    case 'frost': return { mode: 'snow', intensity: 0.9 };
+    case 'ember': return { mode: 'ash', intensity: 0.7 };
+    case 'wetland': return { mode: 'rain', intensity: 0.45 };
+    default: return { mode: 'none', intensity: 0 };
+  }
+}
+
 /** What the HUD calls a zone's kind: its variant when it has one. */
 export function zoneKindLabel(info: ZoneInfo): string {
   if (info.hybrid) return info.hybrid.def.name;

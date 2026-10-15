@@ -32,7 +32,10 @@ the plausible minority is a roster generator. Sparse is good.
 
 Axes so far:
 
-1. **Life Type** — what the creature is alive *as*.
+1. **Life** — what the creature is alive *as*, in two crossing
+   parts: its **Kind** (fauna / flora / fungus) and its
+   **Material** (what it's made of — flesh-and-leaf ordinary, or
+   crystalline, gel, vapor, forged). Built out below.
 2. **Locomotion** — how the creature gets around. **Built out
    below.**
 3. **Shape** — what a creature looks like: its body plan.
@@ -44,45 +47,102 @@ A separate, free grid falls out of the biomes work: **Life Type x
 Biome Family** as the roster map — who lives where — again with
 empty cells expected.
 
-## Axis 1 — Life Type (sketch, for context)
+## Axis 1 — Life: Kinds x Materials (built out 2026-10-15)
 
 Adam's starting point: flora / fauna / fungus is just what Earth
-happened to produce; BioForge is not limited to it, and —
-Adam's ruling in spirit — *"we're not chemists, we are
-BioForge-ists"*: a type is defined by how it lives in the game
-(its verbs), not by real-world chemistry.
+happened to produce; BioForge is not limited to it, and — Adam's
+ruling in spirit — *"we're not chemists, we are BioForge-ists"*:
+a kind of life is defined by how it lives in the game (its
+verbs), not by real-world chemistry.
 
-- **Fauna** — flesh, mobile, eats, has a temperament.
+**Adam's crystalline ruling (2026-10-15) reshaped this axis.**
+Crystalline is NOT a fourth kind standing beside fauna / flora /
+fungus. In Adam's words, it "can go with animals, plants, fungus,
+whatever else we have — it looks like another matrix." He is
+right: crystalline is a **Material** — what a creature is *made
+of* — and Materials cross Kinds in a matrix of their own:
+
+### Kinds (how it lives — the verbs)
+
+- **Fauna** — mobile, eats, has a temperament; the kind the
+  Taming Lure speaks to.
 - **Flora** — rooted, grows in stages, lives on light and dew,
   plantable.
-- **Fungus** — spreads over dead matter, spores, networked, loves
-  dark and damp.
-- **Crystalline** (Adam's first addition) — grows instead of being
-  born; slow; refracts and rings; sheds shards. The cave crystals
-  already behave as harvestable, regrowable life without being
-  plants — this type is their real bucket. Silicon-flavored at
-  most; the verbs are what matter: accrete, resonate, shed.
-- **Gel** (Marlowe candidate) — no fixed form; splits, merges,
-  squeezes through gaps. You do not lure a gel; you feed a puddle
-  until it trusts you.
-- **Collective** (Marlowe candidate) — the creature *is* the
-  colony; many small bodies, one mind. Taming relocates a colony
-  rather than winning a pet.
-- **Vapor** (Marlowe candidate) — mist and charge, solid only
-  sometimes; a scanner sees it better than eyes do. The strangest
-  candidate; far-zone material.
-- **Forged** (Marlowe candidate) — precursor-*made* life: grown,
-  not evolved; constructs that repair and reproduce. Carries a lore
-  cost — it blurs creature vs. artifact — so it needs Adam's taste
-  call before it is used.
+- **Fungus** — spreads over dead matter, spores, networked,
+  loves dark and damp.
 
-Type x Type could also be crossed like the biome graph (pure on
-the diagonal, blends off it — Crystal Fauna, Fungal Flora, ...).
-Not yet explored; noted so it is not lost.
+### Materials (what it's made of — the substance)
 
-Open on this axis: final roster size (eight drafted above; mirroring
-the biomes' ten risks filler), and whether Crystalline is mostly
-harvestable life or also gets true animals.
+- **Ordinary** — flesh, leaf, and spore-flesh: the native stuff
+  of its kind. Every shipped species is Ordinary.
+- **Crystalline** (Adam's addition) — grows instead of being
+  born; slow; refracts and rings; sheds shards. Verbs: accrete,
+  resonate, shed. Silicon-flavored at most. The cave crystals —
+  harvestable, regrowable, clearly not plants — were this
+  material waiting for its matrix: they are Crystalline *Flora*
+  (rooted growers), and the same material on Fauna gives a
+  shard-plated animal, on Fungus a crystal shelf that fruits
+  shards instead of spores.
+- **Gel** — no fixed form; splits, merges, squeezes through
+  gaps. You do not lure a gel animal; you feed a puddle until it
+  trusts you.
+- **Vapor** — mist and charge, solid only sometimes; a scanner
+  sees it better than eyes do. The strangest material; far-zone
+  by nature.
+- **Forged** — precursor-*made*: grown, not evolved. Adam
+  accepted the lore cost under the species delegation
+  (2026-10-15); Forged stays far-zone / ruin country, where the
+  blur between creature and artifact is the local theme rather
+  than a setting-wide claim. The behavior doc's "still on duty"
+  untamables are Forged Fauna by this reading.
+
+### The matrix at work (3 Kinds x 5 Materials = 15 cells)
+
+- **Crystalline Fauna** — a slow grazer in shard plates; taming
+  is tuning and patience, not appetite.
+- **Crystalline Fungus** — a shelf colony that grows prisms the
+  way ordinary fungus grows caps; caves' second crystal story.
+- **Gel Flora** — a translucent ground-cover that flows a few
+  centimeters a day toward light; harvesting is scooping, and it
+  regrows from what you leave.
+- **Vapor Fauna** — an animal-shaped fog with a flight spectrum,
+  a day-night inversion, and a scanner-first encounter.
+- **Forged Flora** — a precursor garden organism that still
+  tends itself: planted rows in a ruin that have outlived the
+  gardeners by centuries.
+- **Vapor Flora** — CONTEXT ruling: a free-floating gas-bag
+  plant is Drifting locomotion wearing Flora's verbs (it makes
+  seeds, it photosynthesizes) — legal, far-zone, strange.
+  A *rooted* vapor plant is NONSENSE for now: roots need ground
+  and vapor declines to stay in it.
+- **Forged Fungus** — infrastructure that is alive: a network
+  grown as wiring / plumbing by the precursors, still running.
+  Legal, and quietly one of the best lore carriers on the grid.
+
+### Where "Collective" went
+
+The earlier draft listed Collective as a kind of life. Under
+Adam's crystalline logic it fails the same test Crystalline
+failed: a colony can be fauna (a swarm), fungus (a network), or
+even forged (a distributed machine). Colony-vs-individual is a
+**property any cell can carry** — read off the Social spectrum
+at its pack extreme, usually wearing a Cloud or Segmented shape.
+Retired as a separate kind (Marlowe's call under the species
+delegation, 2026-10-15; revisable).
+
+### What the two halves each decide
+
+- **Kind decides the verbs**: how it feeds, grows, reproduces,
+  and whether the lure / planter / harvest grammar applies.
+- **Material decides the substance rules**: what it drops
+  (crystal -> shards; gel -> membranes and sacs; vapor ->
+  condensates and essences; forged -> precursor parts), its
+  default tempo (crystalline slow, vapor elusive), and how the
+  world hurts or helps it (heat, light, water).
+- A species design names both halves: not "a crystal creature"
+  but **Crystalline Fauna**, not "a ghost thing" but **Vapor
+  Fauna**. If a design cannot name its Kind, it is not a design
+  yet — it is a mood.
 
 ## Axis 2 — Locomotion (built out 2026-10-15)
 

@@ -77,7 +77,7 @@ import { StartScreenModal } from './components/StartScreenModal';
 // UI Components
 import { HUD } from './components/HUD';
 import { QuestLogModal } from './components/QuestLogModal';
-import { TOOL_NAMES } from './game/quests';
+import { TOOL_NAMES, accessTierOf } from './game/quests';
 import { useQuests } from './hooks/useQuests';
 import { useStorage } from './hooks/useStorage';
 import { useDebugKit } from './hooks/useDebugKit';
@@ -1129,8 +1129,11 @@ const {
     // recipe has no .tier field. This line read one anyway until
     // the 2026-10-15 types pass, which quietly meant tier-3 recipes
     // were craftable anywhere the gauntlet reached. Forge tether
-    // restored: tier 3+ is forge-only, graft or no graft.
-    const forgeOnly = getRecipeTier(recipe) >= 3;
+    // restored: tier 3+ is forge-only, graft or no graft. The tier
+    // read is the ACCESS tier (Adam, 2026-10-15): a gear part's
+    // pinned display tier governs — the Tier 2 radar is Field
+    // Synthesizer work, exactly as its label says.
+    const forgeOnly = accessTierOf(recipe) >= 3;
     if (!access.nearForge && (forgeOnly || !access.hasSynthesizer)) {
       postNotification(
         'Synthesis Blocked',

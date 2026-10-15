@@ -30,7 +30,7 @@
  * to the full tool set (nobody gets demoted; see App).
  */
 
-import type { ItemId, ToolType } from '../types/game';
+import type { ItemId, ToolType, CraftingRecipe } from '../types/game';
 import { RECIPES, getRecipeTier, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from './constants';
 
 /** Every tool the hotbar can hold, in hotbar order. */
@@ -276,10 +276,12 @@ export function isGearItem(id: ItemId): boolean {
  * Adam tiers the radar by its LADDER — Tier 1 is the helmet's base
  * wayfinding (the home arrow, even across zones), Tier 2 the
  * prismatic upgrade (creatures + walls) — even though its craft
- * graph runs to depth 3 through the Tier 2 power cell. The label
- * says 2; the graph still governs where it can be assembled (the
- * final assembly stays at the forge). The Field Synthesizer needs
- * no pin: Adam calls it Tier 1, which is what the graph says.
+ * graph runs to depth 3 through the Tier 2 power cell. And the
+ * pin governs ACCESS too (Adam, same day: "the Field Synthesizer
+ * should work on that") — accessTierOf below is what the forge
+ * tether reads, so a part labeled Tier 2 is field work, label and
+ * lock in agreement. The Field Synthesizer needs no pin: Adam
+ * calls it Tier 1, which is what the graph says.
  */
 const GEAR_DISPLAY_TIER: Partial<Record<ItemId, number>> = {
   prismatic_field_radar: 2,
@@ -297,6 +299,19 @@ export function gearTierOf(id: ItemId): number | null {
   const recipe = RECIPES.find((r) => r.outputId === id);
   if (!recipe) return null;
   return getRecipeTier(recipe);
+}
+
+/**
+ * The tier the CRAFTING ACCESS rules use for a recipe (the forge
+ * tether in BioForgeModal, RecipeFlowchart, and App's craft
+ * handler): a gear part's pinned display tier when it has one,
+ * else the recipe graph's depth. This is the function that makes
+ * Adam's radar ruling true in mechanics, not just on the label —
+ * the prismatic radar (display Tier 2) is Field Synthesizer work,
+ * while an unpinned Tier 3 recipe stays at the forge.
+ */
+export function accessTierOf(recipe: CraftingRecipe): number {
+  return gearTierOf(recipe.outputId) ?? getRecipeTier(recipe);
 }
 
 /** Live progress for one gather objective. */

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { X, Sparkles, Check, AlertCircle, ArrowRight } from 'lucide-react';
 import { CraftingRecipe, ItemId, StructureType } from '../types/game';
-import { ITEMS, RECIPES, getRecipeTier, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../game/constants'
-import { isGauntletUpgrade, isGearItem, gearTierOf } from '../game/quests';
+import { ITEMS, RECIPES, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../game/constants'
+import { isGauntletUpgrade, isGearItem, gearTierOf, accessTierOf } from '../game/quests';
 import { soundEngine } from '../audio/soundEngine';
 import { RecipeFlowchart } from './RecipeFlowchart';
 
@@ -58,7 +58,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     if (isGauntletUpgrade(recipe.outputId) && (inventory[recipe.outputId] || 0) > 0) return false;
     if (!hasIngredients(recipe)) return false;
     if (nearForge) return true;
-    if (getRecipeTier(recipe) >= 3) return false;
+    if (accessTierOf(recipe) >= 3) return false;
     return hasSynthesizer;
   };
 
@@ -69,7 +69,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
       return 'Already grafted onto your gauntlet';
     if (!hasIngredients(recipe)) return 'Missing ingredients';
     if (nearForge) return null;
-    if (getRecipeTier(recipe) >= 3) return 'Advanced synthesis requires a bio-forge station';
+    if (accessTierOf(recipe) >= 3) return 'Advanced synthesis requires a bio-forge station';
     if (!hasSynthesizer) return 'Too far from a bio-forge — the Field Synthesizer lets you craft in the field';
     return null;
   };

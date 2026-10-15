@@ -27,8 +27,8 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { CraftingRecipe, ItemId } from '../types/game';
-import { ITEMS, RECIPES, getRecipeTier } from '../game/constants';
-import { isGauntletUpgrade } from '../game/quests';
+import { ITEMS, RECIPES } from '../game/constants';
+import { isGauntletUpgrade, accessTierOf } from '../game/quests';
 
 const ICONS: Record<string, LucideIcon> = {
   AlertTriangle,
@@ -150,7 +150,10 @@ export const RecipeFlowchart: React.FC<RecipeFlowchartProps> = ({
     // Tier comes from the recipe graph, never a stored field —
     // this read r.tier (undefined) until the 2026-10-15 types
     // pass, so tier-3 nodes never showed as forge-locked here.
-    if (getRecipeTier(r) >= 3) {
+    // The ACCESS tier is what locks (Adam, 2026-10-15): a gear
+    // part's pinned display tier governs, so the Tier 2 radar
+    // reads ready under a Field Synthesizer, label and lock alike.
+    if (accessTierOf(r) >= 3) {
       return 'locked';
     }
     return hasSynthesizer ? 'ready' : 'locked';
@@ -255,7 +258,7 @@ export const RecipeFlowchart: React.FC<RecipeFlowchartProps> = ({
                       style={{ color: style.labelColor }}
                     >
                       {style.label}
-                      {getRecipeTier(r) >= 3 ? ' · T3' : ''}
+                      {accessTierOf(r) >= 3 ? ' · T3' : ''}
                     </div>
                   </div>
                 </div>

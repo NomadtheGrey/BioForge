@@ -645,6 +645,7 @@ const {
   const marshSluggishRef = useRef(false);
   const scarHeatRef = useRef(false);
   const thawColdRef = useRef(false);
+  const stillColdRef = useRef(false);
   const healthRef = useRef(100);
   const lastHealthSync = useRef(0);
   // Death + respawn (Adam, 2026-10-15): the loop fires
@@ -669,6 +670,7 @@ const {
     marshSluggishRef.current = variant?.effect === 'marsh_sluggish';
     scarHeatRef.current = variant?.effect === 'scar_heat';
     thawColdRef.current = variant?.effect === 'thaw_cold';
+    stillColdRef.current = variant?.effect === 'frost_stillcold';
     if (variant && sessionSeed) {
       const key = `${sessionSeed}:${variant.id}`;
       if (!variantAlertedRef.current.has(key)) {
@@ -722,6 +724,27 @@ const {
             'system',
             '#5eead4',
           );
+        } else if (variant.id === 'frost_stillwhite') {
+          postNotification(
+            'The Stillwhite',
+            'The cold here never sleeps — it drinks your stamina day and night alike, slowly, without malice. There is no warm hour to wait for. Keep moving, or carry your rest with you.',
+            'system',
+            '#bfdbfe',
+          );
+        } else if (variant.id === 'frost_fangs') {
+          postNotification(
+            'The Ice Fangs',
+            'Geysers frozen mid-eruption, older than the hills. The ice in them refuses the sun — harvest a tooth and carry winter in your pouch.',
+            'system',
+            '#a5d8ff',
+          );
+        } else if (variant.id === 'frost_singing') {
+          postNotification(
+            'The Singing Ice',
+            'A frozen lake that booms under its own pressure and throws your lights far through the ice. Rare country. Listen a while.',
+            'system',
+            '#dbeafe',
+          );
         } else if (variant.id === 'mirror_marsh') {
           postNotification(
             'The Mirror Marsh',
@@ -753,7 +776,7 @@ const {
   useGameLoop({
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
     jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, lastStaminaSync,
-    sprinting, sporeStaminaRef, marshSluggishRef, scarHeatRef, thawColdRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
+    sprinting, sporeStaminaRef, marshSluggishRef, scarHeatRef, thawColdRef, stillColdRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef,

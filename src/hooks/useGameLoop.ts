@@ -54,6 +54,7 @@ export interface GameLoopDeps {
   /** True while the player stands in an Ember Scar zone. */
   scarHeatRef: { current: boolean };
   thawColdRef: { current: boolean };
+  stillColdRef: { current: boolean };
   healthRef: { current: number };
   lastHealthSync: { current: number };
   /** Death is armed on Normal/Hostile worlds (Adam's pin). */
@@ -114,7 +115,7 @@ export interface GameLoopDeps {
 export function useGameLoop(deps: GameLoopDeps): void {
   const {
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
-    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, scarHeatRef, thawColdRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
+    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, scarHeatRef, thawColdRef, stillColdRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
     sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
@@ -360,6 +361,14 @@ export function useGameLoop(deps: GameLoopDeps): void {
           if (isNight) {
             staminaRef.current = Math.max(0, staminaRef.current - 6 * dt);
           }
+        }
+        // Variant effect (2026-10-15): THE STILLWHITE'S COLD —
+        // constant, day and night: stamina drains 4/s on the
+        // surface. Slower than the Thaw's night bite and far
+        // slower than the Scar's day burn, but it NEVER lets up:
+        // in the Stillwhite there is no warm hour to wait for.
+        if (stillColdRef.current && activeInstance.kind === 'surface') {
+          staminaRef.current = Math.max(0, staminaRef.current - 4 * dt);
         }
         if (performance.now() - lastStaminaSync.current > 100) {
           lastStaminaSync.current = performance.now();

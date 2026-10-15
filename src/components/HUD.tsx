@@ -17,6 +17,8 @@ import {
   Save,
   Flashlight,
   Radar,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import {
   ToolType,
@@ -32,9 +34,49 @@ import {
 import { ITEMS } from '../game/constants';
 import { Minimap } from './Minimap';
 
+/**
+ * Previous/next tap targets for a tool selection. On desktop these
+ * choices ride the mouse wheel and arrow keys; a phone has neither,
+ * so touch mode renders this pair beside the selection it changes.
+ * The buttons call App's existing cycle functions — no second copy
+ * of the seed/fertilizer/blueprint ordering lives here.
+ */
+const CycleButtons: React.FC<{
+  label: string;
+  onCycle?: (direction: 1 | -1) => void;
+}> = ({ label, onCycle }) => {
+  if (!onCycle) return null;
+  const buttonClass =
+    'flex h-9 w-9 items-center justify-center rounded-full border border-slate-500/60 bg-slate-800/80 text-slate-100 transition-all active:scale-95 active:bg-slate-700';
+  return (
+    <span className="flex items-center gap-1" aria-label={`${label} selector`}>
+      <button
+        type="button"
+        aria-label={`Previous ${label}`}
+        className={buttonClass}
+        onClick={() => onCycle(-1)}
+      >
+        <ChevronLeft className="h-5 w-5" />
+      </button>
+      <button
+        type="button"
+        aria-label={`Next ${label}`}
+        className={buttonClass}
+        onClick={() => onCycle(1)}
+      >
+        <ChevronRight className="h-5 w-5" />
+      </button>
+    </span>
+  );
+};
+
 interface HUDProps {
   playerState: PlayerState;
   onSelectTool: (tool: ToolType) => void;
+  /** Touch-mode selection cycling (the wheel/arrow replacements). */
+  onCycleSeed?: (direction: 1 | -1) => void;
+  onCycleFertilizer?: (direction: 1 | -1) => void;
+  onCycleStructure?: (direction: 1 | -1) => void;
   onOpenInventory: () => void;
   onOpenBioForge: () => void;
   onOpenCodex: () => void;
@@ -85,6 +127,9 @@ interface HUDProps {
 export const HUD: React.FC<HUDProps> = ({
   playerState,
   onSelectTool,
+  onCycleSeed,
+  onCycleFertilizer,
+  onCycleStructure,
   onOpenInventory,
   onOpenBioForge,
   onOpenCodex,
@@ -232,17 +277,29 @@ export const HUD: React.FC<HUDProps> = ({
   }
 
   return (
-    <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-4 overflow-hidden">
-      {/* Top Bar: Vitals, Biome, Room, Atmosphere, Quick Actions */}
-      <div className="flex items-start justify-between w-full">
+    <div
+      className={`pointer-events-none absolute inset-0 flex flex-col justify-between overflow-hidden ${
+        touchMode ? 'p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]' : 'p-4'
+      }`}
+    >
+      {/* Top Bar: Vitals, Biome, Room, Atmosphere, Quick Actions.
+          Touch mode gets a narrower vitals card and tighter gaps:
+          Tailwind supplies the responsive tools, but the HUD still
+          has to choose a phone arrangement — fixed desktop widths
+          do not shrink on their own. */}
+      <div className="flex items-start justify-between w-full gap-2">
         {/* Left: Bio-Suit Vitals & Tactical Minimap Radar */}
-        <div className="flex flex-col gap-2.5">
-          <div className="pointer-events-auto flex flex-col gap-2 glass-panel p-3.5 rounded-2xl w-72">
+        <div className="flex min-w-0 flex-col gap-2.5">
+          <div
+            className={`pointer-events-auto flex flex-col glass-panel rounded-2xl ${
+              touchMode ? 'w-52 gap-1.5 p-2.5' : 'w-72 gap-2 p-3.5'
+            }`}
+          >
             <div className="flex items-center justify-between">
               <span className="font-tech text-xs tracking-wider text-cyan-400 font-semibold flex items-center gap-1.5">
                 <Zap className="w-3.5 h-3.5 text-cyan-400 animate-pulse" /> BIO-SUIT INTEGRITY
               </span>
-              <span className="text-xs text-slate-400 font-mono">VER 2.4.0</span>
+              {!touchMode && <span className="text-xs text-slate-400 font-mono">VER 2.4.0</span>}
             </div>
 
             {/* Health Bar */}
@@ -288,9 +345,13 @@ export const HUD: React.FC<HUDProps> = ({
             </div>
           </div>
 
-          {/* Minimap Widget */}
+          {/* Minimap Widget. On a short landscape phone the map is
+              the one top element that gives its height back: the
+              player can reopen it from the top bar when they stop
+              moving, and the cave-exit arrow returns with it. */}
           {isMinimapVisible && (
-            <Minimap
+            <div className={touchMode ? '[@media(max-height:540px)]:hidden' : undefined}>
+              <Minimap
               playerX={playerState.x}
               playerZ={playerState.z}
               playerRotation={playerState.rotation}
@@ -302,12 +363,19 @@ export const HUD: React.FC<HUDProps> = ({
               zoneCoordsLabel={zoneCoordsLabel}
               exitTarget={caveExitTarget}
               radarActive={radarActive}
-            />
+              />
+            </div>
           )}
         </div>
 
-        {/* Center Top: Biome & Day/Night — one grouped bar */}
-        <div className="pointer-events-auto glass-panel px-2 py-1.5 rounded-2xl flex items-center gap-1 shadow-lg">
+        {/* Center Top: Biome & Day/Night — one grouped bar. Touch
+            keeps it only once the screen is wide enough to carry
+            all three top groups without squeezing the world out. */}
+        <div
+          className={`pointer-events-auto glass-panel px-2 py-1.5 rounded-2xl items-center gap-1 shadow-lg ${
+            touchMode ? 'hidden min-[760px]:flex' : 'flex'
+          }`}
+        >
           <div className="px-2.5 py-1 flex items-center gap-2.5">
             <Compass className="w-4 h-4 text-cyan-400" />
             <div className="flex flex-col">
@@ -353,7 +421,7 @@ export const HUD: React.FC<HUDProps> = ({
         {/* Right Top: one grouped action bar — save, session, and system
             buttons live together in a single panel instead of floating
             as separate pills. Inner buttons are flat "ghost" buttons. */}
-        <div className="pointer-events-auto glass-panel p-1.5 rounded-2xl flex items-center gap-1 shadow-lg">
+        <div className="pointer-events-auto glass-panel p-1.5 rounded-2xl flex shrink-0 items-center gap-1 shadow-lg">
           {/* Save World (manual save — autosave also runs every 30s) */}
           {onSave && (
             <button
@@ -378,7 +446,11 @@ export const HUD: React.FC<HUDProps> = ({
             }`}
           >
             <Users className="w-4 h-4 text-cyan-400" />
-            <span>{roomCode ? `Room: ${roomCode} (${peerCount + 1})` : 'P2P Co-Op'}</span>
+            {/* Touch keeps the session button icon-only; the room
+                code itself lives in the co-op window it opens. */}
+            <span className={touchMode ? 'hidden' : undefined}>
+              {roomCode ? `Room: ${roomCode} (${peerCount + 1})` : 'P2P Co-Op'}
+            </span>
           </button>
 
           <div className="w-px h-6 bg-slate-700/60" />
@@ -392,8 +464,9 @@ export const HUD: React.FC<HUDProps> = ({
             {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-cyan-400" />}
           </button>
 
-          {/* Dev Tools Exporter Modal Trigger */}
-          {onOpenDevTools && (
+          {/* Dev Tools Exporter Modal Trigger (desktop-only: it is
+              a development utility, and phone width is spent on play) */}
+          {onOpenDevTools && !touchMode && (
             <button
               onClick={onOpenDevTools}
               title="Dev Tools: Codebase Source Exporter"
@@ -460,7 +533,11 @@ export const HUD: React.FC<HUDProps> = ({
 
         {/* Hover Target Inspector */}
         {hoverInfo && (
-          <div className="glass-panel-biolum px-4 py-2 rounded-2xl flex flex-col items-center animate-fade-in text-center max-w-md shadow-2xl">
+          <div
+            className={`glass-panel-biolum px-4 py-2 rounded-2xl flex flex-col items-center animate-fade-in text-center shadow-2xl ${
+              touchMode ? 'max-w-[86vw]' : 'max-w-md'
+            }`}
+          >
             <span className="font-tech text-xs tracking-wider text-cyan-300 font-bold">{hoverInfo.name}</span>
             <span className="text-xs text-slate-300 mt-0.5">{hoverInfo.details}{hoverHint ? ` • ${hoverHint}` : ''}</span>
           </div>
@@ -468,7 +545,11 @@ export const HUD: React.FC<HUDProps> = ({
       </div>
 
       {/* Notification Toast Stack on Right */}
-      <div className="absolute right-4 top-20 flex flex-col gap-2 pointer-events-none max-w-sm">
+      <div
+        className={`absolute flex flex-col gap-2 pointer-events-none ${
+          touchMode ? 'right-2 top-16 max-w-[72vw]' : 'right-4 top-20 max-w-sm'
+        }`}
+      >
         {notifications.slice(0, 4).map((n) => (
           <div
             key={n.id}
@@ -533,10 +614,14 @@ export const HUD: React.FC<HUDProps> = ({
       </div>
 
       {/* Bottom Bar: Tool Selection, Active Sub-item, and Main Windows */}
-      <div className="flex flex-col items-center gap-3 w-full">
+      <div className={`flex flex-col items-center w-full ${touchMode ? 'gap-2' : 'gap-3'}`}>
         {/* Contextual Active Sub-Selection Info */}
         {playerState.activeTool === 'builder' && (
-          <div className="pointer-events-auto glass-panel px-4 py-1.5 rounded-2xl flex items-center gap-3 text-xs">
+          <div
+            className={`pointer-events-auto glass-panel px-4 py-1.5 rounded-2xl flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs ${
+              touchMode ? 'max-w-[74vw] justify-start self-start' : 'max-w-[96vw] justify-center'
+            }`}
+          >
             <span className="text-slate-400">Selected Blueprint:</span>
             <span className="font-tech font-bold text-purple-300">
               {ITEMS[selectedStructureType]?.name || selectedStructureType}
@@ -544,12 +629,20 @@ export const HUD: React.FC<HUDProps> = ({
             <span className={`font-mono font-bold ${countTextClass(countOf(selectedStructureType))}`}>
               ×{countOf(selectedStructureType)} in pouch
             </span>
-            <span className="text-[10px] text-slate-400 font-mono">(Change in Bio-Forge [B] or Inventory [I])</span>
+            {touchMode ? (
+              <CycleButtons label="blueprint" onCycle={onCycleStructure} />
+            ) : (
+              <span className="text-[10px] text-slate-400 font-mono">(Change in Bio-Forge [B] or Inventory [I])</span>
+            )}
           </div>
         )}
 
         {playerState.activeTool === 'planter_trowel' && (
-          <div className="pointer-events-auto glass-panel px-4 py-1.5 rounded-2xl flex items-center gap-3 text-xs">
+          <div
+            className={`pointer-events-auto glass-panel px-4 py-1.5 rounded-2xl flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs ${
+              touchMode ? 'max-w-[74vw] justify-start self-start' : 'max-w-[96vw] justify-center'
+            }`}
+          >
             <span className="text-slate-400">Selected Seed:</span>
             <span className="font-tech font-bold text-emerald-300">
               {ITEMS[selectedSeedId]?.name || selectedSeedId}
@@ -557,6 +650,7 @@ export const HUD: React.FC<HUDProps> = ({
             <span className={`font-mono font-bold ${countTextClass(countOf(selectedSeedId))}`}>
               ×{countOf(selectedSeedId)}
             </span>
+            {touchMode && <CycleButtons label="seed" onCycle={onCycleSeed} />}
             <span className="text-slate-400">Loaded Fertilizer:</span>
             <span className="font-tech font-bold text-teal-300">
               {ITEMS[selectedFertilizerId]?.name || selectedFertilizerId}
@@ -564,16 +658,24 @@ export const HUD: React.FC<HUDProps> = ({
             <span className={`font-mono font-bold ${countTextClass(countOf(selectedFertilizerId))}`}>
               ×{countOf(selectedFertilizerId)}
             </span>
-            <span className="text-[10px] text-slate-400 font-mono">(Wheel / ↑ ↓ switch fertilizer · click mounds to plant / fertilize)</span>
+            {touchMode ? (
+              <CycleButtons label="fertilizer" onCycle={onCycleFertilizer} />
+            ) : (
+              <span className="text-[10px] text-slate-400 font-mono">(Wheel / ↑ ↓ switch fertilizer · click mounds to plant / fertilize)</span>
+            )}
           </div>
         )}
 
         {/* In-Game Tool Descriptor — styled panel replacing native browser tooltips.
             Shows the hovered slot, or flashes the newly equipped slot after 1-6 / click selection. */}
         {descriptorTool && (
-          <div className="pointer-events-none glass-panel-biolum px-5 py-3 rounded-2xl flex items-center gap-4 animate-fade-in max-w-xl border border-cyan-500/30 shadow-2xl">
+          <div
+            className={`pointer-events-none glass-panel-biolum rounded-2xl flex items-center animate-fade-in border border-cyan-500/30 shadow-2xl ${
+              touchMode ? 'max-w-[96vw] gap-3 px-3 py-2' : 'max-w-xl gap-4 px-5 py-3'
+            }`}
+          >
             <div
-              className="w-11 h-11 rounded-xl flex items-center justify-center text-2xl shrink-0"
+              className={`${touchMode ? 'h-9 w-9 text-xl' : 'h-11 w-11 text-2xl'} rounded-xl flex items-center justify-center shrink-0`}
               style={{
                 backgroundColor: `${descriptorTool.color}20`,
                 border: `1px solid ${descriptorTool.color}50`,
@@ -601,37 +703,53 @@ export const HUD: React.FC<HUDProps> = ({
           </div>
         )}
 
-        <div className="flex items-center justify-between w-full max-w-4xl">
+        <div
+          className={`flex items-center w-full ${
+            touchMode
+              ? 'max-w-full flex-col justify-center gap-2'
+              : 'max-w-4xl flex-row justify-between'
+          }`}
+        >
           {/* Main Quick Nav Buttons — one grouped bar, ghost buttons */}
           <div className="pointer-events-auto glass-panel p-1.5 rounded-2xl flex items-center gap-1 shadow-lg">
             <button
               onClick={onOpenBioForge}
-              className="hover:bg-cyan-950/60 text-cyan-300 font-tech font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-2 transition-all active:scale-95"
+              className={`hover:bg-cyan-950/60 text-cyan-300 font-tech font-bold text-xs rounded-xl flex items-center gap-2 transition-all active:scale-95 ${
+                touchMode ? 'px-2.5 py-2' : 'px-3 py-2'
+              }`}
             >
               <Hammer className="w-4 h-4 text-cyan-400" />
-              <span>Bio-Forge [B]</span>
+              <span>{touchMode ? 'Forge' : 'Bio-Forge [B]'}</span>
             </button>
 
             <button
               onClick={onOpenInventory}
-              className="hover:bg-emerald-950/60 text-emerald-300 font-tech font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-2 transition-all active:scale-95"
+              className={`hover:bg-emerald-950/60 text-emerald-300 font-tech font-bold text-xs rounded-xl flex items-center gap-2 transition-all active:scale-95 ${
+                touchMode ? 'px-2.5 py-2' : 'px-3 py-2'
+              }`}
             >
               <Backpack className="w-4 h-4 text-emerald-400" />
-              <span>Pouch [I]</span>
+              <span>{touchMode ? 'Pouch' : 'Pouch [I]'}</span>
             </button>
 
             <button
               onClick={onOpenCodex}
-              className="hover:bg-purple-950/60 text-purple-300 font-tech font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-2 transition-all active:scale-95"
+              className={`hover:bg-purple-950/60 text-purple-300 font-tech font-bold text-xs rounded-xl flex items-center gap-2 transition-all active:scale-95 ${
+                touchMode ? 'px-2.5 py-2' : 'px-3 py-2'
+              }`}
             >
               <BookOpen className="w-4 h-4 text-purple-400" />
-              <span>Codex [C]</span>
+              <span>{touchMode ? 'Codex' : 'Codex [C]'}</span>
             </button>
           </div>
 
           {/* Tool Hotbar (1 - 6) */}
           {/* Hotbar Row: Left Hand slot beside the tools */}
-          <div className="flex items-end gap-2">
+          <div
+            className={`flex items-end gap-2 ${
+              touchMode ? 'max-w-full justify-start overflow-x-auto pb-0.5' : ''
+            }`}
+          >
             {/* Left Hand (Adam, 2026-10-14): the off-hand slot for
                 instruments. Click cycles the ones you own — the Hand
                 Lantern-Fern (a light that follows you; see
@@ -640,15 +758,23 @@ export const HUD: React.FC<HUDProps> = ({
             <button
               onClick={onToggleHeldItem}
               title={playerState.heldItemId === 'prismatic_field_radar' ? 'Left Hand: Prismatic Field Radar — click to cycle or stow' : playerState.heldItemId ? 'Left Hand: Hand Lantern-Fern — click to cycle or stow' : 'Left Hand: empty — click to hold an instrument (Lantern-Fern or Field Radar)'}
-              className="pointer-events-auto glass-panel p-2 rounded-2xl flex flex-col items-center gap-1 shadow-2xl transition-all active:scale-95"
+              className={`pointer-events-auto glass-panel rounded-2xl flex flex-col items-center gap-1 shadow-2xl transition-all active:scale-95 ${
+                touchMode ? 'p-1.5' : 'p-2'
+              }`}
             >
-              <span className={`w-10 h-10 rounded-xl flex items-center justify-center border ${playerState.heldItemId === 'prismatic_field_radar' ? 'bg-violet-950/80 border-violet-400/70 text-violet-300 shadow-md shadow-violet-500/30' : playerState.heldItemId ? 'bg-cyan-950/80 border-cyan-400/70 text-cyan-300 shadow-md shadow-cyan-500/30' : 'bg-slate-900/60 border-slate-700/60 text-slate-500'}`}>
+              <span className={`${touchMode ? 'h-9 w-9' : 'h-10 w-10'} rounded-xl flex items-center justify-center border ${playerState.heldItemId === 'prismatic_field_radar' ? 'bg-violet-950/80 border-violet-400/70 text-violet-300 shadow-md shadow-violet-500/30' : playerState.heldItemId ? 'bg-cyan-950/80 border-cyan-400/70 text-cyan-300 shadow-md shadow-cyan-500/30' : 'bg-slate-900/60 border-slate-700/60 text-slate-500'}`}>
                 {playerState.heldItemId === 'prismatic_field_radar' ? <Radar className="w-5 h-5" /> : playerState.heldItemId ? <Flashlight className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
               </span>
-              <span className="text-[8px] font-tech font-bold tracking-widest text-slate-400 uppercase">Left Hand</span>
+              {!touchMode && (
+                <span className="text-[8px] font-tech font-bold tracking-widest text-slate-400 uppercase">Left Hand</span>
+              )}
             </button>
 
-          <div className="pointer-events-auto glass-panel p-2 rounded-2xl flex items-center gap-2 shadow-2xl">
+          <div
+            className={`pointer-events-auto glass-panel rounded-2xl flex items-center shadow-2xl ${
+              touchMode ? 'gap-1.5 p-1.5' : 'gap-2 p-2'
+            }`}
+          >
             {tools.map((t) => {
               const isActive = playerState.activeTool === t.id;
               return (
@@ -657,13 +783,15 @@ export const HUD: React.FC<HUDProps> = ({
                   onClick={() => onSelectTool(t.id)}
                   onMouseEnter={() => setHoveredToolId(t.id)}
                   onMouseLeave={() => setHoveredToolId(null)}
-                  className={`group relative flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all duration-200 border ${
+                  className={`group relative flex flex-col items-center justify-center ${
+                    touchMode ? 'h-12 w-12' : 'h-14 w-14'
+                  } rounded-xl transition-all duration-200 border ${
                     isActive
                       ? 'bg-slate-800/90 border-cyan-400 shadow-md shadow-cyan-500/20 scale-105'
                       : 'bg-slate-900/60 border-slate-700/40 hover:bg-slate-800/60 text-slate-400 hover:text-white'
                   }`}
                 >
-                  <span className="text-xl leading-none">{t.icon}</span>
+                  <span className={`${touchMode ? 'text-lg' : 'text-xl'} leading-none`}>{t.icon}</span>
                   <span className="text-[10px] font-tech font-bold mt-1 text-slate-200">{t.key}</span>
 
                   {/* Consumable count badge: how many of the thing this

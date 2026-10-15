@@ -18,9 +18,12 @@ document outgrew the per-push size cap (~141K against
   species-as-data build note — plus **roster passes 1-3
   (species #1-26)**: the ubiquitous layer, all family
   emblems, the first one-offs and hybrids.
-- **CREATURES_BRAINSTORM_2.md** — **roster passes 4
-  onward** (species #27-...): the new families' seats,
-  hybrid waves, and the background casts.
+- **CREATURES_BRAINSTORM_2.md** — **roster passes 4-9**
+  (species #27-98): the new families' seats, hybrid
+  waves, and the background casts.
+- **CREATURES_BRAINSTORM_3.md** — **roster passes 10
+  onward** (species #99-...): opened with the hundredth
+  species (the Hearth Dog).
 
 New batches (of about twelve, per Adam's standing order)
 append to the highest-numbered part; when it nears the
@@ -33,12 +36,10 @@ the biome program's shipped-behavior stubs and flora
 notes (this design inherits from it; it is a different
 file, kept by the biome chat).
 
-**Roster count:** 98 species designed (through the
-ninth pass), plus the shipped cast already in the game.
+**Roster count:** 110 species designed (through the
+tenth pass), plus the shipped cast already in the game.
 Layers complete so far: family emblems 11 of 11; a
 one-off for every built biome variant; hybrid creatures
-for 23 of 55 pairings; background casts under way in
-every family. Part 2 is near its size cap — the tenth
-pass opens CREATURES_BRAINSTORM_3.md, and the roster's
-hundredth species gets the honor of its first entry.
-Caves come after the overworld, by Adam's sequencing.
+for 33 of 55 pairings; background casts under way in
+every family. Caves come after the overworld, by Adam's
+sequencing.

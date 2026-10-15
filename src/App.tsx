@@ -56,6 +56,7 @@ import { StartScreenModal } from './components/StartScreenModal';
 
 // UI Components
 import { HUD } from './components/HUD';
+import { TouchControls, type TouchMoveInput } from './components/TouchControls';
 import { BioForgeModal } from './components/BioForgeModal';
 import { InventoryModal } from './components/InventoryModal';
 import { CodexModal } from './components/CodexModal';
@@ -245,6 +246,17 @@ export default function App() {
   const keysPressed = useRef<Record<string, boolean>>({});
   const lastWTap = useRef(0);
   const sprinting = useRef(false);
+  // The touch thumbstick's latest direction, in exactly the shape
+  // the movement loop consumes. It lives in a ref (not state) for the
+  // same reason keysPressed does: pointer moves arrive far faster
+  // than React needs to re-render, and the frame loop reads it live.
+  const touchInputRef = useRef<TouchMoveInput>({
+    forward: false,
+    backward: false,
+    left: false,
+    right: false,
+    sprint: false,
+  });
   const staminaRef = useRef(100);
   const lastStaminaSync = useRef(0);
   const playerPosRef = useRef({ x: playerState.x, z: playerState.z, rotation: playerState.rotation });
@@ -451,6 +463,27 @@ export default function App() {
       j.vy = JUMP_VELOCITY;
     }
   }, [postNotification]);
+
+  // ----------------------------------------------------------------------
+  // Touch input adapters (phone controls)
+  // ----------------------------------------------------------------------
+  // TouchControls translates thumbs into these three calls. Keeping
+  // the adapters this thin is deliberate: the stick writes the same
+  // ref the frame loop already reads, look goes through the engine's
+  // one camera entry point, and a tap calls the engine's center
+  // interaction — the identical verbs the keyboard/mouse use.
+  const handleTouchMoveChange = useCallback((input: TouchMoveInput): void => {
+    touchInputRef.current = input;
+  }, []);
+
+  const handleTouchLook = useCallback((deltaX: number, deltaY: number): void => {
+    engineRef.current?.applyTouchLook(deltaX, deltaY);
+  }, []);
+
+  const handleTouchInteract = useCallback((): void => {
+    if (activeModalRef.current !== null) return;
+    engineRef.current?.interactAtCenter();
+  }, []);
 
   // ----------------------------------------------------------------------
   // Instanced caverns (P3 interior)
@@ -1068,14 +1101,17 @@ export default function App() {
         // skip the lock half: they'd wait forever otherwise.
         const isPaused = (!isPointerLockedRef.current && !touchModeRef.current) || activeModalRef.current !== null;
 
+        // Keyboard and thumbstick are two front ends on ONE input
+        // state: a direction counts when either device asks for it.
+        const touchInput = touchInputRef.current;
         const inputState: ControllerInputState = {
-          forward: Boolean(keysPressed.current['w'] || keysPressed.current['arrowup']),
-          backward: Boolean(keysPressed.current['s'] || keysPressed.current['arrowdown']),
-          left: Boolean(keysPressed.current['a'] || keysPressed.current['arrowleft']),
-          right: Boolean(keysPressed.current['d'] || keysPressed.current['arrowright']),
+          forward: Boolean(keysPressed.current['w'] || keysPressed.current['arrowup'] || touchInput.forward),
+          backward: Boolean(keysPressed.current['s'] || keysPressed.current['arrowdown'] || touchInput.backward),
+          left: Boolean(keysPressed.current['a'] || keysPressed.current['arrowleft'] || touchInput.left),
+          right: Boolean(keysPressed.current['d'] || keysPressed.current['arrowright'] || touchInput.right),
         };
 
-        const wantSprint = sprinting.current && staminaRef.current > 0;
+        const wantSprint = (sprinting.current || touchInput.sprint) && staminaRef.current > 0;
         movementController.current.sprintMultiplier = wantSprint ? 1.6 : 1;
 
         // Inside an instance, the instance grid itself is the walls
@@ -2064,6 +2100,19 @@ useEffect(() => {
       {/* 3D WebGL Canvas Viewport */}
       <div ref={containerRef} className="absolute inset-0 cursor-crosshair" />
 
+      {/* Phone controls: only on touch-first devices, only once a
+          world is entered, and never underneath an open modal. The
+          HUD renders after this layer, so its real buttons keep
+          first claim on their own taps. */}
+      {touchMode && hasStarted && activeModal === null && (
+        <TouchControls
+          onMoveChange={handleTouchMoveChange}
+          onLook={handleTouchLook}
+          onJump={attemptJump}
+          onInteract={handleTouchInteract}
+        />
+      )}
+
       {/* Futuristic Botanical Tech HUD */}
       <HUD
         playerState={{
@@ -2076,6 +2125,9 @@ useEffect(() => {
         fauna={faunaList}
         flora={floraList}
         onSelectTool={setActiveTool}
+        onCycleSeed={cycleSelectedSeed}
+        onCycleFertilizer={cycleLoadedFertilizer}
+        onCycleStructure={cycleSelectedStructure}
         onOpenInventory={() => setActiveModal('inventory')}
         onOpenBioForge={() => setActiveModal('bioforge')}
         onOpenCodex={() => setActiveModal('codex')}

@@ -194,3 +194,11 @@ mechanic) and harvests to SALTGLASS SHARD. Like the obsidian
 bloom, crystal does not seed — solvent returns the shard. The
 Saltglass family's creature seats (family signature + the Thaw's
 and Flats' unique seats) are EMPTY and belong to this chat.
+
+Flora note (Ice Fangs, Frost, 2026-10-15): the Rime Spire is a
+geyser frozen mid-eruption — clustered ice teeth around a brighter
+core tooth — in Frost, the sixth built family (the steady cold;
+Saltglass is the swing). Harvests to NEVERMELT ICE; solvent
+returns the same (ice does not seed). Frost's creature seats —
+family signature, plus uniques for the Stillwhite and the Singing
+Ice — are EMPTY and belong to this chat.

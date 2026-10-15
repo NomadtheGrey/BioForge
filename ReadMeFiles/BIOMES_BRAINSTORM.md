@@ -182,6 +182,12 @@ every biome carries from birth:
   rolls once the distance gate opens. Exotic biomes stay rare even
   where they're allowed (Adam: Magnetic Dunes and Skyfall Basin
   should not be common sights).
+- **THE GATE CAP (Adam, 2026-10-15):** family `minHops` never
+  exceeds **3**. Distance gates sort the near country; beyond 3
+  hops, scarcity is RARITY's job (the far weird ones roll rare,
+  not far). Variant gates are a separate dial and may sit at 4.
+  Consequence for the table below: Storm's Magnetic Dunes and
+  Skyfall Basin become family min 3 + RARE when their round comes.
 
 And Adam's open structural note: **some biomes may be their own
 family** (a family of one, hybrids still apply), and some may not
@@ -222,6 +228,25 @@ question round — the table below is the draft to argue with.
   (min 4, RARE — crystal reed beds; prism reeds harvest to
   SALTGLASS SHARD x2, the second glass crafting material).
   WORLD_GEN_VERSION 8. Its teaching, someday: a helmet visor.
+- **Frost** ✓ BUILT (2026-10-15) — the SIXTH family built (11th on
+  the roster; Adam reversed his creatures-chat decline and ordered
+  it produced the same day). The STEADY STATE to Saltglass's
+  swing: it never thaws; ice is terrain. Tier 2, family min 3 per
+  the GATE CAP, uncommon; flora 0.7 / fauna 0.75; bands 15% at 3
+  hops rising to 20% deep. Variants, all built: *The Stillwhite*
+  (min 3, uncommon — constant cold: stamina -4/s day AND night,
+  no warm hour; the Scar burns by day, the Thaw bites by night,
+  the Stillwhite never lets up); *The Ice Fangs* (min 4, uncommon —
+  frozen geyser teeth; RIME SPIRES harvest to NEVERMELT ICE, a
+  third crafting material); *The Singing Ice* (min 4, RARE — a
+  frozen lake-field; light reach x1.3 through the ice; the gift
+  variant). WORLD_GEN_VERSION 9. Graph note: Ember is Frost's
+  clash pair (never adjacent; their hybrid margins them).
+  TAXONOMY (Adam's catch, 2026-10-15): a 'frozen forest' is NOT a
+  Frost variant — there is no Forest family (Rootwood is the
+  wooded one), so a frozen forest is shaped like a cross. It is
+  recorded here as a hybrid candidate: **Frost x Rootwood → the
+  Frozen Forest**, for the delegated hybrid pass.
 - **Rootwood** — family min 2. *Rootwood Canopy* (min 2,
   uncommon): root walls and bridges, shade below, clearings above.
   *Questions: are the root bridges walkable (vertical play without
@@ -231,9 +256,10 @@ question round — the table below is the draft to argue with.
   *Questions: is a graveyard rolled like other zones, or is it a
   LANDMARK — at most one per world sector, however the dice fall?
   What grows in bone-soil that grows nowhere else?*
-- **Storm** — family min 4. *Magnetic Dunes* (min 5, RARE):
-  black sand, storms reshape it, caches surface and vanish.
-  *Skyfall Basin* (min 5, RARE): nutrient rain falls up.
+- **Storm** — family min 3 per the GATE CAP (rarity does the far
+  work). *Magnetic Dunes* (RARE): black sand, storms reshape it,
+  caches surface and vanish. *Skyfall Basin* (RARE): nutrient
+  rain falls up.
   *Questions (both): how rare is rare — one eligible roll in ten?
   For Dunes: does the minimap/compass actually fail (helmet
   stabilizer as the answer)? For Skyfall: are the updrafts a

@@ -26,7 +26,7 @@
 // that here; the lab keeps its own copy for the record.
 // ============================================================================
 
-export type BiomeId = 'meadow' | 'wetland' | 'fungal' | 'ember' | 'saltglass' | 'frost';
+export type BiomeId = 'meadow' | 'wetland' | 'fungal' | 'ember' | 'saltglass' | 'frost' | 'rootwood';
 
 /** How often a biome shows up among the rolls it's eligible for. */
 export type BiomeRarity = 'common' | 'uncommon' | 'rare';
@@ -66,6 +66,7 @@ export const BIOMES: BiomeDef[] = [
   { id: 'ember', floraDensity: 0.8, faunaDensity: 0.9, tier: 2, minHops: 3, rarity: 'uncommon' }, // harsher ground, thinner cover
   { id: 'saltglass', floraDensity: 0.75, faunaDensity: 0.7, tier: 2, minHops: 3, rarity: 'uncommon' }, // the 5th family (2026-10-15): salt, crystal, glare — the sparsest country yet
   { id: 'frost', floraDensity: 0.7, faunaDensity: 0.75, tier: 2, minHops: 3, rarity: 'uncommon' }, // the 6th family built (11th on the roster): the steady state — it never thaws. Family gates cap at 3 hops (Adam, 2026-10-15); rarity does the far-country work.
+  { id: 'rootwood', floraDensity: 1.3, faunaDensity: 1.0, tier: 1, minHops: 2, rarity: 'common' }, // the 7th family built: the wooded one — giant living roots as architecture; the lushest country in the game
 ];
 
 /** A biome's exoticness/danger tier (0 = hearthlands … 3 = far weird). */
@@ -98,6 +99,7 @@ export const BIOME_TINTS: Record<BiomeId, { color: number; strength: number }> =
   ember: { color: 0xc2571b, strength: 0.55 },
   saltglass: { color: 0xd8e2dc, strength: 0.45 }, // pale salt-green-white
   frost: { color: 0xcfe4f5, strength: 0.5 }, // ice blue-white
+  rootwood: { color: 0x4a5d23, strength: 0.5 }, // deep green-brown
 };
 
 /** Weight bonus a biome-affined species gets inside its home biome(s). */
@@ -393,6 +395,67 @@ export const BIOME_VARIANTS: BiomeVariantDef[] = [
     nameParts: {
       first: ['Singing', 'Booming', 'Bright', 'Glass', 'Patient'],
       second: ['Ice', 'Lake', 'Mirror', 'Field', 'Deep'],
+    },
+  },
+  {
+    // Rootwood Canopy (2026-10-15): the family's signature face —
+    // the biggest roots, bright clearings between them, and the
+    // root BRIDGES at their most generous (worldGen deals them).
+    id: 'rootwood_canopy',
+    family: 'rootwood',
+    name: 'Rootwood Canopy',
+    minHops: 2,
+    rarity: 'uncommon',
+    tint: { color: 0x5d7a2e, strength: 0.5 }, // brighter green
+    floraDensityMult: 1.15,
+    faunaDensityMult: 1.0,
+    effect: null,
+    lightDistanceMult: 1,
+    lightIntensityMult: 1.1, // clearings catch the light
+    nameParts: {
+      first: ['High', 'Bright', 'Green', 'Vast', 'Old'],
+      second: ['Canopy', 'Crown', 'Reach', 'Roof', 'Arches'],
+    },
+  },
+  {
+    // The Underroot (Rootwood, 2026-10-15): where the canopy
+    // closes overhead and the ground lives in gloom — pooled
+    // light reach x0.7. The family's scar is darkness, like the
+    // Drift's: your lights matter here.
+    id: 'rootwood_underroot',
+    family: 'rootwood',
+    name: 'The Underroot',
+    minHops: 3,
+    rarity: 'uncommon',
+    tint: { color: 0x2f3d1e, strength: 0.65 }, // deep shade green
+    floraDensityMult: 1.1,
+    faunaDensityMult: 0.9,
+    effect: null,
+    lightDistanceMult: 0.7,
+    lightIntensityMult: 0.85,
+    nameParts: {
+      first: ['Dark', 'Deep', 'Quiet', 'Rooted', 'Low'],
+      second: ['Underroot', 'Shade', 'Hollows', 'Vault', 'Dark'],
+    },
+  },
+  {
+    // The Rootfall (Rootwood, 2026-10-15): a giant has FALLEN —
+    // horizontal country, split heartwood, compost-rich soil.
+    // The family's gift variant: the densest heartroot stands.
+    id: 'rootwood_rootfall',
+    family: 'rootwood',
+    name: 'The Rootfall',
+    minHops: 3,
+    rarity: 'uncommon',
+    tint: { color: 0x6b4f2a, strength: 0.45 }, // fallen-wood brown
+    floraDensityMult: 1.3,
+    faunaDensityMult: 1.0,
+    effect: null,
+    lightDistanceMult: 1,
+    lightIntensityMult: 1,
+    nameParts: {
+      first: ['Fallen', 'Great', 'Split', 'Old', 'Resting'],
+      second: ['Rootfall', 'Giant', 'Rest', 'Reach', 'Grave'],
     },
   },
 ];

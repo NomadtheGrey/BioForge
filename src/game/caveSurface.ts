@@ -249,6 +249,8 @@ const BIOME_ACCENTS: Record<BiomeId, { type: CaveDressingType; count: number }[]
   saltglass: [{ type: 'heat_cracked_stone', count: 3 }],
   // Frost (2026-10-15): rime-crusted cracked stone at the mouth.
   frost: [{ type: 'heat_cracked_stone', count: 2 }],
+  // Rootwood (2026-10-15): reed accents read as rootlets at a mouth.
+  rootwood: [{ type: 'reed_cluster', count: 3 }],
 };
 
 function dressMouth(rng: () => number, anchor: { x: number; z: number; facing: number }, biome: BiomeId): CaveDressingPiece[] {

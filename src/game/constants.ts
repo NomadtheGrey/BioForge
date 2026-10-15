@@ -112,6 +112,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 99,
   },
+  heartwood: {
+    id: 'heartwood',
+    name: 'Heartwood',
+    category: 'raw',
+    description: 'The dense heart of a rootwood buttress — wood that grew around a century of weather and kept all of it. Premium building stock.',
+    iconName: 'TreePine',
+    color: '#b08968',
+    rarity: 'uncommon',
+    maxStack: 99,
+  },
   // Radar ingredients (2026-10-14): the Prismatic Field Radar's supply
   // chain — two new species yields plus the four Tier-1 subassemblies
   // they feed (recipes below; tier math in CORE_MECHANICS.md).
@@ -1473,6 +1483,18 @@ export const INITIAL_CODEX: CodexEntry[] = [
     tamingOrCraftNotes: 'Harvest with the glove for nevermelt ice. Mind your stamina in Frost country — and twice over in the Stillwhite, where there is no warm hour.',
     biome: 'Ice Fangs zones',
     iconColor: '#a5d8ff',
+  },
+  {
+    species: 'heartroot',
+    name: 'Heartroot',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A buttress root cluster where a rootwood giant meets the ground — arched slabs of living wood around a dense heart. The trees hold the country up; the heartroot is where you can ask it for some.',
+    byproducts: ['Heartwood', 'Soft Fiber'],
+    tamingOrCraftNotes: 'Harvest with the glove for heartwood. Look for the stands near the bridge towers — and in the Rootfall, where a giant came down, they grow thickest.',
+    biome: 'Rootwood zones',
+    iconColor: '#b08968',
   },
   {
     species: 'mirror_lily',

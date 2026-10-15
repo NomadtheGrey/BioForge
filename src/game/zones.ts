@@ -79,9 +79,9 @@ export function zoneCoordsAt(x: number, z: number): ZoneCoords {
 export const ZONE_BIOME_BANDS: { maxHops: number; table: [BiomeId, number][] }[] = [
   { maxHops: 0, table: [['meadow', 1]] },
   { maxHops: 1, table: [['meadow', 0.45], ['wetland', 0.55]] },
-  { maxHops: 2, table: [['meadow', 0.2], ['wetland', 0.4], ['fungal', 0.4]] },
-  { maxHops: 3, table: [['wetland', 0.15], ['fungal', 0.3], ['ember', 0.25], ['saltglass', 0.15], ['frost', 0.15]] },
-  { maxHops: 4, table: [['fungal', 0.3], ['ember', 0.35], ['saltglass', 0.2], ['frost', 0.15]] },
+  { maxHops: 2, table: [['meadow', 0.15], ['wetland', 0.3], ['fungal', 0.3], ['rootwood', 0.25]] },
+  { maxHops: 3, table: [['wetland', 0.1], ['fungal', 0.25], ['ember', 0.25], ['saltglass', 0.15], ['frost', 0.15], ['rootwood', 0.1]] },
+  { maxHops: 4, table: [['fungal', 0.25], ['ember', 0.35], ['saltglass', 0.2], ['frost', 0.15], ['rootwood', 0.05]] },
   { maxHops: Infinity, table: [['fungal', 0.15], ['ember', 0.45], ['saltglass', 0.2], ['frost', 0.2]] },
 ];
 
@@ -135,6 +135,10 @@ export const ZONE_NAME_PARTS: Record<BiomeId, { first: string[]; second: string[
   frost: {
     first: ['White', 'Silent', 'Frozen', 'Pale', 'Still'],
     second: ['Reach', 'Waste', 'Silence', 'Fields', 'Deep'],
+  },
+  rootwood: {
+    first: ['Rooted', 'Green', 'Ancient', 'Towering', 'Quiet'],
+    second: ['Reach', 'Wood', 'Arches', 'Hollows', 'Crown'],
   },
 };
 

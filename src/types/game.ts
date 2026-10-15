@@ -211,7 +211,18 @@ export type FaunaSpecies =
   | 'gloom_slug'
   | 'sun_lizard'
   | 'mud_turtle'
-  | 'bog_cow';
+  | 'bog_cow'
+  // Slice 3 (2026-10-15) — Wetland / Rootwood / Fungal casts, incl.
+  // the first variant-gated species (hollow_hermit, rootfall_bear).
+  | 'spore_stag'
+  | 'hollow_hermit'
+  | 'rootfall_bear'
+  | 'mulch_beetle'
+  | 'brine_stilt'
+  | 'hello_frog'
+  | 'foam_frog'
+  | 'mudskipper'
+  | 'landfish';
 
 export interface FaunaEntity {
   id: string;

@@ -48,7 +48,9 @@ export type SpeciesProfile =
   | 'amphibian' // water-edge small life (ember_newt)
   | 'slug'      // the slow end of the world (gloom_slug)
   | 'lizard'    // baskers and darters (sun_lizard)
-  | 'turtle';   // unhurried to the template's limit (mud_turtle)
+  | 'turtle'    // unhurried to the template's limit (mud_turtle)
+  | 'colony'    // the colony is the creature (hollow_hermit)
+  | 'territorial'; // defends one place, reluctantly (rootfall_bear)
 
 export interface SpeciesByproduct {
   /** Item shed on the ground when the timer fires. */
@@ -69,6 +71,10 @@ export interface SpeciesBonusSpawn {
    *  family both count, the same admixture rule the census uses.
    *  'all' is the ubiquitous layer: every family, every zone. */
   biomes: BiomeId[] | 'all';
+  /** Variant gate (slice 3): when set, the species deals ONLY in
+   *  zones of this variant — the biome-unique layer, one creature
+   *  per specific place, found nowhere else. */
+  variant?: string;
   /** Individuals dealt per eligible zone. */
   count: number;
   /** Keep this far from the zone center (the radar species use 10). */
@@ -536,6 +542,240 @@ export const SPECIES: Record<FaunaSpecies, SpeciesDef> = {
       speed: 0.9,
       speedJitter: 0.05,
       health: 130,
+    },
+  },
+
+  // ------------------------------------------------------------------
+  // Slice 3 (2026-10-15) — Wetland / Rootwood / Fungal casts, and
+  // the first VARIANT-GATED spawns (the biome-unique layer).
+  // ------------------------------------------------------------------
+
+  // #4 — the Fungal emblem: an antlered grazer in open symbiosis
+  // with fungus — shelf fungus grows on its antlers in seeded
+  // patterns, and it defends one compost grove. 25%, the
+  // stalker's number: trust here is a season, not a snack. (Its
+  // tame antler harvest and spore-trail growth nudge are later
+  // slices; the stag itself ships whole.)
+  spore_stag: {
+    id: 'spore_stag',
+    name: 'Spore Stag',
+    profile: 'grazer',
+    tameChance: 0.25,
+    bait: 'nectar',
+    petName: 'Spore Stag',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['fungal'],
+      count: 1,
+      minRadius: 14,
+      spacing: 8,
+      speed: 1.0, // slow, deliberate, almost silent for its size
+      speedJitter: 0.05,
+      health: 90,
+    },
+  },
+
+  // #6 — the Fungal Hollow's one-off: a fungus COLONY living in
+  // a giant hollow shroom shell — the colony is the creature.
+  // Stationary scenery by day, walking very slowly by night;
+  // fully timid, wild forever (you cannot tame a colony in a
+  // house). Deals ONLY in Hollow zones — the first variant-
+  // gated species. (Its dawn-gift encounter — stillness, dim
+  // light, a Hollow Heart Spore left at the base — is a later
+  // behavior slice.)
+  hollow_hermit: {
+    id: 'hollow_hermit',
+    name: 'Hollow Hermit',
+    profile: 'colony',
+    tameChance: null,
+    bait: null,
+    petName: 'Hollow Hermit',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['fungal'],
+      variant: 'fungal_hollow',
+      count: 1,
+      minRadius: 10,
+      spacing: 8,
+      speed: 0.3, // slowest on the roster
+      speedJitter: 0.02,
+      health: 60,
+    },
+  },
+
+  // #33 — the Rootfall's resident: a moss-grown bear that
+  // inherited a fallen giant's hollow heart, defended with
+  // enormous reluctance and total conviction, in that order.
+  // 20%, over days — a landlord negotiation. It cracks
+  // heartroot nuts at the hollow mouth and leaves Heart Sap
+  // as rent: shed wild, collectable without waking him, if
+  // you're quiet. (The item already exists — the Heartbloom's
+  // harvest; the bear is its second door.) Deals ONLY in
+  // Rootfall zones.
+  rootfall_bear: {
+    id: 'rootfall_bear',
+    name: 'Rootfall Bear',
+    profile: 'territorial',
+    tameChance: 0.2,
+    bait: 'nectar',
+    petName: 'Rootfall Bear',
+    byproduct: { item: 'heart_sap', seconds: 300, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['rootwood'],
+      variant: 'rootwood_rootfall',
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 1.0, // none, then all of it, once
+      speedJitter: 0.05,
+      health: 160,
+    },
+  },
+
+  // #24 — the Mulchwood's farmer: a dome-backed beetle carrying
+  // a tended fungus comb, harvesting trimmings to feed it and
+  // eating its fruit — the meadow's surplus becomes the fungal
+  // country's food on six legs. 40%: a beetle that farms
+  // understands an offering. (Its compost-engine burrows are a
+  // later economy slice.)
+  mulch_beetle: {
+    id: 'mulch_beetle',
+    name: 'Mulch Beetle',
+    profile: 'insect',
+    tameChance: 0.4,
+    bait: 'nectar',
+    petName: 'Mulch Beetle',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['meadow', 'fungal'],
+      count: 2,
+      minRadius: 8,
+      spacing: 3,
+      speed: 1.5,
+      speedJitter: 0.15,
+      health: 10,
+    },
+  },
+
+  // #25 — the Brine Shallows' postcard: a serene wader held
+  // high and dry on six salt-crystal stilts it renews by
+  // standing in brine — when it renews them, the shed crystals
+  // are SALTGLASS SHARD (the family's shard, one more door).
+  // 35%: it approves of still, patient players, being one.
+  brine_stilt: {
+    id: 'brine_stilt',
+    name: 'Brine Stilt',
+    profile: 'bird',
+    tameChance: 0.35,
+    bait: 'nectar',
+    petName: 'Brine Stilt',
+    byproduct: { item: 'saltglass_shard', seconds: 300, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['wetland', 'saltglass'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      speed: 1.1, // slow, stately
+      speedJitter: 0.05,
+      health: 30,
+    },
+  },
+
+  // #162 — Wetland x Living: a throat-fanned frog whose call
+  // is a GREETING, answered antiphonally across the marsh at
+  // dusk — the Greeter's mirror-law at frog scale. 50%:
+  // reciprocal calling is the method; it will chorus from a
+  // homestead pond within a season of being sung to. (In a
+  // Hungry-fed marsh the design calls from BEHIND you — the
+  // ventriloquism is a later behavior slice.)
+  hello_frog: {
+    id: 'hello_frog',
+    name: 'Hello Frog',
+    profile: 'amphibian',
+    tameChance: 0.5,
+    bait: 'nectar',
+    petName: 'Hello Frog',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['wetland', 'living'],
+      count: 3, // a chorus, not a soloist
+      minRadius: 8,
+      spacing: 3,
+      speed: 2.4, // burst
+      speedJitter: 0.3,
+      health: 12,
+    },
+  },
+
+  // #177 — the sometimes-below band's siesta citizen: it hunts
+  // under the pool's surface and sleeps above it, in a raft of
+  // its own foam moored to reeds. 45%.
+  foam_frog: {
+    id: 'foam_frog',
+    name: 'Foam Frog',
+    profile: 'amphibian',
+    tameChance: 0.45,
+    bait: 'nectar',
+    petName: 'Foam Frog',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['wetland', 'ember'],
+      count: 2,
+      minRadius: 8,
+      spacing: 3,
+      speed: 1.6,
+      speedJitter: 0.2,
+      health: 12,
+    },
+  },
+
+  // #179 — the roster's most Earth-honest citizen, named for
+  // the real animal without embarrassment: a fin-legged
+  // mudflat walker with strict personal bubbles and territorial
+  // displays like a puppet theater. 35%: it will take food
+  // from a still hand, and judges the hand's stillness as the
+  // whole exam.
+  mudskipper: {
+    id: 'mudskipper',
+    name: 'Mudskipper',
+    profile: 'amphibian',
+    tameChance: 0.35,
+    bait: 'nectar',
+    petName: 'Mudskipper',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['wetland', 'saltglass'],
+      count: 2,
+      minRadius: 8,
+      spacing: 3,
+      speed: 1.8,
+      speedJitter: 0.2,
+      health: 10,
+    },
+  },
+
+  // #182 — the water column's refusal to be a place: a thick-
+  // skinned fish that crosses LAND between pools at night in
+  // rain, on pectorals like elbows, with total commitment — it
+  // startles more travelers than any predator in the family.
+  // Its territory includes a commute. 40%: keep its
+  // destination pool clean and its road unblocked.
+  landfish: {
+    id: 'landfish',
+    name: 'Landfish',
+    profile: 'amphibian',
+    tameChance: 0.4,
+    bait: 'nectar',
+    petName: 'Landfish',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['wetland'],
+      count: 1,
+      minRadius: 12,
+      spacing: 6,
+      speed: 1.1, // slow on land; the design respects both gaits
+      speedJitter: 0.1,
+      health: 30,
     },
   },
 };

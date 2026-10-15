@@ -1108,6 +1108,231 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'spore_stag': {
+        // The fungal emblem (slice 3): a broad-antlered grazer
+        // with shelf fungus growing on the antlers in seeded
+        // patterns — two pale shelves ride the rack.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0xa8a29e, roughness: 0.9 });
+        const shelfMat = new THREE.MeshStandardMaterial({
+          color: 0xd6d3a8, roughness: 0.8, emissive: 0x57534e, emissiveIntensity: 0.2,
+        });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.48, 0.85, 8, 12), hideMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.92;
+        body.castShadow = true;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 12, 10), hideMat);
+        head.scale.set(0.8, 0.9, 1.25);
+        head.position.set(0, 1.1, 0.82);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const antler = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.55, 6), shelfMat);
+          antler.position.set(side * 0.2, 1.5, 0.72);
+          antler.rotation.z = side * -0.6;
+          group.add(antler);
+          const shelf = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 6), shelfMat);
+          shelf.scale.set(1.2, 0.35, 0.8);
+          shelf.position.set(side * 0.34, 1.42, 0.7);
+          group.add(shelf);
+        }
+        break;
+      }
+
+      case 'hollow_hermit': {
+        // A colony in a house (slice 3): a giant hollow shroom
+        // shell, lantern-lit at the seams — the cap IS the
+        // creature, with a skirt of small legs beneath it.
+        const huskMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.95 });
+        const seamMat = new THREE.MeshStandardMaterial({
+          color: 0xfbbf24, roughness: 0.5, emissive: 0xd97706, emissiveIntensity: 0.7,
+        });
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.85, 16, 12), huskMat);
+        cap.scale.set(1, 0.72, 1);
+        cap.position.y = 0.78;
+        cap.castShadow = true;
+        group.add(cap);
+        const seam = new THREE.Mesh(new THREE.TorusGeometry(0.78, 0.03, 8, 24), seamMat);
+        seam.rotation.x = Math.PI / 2;
+        seam.position.y = 0.62;
+        group.add(seam);
+        for (let i = 0; i < 6; i++) {
+          const angle = (i / 6) * Math.PI * 2;
+          const leg = new THREE.Mesh(new THREE.CapsuleGeometry(0.035, 0.22, 4, 6), huskMat);
+          leg.position.set(Math.cos(angle) * 0.62, 0.14, Math.sin(angle) * 0.62);
+          leg.rotation.z = Math.cos(angle) * 0.5;
+          leg.rotation.x = -Math.sin(angle) * 0.5;
+          group.add(leg);
+        }
+        break;
+      }
+
+      case 'rootfall_bear': {
+        // The Rootfall's resident (slice 3): moss-grown, huge,
+        // one ear down — the roster is allowed a face.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0x713f12, roughness: 0.95 });
+        const mossMat = new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 1 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.62, 1.0, 8, 14), hideMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 1.0;
+        body.castShadow = true;
+        group.add(body);
+        const moss = new THREE.Mesh(new THREE.SphereGeometry(0.6, 12, 8), mossMat);
+        moss.scale.set(1, 0.4, 1.4);
+        moss.position.y = 1.58;
+        group.add(moss);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.38, 12, 10), hideMat);
+        head.position.set(0, 1.05, 1.05);
+        group.add(head);
+        const earUp = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), hideMat);
+        earUp.position.set(-0.24, 1.4, 1.0);
+        group.add(earUp);
+        const earDown = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), hideMat);
+        earDown.scale.set(1, 0.5, 1);
+        earDown.position.set(0.26, 1.28, 1.02);
+        group.add(earDown);
+        break;
+      }
+
+      case 'mulch_beetle': {
+        // The Mulchwood's farmer (slice 3): a dome-backed beetle
+        // with a tended fungus comb riding its back.
+        const shellMat = new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.6 });
+        const combMat = new THREE.MeshStandardMaterial({
+          color: 0xfde68a, roughness: 0.8, emissive: 0x92400e, emissiveIntensity: 0.25,
+        });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 8), shellMat);
+        body.scale.set(1, 0.75, 1.3);
+        body.position.y = 0.13;
+        group.add(body);
+        const comb = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), combMat);
+        comb.scale.set(1.1, 0.5, 1.4);
+        comb.position.y = 0.24;
+        group.add(comb);
+        break;
+      }
+
+      case 'brine_stilt': {
+        // Held high and dry (slice 3): six salt-crystal stilts
+        // under a small, serene body — the wading argument,
+        // standing on legs above the drag.
+        const legMat = new THREE.MeshStandardMaterial({
+          color: 0xe0f2fe, roughness: 0.3, emissive: 0x7dd3fc, emissiveIntensity: 0.25,
+        });
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.8 });
+        for (let i = 0; i < 3; i++) {
+          for (const side of [-1, 1]) {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.03, 0.85, 6), legMat);
+            leg.position.set(side * 0.16, 0.43, 0.22 - i * 0.22);
+            leg.rotation.z = side * 0.18;
+            group.add(leg);
+          }
+        }
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 10), bodyMat);
+        body.scale.set(0.85, 0.8, 1.3);
+        body.position.y = 0.95;
+        body.castShadow = true;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), bodyMat);
+        head.position.set(0, 1.12, 0.3);
+        group.add(head);
+        break;
+      }
+
+      case 'hello_frog': {
+        // The marsh saying hello (slice 3): a leaf-green frog
+        // with a throat fan that inflates to greet — drawn
+        // fanned, in the Greeter's own green.
+        const skinMat = new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.65 });
+        const fanMat = new THREE.MeshStandardMaterial({
+          color: 0xbbf7d0, roughness: 0.5, emissive: 0x16a34a, emissiveIntensity: 0.35,
+        });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), skinMat);
+        body.scale.set(1.1, 0.7, 1);
+        body.position.y = 0.13;
+        group.add(body);
+        const fan = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), fanMat);
+        fan.scale.set(0.9, 0.8, 0.6);
+        fan.position.set(0, 0.1, 0.15);
+        group.add(fan);
+        for (const side of [-1, 1]) {
+          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 5), skinMat);
+          eye.position.set(side * 0.09, 0.26, 0.06);
+          group.add(eye);
+        }
+        break;
+      }
+
+      case 'foam_frog': {
+        // The siesta citizen (slice 3): a still frog in a raft
+        // of its own foam — the raft is drawn with it, moored
+        // wherever it currently is.
+        const skinMat = new THREE.MeshStandardMaterial({ color: 0x65a30d, roughness: 0.7 });
+        const foamMat = new THREE.MeshStandardMaterial({ color: 0xf0fdf4, roughness: 0.4 });
+        const raft = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 8), foamMat);
+        raft.scale.set(1.2, 0.3, 1.2);
+        raft.position.y = 0.05;
+        group.add(raft);
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 8), skinMat);
+        body.scale.set(1.1, 0.7, 1);
+        body.position.y = 0.16;
+        group.add(body);
+        for (const side of [-1, 1]) {
+          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 5), skinMat);
+          eye.position.set(side * 0.08, 0.28, 0.05);
+          group.add(eye);
+        }
+        break;
+      }
+
+      case 'mudskipper': {
+        // The flats' puppet theater (slice 3): a fin-legged
+        // walker — body low, pectoral fins planted like elbows,
+        // a dorsal fin-flag for its territorial displays.
+        const skinMat = new THREE.MeshStandardMaterial({ color: 0xca8a04, roughness: 0.75 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.09, 0.24, 6, 8), skinMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.14;
+        group.add(body);
+        const flag = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.16, 4), skinMat);
+        flag.scale.set(0.4, 1, 1);
+        flag.position.set(0, 0.26, -0.02);
+        group.add(flag);
+        for (const side of [-1, 1]) {
+          const fin = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), skinMat);
+          fin.scale.set(0.4, 0.8, 1);
+          fin.position.set(side * 0.12, 0.07, 0.12);
+          group.add(fin);
+          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 5), skinMat);
+          eye.position.set(side * 0.05, 0.26, 0.16);
+          group.add(eye);
+        }
+        break;
+      }
+
+      case 'landfish': {
+        // The slow part of the river, walking (slice 3): a
+        // thick-skinned fish on pectorals like elbows, built
+        // for the commute between pools.
+        const skinMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.6 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.5, 8, 10), skinMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.3;
+        body.castShadow = true;
+        group.add(body);
+        const tail = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.34, 6), skinMat);
+        tail.scale.set(0.35, 1, 1);
+        tail.rotation.x = -Math.PI / 2;
+        tail.position.set(0, 0.32, -0.55);
+        group.add(tail);
+        for (const side of [-1, 1]) {
+          const elbow = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), skinMat);
+          elbow.scale.set(0.5, 0.9, 1.1);
+          elbow.position.set(side * 0.2, 0.12, 0.22);
+          group.add(elbow);
+        }
+        break;
+      }
+
       default: {
         const body = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 12), materials.biolumAmber);
         body.position.y = 0.3;

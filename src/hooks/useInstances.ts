@@ -25,13 +25,17 @@ import {
 } from '../game/cavern';
 import { generateGameRuin, ruinEntryYaw, ruinCollisionGrid, type RuinResult } from '../game/ruinInterior';
 import { FATE_STYLES, type RuinVariantId, type WorldFate } from '../game/ruins';
-import { zoneCoordsAt, zoneHops } from '../game/zones';
+import { zoneCoordsAt, zoneHops, zoneBiomeAt } from '../game/zones';
+import type { BiomeId } from '../game/biomes';
 import type { DroppedItemEntity, FaunaEntity, FloraEntity, FloraSpecies, StructureEntity } from '../types/game';
 import type { GameNotification } from '../types/game';
 
 export interface InstancesDeps {
   engineRef: { current: BioForgeThreeEngine | null };
   playerPosRef: { current: { x: number; z: number; rotation: number } };
+  /** The world seed (App-owned) — caves resolve their surface
+   *  biome from it (cave resemblance, 2026-10-15). */
+  worldSeedRef: { current: string };
   floraListRef: { current: FloraEntity[] };
   floraList: FloraEntity[];
   faunaList: FaunaEntity[];
@@ -84,7 +88,7 @@ export interface UseInstancesResult {
 
 export function useInstances(deps: InstancesDeps): UseInstancesResult {
   const {
-    engineRef, playerPosRef, floraListRef,
+    engineRef, playerPosRef, worldSeedRef, floraListRef,
     floraList, faunaList, structuresList, droppedItems,
     replaceWorld, applyPlayerLevel, postNotification,
   } = deps;
@@ -136,6 +140,12 @@ export function useInstances(deps: InstancesDeps): UseInstancesResult {
   const mouthHops = (m: StructureEntity): number => {
     const c = zoneCoordsAt(m.worldX, m.worldZ);
     return zoneHops(c.zx, c.zz);
+  };
+  // The biome of the zone a mouth is dug under (cave resemblance):
+  // same derivation as mouthHops, one step further to the family.
+  const mouthBiome = (m: StructureEntity): BiomeId => {
+    const c = zoneCoordsAt(m.worldX, m.worldZ);
+    return zoneBiomeAt(worldSeedRef.current, c.zx, c.zz);
   };
   const captureCavePlantings = useCallback((key: string): void => {
     cavePlantingsRef.current = {
@@ -282,7 +292,7 @@ export function useInstances(deps: InstancesDeps): UseInstancesResult {
         x: mouth.worldX,
         z: mouth.worldZ,
         facing: anchorFacing,
-      }, mouthHops(mouth));
+      }, mouthHops(mouth), mouthBiome(mouth));
       if (!cavern.meta.validation.pass) {
         postNotification('Unstable Cavern', 'The way down collapses before it forms. (This cave failed its validation — a bug, not a feature.)', 'alert', '#ef4444');
         return;
@@ -330,7 +340,7 @@ export function useInstances(deps: InstancesDeps): UseInstancesResult {
         x: mouth.worldX,
         z: mouth.worldZ,
         facing: anchorFacing,
-      }, mouthHops(mouth));
+      }, mouthHops(mouth), mouthBiome(mouth));
       if (!next.meta.validation.pass) {
         postNotification('Unstable Cavern', 'The shaft crumbles before it deepens. (This level failed its validation — a bug, not a feature.)', 'alert', '#ef4444');
         return;

@@ -1612,8 +1612,16 @@ export class BioForgeThreeEngine {
       this.dirLight.intensity = Math.max(0.015, 0.03 - sink * 0.008);
       this.hemiLight.intensity = 0.08;
       this.ambientLight.intensity = Math.max(0.03, 0.05 - sink * 0.01);
-      this.scene.background = new THREE.Color(0x020208);
-      fog.color.setHex(0x020208);
+      // Cave resemblance (2026-10-15): the dark itself wears the
+      // surface family's color, pre-faded by depth in the cavern's
+      // meta (the deep forgets the surface — by L5 the blend is a
+      // whisper). Fog + background carry it; the cave's own light
+      // sources stay their own colors.
+      const caveDark = new THREE.Color(0x020208);
+      const tint = cavern?.meta.biomeTint;
+      if (tint) caveDark.lerp(new THREE.Color(tint.color), tint.strength);
+      this.scene.background = caveDark;
+      fog.color.copy(caveDark);
       fog.density = 0.055 + sink * 0.014;
     } else {
       this.clearCavern();

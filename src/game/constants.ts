@@ -1258,32 +1258,56 @@ export const INITIAL_CODEX: CodexEntry[] = [
   },
 ];
 
+// The starter pouch, THROTTLED (Adam, 2026-10-15): a new explorer
+// starts with the clothes on their back — the worn gauntlet and
+// nothing else in the pouch. The WORLD is the starter kit now: the
+// homestead deals a full classic census of harvest-ready plants,
+// and the mini-quest chain walks the first hour. (The generous kit
+// this replaced was debug stock all along; it survives as
+// DEBUG_KIT below for development.)
 export const INITIAL_INVENTORY = [
-  { id: 'resin_sap', count: 12 },
-  { id: 'vibrant_petal', count: 10 },
-  { id: 'sweet_nectar', count: 8 },
-  { id: 'soft_fiber', count: 16 },
-  { id: 'dew_essence', count: 8 },
-  { id: 'basic_compost', count: 12 },
-  { id: 'bio_pellet', count: 6 },
-  { id: 'carapace_scale', count: 4 },
-  { id: 'growth_fertilizer', count: 4 },
-  { id: 'yield_fertilizer', count: 2 },
-  { id: 'seed_lantern_fern', count: 5 },
-  { id: 'seed_sap_weaver', count: 4 },
-  { id: 'seed_petal_mill', count: 4 },
-  { id: 'root_tile_floor', count: 16 },
-  { id: 'chitin_glass_wall', count: 8 },
-  { id: 'iris_slit_door', count: 2 },
-  { id: 'cultivation_mound', count: 6 },
-  { id: 'lantern_fern_post', count: 4 },
-  { id: 'bio_forge_station', count: 1 },
-  { id: 'vine_ladder', count: 4 },
-  { id: 'seed_bounce_shroom', count: 2 },
   // Worn from minute one (Adam's pin, 2026-10-14): the gauntlet is
   // issued equipment, not a craft — its upgrade is the craft.
   { id: 'field_synthesizer_gauntlet', count: 1 },
 ] as const;
+
+// The DEBUG KIT: the pre-throttle starter pouch, kept whole for
+// development. App's backquote (`) key swaps the pouch to this and
+// back; saves always record the REAL pouch, never the kit. It also
+// carries the five gauntlet modules + the Graft, so a debug
+// session can stand at the top of the ladder without climbing it.
+export const DEBUG_KIT: Record<ItemId, number> = {
+  resin_sap: 12,
+  vibrant_petal: 10,
+  sweet_nectar: 8,
+  soft_fiber: 16,
+  dew_essence: 8,
+  basic_compost: 12,
+  bio_pellet: 6,
+  carapace_scale: 4,
+  growth_fertilizer: 4,
+  yield_fertilizer: 2,
+  seed_lantern_fern: 5,
+  seed_sap_weaver: 4,
+  seed_petal_mill: 4,
+  root_tile_floor: 16,
+  chitin_glass_wall: 8,
+  iris_slit_door: 2,
+  cultivation_mound: 6,
+  lantern_fern_post: 4,
+  bio_forge_station: 1,
+  vine_ladder: 4,
+  seed_bounce_shroom: 2,
+  field_synthesizer_gauntlet: 1,
+  gauntlet_scanner_module: 1,
+  gauntlet_planter_module: 1,
+  gauntlet_builder_module: 1,
+  gauntlet_solvent_module: 1,
+  gauntlet_lure_module: 1,
+  gauntlet_synthesizer_upgrade: 1,
+  // (A partial map asserted whole, the inventory system's standing
+  // convention — absent ids read as zero.)
+} as Record<ItemId, number>;
 
 export const BIOMES = [
   {

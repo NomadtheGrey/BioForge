@@ -28,7 +28,7 @@
 // ============================================================================
 
 import { createSeededRandom, hashStringToSeed } from './motion';
-import type { BiomeId } from './biomes';
+import { RARITY_ROLL_WEIGHT, variantsForFamily, type BiomeId, type BiomeVariantDef } from './biomes';
 
 export interface ZoneCoords {
   zx: number;
@@ -37,6 +37,8 @@ export interface ZoneCoords {
 
 export interface ZoneInfo extends ZoneCoords {
   biome: BiomeId;
+  /** The zone's variant, when it rolled one (null = plain family). */
+  variant: BiomeVariantDef | null;
   name: string;
   /** Zone-graph distance from the spawn zone (Manhattan / BFS hops). */
   hops: number;
@@ -128,9 +130,39 @@ export const ZONE_NAME_PARTS: Record<BiomeId, { first: string[]; second: string[
   },
 };
 
+/**
+ * A zone's VARIANT: a sub-roll inside its family. Most zones are
+ * plain; an eligible zone (past the variant's minHops gate) rolls
+ * its family's variants by rarity weight against staying plain
+ * (weight 1). Pure function of seed + coordinates, own stream —
+ * asking about a variant never perturbs the family roll.
+ */
+export function zoneVariantAt(seedStr: string, zx: number, zz: number): BiomeVariantDef | null {
+  const hops = zoneHops(zx, zz);
+  if (hops === 0) return null; // home ground is plain meadow, always
+  const family = zoneBiomeAt(seedStr, zx, zz);
+  const options = variantsForFamily(family).filter((v) => hops >= v.minHops);
+  if (options.length === 0) return null;
+  const rng = createSeededRandom(hashStringToSeed(`${seedStr}:zone-variant:${zx},${zz}`));
+  const total = 1 + options.reduce((sum, v) => sum + RARITY_ROLL_WEIGHT[v.rarity], 0);
+  let roll = rng() * total;
+  if (roll < 1) return null; // the plain family zone wins the roll
+  roll -= 1;
+  for (const v of options) {
+    roll -= RARITY_ROLL_WEIGHT[v.rarity];
+    if (roll <= 0) return v;
+  }
+  return options[options.length - 1];
+}
+
+/** What the HUD calls a zone's kind: its variant when it has one. */
+export function zoneKindLabel(info: ZoneInfo): string {
+  return info.variant ? info.variant.name : biomeDisplayName(info.biome);
+}
+
 /** A zone's name: pure function of world seed + coordinates + biome. */
-export function zoneNameFor(seedStr: string, zx: number, zz: number, biome: BiomeId): string {
-  const parts = ZONE_NAME_PARTS[biome];
+export function zoneNameFor(seedStr: string, zx: number, zz: number, biome: BiomeId, variant?: BiomeVariantDef | null): string {
+  const parts = variant ? variant.nameParts : ZONE_NAME_PARTS[biome];
   const rng = createSeededRandom(hashStringToSeed(`${seedStr}:zone-name:${zx},${zz}`));
   const first = parts.first[Math.floor(rng() * parts.first.length)];
   const second = parts.second[Math.floor(rng() * parts.second.length)];
@@ -140,7 +172,8 @@ export function zoneNameFor(seedStr: string, zx: number, zz: number, biome: Biom
 /** Everything the game needs to know about a zone, in one lookup. */
 export function zoneInfo(seedStr: string, zx: number, zz: number): ZoneInfo {
   const biome = zoneBiomeAt(seedStr, zx, zz);
-  return { zx, zz, biome, name: zoneNameFor(seedStr, zx, zz, biome), hops: zoneHops(zx, zz) };
+  const variant = zoneVariantAt(seedStr, zx, zz);
+  return { zx, zz, biome, variant, name: zoneNameFor(seedStr, zx, zz, biome, variant), hops: zoneHops(zx, zz) };
 }
 
 /** Display form of a biome id: 'fungal' -> 'Fungal'. */
@@ -176,7 +209,7 @@ export function zoneHudLabels(
   const here = zoneInfo(seed, zone.zx, zone.zz);
   const name = zoneIdInstalled ? here.name : 'Unidentified Country';
   const biomeLabel = zoneIdInstalled
-    ? biomeDisplayName(here.biome)
+    ? zoneKindLabel(here)
     : 'Zone Identifier not installed — a helmet upgrade reads the land';
   // Within 10 m of the nearest border: the country beyond it.
   // North is -Z, per the minimap's orientation.
@@ -193,7 +226,7 @@ export function zoneHudLabels(
       edgeLabel = `${nearest.dir} — Unidentified Country`;
     } else {
       const beyond = zoneInfo(seed, nearest.zx, nearest.zz);
-      edgeLabel = `${nearest.dir} — ${beyond.name} · ${biomeDisplayName(beyond.biome)}`;
+      edgeLabel = `${nearest.dir} — ${beyond.name} · ${zoneKindLabel(beyond)}`;
     }
   }
   return { name, biomeLabel, coordsLabel, edgeLabel };

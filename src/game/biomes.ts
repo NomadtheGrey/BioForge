@@ -40,8 +40,9 @@ export interface BiomeDef {
    * The biome-graph facts (Adam, 2026-10-15): the four shipped
    * types are FAMILIES — the top level of the biome matrix — and
    * biomes are TIERED by nature: four shells of rising danger,
-   * exoticness, and rarity around the spawn zone (I Hearthlands,
-   * II The Wilds, III Strange Country, IV The Far Weird). The
+   * exoticness, and rarity around the spawn zone — tiers 0-3, to
+   * match the crafting tiers (Adam, 2026-10-15): 0 Hearthlands,
+   * 1 The Wilds, 2 Strange Country, 3 The Far Weird. The
    * tier is the coarse dial — other systems (cave size, ruin
    * size, clue and artifact density) will read a zone's tier to
    * scale themselves — while MINIMUM DISTANCE (in zone hops) is
@@ -52,22 +53,22 @@ export interface BiomeDef {
    * and zones.ts' band table must agree with minHops: a biome's
    * first band appearance IS its minHops.
    */
-  tier: 1 | 2 | 3 | 4;
+  tier: 0 | 1 | 2 | 3;
   minHops: number;
   rarity: BiomeRarity;
 }
 
 /** The biome table — the rules live here, tunable in one place. */
 export const BIOMES: BiomeDef[] = [
-  { id: 'meadow', floraDensity: 1.2, faunaDensity: 1.2, tier: 1, minHops: 0, rarity: 'common' }, // starter: fertile, alive
-  { id: 'wetland', floraDensity: 1.1, faunaDensity: 1.0, tier: 1, minHops: 1, rarity: 'common' }, // lush, soggy
-  { id: 'fungal', floraDensity: 1.0, faunaDensity: 0.8, tier: 2, minHops: 2, rarity: 'common' }, // sparser life in the dark
-  { id: 'ember', floraDensity: 0.8, faunaDensity: 0.9, tier: 3, minHops: 3, rarity: 'uncommon' }, // harsher ground, thinner cover
+  { id: 'meadow', floraDensity: 1.2, faunaDensity: 1.2, tier: 0, minHops: 0, rarity: 'common' }, // starter: fertile, alive
+  { id: 'wetland', floraDensity: 1.1, faunaDensity: 1.0, tier: 0, minHops: 1, rarity: 'common' }, // lush, soggy
+  { id: 'fungal', floraDensity: 1.0, faunaDensity: 0.8, tier: 1, minHops: 2, rarity: 'common' }, // sparser life in the dark
+  { id: 'ember', floraDensity: 0.8, faunaDensity: 0.9, tier: 2, minHops: 3, rarity: 'uncommon' }, // harsher ground, thinner cover
 ];
 
-/** A biome's exoticness/danger tier (1 = hearthlands … 4 = far weird). */
+/** A biome's exoticness/danger tier (0 = hearthlands … 3 = far weird). */
 export function biomeTier(id: BiomeId): number {
-  return BIOMES.find((b) => b.id === id)?.tier ?? 1;
+  return BIOMES.find((b) => b.id === id)?.tier ?? 0;
 }
 
 /** A biome's minimum distance from the spawn zone, in hops. */
@@ -97,6 +98,84 @@ export const BIOME_TINTS: Record<BiomeId, { color: number; strength: number }> =
 
 /** Weight bonus a biome-affined species gets inside its home biome(s). */
 export const BIOME_HOME_BONUS = 1.5;
+
+// ---------------------------------------------------------------------------
+// Variants — a family's special places (Adam's biome graph, 2026-10-15)
+// ---------------------------------------------------------------------------
+//
+// A VARIANT is a rarer, more specific flavor of its family: same
+// rule skeleton, own name, own tint, density deltas, and ONE
+// signature twist. The twist is an EFFECT key where the variant
+// touches the player directly — Adam's examples: one variant taxes
+// your health, another your stamina, another makes you sluggish.
+// The effect's mechanics live where the player state lives (the
+// game loop); this registry only declares WHICH effect a variant
+// carries, so data and behavior stay in their own houses.
+//
+// A zone rolls its variant AFTER its family (zones.ts
+// zoneVariantAt), from its family's variants whose minHops gate it
+// has passed, weighted by rarity against staying a plain family
+// zone (weight 1) — most eligible zones stay plain.
+
+/** The player-facing effect a variant carries, if any. */
+export type BiomeEffectId = 'spore_stamina';
+
+export interface BiomeVariantDef {
+  id: string;
+  family: BiomeId;
+  /** Display name — HUD labels and zone names speak this. */
+  name: string;
+  /** Distance gate, in hops from spawn — never nearer than family. */
+  minHops: number;
+  rarity: BiomeRarity;
+  /** Ground tint while the zone wears this variant (replaces family). */
+  tint: { color: number; strength: number };
+  /** Multipliers over the family's density factors. */
+  floraDensityMult: number;
+  faunaDensityMult: number;
+  effect: BiomeEffectId | null;
+  /** Zone-name pools for zones of this variant. */
+  nameParts: { first: string[]; second: string[] };
+}
+
+/** Roll weight per rarity class (against the plain-zone weight 1). */
+export const RARITY_ROLL_WEIGHT: Record<BiomeRarity, number> = {
+  common: 1,
+  uncommon: 0.55,
+  rare: 0.25,
+};
+
+export const BIOME_VARIANTS: BiomeVariantDef[] = [
+  {
+    // FUNGAL HOLLOW (Adam's first variant, 2026-10-15): the fungal
+    // family's deep place — giant mushrooms of several strange
+    // kinds (all harvestable), and spore-thick air that taxes
+    // stamina until a helmet + filter upgrade answers it.
+    id: 'fungal_hollow',
+    family: 'fungal',
+    name: 'Fungal Hollow',
+    minHops: 3,
+    rarity: 'uncommon',
+    tint: { color: 0x5b21b6, strength: 0.65 }, // deeper violet than family fungal
+    floraDensityMult: 1.15, // the hollow grows THICK
+    faunaDensityMult: 0.8, // ...and its animals keep their distance
+    effect: 'spore_stamina',
+    nameParts: {
+      first: ['Spore', 'Umbral', 'Violet', 'Silent', 'Pale'],
+      second: ['Hollow', 'Cathedral', 'Thicket', 'Vault', 'Deep'],
+    },
+  },
+];
+
+/** A variant definition by id. */
+export function variantById(id: string): BiomeVariantDef | undefined {
+  return BIOME_VARIANTS.find((v) => v.id === id);
+}
+
+/** All variants belonging to one family. */
+export function variantsForFamily(family: BiomeId): BiomeVariantDef[] {
+  return BIOME_VARIANTS.filter((v) => v.family === family);
+}
 
 /** Position-acceptance multiplier for a biome (density is a biome rule). */
 export function biomeDensityFactor(kind: 'flora' | 'fauna', biomeId: BiomeId): number {

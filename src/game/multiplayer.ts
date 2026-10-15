@@ -51,10 +51,14 @@ export interface MultiplayerCallbacks {
   onBuildRemoved?: (structureId: string) => void;
   onFloraHarvested?: (floraId: string) => void;
   onFaunaTamed?: (faunaId: string, tamedBy: string) => void;
-  onWorldSync?: (data: { structures: StructureEntity[]; flora: FloraEntity[]; fauna: FaunaEntity[]; drops: DroppedItemEntity[]; dayNightCycle: number }) => void;
+  onWorldSync?: (data: { structures: StructureEntity[]; flora: FloraEntity[]; fauna: FaunaEntity[]; drops: DroppedItemEntity[]; dayNightCycle: number; zone?: string; zones?: Record<string, WorldSnapshot>; worldSeed?: string }) => void;
   onChatMessage?: (senderName: string, text: string, color: string) => void;
-  onEntityUpsert?: (kind: EntityKind, entity: EntitySnapshot) => void;
-  onEntityRemove?: (kind: EntityKind, id: string) => void;
+  // Entity events carry the SENDER's zone tag (zone travel,
+  // 2026-10-15): with players wandering different zones of the same
+  // world independently, an upsert is only meaningful in the zone it
+  // happened in. Receivers route on it (App owns the routing rules).
+  onEntityUpsert?: (kind: EntityKind, entity: EntitySnapshot, zone?: string) => void;
+  onEntityRemove?: (kind: EntityKind, id: string, zone?: string) => void;
   onDayNight?: (value: number) => void;
 }
 
@@ -71,6 +75,18 @@ export class MultiplayerManager {
   private seenMessageIds: Set<string> = new Set();
   private peers: Map<string, MultiplayerPeer> = new Map();
   private callbacks: MultiplayerCallbacks = {};
+  // The local player's current zone tag ('zone:zx,zz' on the surface,
+  // an instanceId inside a cave/ruin). App keeps this current via
+  // setCurrentZoneTag; every outgoing entity event is stamped with
+  // it centrally here, so the dozens of broadcast call sites in the
+  // hooks never have to know zones exist.
+  private currentZoneTag: string = 'surface';
+
+  /** Tell the manager which zone/instance the local player is in —
+   *  outgoing entity events are stamped with it. */
+  public setCurrentZoneTag(tag: string): void {
+    this.currentZoneTag = tag;
+  }
 
   constructor(callbacks: MultiplayerCallbacks = {}) {
     this.callbacks = callbacks;
@@ -363,6 +379,9 @@ export class MultiplayerManager {
               fauna: FaunaEntity[];
               drops: DroppedItemEntity[];
               dayNightCycle: number;
+              zone?: string;
+              zones?: Record<string, WorldSnapshot>;
+              worldSeed?: string;
             }
           );
         }
@@ -370,14 +389,14 @@ export class MultiplayerManager {
       }
 
       case 'entity_upsert': {
-        const { kind, entity } = msg.payload as { kind: EntityKind; entity: EntitySnapshot };
-        this.callbacks.onEntityUpsert?.(kind, entity);
+        const { kind, entity, zone } = msg.payload as { kind: EntityKind; entity: EntitySnapshot; zone?: string };
+        this.callbacks.onEntityUpsert?.(kind, entity, zone);
         break;
       }
 
       case 'entity_remove': {
-        const { kind, id } = msg.payload as { kind: EntityKind; id: string };
-        this.callbacks.onEntityRemove?.(kind, id);
+        const { kind, id, zone } = msg.payload as { kind: EntityKind; id: string; zone?: string };
+        this.callbacks.onEntityRemove?.(kind, id, zone);
         break;
       }
 
@@ -422,11 +441,11 @@ export class MultiplayerManager {
   }
 
   public broadcastEntityUpsert(kind: EntityKind, entity: EntitySnapshot) {
-    this.broadcastMessage('entity_upsert', { kind, entity });
+    this.broadcastMessage('entity_upsert', { kind, entity, zone: this.currentZoneTag });
   }
 
   public broadcastEntityRemove(kind: EntityKind, id: string) {
-    this.broadcastMessage('entity_remove', { kind, id });
+    this.broadcastMessage('entity_remove', { kind, id, zone: this.currentZoneTag });
   }
 
   public broadcastDayNight(value: number) {
@@ -436,13 +455,23 @@ export class MultiplayerManager {
   // Sends the host's whole world to a guest who just joined (their game
   // booted with the starter world, which is not the world the host is
   // playing in once saves exist). Guests apply it via onWorldSync.
-  public broadcastWorldSync(world: WorldSnapshot, dayNightCycle: number) {
+  // Zone travel (2026-10-15): the sync also carries WHERE the host is
+  // (zone key), the host's per-zone snapshots for every zone it has
+  // visited (zones), and the world seed — everything a guest needs to
+  // wander off independently and still generate the same wilderness
+  // the host would, with the host's changes waiting in visited zones.
+  public broadcastWorldSync(
+    world: WorldSnapshot,
+    dayNightCycle: number,
+    travel?: { zone: string; zones: Record<string, WorldSnapshot>; worldSeed: string }
+  ) {
     this.broadcastMessage('world_sync', {
       structures: world.structures,
       flora: world.flora,
       fauna: world.fauna,
       drops: world.drops,
       dayNightCycle,
+      ...(travel ? { zone: travel.zone, zones: travel.zones, worldSeed: travel.worldSeed } : {}),
     });
   }
 

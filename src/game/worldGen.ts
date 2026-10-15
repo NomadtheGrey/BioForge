@@ -73,7 +73,7 @@ import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
  *     layout in a different species cast; nobody had ever generated
  *     a second zone, so the sameness was theoretical until travel.
  */
-export const WORLD_GEN_VERSION = 8; // v8 (2026-10-15): saltglass, the 5th family, joins the zone bands
+export const WORLD_GEN_VERSION = 9; // v9 (2026-10-15): frost, the 6th built family, joins the bands at 3 hops (family gates cap at 3 — rarity does the far work)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -808,6 +808,40 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
         swayOffset: 800 + plantedReeds,
       });
       plantedReeds++;
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Ice Fangs spires (Frost, 2026-10-15) — variant-gated BONUS
+  // life: standing ice formations, source of nevermelt ice.
+  // ---------------------------------------------------------------------
+  if (zoneVariant?.id === 'frost_fangs') {
+    const fangRng = createSeededRandom(stream('flora:rimespire'));
+    let plantedSpires = 0;
+    for (let attempt = 0; attempt < 50 && plantedSpires < 6; attempt++) {
+      const x = (fangRng() * 2 - 1) * 44;
+      const z = (fangRng() * 2 - 1) * 44;
+      if (Math.hypot(x, z) < 8) continue;
+      if (flora.some((f) => Math.hypot(f.x - x, f.z - z) < 2.2)) continue;
+      flora.push({
+        id: `flora_rime_${plantedSpires}`,
+        species: 'rime_spire',
+        x,
+        z,
+        biome: zoneBiome,
+        rotation: fangRng() * Math.PI * 2,
+        scale: 1.1 + fangRng() * 0.7,
+        growthStage: 3,
+        growthProgress: 1,
+        fertilizedGrowth: false,
+        fertilizedYield: false,
+        fertilizerTimer: 0,
+        harvestReady: true,
+        harvestTimer: 0,
+        isHazardous: false,
+        swayOffset: 900 + plantedSpires,
+      });
+      plantedSpires++;
     }
   }
 

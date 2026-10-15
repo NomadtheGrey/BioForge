@@ -351,6 +351,23 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'rime_spire': {
+        // Ice Fangs (Frost, 2026-10-15): a frozen geyser — clustered
+        // ice teeth leaning from a shared base, translucent pale
+        // blue with a brighter core tooth.
+        const iceMat = new THREE.MeshStandardMaterial({ color: 0xcfe8fa, transparent: true, opacity: 0.8, roughness: 0.25, metalness: 0.1, emissive: 0x8fc3e8, emissiveIntensity: 0.3 });
+        const coreIceMat = new THREE.MeshStandardMaterial({ color: 0xeaf7ff, transparent: true, opacity: 0.9, roughness: 0.15, emissive: 0xa5d8ff, emissiveIntensity: 0.5 });
+        for (let i = 0; i < 4; i++) {
+          const tooth = new THREE.Mesh(new THREE.ConeGeometry(0.16 - i * 0.02, 1.3 - i * 0.18, 6), i === 0 ? coreIceMat : iceMat);
+          const a = (i / 4) * Math.PI * 2 + 0.4;
+          tooth.position.set(Math.cos(a) * 0.18, 0.6 - i * 0.06, Math.sin(a) * 0.18);
+          tooth.rotation.set(Math.sin(a) * 0.18, 0, -Math.cos(a) * 0.18);
+          tooth.castShadow = true;
+          group.add(tooth);
+        }
+        break;
+      }
+
       case 'prism_reed': {
         // Prism Beds (Saltglass, 2026-10-15): a cluster of crystal
         // blades — translucent cones leaning at seeded angles

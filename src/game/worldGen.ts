@@ -73,7 +73,7 @@ import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
  *     layout in a different species cast; nobody had ever generated
  *     a second zone, so the sameness was theoretical until travel.
  */
-export const WORLD_GEN_VERSION = 11; // v11 (2026-10-15): precursor, the 8th built family — the gardens join the bands at 3 hops
+export const WORLD_GEN_VERSION = 12; // v12 (2026-10-15): bone, the 9th built family — graveyard country joins the bands at 3 hops
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -1121,6 +1121,43 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
   }
 
   // ---------------------------------------------------------------------
+  // Gravebloom stands (Bone, 2026-10-15) — family-wide BONUS
+  // life: pale flowers rooted in bone, thickest in the Marrow
+  // Flats. Plus the family's SCENERY: fragments in every bone
+  // zone, and in the Graveyard, the one impossible skeleton.
+  // ---------------------------------------------------------------------
+  if (zoneBiome === 'bone') {
+    const graveRng = createSeededRandom(stream('flora:gravebloom'));
+    const graveCount = zoneVariant?.id === 'marrow_flats' ? 9
+      : zoneVariant?.id === 'leviathan_graveyard' ? 7
+      : zoneVariant?.id === 'bonefields' ? 5 : 4;
+    let plantedGrave = 0;
+    for (let attempt = 0; attempt < graveCount * 6 && plantedGrave < graveCount; attempt++) {
+      const x = (graveRng() * 2 - 1) * 44;
+      const z = (graveRng() * 2 - 1) * 44;
+      if (flora.some((f) => Math.hypot(f.x - x, f.z - z) < 1.4)) continue;
+      flora.push({
+        id: `flora_gravebloom_${plantedGrave}`,
+        species: 'gravebloom',
+        x, z,
+        biome: zoneBiome,
+        rotation: graveRng() * Math.PI * 2,
+        scale: 0.9 + graveRng() * 0.5,
+        growthStage: 3,
+        growthProgress: 1,
+        fertilizedGrowth: false,
+        fertilizedYield: false,
+        fertilizerTimer: 0,
+        harvestReady: true,
+        harvestTimer: 0,
+        isHazardous: false,
+        swayOffset: 1300 + plantedGrave,
+      });
+      plantedGrave++;
+    }
+  }
+
+  // ---------------------------------------------------------------------
   // Tender husks (Precursor, 2026-10-15, Adam's ruling) — there
   // are no machines on this planet. The tenders were FORGED
   // creatures: grown, purpose-shaped for garden work, biggish —
@@ -1156,10 +1193,48 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
     }
   }
 
+  // Bone scenery (Bone, 2026-10-15): fragments scattered through
+  // every bone zone; the LEVIATHAN only in its Graveyard — one
+  // impossible skeleton per graveyard zone (the variant is rare;
+  // rarity is the scarcity, per Adam's call).
+  const boneStructures: StructureEntity[] = [];
+  if (zoneBiome === 'bone') {
+    const boneRng = createSeededRandom(stream('structures:bonescenery'));
+    if (zoneVariant?.id === 'leviathan_graveyard') {
+      const lx = (boneRng() * 2 - 1) * 16;
+      const lz = (boneRng() * 2 - 1) * 16;
+      boneStructures.push({
+        id: `leviathan_${zoneZx}_${zoneZz}`,
+        type: 'leviathan_ribs',
+        gridX: Math.round(lx / 2), gridZ: Math.round(lz / 2),
+        worldX: lx, worldZ: lz,
+        rotation: boneRng() * Math.PI * 2,
+        level: 0, health: 9999, maxHealth: 9999, doorOpenProgress: 0,
+      });
+    }
+    const fragCount = zoneVariant?.id === 'bonefields' ? 8 : 5;
+    let placedFrags = 0;
+    for (let attempt = 0; attempt < fragCount * 6 && placedFrags < fragCount; attempt++) {
+      const x = (boneRng() * 2 - 1) * 42;
+      const z = (boneRng() * 2 - 1) * 42;
+      if (boneStructures.some((st) => Math.hypot(st.worldX - x, st.worldZ - z) < 8)) continue;
+      if ([...structures, ...ruinStructures].some((st) => Math.hypot(st.worldX - x, st.worldZ - z) < 5)) continue;
+      boneStructures.push({
+        id: `bonefrag_${zoneZx}_${zoneZz}_${placedFrags}`,
+        type: 'bone_fragment',
+        gridX: Math.round(x / 2), gridZ: Math.round(z / 2),
+        worldX: x, worldZ: z,
+        rotation: boneRng() * Math.PI * 2,
+        level: 0, health: 9999, maxHealth: 9999, doorOpenProgress: 0,
+      });
+      placedFrags++;
+    }
+  }
+
   return {
     flora: [...flora, ...caveFlora],
     fauna,
-    structures: [...structures, ...ruinStructures, ...bridgeStructures, ...huskStructures],
+    structures: [...structures, ...ruinStructures, ...bridgeStructures, ...huskStructures, ...boneStructures],
     relaxedPlacements: floraScatter.relaxed + faunaScatter.relaxed,
   };
 }

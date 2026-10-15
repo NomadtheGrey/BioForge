@@ -351,6 +351,31 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'gravebloom': {
+        // Bone (2026-10-15): a flower rooted in bone — a pale rib
+        // shard for a base, bleached-silk petals, a marrow-gold
+        // heart. Death, composted into something gentle.
+        const boneMat3 = new THREE.MeshStandardMaterial({ color: 0xe8e2d0, roughness: 0.95 });
+        const petalMat3 = new THREE.MeshStandardMaterial({ color: 0xf1ead8, roughness: 0.6, emissive: 0xcfc39e, emissiveIntensity: 0.25 });
+        const heartMat2 = new THREE.MeshStandardMaterial({ color: 0xd9a441, roughness: 0.4, emissive: 0xb9832f, emissiveIntensity: 0.7 });
+        const shard = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.05, 5, 10, Math.PI), boneMat3);
+        shard.position.y = 0.05; shard.rotation.z = 0.4; group.add(shard);
+        const stem4 = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.045, 0.6, 6), new THREE.MeshStandardMaterial({ color: 0xb9ac8c, roughness: 0.9 }));
+        stem4.position.y = 0.35; stem4.castShadow = true; group.add(stem4);
+        for (let i = 0; i < 6; i++) {
+          const petal = new THREE.Mesh(new THREE.SphereGeometry(0.13, 6, 5), petalMat3);
+          const a = (i / 6) * Math.PI * 2;
+          petal.position.set(Math.cos(a) * 0.13, 0.68, Math.sin(a) * 0.13);
+          petal.scale.set(1, 0.45, 0.7);
+          petal.rotation.y = -a;
+          group.add(petal);
+        }
+        const heart = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 6), heartMat2);
+        heart.position.y = 0.72; heart.scale.y = 0.8;
+        group.add(heart);
+        break;
+      }
+
       case 'precursor_bloom': {
         // Precursor (2026-10-15): a too-perfect flower — eight
         // IDENTICAL petal boxes rotated at exact 45-degree steps

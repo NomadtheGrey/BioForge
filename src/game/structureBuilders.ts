@@ -156,6 +156,43 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       }
       return group;
     },
+    // Bone fragment (2026-10-15): a half-buried rib and shards —
+    // the small change of Bone country, scattered everywhere.
+    'bone_fragment': () => {
+      const group = new THREE.Group();
+      const boneMat = new THREE.MeshStandardMaterial({ color: 0xe2dac6, roughness: 0.95 });
+      const rib = new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.08, 6, 12, Math.PI), boneMat);
+      rib.position.y = -0.15; rib.rotation.y = Math.PI / 2; rib.castShadow = true; group.add(rib);
+      const shard1 = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.14, 0.22), boneMat);
+      shard1.position.set(0.5, 0.08, 0.4); shard1.rotation.y = 0.7; group.add(shard1);
+      const shard2 = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.12, 0.18), boneMat);
+      shard2.position.set(-0.45, 0.06, -0.3); shard2.rotation.y = -0.4; group.add(shard2);
+      return group;
+    },
+    // The Leviathan (2026-10-15): ONE impossible skeleton — the
+    // tender husk's visual language at ten times the scale. Ribs
+    // seven meters tall you walk UNDER, vertebra discs along a
+    // spine line, and a skull like a house at the head.
+    'leviathan_ribs': () => {
+      const group = new THREE.Group();
+      const boneMat = new THREE.MeshStandardMaterial({ color: 0xe6dfca, roughness: 0.95 });
+      const darkMat = new THREE.MeshStandardMaterial({ color: 0xa3987c, roughness: 1 });
+      for (let i = 0; i < 7; i++) {
+        const t = i / 6;
+        const radius = 5.2 + Math.sin(t * Math.PI) * 2.1;
+        const rib = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.32, 7, 16, Math.PI), boneMat);
+        rib.position.set(0, -1.6, -9 + i * 3);
+        rib.rotation.y = Math.PI / 2;
+        rib.castShadow = true; group.add(rib);
+        const vert = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.05, 0.7, 10), darkMat);
+        vert.position.set(0, 0.1, -9 + i * 3); vert.castShadow = true; group.add(vert);
+      }
+      const skull = new THREE.Mesh(new THREE.SphereGeometry(2.6, 10, 8), boneMat);
+      skull.position.set(0, 1.2, 11.5); skull.scale.set(0.85, 0.75, 1.35); skull.castShadow = true; group.add(skull);
+      const jaw = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.5, 4.2), darkMat);
+      jaw.position.set(0, 0.25, 12.5); jaw.rotation.x = 0.12; group.add(jaw);
+      return group;
+    },
     // The portal home inside an instanced cavern: a standing ring of
     // dark rock and violet light (kin to the iris door's frame, so it
     // reads as "door" at a glance), with a translucent inner disc —

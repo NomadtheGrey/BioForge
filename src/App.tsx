@@ -634,32 +634,46 @@ const {
   // the engine-wiring effects live in the hook now. It returns
   // nothing: the loop reads the world through refs and writes back
   // through the same refs and setters it always used.
-  // Fungal Hollow spore air (Adam, 2026-10-15): the loop reads this
-  // ref each tick to tax stamina in a spore-effect variant zone; the
-  // effect below keeps it honest as the player crosses zones, and
-  // posts the one-time-per-world alert naming the eventual answer
-  // (a helmet with a filter upgrade).
+  // Variant effects (Adam, 2026-10-15): each variant carries ONE
+  // player-facing effect; the loop reads these refs each tick. The
+  // effect below keeps them honest as the player crosses zones and
+  // posts each variant's one-time-per-world alert — which always
+  // names the eventual gear answer (a helmet filter for spores,
+  // Waders boots for the marsh drag).
   const sporeStaminaRef = useRef(false);
-  const sporeAlertedSeedRef = useRef<string | null>(null);
+  const marshSluggishRef = useRef(false);
+  const variantAlertedRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     const variant = sessionSeed ? zoneVariantAt(sessionSeed, playerZone.zx, playerZone.zz) : null;
-    const inSpores = variant?.effect === 'spore_stamina';
-    sporeStaminaRef.current = inSpores;
-    if (inSpores && sporeAlertedSeedRef.current !== sessionSeed) {
-      sporeAlertedSeedRef.current = sessionSeed;
-      postNotification(
-        'Spore-Thick Air',
-        'Spore-thick air fills this Fungal Hollow, and it taxes your stamina as you move. A helmet with a filter upgrade will answer it; until then, cross briskly and rest at the edges.',
-        'system',
-        '#a78bfa',
-      );
+    sporeStaminaRef.current = variant?.effect === 'spore_stamina';
+    marshSluggishRef.current = variant?.effect === 'marsh_sluggish';
+    if (variant && sessionSeed) {
+      const key = `${sessionSeed}:${variant.id}`;
+      if (!variantAlertedRef.current.has(key)) {
+        variantAlertedRef.current.add(key);
+        if (variant.id === 'fungal_hollow') {
+          postNotification(
+            'Spore-Thick Air',
+            'Spore-thick air fills this Fungal Hollow, and it taxes your stamina as you move. A helmet with a filter upgrade will answer it; until then, cross briskly and rest at the edges.',
+            'system',
+            '#a78bfa',
+          );
+        } else if (variant.id === 'mirror_marsh') {
+          postNotification(
+            'The Mirror Marsh',
+            'Still pools double the reach of every light here — but the wading drags at your stride. Boots with Waders will answer the drag someday.',
+            'system',
+            '#7dd3c8',
+          );
+        }
+      }
     }
   }, [sessionSeed, playerZone, postNotification]);
 
   useGameLoop({
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
     jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, lastStaminaSync,
-    sprinting, sporeStaminaRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
+    sprinting, sporeStaminaRef, marshSluggishRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef,

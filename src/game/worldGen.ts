@@ -643,6 +643,70 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
   }
 
   // ---------------------------------------------------------------------
+  // Mirror Marsh life (Adam, 2026-10-15) — variant-gated BONUS life:
+  // mirror lilies floating on their reflective pools (the pool IS
+  // the lily's mesh — a silver disc under the pads), and pollinator
+  // moths drifting over the water, drawn to the doubled light.
+  // ---------------------------------------------------------------------
+  if (zoneVariant?.id === 'mirror_marsh') {
+    const marshRng = createSeededRandom(stream('flora:mirrorlily'));
+    let plantedLilies = 0;
+    for (let attempt = 0; attempt < 60 && plantedLilies < 8; attempt++) {
+      const x = (marshRng() * 2 - 1) * 44;
+      const z = (marshRng() * 2 - 1) * 44;
+      if (Math.hypot(x, z) < 8) continue;
+      if (flora.some((f) => Math.hypot(f.x - x, f.z - z) < 2.2)) continue;
+      flora.push({
+        id: `flora_lily_${plantedLilies}`,
+        species: 'mirror_lily',
+        x,
+        z,
+        biome: zoneBiome,
+        rotation: marshRng() * Math.PI * 2,
+        scale: 1.0 + marshRng() * 0.5,
+        growthStage: 3,
+        growthProgress: 1,
+        fertilizedGrowth: false,
+        fertilizedYield: false,
+        fertilizerTimer: 0,
+        harvestReady: true,
+        harvestTimer: 0,
+        isHazardous: false,
+        swayOffset: 500 + plantedLilies,
+      });
+      plantedLilies++;
+    }
+    const mothRng = createSeededRandom(stream('fauna:mirrormoth'));
+    for (let m = 0; m < 3; m++) {
+      for (let attempt = 0; attempt < 40; attempt++) {
+        const x = (mothRng() * 2 - 1) * 44;
+        const z = (mothRng() * 2 - 1) * 44;
+        if (Math.hypot(x, z) < 10) continue;
+        if (fauna.some((f) => Math.hypot(f.x - x, f.z - z) < 4)) continue;
+        fauna.push({
+          id: `fauna_moth_${m + 1}`,
+          species: 'mirror_moth',
+          x,
+          z,
+          biome: zoneBiome,
+          y: 0,
+          rotation: mothRng() * Math.PI * 2,
+          state: 'wandering',
+          isTamed: false,
+          targetX: x,
+          targetZ: z,
+          speed: 1.1 + (mothRng() * 2 - 1) * 0.1, // slow drifters
+          health: 30,
+          maxHealth: 30,
+          byproductTimer: 0,
+          animTime: 0,
+        });
+        break;
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------
   // Cave mouths (P3, surface half) — grown LAST, once the surface they
   // must respect exists: mouths keep their footprint clear of the
   // homestead (spawn zone only — it's the only zone with one) and of

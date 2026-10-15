@@ -124,3 +124,35 @@ fauna while players watch from lit doorways, or never appear at all.
 Untamables are also what world-event hordes are made of (see "World events"
 in BIOMES_BRAINSTORM.md), and they give guard pets something real to engage
 in Normal mode.
+
+## Shipped species — behavior stubs (biome program, 2026-10-15)
+
+Stubs for fauna the BIOME program shipped, written by the background
+chat under Adam's delegation ("use your best judgement on the spectra")
+so the design chat inherits them instead of rediscovering them. The
+spectra are Marlowe's calls, open to revision here: temperament
+(aggressive <-> timid), social (pack <-> solo), speed, locomotion.
+Full codex text for each lives in-game (constants.ts INITIAL_CODEX).
+
+**Mirror Moth** (Mirror Marsh, shipped 2026-10-15)
+- Habitat: Mirror Marsh zones only; drifts pool to pool.
+- Temperament: fully timid — no aggression at any difficulty.
+- Social: loose gatherings (2-3 drift the same pools; no pack bond).
+- Speed: slow (1.1). Locomotion: flying — low hover-drift.
+- Hook: drawn to light (the marsh's doubled reach is its weather);
+  sheds Dew Essence ~every 50 s, wild or tame — the marsh provides.
+- Toolbox links: Pollinator rounds; Light-drinking.
+
+**Vesper Glider** (meadow/fungal zones, shipped 2026-10-14)
+- Habitat: meadow and fungal zones; never the spawn zone.
+- Temperament: wary — flees contact; never aggressive.
+- Social: solo. Speed: fast (2.6). Locomotion: flying — glide + bob.
+- Hook: dusk creature in flavor; sheds Sonar Vanes ~every 45 s, wild
+  or tame (the radar's supply chain must never require harming one).
+- Toolbox links: Sleep schedules (nocturnal flavor, not yet real).
+
+Biome-born FLORA with behavior interest (for completeness): the
+Fungal Hollow trio — Antenna Shroom (senses the air), Visor Shroom
+(the almost-face; watches nothing, probably), Shelf Shroom (the
+future climbable) — and the Mirror Lily (cups light, beads dew).
+Flora behavior proper belongs to the Living Valley design.

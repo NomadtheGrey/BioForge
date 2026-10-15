@@ -1355,3 +1355,309 @@ twenty-four citizens and every family gains its
 rose. Roster designed total: 240. The fungus flood
 follows next, by Adam's order — the third kingdom's
 census, at the same scale.
+
+## Twenty-first roster pass — Flora Flood Two (24)
+
+Adam's arithmetic, accepted in the header where it
+belongs: 86 kinds of place (11 families, ~20 named
+variants, 55 hybrid countries) — and Flood One's 24
+was a first wave, not a census. Flood Two plants the
+PLACES: variant flora specialists and hybrid-country
+flora, so the named corners of the world have their
+own green citizens and not only their families' cast.
+The rose system extends with them — variants and
+hybrids grow roses of their own now, and the census
+of roses stands at nine (Silt, Thaw, Dust, Doorstep,
+Feral, Obsidian, Mulch, Brine, Hedge).
+
+**241. Scar Orchid** — Ember (the Ember Scar).
+*Flora* x Ordinary. Plantiform (orchid plan);
+modifier: vent-rimmed — it grows on the Scar's vent
+rims, in the steam's edge, blooming in the heat's
+own breath (the Vent Wisp's congregation: wisps
+gather at its blooms, and what the wisp carries away
+is the orchid's pollen — the Scar's weather doing
+the flowers' errands). Stationary. Harvest: fallen
+blooms, **Scar Bloom** (new item) — steam-cured,
+smoke-sweet, the vent country's small luxury.
+
+**242. Ashveil** — Ember (the Ashen Drift). *Flora*
+x Ordinary. Plantiform (a felt-mat ground cover);
+modifier: drift-laid — it covers ash fields in gray
+sheets like a second, softer snow (the Ashswimmer
+dives through it; its shed trail is read in the
+veil's parting — the Drift's citizens navigate by
+which ash is GROWING). Stationary, creeping.
+Harvest: cut felt, unlisted — insulation and
+wrapping grade, the Drift's gray harvest.
+
+**243. Chime Reed** — Storm (the Charged Flats).
+*Flora* x Ordinary. Plantiform (reed plan);
+modifier: charge-tuned — its hollow stems ring
+faintly as charge gathers, a breath BEFORE the
+zot's banner (the Stormcatcher drinks the lightning;
+the chime reed ANNOUNCES it — the flats' warning
+system gains its quietest voice, and the Zot
+Hoppers shelter by the reed's note when the banner
+is hidden by weather). Stationary. Harvest: cut
+stems, **Chime Straw** (new item) — for pipes and
+calls, the Gale Straw's flats cousin.
+
+**244. Compass Cress** — Storm (the Magnetic Dunes).
+*Flora* x Crystalline. Plantiform (a low cress);
+modifier: needle-leaved — its leaves align to the
+magnetic field, all pointing one way: a dune of
+compass cress is a compass the size of a field
+(the Dunes are where navigation dies; the cress is
+the country's answer, grown — caravans plant it at
+every camp and read their mornings by it).
+Stationary. Harvest: leaves, unlisted — a peppery
+trail green; the yield is the direction.
+
+**245. Sky Lily** — Storm (Skyfall Basin). *Flora*
+x Ordinary. Plantiform (lily plan); modifier:
+up-rain blooming — it opens its cups to the falling
+UP-rain and drinks the sky's delivery directly
+(the Raincatcher's congregation at flower scale;
+its cups are the Basin's rain gauges, and the Sky
+Jellies shelter in its shade between falls).
+Stationary. Harvest: cup-water and petals, unlisted
+— the Basin's refreshment stand, self-filling.
+
+**246. Prism Moss** — Saltglass (the Prism Beds).
+*Flora* x Ordinary. Plantiform (moss plan);
+modifier: light-sorting — a living film that breaks
+noon into color patches on the Beds' floors (the
+Prism Frog's hunting light and the Beds' famous
+floor: it is not that the Beds are rainbow — it is
+that the moss MAKES them so, and a bed without moss
+is only glass). Stationary, spreading. Cultivation:
+a film-scraping transplants with difficulty and
+gratitude. Harvest: none — the Beds' color is a
+citizen, not a crop.
+
+**247. Fang Fern** — Frost (the Ice Fangs). *Flora*
+x Ordinary. Plantiform (fern plan); modifier:
+tooth-fronded — its fronds freeze into serrated ice
+teeth each night and thaw supple by day (the Fangs'
+own flora, keeping the geysers' schedule in
+vegetable form; Spire Bats roost OUT of its reach,
+and the entry notes the bats learned first).
+Stationary. Harvest: shed teeth-fronds, unlisted —
+the winter country's green ivory, carving grade.
+
+**248. Gloam Fern** — Rootwood (the Underroot).
+*Flora* x Ordinary. Plantiform (fern plan);
+modifier: gloom-lit — it glows a dim teal in the
+Underroot's dark, the understory's own light (the
+Gloom Slug's garden and landmark: slug trails and
+gloam ferns together are the dark country's whole
+road system, one laid by animals and one by plants,
+and travelers navigate by whichever is nearer).
+Stationary. Harvest: a frond, **Gloam Frond** (new
+item) — a week's dim light, carried: the Underroot's
+lantern for those without one.
+
+**249. Fall Orchid** — Rootwood (the Rootfall).
+*Flora* x Ordinary. Plantiform (orchid plan);
+modifier: giant-fed — it grows ONLY on the fallen
+giant's bark, in the rot-rich hollows of the
+Rootfall (the Rootfall Bear dens in its scent in
+orchid season, and the entry records the den's
+perfume as the country's strangest domestic detail).
+Stationary. Harvest: fallen blooms, unlisted —
+perfume grade, the bright twin of the Canopy
+Bloom's fall.
+
+**250. Deck Flower** — Rootwood (the bridges).
+*Flora* x Ordinary. Plantiform (a small hanging
+flower); modifier: underside-true — it blooms on
+the bridges' UNDERSIDES, in the shade below the
+crossing, so a bridge from beneath is a garden
+ceiling (the Deck Weaver's garden and parish: the
+weaver eats its pests and the flower feeds the
+weaver's prey — the underside stack, complete).
+Stationary. Harvest: none — the view from below IS
+the yield; the entry protects it in those words.
+
+**251. Feral Rose** — Precursor (the Untended) —
+the rose census's wild entry. *Flora* x Forged.
+Plantiform (rose plan, garden-bred); modifier:
+unruled — a Doorstep-class garden rose gone three
+centuries feral: it blooms in the wrong order, in
+colors the breeders never filed, THORNED past
+gardening (the Feral Tender prunes one bush of it,
+inexplicably, correctly — the staff's second act of
+nostalgia, and the Feral Warden's patrol slows at
+that bush, once a round, like a held breath).
+Stationary. Harvest: a cutting, if you can take
+one: planted at a homestead it reverts, in a
+generation, to a garden rose — the entry calls this
+the roster's one story of forgiveness, told by a
+plant.
+
+**252. Row Moss** — Precursor (the Tending Field).
+*Flora* x Ordinary. Plantiform (moss plan);
+modifier: spiral-true — it grows ONLY along the
+spiral rows, in the Tender's exact spacing, and
+nowhere else in the Field (the Path Beetle sweeps
+around it; the Second Tenant's half-beat walk is
+visible against its rows like a flaw in music —
+the moss is the Field's ruler, against which every
+citizen's step is measured). Stationary.
+Cultivation: it cannot be moved; it can only be
+inherited, with the row. Harvest: none.
+
+**253. Bone Orchid** — Bone (the Bonefields).
+*Flora* x Ordinary. Plantiform (orchid plan);
+modifier: meal-fed — it roots in bone-meal soil and
+blooms ivory-white at the fields' driest (the Dust
+Rose's cousin across the fields: rose at the wet
+edge, orchid at the dry — the Bonefields' two
+florists divide the country by thirst). Stationary.
+Harvest: blooms, **Bone Bloom** (new item) —
+carved-looking, scentless, kept for the far
+country's white work.
+
+**254. Marrow Reed** — Bone (the Marrow Flats).
+*Flora* x Ordinary. Plantiform (reed plan);
+modifier: pool-keeping — it stands in the Flats'
+pale pools and filters them opal (the Marrow Deer's
+drinking places are reed-kept, and the deer's rub-
+sites and the reed's stands map each other across
+the Flats like two halves of one survey).
+Stationary. Harvest: reed-down, unlisted — the
+Flats' soft stuff, stuffing grade.
+
+**255. Pale Sedge** — Bone (the Leviathan
+Graveyard). *Flora* x Ordinary. Plantiform (sedge
+plan); modifier: rib-shadowed — it grows in the
+ribs' long shadows and nowhere in open sun, so the
+Graveyard's floor is striped green along every
+skeleton's shade (the Rib Spider's lines cross it;
+the Skull Ants harvest its seeds on their treaty
+routes — the Graveyard's floor has a ground floor,
+and this is it). Stationary. Harvest: seeds,
+unlisted — ant-grade grain, and the ants' opinion
+is the entry's only review.
+
+**256. Ice Grass** — Frost (the Singing Ice).
+*Flora* x Ordinary. Plantiform (grass plan);
+modifier: ice-blooming — it grows IN the lake ice,
+blooming UNDER the surface in the clear depths, a
+meadow seen through glass (the Lake Glider skates
+over a garden; the Ice Maw's shadow crosses it; the
+entry notes the Singing Ice is the only variant
+whose flora is an exhibit, viewed from above, in
+winter light). Stationary. Harvest: thaw-season
+only, when the ice gives up its meadow: blades,
+unlisted, thatch grade — a year late, by design of
+the country.
+
+**257. Snow Cress** — Frost (the Stillwhite).
+*Flora* x Ordinary. Plantiform (a ground cress);
+modifier: snow-blooming — it flowers THROUGH the
+snowpack, tiny white bells on stems that melt their
+own chimneys up to the light (the Frost Vole's
+under-snow gardens and first spring: the vole
+tunnels to the cress chimneys the way sailors steer
+by lighthouses, in the dark, under everything).
+Stationary. Harvest: bells, unlisted — the white
+country's first green... its first ANYTHING, after
+the long still, eaten like news.
+
+**258. Obsidian Rose** — Ember (the Obsidian
+Garden) — the rose census's dark entry. *Flora* x
+Ordinary. Plantiform (rose plan); modifier:
+glass-petaled — its petals are black, glossy, and
+sharp-edged as the Garden's own soil (the Shardwing
+nests above it, and its shed shards and the rose's
+fallen petals are indistinguishable until one of
+them is picked up carelessly — the Garden's whole
+lesson in one handful). Stationary. Harvest: a
+petal, gloved: **Obsidian Petal** (new item) — the
+black work's material, edge and all.
+
+**259. Scald Fern** — Wetland x Ember (the Scalding
+Fens). *Flora* x Ordinary. Plantiform (fern plan);
+modifier: heat-rooted — it grows in the scalding
+shallows themselves, roots in water too hot for any
+other green thing (the Boiler Crab's garden fence:
+crabs nest in its shade and the fern drinks their
+pools' overflow — the Fens' smallest treaty).
+Stationary. Harvest: fronds, **Scald Frond** (new
+item) — a poultice that arrives warm: the Fens'
+medicine, self-heating.
+
+**260. Mulch Rose** — Meadow x Fungal (the
+Mulchwood) — the rose census's rich entry. *Flora*
+x Ordinary. Plantiform (rose plan); modifier:
+compost-crowned — it blooms out of the Mulch
+Beetles' finished compost, in beds the beetles make
+and the rose advertises (the Mulchwood's whole
+economy wearing a flower: beetle farms, rose
+blooms, Spore Wolves patrol the beds' edges like
+a fence with appetites). Stationary. Harvest:
+**Mulch Petal** (new item) — dried, it is the
+wood's potpourri and preservative both.
+
+**261. Brine Rose** — Wetland x Saltglass (the
+Brine Shallows) — the rose census's salt entry.
+*Flora* x Ordinary. Plantiform (rose plan);
+modifier: tide-timed — it blooms at low brine and
+closes at the flood, salt crystals growing on its
+petals between tides (the Brine Stilt steps around
+its beds with the care of a creature that knows
+the Shallows' one flower; the entry braids the
+stilt's famous wading to this one's beds).
+Stationary. Harvest: a bloom at low tide: **Brine
+Bloom** (new item) — salt-rose, the Shallows'
+seasoning and souvenir in one.
+
+**262. Hedge Rose** — Meadow x Rootwood (the
+Hedgewood). *Flora* x Ordinary — the rose census's
+KEYSTONE: Plantiform (rose plan, hedge-built);
+modifier: planted-by-walking — THIS is the species
+the Brambleback plants (the bramble of its entry,
+named at last): its seeds pass through the
+brambleback and sprout in its trail, growing into
+living hedges that are also rose walls (the
+Hedgewood is not a place with hedges; it is this
+rose, at country scale, with a citizen whose whole
+profession is planting it by walking). Stationary,
+spreading by beast. Harvest: hips, **Hedge Hip**
+(new item) — the hedge country's trail fruit,
+vitamin-bright, free along every hedge in the
+wood.
+
+**263. Frost Reed** — Wetland x Frost (the Cold
+Marsh). *Flora* x Ordinary. Plantiform (reed
+plan); modifier: ice-cored — its stems grow a core
+of clear ice through the cold months, standing as
+a field of pale tubes that hum faintly in wind
+(the Frost Newt's marsh music and shelter both —
+newts winter in its root-mat, the warmest address
+in the Cold Marsh, by the reed's own slow
+chemistry). Stationary. Harvest: spring stems,
+unlisted — flute-grade hollow, the cold country's
+small music, cousin to the chime straws.
+
+**264. Ironwood** — Ember x Storm (the Iron Ashes).
+*Flora* x Ordinary. Plantiform (tree plan);
+modifier: iron-hearted — its wood is dark, dense,
+and iron-veined from the Ashes' soil, growing at
+the speed of rust (Ironworms eat its fallen roots —
+the Ashes' industry has a forest, and the forest
+has a pest, and the Ironjaw rubs its plates on the
+trunks, polishing both: the hybrid country's whole
+stack, leaning on one tree). Stationary.
+Cultivation: a sapling in ash soil, decades to
+notice. Harvest: fallen limbs, **Ironwood** (item,
+its name) — the Ashes' beam-stock: what the far
+builders make sills of, because it neither burns
+nor rots at any reasonable speed.
+
+Flora Flood Two closes: 48 flood flora across two
+waves; variants and hybrid countries planted; the
+rose census at nine. Roster designed total: 264.
+The fungus flood follows, by Adam's order.

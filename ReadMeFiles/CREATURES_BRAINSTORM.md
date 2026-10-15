@@ -41,13 +41,13 @@ the biome program's shipped-behavior stubs and flora
 notes (this design inherits from it; it is a different
 file, kept by the biome chat).
 
-**Roster count:** 240 species designed (through the
-twentieth pass), plus the shipped cast already in
+**Roster count:** 264 species designed (through the
+twenty-first pass), plus the shipped cast already in
 the game. The hybrid graph stands complete (55 of 55
 pairings), the epic set is seated, the water column
-and the alien rivers are populated; Flora Flood One
-is in, and the fungus flood is next in the standing
-workstream. Layers complete so far: family emblems 11 of 11;
+and the alien rivers are populated; Flora Floods One
+and Two are in (48 new flora), and the fungus flood
+is next in the standing workstream. Layers complete so far: family emblems 11 of 11;
 a one-off for every built biome variant; hybrid
 creatures for 33 of 55 pairings; background casts under
 way in every family; and the wide-range (semi-

@@ -90,8 +90,11 @@ import { BONUS_SPAWN_SPECIES } from './species';
  * v19: creature build phase, slice 4 (2026-10-15) — eleven more
  *     species (three far emblems + six variant one-offs riding
  *     the gate). Table-only change; the generator learns nothing.
+ * v20: creature build phase, slice 5 (2026-10-15) — seven danger-
+ *     bench hunters join the table (the hunt system itself lives
+ *     in the sim hooks, not here). Table-only change again.
  */
-export const WORLD_GEN_VERSION = 19; // v19 (2026-10-15): creature slice 4 — eleven more table species; v18 was creature slice 3 (variant gate)
+export const WORLD_GEN_VERSION = 20; // v20 (2026-10-15): creature slice 5 — seven hunters join the table; v19 was creature slice 4
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

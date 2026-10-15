@@ -206,6 +206,18 @@ export default function App() {
   const [dayNightCycle, setDayNightCycle] = useState<number>(0.35);
   const [isMuted, setIsMuted] = useState(false);
   const [isPointerLocked, setIsPointerLocked] = useState(false);
+  // Touch-first devices (phones, tablets) have NO pointer lock —
+  // mouse-look's lock simply doesn't exist there. On such a device
+  // the game must run unlocked: no lock invitation, and the sim
+  // doesn't pause waiting for a lock that can never engage.
+  // Detected once from the primary pointer type ('coarse' = a
+  // finger is the main pointer; mouse-driven devices say 'fine').
+  const [touchMode] = useState<boolean>(
+    () =>
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(pointer: coarse)').matches
+  );
   const [hoverInfo, setHoverInfo] = useState<HoverTarget>(null);
 
   // Memoized workspace virtual file map for Developer Exporter Tool
@@ -261,6 +273,7 @@ export default function App() {
   const activeToolRef = useRef(playerState.activeTool);
   const selectedStructureRef = useRef(playerState.selectedStructureType);
   const isPointerLockedRef = useRef(isPointerLocked);
+  const touchModeRef = useRef(touchMode);
   const activeModalRef = useRef(activeModal);
   const structuresListRef = useRef(structuresList);
   const floraListRef = useRef(floraList);
@@ -1050,7 +1063,10 @@ export default function App() {
         if (!engineRef.current) return;
 
         // 1. Controller Update
-        const isPaused = !isPointerLockedRef.current || activeModalRef.current !== null;
+        // Paused while a modal is open — or, on mouse-driven
+        // devices, while the pointer is unlocked. Touch devices
+        // skip the lock half: they'd wait forever otherwise.
+        const isPaused = (!isPointerLockedRef.current && !touchModeRef.current) || activeModalRef.current !== null;
 
         const inputState: ControllerInputState = {
           forward: Boolean(keysPressed.current['w'] || keysPressed.current['arrowup']),
@@ -2089,7 +2105,8 @@ useEffect(() => {
           setIsMuted(next);
         }}
         isPointerLocked={isPointerLocked}
-        onRequestLock={() => engineRef.current?.requestPointerLock()}
+        touchMode={touchMode}
+        onRequestLock={() => { if (!touchMode) engineRef.current?.requestPointerLock(); }}
         hoverInfo={hoverInfo}
         hoverHint={hoverHint}
         notifications={notifications}

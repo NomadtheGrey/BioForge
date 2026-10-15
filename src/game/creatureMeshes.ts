@@ -326,6 +326,39 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'mirror_lily': {
+        // Mirror Marsh (2026-10-15): the pool IS the mesh — a flat
+        // reflective disc of mirror-liquid with lily pads riding it.
+        // Metalness does the mirror work; the marsh's zone light
+        // multiplier gives the gleam its reach.
+        const poolMat = new THREE.MeshStandardMaterial({
+          color: 0xcfe9e6, metalness: 0.9, roughness: 0.15,
+          emissive: 0x2a4a48, emissiveIntensity: 0.35,
+        });
+        const pool = new THREE.Mesh(new THREE.CircleGeometry(1.15, 20), poolMat);
+        pool.rotation.x = -Math.PI / 2;
+        pool.position.y = 0.03;
+        group.add(pool);
+        const rim = new THREE.Mesh(new THREE.TorusGeometry(1.15, 0.03, 6, 24),
+          new THREE.MeshStandardMaterial({ color: 0x5f7a72, roughness: 0.7 }));
+        rim.rotation.x = Math.PI / 2;
+        rim.position.y = 0.03;
+        group.add(rim);
+        const padMat = new THREE.MeshStandardMaterial({ color: 0x2f7a5e, roughness: 0.6 });
+        const pads: [number, number, number][] = [[0.3, 0.2, 0.34], [-0.42, -0.15, 0.26], [0.05, -0.45, 0.22]];
+        for (const [ox, oz, r] of pads) {
+          const pad = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.9, 0.05, 10), padMat);
+          pad.position.set(ox, 0.07, oz);
+          pad.castShadow = true;
+          group.add(pad);
+        }
+        const bloom = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6),
+          new THREE.MeshStandardMaterial({ color: 0xfde68a, roughness: 0.3, emissive: 0xd97706, emissiveIntensity: 0.7 }));
+        bloom.position.set(0.3, 0.16, 0.2);
+        group.add(bloom);
+        break;
+      }
+
       case 'bell_bloom':
       default: {
         const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.12, 1.6, 8), materials.woodRoot);
@@ -399,6 +432,32 @@ export function createCreatureMeshKit(
         head.rotation.x = Math.PI / 2;
         head.position.set(0, 0.8, 0.75);
         group.add(head);
+        break;
+      }
+
+      case 'mirror_moth': {
+        // Mirror Marsh pollinator (2026-10-15): a low drifter with
+        // two big translucent wings that catch the doubled light.
+        // Drawn hovering — body rides at local y 0.55.
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0xd6cfc0, roughness: 0.8 });
+        const wingMat = new THREE.MeshStandardMaterial({
+          color: 0xbfe8e2, roughness: 0.25, transparent: true, opacity: 0.55,
+          emissive: 0x5fb8ad, emissiveIntensity: 0.5, side: THREE.DoubleSide,
+        });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), bodyMat);
+        body.scale.set(0.8, 0.8, 1.6);
+        body.position.y = 0.55;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), bodyMat);
+        head.position.set(0, 0.58, 0.26);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.SphereGeometry(0.42, 10, 6), wingMat);
+          wing.scale.set(1, 0.06, 0.55);
+          wing.position.set(side * 0.4, 0.62, -0.02);
+          wing.rotation.z = side * 0.25;
+          group.add(wing);
+        }
         break;
       }
 

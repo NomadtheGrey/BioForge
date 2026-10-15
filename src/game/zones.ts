@@ -45,6 +45,13 @@ export interface ZoneInfo extends ZoneCoords {
 /** The spawn zone's coordinates — home. */
 export const SPAWN_ZONE: ZoneCoords = { zx: 0, zz: 0 };
 
+/** The canonical string key for a zone — save records key their
+ *  per-zone snapshots by it, so the format lives in exactly one
+ *  place (zone travel, 2026-10-15). */
+export function zoneKey(zx: number, zz: number): string {
+  return `${zx},${zz}`;
+}
+
 export function zoneHops(zx: number, zz: number): number {
   return Math.abs(zx) + Math.abs(zz);
 }

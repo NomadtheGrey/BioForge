@@ -65,8 +65,15 @@ import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
  * v5: + ruin landmarks (P4 surface stage, ruins.ts) — fate-styled,
  *     hop-scaled; existing saves keep their snapshots and simply
  *     never grow ruins (mouths behaved the same at v4).
+ * v6: + species affinities (P2 graduation) and the radar species.
+ * v7: + zone travel — the scatter streams are ZONE-MIXED for every
+ *     zone except the spawn zone, whose streams keep their legacy
+ *     names so home generates byte-identically forever (zone travel,
+ *     2026-10-15). Before v7 every zone would have grown the same
+ *     layout in a different species cast; nobody had ever generated
+ *     a second zone, so the sameness was theoretical until travel.
  */
-export const WORLD_GEN_VERSION = 6;
+export const WORLD_GEN_VERSION = 7;
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -387,23 +394,35 @@ export interface GeneratedWorld {
 
 /**
  * Grow one ZONE's flora and fauna from the world seed string.
- * Same seed + same zone -> same growth, always. Called once at world
- * creation (App's handleCreateSave) for the spawn zone (0, 0); the
- * result is saved as concrete entities. The zone coordinates decide
- * the zone's biome (zones.ts) — the spawn zone is always a meadow.
+ * Same seed + same zone -> same growth, always. Called at world
+ * creation for the spawn zone (0, 0) and again per zone the first
+ * time a traveler arrives (zone travel, 2026-10-15); the result is
+ * saved as concrete entities. The zone coordinates decide the zone's
+ * biome (zones.ts) — the spawn zone is always a meadow.
  */
 export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): GeneratedWorld {
   // The zone's single biome — its identity — drives every biome rule
   // below for the whole zone.
   const zoneBiome: BiomeId = zoneBiomeAt(seedStr, zoneZx, zoneZz);
+  const isSpawnZone = zoneZx === 0 && zoneZz === 0;
+  // Per-zone dice (zone travel, 2026-10-15): until travel existed,
+  // the streams below were seeded from the world seed ALONE — every
+  // zone would have scattered the same layout, differing only in
+  // species cast. Now each non-spawn zone mixes its coordinates into
+  // every stream name, so each zone rolls its own dice. The SPAWN
+  // zone keeps the legacy stream names untouched: home must generate
+  // byte-identically forever (the first session's economy, the
+  // harness goldens, and every existing world's identity ride on it).
+  const stream = (name: string): number =>
+    streamSeed(seedStr, isSpawnZone ? name : `${name}@${zoneZx},${zoneZz}`);
   // Independent streams per job: re-rolling positions must never reshuffle
   // species, and decoration (rotation/scale/speed jitter) touches neither.
-  const floraPosRng = createSeededRandom(streamSeed(seedStr, 'flora:position:hybrid'));
-  const faunaPosRng = createSeededRandom(streamSeed(seedStr, 'fauna:position:hybrid'));
-  const floraSpRng = createSeededRandom(streamSeed(seedStr, 'flora:species'));
-  const faunaSpRng = createSeededRandom(streamSeed(seedStr, 'fauna:species'));
-  const decorRng = createSeededRandom(streamSeed(seedStr, 'decorate'));
-  const fernRng = createSeededRandom(streamSeed(seedStr, 'flora:fern-ring'));
+  const floraPosRng = createSeededRandom(stream('flora:position:hybrid'));
+  const faunaPosRng = createSeededRandom(stream('fauna:position:hybrid'));
+  const floraSpRng = createSeededRandom(stream('flora:species'));
+  const faunaSpRng = createSeededRandom(stream('fauna:species'));
+  const decorRng = createSeededRandom(stream('decorate'));
+  const fernRng = createSeededRandom(stream('flora:fern-ring'));
 
   // The guaranteed lantern ferns go down FIRST, on their ring; the grove
   // scatter then treats them as blockers so nothing crowds them out.
@@ -417,7 +436,7 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
   // with a cast that fits where you are. The spawn zone (0, 0) is
   // cultivated homestead ground and always deals the classic census,
   // so the first session's economy never changes.
-  const isSpawnZone = zoneZx === 0 && zoneZz === 0;
+  // (isSpawnZone is declared with the dice streams above.)
   const floraCensusHere = isSpawnZone
     ? floraCensusRest
     : floraCensusRest.filter((d) => d.biomes === 'all' || d.biomes.includes(zoneBiome));
@@ -427,12 +446,12 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
 
   // One cluster field per kind, offset so flora groves and fauna herds
   // don't trace the same shapes.
-  const floraField = createClusterField(streamSeed(seedStr, 'flora:cluster-field'));
-  const faunaField = createClusterField(streamSeed(seedStr, 'fauna:cluster-field'));
-  const floraOx = (streamSeed(seedStr, 'flora:ox') % 200) - 100;
-  const floraOz = (streamSeed(seedStr, 'flora:oz') % 200) - 100;
-  const faunaOx = (streamSeed(seedStr, 'fauna:ox') % 200) - 100;
-  const faunaOz = (streamSeed(seedStr, 'fauna:oz') % 200) - 100;
+  const floraField = createClusterField(stream('flora:cluster-field'));
+  const faunaField = createClusterField(stream('fauna:cluster-field'));
+  const floraOx = (stream('flora:ox') % 200) - 100;
+  const floraOz = (stream('flora:oz') % 200) - 100;
+  const faunaOx = (stream('fauna:ox') % 200) - 100;
+  const faunaOz = (stream('fauna:oz') % 200) - 100;
 
   // The zone biome's density gates the scatter — one factor per kind
   // for the whole zone (flora and fauna densities differ per biome:
@@ -520,7 +539,7 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
   //     five, and the glider is a reason to walk one zone over.
   // ---------------------------------------------------------------------
   if (zoneBiome === 'wetland') {
-    const echoRng = createSeededRandom(streamSeed(seedStr, 'flora:echoreed'));
+    const echoRng = createSeededRandom(stream('flora:echoreed'));
     let plantedEcho = 0;
     for (let attempt = 0; attempt < 40 && plantedEcho < 2; attempt++) {
       const x = (echoRng() * 2 - 1) * 44;
@@ -549,7 +568,7 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
     }
   }
   if ((zoneBiome === 'meadow' || zoneBiome === 'fungal') && !(zoneZx === 0 && zoneZz === 0)) {
-    const vesperRng = createSeededRandom(streamSeed(seedStr, 'fauna:vesper'));
+    const vesperRng = createSeededRandom(stream('fauna:vesper'));
     for (let attempt = 0; attempt < 40; attempt++) {
       const x = (vesperRng() * 2 - 1) * 44;
       const z = (vesperRng() * 2 - 1) * 44;
@@ -623,7 +642,7 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
   // clear of everything already growing. EXTRA flora, outside the zone
   // census — the census promise above is untouched.
   // ---------------------------------------------------------------------
-  const caveFloraRng = createSeededRandom(streamSeed(seedStr, 'cave:flora'));
+  const caveFloraRng = createSeededRandom(stream('cave:flora'));
   const caveFlora: FloraEntity[] = [];
   for (const m of caveSection.mouths) {
     for (let k = 0; k < 4; k++) {

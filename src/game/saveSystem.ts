@@ -22,6 +22,7 @@
  */
 
 import { WORLD_GEN_VERSION } from './worldGen';
+import type { ZoneCoords } from './zones';
 import {
   CodexEntry,
   DroppedItemEntity,
@@ -109,6 +110,21 @@ export interface SavedGameRecord extends SaveMetadata {
    * plantings ride the save, and App merges them back in on entry.
    * Optional: saves from before this field existed simply have none. */
   cavePlantings?: Record<string, FloraEntity[]>;
+  /** Per-zone world snapshots, keyed by zones.ts zoneKey ('zx,zz') —
+   * every zone the player has VISITED, exactly as they left it:
+   * their buildings, plantings, harvests, tamed creatures (zone
+   * travel, 2026-10-15). Unvisited zones are NOT stored — they
+   * generate deterministically from the seed on first arrival.
+   * The record's `world` field always mirrors the CURRENT zone's
+   * snapshot (the zone currentZone names), so readers that only
+   * know `world` still see the world the player is standing in.
+   * Optional: saves from before travel existed hold one zone (the
+   * spawn zone) in `world` alone, and load as exactly that. */
+  zones?: Record<string, WorldSnapshot>;
+  /** Which zone the player is standing in (and `world` snapshots).
+   * PlayerState's position is LOCAL to this zone. Absent on
+   * pre-travel saves: the spawn zone, always. */
+  currentZone?: ZoneCoords;
 }
 
 // ---------------------------------------------------------------------------

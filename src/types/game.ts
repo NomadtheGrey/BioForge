@@ -13,6 +13,11 @@ export type ItemId =
   | 'soft_fiber'
   | 'pale_fur'
   | 'puff_down'
+  | 'cinder_scale'
+  | 'frost_velvet'
+  | 'prism_skin'
+  | 'lodestone_sand'
+  | 'field_scute'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -222,7 +227,19 @@ export type FaunaSpecies =
   | 'hello_frog'
   | 'foam_frog'
   | 'mudskipper'
-  | 'landfish';
+  | 'landfish'
+  // Slice 4 (2026-10-15) — far-family emblems + variant one-offs.
+  | 'cinderhound'
+  | 'shard_grazer'
+  | 'frost_stag'
+  | 'glass_crab'
+  | 'thawmole'
+  | 'prism_frog'
+  | 'skull_ants'
+  | 'dune_roller'
+  | 'boneback_tortoise'
+  | 'marrow_deer'
+  | 'kiln_star';
 
 export interface FaunaEntity {
   id: string;

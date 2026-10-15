@@ -351,6 +351,21 @@ question round — the table below is the draft to argue with.
   Living Forged tenders (the mimic-guardian seat) remain a
   creature-phase question. WORLD_GEN_VERSION 11.
 
+HYBRID PASS ✓ BUILT (2026-10-15, Adam's go-ahead; BORDER-
+DERIVED per his ruling): zoneHybridAt reads a zone's four
+neighbors' pure family rolls — where a tabled pair meets and
+the strength roll passes, the margin grows. Seven named
+hybrids (Scalding Fens, Mulchwood, Brine Shallows, Iron Ashes,
+Frozen Forest, Cold Marsh, Hedgewood — names harvested from
+the creature dossiers); every other pair rides a default blend
+(low strength) until its dossier names it; ember×frost has NO
+entry and never margins. Generation admixes (census opens to
+both families, densities average, a guaranteed signature stand
+of the neighbor's emblem flora); hybrid zones carry no variant;
+home country (0–1 hops) never margins. WORLD_GEN_VERSION 15.
+The biome graph is COMPLETE in code: 11 families, 27 variants,
+55 hybrid cells.
+
 THE GRADIENT STEP ✓ BUILT (2026-10-15, Adam's directive):
 distance now drives ALL of it — ruin presence and second-site
 chances rise with hops (0.62/0.12 at home → 0.88/0.30 far),

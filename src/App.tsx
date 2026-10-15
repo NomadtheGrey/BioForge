@@ -16,6 +16,8 @@ import {
   ItemId,
   StructureType,
   FloraSpecies,
+  ToolType,
+  QuestProgressState,
 } from './types/game';
 import { INITIAL_CODEX, ITEMS, NON_BUILDABLE_STRUCTURE_IDS, getRecipeTier } from './game/constants';
 import { BioForgeThreeEngine } from './game/threeEngine';
@@ -56,6 +58,14 @@ import { StartScreenModal } from './components/StartScreenModal';
 
 // UI Components
 import { HUD } from './components/HUD';
+import { QuestLogModal } from './components/QuestLogModal';
+import {
+  QUESTS,
+  deriveUnlockedTools,
+  questView,
+  trackedQuest,
+  TOOL_NAMES,
+} from './game/quests';
 import { TouchControls, type TouchMoveInput } from './components/TouchControls';
 import { BioForgeModal } from './components/BioForgeModal';
 import { InventoryModal } from './components/InventoryModal';
@@ -64,6 +74,12 @@ import { MultiplayerModal } from './components/MultiplayerModal';
 import { ControlsGuideModal } from './components/ControlsGuideModal';
 import { SourceExporterModal } from './components/SourceExporterModal';
 import { getProjectWorkspaceFiles } from './utils/workspaceFiles';
+
+// The gauntlet-module epoch (2026-10-15): worlds CREATED before
+// this moment played by the free-tools rules and keep the full tool
+// set (see modulesGrandfathered in App). Noon EDT on build day —
+// comfortably after the last pre-module world could be created.
+const GAUNTLET_MODULE_EPOCH_MS = Date.UTC(2026, 9, 15, 16, 0, 0);
 
 export default function App() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -92,11 +108,13 @@ export default function App() {
     setSelectedSeedId,
     setSelectedFertilizerId,
     setHeldItemId,
+    setQuestProgress,
     setPlayerTransform,
     setStamina,
     setPlayerLevel,
     restorePlayerState,
   } = usePlayerState();
+
 
   // ------------------------------------------------------------------------
   // Loaded Fertilizer Cycling (ArrowUp / ArrowDown)
@@ -201,7 +219,7 @@ export default function App() {
 
   // 2. Modals & UI States
   const [activeModal, setActiveModal] = useState<
-    'bioforge' | 'inventory' | 'codex' | 'multiplayer' | 'controls' | 'devtools' | null
+    'bioforge' | 'inventory' | 'codex' | 'multiplayer' | 'controls' | 'devtools' | 'quests' | null
   >(null);
   const [codexList, setCodexList] = useState<CodexEntry[]>(INITIAL_CODEX);
   const [dayNightCycle, setDayNightCycle] = useState<number>(0.35);
@@ -1453,6 +1471,12 @@ export default function App() {
         setActiveModal((prev) => (prev === 'multiplayer' ? null : 'multiplayer'));
         return;
       }
+      // Q opens the mini-quest LIST — the one door to quest
+      // management (tracking pick + the tracker HUD's checkbox).
+      if (e.key.toLowerCase() === 'q') {
+        setActiveModal((prev) => (prev === 'quests' ? null : 'quests'));
+        return;
+      }
       if (e.key === '?') {
         setActiveModal((prev) => (prev === 'controls' ? null : 'controls'));
         return;
@@ -1507,7 +1531,7 @@ export default function App() {
         '6': 'builder',
       };
       if (toolKeyMap[e.key]) {
-        setActiveTool(toolKeyMap[e.key]);
+        handleSelectTool(toolKeyMap[e.key]);
       }
     };
 
@@ -1577,6 +1601,96 @@ const [saveList, setSaveList] = useState<SaveMetadata[]>([]);
 // without re-subscribing. Null means "no save attached" — the start
 // screen is still up, or this is a co-op guest session.
 const currentSaveRef = useRef<SaveMetadata | null>(null);
+
+  // ------------------------------------------------------------------
+  // Gauntlet modules + mini-quests (Adam, 2026-10-15)
+  // ------------------------------------------------------------------
+  // The gauntlet is the early game's progression spine: it starts
+  // able to harvest only, and each other tool is a module crafted
+  // at the forge (game/quests.ts holds the chain). Unlocks are
+  // DERIVED from the pouch — owning a module item is the unlock —
+  // with one exception: worlds created before the module system
+  // existed are grandfathered to the full set (they earned their
+  // tools under the old rules; nobody gets demoted). Co-op guests
+  // have no local save and are grandfathered too — a host's world
+  // shouldn't strand a guest without tools.
+  const modulesGrandfathered =
+    !currentSaveRef.current ||
+    (currentSaveRef.current.createdAt ?? 0) < GAUNTLET_MODULE_EPOCH_MS;
+  const unlockedTools = deriveUnlockedTools(inventory, modulesGrandfathered);
+  const questViews = QUESTS.map((def) => questView(def, inventory, unlockedTools));
+  const questProgress = playerState.questProgress;
+  const trackedView = trackedQuest(
+    questProgress?.completedIds ?? [],
+    questProgress?.trackedId ?? null,
+    questViews,
+  );
+  const showQuestHud = questProgress?.showHud ?? false;
+
+  // Tool selection, gated: every path that can switch tools (the
+  // 1-6 keys, hotbar clicks) funnels through here, so a locked tool
+  // explains itself instead of silently equipping.
+  const handleSelectTool = (tool: ToolType): void => {
+    if (!unlockedTools.includes(tool)) {
+      postNotification(
+        'Module Not Grafted',
+        `The ${TOOL_NAMES[tool]} is a gauntlet module — craft it at the Bio-Forge to unlock it. Your quest list [Q] shows the way.`,
+        'alert',
+        '#f59e0b',
+      );
+      return;
+    }
+    setActiveTool(tool);
+  };
+
+  // Quest-progress writes, with silent adoption for veterans: the
+  // first time a pre-quest save touches the system, everything its
+  // (grandfathered) progress already satisfies is marked complete —
+  // no toast parade for a chain finished under the old rules.
+  const updateQuestProgress = (patch: Partial<QuestProgressState>): void => {
+    if (questProgress) {
+      setQuestProgress({ ...questProgress, ...patch });
+      return;
+    }
+    setQuestProgress({
+      completedIds: questViews.filter((v) => v.complete).map((v) => v.def.id),
+      trackedId: null,
+      showHud: false,
+      ...patch,
+    });
+  };
+
+  // Latch quest completions the moment they're earned: gather
+  // objectives un-meet when the items get spent, so completion is
+  // recorded, not re-derived forever. Veterans (no questProgress)
+  // never latch — their adoption above seeds completions silently.
+  const latchQuestKey = questProgress
+    ? questViews
+        .filter((v) => v.complete && !questProgress.completedIds.includes(v.def.id))
+        .map((v) => v.def.id)
+        .join(',')
+    : '';
+  useEffect(() => {
+    if (!hasStarted || !latchQuestKey || !questProgress) return;
+    const doneIds = latchQuestKey.split(',');
+    setQuestProgress({
+      ...questProgress,
+      completedIds: [...questProgress.completedIds, ...doneIds],
+    });
+    doneIds.forEach((id) => {
+      const def = QUESTS.find((q) => q.id === id);
+      if (def) {
+        postNotification(
+          'Mini-Quest Complete',
+          `${def.title} — nicely done. Press Q for the quest list and what comes next.`,
+          'discover',
+          '#34d399',
+        );
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [latchQuestKey, hasStarted]);
+
 
 // A mirror of every state slice a save needs, refreshed each render.
 // Timers and network callbacks read from here so they never act on
@@ -1765,6 +1879,10 @@ const GAUNTLET_TYPES_PASS_EPOCH_MS = Date.UTC(2026, 9, 15, 4, 0, 0);
     cavePlantingsRef.current = {};
     const meta = createSaveMetadata(name, difficulty, worldSeed);
     currentSaveRef.current = meta;
+    // A new world starts the mini-quest chain fresh (2026-10-15):
+    // nothing latched, the first quest tracked, the tracker HUD on
+    // — the player can hide it from the quest list's checkbox [Q].
+    setQuestProgress({ completedIds: [], trackedId: 'q_first_harvest', showHud: true });
     // The seed earns its keep: a new world's flora and fauna are GROWN
     // from it (seeded surface scatter — game/worldGen.ts) instead of
     // reusing the fixed hand-placed starter layout. Starter structures
@@ -2198,7 +2316,12 @@ const GAUNTLET_TYPES_PASS_EPOCH_MS = Date.UTC(2026, 9, 15, 4, 0, 0);
         structures={structuresList}
         fauna={faunaList}
         flora={floraList}
-        onSelectTool={setActiveTool}
+        onSelectTool={handleSelectTool}
+        unlockedTools={unlockedTools}
+        onToolLocked={handleSelectTool}
+        onOpenQuests={() => setActiveModal('quests')}
+        questView={trackedView}
+        showQuestHud={showQuestHud}
         onCycleSeed={cycleSelectedSeed}
         onCycleFertilizer={cycleLoadedFertilizer}
         onCycleStructure={cycleSelectedStructure}
@@ -2256,6 +2379,16 @@ const GAUNTLET_TYPES_PASS_EPOCH_MS = Date.UTC(2026, 9, 15, 4, 0, 0);
       </div>
 
       {/* Modals */}
+      <QuestLogModal
+        isOpen={activeModal === 'quests'}
+        onClose={() => setActiveModal(null)}
+        views={questViews}
+        completedIds={questProgress?.completedIds ?? []}
+        trackedId={questProgress?.trackedId ?? null}
+        showHud={showQuestHud}
+        onToggleShowHud={(show) => updateQuestProgress({ showHud: show })}
+        onTrack={(questId) => updateQuestProgress({ trackedId: questId })}
+      />
       <BioForgeModal
         isOpen={activeModal === 'bioforge'}
         onClose={() => setActiveModal(null)}

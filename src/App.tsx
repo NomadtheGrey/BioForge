@@ -17,7 +17,7 @@ import {
   StructureType,
   FloraSpecies,
 } from './types/game';
-import { INITIAL_CODEX, ITEMS, NON_BUILDABLE_STRUCTURE_IDS } from './game/constants';
+import { INITIAL_CODEX, ITEMS, NON_BUILDABLE_STRUCTURE_IDS, getRecipeTier } from './game/constants';
 import { BioForgeThreeEngine } from './game/threeEngine';
 import { soundEngine } from './audio/soundEngine';
 import { multiplayerManager, EntityKind, EntitySnapshot } from './game/multiplayer';
@@ -1692,6 +1692,11 @@ useEffect(() => {
   return () => window.removeEventListener('pagehide', onPageHide);
 }, [saveNow]);
 
+// The 2026-10-15 types pass, as an epoch: saves CREATED before it
+// played by the old gauntlet rules (see the migration in
+// applySavedGame). Midnight EDT on the day the pass landed.
+const GAUNTLET_TYPES_PASS_EPOCH_MS = Date.UTC(2026, 9, 15, 4, 0, 0);
+
 // Applies a loaded record to every state holder at once: world lists,
 // pouch, player (state AND the loop's position ref), codex, and clock.
   const applySavedGame = (record: SavedGameRecord): void => {
@@ -1700,7 +1705,24 @@ useEffect(() => {
     // have none — an empty record, every cave wild).
     cavePlantingsRef.current = record.cavePlantings ?? {};
     replaceWorld(record.world);
-    restoreInventory(record.inventory);
+    // Gauntlet migration (types pass, 2026-10-15): the gauntlet is
+    // issued equipment now, so every loaded world wears one — grant
+    // it where an older save predates the starter kit. And fairness
+    // for the old rules: before the pass, the ONLY way to hold a
+    // gauntlet was to craft it for remote synthesis — a pre-pass
+    // save holding one had paid for the graft's gift, so the graft
+    // itself is granted. Post-pass saves can't false-trigger this:
+    // their gauntlet is the starter, and createdAt says so.
+    const migratedInventory = { ...record.inventory };
+    if ((migratedInventory['field_synthesizer_gauntlet'] || 0) < 1) {
+      migratedInventory['field_synthesizer_gauntlet'] = 1;
+    } else if (
+      record.createdAt < GAUNTLET_TYPES_PASS_EPOCH_MS &&
+      (migratedInventory['gauntlet_synthesizer_upgrade'] || 0) < 1
+    ) {
+      migratedInventory['gauntlet_synthesizer_upgrade'] = 1;
+    }
+    restoreInventory(migratedInventory);
     restorePlayerState(record.playerState);
     playerPosRef.current = {
       x: record.playerState.x,
@@ -2051,26 +2073,35 @@ useEffect(() => {
     ]);
   };
 
-  // Crafting access: within 6m of a bio-forge station, or carrying the Field Synthesizer Gauntlet
-  const checkCraftAccess = (): { nearForge: boolean; hasGauntlet: boolean } => {
+  // Crafting access: within 6m of a bio-forge station, or wearing a
+  // gauntlet with the Field Synthesizer GRAFT. The base gauntlet is
+  // issued to everyone (it's how you harvest and plant) — field
+  // synthesis is the graft's gift, not the glove's (types pass,
+  // 2026-10-15; before it, this read the gauntlet item itself).
+  const checkCraftAccess = (): { nearForge: boolean; hasSynthesizer: boolean } => {
     const px = playerPosRef.current.x;
     const pz = playerPosRef.current.z;
     const nearForge = structuresListRef.current.some(
       (s) => s.type === 'bio_forge_station' && Math.hypot(s.worldX - px, s.worldZ - pz) < 6
     );
-    const hasGauntlet = (inventory['field_synthesizer_gauntlet'] || 0) > 0;
-    return { nearForge, hasGauntlet };
+    const hasSynthesizer = (inventory['gauntlet_synthesizer_upgrade'] || 0) > 0;
+    return { nearForge, hasSynthesizer };
   };
 
   const handleCraftRecipe = (recipe: CraftingRecipe) => {
     const access = checkCraftAccess();
-    const forgeOnly = recipe.tier === 3;
-    if (!access.nearForge && (forgeOnly || !access.hasGauntlet)) {
+    // Tier is DERIVED from the recipe graph (getRecipeTier) — a
+    // recipe has no .tier field. This line read one anyway until
+    // the 2026-10-15 types pass, which quietly meant tier-3 recipes
+    // were craftable anywhere the gauntlet reached. Forge tether
+    // restored: tier 3+ is forge-only, graft or no graft.
+    const forgeOnly = getRecipeTier(recipe) >= 3;
+    if (!access.nearForge && (forgeOnly || !access.hasSynthesizer)) {
       postNotification(
         'Synthesis Blocked',
         forgeOnly
           ? 'Advanced synthesis requires a bio-forge station.'
-          : 'Too far from a bio-forge station — synthesize a Field Synthesizer Gauntlet to craft in the field.',
+          : 'Too far from a bio-forge station — graft a Field Synthesizer onto your gauntlet to craft in the field.',
         'craft',
         '#f59e0b'
       );
@@ -2230,7 +2261,7 @@ useEffect(() => {
         onClose={() => setActiveModal(null)}
         inventory={inventory}
         nearForge={craftAccess.nearForge}
-        hasGauntlet={craftAccess.hasGauntlet}
+        hasSynthesizer={craftAccess.hasSynthesizer}
         onCraftRecipe={handleCraftRecipe}
         onSelectStructureBlueprint={(type) => {
           setSelectedStructureType(type);

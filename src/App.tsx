@@ -920,6 +920,27 @@ const {
             'system',
             '#d8b4fe',
           );
+        } else if (variant.id === 'mycelium_web') {
+          postNotification(
+            'The Mycelium Web',
+            'The giants grow in a RING here — one network, showing through the ground. The spore air breathes with the whole circle; your stamina is its tide.',
+            'system',
+            '#c4b5fd',
+          );
+        } else if (variant.id === 'glowfen') {
+          postNotification(
+            'The Glowfen',
+            'Cave glow, growing topside — the fen shines with fungus light, soft and kind. The gentle face of the fungal country.',
+            'system',
+            '#7dd3fc',
+          );
+        } else if (variant.id === 'petrified_grove') {
+          postNotification(
+            'The Petrified Grove',
+            'Giants, turned to stone mid-sway. Sparse, grey, and very quiet — what is here is what died here.',
+            'system',
+            '#d6d3d1',
+          );
         } else if (variant.id === 'mirror_marsh') {
           postNotification(
             'The Mirror Marsh',

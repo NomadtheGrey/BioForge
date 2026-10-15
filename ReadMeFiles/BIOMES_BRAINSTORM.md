@@ -120,9 +120,14 @@ polarized fields, storm teaches stabilization…):
     *(Precursor Garden)*
 
 Meadow variants on the bank: Leviathan Graveyard belongs to Bone
-above; Mirror Marsh is Wetland's; Biolume Caverns is Fungal gone
-fully dark (and already lives as the first cave stratum's name);
-Lag Fields sit as Wetland × Storm's strange mist country.
+above; Mirror Marsh is Wetland's; Lag Fields sit as Wetland ×
+Storm's strange mist country. **Biolume Caverns is NOT a surface
+biome (Adam, 2026-10-15):** the caves already have their own
+variety axis — the depth strata — and their darkness is total
+without any "sleep schedule" machinery behind it. Different cavern
+types are welcome, but they belong to the cavern system, not to
+this graph; the name stays where it already lives, on the first
+cave stratum.
 
 ### The Living family — one organism, two temperaments
 
@@ -155,6 +160,85 @@ there hostile valleys that try to eat you?"):
   over mudflats, glare doubled on standing water.
 - **Ember × Storm → the Iron Ashes.** Black magnetic sand over vent
   country; storms drag the dunes into new shapes overnight.
+
+## Instantiating the graph — the working table (draft, 2026-10-15)
+
+Adam's build order: **fill in the families, then put the biomes
+into code ONE BY ONE** (the generation-queue cadence — each proven
+in-game before the next). Each biome, when its turn comes, gets a
+short round of questions from Marlowe (its rules, its hazards,
+what makes it itself) plus variant proposals, and Adam's answers
+become its spec. Two properties every biome carries from birth:
+
+- **Minimum distance** (`minHops`): no zone nearer than this to the
+  starting zone may hold it — set by danger and exoticness. This
+  refines the current hop bands into per-biome gates.
+- **Rarity** (common / uncommon / rare): its weight among eligible
+  rolls once the distance gate opens. Exotic biomes stay rare even
+  where they're allowed (Adam: Magnetic Dunes and Skyfall Basin
+  should not be common sights).
+
+And Adam's open structural note: **some biomes may be their own
+family** (a family of one, hybrids still apply), and some may not
+lend themselves to variants at all. Decided per biome, in its
+question round — the table below is the draft to argue with.
+
+### Families, distances, rarities, variants (DRAFT)
+
+- **Meadow** — family min 0. *Meadow* (min 0, common; the starter).
+  Variants: none on the bank yet. *Questions: does the home family
+  even want variants, or is plainness its identity?*
+- **Wetland** — family min 1. *Wetland* (min 1, common).
+  *Mirror Marsh* (min 2, uncommon): reflective pools, lights
+  doubled at night. *Questions: are the pools terrain (real water —
+  the P5 question) or dressed ground? Does wet ground slow the
+  walker? Do the doubled lights cost engine lights or fake it with
+  brighter sprites?*
+- **Fungal** — family min 2. *Fungal* (min 2, common).
+  *Fungal Hollow* (min 3, uncommon): giant mushrooms, dim green
+  shade, spore air. *Questions: giant mushrooms as scenery scale,
+  harvestables, or climbable platforms? Spores: visual only, or a
+  breathing hazard the filtration graft answers?*
+- **Ember** — family min 3. *Ember* (min 3, common in band).
+  *Ember Scar* (min 4, uncommon): cracked rock, working vents.
+  *Questions: vents as hazard, resource (resin/heat), or both? Day
+  heat drain — a stamina pressure, or comfort-by-night only?*
+- **Saltglass** — family min 3. *Saltglass Flats* (min 3,
+  uncommon): glare by day, bitter cold after dark, crystalline
+  reeds. *Questions: glare as a vision effect, a scanner/helmet
+  interplay, or both? Are the crystal reeds a harvestable family
+  of their own?*
+- **Rootwood** — family min 2. *Rootwood Canopy* (min 2,
+  uncommon): root walls and bridges, shade below, clearings above.
+  *Questions: are the root bridges walkable (vertical play without
+  building)? Does the canopy darken the ground like a roof?*
+- **Bone** — family min 3. *Leviathan Graveyard* (min 3, RARE):
+  one impossible skeleton, fertile soil, reverent quiet.
+  *Questions: is a graveyard rolled like other zones, or is it a
+  LANDMARK — at most one per world sector, however the dice fall?
+  What grows in bone-soil that grows nowhere else?*
+- **Storm** — family min 4. *Magnetic Dunes* (min 5, RARE):
+  black sand, storms reshape it, caches surface and vanish.
+  *Skyfall Basin* (min 5, RARE): nutrient rain falls up.
+  *Questions (both): how rare is rare — one eligible roll in ten?
+  For Dunes: does the minimap/compass actually fail (helmet
+  stabilizer as the answer)? For Skyfall: are the updrafts a
+  movement verb (ride a column) or weather dressing?*
+- **The Living** — family min 4. *Welcoming Valley* (min 4, rare),
+  *Hungry Valley* (min 5, rare). Treated above. *Questions: can a
+  host's temperament be read before entering (edge signals)? Does
+  feeding a hungry host change it — the ultimate taming?*
+- **Precursor** — family min 3. *Precursor Garden* (min 3,
+  uncommon): wild growth through engineered geometry, ruins that
+  still tend the ecosystem. *Questions: overlap with ruin sites —
+  is a Garden a zone WITH ruins, or its own thing? Do the tending
+  machines count as fauna (mimic guardians)?*
+
+First instantiation (Marlowe's recommendation, for Adam's call):
+**Fungal Hollow** — nearest to the shipped fungal, so the variant
+machinery (per-biome gates, variant name pools, tint/density
+deltas) gets proven on the cheapest real content before the exotic
+families ask harder questions of the engine.
 
 ## Implemented first pass (2026-10-14)
 

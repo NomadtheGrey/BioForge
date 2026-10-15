@@ -246,7 +246,7 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
           its base appears wherever the thumb lands in this field, so
           the player never has to hunt for a fixed spot on the glass. */}
       <div
-        className="pointer-events-auto absolute bottom-36 left-0 h-[36dvh] w-[46%] [touch-action:none]"
+        className="pointer-events-auto absolute bottom-30 left-0 h-[36dvh] w-[46%] [touch-action:none]"
         data-testid="touch-stick-surface"
         onPointerDown={handleStickDown}
         onPointerMove={handleStickMove}

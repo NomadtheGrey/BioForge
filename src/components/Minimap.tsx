@@ -37,6 +37,10 @@ export interface MinimapProps {
    * Left Hand: the map pings caves, ruins, deep shafts, and rare
    * lives (Adam, 2026-10-14 — the radar's reveal is the ping). */
   radarActive?: boolean;
+  /** Phone arrangement (Adam, 2026-10-14): the full-size map hung
+   * down into the left thumbstick's field. Compact draws the same
+   * map smaller so it fits between the vitals card and the stick. */
+  compact?: boolean;
 }
 
 export type MinimapMode = 'radar' | 'world';
@@ -53,6 +57,7 @@ export const Minimap: React.FC<MinimapProps> = ({
   zoneCoordsLabel,
   exitTarget = null,
   radarActive = false,
+  compact = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [mapMode, setMapMode] = useState<MinimapMode>('radar');
@@ -120,7 +125,17 @@ export const Minimap: React.FC<MinimapProps> = ({
 // so offset by 180° to align the arrow with the true facing direction.
   const playerDeg = 180 - (playerRotation * 180) / Math.PI;
 
-  const currentSize = isExpanded ? (mapMode === 'world' ? 260 : 240) : 160;
+  // Compact (touch) sizes: same information, smaller footprint —
+  // 112 at rest so the map clears the thumbstick's field entirely.
+  const currentSize = compact
+    ? isExpanded
+      ? 176
+      : 112
+    : isExpanded
+      ? mapMode === 'world'
+        ? 260
+        : 240
+      : 160;
 
   // Spawn-zone home arrow (radar mode): the bearing from the player to
   // the SPAWN POINT (0, 0) — the heart of the spawn zone — drawn as a
@@ -169,7 +184,7 @@ export const Minimap: React.FC<MinimapProps> = ({
 
   return (
     <div className="pointer-events-auto flex flex-col gap-1.5 select-none animate-fade-in">
-      <div className="glass-panel p-2.5 rounded-2xl flex flex-col shadow-2xl border border-cyan-500/30 bg-slate-950/80 backdrop-blur-md">
+      <div className={`glass-panel ${compact ? 'p-1.5' : 'p-2.5'} rounded-2xl flex flex-col shadow-2xl border border-cyan-500/30 bg-slate-950/80 backdrop-blur-md`}>
         {/* Header Bar */}
         <div className="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-slate-800/80">
           <div className="flex items-center gap-1.5">

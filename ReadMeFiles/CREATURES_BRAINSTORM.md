@@ -36,10 +36,13 @@ the biome program's shipped-behavior stubs and flora
 notes (this design inherits from it; it is a different
 file, kept by the biome chat).
 
-**Roster count:** 110 species designed (through the
-tenth pass), plus the shipped cast already in the game.
-Layers complete so far: family emblems 11 of 11; a
-one-off for every built biome variant; hybrid creatures
-for 33 of 55 pairings; background casts under way in
-every family. Caves come after the overworld, by Adam's
-sequencing.
+**Roster count:** 122 species designed (through the
+eleventh pass), plus the shipped cast already in the
+game. Layers complete so far: family emblems 11 of 11;
+a one-off for every built biome variant; hybrid
+creatures for 33 of 55 pairings; background casts under
+way in every family; and the wide-range (semi-
+ubiquitous) layer founded at 12 species across six
+sense-drawn ranges — Adam's layer, so every biome
+holds more than its emblem and its unique. Caves come
+after the overworld, by Adam's sequencing.

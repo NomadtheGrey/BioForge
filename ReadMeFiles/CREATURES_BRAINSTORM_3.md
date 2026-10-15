@@ -343,3 +343,243 @@ Roster designed total: 110. Hybrid cast 33 of 55
 pairings. Part 3 opens with the count at three figures,
 which was the order Adam gave: this IS BioForge, and Bio
 is key.
+
+## Eleventh roster pass — the semi-ubiquitous foundation
+
+Adam's layer, founded (the amendment in Part 1 carries
+the definition): twelve wide-range species spanning the
+six ranges, so every family's stack thickens at once.
+Coverage, stated honestly in the pass rather than
+discovered later: the temperate middle gains thickly
+(Meadow-family zones now carry up to nine of the twelve),
+the cold and far edges thinly (Frost and Ember two each,
+the Living and Precursor one each) — because cold, fire,
+and weirdness are FILTERS, and the layer's honesty is
+Adam's whole point (mice don't live in the arctic).
+Wave two of the layer is already named by its gaps:
+the Far Bat (Storm / Precursor / Living / deep Fungal)
+first, then cold- and warm-range thickeners.
+
+**111. Hedge Sparrow** — Temperate + Wet ranges
+(Meadow, Rootwood, Fungal, Wetland). Fauna x Ordinary.
+Shape: Winged (sparrow plan). Locomotion: Aerial,
+flyer-leaning + Hopping. The everywhere-bird of the
+settled graph: hedges, root eaves, marsh banks, garden
+walls. Spectra: bold and cheerful / loose colonies /
+quick / small / Diet seeds and small insects / dawn —
+its territory songs are how the settled country wakes,
+and each family's sparrows sing the LOCAL VARIANT (a
+traveler hears the border before the label names it) /
+Curiosity high, crumb-led / Territory a hedge and its
+air / Tameability 60% — the crumb economy; often the
+homestead's second tenant. Behavior worth its data:
+sparrows mob-alarm at predators in a rising storm of
+noise — a sparrow-storm overhead is the temperate
+country's siren, and the design records it as the
+species' real drop: INFORMATION. Hook: the baseline
+bird; the roster's familiar note, sung at dawn in four
+accents.
+
+**112. Brook Minnow** — Wet + Temperate ranges
+(Wetland, Meadow, Rootwood, Fungal). Fauna x Ordinary.
+Shape: Finned. Locomotion: Swimming — schooling ribbons
+in every clear stream and pool (the Canopy Cup's first
+tenant, named at last). Spectra: timid en masse, brave
+in aggregate / schools of hundreds / darting / small /
+Diet algae and gnat larvae — the Dew Gnat's standing
+check, eaten before it can whine / diurnal / Curiosity
+low / Territory a pool-reach / UNTAMABLE by triviality,
+and the entry adds the layer's rule for its kind: the
+SCHOOL is the citizen. Ecology: the food-web's floor
+joist — glidfins, otters, sumpfish, and half the roster's
+hunters eat minnows, and where minnows vanish the water
+is WRONG: a living water-quality readout (the Meadow
+Clover's aquatic pair). Drops: a caught handful is food
+and bait, unlisted — the school remains. Hook: semi-
+ubiquitous species are infrastructure; this one is a
+river's pulse.
+
+**113. Snow Finch** — the Cold Range (Frost, Saltglass,
+Bone, Storm's heights). Fauna x Ordinary. Shape: Winged.
+Locomotion: Aerial, flyer-leaning + Hopping. It follows
+cold the way others follow rivers: appearing with the
+first frosts on Saltglass ground, wintering in the Bone
+fields' lee, summering in Frost. Spectra: hardy, cheerful
+in weather that empties other skies / FLOCKS that turn
+as one sheet in wind (the Banner Vine's animal rhyme) /
+quick / small / Diet cold-country seeds and Seep Midges
+— its Frost income, and the midge's reason to be eaten
+at scale / diurnal / Curiosity mid / Territory a feeding
+ground, held socially / Tameability 45% — it learns a
+feeding place in a day and the FLOCK remembers (the
+design notes flock memory as its quiet marvel). Drops:
+none. Hook: the cold country's common bird — it makes
+Frost feel inhabited at eye level, not only at stag
+scale.
+
+**114. Frost Vole** — the Cold Range (Frost, Saltglass,
+Bone). Fauna x Ordinary. Shape: Quadruped; modifier:
+snow-blind-white in winter coat. Locomotion: Walking +
+Burrowing — SUBNIVEAN: it lives all winter in the warm
+dark between snowpack and ground, and its tunnel roofs
+show in spring as lace across the melt. Spectra: shy /
+family warrens / still-then-scurry / small / Diet roots,
+cached seeds, Marrow Flats grain / Day-night BLURRED
+under the pack, recorded honestly in the template's
+slot — under snow there is no day, and the vole's clock
+is appetite / Curiosity low / Territory a warren and
+its cache-map / Tameability 35%. Ecology: the Driftworm
+hunts its tunnels, the Rime Owl hunts the worm's
+leavings of attention, and Frost Stag herds paw the
+same snow for the same stores — vole-fields and
+stag-fields are one map read by two appetites. Drops:
+none. Hook: the Cold Range's mouse — placed there by
+Adam's own rule, because the actual mouse doesn't go.
+
+**115. Ash Lark** — the Warm Range (Ember, Meadow,
+Storm, Saltglass). Fauna x Ordinary. Shape: Winged (lark
+plan). Locomotion: Aerial, flyer-leaning + Walking. It
+dust-bathes in ash, storm-dust, and salt indifferently —
+the warm country's bathing bird — and rises from the
+bath into a vertical spiral of song, the sky-signature
+over four families at once. Spectra: exuberant / pairs
+and loose companies / quick / small / Diet warm-country
+seed and insect / dawn to diurnal / Curiosity mid /
+Territory a bath and its singing-post / Tameability
+40%. Tell: it smells of whichever family's dust it
+bathed in — a carried census sample, and the entry
+leaves the helmet's scent-reading to find it. Drops:
+none. Hook: one bird, four warm countries, one song —
+the Warm Range's proof of concept.
+
+**116. Sun Lizard** — the Warm Range (Ember, Saltglass,
+Meadow). Fauna x Ordinary. Shape: Quadruped (lizard
+plan). Locomotion: Walking + Climbing on warm rock. A
+basker keeping a daily circuit of stones, each lizard a
+small solar calendar. Spectra: placid, wary / SOLO /
+still-then-vanish / small-mid / Diet insect hunter —
+the Dew Gnat's second check / STRICTLY diurnal and
+weather-locked: absent in cold rain, so its absence is
+a forecast / Curiosity low, warmth-led / Territory a
+stone circuit / Tameability 30% — warm-hand learning:
+it will sit on a still, warm gauntlet, the roster's most
+literal hand-pet. Drops: shed skins, unlisted. Hook:
+the warm families' doorstep animal; the cold families
+keep voles under the snow, the warm keep lizards on the
+stone, and both are the layer working as intended.
+
+**117. Reedbird** — the Wet Range (Wetland, Rootwood,
+Fungal, Meadow). Fauna x Ordinary. Shape: Winged.
+Locomotion: Aerial, flyer-leaning + Climbing in the
+reeds. It nests woven INTO reed stands, and Echo Reed
+stands are its cities — the dawn chorus in a resonant
+stand is a music the place makes with its tenants (the
+mechanism is recorded open; the music is not in
+dispute). Spectra: secretive and LOUD — heard for a
+mile, seen for a second / colonial in the big stands /
+quick / small / Diet reed seed and marsh insect /
+dawn-dusk / Curiosity low / Territory a stand / Tameability
+25%, stand-loyal after the pickers' rule: protect a
+stand and inherit its colony. Drops: old nests salvage
+as thatch-grade, unlisted. Hook: the Wet Range's voice —
+four families of wet country, one dawn sound.
+
+**118. Mud Turtle** — the Wet Range (Wetland, Meadow,
+Rootwood). Fauna x Ordinary. Shape: Quadruped (turtle
+plan; Finned modifier on the forelimbs). Locomotion:
+Swimming + Walking. The ponds' slow citizen: Gulp
+Lilies hold it gently and let it go — it is precisely
+lily-sized trouble — and basking logs are its
+parliaments. Spectra: unhurried to the template's limit
+/ loose basking companies / slow / small / Diet pond-edge
+omnivore / diurnal / Curiosity low, sun-led / Territory
+a log / Tameability 50% — the oldest pet-shape there
+is; precursor carvings show a child with a turtle, and
+the entry lets the joke stand dryly in the margin.
+Drops: none. Hook: ponds needed a citizen at walking
+pace; everything else in a pond darts, skims, or snaps.
+
+**119. Plainswift** — the Open Range (Meadow, Saltglass,
+Bone, Storm). Fauna x Ordinary. Shape: Winged.
+Locomotion: Aerial, OBLIGATE-flyer end — the spectrum's
+swift anchor; it lands only to nest in flats' cracks,
+eats entirely on the wing, and a gnat bloom over the
+plains summons swifts from three zones away (the pest's
+third check, delivered by air mail). Spectra: tireless /
+colonial at nesting cracks, solitary hunters / the
+roster's honest FAST among the small / small / Diet
+aerial insects / Day: storm-eve feeding frenzies — it
+reads pressure in its bones, and a swift-frenzy over
+open country is a storm warning (the Mote Swarm's
+winged echo) / Curiosity none — it has weather to read /
+Territory the whole sky, indefensibly / UNTAMABLE by
+altitude: it never lands for you. Drops: none. Hook:
+the Open Range's signature motion — flat country, seen
+from above, patrolled by appetite.
+
+**120. Field Cap** — *Fungus* x Ordinary. Temperate +
+Wet ranges (Fungal, Rootwood, Meadow, Wetland). Shape:
+Plantiform — the classic cap-and-stem, done honestly.
+Locomotion: Stationary; it FRUITS after rain across
+four families: THE field mushroom, the baseline against
+which the Meltcap (night), the Stormcap (storm), the
+Saltcap (salt), and the Charnel Bloom (the lie) all
+read as variations. Spectra (fungus reading): Social
+rain-companies / Diet decomposer of everything ordinary
+/ Day-night post-rain at meadow scale — the Puffbell
+keeps the hour; field caps keep the WEATHER / Cultivation:
+it arrives uninvited in any compost-fed soil (the Mulch
+Beetle's traveling companion) / Harvest: **Field Cap**
+(item, its own name) — the roster's first PLAIN food
+fungus: safe, filling, unremarkable, and the entry
+insists on the adjective: kitchens need a floor. Hook:
+the fungus kingdom's mouse. Common is not a demotion;
+it is the load-bearing adjective.
+
+**121. Waygrass** — *Flora* x Ordinary. Open +
+Temperate ranges (Meadow, Storm, Bone, Saltglass).
+Shape: Plantiform (grass plan). Locomotion: Stationary —
+and it SPREADS ALONG PATHS, because its seeds ride feet:
+it grows where walking happens (trails, migrations, the
+Leviathan's road, caravan lines), so a thickened
+waygrass line is a ROUTE, readable from a ridge — follow
+waygrass and you follow somebody's road to somewhere
+roads go. Spectra (flora reading): Social path-lines /
+Diet poor soils and trampled edges / Day-night indifferent,
+like all honest grass / Cultivation self-sowing: plant
+it at a doorstep and it will find your paths before you
+do / Harvest: **Waygrass Seed** (new item) — trail
+rations chewed on marches in four families. Hook: the
+only flora whose distribution is drawn by everyone
+else's locomotion — a plant that maps the world's
+walking.
+
+**122. Driftmoth** — the Far Range (Storm, The Living,
+Precursor, Bone's deep edge). Fauna x Ordinary — vapor-
+TOUCHED but Ordinary, recorded plainly: it is a moth,
+not a spirit; its paleness is pigment and its drift is
+wind. Shape: Winged (large moth plan). Locomotion:
+Aerial, glider-leaning + Drifting at altitude — it rides
+storm outflows between the far families and appears
+after storms at the garden's edge and the valley's rim;
+in a Hungry valley it is among the few things that
+cross the border both ways unharmed, too high and too
+brief to hold. Spectra: serene / SOLO / mid flights,
+weather-timed / LARGE for a moth / Diet: adults sip
+storm-country blooms and garden spirals; the LARVAE
+feed on Banner Vine and Precursor Bloom leaves — one
+caterpillar, two far gardens: its life cycle is itself
+a border crossing / nocturnal, storm-locked / Curiosity
+none / Territory the weather's / Tameability 0% — it
+does not land near people; a LANDED driftmoth is
+weather-sick, and the codex notes shelter as the kind
+response. Drops: shed wing-scales after storms,
+unlisted. Hook: the far families needed ONE shared
+citizen to prove they are one graph's far edge and not
+three separate games; the driftmoth is that citizen,
+and it crosses.
+
+Roster designed total: 122. The wide-range layer stands
+founded at 12, with its second wave named (the Far Bat
+first) and its thin edges admitted in the header, where
+they belong.

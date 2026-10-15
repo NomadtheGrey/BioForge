@@ -597,6 +597,55 @@ A species design in this doc is not complete until it carries a
 spectra line — all ten fields, even if the entry is "mid / n/a"
 with a reason.
 
+## Amendment (2026-10-15, Adam's call): the semi-ubiquitous layer
+
+The distribution model had three layers — ubiquitous
+('all'), family emblem (one per family), biome-unique
+(one per variant). Adam's correction, in his words: a
+biome should contain MORE than its emblem and its
+unique — "we'll need semi-ubiquitous species, like the
+mouse or whatever... because mice don't live in the
+arctic, right?" Ranges should follow SENSE, not blanket
+coverage. So a fourth layer stands between ubiquitous
+and emblem:
+
+**The wide-range (semi-ubiquitous) layer** — species
+whose affinity is a RANGE of families, drawn by what
+the creature needs (temperature, water, openness,
+weirdness-tolerance). The affinity machinery already
+speaks this (a census list of several families); the
+mouse is the layer's Earth example, and the design
+records ranges honestly even where shipped census lists
+today read broader.
+
+Six working ranges (a species may sit on two):
+
+- **The Temperate Range** — Meadow, Wetland, Fungal,
+  Rootwood: the settled graph's mild middle.
+- **The Wet Range** — Wetland, Rootwood, Fungal, and
+  Meadow's low ground: water-followers.
+- **The Cold Range** — Frost, Saltglass, Bone, Storm's
+  heights: cold as a filter, honored (no mice here).
+- **The Warm Range** — Ember, Meadow, Storm's lowlands,
+  Saltglass's warm faces: heat as a filter.
+- **The Open Range** — Meadow, Saltglass, Bone, Storm:
+  flat-country species; nowhere to hide is a habitat.
+- **The Far Range** — Storm, The Living, Precursor,
+  and the graph's deep edges: weirdness-tolerant
+  wanderers; the thinnest range by design.
+
+**The per-biome stack this creates** (what a player
+actually meets in one zone): 1 emblem + 1 biome-unique
++ the ubiquitous handful + every wide-range species
+whose range covers the family + the family's background
+cast ≈ **13-17 species in a settled family, 11-13 at
+the cold/far edges** — up from the 2 the old model
+guaranteed. The eleventh roster pass (Part 3) founds
+the layer with twelve species; coverage is honest —
+the temperate middle is thick, the cold and far edges
+thin, and a second wave is named in that pass's header
+(the Far Bat first among them).
+
 ## First roster pass — the six open seats (designed 2026-10-15)
 
 Designed by Marlowe under Adam's species delegation ("work each

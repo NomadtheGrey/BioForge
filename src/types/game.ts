@@ -65,7 +65,18 @@ export type ItemId =
   // inside StructureType, forcing impossible entries into every
   // Record keyed on it; the types pass of 2026-10-15 set that right.
   | 'field_synthesizer_gauntlet'
-  | 'gauntlet_synthesizer_upgrade';
+  | 'gauntlet_synthesizer_upgrade'
+  // Gauntlet MODULES (Adam, 2026-10-15): the gauntlet is the early
+  // game's progression spine — it starts able to HARVEST only, and
+  // each further tool is a module crafted at the forge and grafted
+  // on. Owning the module item IS the unlock (App derives the
+  // unlocked tool set from the pouch; see game/quests.ts). The
+  // items are equipment: they sit in the pouch, never spent.
+  | 'gauntlet_scanner_module'
+  | 'gauntlet_planter_module'
+  | 'gauntlet_builder_module'
+  | 'gauntlet_solvent_module'
+  | 'gauntlet_lure_module';
 
 export type ToolType =
   | 'harvest_glove'
@@ -361,6 +372,21 @@ export interface BiomeArea {
   primaryTone: string;
 }
 
+/**
+ * Mini-quest progress (Adam, 2026-10-15): which tutorial quests are
+ * latched complete, which one the tracker HUD follows, and whether
+ * the tracker shows at all. Rides the save inside PlayerState, like
+ * heldItemId; absent on saves from before quests existed — App
+ * treats absence as the veteran default (nothing latched, nothing
+ * tracked, tracker hidden; the quest list still opens and the show
+ * checkbox there can wake the tracker).
+ */
+export interface QuestProgressState {
+  completedIds: string[];
+  trackedId: string | null;
+  showHud: boolean;
+}
+
 export interface PlayerState {
   x: number;
   z: number;
@@ -382,6 +408,10 @@ export interface PlayerState {
    * the save verbatim with the rest of PlayerState; absent (undefined)
    * on saves from before the slot existed — treat as empty. */
   heldItemId?: ItemId | null;
+  /** Mini-quest progress — see QuestProgressState. Optional for
+   * save compatibility; new worlds start it fresh in
+   * handleCreateSave. */
+  questProgress?: QuestProgressState;
 }
 
 export interface MultiplayerPeer {

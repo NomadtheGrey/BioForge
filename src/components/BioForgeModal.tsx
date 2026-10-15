@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Sparkles, Check, AlertCircle, ArrowRight } from 'lucide-react';
 import { CraftingRecipe, ItemId, StructureType } from '../types/game';
-import { ITEMS, RECIPES, getRecipeTier } from '../game/constants'
+import { ITEMS, RECIPES, getRecipeTier, HELMET_GEAR_ITEM_IDS } from '../game/constants'
 import { isGauntletUpgrade } from '../game/quests';
 import { soundEngine } from '../audio/soundEngine';
 import { RecipeFlowchart } from './RecipeFlowchart';
@@ -25,16 +25,26 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   onCraftRecipe,
   onSelectStructureBlueprint,
 }) => {
-  const [activeCategory, setActiveCategory] = useState<'all' | 'seeds' | 'fertilizers' | 'composites' | 'defenses'>('all');
+  const [activeCategory, setActiveCategory] = useState<'all' | 'seeds' | 'fertilizers' | 'composites' | 'defenses' | 'gauntlet' | 'helmet'>('all');
   const [selectedRecipe, setSelectedRecipe] = useState<CraftingRecipe>(RECIPES[0]);
   const [isCrafting, setIsCrafting] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'tree'>('list');
 
   if (!isOpen) return null;
 
-  const filteredRecipes = RECIPES.filter(
-    (r) => activeCategory === 'all' || r.category === activeCategory
-  );
+  const filteredRecipes = RECIPES.filter((r) => {
+    if (activeCategory === 'all') return true;
+    // Gear-line tabs (Adam, 2026-10-15) filter by what a recipe
+    // MAKES, not by its recipe category: the Gauntlet tab gathers
+    // the one-time gauntlet upgrades (modules + Field Synthesizer),
+    // the Helmet tab the helmet-line set. The recipes keep their
+    // home categories too — these tabs are dedicated gatherings,
+    // not moves. The gauntlet itself never appears under any tab:
+    // it is issued at arrival, not crafted.
+    if (activeCategory === 'gauntlet') return isGauntletUpgrade(r.outputId);
+    if (activeCategory === 'helmet') return HELMET_GEAR_ITEM_IDS.includes(r.outputId);
+    return r.category === activeCategory;
+  });
 
   const hasIngredients = (recipe: CraftingRecipe) => {
     return recipe.ingredients.every((ing) => (inventory[ing.id] || 0) >= ing.count);
@@ -59,7 +69,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     if (!hasIngredients(recipe)) return 'Missing ingredients';
     if (nearForge) return null;
     if (getRecipeTier(recipe) >= 3) return 'Advanced synthesis requires a bio-forge station';
-    if (!hasSynthesizer) return 'Too far from a bio-forge — graft a Field Synthesizer onto your gauntlet';
+    if (!hasSynthesizer) return 'Too far from a bio-forge — the Field Synthesizer lets you craft in the field';
     return null;
   };
 
@@ -111,6 +121,8 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
         <div className="px-6 py-3 border-b border-slate-800/70 bg-slate-900/30 flex items-center gap-2 overflow-x-auto">
           {[
             { id: 'all', label: 'All Synthetics' },
+            { id: 'gauntlet', label: 'Gauntlet' },
+            { id: 'helmet', label: 'Helmet' },
             { id: 'seeds', label: 'Spore & Seeds' },
             { id: 'fertilizers', label: 'Fertilizers' },
             { id: 'composites', label: 'Living Composites' },

@@ -238,7 +238,7 @@ export const FIELD_SYNTHESIS_ITEM_ID: ItemId = 'gauntlet_synthesizer_upgrade';
 /**
  * One-time gauntlet upgrades (Adam, 2026-10-15): the gauntlet itself
  * plus everything that grafts onto it — the five tool modules and
- * the Field Synthesizer Graft. These are equipment a player owns
+ * the Field Synthesizer. These are equipment a player owns
  * ONCE: owning one IS wearing it (auto-equipped; there is no equip
  * verb), its function derives from ownership, and its recipe LOCKS
  * while owned so nobody burns ingredients re-crafting a second copy

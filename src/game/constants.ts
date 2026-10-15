@@ -679,11 +679,17 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   // that how they harvest and plant?"). The player starts wearing
   // it; the hotbar tools are its modes. Remote crafting is NOT the
   // base gauntlet's gift — that arrives with the graft below.
+  // The gauntlet itself. Display name is the LIVING GAUNTLET (Adam,
+  // 2026-10-15): it used to be called "Field Synthesizer Gauntlet,"
+  // which collided with the Field Synthesizer below (the graft) — players
+  // (Adam's daughter, first) held one and reasonably expected the
+  // other's gift. The item ID keeps its historical name because
+  // saves hold it; only the player-facing name changed.
   field_synthesizer_gauntlet: {
     id: 'field_synthesizer_gauntlet',
-    name: 'Field Synthesizer Gauntlet',
+    name: 'Living Gauntlet',
     category: 'equipment',
-    description: 'Your living gauntlet — the action platform issued on arrival. It wakes knowing how to harvest; every other mode is a module you craft at the forge and graft on, one function at a time. Graft a Field Synthesizer onto it to craft away from a forge.',
+    description: 'Your living gauntlet — the action platform issued on arrival. It wakes knowing how to harvest; every other mode is a module you craft at the forge and graft on, one function at a time. Add the Field Synthesizer to craft away from a forge.',
     iconName: 'Zap',
     color: '#f59e0b',
     rarity: 'rare',
@@ -696,7 +702,11 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   // item for field synthesis; tier 3 stays forge-only regardless.
   gauntlet_synthesizer_upgrade: {
     id: 'gauntlet_synthesizer_upgrade',
-    name: 'Field Synthesizer Graft',
+    // Display name is simply FIELD SYNTHESIZER (Adam, 2026-10-15) —
+    // the one and only thing in the game that carries the name, now
+    // that the gauntlet is the Living Gauntlet. "Graft" survives
+    // only as the mechanical word for how it attaches.
+    name: 'Field Synthesizer',
     category: 'equipment',
     description: 'A miniature bio-forge grafted onto your gauntlet — synthesize tier 1-2 recipes anywhere in the field. Tier 3 still needs a real forge.',
     iconName: 'Cpu',
@@ -836,6 +846,24 @@ export const ITEMS: Record<ItemId, ItemDef> = {
  * blueprint cycle and panel) must filter these out.
  */
 export const NON_BUILDABLE_STRUCTURE_IDS: ItemId[] = ['cave_mouth', 'cave_exit', 'cave_descent', 'vine_shaft', 'ruin_landmark', 'ruin_exit', 'precursor_cache', 'artifact_heart', 'ruin_glyph'];
+
+/**
+ * Helmet-line gear (Adam, 2026-10-15): the BioForge screen's Helmet
+ * tab filters recipes by what they MAKE against this set. Today it
+ * holds the radar family — the base wayfinding radar rides the
+ * Tier-1 helmet (Adam's ruling), and the Prismatic Field Radar is
+ * WORN on the helmet, so the radar and its four subassemblies are
+ * helmet crafts. When the helmet build lands (base helmet, lenses,
+ * visors, filter), its item ids join this set one line at a time
+ * and the tab fills in.
+ */
+export const HELMET_GEAR_ITEM_IDS: ItemId[] = [
+  'resonant_antenna_fan',
+  'sonar_receiver',
+  'chitin_housing',
+  'biolume_power_cell',
+  'prismatic_field_radar',
+];
 
 export const RECIPES: CraftingRecipe[] = [
   // Seeds
@@ -1094,7 +1122,7 @@ export const RECIPES: CraftingRecipe[] = [
     id: 'craft_synthesizer_graft',
     outputId: 'gauntlet_synthesizer_upgrade',
     outputCount: 1,
-    name: 'Field Synthesizer Graft',
+    name: 'Field Synthesizer',
     description: 'Graft a miniature bio-forge onto your gauntlet for remote tier 1-2 synthesis.',
     category: 'composites',
     ingredients: [

@@ -35,8 +35,13 @@ Axes so far:
 1. **Life Type** — what the creature is alive *as*.
 2. **Locomotion** — how the creature gets around. **Built out
    below.**
-3. **(Open slot.)** Adam senses there is a third axis; he is still
-   thinking of it. Deliberately left blank until he names it.
+3. **(Open slot — candidate raised.)** Adam senses there is a
+   third axis. On 2026-10-15 he raised **Shape** — what a creature
+   looks like — as likely being it. The approach is under
+   discussion; the slot stays open until the approach is agreed,
+   and Shape is NOT part of the spectra template below (spectra
+   describe behavior; shape would be a matrix axis like Life Type
+   and Locomotion).
 
 A separate, free grid falls out of the biomes work: **Life Type x
 Biome Family** as the roster map — who lives where — again with
@@ -229,6 +234,55 @@ a lock — per the settled biome rules.
 - **Stationary fauna and the codex:** when is a stationary animal
   a *creature* rather than scenery? Proposal: the moment it can
   react — reach, lure, snap, sing. Awaiting Adam.
+
+## The spectra template (per-species behavior profile)
+
+Every designed species gets a line on each spectrum below — this
+is the expanded version of the four-field template the biome
+program's shipped-species stubs already use (temperament, social,
+speed, locomotion). **Adam approved adding all six new spectra on
+2026-10-15** (his words: "We can add all of those" — adopted as
+template *fields*, brainstorm status; no species values are pinned
+by this, and Adam flagged the addition himself as deliberate,
+eyes-open feature expansion).
+
+Original four:
+
+- **Temperament** — aggressive <-> timid.
+- **Social** — pack <-> solo.
+- **Speed** — fast <-> slow.
+- **Locomotion** — categorical, not a slider; see Axis 2.
+
+Added 2026-10-15:
+
+- **Size** — tiny pest <-> apex giant. Anchors the distribution
+  model: the ubiquitous layer's pest seat lives at the tiny end
+  (the mosquito seat; the burrow mouse holds the rat seat), and
+  the untamables' "epically large" reason lives at the giant end.
+- **Diet** — categorical like locomotion: grazer / hunter /
+  scavenger / decomposer — plus BioForge extensions to consider
+  (light-drinker, dew-sipper, mineral accreter for Crystalline
+  life). Diet is what a creature's drops and taming bait mean.
+- **Day-night** — diurnal <-> nocturnal, with crepuscular (dusk /
+  dawn) as the named middle. The Vesper Glider's flavor already
+  lives here.
+- **Curiosity** — ignores you <-> comes to look at you. DISTINCT
+  from temperament: approaching to inspect is neither aggression
+  nor timidity, and it gives Peaceful encounters a third shape
+  besides flee-or-ignore. (Marlowe's pick for most game in it;
+  Adam's adoption of the set includes it.)
+- **Territory** — wide-roaming <-> defends one spot. Decides what
+  stay / guard means for a wild creature before taming ever
+  enters the picture, and where a species' "home" is in a zone.
+- **Tameability** — wild forever <-> half-domesticated. The
+  *disposition* behind the mechanics: the shipped per-attempt
+  lure percentages (Soft-Puff 80 / Burrow Mouse 60 /
+  Chitin-Stalker 25) are this spectrum expressed as numbers, and
+  its floor is where the untamables live.
+
+A species design in this doc is not complete until it carries a
+spectra line — all ten fields, even if the entry is "mid / n/a"
+with a reason.
 
 ## Cross-references
 

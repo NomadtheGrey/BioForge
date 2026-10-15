@@ -17,12 +17,13 @@ import {
   HoverTarget,
 } from '../types/game';
 import { FirstPersonViewmodel } from './viewmodel';
-import { BrownianWiggle, hashStringToSeed, type WiggleOptions } from './motion';
 import { BIOME_TINTS } from './biomes';
 import type { BiomeId } from './biomes';
 import { cavernCellToWorld, type CavernResult } from './cavern';
 import type { RuinResult } from './ruinInterior';
 import { createStructureBuilders, type StructureMaterials } from './structureBuilders';
+import { createCreatureMeshKit, type CreatureMeshKit } from './creatureMeshes';
+import { createLandmarkDressing, type LandmarkDressing } from './landmarkDressing';
 import { FATE_STYLES, type WorldFate } from './ruins';
 
 const IRIS_DOOR_TRIGGER_RADIUS = 2.5;
@@ -37,18 +38,6 @@ const SLOPE_SAMPLE_DISTANCE = 1;
 // levels (StructureEntity.level) multiply this.
 const STORY_HEIGHT = 2.4;
 
-// Per-species idle-wiggle flavors (see game/motion.ts for what the knobs
-// mean). A predator should not fidget like a puff: the stalker is nearly
-// statue-still with a slow rock, the puff is busy and bouncy, the mouse is
-// small and quick. Tuned by simulation — typical drift: stalker ~4 mm,
-// mouse ~1.5 cm, puff ~3 cm.
-const FAUNA_WIGGLE_FLAVORS: Record<string, WiggleOptions> = {
-  chitin_stalker: { impulse: 0.5, maxOffset: 0.02, maxRock: 0.06, spring: 8, damping: 4 },
-  soft_puff: { impulse: 2.0, maxOffset: 0.06, maxRock: 0.07, spring: 5, damping: 2.2 },
-  burrow_mouse: { impulse: 1.6, maxOffset: 0.035, maxRock: 0.04, spring: 9, damping: 3.5 },
-  vesper_glider: { impulse: 0.7, maxOffset: 0.05, maxRock: 0.1, spring: 3.5, damping: 2.4 },
-};
-const FAUNA_WIGGLE_DEFAULT: WiggleOptions = { impulse: 1.4, maxOffset: 0.05, maxRock: 0.05, spring: 6, damping: 3 };
 
 // Pre-allocated scratch vectors to prevent GC allocations in render loop (Rule 3)
 const SCRATCH_VEC_A = new THREE.Vector3();
@@ -235,10 +224,8 @@ export class BioForgeThreeEngine {
   // Entity mesh maps
   private floraMeshMap: Map<string, THREE.Group> = new Map();
   private faunaMeshMap: Map<string, THREE.Group> = new Map();
-  // Idle-life wiggle state per fauna (render-only; see motion.ts). One
-  // BrownianWiggle per creature, seeded by its id so it wiggles the same
-  // way on every screen. lastFaunaSyncMs times the wiggle's dt.
-  private faunaWiggleMap: Map<string, { wiggle: BrownianWiggle; species: FaunaEntity['species'] }> = new Map();
+  // Idle-life wiggle state lives in the creature mesh kit
+  // (game/creatureMeshes.ts); lastFaunaSyncMs times the wiggle's dt.
   private lastFaunaSyncMs = 0;
   private structureMeshMap: Map<string, THREE.Group> = new Map();
   // Per-structure mesh builders (registry replacing the createStructureMesh switch).
@@ -247,6 +234,11 @@ export class BioForgeThreeEngine {
   // (extracted 2026-10-14 — this file had hit the push ceiling).
   // Assigned in the constructor once the shared materials exist.
   private structureBuilders: Record<StructureType, () => THREE.Group>;
+  // Mesh factories over the shared materials (extracted 2026-10-14):
+  // creatures/flora in game/creatureMeshes.ts, cave + ruin dressing
+  // in game/landmarkDressing.ts. Assigned in the constructor.
+  private creatureKit: CreatureMeshKit;
+  private landmarkDressing: LandmarkDressing;
   private droppedItemMeshMap: Map<string, THREE.Group> = new Map();
 
   // Callbacks
@@ -352,6 +344,8 @@ export class BioForgeThreeEngine {
     // The builders record is a factory over these shared materials
     // (game/structureBuilders.ts) — built once, here, where they exist.
     this.structureBuilders = createStructureBuilders(this.materials);
+    this.creatureKit = createCreatureMeshKit(this.materials, (x, z) => this.terrainHeightAt(x, z));
+    this.landmarkDressing = createLandmarkDressing(this.materials);
 
     // Lights
     this.ambientLight = new THREE.AmbientLight(0x2d3748, 1.2);
@@ -773,256 +767,9 @@ export class BioForgeThreeEngine {
     });
 
     floraList.forEach((f) => {
-      const mesh = this.ensureBoundMesh(this.floraMeshMap, this.floraGroup, f, f.species, (e) => this.createFloraMesh(e));
-      this.updateFloraMesh(mesh, f);
+      const mesh = this.ensureBoundMesh(this.floraMeshMap, this.floraGroup, f, f.species, (e) => this.creatureKit.createFloraMesh(e));
+      this.creatureKit.updateFloraMesh(mesh, f);
     });
-  }
-
-  private createFloraMesh(flora: FloraEntity): THREE.Group {
-    const group = new THREE.Group();
-    group.userData = { type: 'flora', entity: flora };
-
-    switch (flora.species) {
-      case 'lantern_fern': {
-        const stalk = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.08, 0.16, 2.2, 8),
-          this.materials.woodRoot
-        );
-        stalk.position.y = 1.1;
-        stalk.castShadow = true;
-        group.add(stalk);
-
-        const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 12), this.materials.biolumCyan);
-        bulb.position.set(0, 2.2, 0);
-        group.add(bulb);
-
-        break;
-      }
-
-      case 'sap_weaver': {
-        const base = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.4, 0.8, 8), this.materials.woodRoot);
-        base.position.y = 0.4;
-        group.add(base);
-
-        const sac = new THREE.Mesh(new THREE.SphereGeometry(0.65, 16, 16), this.materials.biolumAmber);
-        sac.position.y = 1.2;
-        sac.scale.set(1, 1.25, 1);
-        sac.castShadow = true;
-        group.add(sac);
-
-        break;
-      }
-
-      case 'petal_mill': {
-        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.2, 1.8, 8), this.materials.woodRoot);
-        stem.position.y = 0.9;
-        group.add(stem);
-
-        const petalHub = new THREE.Group();
-        petalHub.name = 'petalHub';
-        petalHub.position.y = 1.8;
-
-        const centerCore = new THREE.Mesh(new THREE.SphereGeometry(0.25, 12, 12), this.materials.biolumAmber);
-        petalHub.add(centerCore);
-
-        for (let i = 0; i < 5; i++) {
-          const angle = (i * Math.PI * 2) / 5;
-          const petal = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.05, 0.7), this.materials.biolumPink);
-          petal.position.set(Math.sin(angle) * 0.5, 0, Math.cos(angle) * 0.5);
-          petal.rotation.y = angle;
-          petalHub.add(petal);
-        }
-
-        group.add(petalHub);
-        break;
-      }
-
-      case 'snap_trap': {
-        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.35, 1.2, 8), this.materials.porcelainWhite);
-        stalk.position.y = 0.6;
-        group.add(stalk);
-
-        const trapHead = new THREE.Group();
-        trapHead.name = 'trapHead';
-        trapHead.position.y = 1.3;
-
-        const jawMat = new THREE.MeshStandardMaterial({
-          color: 0xef4444,
-          roughness: 0.3,
-          emissive: 0x7f1d1d,
-          emissiveIntensity: 0.4,
-        });
-
-        const upperJaw = new THREE.Mesh(new THREE.ConeGeometry(0.55, 0.8, 6), jawMat);
-        upperJaw.name = 'upperJaw';
-        upperJaw.rotation.x = Math.PI / 4;
-        upperJaw.position.set(0, 0.2, 0.2);
-
-        const lowerJaw = new THREE.Mesh(new THREE.ConeGeometry(0.55, 0.8, 6), jawMat);
-        lowerJaw.name = 'lowerJaw';
-        lowerJaw.rotation.x = -Math.PI / 4;
-        lowerJaw.position.set(0, -0.2, 0.2);
-
-        trapHead.add(upperJaw);
-        trapHead.add(lowerJaw);
-        group.add(trapHead);
-        break;
-      }
-
-      case 'glow_spore_cluster': {
-        // The cave-mouth plant (Adam, 2026-10-14): a low cluster of
-        // glowing cyan orbs on short dark stalks — the same blue
-        // spheres that used to be pure set dressing at cave mouths,
-        // now a real, harvestable plant that grows around them.
-        const stalkGeom = new THREE.CylinderGeometry(0.03, 0.05, 0.5, 6);
-        const orbOffsets: [number, number, number][] = [
-          [0, 0.52, 0], [0.18, 0.4, 0.1], [-0.16, 0.44, -0.08],
-          [0.08, 0.34, -0.16], [-0.1, 0.3, 0.15], [0.22, 0.26, -0.14],
-        ];
-        for (const [ox, oy, oz] of orbOffsets) {
-          const stalk = new THREE.Mesh(stalkGeom, this.materials.woodRoot);
-          stalk.position.set(ox, oy / 2, oz);
-          group.add(stalk);
-          const orb = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), this.materials.biolumCyan);
-          orb.position.set(ox, oy, oz);
-          group.add(orb);
-        }
-        break;
-      }
-
-      case 'glow_fungus': {
-        // The cavern's own fungus (Adam, 2026-10-14): taller than its
-        // surface cousin — pale stalks and flat cyan caps, grown for a
-        // place with no sun at all. Harvested like any plant; regrows.
-        const capGeom = new THREE.SphereGeometry(0.16, 10, 8);
-        const stalkMat = this.materials.woodRoot;
-        const tuft: [number, number, number][] = [
-          [0, 0.85, 0], [0.2, 0.6, 0.12], [-0.18, 0.7, -0.1], [0.1, 0.45, -0.2], [-0.08, 0.5, 0.18],
-        ];
-        for (const [ox, h, oz] of tuft) {
-          const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.055, h, 6), stalkMat);
-          stalk.position.set(ox, h / 2, oz);
-          group.add(stalk);
-          const cap = new THREE.Mesh(capGeom, this.materials.biolumCyan);
-          cap.scale.set(1, 0.5, 1);
-          cap.position.set(ox, h + 0.03, oz);
-          group.add(cap);
-        }
-        break;
-      }
-
-      case 'sunshard_cluster': {
-        // Amber crystals that grow in the shallow caverns — a small
-        // cluster of warm shards around a taller spine.
-        const shardGeom = new THREE.OctahedronGeometry(0.3);
-        const shards: [number, number, number, number][] = [
-          [0, 0.42, 0, 1.25], [0.24, 0.26, 0.1, 0.8], [-0.2, 0.3, -0.14, 0.9], [0.05, 0.2, 0.24, 0.65],
-        ];
-        for (const [ox, oy, oz, s] of shards) {
-          const shard = new THREE.Mesh(shardGeom, this.materials.biolumAmber);
-          shard.position.set(ox, oy, oz);
-          shard.scale.setScalar(s);
-          shard.rotation.set(0.2, ox * 4, 0.15);
-          shard.castShadow = true;
-          group.add(shard);
-        }
-        break;
-      }
-
-      case 'prism_cluster': {
-        // The deep caves' prize: two tall violet prisms. Stretched
-        // octahedra read as cut crystal without any new geometry.
-        const prismGeom = new THREE.OctahedronGeometry(0.34);
-        const prisms: [number, number, number, number][] = [
-          [0, 0.62, 0, 1.5], [0.26, 0.4, -0.1, 1.0], [-0.22, 0.32, 0.14, 0.8],
-        ];
-        for (const [ox, oy, oz, s] of prisms) {
-          const prism = new THREE.Mesh(prismGeom, this.materials.biolumViolet);
-          prism.position.set(ox, oy, oz);
-          prism.scale.set(0.8 * s, 1.6 * s, 0.8 * s);
-          prism.rotation.y = ox * 5;
-          prism.castShadow = true;
-          group.add(prism);
-        }
-        break;
-      }
-
-      case 'bounce_shroom': {
-        // Squat springy stem + a wide violet cap: the trampoline. The
-        // cap is named so the render loop can squash it when bounced on.
-        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.17, 0.45, 8), this.materials.woodRoot);
-        stem.position.y = 0.22;
-        stem.castShadow = true;
-        group.add(stem);
-
-        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.46, 16, 12), this.materials.biolumViolet);
-        cap.name = 'bounceCap';
-        cap.scale.set(1, 0.55, 1);
-        cap.position.y = 0.5;
-        cap.castShadow = true;
-        group.add(cap);
-        break;
-      }
-
-      case 'echo_reed': {
-        // Wetland listening stalks: a fan of tall, ringed, hollow
-        // reeds tipped with teal resonator bells. The rings are thin
-        // torus bands — cheap, and they read as "grown around sound"
-        // from across the marsh.
-        const reedMat = new THREE.MeshStandardMaterial({ color: 0x3f6212, roughness: 0.8 });
-        const ringMat = new THREE.MeshStandardMaterial({ color: 0x2dd4bf, roughness: 0.4, emissive: 0x0f766e, emissiveIntensity: 0.5 });
-        const stalks: [number, number, number][] = [
-          [0, 0, 2.6], [0.22, 0.1, 2.1], [-0.2, 0.12, 2.3], [0.1, -0.2, 1.8], [-0.12, -0.16, 2.0],
-        ];
-        for (const [ox, oz, h] of stalks) {
-          const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.06, h, 6), reedMat);
-          stalk.position.set(ox, h / 2, oz);
-          stalk.rotation.z = ox * 0.25;
-          stalk.castShadow = true;
-          group.add(stalk);
-          for (let r = 1; r <= 3; r++) {
-            const ring = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.016, 6, 12), ringMat);
-            ring.position.set(ox + ox * 0.25 * (h * r / 4) * 0.4, (h * r) / 4, oz);
-            ring.rotation.x = Math.PI / 2;
-            group.add(ring);
-          }
-          const bell = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.22, 8, 1, true), ringMat);
-          bell.position.set(ox + ox * 0.25 * h * 0.4, h + 0.08, oz);
-          bell.rotation.x = Math.PI;
-          group.add(bell);
-        }
-        break;
-      }
-
-      case 'bell_bloom':
-      default: {
-        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.12, 1.6, 8), this.materials.woodRoot);
-        stem.position.y = 0.8;
-        group.add(stem);
-
-        const bell = new THREE.Mesh(new THREE.ConeGeometry(0.45, 0.7, 8, 1, true), this.materials.biolumViolet);
-        bell.position.y = 1.6;
-        bell.rotation.x = Math.PI;
-        group.add(bell);
-        break;
-      }
-    }
-
-    group.position.set(flora.x, this.terrainHeightAt(flora.x, flora.z), flora.z);
-    group.rotation.y = flora.rotation;
-    return group;
-  }
-
-  private updateFloraMesh(mesh: THREE.Group, flora: FloraEntity) {
-    mesh.position.set(flora.x, 0, flora.z);
-    mesh.userData.entity = flora;
-    const baseScale = flora.scale * (0.45 + flora.growthStage * 0.14);
-    mesh.scale.set(baseScale, baseScale, baseScale);
-
-    const petalHub = mesh.getObjectByName('petalHub');
-    if (petalHub) {
-      petalHub.rotation.y += 0.03;
-    }
   }
 
   // --------------------------------------------------------------------------
@@ -1042,7 +789,7 @@ export class BioForgeThreeEngine {
         this.faunaGroup.remove(mesh);
         this.disposeMeshGeometries(mesh);
         this.faunaMeshMap.delete(id);
-        this.faunaWiggleMap.delete(id);
+        this.creatureKit.forgetFauna(id);
       }
     });
 
@@ -1052,161 +799,9 @@ export class BioForgeThreeEngine {
       // rebuild to wear its new colors (the tint was always meant to
       // be the tame signal — it just never got to change before).
       const kindKey = `${f.species}:${f.isTamed ? 'tamed' : 'wild'}`;
-      const mesh = this.ensureBoundMesh(this.faunaMeshMap, this.faunaGroup, f, kindKey, (e) => this.createFaunaMesh(e));
-      this.updateFaunaMesh(mesh, f, wiggleDt);
+      const mesh = this.ensureBoundMesh(this.faunaMeshMap, this.faunaGroup, f, kindKey, (e) => this.creatureKit.createFaunaMesh(e));
+      this.creatureKit.updateFaunaMesh(mesh, f, wiggleDt);
     });
-  }
-
-  private createFaunaMesh(fauna: FaunaEntity): THREE.Group {
-    const group = new THREE.Group();
-    group.userData = { type: 'fauna', entity: fauna };
-
-    switch (fauna.species) {
-      case 'soft_puff': {
-        const bodyMat = new THREE.MeshStandardMaterial({
-          color: fauna.isTamed ? 0x2dd4bf : 0xa7f3d0,
-          roughness: 0.4,
-          emissive: fauna.isTamed ? 0x0f766e : 0x047857,
-          emissiveIntensity: 0.35,
-        });
-        const body = new THREE.Mesh(new THREE.SphereGeometry(0.45, 16, 16), bodyMat);
-        body.position.y = 0.45;
-        body.castShadow = true;
-        group.add(body);
-
-        const ant = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 10), this.materials.biolumCyan);
-        ant.position.set(0, 1.0, 0.2);
-        group.add(ant);
-        break;
-      }
-
-      case 'chitin_stalker': {
-        const stalkerMat = new THREE.MeshStandardMaterial({
-          color: fauna.isTamed ? 0xa855f7 : 0x9333ea,
-          roughness: 0.2,
-          metalness: 0.2,
-          emissive: fauna.isTamed ? 0x581c87 : 0x3b0764,
-          emissiveIntensity: 0.4,
-        });
-
-        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.38, 0.9, 8, 12), stalkerMat);
-        body.rotation.x = Math.PI / 2;
-        body.position.y = 0.75;
-        body.castShadow = true;
-        group.add(body);
-
-        const head = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.5, 6), this.materials.porcelainWhite);
-        head.rotation.x = Math.PI / 2;
-        head.position.set(0, 0.8, 0.75);
-        group.add(head);
-        break;
-      }
-
-      case 'vesper_glider': {
-        // A dusk glider: slim body, two swept membrane wings veined
-        // like ears, a fan tail. It is drawn AIRBORNE — updateFaunaMesh
-        // holds the whole mesh at glide height with a slow bob, so the
-        // body sits at local y 0 and the wings do the talking.
-        const bodyMat = new THREE.MeshStandardMaterial({
-          color: fauna.isTamed ? 0x818cf8 : 0x6366f1,
-          roughness: 0.55,
-          emissive: 0x312e81,
-          emissiveIntensity: 0.45,
-        });
-        const membraneMat = new THREE.MeshStandardMaterial({
-          color: 0xa5b4fc,
-          roughness: 0.6,
-          transparent: true,
-          opacity: 0.72,
-          side: THREE.DoubleSide,
-          emissive: 0x4338ca,
-          emissiveIntensity: 0.25,
-        });
-        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.16, 0.55, 6, 10), bodyMat);
-        body.rotation.x = Math.PI / 2;
-        body.castShadow = true;
-        group.add(body);
-
-        const head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 10), bodyMat);
-        head.position.set(0, 0.05, 0.48);
-        group.add(head);
-        // The ears the species is named for — two small vanes up top.
-        for (const sideSign of [-1, 1]) {
-          const ear = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.22, 6), membraneMat);
-          ear.position.set(0.09 * sideSign, 0.22, 0.44);
-          ear.rotation.z = -0.3 * sideSign;
-          group.add(ear);
-        }
-        for (const sideSign of [-1, 1]) {
-          const wing = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 0.5), membraneMat);
-          wing.name = sideSign < 0 ? 'gliderWingL' : 'gliderWingR';
-          wing.position.set(0.68 * sideSign, 0.06, -0.02);
-          wing.rotation.x = -Math.PI / 2 + 0.12;
-          wing.rotation.z = 0.1 * sideSign;
-          group.add(wing);
-        }
-        const tail = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.3), membraneMat);
-        tail.position.set(0, 0.03, -0.5);
-        tail.rotation.x = -Math.PI / 2;
-        group.add(tail);
-        break;
-      }
-
-      default: {
-        const body = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 12), this.materials.biolumAmber);
-        body.position.y = 0.3;
-        group.add(body);
-        break;
-      }
-    }
-
-    group.position.set(fauna.x, 0, fauna.z);
-    group.rotation.y = fauna.rotation;
-    return group;
-  }
-
-  private updateFaunaMesh(mesh: THREE.Group, fauna: FaunaEntity, wiggleDt = 0) {
-    // Creatures stand ON the terrain: their mesh base is the ground
-    // height at their position (the simulation itself stays 2D — this
-    // is purely where the body is drawn, like the floor treatment).
-    const groundY = this.terrainHeightAt(fauna.x, fauna.z);
-    mesh.position.set(fauna.x, groundY + fauna.y, fauna.z);
-    mesh.rotation.y = fauna.rotation;
-    mesh.userData.entity = fauna;
-
-    if (fauna.species === 'soft_puff') {
-      const hop = Math.abs(Math.sin(fauna.animTime * 6)) * 0.25;
-      mesh.position.y = groundY + hop;
-    }
-
-    if (fauna.species === 'vesper_glider') {
-      // Airborne by nature: a low glide with a slow rise-and-settle,
-      // and the wings breathe — a shallow flap cycle, not a buzz.
-      mesh.position.y = groundY + 0.85 + Math.sin(fauna.animTime * 1.7) * 0.22;
-      const flap = Math.sin(fauna.animTime * 2.6) * 0.28;
-      const wingL = mesh.getObjectByName('gliderWingL');
-      const wingR = mesh.getObjectByName('gliderWingR');
-      if (wingL) wingL.rotation.z = -0.1 - flap;
-      if (wingR) wingR.rotation.z = 0.1 + flap;
-    }
-
-    // Idle-life wiggle (bounded Brownian — see game/motion.ts). Purely how
-    // the mesh is DRAWN: the entity's simulated position never changes, so
-    // nothing here needs syncing, saving, or pathing around. The offsets
-    // are centimeters — a creature breathing in place, not sliding around.
-    // The wiggle's FLAVOR is species personality (stalker ≈ statue,
-    // puff = fidget) — bound to the species exactly like the mesh is:
-    // if this id changed species across worlds, the old flavor goes.
-    let wiggleEntry = this.faunaWiggleMap.get(fauna.id);
-    if (!wiggleEntry || wiggleEntry.species !== fauna.species) {
-      const flavor = FAUNA_WIGGLE_FLAVORS[fauna.species] ?? FAUNA_WIGGLE_DEFAULT;
-      wiggleEntry = { wiggle: new BrownianWiggle(hashStringToSeed(fauna.id), flavor), species: fauna.species };
-      this.faunaWiggleMap.set(fauna.id, wiggleEntry);
-    }
-    const w = wiggleEntry.wiggle.update(wiggleDt);
-    mesh.position.x += w.x;
-    mesh.position.z += w.z;
-    mesh.rotation.z = w.rock;
   }
 
   // --------------------------------------------------------------------------
@@ -1291,306 +886,18 @@ export class BioForgeThreeEngine {
         if ((o as THREE.Mesh).isMesh) o.raycast = () => {};
       });
       if (structure.cave?.dressing?.length) {
-        group.add(this.buildCaveDressing(structure));
+        group.add(this.landmarkDressing.buildCaveDressing(structure));
       }
     }
     // Ruin landmarks wear their generated dressing too — and like the
     // cave mouth, only ONE piece speaks for the place (the threshold
     // stone at the gate), so rubble never reports the wrong name.
     if (structure.type === 'ruin_landmark' && structure.ruin) {
-      group.add(this.buildRuinDressing(structure));
+      group.add(this.landmarkDressing.buildRuinDressing(structure));
     }
     return group;
   }
 
-  /**
-   * Render one cave mouth's dressing pieces. The pieces carry WORLD
-   * positions (zone-local meters) from the generator; this subgroup
-   * counter-rotates the parent group's yaw (applyTerrainTransform set
-   * it to the mouth's facing) so children can be placed at plain
-   * anchor-relative offsets and land exactly where the generator put
-   * them. Piece heights are relative to the anchor's terrain height —
-   * pieces sit slightly sunk so gentle slopes never float them.
-   */
-  private buildCaveDressing(structure: StructureEntity): THREE.Group {
-    const sub = new THREE.Group();
-    sub.rotation.y = -(structure.rotation ?? 0);
-    const facing = structure.rotation ?? 0;
-    const rock = new THREE.MeshStandardMaterial({ color: 0x6b6560, roughness: 0.95 });
-    const rockDark = new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 0.97 });
-    const soil = new THREE.MeshStandardMaterial({ color: 0x292019, roughness: 1 });
-    const stone = new THREE.MeshStandardMaterial({ color: 0x9c958c, roughness: 0.9 });
-    const emberRock = new THREE.MeshStandardMaterial({ color: 0x571f1f, roughness: 0.9, emissive: 0x7c2d12, emissiveIntensity: 0.25 });
-    const reed = new THREE.MeshStandardMaterial({ color: 0x3f6212, roughness: 0.85 });
-    const mouthBlack = new THREE.MeshBasicMaterial({ color: 0x030303 });
-
-    for (const piece of structure.cave!.dressing) {
-      const dx = piece.x - structure.worldX;
-      const dz = piece.z - structure.worldZ;
-      const s = piece.scale;
-      const childrenBefore = sub.children.length;
-      switch (piece.type) {
-        case 'cave_mouth': {
-          // THE PORTAL BOULDER (Adam, 2026-10-14): one large rock whose
-          // outward face IS the entrance. It carries everything — the
-          // shaded opening sunk into its face, and the glow sigil stuck
-          // tangent onto its outside — instead of the sigil floating
-          // among the rubble boulders, embedded and unreachable.
-          // A flattened sphere: its convex front face sits ~0.35 m
-          // behind the anchor (rotation.y = PI/2 - f maps local +Z
-          // onto the facing's XZ direction). Scenery, not a hover
-          // target — the opening and its sign speak for the entrance.
-          const portalRock = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 18), rock);
-          portalRock.name = 'portalRock';
-          portalRock.scale.set(2.0 * s, 2.1 * s, 1.1 * s);
-          portalRock.position.set(dx - Math.cos(facing) * 1.45, 1.45 * s, dz - Math.sin(facing) * 1.45);
-          portalRock.rotation.y = Math.PI / 2 - facing;
-          portalRock.castShadow = true;
-          portalRock.raycast = () => {};
-          sub.add(portalRock);
-
-          // The opening: a black, flattened dome sunk INTO the portal
-          // rock's face — the shaded hollow that reads as the cave
-          // entrance itself, protruding just enough to catch the edge
-          // of the dark.
-          const dome = new THREE.Mesh(new THREE.SphereGeometry(1.15, 20, 14), mouthBlack);
-          dome.scale.set(1.25 * s, 0.95 * s, 0.55 * s);
-          dome.position.set(dx - Math.cos(facing) * 0.3, 0.72 * s, dz - Math.sin(facing) * 0.3);
-          dome.rotation.y = Math.PI / 2 - facing;
-          sub.add(dome);
-
-          // The SIGN: the procedurally drawn glow sigil
-          // (getCaveSigilTexture) stuck TANGENT to the portal rock's
-          // face — its plane touches the convex rock at the face's
-          // center point (just proud of it) and kisses away at the
-          // edges, like a plate mounted on the stone. Sized to fit
-          // the boulder that holds it. Additive-blended, pulsed in
-          // updateStructureMesh.
-          const sigil = new THREE.Mesh(
-            new THREE.PlaneGeometry(2.9 * s, 2.9 * s),
-            new THREE.MeshBasicMaterial({
-              map: this.getCaveSigilTexture(),
-              transparent: true,
-              opacity: 0.8,
-              blending: THREE.AdditiveBlending,
-              depthWrite: false,
-              side: THREE.DoubleSide,
-            }),
-          );
-          sigil.name = 'caveSigil';
-          sigil.position.set(dx - Math.cos(facing) * 0.28, 1.5 * s, dz - Math.sin(facing) * 0.28);
-          sigil.rotation.y = Math.PI / 2 - facing;
-          sub.add(sigil);
-          break;
-        }
-        case 'dark_soil_patch': {
-          const patch = new THREE.Mesh(new THREE.CircleGeometry(2.1 * s, 20), soil);
-          patch.rotation.x = -Math.PI / 2;
-          patch.position.set(dx, 0.03, dz);
-          sub.add(patch);
-          break;
-        }
-        case 'rock_lip': {
-          const lip = new THREE.Mesh(new THREE.DodecahedronGeometry(0.95 * s, 0), rock);
-          lip.position.set(dx, 0.5 * s, dz);
-          lip.rotation.set(piece.rotation, piece.rotation * 1.7, 0);
-          lip.castShadow = true;
-          sub.add(lip);
-          break;
-        }
-        case 'boulder': {
-          // Boulders stand TALL (Adam, 2026-10-14: at least 3x taller)
-          // — they're the cliff face the mouth is set into, not gravel.
-          // Y-stretched 3x and seated so the base stays buried.
-          const boulder = new THREE.Mesh(new THREE.DodecahedronGeometry(0.95 * s, 0), rock);
-          boulder.scale.set(1.15, 3.0, 1.15);
-          boulder.position.set(dx, 1.25 * s, dz);
-          boulder.rotation.set(piece.rotation, piece.rotation * 1.7, 0);
-          boulder.castShadow = true;
-          sub.add(boulder);
-          break;
-        }
-        case 'rubble': {
-          const rubble = new THREE.Mesh(new THREE.DodecahedronGeometry(0.4 * s, 0), rockDark);
-          rubble.position.set(dx, 0.16, dz);
-          rubble.rotation.set(piece.rotation, piece.rotation * 2.3, 0);
-          sub.add(rubble);
-          break;
-        }
-        case 'heat_cracked_stone': {
-          const cracked = new THREE.Mesh(new THREE.DodecahedronGeometry(0.8 * s, 0), emberRock);
-          cracked.position.set(dx, 0.42 * s, dz);
-          cracked.rotation.set(piece.rotation, piece.rotation * 1.3, 0);
-          sub.add(cracked);
-          break;
-        }
-        case 'path_stone': {
-          const stepping = new THREE.Mesh(new THREE.CylinderGeometry(0.55 * s, 0.62 * s, 0.09, 7), stone);
-          stepping.position.set(dx, 0.045, dz);
-          stepping.rotation.y = piece.rotation;
-          sub.add(stepping);
-          break;
-        }
-        case 'glow_spore_cluster':
-        case 'glow_fungus_cluster': {
-          const glowMat = piece.type === 'glow_fungus_cluster' ? this.materials.biolumViolet : this.materials.biolumCyan;
-          for (let i = 0; i < 3; i++) {
-            const orb = new THREE.Mesh(new THREE.SphereGeometry(0.09 + i * 0.035, 10, 8), glowMat);
-            orb.position.set(dx + (i - 1) * 0.22, 0.12 + i * 0.09, dz + (i % 2 === 0 ? 0.14 : -0.12));
-            orb.scale.setScalar(s);
-            sub.add(orb);
-          }
-          break;
-        }
-        case 'reed_cluster': {
-          for (let i = 0; i < 4; i++) {
-            const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.045, 1.1 + i * 0.12, 5), reed);
-            stalk.position.set(dx + (i - 1.5) * 0.16, 0.55, dz + (i % 2 === 0 ? 0.1 : -0.1));
-            stalk.rotation.z = (i - 1.5) * 0.06;
-            stalk.scale.setScalar(s);
-            sub.add(stalk);
-          }
-          break;
-        }
-        case 'ember_vent': {
-          const vent = new THREE.Mesh(new THREE.ConeGeometry(0.32 * s, 0.7 * s, 7), rockDark);
-          vent.position.set(dx, 0.3 * s, dz);
-          sub.add(vent);
-          const glow = new THREE.Mesh(new THREE.SphereGeometry(0.13 * s, 10, 8), this.materials.biolumAmber);
-          glow.position.set(dx, 0.62 * s, dz);
-          sub.add(glow);
-          break;
-        }
-      }
-      // Only the entrance itself (the 'cave_mouth' piece: dome + sigil)
-      // answers hover/click raycasts. Every other dressing piece is
-      // scenery — the ray passes through it to whatever is behind.
-      if (piece.type !== 'cave_mouth') {
-        for (let i = childrenBefore; i < sub.children.length; i++) {
-          sub.children[i].traverse((c) => {
-            if ((c as THREE.Mesh).isMesh) c.raycast = () => {};
-          });
-        }
-      }
-    }
-    return sub;
-  }
-
-  /**
-   * Render one ruin landmark: its dressing pieces (broken stone in the
-   * world's fate tint — game/ruins.ts FATE_STYLES) plus, for any tier
-   * above traces, the GATE: two standing pillars and a lintel at the
-   * anchor, with a threshold stone that alone answers the raycaster
-   * (hovering rubble must not report the ruin, same rule as caves).
-   * Same counter-rotated subgroup convention as buildCaveDressing:
-   * piece positions are anchor-relative world offsets.
-   */
-  private buildRuinDressing(structure: StructureEntity): THREE.Group {
-    const sub = new THREE.Group();
-    sub.rotation.y = -(structure.rotation ?? 0);
-    const facing = structure.rotation ?? 0;
-    const ruin = structure.ruin!;
-    // The fate tints the stone: grey rock pulled toward the fate's
-    // color, so one world's ruins read differently from another's
-    // before a single clue is understood.
-    const fateTint = new THREE.Color(FATE_STYLES[ruin.fate as WorldFate]?.tint ?? 0xa8a29e);
-    const stoneColor = new THREE.Color(0x8a8378).lerp(fateTint, 0.38);
-    const stone = new THREE.MeshStandardMaterial({ color: stoneColor, roughness: 0.92 });
-    const stoneDark = new THREE.MeshStandardMaterial({ color: stoneColor.clone().multiplyScalar(0.62), roughness: 0.95 });
-    const silent = (m: THREE.Mesh): THREE.Mesh => {
-      m.raycast = () => {};
-      m.castShadow = true;
-      return m;
-    };
-
-    for (const piece of ruin.dressing) {
-      const dx = piece.x - structure.worldX;
-      const dz = piece.z - structure.worldZ;
-      const s = piece.scale;
-      switch (piece.type) {
-        case 'pillar': {
-          const m = silent(new THREE.Mesh(new THREE.BoxGeometry(0.72, 2.6, 0.72), stone));
-          m.position.set(dx, 1.3 * s - 0.18, dz);
-          m.rotation.set(Math.sin(piece.rotation) * 0.05, piece.rotation, Math.cos(piece.rotation) * 0.05);
-          m.scale.setScalar(s);
-          sub.add(m);
-          break;
-        }
-        case 'toppled_pillar': {
-          const m = silent(new THREE.Mesh(new THREE.BoxGeometry(0.72, 2.6, 0.72), stoneDark));
-          m.position.set(dx, 0.36 * s, dz);
-          m.rotation.set(0, piece.rotation, Math.PI / 2 - 0.06);
-          m.scale.setScalar(s);
-          sub.add(m);
-          break;
-        }
-        case 'wall_stub': {
-          const m = silent(new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.95, 0.5), stone));
-          m.position.set(dx, 0.42 * s, dz);
-          m.rotation.y = piece.rotation;
-          m.scale.setScalar(s);
-          sub.add(m);
-          break;
-        }
-        case 'arch_fragment': {
-          const m = silent(new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.42, 0.55), stoneDark));
-          m.position.set(dx, 0.24 * s, dz);
-          m.rotation.set(0.12, piece.rotation, 0.08);
-          m.scale.setScalar(s);
-          sub.add(m);
-          break;
-        }
-        case 'shard': {
-          const m = silent(new THREE.Mesh(new THREE.ConeGeometry(0.32, 1.15, 5), stone));
-          m.position.set(dx, 0.5 * s, dz);
-          m.rotation.y = piece.rotation;
-          m.scale.setScalar(s);
-          sub.add(m);
-          break;
-        }
-        case 'rubble': {
-          const m = silent(new THREE.Mesh(new THREE.DodecahedronGeometry(0.5, 0), stoneDark));
-          m.position.set(dx, 0.22 * s, dz);
-          m.rotation.set(piece.rotation, piece.rotation * 1.7, 0);
-          m.scale.set(s, s * 0.55, s);
-          sub.add(m);
-          break;
-        }
-      }
-    }
-
-    // THE GATE (not for traces — a remnant has no door): two pillars
-    // flanking the approach and the lintel that joins them, all
-    // raycast-silent scenery; the THRESHOLD stone between them is
-    // the one interactive piece, the ruin's doorstep.
-    if (ruin.tier !== 'traces') {
-      const perpX = -Math.sin(facing);
-      const perpZ = Math.cos(facing);
-      const gate = new THREE.Group();
-      gate.name = 'ruinGate';
-      for (const sideSign of [-1, 1]) {
-        const pillar = silent(new THREE.Mesh(new THREE.BoxGeometry(0.78, 3.1, 0.78), stone));
-        pillar.position.set(perpX * 1.7 * sideSign + Math.cos(facing) * 0.4, 1.38, perpZ * 1.7 * sideSign + Math.sin(facing) * 0.4);
-        gate.add(pillar);
-      }
-      const lintel = silent(new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.55, 4.3), stoneDark));
-      lintel.position.set(Math.cos(facing) * 0.4, 3.05, Math.sin(facing) * 0.4);
-      lintel.rotation.y = Math.PI / 2 - facing;
-      gate.add(lintel);
-      gate.traverse((o) => {
-        if ((o as THREE.Mesh).isMesh) o.raycast = () => {};
-      });
-      sub.add(gate);
-
-      const threshold = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.22, 2.6), stoneDark);
-      threshold.name = 'ruinThreshold';
-      threshold.position.set(Math.cos(facing) * 0.95, 0.1, Math.sin(facing) * 0.95);
-      threshold.rotation.y = Math.PI / 2 - facing;
-      threshold.castShadow = true;
-      sub.add(threshold);
-    }
-    return sub;
-  }
 
   private updateStructureMesh(mesh: THREE.Group, structure: StructureEntity) {
     this.applyTerrainTransform(mesh, structure.type, structure.worldX, structure.worldZ, structure.rotation, structure.level ?? 0);
@@ -1618,72 +925,6 @@ export class BioForgeThreeEngine {
       const pulse = Math.sin(performance.now() / 550);
       ((exitDisc as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity = 0.22 + 0.18 * pulse;
     }
-  }
-
-  private caveSigilTexture: THREE.CanvasTexture | null = null;
-
-  /**
-   * The cave-entrance sigil, drawn PROCEDURALLY on a canvas (no image
-   * asset): concentric rings, radial ticks, and a downward chevron
-   * motif — "descend here" in precursor sign language — stroked in a
-   * cyan-to-violet gradient with a soft shadow glow. Generated once
-   * and shared by every cave mouth.
-   */
-  private getCaveSigilTexture(): THREE.CanvasTexture {
-    if (this.caveSigilTexture) return this.caveSigilTexture;
-    const size = 256;
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d')!;
-    ctx.translate(size / 2, size / 2);
-    const gradient = ctx.createLinearGradient(-110, -110, 110, 110);
-    gradient.addColorStop(0, '#67e8f9');
-    gradient.addColorStop(0.55, '#38bdf8');
-    gradient.addColorStop(1, '#a855f7');
-    ctx.strokeStyle = gradient;
-    ctx.fillStyle = gradient;
-    ctx.shadowColor = '#22d3ee';
-    ctx.shadowBlur = 16;
-
-    // Outer + inner rings.
-    ctx.lineWidth = 7;
-    ctx.beginPath();
-    ctx.arc(0, 0, 108, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.lineWidth = 3;
-    ctx.globalAlpha = 0.85;
-    ctx.beginPath();
-    ctx.arc(0, 0, 88, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.globalAlpha = 1;
-
-    // Radial ticks between the rings.
-    ctx.lineWidth = 4;
-    for (let i = 0; i < 24; i++) {
-      const a = (i / 24) * Math.PI * 2;
-      ctx.beginPath();
-      ctx.moveTo(Math.cos(a) * 93, Math.sin(a) * 93);
-      ctx.lineTo(Math.cos(a) * 103, Math.sin(a) * 103);
-      ctx.stroke();
-    }
-
-    // The descend motif: two nested chevrons pointing down over a
-    // filled core dot — the mouth, and the way into it.
-    ctx.lineWidth = 9;
-    for (const yOff of [-34, -2]) {
-      ctx.beginPath();
-      ctx.moveTo(-38, yOff);
-      ctx.lineTo(0, yOff + 30);
-      ctx.lineTo(38, yOff);
-      ctx.stroke();
-    }
-    ctx.beginPath();
-    ctx.arc(0, 52, 8, 0, Math.PI * 2);
-    ctx.fill();
-
-    this.caveSigilTexture = new THREE.CanvasTexture(canvas);
-    return this.caveSigilTexture;
   }
 
   // --------------------------------------------------------------------------

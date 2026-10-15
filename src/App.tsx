@@ -79,6 +79,7 @@ import { TOOL_NAMES } from './game/quests';
 import { useQuests } from './hooks/useQuests';
 import { useStorage } from './hooks/useStorage';
 import { useDebugKit } from './hooks/useDebugKit';
+import { useZoneTravel, ZONE_ID_INSTALLED, WORLD_EDGE_COORD, ZONE_PUSH_SECONDS, ZONE_PUSH_MIN_COMPONENT } from './hooks/useZoneTravel';
 import { TouchControls, type TouchMoveInput } from './components/TouchControls';
 import { BioForgeModal } from './components/BioForgeModal';
 import { InventoryModal } from './components/InventoryModal';
@@ -600,69 +601,35 @@ export default function App() {
   const [inRuin, setInRuin] = useState(false);
 
   // ------------------------------------------------------------------------
-  // Zone travel state (Adam's directive, 2026-10-15)
+  // Zone travel (hooks/useZoneTravel.ts — seam 1 of the App refactor)
   // ------------------------------------------------------------------------
-  // The world is a grid of zones; the player stands in exactly one.
-  // Every VISITED zone keeps a snapshot here, persisting exactly as
-  // left; unvisited zones aren't stored — they roll from (seed,
-  // coords) on arrival. The host's map is the authority for
-  // player-made changes across the country.
-  const [playerZone, setPlayerZone] = useState<ZoneCoords>({ zx: SPAWN_ZONE.zx, zz: SPAWN_ZONE.zz });
-  const playerZoneRef = useRef<ZoneCoords>({ zx: SPAWN_ZONE.zx, zz: SPAWN_ZONE.zz });
-  const visitedZonesRef = useRef<Map<string, WorldSnapshot>>(new Map());
-  // The seed of the world being played, whatever door the player came
-  // through (own save → its seed; co-op guest → the host's seed, from
-  // world_sync). Zone generation and zone identity both read it.
-  const worldSeedRef = useRef<string>('');
-  const [sessionSeed, setSessionSeed] = useState<string>('');
-  // The sustained edge push, accumulated by the game loop: which edge
-  // the player is leaning on, and since when. Push-through crossing:
-  // hold your movement against the border for ZONE_PUSH_SECONDS and
-  // you step through into the next zone.
-  const edgePushRef = useRef<{ dir: 'N' | 'S' | 'E' | 'W'; since: number } | null>(null);
-  // A GUEST's crossing, parked while waiting on the host: guests
-  // never roll a zone themselves (Adam, 2026-10-15 — the host sends
-  // zone info). travelToZone files the request; onZoneSnapshot
-  // completes it. Walking off the edge or a silent host cancels it.
-  interface PendingTravel {
-    dir: 'N' | 'S' | 'E' | 'W';
-    nx: number;
-    nz: number;
-    entryX: number;
-    entryZ: number;
-    slowTimer: number;
-    failTimer: number;
-  }
-  const pendingTravelRef = useRef<PendingTravel | null>(null);
-  const cancelPendingTravel = (): void => {
-    const p = pendingTravelRef.current;
-    if (!p) return;
-    window.clearTimeout(p.slowTimer);
-    window.clearTimeout(p.failTimer);
-    pendingTravelRef.current = null;
-  };
-  // Set after travelToZone is defined (it lives further down, beside
-  // the save handlers it collaborates with); the game loop calls
-  // through this ref so definition order never matters.
-  const travelToZoneRef = useRef<((dir: 'N' | 'S' | 'E' | 'W') => void) | null>(null);
-
-  // Zone identification is a HELMET feature (Adam, 2026-10-15):
-  // naming the land is a sense, and the helmet is the sensory
-  // platform. No such helmet exists yet, so this is false for
-  // everyone — labels carry the placeholder + upgrade message,
-  // arrivals stay vague. When the helmet lands, this becomes an
-  // equipment check and every gated label lights up at once.
-  const ZONE_ID_INSTALLED = false;
-
-  // Travel tuning: the movement clamp pins the player at ±48 (the
-  // engine's WORLD_BOUNDARY in collision.ts); arriving players land
-  // just inside the far side; a crossing asks for a deliberate
-  // half-second-ish lean, long enough that bumping the wall while
-  // exploring never triggers it by accident.
-  const WORLD_EDGE_COORD = 48;
-  const ZONE_ENTRY_INSET = 47.4;
-  const ZONE_PUSH_SECONDS = 0.4;
-  const ZONE_PUSH_MIN_COMPONENT = 0.35;
+  // Where the player is in the zone grid, the visited-zones map, the
+  // session seed, and the crossing verbs live in the hook now. The
+  // destructured names are the ones the rest of App already uses.
+  // saveNowRef bridges a definition-order gap: completeTravel wants
+  // to save shortly after a crossing, but saveNow is defined further
+  // down (the save-session seam) — App assigns it there, and the
+  // hook only ever calls through the ref, after mount.
+  const saveNowRef = useRef<() => void>(() => {});
+  const {
+    playerZone, setPlayerZone, playerZoneRef, visitedZonesRef, worldSeedRef,
+    sessionSeed, setSessionSeed, edgePushRef, pendingTravelRef, cancelPendingTravel,
+    travelToZoneRef, zoneStores, buildZoneSyncTravel, completeTravel,
+  } = useZoneTravel({
+    engineRef,
+    playerPosRef,
+    movementController,
+    jumpRef,
+    instanceRef,
+    replaceWorld,
+    applyPlayerLevel,
+    postNotification,
+    // Lazy closures: both bindings are defined below this call in
+    // App's body; they are only exercised after mount.
+    buildWorldSnapshot: () => buildWorldSnapshot(),
+    getDayNightCycle: () => latestStateRef.current.dayNightCycle,
+    saveNowRef,
+  });
   // The current depth level as STATE (the ref holds the truth; this
   // mirror exists so the HUD can name the stratum the player is in).
   const [cavernDepth, setCavernDepth] = useState(0);
@@ -1823,24 +1790,6 @@ const buildWorldSnapshot = (): WorldSnapshot => {
   return { flora: s.floraList, fauna: s.faunaList, structures: s.structuresList, drops: s.droppedItems };
 };
 
-// ------------------------------------------------------------------------
-// Remote entity-event routing (zone travel, 2026-10-15)
-// ------------------------------------------------------------------------
-// Entity events arrive stamped with the sender's zone; the routing
-// rules themselves live in game/zoneSync.ts (extracted on the
-// push-size trigger). This adapter hands the router my stores: the
-// visited-zones map, the parked surface while I'm inside one of its
-// instances, and the session seed.
-const zoneStores = (): ZoneStores => ({
-  visited: visitedZonesRef.current,
-  parked: () => (instanceRef.current.kind !== 'surface' ? instanceRef.current.parked : null),
-  setParked: (snap: WorldSnapshot) => {
-    const inst = instanceRef.current;
-    if (inst.kind !== 'surface') inst.parked = snap;
-  },
-  seed: worldSeedRef.current,
-  myZoneKey: zoneKey(playerZoneRef.current.zx, playerZoneRef.current.zz),
-});
 
 // Player state for a save: the React state holds vitals and tool picks,
 // but the live position truth is playerPosRef (the game loop moves the
@@ -1942,6 +1891,11 @@ const { handleStorageDeposit, handleStorageWithdraw, handleStorageUpgrade } =
     postNotification,
   });
 const pouchTierNow = pouchTierOf(inventory);
+
+// The zone-travel hook saves through this ref after a crossing
+// (see saveNowRef at the hook call) — point it at the real saveNow
+// now that saveNow exists.
+saveNowRef.current = saveNow;
 
 // Load the save library once at boot, for the start screen.
 useEffect(() => {
@@ -2103,139 +2057,6 @@ const GAUNTLET_TYPES_PASS_EPOCH_MS = Date.UTC(2026, 9, 15, 4, 0, 0);
       .then(setSaveList);
   };
 
-  // ------------------------------------------------------------------------
-  // Zone travel (2026-10-15)
-  // ------------------------------------------------------------------------
-  // A membership copy of the zone currently loaded — buildWorldSnapshot
-  // already answers "the surface world" (the parked lists while inside
-  // an instance, which ARE the current zone's surface); snapshotOf
-  // (zoneSync.ts) copies the arrays so stored membership can't drift.
-  const snapshotCurrentZone = (): WorldSnapshot => snapshotOf(buildWorldSnapshot());
-
-  // The world_sync travel payload for the zone I stand in (zoneSync.ts).
-  const buildZoneSyncTravel = (): { zone: string; zones: Record<string, WorldSnapshot>; worldSeed: string } =>
-    buildZoneSyncTravelPayload(visitedZonesRef.current, zoneKey(playerZoneRef.current.zx, playerZoneRef.current.zz), buildWorldSnapshot(), worldSeedRef.current);
-
-  // The crossing itself, once the far zone is IN HAND. Solo players
-  // and hosts hold every zone already (their map, or a fresh roll of
-  // their own seed); guests arrive here only with a host-sent
-  // snapshot (hostSnapshot) — a guest never rolls a zone itself.
-  const completeTravel = (nx: number, nz: number, entry: { x: number; z: number }, hostSnapshot?: WorldSnapshot): void => {
-    // No crossing from underground: instances are entered from a
-    // zone and exited back into it; the border out there isn't real.
-    if (instanceRef.current.kind !== 'surface') return;
-    const seed = worldSeedRef.current;
-    if (!seed) return; // seedless contexts keep the single-zone world
-    const cur = playerZoneRef.current;
-    const pos = playerPosRef.current;
-    // 1. Park the zone being left exactly as it stands — MINUS the
-    //    pets set to Follow: they cross with their person (Adam,
-    //    2026-10-15). Stay/guard pets keep their posts here, and
-    //    this zone's snapshot goes back in the map either way.
-    const leaving = snapshotCurrentZone();
-    const followers = leaving.fauna.filter((f) => f.isTamed && f.command === 'follow');
-    visitedZonesRef.current.set(zoneKey(cur.zx, cur.zz), {
-      ...leaving,
-      fauna: leaving.fauna.filter((f) => !(f.isTamed && f.command === 'follow')),
-    });
-    // 2. The far side: the host's snapshot when one was sent (and
-    //    it joins my map as my copy of the truth); else a visited
-    //    zone returns exactly as it was left; else — host or solo
-    //    only — a new one rolls from (seed, coords), the coords a
-    //    parameter of every roll.
-    const nextKey = zoneKey(nx, nz);
-    let target = hostSnapshot ?? visitedZonesRef.current.get(nextKey);
-    if (hostSnapshot) visitedZonesRef.current.set(nextKey, hostSnapshot);
-    if (!target) {
-      const gen = generateSeededWorld(seed, nx, nz);
-      target = { flora: gen.flora, fauna: gen.fauna, structures: gen.structures, drops: [] };
-      visitedZonesRef.current.set(nextKey, target);
-    }
-    // Follow pets materialize beside their person in a loose ring,
-    // already walking to the arrival point.
-    const arrivals = followers.map((f, i) => ({
-      ...f,
-      x: entry.x + ((i % 3) - 1) * 1.6,
-      z: entry.z + (Math.floor(i / 3) - 0.5) * 1.6,
-      targetX: entry.x,
-      targetZ: entry.z,
-    }));
-    replaceWorld({
-      flora: target.flora,
-      fauna: [...target.fauna, ...arrivals],
-      structures: target.structures,
-      drops: target.drops,
-    });
-    // 3. Stand there: identity, paint, position, story, momentum.
-    playerZoneRef.current = { zx: nx, zz: nz };
-    setPlayerZone({ zx: nx, zz: nz });
-    engineRef.current?.setZoneBiome(zoneBiomeAt(seed, nx, nz));
-    applyPlayerLevel(0);
-    jumpRef.current = { y: 0, vy: 0, bounceFlip: false };
-    playerPosRef.current = { x: entry.x, z: entry.z, rotation: pos.rotation };
-    engineRef.current?.setPlayerPosition(entry.x, entry.z, 0);
-    movementController.current.velocity.set(0, 0, 0);
-    // 4. Announce the arrival — as fully as the player's gear
-    //    allows. Zone identification is a helmet feature: without
-    //    it the land stays unnamed, but dead reckoning (how far
-    //    from home, which zone address) is the player's own.
-    const hops = zoneHops(nx, nz);
-    if (nx === SPAWN_ZONE.zx && nz === SPAWN_ZONE.zz) {
-      postNotification('Home Again', 'The spawn zone — your homestead country.', 'system', '#38bdf8');
-    } else if (ZONE_ID_INSTALLED) {
-      const info = zoneInfo(seed, nx, nz);
-      postNotification(info.name, `${biomeDisplayName(info.biome)} · ${hops} zone${hops === 1 ? '' : 's'} from home`, 'system', '#38bdf8');
-    } else {
-      postNotification('Unidentified Country', `${hops} zone${hops === 1 ? '' : 's'} from home · Zone ${nx}, ${nz} — a helmet zone identifier would name this land.`, 'system', '#38bdf8');
-    }
-    // 5. Persist shortly (the deferred beat lets the zone swap
-    //    render first, the same trick world creation uses), and if
-    //    hosting, re-sync the map so guests' copies stay true.
-    window.setTimeout(() => saveNow(), 250);
-    if (multiplayerManager.isConnected && multiplayerManager.isHost) {
-      multiplayerManager.broadcastWorldSync(buildWorldSnapshot(), latestStateRef.current.dayNightCycle, buildZoneSyncTravel());
-    }
-  };
-  // The edge push, resolved into a crossing. Called by the game
-  // loop (through travelToZoneRef) when the lean has been
-  // sustained. Solo players and hosts complete immediately; a
-  // GUEST asks the host for the zone and waits at the border —
-  // the host is the world's one source of truth, zones included.
-  const travelToZone = (dir: 'N' | 'S' | 'E' | 'W'): void => {
-    if (instanceRef.current.kind !== 'surface') return;
-    if (pendingTravelRef.current) return; // one crossing at a time
-    if (!worldSeedRef.current) return;
-    const cur = playerZoneRef.current;
-    const nx = dir === 'E' ? cur.zx + 1 : dir === 'W' ? cur.zx - 1 : cur.zx;
-    const nz = dir === 'S' ? cur.zz + 1 : dir === 'N' ? cur.zz - 1 : cur.zz;
-    // Arrive just inside the far edge, level with where you left on
-    // the cross-axis, facing the way you were facing.
-    const pos = playerPosRef.current;
-    const clampAxis = (v: number): number => Math.max(-ZONE_ENTRY_INSET, Math.min(ZONE_ENTRY_INSET, v));
-    const entry = {
-      x: dir === 'E' ? -ZONE_ENTRY_INSET : dir === 'W' ? ZONE_ENTRY_INSET : clampAxis(pos.x),
-      z: dir === 'S' ? -ZONE_ENTRY_INSET : dir === 'N' ? ZONE_ENTRY_INSET : clampAxis(pos.z),
-    };
-    if (multiplayerManager.isConnected && !multiplayerManager.isHost) {
-      const pending: PendingTravel = { dir, nx, nz, entryX: entry.x, entryZ: entry.z, slowTimer: 0, failTimer: 0 };
-      pending.slowTimer = window.setTimeout(() => {
-        if (pendingTravelRef.current === pending) {
-          postNotification('Crossing…', 'Waiting on the host to send that zone.', 'system', '#94a3b8');
-        }
-      }, 900);
-      pending.failTimer = window.setTimeout(() => {
-        if (pendingTravelRef.current === pending) {
-          cancelPendingTravel();
-          postNotification('No Answer From the Host', 'That zone never arrived — the way stays shut for now. Lean into the edge to try again.', 'system', '#f59e0b');
-        }
-      }, 6000);
-      pendingTravelRef.current = pending;
-      multiplayerManager.broadcastZoneRequest(zoneKey(nx, nz));
-      return;
-    }
-    completeTravel(nx, nz, entry);
-  };
-  travelToZoneRef.current = travelToZone;
 
   // The co-op door: no local save involved. The guest plays in the
   // host's world; saveNow stays disarmed because currentSaveRef is null.

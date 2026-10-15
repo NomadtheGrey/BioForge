@@ -261,6 +261,7 @@ export class BioForgeThreeEngine {
     mirror_lily: { color: 0x9fd8d4, intensity: 0.6, distance: 3.5, y: 0.3 },
     // Cinder bloom (2026-10-15): vent-glow — a small coal of light.
     cinder_bloom: { color: 0xff7a2a, intensity: 0.7, distance: 4, y: 0.7 },
+    obsidian_bloom: { color: 0x8b5cf6, intensity: 0.5, distance: 3.5, y: 0.8 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },

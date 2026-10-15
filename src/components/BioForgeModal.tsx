@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Sparkles, Check, AlertCircle, ArrowRight } from 'lucide-react';
 import { CraftingRecipe, ItemId, StructureType } from '../types/game';
 import { ITEMS, RECIPES, getRecipeTier } from '../game/constants'
+import { isGauntletUpgrade } from '../game/quests';
 import { soundEngine } from '../audio/soundEngine';
 import { RecipeFlowchart } from './RecipeFlowchart';
 
@@ -40,6 +41,10 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   };
 
   const canCraft = (recipe: CraftingRecipe) => {
+    // One-time gauntlet upgrades lock while owned (Adam, 2026-10-15):
+    // owning one IS wearing it (auto-equipped), so a second craft
+    // would only burn ingredients on a duplicate that cannot stack.
+    if (isGauntletUpgrade(recipe.outputId) && (inventory[recipe.outputId] || 0) > 0) return false;
     if (!hasIngredients(recipe)) return false;
     if (nearForge) return true;
     if (getRecipeTier(recipe) >= 3) return false;
@@ -47,6 +52,10 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   };
 
   const craftBlockReason = (recipe: CraftingRecipe): string | null => {
+    // The owned-upgrade lock speaks first — it is the stable fact
+    // about this recipe, ingredients come and go.
+    if (isGauntletUpgrade(recipe.outputId) && (inventory[recipe.outputId] || 0) > 0)
+      return 'Already grafted onto your gauntlet';
     if (!hasIngredients(recipe)) return 'Missing ingredients';
     if (nearForge) return null;
     if (getRecipeTier(recipe) >= 3) return 'Advanced synthesis requires a bio-forge station';

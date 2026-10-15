@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Backpack, Sparkles, Sprout, Hammer, ArrowUpRight } from 'lucide-react';
 import { ItemId, StructureType, ToolType } from '../types/game';
 import { ITEMS } from '../game/constants';
+import { isGauntletUpgrade } from '../game/quests';
 import { POUCH_TIER_CAPS, POUCH_TIER_NAMES, pouchTierOf } from '../game/pouch';
 
 interface InventoryModalProps {
@@ -162,6 +163,15 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                       <span className="text-[11px] font-semibold text-slate-200 text-center line-clamp-1 w-full">
                         {item.name}
                       </span>
+                      {/* One-time gauntlet upgrades are worn, not
+                          carried (Adam, 2026-10-15): owning one IS
+                          having it equipped, and the pouch says so
+                          instead of presenting it as dead clutter. */}
+                      {isGauntletUpgrade(id) && (
+                        <span className="font-tech text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                          EQUIPPED
+                        </span>
+                      )}
                       <span className="absolute top-1.5 right-2 font-mono text-[10px] font-bold text-slate-400 bg-slate-950/80 px-1.5 py-0.2 rounded-md">
                         {count}
                       </span>
@@ -214,6 +224,12 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                       <span>Max Stack</span>
                       <span className="font-mono text-slate-200">{activeItem.maxStack}</span>
                     </div>
+                    {isGauntletUpgrade(activeItem.id) && (
+                      <div className="flex justify-between py-1.5 border-b border-slate-800 text-slate-400">
+                        <span>Status</span>
+                        <span className="font-tech uppercase text-emerald-300">Equipped — on your gauntlet</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 

@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { CraftingRecipe, ItemId } from '../types/game';
 import { ITEMS, RECIPES, getRecipeTier } from '../game/constants';
+import { isGauntletUpgrade } from '../game/quests';
 
 const ICONS: Record<string, LucideIcon> = {
   AlertTriangle,
@@ -134,6 +135,11 @@ export const RecipeFlowchart: React.FC<RecipeFlowchartProps> = ({
   }, []);
 
   const nodeStatus = (r: CraftingRecipe): NodeStatus => {
+    // Owned one-time gauntlet upgrades read as locked (Adam,
+    // 2026-10-15) — the same rule BioForgeModal enforces on craft.
+    if (isGauntletUpgrade(r.outputId) && (inventory[r.outputId] || 0) > 0) {
+      return 'locked';
+    }
     const hasIng = r.ingredients.every((ing) => (inventory[ing.id] || 0) >= ing.count);
     if (!hasIng) {
       return 'missing';

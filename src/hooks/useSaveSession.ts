@@ -276,7 +276,18 @@ export function useSaveSession(deps: SaveSessionDeps) {
       const migratedInventory = { ...record.inventory };
       if ((migratedInventory['field_synthesizer_gauntlet'] || 0) < 1) {
         migratedInventory['field_synthesizer_gauntlet'] = 1;
-      } else if (
+      }
+      // The graft grant stands on its OWN condition (bug fix,
+      // 2026-10-15): written as an else-if behind the gauntlet grant
+      // above, it could only fire for a save that ALREADY held the
+      // gauntlet item — but that item id is new in the pass, so no
+      // pre-pass save ever held it, the gauntlet grant always fired
+      // first, and the graft was never granted at all. The reported
+      // symptom (Adam's daughter): the save wears a "Field
+      // Synthesizer Gauntlet" in the pouch while field synthesis
+      // stays locked and the graft recipe sits unlocked. The two
+      // grants are independent facts; they are checked independently.
+      if (
         record.createdAt < GAUNTLET_TYPES_PASS_EPOCH_MS &&
         (migratedInventory['gauntlet_synthesizer_upgrade'] || 0) < 1
       ) {

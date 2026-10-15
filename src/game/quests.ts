@@ -235,6 +235,29 @@ export const QUESTS: QuestDef[] = [
 export const FIELD_SYNTHESIS_QUEST_ID = 'q_field_synthesis';
 export const FIELD_SYNTHESIS_ITEM_ID: ItemId = 'gauntlet_synthesizer_upgrade';
 
+/**
+ * One-time gauntlet upgrades (Adam, 2026-10-15): the gauntlet itself
+ * plus everything that grafts onto it — the five tool modules and
+ * the Field Synthesizer Graft. These are equipment a player owns
+ * ONCE: owning one IS wearing it (auto-equipped; there is no equip
+ * verb), its function derives from ownership, and its recipe LOCKS
+ * while owned so nobody burns ingredients re-crafting a second copy
+ * of a maxStack-1 upgrade. The crafting surfaces (BioForgeModal's
+ * craft block, RecipeFlowchart's node status) and the pouch
+ * (InventoryModal's EQUIPPED marking) all read THIS set, so the rule
+ * lives in exactly one place.
+ */
+export const GAUNTLET_UPGRADE_ITEM_IDS: ItemId[] = [
+  'field_synthesizer_gauntlet',
+  ...(Object.values(MODULE_FOR_TOOL) as ItemId[]),
+  FIELD_SYNTHESIS_ITEM_ID,
+];
+
+/** True when `id` is one of the one-time gauntlet upgrades above. */
+export function isGauntletUpgrade(id: ItemId): boolean {
+  return GAUNTLET_UPGRADE_ITEM_IDS.includes(id);
+}
+
 /** Live progress for one gather objective. */
 export interface GatherProgress extends QuestGatherObjective {
   have: number;

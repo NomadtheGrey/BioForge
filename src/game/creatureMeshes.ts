@@ -732,6 +732,102 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'meadowback': {
+        // The Meadow's emblem (creature build phase, slice 1): a
+        // broad-backed herd grazer. The back is the feature — flat,
+        // warm, wide enough to ride on — so it gets its own slab,
+        // colored like sunlit turf over the moss-green body.
+        const bodyMat = new THREE.MeshStandardMaterial({
+          color: fauna.isTamed ? 0x4ade80 : 0x65a30d,
+          roughness: 0.85,
+          emissive: 0x1a2e05,
+          emissiveIntensity: 0.25,
+        });
+        const backMat = new THREE.MeshStandardMaterial({ color: 0xa3b86b, roughness: 0.95 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.55, 1.0, 8, 12), bodyMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.95;
+        body.castShadow = true;
+        group.add(body);
+        const back = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.12, 1.15), backMat);
+        back.position.y = 1.52;
+        group.add(back);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.34, 12, 10), bodyMat);
+        head.position.set(0, 1.02, 0.98);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const ear = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.24, 6), backMat);
+          ear.position.set(side * 0.24, 1.32, 0.92);
+          ear.rotation.z = side * -0.5;
+          group.add(ear);
+        }
+        const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.5, 4, 6), bodyMat);
+        tail.position.set(0, 0.95, -0.95);
+        tail.rotation.x = 0.7;
+        group.add(tail);
+        break;
+      }
+
+      case 'pale_hare': {
+        // Meadow x Frost (slice 1): snow-white, long-eared — the
+        // Blink Hare's ordinary cousin. Small body, the ears do the
+        // silhouette work, a puff of tail behind.
+        const furMat = new THREE.MeshStandardMaterial({
+          color: fauna.isTamed ? 0xf8fafc : 0xe2e8f0,
+          roughness: 0.9,
+          emissive: 0x334155,
+          emissiveIntensity: 0.12,
+        });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10), furMat);
+        body.scale.set(0.85, 0.8, 1.25);
+        body.position.y = 0.34;
+        body.castShadow = true;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.19, 10, 8), furMat);
+        head.position.set(0, 0.52, 0.34);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const ear = new THREE.Mesh(new THREE.CapsuleGeometry(0.045, 0.3, 4, 6), furMat);
+          ear.position.set(side * 0.09, 0.88, 0.3);
+          ear.rotation.x = -0.15;
+          group.add(ear);
+        }
+        const tail = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), furMat);
+        tail.position.set(0, 0.42, -0.38);
+        group.add(tail);
+        break;
+      }
+
+      case 'frost_vole': {
+        // The Cold Range's mouse (slice 1): a low, round subnivean
+        // vole in winter coat — drawn close to the ground it tunnels
+        // under, with a thin tail trailing.
+        const coatMat = new THREE.MeshStandardMaterial({
+          color: fauna.isTamed ? 0xe7e5e4 : 0xcbd5e1,
+          roughness: 0.95,
+          emissive: 0x1e293b,
+          emissiveIntensity: 0.1,
+        });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 10), coatMat);
+        body.scale.set(0.9, 0.72, 1.35);
+        body.position.y = 0.18;
+        body.castShadow = true;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), coatMat);
+        head.position.set(0, 0.22, 0.26);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const ear = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 5), coatMat);
+          ear.position.set(side * 0.11, 0.33, 0.2);
+          group.add(ear);
+        }
+        const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.02, 0.22, 4, 6), coatMat);
+        tail.position.set(0, 0.1, -0.34);
+        tail.rotation.x = Math.PI / 2 - 0.25;
+        group.add(tail);
+        break;
+      }
+
       default: {
         const body = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 12), materials.biolumAmber);
         body.position.y = 0.3;

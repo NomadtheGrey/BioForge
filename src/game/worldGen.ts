@@ -55,6 +55,7 @@ import { zoneBiomeAt, zoneVariantAt, zoneHybridAt, livingHeartAt } from './zones
 import type { FaunaEntity, FaunaSpecies, FloraEntity, FloraSpecies, StructureEntity } from '../types/game';
 import { generateCaveSurface, HOMESTEAD_BLOCKERS } from './caveSurface';
 import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
+import { BONUS_SPAWN_SPECIES } from './species';
 
 /**
  * Stamp recorded on saves so future format/gen changes can migrate.
@@ -72,8 +73,13 @@ import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
  *     2026-10-15). Before v7 every zone would have grown the same
  *     layout in a different species cast; nobody had ever generated
  *     a second zone, so the sameness was theoretical until travel.
+ * v16: + designed species (creature build phase, slice 1, 2026-10-15)
+ *     — generic BONUS spawns dealt from the species table
+ *     (src/game/species.ts) outside the census, biome-gated, never in
+ *     the spawn zone; the census promise is untouched, exactly like
+ *     the radar species at v6. Existing saves keep their snapshots.
  */
-export const WORLD_GEN_VERSION = 15; // v15 (2026-10-15): HYBRIDS — border-derived margins (zoneHybridAt) admix census, densities, and signature stands; hybrid zones carry no variant
+export const WORLD_GEN_VERSION = 16; // v16 (2026-10-15): designed species — generic bonus spawns from the species table (species.ts); v15 was HYBRIDS (border-derived margins)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -827,6 +833,54 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
           animTime: 0,
         });
         break;
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Designed species (creature build phase, slice 1, 2026-10-15) —
+  // GENERIC bonus spawns from the species table (species.ts). This is
+  // the radar-species pattern generalized: biome-gated BONUS life dealt
+  // outside the census, never in the spawn zone, one seeded stream per
+  // species so tuning one species never reshuffles another. A species
+  // joins the world by gaining a bonusSpawn entry in the table — no
+  // new block here. Hybrid zones admit a species through EITHER family,
+  // the same admixture rule the census uses (censusMatch above).
+  // ---------------------------------------------------------------------
+  if (!isSpawnZone) {
+    for (const def of BONUS_SPAWN_SPECIES) {
+      const spec = def.bonusSpawn;
+      if (!spec) continue;
+      const homeHere =
+        spec.biomes.includes(zoneBiome) ||
+        (zoneHybrid !== null && spec.biomes.includes(zoneHybrid.secondary));
+      if (!homeHere) continue;
+      const bonusRng = createSeededRandom(stream(`fauna:bonus:${def.id}`));
+      let placed = 0;
+      for (let attempt = 0; attempt < 40 && placed < spec.count; attempt++) {
+        const x = (bonusRng() * 2 - 1) * 44;
+        const z = (bonusRng() * 2 - 1) * 44;
+        if (Math.hypot(x, z) < spec.minRadius) continue;
+        if (fauna.some((f) => Math.hypot(f.x - x, f.z - z) < spec.spacing)) continue;
+        fauna.push({
+          id: `fauna_bonus_${def.id}_${placed + 1}`,
+          species: def.id,
+          x,
+          z,
+          biome: zoneBiome,
+          y: 0,
+          rotation: bonusRng() * Math.PI * 2,
+          state: 'wandering',
+          isTamed: false,
+          targetX: x,
+          targetZ: z,
+          speed: spec.speed + (bonusRng() * 2 - 1) * spec.speedJitter,
+          health: spec.health,
+          maxHealth: spec.health,
+          byproductTimer: 0,
+          animTime: 0,
+        });
+        placed++;
       }
     }
   }

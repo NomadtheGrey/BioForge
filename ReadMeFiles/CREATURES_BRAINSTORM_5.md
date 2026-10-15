@@ -298,3 +298,265 @@ wide-range FAUNA wave (the Far Bat first), and
 then the roster's open edges are events, not
 backlog: the Living's build seats, and the caves
 at Adam's word.
+
+## Twenty-fifth roster pass — Wide-Range Wave Two (12)
+
+The semi-ubiquitous layer's second wave, named back
+in pass 11 by its gaps: the cold, warm, and far
+ranges ran thin (Frost and Ember held two each, the
+far families one). Twelve thickeners, the Far Bat
+first as promised. With this pass, the layer stands
+at 24 and the ranges stand even — and the DESIGN
+BACKLOG named across these passes stands empty:
+what remains after this is events, not queue.
+
+**337. Far Bat** — the Far Range (Storm, Precursor,
+the Living, deep Fungal). Fauna x Ordinary. Shape:
+Winged (bat plan); modifier: ruin-roosting — it
+sleeps in ruins, stormcatcher lees, and the valley's
+ high eaves, and commutes between them at dusk (it
+eats Mote Swarms on the wing — the swarm is its
+pasture — and where a far homestead keeps a high,
+dark eave, a far bat takes the tenancy within a
+season: the far country's swallow). Locomotion:
+Aerial, flyer-leaning. Spectra: serene / colonial
+at roosts, solitary hunting / quick / small / Diet
+aerial plankton of the far dusk — motes, gnats,
+driftmoth scales taken as seasoning / nocturnal /
+Curiosity low / Territory a roost-circuit / Tameability
+30% — roost-loyal like the pickers: keep the eave,
+keep the bat. Drops: guano at old roosts — compost's
+far grade, unlisted, collected with respect.
+Hook: the far families shared one citizen (the
+driftmoth); the bat is their second, and the first
+that comes HOME to roost — the Far Range, domesticated
+at the edges.
+
+**338. Winter Wren** — the Cold Range (Frost,
+Saltglass, Bone, Storm's heights). Fauna x Ordinary.
+Shape: Winged (wren plan, round as a snowball);
+modifier: under-snow singer — it sings from BENEATH
+the snowpack's edge, in the vole's own airspace,
+and its song comes out of the snowfield like the
+field is humming (the Stillwhite's smallest voice;
+Frost Voles navigate by it in the dark under
+everything — the cress chimneys mark the light,
+the wren marks the way). Locomotion: Aerial,
+flyer-leaning + Hopping. Spectra: indomitable /
+loose cold companies / quick / tiny / Diet snow-
+fleas, cress seeds, the cold country's crumbs /
+diurnal / Curiosity high / Territory a snowfield's
+edge / Tameability 50% — it will take suet-analog
+from a mitten, and the entry prices the mitten as
+essential equipment. Drops: none. Hook: the Cold
+Range thickens at its smallest scale first, which
+the entry insists is how cold countries work.
+
+**339. Thaw Mouse** — the Cold Range's EDGE
+(Saltglass's Thaw, Frost's margins, the early
+Meadow) — and the entry states its joke plainly,
+because the joke is the layer's founding law: mice
+don't live in the arctic — but a mouse lives at the
+arctic's DOOR. Fauna x Ordinary. Shape: Quadruped
+(mouse plan); modifier: melt-timed — its year is
+the thaw's: it wakes with the Thawmole, breeds in
+the melt weeks, and is gone under the snowline
+before the deep cold returns (the Burrow Mouse
+holds the everywhere seat by the game's old census;
+the thaw mouse is the honest version of the idea —
+a mouse whose range RESPECTS the cold). Locomotion:
+Walking + Burrowing in thaw-soft ground. Spectra:
+busy / thaw companies / quick / small / Diet melt-
+seed and thaw-pool life / diurnal / Curiosity total /
+Territory the melt line, wherever it currently is —
+a territory that MOVES, the roster's only migrating
+border / Tameability 60%, the family standard.
+Drops: none. Hook: Adam's sentence, given a citizen:
+the semi-ubiquitous layer works because its ranges
+have edges, and this mouse is the edge, walking.
+
+**340. Dust Lizard** — the Warm + Open ranges
+(Ember's margins, Saltglass, Bone's dry fields,
+Meadow's dry side). Fauna x Ordinary. Shape:
+Quadruped (lizard plan); modifier: dust-running —
+it runs ON the dust's surface at speed, feet
+slapping, never breaking through the crust's skin
+(the Sun Lizard basks in the warm families; the
+dust lizard RUNS the dry ones — two lizards divide
+the warm world by verb). Locomotion: Walking,
+burst-fast. Spectra: skittish / loose dry companies /
+the lizard budget spent all at once / small / Diet
+dry-country insects / diurnal / Curiosity mid /
+Territory a dust flat / Tameability 35%. Drops:
+none. Hook: the warm ranges' second lizard makes
+the layer's point in small — coverage is not one
+species per range but a CAST per range.
+
+**341. Cinder Finch** — the Warm Range (Ember,
+Meadow's warm side, Storm's lowlands). Fauna x
+Ordinary. Shape: Winged (finch plan); modifier:
+ash-billed — it cracks ember-country seeds no other
+small bill attempts, and its throat feathers are
+singed decoratively by its diet (the Ash Lark
+dust-bathes over the same four families; the finch
+EATS there — bather and diner, the warm ranges'
+two small birds divide the country by appetite).
+Locomotion: Aerial, flyer-leaning + Hopping.
+Spectra: cheerful / finch companies / quick / small /
+Diet hard warm seed / diurnal / Curiosity high /
+Territory a seed-ground / Tameability 55% — the
+feeder standard; it learns a kept feeder in a day
+and brings the company in a week. Drops: none.
+Hook: the Snow Finch holds the Cold Range's feeder;
+the cinder finch holds the Warm's — the layer's
+bookends, at two temperatures.
+
+**342. Storm Thrush** — Temperate + Storm ranges
+(Meadow, Fungal, Rootwood, Storm's edges). Fauna x
+Ordinary. Shape: Winged (thrush plan); modifier:
+front-singing — it sings BEFORE fronts, in the
+pressure-drop stillness, louder as the weather
+gathers (the flats have reeds and grass for the
+zot; the settled country has the thrush for the
+storm — a song at supper means a front by morning,
+and homesteads across four families close their
+shutters by it). Locomotion: Aerial, flyer-leaning.
+Spectra: bold-voiced / loose companies / quick /
+small / Diet ground insects, grove fruit / dawn-
+dusk, and the pre-front hour / Curiosity mid /
+Territory a singing grove / Tameability 40%.
+Drops: none. Hook: the wide-range layer is also a
+communications network; the thrush is its weather
+service for the countries without lightning.
+
+**343. Fen Finch** — the Wet Range (Wetland,
+Rootwood's wet side, Meadow's marshes, Fungal's
+damp). Fauna x Ordinary. Shape: Winged (finch
+plan); modifier: reed-footed — it walks the reed
+mats and lily edges like a small citizen of the
+surface (the Reedbird owns the stands' voice; the
+fen finch owns their FLOOR — it eats what falls
+from the nests above, which the entry calls the
+wet country's tidiest arrangement). Locomotion:
+Aerial, flyer-leaning + Walking on mats. Spectra:
+busy / fen companies / quick / small / Diet reed
+seed, fallen insects / diurnal / Curiosity high /
+Territory a reed mat / Tameability 50%. Drops:
+none. Hook: the Wet Range's cast stood at five;
+the finch makes six and gives its ponds a floor-
+walker between the skater and the turtle.
+
+**344. Plain Vole** — the Open Range (Meadow, Bone,
+Saltglass, Storm's flats). Fauna x Ordinary. Shape:
+Quadruped (vole plan); modifier: sky-watched — it
+lives its whole life under open sky and reads it
+professionally (a lifetime of Plainswifts and Dust
+Hawks makes a philosopher: the plain vole freezes
+at shadows in a taxonomy of which shadow is death —
+the roster's most educated freeze). Locomotion:
+Walking + Burrowing in open ground. Spectra: wary /
+flat warrens / still-then-scurry / small / Diet dry
+seed and root / crepuscular / Curiosity low /
+Territory a warren under the sky / Tameability 35%
+— its cousin under the snow is bolder; the sky
+teaches otherwise. Drops: none. Hook: two voles
+now bracket the layer — one under snow, one under
+sky — and the open country's small life has its
+citizen.
+
+**345. Moon Moth** — Temperate + Warm ranges
+(Meadow, Ember's margins, Storm's lowlands, the
+Living's edge, Fungal's clearings). Fauna x
+Ordinary. Shape: Winged (great pale moth plan);
+modifier: candle-drawn — it is the Night Candle's
+pollinator, NAMED AT LAST: the candle lays a scent-
+road and the moon moth flies it like a river (the
+entry closes the flood's open loop deliberately —
+flora and fauna are one document in the field).
+Locomotion: Aerial, glider-leaning, nocturnal.
+Spectra: serene / SOLO / drifting / LARGE for a
+moth — the Driftmoth's mild-country cousin, in size
+and in temperament / Diet night blooms, candle
+first / NOCTURNAL absolute / Curiosity scent-led /
+Territory a night's candle-road / Tameability 0% —
+it does not land near lights it didn't choose.
+Drops: shed scales on the candle blooms, unlisted.
+Hook: the night shift's wide-range citizen — five
+families' worth of dark, patrolled by one pale
+moth, on business the flowers arranged.
+
+**346. Ruin Sparrow** — the ruin-bearing families
+(Precursor first, and wherever old places are:
+Bone's Graveyard stones, Rootwood's Rootfall,
+Ember's old burns). Fauna x Ordinary. Shape: Winged
+(sparrow plan); modifier: masonry-nesting — it
+nests in WALLS: in ruin joints, in the Graveyard's
+stacked bones, in any kept stone with a sparrow-
+sized mercy in it (the Hedge Sparrow holds the
+settled country's hedges; the ruin sparrow holds
+its RUINS — the layer's two sparrows divide the
+world into the kept and the left, and both are
+inhabited). Locomotion: Aerial, flyer-leaning +
+Hopping. Spectra: bold / masonry colonies / quick /
+small / Diet ruin insects, glyph-cap spores taken
+as seasoning / diurnal / Curiosity total — it
+investigates camps, tools, and open codexes /
+Territory a wall / Tameability 60% — the crumb
+economy, in ruins as at home. Drops: none. Hook:
+its range is drawn by HISTORY, not climate — the
+layer's first citizen whose map is the past.
+
+**347. Sleet Frog** — the Cold + Wet ranges
+(Frost's margins, Wetland's cold side, Saltglass's
+thaw pools). Fauna x Ordinary. Shape: Quadruped
+(frog plan); modifier: ice-tolerant — it sings in
+thaw pools with ice still in them, the first voice
+of the cold country's spring (the Hello Frog greets
+in the valley's marshes; the sleet frog greets the
+THAW — its chorus from a half-frozen pool is the
+Cold Range's whole promise, made in one wet voice).
+Locomotion: Hopping + Swimming. Spectra: cheerful
+in weather that empties ponds / thaw choruses /
+burst / small / Diet thaw-pool life / dusk /
+Curiosity vocal / Territory one cold pool /
+Tameability 45% — reciprocal calling works in the
+cold too, slower. Drops: none. Hook: the Pond
+Frog's unbuilt chair from the first wave is filled
+in the cold instead — the layer decided the
+temperate ponds had citizens enough, and the thaw
+had none.
+
+**348. Field Crow** — Temperate + Open + Wet
+ranges (Meadow, Rootwood, Fungal, Wetland, Bone's
+edges, Saltglass's edges). Fauna x Ordinary. Shape:
+Winged (crow plan, honestly); modifier: trading —
+the Storm Crow runs the far country's barter at
+legendary scale; the field crow runs the SETTLED
+country's, at pocket scale: buttons, bright wire,
+one memorable spoon (its Crow Gift category is the
+same, the stakes domestic — the entry establishes
+the genus: crows trade, everywhere crows are; the
+families only set the prices). Locomotion: Aerial,
+flyer-leaning + Walking with intent. Spectra:
+bold / loose companies with long memories / quick /
+mid / Diet omnivore of the settled world /
+diurnal / Curiosity TOTAL — the temperate country's
+most thorough investigator / Territory a circuit
+of farms, camps, and middens / Tameability 35%,
+by barter over a season — it does not bond; it
+CONTRACTS, and keeps its side. Drops: Crow Gifts.
+Hook: wave two closes with the layer's thesis in
+one bird: a species is wide-range not because it is
+everywhere, but because everywhere it goes, it is
+ITSELF — memory, trade, and opinions included.
+
+The semi-ubiquitous layer stands complete at 24 —
+two waves, six ranges, every family holding 4+ wide-
+range citizens and the graph's edges honestly
+thinner than its middle. Roster designed total: 348.
+The design backlog is EMPTY. What remains is
+events: the Living's build (the biome program's
+work — its variant seats will be filled in the
+batch after it lands), and the caves, at Adam's
+word — bestiary, and the tenth epic chair, waiting
+in the dark where he left them.

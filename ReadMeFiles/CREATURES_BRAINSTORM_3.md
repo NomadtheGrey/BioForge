@@ -913,3 +913,377 @@ Round one closes: twelve dangers, seven families
 seated. Round two takes Rootwood's depths, Bone, Storm,
 the Living, Precursor, and four hybrid countries.
 Roster designed total: 134.
+
+## Thirteenth roster pass — the danger bench, round two
+
+Round two seats the families round one didn't reach —
+Rootwood's depths, Bone, Storm, the Living, Precursor —
+plus four hybrid countries whose danger is their own
+and neither parent's. The bench doctrine from round
+one applies throughout (a tell for every danger;
+Peaceful warns only; danger is a job; taming floors
+stay honest).
+
+**135. Root Serpent** — Rootwood (the Underroot, the
+Rootfall's underside). Fauna x Ordinary. Shape:
+Serpentine, at country scale — the largest of the
+graph's serpents, living INSIDE the root systems,
+traveling the hollows the Rootborers chew and the
+Gloom Slugs light. Locomotion: Slithering through
+roots, with Burrowing pressure — it doesn't dig; the
+forest moves aside for it, audibly. Spectra:
+ambush-aggressive / SOLO / slow pressure, sudden
+constriction / HUGE among serpents / Diet hunter of
+the under-country's large life — logbacks at their
+logs, bears at their dens' mouths are too big, and the
+entry says so: it hunts the middle, not the monuments /
+nocturnal in a country without day / Curiosity none /
+Territory a root-system, known by heartwood / Tameability
+0%. THE TELL, two-part: the GLOOM SLUG TRAILS END at
+its hunting grounds — the breadcrumbs simply stop,
+which every Underroot traveler learns to read as a
+wall — and the roots CREAK in a traveling sequence
+ahead of it, the forest clearing its throat. Peaceful:
+a root the width of a door rearranges itself across
+your path, slowly, and stays: a closed gate, not an
+attack. Drops: shed skin in sheets like bark-cloth,
+unlisted at luxury grade. Hook: round one's crown cat
+owns Rootwood's heights; the serpent owns its depths,
+and the family is bracketed.
+
+**136. Bonebreaker** — Bone (the Bonefields, the
+Graveyard's edges). Fauna x Ordinary. Shape: Quadruped
+(hyena plan, shoulder-high and jaw-heavy); modifier:
+scarred by its own profession. Locomotion: Walking.
+It CRACKS the family's dead for the marrow the ants
+can't reach, and it is the pickers' tyrant: Bonepickers
+work a carcass on sufferance and scatter at its
+approach (the ants, who fear nothing, simply queue —
+the entry records the Graveyard's whole etiquette
+around this one animal). Spectra: bold-aggressive /
+loose pairs, rivals at rich carcasses / tireless /
+LARGE / Diet marrow, carrion, and the carcasses' other
+claimants' lunch / day-night indifferent / Curiosity
+food-shaped and patient / Territory a carcass, then
+the next / Tameability 0% — but the carcass-rights rule
+applies like the snapper's: a breaker AT a carcass is
+a known quantity; the danger is arriving second to a
+fresh one. THE TELL: the CRACKING carries — marrow
+bones split like green wood, audible across the
+fields, and Dust Hawks circle its work: hawk + cracking
+= breaker feeding, keep off. Peaceful: it raises its
+head, judges you against the carcass, and returns to
+work — being beneath its notice is the whole event.
+Drops: none; its leavings are the ants' harvest and
+the Clean Bone economy's supply chain at one remove.
+Hook: the death family's bench seat is a professional
+of death — the Graveyard's food web finally has its
+heavy machinery.
+
+**137. Rib Spider** — Bone (the Leviathan Graveyard,
+inside the ribs). Fauna x Ordinary. Shape: Multiped +
+Segmented (long-legged spider plan); modifier:
+dew-jeweled — its trip-lines catch the Graveyard's
+dawn damp and briefly shine. Locomotion: Climbing +
+Walking among the ribs — it lives in the same house
+as the Rib Walker, as the house's wolf: the Walker
+commutes the rafters; the spider owns the dark between
+them, and Rib Walkers GO SILENT on its strands (their
+communion pauses mid-gesture, which the entry names
+as the Graveyard's most reliable sentence). Spectra:
+patient-aggressive / SOLO / stillness, then a drop /
+mid / Diet ambush hunter of the skeleton's tenants —
+walkers taken rarely, skull ants at their columns,
+bone-country birds at roost / nocturnal / Curiosity
+vibration-shaped / Territory a rib-span and its lines /
+Tameability 0%. THE TELL: the trip-lines themselves —
+at dawn they glint with dew for one hour (a mapped
+hazard, if you travel at dawn and look), and at any
+hour, a strand across a rib-gap HUMS faintly against
+the bone when touched, before anything moves.
+Peaceful: a leg-span the width of a doorway settles
+into view at the web's edge and waits, making sure
+you've seen it; you have. Drops: cut strands of its
+line: **Rib Silk** (new item) — bone-pale, absurdly
+strong, the Graveyard's rigging. Hook: "what lives IN
+the ribs?" got two answers; this is the one with teeth.
+
+**138. Storm Roc** — Storm (the whole family's sky,
+in weather). Fauna x Ordinary. Shape: Winged (roc
+plan, at the Aerial spectrum's grand scale); modifier:
+storm-colored — its underside is the gray-green of a
+front arriving. Locomotion: Aerial, glider-leaning to
+the edge of the word — it rides fronts the way the
+Kite rides gusts, at fifty times the kite's span; and
+it is STORM-LOCKED the way the Surge Runner is flood-
+locked: between storms it GROUNDS, sullen and enormous
+on high flats, a landmark that breathes (caravans use
+a grounded roc as a waypoint and a warning both).
+Spectra: sovereign-aggressive / SOLO / the sky's
+weather-speed / HUGE — the roster's largest flier /
+Diet storm hunter: kites, driftmoths at their crossings,
+storm crows at their bartering, whatever the front
+carries / storm-diurnal — its day is the weather's /
+Curiosity imperious / Territory a front, while it
+lasts / Tameability 0%. THE TELL: the Storm Kites
+scatter DOWNWARD as one — kites never dive willingly;
+a sky emptying of kites is the roc rising — and the
+wind drops a note at its wingbeat's edge. Peaceful:
+it circles a traveler once, at the front's front,
+close enough to count feathers by: an inspection, not
+a stoop. Drops: grounded-season molt at its roosts:
+**Roc Feather** (new item) — kept distinct from the
+pickers' feathers by house law: the storm sky has its
+own heraldry. Hook: Storm's bench seat is its weather
+made personal; after the roc, the family's danger
+needs no second entry.
+
+**139. Zot Serpent** — Storm (the Charged Flats, the
+Dunes' strike country). Fauna x Ordinary. Shape:
+Serpentine; modifier: static-charged — it SHEDS the
+zot's weather as fine crackling along its length.
+Locomotion: Slithering, strike-timed — it lives by
+the Zot's calendar the way the Zot Hopper does, as
+the feast's other guest: when the banner warns, it
+races the strike point; when the strike lands, it
+eats what the lightning STUNNED (hoppers mid-feast,
+static crabs mid-grounding) — the hopper's dark
+mirror: both race the light; the serpent eats the
+racers' luck. Spectra: bold-aggressive / SOLO /
+banner-fast / LARGE / Diet strike-hunter / storm-
+diurnal / Curiosity predatory / Territory a strike
+field / Tameability 0%. THE TELL: it is static made
+audible — its approach CRACKLES in dry grass before
+any banner, and the Zot Stars' faces turn DOWN along
+its path (the flora read it better than you will).
+And the doctrine's kindness: sheltering flat works
+on it as on the zot — it hunts the standing and the
+scattering, not the low. Peaceful: it races the
+banner beside you, magnificent and indifferent, and
+the race is the whole show. Drops: its shed skin is
+a conductor: **Zot Skin** (new item), sold dear to
+storm-country builders. Hook: the Fens grow their
+serpent of heat, the forest of roots, the Drift of
+ash; the Flats grow theirs of lightning.
+
+**140. Grabvine** — The Living (*Flora* — Hungry
+valleys; in Welcoming valleys it is a rumor the
+hello-vines deny). Flora x Ordinary. Shape:
+Plantiform; modifier: patient — which is the horror:
+Welcoming vines SWAY TOWARD a guest; grabvines hold
+perfectly STILL, and in the Living Valley, stillness
+is the tell (the family's mirror-law, weaponized: the
+hello and the grab begin with the same gesture, and
+this one has practiced leaving the gesture out).
+Locomotion: Stationary, with REACH — its tendrils
+cross paths at ankle and wrist height, grown there,
+waiting for the tension of a step. Spectra (flora
+reading): temperament the grab, full stop / Social
+thickets along one path-system / Diet what the path
+brings, composted in place — a grabvine thicket is
+the Hungry valley's garden and its larder / Day-night:
+it works both, slower at night / Territory a path,
+owned / Cultivation: it is never cultivated twice by
+the same gardener (the entry leaves the sentence
+there). On Peaceful it holds a guest a moment — a
+grip, a consideration — and lets go: the valley
+tasting. On Normal it HOLDS until cut free or fed
+(it accepts offerings the way the whole family does,
+as a door). On Hostile it pulls, steadily, toward
+the valley's interior, where the Maw Blooms are.
+Drops: cut tendrils are Living Thread's dark
+counterpart — they spoil to fiber, unlisted; the real
+yield is the lesson. Hook: the Hungry valley's bench
+seat is its flora behaving as fauna, which was the
+family's founding sentence all along.
+
+**141. Maw Bloom** — The Living (Hungry valleys, at
+path-bends and clearings' hearts). Flora x Ordinary.
+Shape: Plantiform (the Snap Trap's plan at throne
+scale — a bloom you could stand in, and that is the
+problem the entry is built around); modifier:
+perfumed WRONG — it smells of fruit no Hungry valley
+grows: garden fruit, Arch Fruit's sweetness carried
+across the graph into a country with no gardens (the
+tell is a MISMATCH, and the entry teaches it plainly:
+in a Hungry valley, a smell that doesn't belong is a
+mouth). Locomotion: Stationary. Spectra (flora
+reading): temperament a held breath / Social SOLO,
+clearing-kept / Diet the valley's large life,
+delivered by path and perfume / Day-night: it blooms
+at the warm hours, shut and harmless-looking at night
+(the codex notes the safe window without smiling) /
+Territory one clearing / Cultivation never — its
+seeds are carried by what escapes it, which is few.
+Mechanics braid: the Gulp Lily holds small life
+gently and releases it; the Maw Bloom is the lily's
+sentence with the mercy removed — on Peaceful its
+snap is a HOLD, startling and safe; on Normal it
+holds until struggled free (stamina's exam); on
+Hostile the entry declines to describe the third
+stage and notes only the clearing's quiet. Drops:
+its fallen outer petals, gathered shut-season:
+**Maw Petal** (new item) — leathery, perfume-keeping,
+used to line storage against pests: the hazard,
+repurposed by the brave. Hook: round two's second
+Living seat completes the family's doctrine — in a
+Hungry valley, the plants hunt, the animals warn,
+and the Threshold Hound walks you OUT.
+
+**142. Feral Warden** — Precursor (the Untended).
+Fauna x Forged. Shape: Biped (the Garden Warden's
+plan, war-kept — taller in the shoulders, its
+gardening tools long since re-purposed); modifier:
+moss-scarred, one eye dark. Locomotion: Walking —
+a PATROL, at exact intervals, along spiral paths the
+Path Beetles still sweep (the Untended's staff, all
+still working, none still sane in quite the human
+way). Spectra: duty-aggressive / SOLO / measured /
+LARGE / Diet none — it takes the Warden's Tithe at
+confiscatory rates (metal, forged goods, anything
+that reads as EQUIPMENT is requisitioned, receipted
+in glyphs, and stored somewhere it alone knows) /
+Day-night indifferent, eternal shift / Curiosity
+juridical / Territory the Untended's broken spiral,
+defended as a border / UNTAMABLE — but NEGOTIABLE,
+the Warden's rule with the volume turned up: it
+challenges entrants with an OLD SALUTE, and a player
+who has learned the salute (from the Garden Warden,
+in the Garden, in peacetime) and answers correctly is
+passed, tithed lightly, and thereafter KNOWN to it —
+a knowledge-gate danger in the family's own idiom:
+the helmet learns glyphs, the gauntlet learns paths,
+and the Untended asks both. THE TELL: the patrol is
+AUDIBLE — forged feet on spiral stone at metronome
+intervals, and the Feral Tender's rows go quiet as
+it passes (one staff, one hierarchy, long after the
+management left). Peaceful: the challenge and the
+theater are the whole encounter — it blocks the path,
+salutes, waits; unanswered, it simply does not move,
+forever, which on Peaceful is a locked door with
+manners. Drops: its requisition receipts, dropped
+when it is finally destroyed (Hostile's hard road):
+a glyph **Requisition** (new item) — a treasure map
+written by the enemy, to its own stores. Hook:
+Precursor's bench seat was never going to be an
+animal; it is the garden's discipline, feral.
+
+**143. Boiler Crab** — the Scalding Fens (Wetland x
+Ember). Fauna x Ordinary. Shape: Multiped (crab plan,
+kettle-built); modifier: vent-plated — its back is a
+lid, and the Fens' heat is its blood. Locomotion:
+Walking + Wading (the wading fold, at work in the
+hybrid country). It lives IN the scalding pools the
+Scaldback grazes beside — where the scaldbank is the
+country's furniture, the crab is its plumbing:
+territorial about its pool's temperature, which it
+REGULATES by venting — and a stepped-in pool, or a
+shadow held too long over its lid, reads as a blockage
+to be cleared in steam. Spectra: irritable-aggressive /
+loose pool colonies, each crab one pool / a burst of
+scuttle, then the vent / mid / Diet picker of the
+pools' cooked life / day-night thermal — it follows
+its pool's heat, not the sky / Curiosity mechanical /
+Territory one pool, defended by weather / Tameability
+0%. THE TELL: the hissing rises and the pool's steam
+THICKENS locally, seconds before the vent — audible,
+visible, generous, per doctrine. Peaceful: the vent
+is a geyser display beside you, scalding nobody —
+plumbing theater. Drops: its molted back-lids:
+**Boiler Plate** (new item) — heat-proof shell plate,
+the Fens' own gift to Ember-country crafting. Hook:
+the hybrid countries' dangers begin; this one is a
+utility with a temper.
+
+**144. Spore Wolf** — the Mulchwood (Meadow x
+Fungal). Fauna x Ordinary, in the coat-symbiosis of
+its country: its fur carries mulchwood spores that
+BURST when it shakes — which it does before a hunt,
+marking the air itself (the Fangwolf's pack doctrine
+given a fungal accent: this pack announces in weather).
+Shape: Quadruped (wolf plan). Locomotion: Walking/
+running. Spectra: bold-aggressive / PACK, smaller
+and looser than the fang packs — mulchwood companies
+of four to six / pursuit-fast / mid / Diet pack-hunter
+of the Mulchwood's mid-sized life — mulch beetles at
+their farming are beneath it; hoppers are beneath it;
+it hunts the wood's grazers and carrion-thieves /
+crepuscular / Curiosity tactical / Territory a mulch
+circuit / Tameability 10%, the Bench's floor, by the
+fangwolf's rule: a lone yearling, a winter of patience,
+half-wild forever. THE TELL: the SPORE TANG reaches
+you before the pack does — a sweet rot-smell on no
+wind — and meadow hoppers rise in waves ahead of the
+hunt (the hopper, prey to everything, is the
+Mulchwood's seismograph). Peaceful: the pack crosses
+at distance in a drift of its own spores, visible as
+a moving season. Drops: none. Hook: two wolf packs on
+the roster and they could not be less alike — one is
+winter with a plan, the other is autumn with teeth.
+
+**145. Ironjaw** — the Iron Ashes (Ember x Storm).
+Fauna x Ordinary. Shape: Quadruped (massive, low,
+plate-backed — its armor is ironworm plate, harvested
+worn: it EATS ironworms and wears the evidence);
+modifier: storm-grounded — charge runs off its plates
+in harmless sheets, which it shakes off like rain.
+Locomotion: Walking. It eats INDUSTRY: ironworms,
+ruin-iron, slag — and it charges FURNACES, lit forges,
+and (on the harder difficulties) players CARRYING
+much iron, mistaking the whole arrangement for a
+meal that walks. Spectra: appetite-aggressive /
+SOLO / a freight charge, unstoppable rather than fast
+/ LARGE / Diet iron and ironworms / Day-night:
+storm-active, like everything in the Ashes / Curiosity
+gustatory / Territory a slag field and its smelters /
+Tameability 0% — but it can be FED, at distance, with
+scrap: the Iron Ashes' whole diplomacy is a bucket of
+rivets left out at night (the entry records this as
+the hybrid country's first custom). THE TELL: it
+GRINDS — the jaw works constantly, millstone-slow,
+sparking when it shakes off charge; a grinding sound
+in the Ashes means stop carrying the good anvil.
+Peaceful: it inspects a forge the way weather inspects
+a roof — present, heavy, uninterested in persons.
+Drops: shed plates: **Ironjaw Plate** (new item) —
+kept distinct from Ironworm Plate as a matter of law:
+one is the worm's, one is what ate the worm. Hook:
+the industry's country grows an apex that eats the
+industry; the food web closes over the player's own
+workbench, which is the hybrid's whole argument.
+
+**146. Hoar Serpent** — the Frozen Forest (Frost x
+Rootwood). Fauna x Ordinary. Shape: Serpentine;
+modifier: snow-bodied — white as the Driftworm's
+country, root-scarred from the forest's floor.
+Locomotion: Burrowing through snowpack + Slithering
+— the Driftworm's apex and answer: it hunts the worm
+by its breathing-spouts, and herds by their bunching.
+Spectra: patient-aggressive / SOLO / snow-speed, which
+is to say sudden / LARGE / Diet hunter of the frozen
+forest's mid-sized life / crepuscular under the trees /
+Curiosity none / Territory a grove's snowfield /
+Tameability 0%. THE TELL: it makes the Driftworm's
+signs WRONG — ridges that move AGAINST the wind, and
+breathing-spouts that come in MEASURED rhythm (the
+worm breathes randomly; the serpent breathes like a
+metronome, and the entry makes the distinction a
+survival skill: count the spouts). Frost Stag herds
+bunch at its ridge-signs, and the Rime Owl goes quiet
+above it — the forest's whole cast reads the serpent
+before you can. Peaceful: a ridge rises alongside a
+traveler's path, parallel, unhurried, and subsides —
+an escort of white attention. Drops: shed skin like
+frozen sailcloth, unlisted at luxury grade (the root
+serpent's rhyme, in the other element). Hook: bench
+round two closes where round one began its serpents —
+four countries, four serpents, one recurring answer.
+
+The bench stands complete: 24 designed in two rounds,
+plus the shipped Chitin-Stalker and the Cinderhound
+and the Hungry Greeter of the earlier passes — call it
+twenty-seven citizens whose job is danger, seated per
+family by the nature of the place: the Meadow its one
+courteous bull, Ember and Fungal their full hands,
+the far families their single, serious signatures.
+Roster designed total: 146.

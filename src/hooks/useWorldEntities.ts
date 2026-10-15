@@ -8,6 +8,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   FloraEntity,
   FaunaEntity,
+  FaunaSpecies,
   StructureEntity,
   DroppedItemEntity,
 } from '../types/game';
@@ -33,8 +34,10 @@ export const WANDER_RADIUS = 12;
 // much higher chance — short pauses, long roams. The old single slow rate
 // is why wild stalkers stood like statues ~70% of the time.
 export const WANDER_CHANCE_RESTLESS = 0.08;
-// How close (meters) a wild stalker lets a player get before it stops,
-// faces them, and watches. Peaceful awareness only — no attacks.
+// The stalker's original aggro range, kept as the historical
+// constant. Since slice 5 the sim reads each hunter's range from
+// the species table (the stalker's table entry carries this same
+// 8); this export remains for anything that still cites it.
 export const AGGRO_RANGE = 8;
 // Guard-stalker patrol: waypoints are picked on a ring this wide (meters)
 // around the anchor; arriving this close picks the next point.
@@ -399,7 +402,14 @@ export interface UseWorldEntitiesResult {
     playerX: number,
     playerZ: number,
     onPickupItem: (item: DroppedItemEntity) => void,
-    onCritterExcrete?: (species: string) => void
+    onCritterExcrete?: (species: string) => void,
+    /** Danger system (slice 5): fired when a wild hunter's bite
+     *  lands. The caller (the game loop) owns player health and
+     *  applies the house damage pattern. */
+    onFaunaAttack?: (species: FaunaSpecies, damage: number) => void,
+    /** True on Normal/Hostile worlds: hunters chase and bite.
+     *  False (Peaceful): the alert theater only, no teeth. */
+    attacksArmed?: boolean
   ) => void;
 }
 
@@ -504,9 +514,12 @@ export function useWorldEntities(): UseWorldEntitiesResult {
               isTamed: true,
               state,
               customName,
-              command: fn.species === 'chitin_stalker' ? 'guard' : 'follow',
-              anchorX: fn.species === 'chitin_stalker' ? fn.x : fn.anchorX,
-              anchorZ: fn.species === 'chitin_stalker' ? fn.z : fn.anchorZ,
+              // Hunters default to guard duty at their tame spot
+              // (the stalker's shipped pattern, generalized to the
+              // table in slice 5); everyone else follows.
+              command: speciesDef(fn.species).hunt ? 'guard' : 'follow',
+              anchorX: speciesDef(fn.species).hunt ? fn.x : fn.anchorX,
+              anchorZ: speciesDef(fn.species).hunt ? fn.z : fn.anchorZ,
             }
           : fn
       )
@@ -589,7 +602,9 @@ export function useWorldEntities(): UseWorldEntitiesResult {
       playerX: number,
       playerZ: number,
       onPickupItem: (item: DroppedItemEntity) => void,
-      onCritterExcrete?: (species: string) => void
+      onCritterExcrete?: (species: string) => void,
+      onFaunaAttack?: (species: FaunaSpecies, damage: number) => void,
+      attacksArmed?: boolean
     ): void => {
       const simulateWorld = !multiplayerManager.isConnected || multiplayerManager.isHost;
 
@@ -619,6 +634,8 @@ export function useWorldEntities(): UseWorldEntitiesResult {
       setFaunaList((prevFauna) =>
         prevFauna.map((fauna) => {
           let { x, z, state, isTamed, targetX, targetZ, byproductTimer, command } = fauna;
+          // Hunter bite cooldown (slice 5); absent on older saves.
+          let biteTimer = fauna.biteTimer ?? 0;
 
           // --- Companion orders (tamed, with a command set) ---
           if (isTamed && command === 'follow') {
@@ -629,10 +646,10 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           if (isTamed && command === 'stay') {
             state = 'idle';
           }
-          // Guard, stalker: a real patrol — waypoints on a ring around the
-          // anchor post, a new one on every arrival. When hostiles exist
-          // (Normal), engagement hooks in from this same state.
-          if (isTamed && command === 'guard' && fauna.species === 'chitin_stalker') {
+          // Guard, hunters: a real patrol — waypoints on a ring around
+          // the anchor post, a new one on every arrival. (The stalker's
+          // pattern, generalized to every table hunter in slice 5.)
+          if (isTamed && command === 'guard' && speciesDef(fauna.species).hunt) {
             state = 'patrolling';
             if (Math.hypot(targetX - x, targetZ - z) <= PATROL_ARRIVAL_DISTANCE) {
               const anchorX = fauna.anchorX ?? x;
@@ -645,7 +662,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // Guard, everyone else (soft-puffs, burrow mice): sanitation
           // duty — fetch the nearest loose drop back to the pouch. With
           // nothing to fetch, return to the anchor post and wait.
-          if (isTamed && command === 'guard' && fauna.species !== 'chitin_stalker') {
+          if (isTamed && command === 'guard' && !speciesDef(fauna.species).hunt) {
             const drop = nearestDrop(x, z);
             if (drop) {
               targetX = drop.x;
@@ -662,17 +679,33 @@ export function useWorldEntities(): UseWorldEntitiesResult {
 
           // --- Wild creatures ---
           const distToPlayer = Math.hypot(playerX - x, playerZ - z);
-          // Stalkers are territorial: inside their aggro range they stop
-          // and face the intruder. Peaceful promise kept — noticing is
-          // not attacking; attacks arrive with Normal difficulty.
-          const stalkerAlert =
-            !isTamed && fauna.species === 'chitin_stalker' && distToPlayer <= AGGRO_RANGE;
-          if (stalkerAlert) {
-            state = 'alert';
-            targetX = x;
-            targetZ = z;
+          // THE HUNT (slice 5 — the stalker's shipped pattern,
+          // generalized onto the species table): a wild hunter inside
+          // its aggro range NOTICES you, and noticing is the tell the
+          // danger doctrine promises in every difficulty. On Peaceful
+          // the hunter stops and faces you, and that regard is the
+          // whole event. On armed worlds (Normal/Hostile) it commits:
+          // it chases, and inside bite range it bites on its table
+          // cooldown. Tamed hunters never hunt the player.
+          const hunt = isTamed ? undefined : speciesDef(fauna.species).hunt;
+          const hunterAlert = !!hunt && distToPlayer <= hunt.aggroRange;
+          biteTimer = Math.max(0, biteTimer - dt);
+          if (hunterAlert && hunt) {
+            if (attacksArmed) {
+              state = 'attacking';
+              targetX = playerX;
+              targetZ = playerZ;
+              if (distToPlayer <= hunt.biteRange && biteTimer <= 0) {
+                onFaunaAttack?.(fauna.species, hunt.damage);
+                biteTimer = hunt.biteCooldownSeconds;
+              }
+            } else {
+              state = 'alert';
+              targetX = x;
+              targetZ = z;
+            }
           }
-          if (!isTamed && !stalkerAlert) {
+          if (!isTamed && !hunterAlert) {
             state = 'wandering';
             // Restless wandering: standing at the target re-rolls fast
             // (short pauses, long roams); en route the re-roll stays rare
@@ -694,7 +727,9 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           const distToTarget = Math.hypot(targetX - x, targetZ - z);
           let newRot = fauna.rotation;
           if (distToTarget > 0.4) {
-            const moveSpeed = isTamed ? fauna.speed * 1.2 : fauna.speed;
+            // A chasing hunter spends its burst (slice 5): the
+            // ambusher's whole speed budget, at once, as designed.
+            const moveSpeed = state === 'attacking' ? fauna.speed * 1.35 : isTamed ? fauna.speed * 1.2 : fauna.speed;
             x += ((targetX - x) / distToTarget) * moveSpeed * dt;
             z += ((targetZ - z) / distToTarget) * moveSpeed * dt;
             newRot = Math.atan2(targetX - x, targetZ - z);
@@ -733,6 +768,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             targetX,
             targetZ,
             byproductTimer,
+            biteTimer,
             animTime: fauna.animTime + dt,
           };
           if (syncFaunaNow) multiplayerManager.broadcastEntityUpsert('fauna', nextFauna);

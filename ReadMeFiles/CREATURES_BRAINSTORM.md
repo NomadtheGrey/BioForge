@@ -110,9 +110,11 @@ of* — and Materials cross Kinds in a matrix of their own:
 - **Forged Flora** — a precursor garden organism that still
   tends itself: planted rows in a ruin that have outlived the
   gardeners by centuries.
-- **Vapor Flora** — CONTEXT ruling: a free-floating gas-bag
-  plant is Drifting locomotion wearing Flora's verbs (it makes
-  seeds, it photosynthesizes) — legal, far-zone, strange.
+- **Vapor Flora** — CONTEXT ruling: a gas-bag plant is
+  Drifting locomotion if the wind carries it, Floating
+  (Axis 2, item 13) if it holds its own station and altitude
+  in the sky — either way it wears Flora's verbs (it makes
+  seeds, it photosynthesizes); legal, far-zone, strange.
   A *rooted* vapor plant is NONSENSE for now: roots need ground
   and vapor declines to stay in it.
 - **Forged Fungus** — infrastructure that is alive: a network
@@ -169,7 +171,7 @@ not temperament or social structure.
   surfaces, a blink rhythm before a phaser arrives. Peaceful
   movement stays the same; only intent changes.
 - **Its production cost is uneven — plan for it.** Hopping,
-  slithering, drifting, and rolling are procedural motion the
+  slithering, drifting, floating, and rolling are procedural motion the
   engine can fake cheaply (the puff wiggle / hop pattern already
   proves the shape). Legged walking is the expensive mode — rigged
   legged models were the open animation risk back when the roster
@@ -180,7 +182,7 @@ not temperament or social structure.
 near spawn, familiar modes (stationary, walking, hopping,
 burrowing); mid-distance, the less obvious ones (swimming,
 climbing, aerial, slithering); far out, the oddities (rolling,
-drifting colonies, phasing). Preparation stays the gate — never
+drifting colonies, floating, phasing). Preparation stays the gate — never
 a lock — per the settled biome rules.
 
 ### Adam's six (2026-10-15)
@@ -241,11 +243,12 @@ a lock — per the settled biome rules.
    trunks (Rootwood), ruin walls, cave roofs. The cave system's
    missing movement; a ceiling fauna changes how a player watches
    a dark room.
-10. **Drifting / Floating** — buoyant travel on wind or current.
-    The creature influences its course more than it chooses it.
-    Spores, vapor life, floating flora, drifting colonies. (The
-    Mirror Moth's pool-to-pool drift is a near neighbor of this
-    mode wearing aerial's clothes — see item 4's spectrum.)
+10. **Drifting** — buoyant travel on wind or current. The
+    creature influences its course more than it chooses it:
+    the medium decides where it goes. Spores, vapor life,
+    plants riding a current, drifting colonies. (The Mirror
+    Moth's pool-to-pool drift is a near neighbor of this mode
+    wearing aerial's clothes — see item 4's spectrum.)
 11. **Rolling** — travel as a living wheel. Sounds like a joke
     until a Crystalline geode-creature rolls slowly across
     Saltglass, gathering mineral crust as it goes. Nearly free to
@@ -255,6 +258,27 @@ a lock — per the settled biome rules.
     Forged life only, deep minHops only. Brainstorm already holds
     a blink-behavior concept (see the alien toolbox in
     CREATURE_BEHAVIORS_BRAINSTORM.md); this names its movement.
+13. **Floating** — Adam's addition (2026-10-15): suspended in
+    air or liquid *without visible propulsion*, held up by the
+    creature's own buoyancy or levitation. Split from Drifting
+    (item 10) on the one distinction that matters: a drifter is
+    carried by its medium; a floater HOLDS ITS PLACE in it —
+    it can keep station and altitude against a current or a
+    breeze, rising and sinking slowly, on purpose, with no
+    wings, fins, or means anyone can point to. Weird and rare
+    BY RULE, not by accident: this is a far-country mode, at
+    home in Vapor and Gel life, in Forged things that remember
+    being machines, and anywhere magnetism does the lifting
+    (Storm country, the Iron Ashes). It never becomes the
+    default answer to travel — a floater barely travels at
+    all; its whole statement is staying impossibly *up*.
+    Boundary cases, ruled now so later designs stay honest:
+    a winged creature hovering is Aerial (the wings are the
+    means); a fish holding depth on a swim bladder is
+    Swimming (neutral buoyancy is a swimmer's home state) —
+    unless suspension itself is the species' whole headline,
+    recorded Floating primary + Swimming secondary; a plant
+    riding a current is Drifting, however still it looks.
 
 ### Considered and folded (not separate modes — yet)
 
@@ -276,8 +300,9 @@ a lock — per the settled biome rules.
 - **Fungus x Burrowing** — a mycelium that *travels* underground
   and fruits where it arrives; the colony moves, the mushrooms
   are just its footprints.
-- **Flora x Swimming** — resolves honestly as floating, drifting
-  plant life (the Mirror Lily already cups light on the surface).
+- **Flora x Swimming** — resolves honestly as drifting plant
+  life riding the surface (the Mirror Lily already cups light
+  on it).
 - **Fauna x Stationary** — the ambush pet / living furniture
   provocation; taming earns a guardian that never leaves its post
   because leaving is not in its nature.
@@ -463,9 +488,10 @@ Shape x locomotion (the physics filter):
   readily as walking tools (mole logic); the silhouette barely
   changes, the limbs' job does.
 - Cloud + Stationary — **NONSENSE for now**: an unanchored cloud
-  cannot stay; staying is the one thing it cannot do. A tethered
-  or vent-fed vapor that hovers over one spot is Drifting with
-  an anchor, and gets designed as such.
+  cannot stay; staying is the one thing it cannot do. A vapor
+  that hovers over one spot by its own levitation is Floating
+  (Axis 2, item 13) and gets designed as such; a tethered one
+  is Stationary by its tether.
 - Radial + Walking — **FINE, flagged oddity**: a radial creature
   walks by tipping point-to-point, starfish logic at speed. It
   looks wrong in the best way; kept as a deliberate far-zone

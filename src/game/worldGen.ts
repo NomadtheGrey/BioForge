@@ -51,7 +51,7 @@
 import { createNoise2D, createSeededRandom, hashStringToSeed } from './motion';
 import { biomeDensityFactor, biomeWeightFactor } from './biomes';
 import type { BiomeId } from './biomes';
-import { zoneBiomeAt, zoneVariantAt } from './zones';
+import { zoneBiomeAt, zoneVariantAt, livingHeartAt } from './zones';
 import type { FaunaEntity, FaunaSpecies, FloraEntity, FloraSpecies, StructureEntity } from '../types/game';
 import { generateCaveSurface, HOMESTEAD_BLOCKERS } from './caveSurface';
 import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
@@ -73,7 +73,7 @@ import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
  *     layout in a different species cast; nobody had ever generated
  *     a second zone, so the sameness was theoretical until travel.
  */
-export const WORLD_GEN_VERSION = 13; // v13 (2026-10-15): storm, the 10th built family and the first of Tier 3 — charged country joins the bands at 3 hops
+export const WORLD_GEN_VERSION = 14; // v14 (2026-10-15): living, the 11th and FINAL family — one organism per valley; the roster is complete
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -161,14 +161,14 @@ interface FaunaSpeciesDef {
 const FLORA_CENSUS: FloraSpeciesDef[] = [
   { species: 'lantern_fern', count: 2, baseWeight: 0.28, near: 1.8, far: 0.25, hazardous: false, biomes: 'all' },
   { species: 'bell_bloom', count: 2, baseWeight: 0.22, near: 1.2, far: 0.8, hazardous: false, biomes: ['meadow', 'wetland', 'precursor'] },
-  { species: 'petal_mill', count: 2, baseWeight: 0.20, near: 0.9, far: 1.15, hazardous: false, biomes: ['meadow', 'fungal', 'rootwood'] },
+  { species: 'petal_mill', count: 2, baseWeight: 0.20, near: 0.9, far: 1.15, hazardous: false, biomes: ['meadow', 'fungal', 'rootwood', 'living'] },
   { species: 'sap_weaver', count: 1, baseWeight: 0.18, near: 0.6, far: 1.4, hazardous: false, biomes: ['fungal', 'ember', 'rootwood', 'precursor'] },
   { species: 'snap_trap', count: 1, baseWeight: 0.12, near: 0.03, far: 2.4, hazardous: true, biomes: ['wetland', 'fungal'] },
 ];
 
 // 2 soft-puffs, 2 burrow mice, 1 chitin stalker — the shipped five.
 const FAUNA_CENSUS: FaunaSpeciesDef[] = [
-  { species: 'soft_puff', count: 2, baseWeight: 0.45, near: 1.6, far: 0.35, speed: 1.7, speedJitter: 0.1, health: 40, biomes: ['meadow', 'wetland', 'rootwood'] },
+  { species: 'soft_puff', count: 2, baseWeight: 0.45, near: 1.6, far: 0.35, speed: 1.7, speedJitter: 0.1, health: 40, biomes: ['meadow', 'wetland', 'rootwood', 'living'] },
   { species: 'burrow_mouse', count: 2, baseWeight: 0.35, near: 1.0, far: 1.0, speed: 1.85, speedJitter: 0.15, health: 30, biomes: 'all' },
   { species: 'chitin_stalker', count: 1, baseWeight: 0.20, near: 0.03, far: 2.6, speed: 2.4, speedJitter: 0, health: 120, biomes: ['ember', 'fungal'] },
 ];
@@ -1118,6 +1118,62 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
       });
       builtBridges++;
     }
+  }
+
+  // ---------------------------------------------------------------------
+  // Duskgrass + the heartbloom (Living, 2026-10-15) — family-
+  // wide BONUS life: black-violet grass fields (no chlorophyll
+  // on this planet — Adam), and ONE heartbloom at the valley's
+  // heart point (zones.livingHeartAt) in EVERY Living zone: the
+  // organism's heart, worn outside its body.
+  // ---------------------------------------------------------------------
+  if (zoneBiome === 'living') {
+    const duskRng = createSeededRandom(stream('flora:duskgrass'));
+    const duskCount = zoneVariant?.id === 'welcoming_valley' ? 11
+      : zoneVariant?.id === 'twominded_valley' ? 9
+      : zoneVariant?.id === 'hungry_valley' ? 7 : 8;
+    let plantedDusk = 0;
+    for (let attempt = 0; attempt < duskCount * 6 && plantedDusk < duskCount; attempt++) {
+      const x = (duskRng() * 2 - 1) * 44;
+      const z = (duskRng() * 2 - 1) * 44;
+      if (flora.some((f) => Math.hypot(f.x - x, f.z - z) < 1.3)) continue;
+      flora.push({
+        id: `flora_duskgrass_${plantedDusk}`,
+        species: 'dusk_grass',
+        x, z,
+        biome: zoneBiome,
+        rotation: duskRng() * Math.PI * 2,
+        scale: 0.9 + duskRng() * 0.6,
+        growthStage: 3,
+        growthProgress: 1,
+        fertilizedGrowth: false,
+        fertilizedYield: false,
+        fertilizerTimer: 0,
+        harvestReady: true,
+        harvestTimer: 0,
+        isHazardous: false,
+        swayOffset: 1700 + plantedDusk,
+      });
+      plantedDusk++;
+    }
+    const heart = livingHeartAt(seedStr, zoneZx, zoneZz);
+    flora.push({
+      id: 'flora_heartbloom_0',
+      species: 'heartbloom',
+      x: heart.x, z: heart.z,
+      biome: zoneBiome,
+      rotation: duskRng() * Math.PI * 2,
+      scale: 1.6,
+      growthStage: 3,
+      growthProgress: 1,
+      fertilizedGrowth: false,
+      fertilizedYield: false,
+      fertilizerTimer: 0,
+      harvestReady: true,
+      harvestTimer: 0,
+      isHazardous: false,
+      swayOffset: 1750,
+    });
   }
 
   // ---------------------------------------------------------------------

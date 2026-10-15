@@ -351,6 +351,50 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'dusk_grass': {
+        // Living (2026-10-15): black-violet grass — alien
+        // photosynthesis wears purple-black here (Adam: no
+        // chlorophyll assumptions). Crossed blade tufts with a
+        // faint magenta sheen at the tips.
+        const bladeMat3 = new THREE.MeshStandardMaterial({ color: 0x2e1a47, roughness: 0.7, emissive: 0x581c87, emissiveIntensity: 0.35 });
+        const tipMat = new THREE.MeshStandardMaterial({ color: 0x7e22ce, roughness: 0.5, emissive: 0xa21caf, emissiveIntensity: 0.5 });
+        for (let i = 0; i < 7; i++) {
+          const a = (i / 7) * Math.PI * 2;
+          const blade = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.62, 4), bladeMat3);
+          blade.position.set(Math.cos(a) * 0.13, 0.3, Math.sin(a) * 0.13);
+          blade.rotation.set(Math.sin(a) * 0.3, 0, Math.cos(a) * 0.3);
+          blade.castShadow = true; group.add(blade);
+          const tip = new THREE.Mesh(new THREE.SphereGeometry(0.028, 5, 5), tipMat);
+          tip.position.set(Math.cos(a) * 0.22, 0.6, Math.sin(a) * 0.22);
+          group.add(tip);
+        }
+        break;
+      }
+
+      case 'heartbloom': {
+        // Living (2026-10-15): the valley's heart worn outside —
+        // great dark petals around a red core that begs to be
+        // called beating. Big: the scale rides the flora record.
+        const petalMat4 = new THREE.MeshStandardMaterial({ color: 0x3b1032, roughness: 0.55, emissive: 0x701a4d, emissiveIntensity: 0.3 });
+        const coreMat3 = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.3, emissive: 0xdc2626, emissiveIntensity: 1.2 });
+        const stemMat4 = new THREE.MeshStandardMaterial({ color: 0x2e1a47, roughness: 0.85 });
+        const stem5 = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.11, 0.7, 7), stemMat4);
+        stem5.position.y = 0.35; stem5.castShadow = true; group.add(stem5);
+        for (let i = 0; i < 8; i++) {
+          const a = (i / 8) * Math.PI * 2;
+          const petal = new THREE.Mesh(new THREE.SphereGeometry(0.24, 7, 6), petalMat4);
+          petal.position.set(Math.cos(a) * 0.26, 0.74, Math.sin(a) * 0.26);
+          petal.scale.set(1, 0.4, 0.65);
+          petal.rotation.y = -a;
+          petal.rotation.x = 0.35;
+          group.add(petal);
+        }
+        const core = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 8), coreMat3);
+        core.position.y = 0.8;
+        group.add(core);
+        break;
+      }
+
       case 'stormcatcher': {
         // Storm (2026-10-15): a tall ribbed reed crowned with a
         // coppery whorl and a charge-bright orb — a plant that

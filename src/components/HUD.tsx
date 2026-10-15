@@ -21,6 +21,7 @@ import {
   Radar,
   ChevronLeft,
   ChevronRight,
+  ScrollText,
 } from 'lucide-react';
 import {
   ToolType,
@@ -101,6 +102,19 @@ interface HUDProps {
   radarActive: boolean;
   /** Click on the Left Hand slot: cycle the owned instruments, or stow. */
   onToggleHeldItem: () => void;
+  /** Gauntlet modules (2026-10-15): the tools whose modules are
+   * grafted on. Locked tiles render dimmed with a lock and report
+   * their clicks through onToolLocked instead of selecting. */
+  unlockedTools: ToolType[];
+  onToolLocked: (tool: ToolType) => void;
+  /** Opens the mini-quest LIST (the top-row button; the Q hotkey is
+   * App's). The list — not this HUD — owns tracker visibility. */
+  onOpenQuests: () => void;
+  /** The tracked mini-quest's live view, and whether the player
+   * wants the tracker card shown (the list's checkbox). Null view =
+   * chain finished or not applicable; the card rests. */
+  questView: QuestProgressView | null;
+  showQuestHud: boolean;
   dayNightCycle: number;
   onToggleDayNight: () => void;
   isMuted: boolean;
@@ -131,6 +145,9 @@ interface HUDProps {
   flora?: FloraEntity[];
 }
 
+import { QuestTracker } from './QuestTracker';
+import type { QuestProgressView } from '../game/quests';
+
 export const HUD: React.FC<HUDProps> = ({
   playerState,
   onSelectTool,
@@ -151,6 +168,11 @@ export const HUD: React.FC<HUDProps> = ({
   caveExitTarget,
   radarActive,
   onToggleHeldItem,
+  unlockedTools,
+  onToolLocked,
+  onOpenQuests,
+  questView,
+  showQuestHud,
   dayNightCycle,
   onToggleDayNight,
   isMuted,
@@ -529,6 +551,18 @@ export const HUD: React.FC<HUDProps> = ({
             </button>
           )}
 
+          {/* Mini-Quest List: opens the quest panel (the Q hotkey
+              does the same). The panel owns the tracker HUD's
+              visibility checkbox and the tracking pick. */}
+          <button
+            onClick={onOpenQuests}
+            title="Mini-Quests [Q]"
+            className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/70 transition-colors flex items-center gap-1.5"
+          >
+            <ScrollText className="w-4 h-4 text-emerald-400" />
+            <span className="text-[11px] font-mono font-medium hidden md:inline">Quests</span>
+          </button>
+
           {/* Controls Guide */}
           <button
             onClick={onOpenControls}
@@ -539,6 +573,17 @@ export const HUD: React.FC<HUDProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Mini-quest tracker (2026-10-15): the little quest HUD.
+          Renders only when the player wants it (the quest list's
+          checkbox) and a quest is being followed; it lives mid-left
+          where neither the top bar, the hotbar, nor the touch
+          joystick reaches. */}
+      {showQuestHud && questView && (
+        <div className="absolute left-3 top-[31%] z-20 pointer-events-none">
+          <QuestTracker view={questView} />
+        </div>
+      )}
 
       {/* True-Center Reticle: absolutely centered to match the interaction raycast
           (screen-center NDC 0,0). The old flex-centered reticle sat below true
@@ -815,10 +860,14 @@ export const HUD: React.FC<HUDProps> = ({
           >
             {tools.map((t) => {
               const isActive = playerState.activeTool === t.id;
+              // Gauntlet gating (2026-10-15): a tool whose module
+              // is not grafted yet renders as a locked silhouette —
+              // clicking it explains the lock instead of selecting.
+              const isLocked = !unlockedTools.includes(t.id);
               return (
                 <button
                   key={t.id}
-                  onClick={() => onSelectTool(t.id)}
+                  onClick={() => (isLocked ? onToolLocked(t.id) : onSelectTool(t.id))}
                   onMouseEnter={() => setHoveredToolId(t.id)}
                   onMouseLeave={() => setHoveredToolId(null)}
                   className={`group relative flex flex-col items-center justify-center ${
@@ -826,10 +875,12 @@ export const HUD: React.FC<HUDProps> = ({
                   } rounded-xl transition-all duration-200 border ${
                     isActive
                       ? 'bg-slate-800/90 border-cyan-400 shadow-md shadow-cyan-500/20 scale-105'
-                      : 'bg-slate-900/60 border-slate-700/40 hover:bg-slate-800/60 text-slate-400 hover:text-white'
+                      : isLocked
+                        ? 'bg-slate-950/70 border-slate-800 text-slate-600'
+                        : 'bg-slate-900/60 border-slate-700/40 hover:bg-slate-800/60 text-slate-400 hover:text-white'
                   }`}
                 >
-                  <span className={`${touchMode ? 'text-lg' : 'text-xl'} leading-none`}>{t.icon}</span>
+                  <span className={`${touchMode ? 'text-lg' : 'text-xl'} leading-none ${isLocked ? 'opacity-40 grayscale' : ''}`}>{isLocked ? '🔒' : t.icon}</span>
                   <span className="text-[10px] font-tech font-bold mt-1 text-slate-200">{t.key}</span>
 
                   {/* Consumable count badge: how many of the thing this

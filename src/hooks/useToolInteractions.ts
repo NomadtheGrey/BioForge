@@ -197,9 +197,14 @@ export function useToolInteractions({
         // and the root crystal stays to regrow the cluster.
         return { item: 'sunshard', count: flora.fertilizedYield ? 4 : 2, extras: [['dew_essence', 1]] };
       case 'prism_cluster':
-        // The deep prize: fewer, rarer — one prism per harvest bare,
-        // two when yield-fertilized.
-        return { item: 'violet_prism', count: flora.fertilizedYield ? 2 : 1, extras: [] };
+        // The deep prize — and, since 2026-10-15, the Prismatic
+        // Core's home: Adam's instinct was that the radar's core
+        // lives in caves, but the cluster used to drop a Violet
+        // Prism (an item no recipe consumed) while the Core itself
+        // dropped NOWHERE, quietly bricking the Sonar Receiver.
+        // Now: one core per harvest bare, two when yield-fertilized.
+        // (Violet prisms remain as ruin-cache treasure.)
+        return { item: 'prismatic_core', count: flora.fertilizedYield ? 2 : 1, extras: [] };
       case 'echo_reed':
         // The radar's listening half: hollow resonant stalks, cut
         // above the root so the reed stands back up and regrows.
@@ -503,7 +508,7 @@ export function useToolInteractions({
           : flora.species === 'sunshard_cluster'
             ? 'sunshard'
             : flora.species === 'prism_cluster'
-              ? 'violet_prism'
+              ? 'prismatic_core'
               : (`seed_${flora.species}` as ItemId);
       const rawName = flora.species.replace(/_/g, ' ');
       const speciesName = rawName.charAt(0).toUpperCase() + rawName.slice(1);

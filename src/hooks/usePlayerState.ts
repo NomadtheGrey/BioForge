@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { PlayerState, ToolType, StructureType, ItemId } from '../types/game';
+import { PlayerState, ToolType, StructureType, ItemId, QuestProgressState } from '../types/game';
 
 export interface UsePlayerStateResult {
   playerState: PlayerState;
@@ -14,6 +14,7 @@ export interface UsePlayerStateResult {
   setSelectedSeedId: (seedId: ItemId) => void;
   setSelectedFertilizerId: (fertilizerId: ItemId) => void;
   setHeldItemId: (itemId: ItemId | null) => void;
+  setQuestProgress: (progress: QuestProgressState) => void;
   setPlayerTransform: (x: number, z: number, rotation: number) => void;
   setPlayerLevel: (level: number) => void;
   setStamina: (stamina: number) => void;
@@ -59,6 +60,13 @@ export function usePlayerState(): UsePlayerStateResult {
     setPlayerState((prev) => ({ ...prev, heldItemId: itemId }));
   }, []);
 
+  // Mini-quest progress rides PlayerState (and therefore the save)
+  // like heldItemId does — one functional write, no field-by-field
+  // poking from App.
+  const setQuestProgress = useCallback((progress: QuestProgressState): void => {
+    setPlayerState((prev) => ({ ...prev, questProgress: progress }));
+  }, []);
+
   const setPlayerTransform = useCallback((x: number, z: number, rotation: number): void => {
     setPlayerState((prev) => ({
       ...prev,
@@ -93,6 +101,7 @@ export function usePlayerState(): UsePlayerStateResult {
     setSelectedSeedId,
     setSelectedFertilizerId,
     setHeldItemId,
+    setQuestProgress,
     setPlayerTransform,
     setPlayerLevel,
     setStamina,

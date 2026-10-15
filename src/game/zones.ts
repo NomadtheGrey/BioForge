@@ -80,9 +80,9 @@ export const ZONE_BIOME_BANDS: { maxHops: number; table: [BiomeId, number][] }[]
   { maxHops: 0, table: [['meadow', 1]] },
   { maxHops: 1, table: [['meadow', 0.45], ['wetland', 0.55]] },
   { maxHops: 2, table: [['meadow', 0.15], ['wetland', 0.3], ['fungal', 0.3], ['rootwood', 0.25]] },
-  { maxHops: 3, table: [['wetland', 0.1], ['fungal', 0.2], ['ember', 0.2], ['saltglass', 0.1], ['frost', 0.1], ['rootwood', 0.05], ['precursor', 0.15], ['bone', 0.1]] },
-  { maxHops: 4, table: [['fungal', 0.2], ['ember', 0.3], ['saltglass', 0.15], ['frost', 0.15], ['rootwood', 0.05], ['precursor', 0.1], ['bone', 0.05]] },
-  { maxHops: Infinity, table: [['fungal', 0.15], ['ember', 0.35], ['saltglass', 0.2], ['frost', 0.15], ['precursor', 0.1], ['bone', 0.05]] },
+  { maxHops: 3, table: [['wetland', 0.1], ['fungal', 0.18], ['ember', 0.18], ['saltglass', 0.1], ['frost', 0.1], ['rootwood', 0.05], ['precursor', 0.14], ['bone', 0.1], ['storm', 0.05]] },
+  { maxHops: 4, table: [['fungal', 0.2], ['ember', 0.27], ['saltglass', 0.14], ['frost', 0.14], ['rootwood', 0.05], ['precursor', 0.1], ['bone', 0.05], ['storm', 0.05]] },
+  { maxHops: Infinity, table: [['fungal', 0.15], ['ember', 0.31], ['saltglass', 0.19], ['frost', 0.15], ['precursor', 0.1], ['bone', 0.05], ['storm', 0.05]] },
 ];
 
 /** A zone's biome: pure function of world seed + zone coordinates. */
@@ -147,6 +147,10 @@ export const ZONE_NAME_PARTS: Record<BiomeId, { first: string[]; second: string[
   bone: {
     first: ['Quiet', 'Ancient', 'Bleached', 'Patient', 'Vast'],
     second: ['Rest', 'Fields', 'Graveyard', 'Reach', 'Flats'],
+  },
+  storm: {
+    first: ['Charged', 'Humming', 'Restless', 'Bright', 'Far'],
+    second: ['Reach', 'Flats', 'Fields', 'Sands', 'Country'],
   },
 };
 

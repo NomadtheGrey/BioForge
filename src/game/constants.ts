@@ -122,6 +122,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'uncommon',
     maxStack: 99,
   },
+  fulgurite_shard: {
+    id: 'fulgurite_shard',
+    name: 'Fulgurite Shard',
+    category: 'raw',
+    description: 'Sand fused to glass by a lightning strike — the storm signing its work. Stormcatcher reeds gather the charge and grow it into their crowns.',
+    iconName: 'Zap',
+    color: '#fbbf24',
+    rarity: 'rare',
+    maxStack: 99,
+  },
   bone_meal: {
     id: 'bone_meal',
     name: 'Bone Meal',
@@ -532,6 +542,19 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     iconName: 'Bone',
     color: '#e2dac6',
     rarity: 'rare',
+    maxStack: 1,
+  },
+  // Storm scenery (2026-10-15): lightning-kissed sand, fused to
+  // jagged glass fingers — generation grows them across Storm
+  // country, thickest in the Magnetic Dunes.
+  fulgurite: {
+    id: 'fulgurite',
+    name: 'Fulgurite',
+    category: 'structure',
+    description: 'Where the lightning kissed the sand and the sand kept the shape of it — glass fingers, still warm with the memory of the strike.',
+    iconName: 'Zap',
+    color: '#fbbf24',
+    rarity: 'uncommon',
     maxStack: 1,
   },
   // Ruin interior structures (P4 interior stage, game/ruinInterior.ts):
@@ -1579,6 +1602,18 @@ export const INITIAL_CODEX: CodexEntry[] = [
     tamingOrCraftNotes: 'Harvest with the glove for bone meal.',
     biome: 'Bone zones',
     iconColor: '#e7e5e4',
+  },
+  {
+    species: 'stormcatcher',
+    name: 'Stormcatcher',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A tall reed with a coppery whorl crown that drinks lightning. Where it grows thick, the strikes have somewhere to go — mostly. Its crown fuses sand to fulgurite glass.',
+    byproducts: ['Fulgurite Shard', 'Dew Essence'],
+    tamingOrCraftNotes: 'Harvest with the glove for fulgurite shards. Standing among stormcatchers does NOT make you safe from the sky.',
+    biome: 'Storm zones',
+    iconColor: '#fbbf24',
   },
   {
     species: 'mirror_lily',

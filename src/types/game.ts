@@ -21,6 +21,7 @@ export type ItemId =
   | 'heartwood'
   | 'living_thread'
   | 'bone_meal'
+  | 'fulgurite_shard'
   | 'basic_compost'
   | 'glow_spore'
   | 'hand_lantern_fern'
@@ -66,6 +67,7 @@ export type ItemId =
   | 'tender_husk'
   | 'bone_fragment'
   | 'leviathan_ribs'
+  | 'fulgurite'
   | 'ruin_exit'
   | 'precursor_cache'
   | 'artifact_heart'
@@ -152,7 +154,8 @@ export type FloraSpecies =
   | 'rime_spire'
   | 'heartroot'
   | 'precursor_bloom'
-  | 'gravebloom';
+  | 'gravebloom'
+  | 'stormcatcher';
 
 export interface FloraEntity {
   id: string;
@@ -231,6 +234,7 @@ export type StructureType =
   | 'tender_husk'
   | 'bone_fragment'
   | 'leviathan_ribs'
+  | 'fulgurite'
   | 'ruin_exit'
   | 'precursor_cache'
   | 'artifact_heart'

@@ -124,7 +124,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
             { id: 'all', label: 'All Synthetics' },
             { id: 'gauntlet', label: 'Gauntlet' },
             { id: 'helmet', label: 'Helmet' },
-            { id: 'boots', label: 'Boots' },
+            { id: 'boots', label: 'Quicksteps' },
             { id: 'seeds', label: 'Spore & Seeds' },
             { id: 'fertilizers', label: 'Fertilizers' },
             { id: 'composites', label: 'Living Composites' },

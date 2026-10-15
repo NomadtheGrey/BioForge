@@ -115,7 +115,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
             { id: 'all', label: 'All Items' },
             { id: 'gauntlet', label: 'Gauntlet' },
             { id: 'helmet', label: 'Helmet' },
-            { id: 'boots', label: 'Boots' },
+            { id: 'boots', label: 'Quicksteps' },
             { id: 'raw', label: 'Raw Harvests' },
             { id: 'seed', label: 'Flora Seeds' },
             { id: 'fertilizer', label: 'Fertilizers' },

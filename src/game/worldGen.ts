@@ -707,6 +707,41 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
   }
 
   // ---------------------------------------------------------------------
+  // Ember Scar cinder blooms (Adam, 2026-10-15) — variant-gated
+  // BONUS life: flowers that grow on the vents themselves, drinking
+  // the heat everything else suffers from.
+  // ---------------------------------------------------------------------
+  if (zoneVariant?.id === 'ember_scar') {
+    const scarRng = createSeededRandom(stream('flora:cinderbloom'));
+    let plantedBlooms = 0;
+    for (let attempt = 0; attempt < 50 && plantedBlooms < 6; attempt++) {
+      const x = (scarRng() * 2 - 1) * 44;
+      const z = (scarRng() * 2 - 1) * 44;
+      if (Math.hypot(x, z) < 8) continue;
+      if (flora.some((f) => Math.hypot(f.x - x, f.z - z) < 2.0)) continue;
+      flora.push({
+        id: `flora_cinder_${plantedBlooms}`,
+        species: 'cinder_bloom',
+        x,
+        z,
+        biome: zoneBiome,
+        rotation: scarRng() * Math.PI * 2,
+        scale: 1.1 + scarRng() * 0.5,
+        growthStage: 3,
+        growthProgress: 1,
+        fertilizedGrowth: false,
+        fertilizedYield: false,
+        fertilizerTimer: 0,
+        harvestReady: true,
+        harvestTimer: 0,
+        isHazardous: false,
+        swayOffset: 600 + plantedBlooms,
+      });
+      plantedBlooms++;
+    }
+  }
+
+  // ---------------------------------------------------------------------
   // Cave mouths (P3, surface half) — grown LAST, once the surface they
   // must respect exists: mouths keep their footprint clear of the
   // homestead (spawn zone only — it's the only zone with one) and of

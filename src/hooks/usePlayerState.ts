@@ -18,6 +18,7 @@ export interface UsePlayerStateResult {
   setPlayerTransform: (x: number, z: number, rotation: number) => void;
   setPlayerLevel: (level: number) => void;
   setStamina: (stamina: number) => void;
+  setHealth: (health: number) => void;
   restorePlayerState: (saved: PlayerState) => void;
 }
 
@@ -80,6 +81,13 @@ export function usePlayerState(): UsePlayerStateResult {
     setPlayerState((prev) => (prev.level === level ? prev : { ...prev, level }));
   }, []);
 
+  const setHealth = useCallback((health: number): void => {
+    setPlayerState((prev) => {
+      const clamped = Math.max(0, Math.min(prev.maxHealth, health));
+      return prev.health === clamped ? prev : { ...prev, health: clamped };
+    });
+  }, []);
+
   const setStamina = useCallback((stamina: number): void => {
     setPlayerState((prev) => {
       const clamped = Math.max(0, Math.min(prev.maxStamina, stamina));
@@ -105,6 +113,7 @@ export function usePlayerState(): UsePlayerStateResult {
     setPlayerTransform,
     setPlayerLevel,
     setStamina,
+    setHealth,
     restorePlayerState,
   };
 }

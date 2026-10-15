@@ -51,6 +51,10 @@ export interface GameLoopDeps {
   sporeStaminaRef: { current: boolean };
   /** True while the player wades a sluggish variant (Mirror Marsh). */
   marshSluggishRef: { current: boolean };
+  /** True while the player stands in an Ember Scar zone. */
+  scarHeatRef: { current: boolean };
+  healthRef: { current: number };
+  lastHealthSync: { current: number };
   lastStaminaSync: { current: number };
   sprinting: { current: boolean };
   edgePushRef: { current: { dir: 'N' | 'S' | 'E' | 'W'; since: number } | null };
@@ -87,6 +91,7 @@ export interface GameLoopDeps {
   applyPlayerLevel: (level: number) => void;
   postNotification: (title: string, message: string, type?: GameNotification['type'], iconColor?: string) => void;
   setStamina: (value: number) => void;
+  setHealth: (value: number) => void;
   setMinimapPos: (pos: { x: number; z: number; rotation: number }) => void;
   setDayNightCycle: (value: number | ((prev: number) => number)) => void;
   setHoverInfo: (info: HoverTarget) => void;
@@ -103,14 +108,14 @@ export interface GameLoopDeps {
 export function useGameLoop(deps: GameLoopDeps): void {
   const {
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
-    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, lastStaminaSync,
+    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, scarHeatRef, healthRef, lastHealthSync, lastStaminaSync,
     sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef,
     structuresListRef, floraListRef,
     activeToolRef, lastBroadcastTime, lastMinimapUpdateTime, latestStateRef, currentZoneId,
-    applyPlayerLevel, postNotification, setStamina, setMinimapPos,
+    applyPlayerLevel, postNotification, setStamina, setHealth, setMinimapPos,
     setDayNightCycle, setHoverInfo, setIsPointerLocked,
     activeModal, playerState, floraList, faunaList, structuresList, droppedItems, dayNightCycle,
   } = deps;
@@ -305,6 +310,32 @@ export function useGameLoop(deps: GameLoopDeps): void {
         const sporeTax = sporeStaminaRef.current && activeInstance.kind === 'surface' ? 8 * dt : 0;
         const staminaDelta = (isSprintingNow ? -18 * dt : (moveResult.isMoving ? 8 : 14) * dt) - sporeTax;
         staminaRef.current = Math.max(0, Math.min(100, staminaRef.current + staminaDelta));
+
+        // Variant effect (Adam, 2026-10-15): EMBER SCAR HEAT. By
+        // day (Sol-cycle 0.25-0.75, the engine's own day band) the
+        // scar drinks stamina at 16/s — faster than any regen, so
+        // shade-timing is the only answer — and at empty stamina
+        // the heat starts on HEALTH at 1.2/s. By night the ground
+        // is warm instead: +8/s stamina while you rest in it.
+        // Surface only. NOTE the health floor of 1: death/respawn
+        // is a pinned rule awaiting its own build; until it lands,
+        // the scar can bring you to the edge but not past it.
+        if (scarHeatRef.current && activeInstance.kind === 'surface') {
+          const cycle = latestStateRef.current.dayNightCycle;
+          const isDay = cycle > 0.25 && cycle < 0.75;
+          if (isDay) {
+            staminaRef.current = Math.max(0, staminaRef.current - 16 * dt);
+            if (staminaRef.current <= 0) {
+              healthRef.current = Math.max(1, healthRef.current - 1.2 * dt);
+              if (performance.now() - lastHealthSync.current > 100) {
+                lastHealthSync.current = performance.now();
+                setHealth(healthRef.current);
+              }
+            }
+          } else {
+            staminaRef.current = Math.min(100, staminaRef.current + 8 * dt);
+          }
+        }
         if (performance.now() - lastStaminaSync.current > 100) {
           lastStaminaSync.current = performance.now();
           setStamina(staminaRef.current);

@@ -136,7 +136,8 @@ export type FloraSpecies =
   | 'antenna_shroom'
   | 'visor_shroom'
   | 'shelf_shroom'
-  | 'mirror_lily';
+  | 'mirror_lily'
+  | 'cinder_bloom';
 
 export interface FloraEntity {
   id: string;

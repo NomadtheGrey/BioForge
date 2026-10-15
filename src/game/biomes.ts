@@ -118,7 +118,7 @@ export const BIOME_HOME_BONUS = 1.5;
 // zone (weight 1) — most eligible zones stay plain.
 
 /** The player-facing effect a variant carries, if any. */
-export type BiomeEffectId = 'spore_stamina' | 'marsh_sluggish';
+export type BiomeEffectId = 'spore_stamina' | 'marsh_sluggish' | 'scar_heat';
 
 export interface BiomeVariantDef {
   id: string;
@@ -196,6 +196,28 @@ export const BIOME_VARIANTS: BiomeVariantDef[] = [
     nameParts: {
       first: ['Still', 'Glass', 'Silver', 'Mirror', 'Pale'],
       second: ['Mere', 'Marsh', 'Pools', 'Shallows', 'Fen'],
+    },
+  },
+  {
+    // EMBER SCAR (Adam, 2026-10-15): the ember family's wound —
+    // cracked ash, breathing vents, cinder blooms. By day its heat
+    // drinks stamina, and at empty stamina it starts on health;
+    // by night the same ground is warm and restores you fast.
+    // Dangerous at noon, hospitable at midnight.
+    id: 'ember_scar',
+    family: 'ember',
+    name: 'Ember Scar',
+    minHops: 4,
+    rarity: 'uncommon',
+    tint: { color: 0xd9481c, strength: 0.6 }, // deeper burn than family ember
+    floraDensityMult: 0.9, // the scar grows sparse
+    faunaDensityMult: 1.0,
+    effect: 'scar_heat',
+    lightDistanceMult: 1,
+    lightIntensityMult: 1,
+    nameParts: {
+      first: ['Scarlet', 'Searing', 'Burnt', 'Ashen', 'Prismatic'],
+      second: ['Scar', 'Wound', 'Verge', 'Crown', 'Flats'],
     },
   },
 ];

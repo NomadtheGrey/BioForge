@@ -118,7 +118,7 @@ export const BIOME_HOME_BONUS = 1.5;
 // zone (weight 1) — most eligible zones stay plain.
 
 /** The player-facing effect a variant carries, if any. */
-export type BiomeEffectId = 'spore_stamina';
+export type BiomeEffectId = 'spore_stamina' | 'marsh_sluggish';
 
 export interface BiomeVariantDef {
   id: string;
@@ -134,6 +134,15 @@ export interface BiomeVariantDef {
   floraDensityMult: number;
   faunaDensityMult: number;
   effect: BiomeEffectId | null;
+  /**
+   * The variant's light trick (Adam, 2026-10-15): multipliers on
+   * the pooled lights' reach and strength while the zone wears
+   * this variant. The Mirror Marsh doubles light DISTANCE — the
+   * merge formula already amplifies brightness when sources
+   * cluster, so reach is what reflection really buys.
+   */
+  lightDistanceMult: number;
+  lightIntensityMult: number;
   /** Zone-name pools for zones of this variant. */
   nameParts: { first: string[]; second: string[] };
 }
@@ -160,9 +169,33 @@ export const BIOME_VARIANTS: BiomeVariantDef[] = [
     floraDensityMult: 1.15, // the hollow grows THICK
     faunaDensityMult: 0.8, // ...and its animals keep their distance
     effect: 'spore_stamina',
+    lightDistanceMult: 1,
+    lightIntensityMult: 1,
     nameParts: {
       first: ['Spore', 'Umbral', 'Violet', 'Silent', 'Pale'],
       second: ['Hollow', 'Cathedral', 'Thicket', 'Vault', 'Deep'],
+    },
+  },
+  {
+    // MIRROR MARSH (Adam, 2026-10-15): the wetland's still twin —
+    // pools of reflective liquid, light that travels twice as far
+    // across them, pollinator moths over the water, and wading
+    // drag on every step (the sluggish variant effect; the boots
+    // module "Waders" is its planned answer, a later build).
+    id: 'mirror_marsh',
+    family: 'wetland',
+    name: 'Mirror Marsh',
+    minHops: 2,
+    rarity: 'uncommon',
+    tint: { color: 0x8fd0c8, strength: 0.55 }, // silver-teal sheen
+    floraDensityMult: 1.05,
+    faunaDensityMult: 1.15, // the pollinators gather here
+    effect: 'marsh_sluggish',
+    lightDistanceMult: 2,
+    lightIntensityMult: 1.2,
+    nameParts: {
+      first: ['Still', 'Glass', 'Silver', 'Mirror', 'Pale'],
+      second: ['Mere', 'Marsh', 'Pools', 'Shallows', 'Fen'],
     },
   },
 ];

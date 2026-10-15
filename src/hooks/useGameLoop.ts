@@ -49,6 +49,8 @@ export interface GameLoopDeps {
   staminaRef: { current: number };
   /** True while the player stands in spore-thick variant air. */
   sporeStaminaRef: { current: boolean };
+  /** True while the player wades a sluggish variant (Mirror Marsh). */
+  marshSluggishRef: { current: boolean };
   lastStaminaSync: { current: number };
   sprinting: { current: boolean };
   edgePushRef: { current: { dir: 'N' | 'S' | 'E' | 'W'; since: number } | null };
@@ -101,7 +103,7 @@ export interface GameLoopDeps {
 export function useGameLoop(deps: GameLoopDeps): void {
   const {
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
-    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, lastStaminaSync,
+    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, lastStaminaSync,
     sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
@@ -147,7 +149,12 @@ export function useGameLoop(deps: GameLoopDeps): void {
         };
 
         const wantSprint = (sprinting.current || touchInput.sprint) && staminaRef.current > 0;
-        movementController.current.sprintMultiplier = wantSprint ? 1.6 : 1;
+        // Variant effect (Adam, 2026-10-15): Mirror Marsh wading
+        // drag — every stride at 85% while on its surface. The
+        // planned answer is a boots module (Waders); until boots
+        // exist, the marsh is country you feel in your legs.
+        const wading = marshSluggishRef.current && instanceRef.current.kind === 'surface' ? 0.85 : 1;
+        movementController.current.sprintMultiplier = (wantSprint ? 1.6 : 1) * wading;
 
         // Inside an instance, the instance grid itself is the walls
         // (caverns use their grid raw; ruins pass the collision copy).

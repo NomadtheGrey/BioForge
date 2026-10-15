@@ -135,7 +135,8 @@ export type FloraSpecies =
   | 'echo_reed'
   | 'antenna_shroom'
   | 'visor_shroom'
-  | 'shelf_shroom';
+  | 'shelf_shroom'
+  | 'mirror_lily';
 
 export interface FloraEntity {
   id: string;
@@ -165,7 +166,8 @@ export type FaunaSpecies =
   | 'burrow_mouse'
   | 'chitin_stalker'
   | 'scale_bear'
-  | 'vesper_glider';
+  | 'vesper_glider'
+  | 'mirror_moth';
 
 export interface FaunaEntity {
   id: string;

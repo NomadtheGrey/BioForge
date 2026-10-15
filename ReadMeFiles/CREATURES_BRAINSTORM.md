@@ -26,9 +26,13 @@ document outgrew the per-push size cap (~141K against
   (the Hearth Dog); holds the semi-ubiquitous
   foundation, the danger bench, the thin corners, the
   hybrid waves, and the water column.
-- **CREATURES_BRAINSTORM_4.md** — **roster passes 17
-  onward** (species #183-...): opened with the epic
-  blanks and the epic distribution ruling.
+- **CREATURES_BRAINSTORM_4.md** — **roster passes
+  17-23** (species #183-312): opened with the epic
+  blanks; holds hybrid wave six, the alien rivers,
+  and the flora and fungus floods One and Two.
+- **CREATURES_BRAINSTORM_5.md** — **roster passes 24
+  onward** (species #313-...): opened with Fungus
+  Flood Three, the kingdom-balancing wave.
 
 New batches (of about twelve, per Adam's standing order)
 append to the highest-numbered part; when it nears the
@@ -41,14 +45,14 @@ the biome program's shipped-behavior stubs and flora
 notes (this design inherits from it; it is a different
 file, kept by the biome chat).
 
-**Roster count:** 312 species designed (through the
-twenty-third pass), plus the shipped cast already
+**Roster count:** 336 species designed (through the
+twenty-fourth pass), plus the shipped cast already
 in the game. The hybrid graph stands complete (55
 of 55 pairings), the epic set is seated, the water
 column and the alien rivers are populated; the
-flora floods (48) and Fungus Floods One and Two
-(48) are in. Part 4 is closed; Part 5 holds the
-standing workstream from here. Layers complete so far: family emblems 11 of 11;
+flora floods (48) and the fungus floods (72) are
+in, and the three kingdoms stand balanced — fauna,
+flora, and fungus each at a full census. Layers complete so far: family emblems 11 of 11;
 a one-off for every built biome variant; hybrid
 creatures for 33 of 55 pairings; background casts under
 way in every family; and the wide-range (semi-

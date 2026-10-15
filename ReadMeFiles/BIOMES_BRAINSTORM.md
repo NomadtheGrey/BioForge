@@ -364,3 +364,24 @@ calamities, not daily weather.
   unhandled beyond biomes carrying lighting/fog hooks in their rules.
 - **Weather.** A weather system is explicitly deferred: handle later.
   (Distinct from the rare world-event calamities above.)
+
+**TIERS RENUMBERED (Adam, 2026-10-15):** biome tiers now run 0-3, matching
+the crafting tiers — Tier 0 Hearthlands, Tier 1 The Wilds, Tier 2 Strange
+Country, Tier 3 The Far Weird. The registry in biomes.ts carries tier +
+minHops + rarity per biome; the harness holds them in agreement.
+
+**FUNGAL HOLLOW — SPEC + SHIPPED (2026-10-15, live bundle index-CVWRZt1W.js).**
+Adam's answers: the giant mushrooms come in SEVERAL kinds, as on Earth —
+all harvestable. Three kinds shipped: Antenna Shroom (senser, glowing
+antenna tips; yields glow spores + dew), Visor Shroom (the almost-face:
+two eye-spots and a mouth arc; rich compost + spores), Shelf Shroom (flat
+bracket stacks; soft fiber + compost). Twelve giants per hollow zone,
+scaled 1.7-2.7x, bonus life outside the census. The spores are REAL: the
+air taxes stamina 8/s on the surface (cancels walking regen), and a
+one-time-per-world alert names the problem AND the solution — a helmet
+with a filter upgrade (future content; the effect is built so the filter
+can switch it off). Variant machinery shipped with it: zoneVariantAt,
+VariantDef registry (tint/densities/effect), variant name pools, HUD kind
+labels, engine tint override. CLIMBING is deferred to Adam's parked idea:
+a cheap, opaque base WALL that supports a vine ladder — that will be how
+players climb, shelves included.

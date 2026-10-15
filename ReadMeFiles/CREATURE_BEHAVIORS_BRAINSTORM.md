@@ -240,6 +240,14 @@ DEAD: big ribcage-and-skull husks generating as scenery,
 thickest in the Tending Field. A LIVING tender (if one ever
 wakes) is a Forged Fauna design seat for this chat.
 
+Flora note (Fungal trio, 2026-10-15): three variant-born
+patterns join the shipped set — the Mycelium Web plants the
+Hollow trio (antenna/visor/shelf) in a seeded ring; the
+Glowfen grows glow_fungus TOPSIDE (its yields/solvent were
+already wired); the Petrified Grove's giants are scenery
+structures, not flora. No new species; the family's existing
+cast, rearranged by pattern.
+
 Flora note (Bone, 2026-10-15): Gravebloom — a pale flower
 rooted in bone itself, marrow-gold heart — grows in every Bone
 zone (Marrow Flats thickest) and harvests to BONE MEAL + dew;

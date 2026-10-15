@@ -351,6 +351,15 @@ question round — the table below is the draft to argue with.
   Living Forged tenders (the mimic-guardian seat) remain a
   creature-phase question. WORLD_GEN_VERSION 11.
 
+FUNGI FILL-IN ✓ BUILT (2026-10-15, Adam's go-ahead): the
+first family's roster completed — *The Mycelium Web* (min 2,
+uncommon: the Hollow's giants planted in a seeded RING, spore
+air), *The Glowfen* (min 2, uncommon: cave glow-fungus growing
+TOPSIDE, light pushed up and out — pure fungal, the pools are
+biolume), *The Petrified Grove* (min 3, RARE: giants turned to
+stone as generated scenery, flora thinned — subtraction
+country). Fungal now has four faces like every other family.
+
 First instantiation (Marlowe's recommendation, for Adam's call):
 **Fungal Hollow** — nearest to the shipped fungal, so the variant
 machinery (per-biome gates, variant name pools, tint/density

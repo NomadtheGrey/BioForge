@@ -132,7 +132,10 @@ export type FloraSpecies =
   | 'glow_fungus'
   | 'sunshard_cluster'
   | 'prism_cluster'
-  | 'echo_reed';
+  | 'echo_reed'
+  | 'antenna_shroom'
+  | 'visor_shroom'
+  | 'shelf_shroom';
 
 export interface FloraEntity {
   id: string;

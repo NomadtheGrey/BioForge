@@ -259,6 +259,73 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'antenna_shroom': {
+        // Fungal Hollow giant #1 — the senser (Adam, 2026-10-15):
+        // a thick violet stalk and small cap, with two long
+        // antennae that end in glowing tips, tasting the spore air.
+        const stalkMat = new THREE.MeshStandardMaterial({ color: 0x8b7bb8, roughness: 0.85 });
+        const capMat = new THREE.MeshStandardMaterial({ color: 0x6d28d9, roughness: 0.6 });
+        const tipMat = new THREE.MeshStandardMaterial({ color: 0xc4b5fd, roughness: 0.3, emissive: 0x7c3aed, emissiveIntensity: 0.9 });
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.3, 1.9, 8), stalkMat);
+        stalk.position.y = 0.95; stalk.castShadow = true; group.add(stalk);
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), capMat);
+        cap.position.y = 1.9; cap.scale.y = 0.55; cap.castShadow = true; group.add(cap);
+        for (const side of [-1, 1]) {
+          const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.03, 1.1, 5), stalkMat);
+          antenna.position.set(side * 0.22, 2.5, 0);
+          antenna.rotation.z = side * -0.35;
+          group.add(antenna);
+          const tip = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), tipMat);
+          tip.position.set(side * 0.41, 3.02, 0);
+          group.add(tip);
+        }
+        break;
+      }
+
+      case 'visor_shroom': {
+        // Fungal Hollow giant #2 — the almost-face (Adam, 2026-10-15):
+        // a broad cap whose front carries two dark eye-spots and a
+        // shallow mouth arc. Not a face. Almost. That is the point.
+        const stalkMat = new THREE.MeshStandardMaterial({ color: 0xa89a8c, roughness: 0.9 });
+        const capMat = new THREE.MeshStandardMaterial({ color: 0x7e57c2, roughness: 0.65 });
+        const darkMat = new THREE.MeshStandardMaterial({ color: 0x1c1030, roughness: 0.4 });
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.38, 1.3, 8), stalkMat);
+        stalk.position.y = 0.65; stalk.castShadow = true; group.add(stalk);
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.95, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), capMat);
+        cap.position.y = 1.3; cap.scale.y = 0.5; cap.castShadow = true; group.add(cap);
+        for (const side of [-1, 1]) {
+          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), darkMat);
+          eye.position.set(side * 0.34, 1.52, 0.78);
+          eye.scale.z = 0.4;
+          group.add(eye);
+        }
+        const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.035, 6, 12, Math.PI), darkMat);
+        mouth.position.set(0, 1.38, 0.82);
+        mouth.rotation.x = 0.25; mouth.rotation.z = Math.PI;
+        group.add(mouth);
+        break;
+      }
+
+      case 'shelf_shroom': {
+        // Fungal Hollow giant #3 — the shelves (Adam, 2026-10-15):
+        // flat bracket shelves stacked up a trunk, alternating
+        // sides. The climbable kind, once climbing lands.
+        const trunkMat = new THREE.MeshStandardMaterial({ color: 0x8a6d4f, roughness: 0.95 });
+        const shelfMat = new THREE.MeshStandardMaterial({ color: 0xd9a05b, roughness: 0.8 });
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.26, 2.3, 7), trunkMat);
+        trunk.position.y = 1.15; trunk.castShadow = true; group.add(trunk);
+        const shelves: [number, number, number][] = [
+          [0.34, 0.8, 0.62], [-0.36, 1.3, 0.55], [0.3, 1.8, 0.48], [-0.26, 2.25, 0.4],
+        ];
+        for (const [ox, y, r] of shelves) {
+          const shelf = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.85, 0.09, 10), shelfMat);
+          shelf.position.set(ox, y, 0);
+          shelf.castShadow = true;
+          group.add(shelf);
+        }
+        break;
+      }
+
       case 'bell_bloom':
       default: {
         const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.12, 1.6, 8), materials.woodRoot);

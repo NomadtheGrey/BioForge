@@ -11,6 +11,7 @@ export type ItemId =
   | 'vibrant_petal'
   | 'sweet_nectar'
   | 'soft_fiber'
+  | 'pale_fur'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -190,7 +191,13 @@ export type FaunaSpecies =
   | 'chitin_stalker'
   | 'scale_bear'
   | 'vesper_glider'
-  | 'mirror_moth';
+  | 'mirror_moth'
+  // Creature build phase, slice 1 (2026-10-15) — the first designed
+  // species from the CREATURES_BRAINSTORM roster; their data lives in
+  // src/game/species.ts, and they spawn via its generic bonus route.
+  | 'meadowback'
+  | 'pale_hare'
+  | 'frost_vole';
 
 export interface FaunaEntity {
   id: string;

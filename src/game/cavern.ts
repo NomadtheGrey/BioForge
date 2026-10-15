@@ -32,6 +32,7 @@
 // ============================================================================
 
 import { createSeededRandom, hashStringToSeed } from './motion';
+import { BIOME_TINTS, type BiomeId } from './biomes';
 
 /** Cavern generator version. Stamped into every generated zone's meta. */
 export const CAVERN_GEN_VERSION = 1;
@@ -87,7 +88,16 @@ export interface CavernResult {
   depthStats: { maxDepth: number; bandCounts: { shallow: number; mid: number; deep: number } };
   openShare: number;
   link: CavernLink;
-  meta: { genVersion: number; validation: CavernValidation };
+  meta: {
+    genVersion: number;
+    validation: CavernValidation;
+    // Cave resemblance (2026-10-15, Adam: caves wear the biome
+    // they're dug under, fading with depth — 'the deep forgets
+    // the surface'). The surface family's tint color, pre-faded
+    // by THIS level's depth; null when the caller named no biome
+    // (the cave keeps its neutral dark, byte-identical to before).
+    biomeTint: { color: number; strength: number } | null;
+  };
 }
 
 export interface CavernValidation {
@@ -612,6 +622,10 @@ export interface GenerateCavernOptions {
   surfaceAnchor?: { x: number; z: number; facing: number } | null;
   /** 1-based depth level this cavern sits at (stamped on the result). */
   depthLevel?: number;
+  /** The biome of the surface zone this cavern is dug under
+   *  (cave resemblance, 2026-10-15). Tints the dark; never the
+   *  layout — no RNG stream reads it. */
+  surfaceBiome?: BiomeId | null;
   /**
    * Probability (0–1) that this level grows a DESCENT to the next
    * one. Undefined = no descent is on the table for this call. The
@@ -703,7 +717,16 @@ export function generateCavern(seedStr: string, options: GenerateCavernOptions =
     depthStats: { maxDepth, bandCounts },
     openShare: open / (w * h),
     link,
-    meta: { genVersion: CAVERN_GEN_VERSION, validation },
+    meta: {
+      genVersion: CAVERN_GEN_VERSION,
+      validation,
+      biomeTint: options.surfaceBiome
+        ? {
+            color: BIOME_TINTS[options.surfaceBiome].color,
+            strength: [0.55, 0.4, 0.25, 0.12, 0.05][Math.min(Math.max(depthLevel, 1), 5) - 1],
+          }
+        : null,
+    },
   };
 }
 
@@ -735,8 +758,9 @@ export function generateGameCavern(
   instanceId: string,
   surfaceAnchor: { x: number; z: number; facing: number } | null,
   zoneHopsFromSpawn = 0,
+  surfaceBiome: BiomeId | null = null,
 ): CavernResult {
-  return generateGameCavernLevel(worldSeed, instanceId, 1, surfaceAnchor, zoneHopsFromSpawn);
+  return generateGameCavernLevel(worldSeed, instanceId, 1, surfaceAnchor, zoneHopsFromSpawn, surfaceBiome);
 }
 
 /**
@@ -762,6 +786,7 @@ export function generateGameCavernLevel(
   depthLevel: number,
   surfaceAnchor: { x: number; z: number; facing: number } | null,
   zoneHopsFromSpawn = 0,
+  surfaceBiome: BiomeId | null = null,
 ): CavernResult {
   const zoneId = depthLevel <= 1 ? instanceId : `${instanceId}@d${depthLevel}`;
 
@@ -822,6 +847,7 @@ export function generateGameCavernLevel(
       depthLevel,
       descentChance,
       vineChance,
+      surfaceBiome,
       ...(featureTargets ? { featureTargets } : {}),
     });
     if (result.meta.validation.pass || attempt === 7) return result;

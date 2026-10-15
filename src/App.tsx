@@ -348,6 +348,12 @@ export default function App() {
   } = useInstances({
     engineRef,
     playerPosRef,
+    // worldSeedRef is declared BELOW this composition (it comes
+    // from the save-session hook) — the lazy getter bridges it,
+    // the established pattern for late refs in this file: the
+    // getter body only runs on cave entry, long after the
+    // declaration has executed.
+    worldSeedRef: { get current() { return worldSeedRef.current; } },
     floraListRef,
     floraList,
     faunaList,

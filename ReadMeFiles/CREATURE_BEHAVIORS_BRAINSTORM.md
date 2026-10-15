@@ -178,3 +178,19 @@ life. New species design should name its layer first.
 Flora note (Ember Scar, 2026-10-15): the Cinder Bloom grows on the
 scar's vents and keeps the scar's hours — dangerous country at noon,
 warm at midnight. It drinks the heat everything else suffers from.
+
+Flora note (Obsidian Garden, 2026-10-15): the Obsidian Bloom is a
+flower of fused black glass — flattened shard-petals around a
+violet heart, faintly lit from within. It has no behavior to speak
+of (glass does not hunt), but for the record: it does not seed —
+solvent reclaim returns a shard, and its harvest is the OBSIDIAN
+SHARD crafting material. Creatures chat: whether anything NESTS in
+the glass gardens is an open, lovely question.
+
+Flora note (Prism Beds, Saltglass, 2026-10-15): the Prism Reed is a
+cluster of translucent crystal blades around a fused shard heart,
+in the game's fifth family. It hums faintly at noon (flavor; no
+mechanic) and harvests to SALTGLASS SHARD. Like the obsidian
+bloom, crystal does not seed — solvent returns the shard. The
+Saltglass family's creature seats (family signature + the Thaw's
+and Flats' unique seats) are EMPTY and belong to this chat.

@@ -208,11 +208,20 @@ question round — the table below is the draft to argue with.
   *Ember Scar* (min 4, uncommon): cracked rock, working vents.
   *Questions: vents as hazard, resource (resin/heat), or both? Day
   heat drain — a stamina pressure, or comfort-by-night only?*
-- **Saltglass** — family min 3. *Saltglass Flats* (min 3,
-  uncommon): glare by day, bitter cold after dark, crystalline
-  reeds. *Questions: glare as a vision effect, a scanner/helmet
-  interplay, or both? Are the crystal reeds a harvestable family
-  of their own?*
+- **Saltglass** ✓ BUILT (2026-10-15) — the FIFTH FAMILY (first new
+  family of the program): Tier 2, family min 3, the sparsest
+  country yet (flora 0.75 / fauna 0.7); bands seat it from 3 hops
+  (15%) growing to 30% at 5+. Only the lantern fern (everywhere)
+  and the burrow mouse (everywhere) tolerate it among the old
+  census — its emptiness is its identity. Variants, all built:
+  *The Flats* (min 3, uncommon — endless pan; glare: light
+  intensity x1.6, reach x1.15; Adam's questions answered: glare is
+  a LIGHT effect, not a vision tax); *The Thaw* (min 4, uncommon —
+  freeze-thaw; the Scar's mirror: NIGHTS drain stamina 6/s with
+  cold, no health stage; cross by daylight); *The Prism Beds*
+  (min 4, RARE — crystal reed beds; prism reeds harvest to
+  SALTGLASS SHARD x2, the second glass crafting material).
+  WORLD_GEN_VERSION 8. Its teaching, someday: a helmet visor.
 - **Rootwood** — family min 2. *Rootwood Canopy* (min 2,
   uncommon): root walls and bridges, shade below, clearings above.
   *Questions: are the root bridges walkable (vertical play without
@@ -411,8 +420,14 @@ hops, uncommon. Cinder blooms grow on the vents (resin sap x2 + dew).
 THE HEAT (Adam's escalation): by day the scar drains stamina at 16/s
 — faster than any regen — and at empty stamina it takes HEALTH at
 1.2/s; by night the warm ground restores stamina +8/s. Its alert
-teaches the rhythm: cross at dawn, rest after dark. (Health currently
-floors at 1: death/respawn is a pinned rule awaiting its own build.)
-Ember roster slate (approved 2026-10-15, built one at a time):
-Ember Scar ✓, **the Ashen Drift** (light-eating ash, reach x0.6),
-**the Obsidian Garden** (glass flowers, a crafting shard).
+teaches the rhythm: cross at dawn, rest after dark. (DEATH LANDED
+the same day: on Normal/Hostile worlds health may reach 0 — the
+respawn wakes you at the original spawn base, vitals restored,
+pouch untouched; Peaceful keeps the floor of 1. Normal is now
+selectable at the New Game screen.)
+Ember roster COMPLETE (2026-10-15): Ember Scar ✓, **the Ashen
+Drift** ✓ (deep ash; pooled-light REACH x0.6 — the marsh trick
+inverted; darkness is its tax, no stamina drain), **the Obsidian
+Garden** ✓ (black glass flowers; harvest yields the OBSIDIAN
+SHARD crafting material, 2 per bloom). The ember family now has
+its full four faces: plain, Scar, Drift, Garden.

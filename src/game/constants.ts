@@ -92,6 +92,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 99,
   },
+  saltglass_shard: {
+    id: 'saltglass_shard',
+    name: 'Saltglass Shard',
+    category: 'raw',
+    description: 'A blade of salt-fused crystal from the Prism Beds — glass the desert grew instead of the fire. Catches light and keeps a little of it.',
+    iconName: 'Gem',
+    color: '#5eead4',
+    rarity: 'rare',
+    maxStack: 99,
+  },
   // Radar ingredients (2026-10-14): the Prismatic Field Radar's supply
   // chain — two new species yields plus the four Tier-1 subassemblies
   // they feed (recipes below; tier math in CORE_MECHANICS.md).
@@ -1429,6 +1439,18 @@ export const INITIAL_CODEX: CodexEntry[] = [
     tamingOrCraftNotes: 'Harvest with the glove for obsidian shards — glass the land cut itself. Mind the edges; they are exactly as sharp as they look.',
     biome: 'Obsidian Garden zones',
     iconColor: '#7c3aed',
+  },
+  {
+    species: 'prism_reed',
+    name: 'Prism Reed',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A reed of living crystal in the Prism Beds — salt water climbed a stalk, froze mid-gesture, and learned to photosynthesize. It hums, very faintly, at noon.',
+    byproducts: ['Saltglass Shard', 'Dew Essence'],
+    tamingOrCraftNotes: 'Harvest with the glove for saltglass shards. The beds only grow far out, past the third zone — bring light; the country is bright but empty.',
+    biome: 'Prism Beds zones',
+    iconColor: '#5eead4',
   },
   {
     species: 'mirror_lily',

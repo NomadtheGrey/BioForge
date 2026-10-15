@@ -26,7 +26,7 @@
 // that here; the lab keeps its own copy for the record.
 // ============================================================================
 
-export type BiomeId = 'meadow' | 'wetland' | 'fungal' | 'ember';
+export type BiomeId = 'meadow' | 'wetland' | 'fungal' | 'ember' | 'saltglass';
 
 /** How often a biome shows up among the rolls it's eligible for. */
 export type BiomeRarity = 'common' | 'uncommon' | 'rare';
@@ -64,6 +64,7 @@ export const BIOMES: BiomeDef[] = [
   { id: 'wetland', floraDensity: 1.1, faunaDensity: 1.0, tier: 0, minHops: 1, rarity: 'common' }, // lush, soggy
   { id: 'fungal', floraDensity: 1.0, faunaDensity: 0.8, tier: 1, minHops: 2, rarity: 'common' }, // sparser life in the dark
   { id: 'ember', floraDensity: 0.8, faunaDensity: 0.9, tier: 2, minHops: 3, rarity: 'uncommon' }, // harsher ground, thinner cover
+  { id: 'saltglass', floraDensity: 0.75, faunaDensity: 0.7, tier: 2, minHops: 3, rarity: 'uncommon' }, // the 5th family (2026-10-15): salt, crystal, glare — the sparsest country yet
 ];
 
 /** A biome's exoticness/danger tier (0 = hearthlands … 3 = far weird). */
@@ -94,6 +95,7 @@ export const BIOME_TINTS: Record<BiomeId, { color: number; strength: number }> =
   wetland: { color: 0x0e7a6d, strength: 0.5 },
   fungal: { color: 0x7a2ea0, strength: 0.5 },
   ember: { color: 0xc2571b, strength: 0.55 },
+  saltglass: { color: 0xd8e2dc, strength: 0.45 }, // pale salt-green-white
 };
 
 /** Weight bonus a biome-affined species gets inside its home biome(s). */
@@ -118,7 +120,7 @@ export const BIOME_HOME_BONUS = 1.5;
 // zone (weight 1) — most eligible zones stay plain.
 
 /** The player-facing effect a variant carries, if any. */
-export type BiomeEffectId = 'spore_stamina' | 'marsh_sluggish' | 'scar_heat';
+export type BiomeEffectId = 'spore_stamina' | 'marsh_sluggish' | 'scar_heat' | 'thaw_cold';
 
 export interface BiomeVariantDef {
   id: string;
@@ -261,6 +263,68 @@ export const BIOME_VARIANTS: BiomeVariantDef[] = [
     nameParts: {
       first: ['Black', 'Glass', 'Violet', 'Silent', 'Sharp'],
       second: ['Garden', 'Beds', 'Crown', 'Reach', 'Bloom'],
+    },
+  },
+  {
+    // The Flats (Saltglass, 2026-10-15): the endless salt pan.
+    // GLARE is its whole being — pooled-light intensity x1.6, the
+    // Mirror Marsh trick at full strength. No tax; the light
+    // itself is the event.
+    id: 'saltglass_flats',
+    family: 'saltglass',
+    name: 'The Flats',
+    minHops: 3,
+    rarity: 'uncommon',
+    tint: { color: 0xe8f0ec, strength: 0.55 }, // whitest country in the game
+    floraDensityMult: 0.9,
+    faunaDensityMult: 0.9,
+    effect: null,
+    lightDistanceMult: 1.15,
+    lightIntensityMult: 1.6,
+    nameParts: {
+      first: ['White', 'Silent', 'Blinding', 'Endless', 'Salt'],
+      second: ['Flats', 'Silence', 'Pan', 'Reach', 'White'],
+    },
+  },
+  {
+    // The Thaw (Saltglass, 2026-10-15): freeze-thaw country, and
+    // the Ember Scar's mirror image — mild days, but its NIGHTS
+    // tax stamina with cold (thaw_cold). Cross it by daylight.
+    id: 'saltglass_thaw',
+    family: 'saltglass',
+    name: 'The Thaw',
+    minHops: 4,
+    rarity: 'uncommon',
+    tint: { color: 0xbcd6de, strength: 0.5 }, // thaw-water blue-grey
+    floraDensityMult: 1.0,
+    faunaDensityMult: 0.85,
+    effect: 'thaw_cold',
+    lightDistanceMult: 1,
+    lightIntensityMult: 1,
+    nameParts: {
+      first: ['Thawing', 'Frozen', 'Weeping', 'Pale', 'Cracked'],
+      second: ['Thaw', 'Reach', 'Flats', 'Silence', 'Cradle'],
+    },
+  },
+  {
+    // The Prism Beds (Saltglass, 2026-10-15): the family's RICH
+    // variant — crystal reed beds fused from salt and light, and
+    // the source of saltglass_shard, the second glass crafting
+    // material. Rare even out here.
+    id: 'saltglass_prism',
+    family: 'saltglass',
+    name: 'The Prism Beds',
+    minHops: 4,
+    rarity: 'rare',
+    tint: { color: 0xc4b5e0, strength: 0.45 }, // prismatic lavender hint
+    floraDensityMult: 1.2,
+    faunaDensityMult: 0.8,
+    effect: null,
+    lightDistanceMult: 1,
+    lightIntensityMult: 1.25, // the beds throw the light around
+    nameParts: {
+      first: ['Prism', 'Rainbow', 'Singing', 'Glass', 'Bright'],
+      second: ['Beds', 'Garden', 'Reach', 'Fields', 'Crown'],
     },
   },
 ];

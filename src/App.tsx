@@ -766,6 +766,27 @@ const {
             'system',
             '#d9a05b',
           );
+        } else if (variant.id === 'precursor_garden') {
+          postNotification(
+            'Precursor Garden',
+            'Someone planted this — spirals of perfect blooms, still following instructions ten thousand years old. Harvest the blooms for living thread; the rows around them grow rich.',
+            'system',
+            '#d9f99d',
+          );
+        } else if (variant.id === 'precursor_untended') {
+          postNotification(
+            'The Untended',
+            'A precursor garden with no gardener — the spiral gone feral, lush and tangled and dark. The blooms still grow here. So does everything else.',
+            'system',
+            '#a3b86b',
+          );
+        } else if (variant.id === 'precursor_tending') {
+          postNotification(
+            'The Tending Field',
+            'The densest bloom spirals in the world, and the old cultivation machinery still standing in the rows. Rare country. Whatever tended this place left its tools behind.',
+            'system',
+            '#e7f0b0',
+          );
         } else if (variant.id === 'mirror_marsh') {
           postNotification(
             'The Mirror Marsh',

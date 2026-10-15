@@ -966,3 +966,392 @@ Roster designed total: 216. The open list's oldest
 item has a designed answer: the liquids have
 dossiers, the banks have citizens, and the rivers —
 silver, amber, and black — are inhabited.
+
+## Twentieth roster pass — Flora Flood One (24)
+
+Adam's order: flora first, batches as large as they
+can be. Twenty-four plants, two per family plus a
+wide-range pair — the green kingdom's census, taken
+family by family. One system worth naming in the
+header, because it emerged rather than being planned:
+EVERY FAMILY GROWS A ROSE. It was not designed; it
+was discovered, four entries in, and then kept on
+purpose — a genus that answers each country's
+conditions in the country's own accent. The flood's
+discipline stands as ever: no new headline item
+where an honest unlisted yield serves, and every
+plant braided to at least one animal already on the
+roster.
+
+**217. Noonflower** — Meadow. *Flora* x Ordinary.
+Plantiform (a broad sunflower-plan head on a gear-
+stemmed stalk); modifier: clock-headed — it opens
+for ONE HOUR at true noon, daily, in all weathers,
+and the meadow keeps the appointment with it (the
+Puffbell keeps the fungal hour; the noonflower is
+the aboveground world striking twelve — hoppers
+gather at its opening like a market bell). Stationary;
+spreads by clock-marked seed. Cultivation: seed
+planted anywhere in meadow soil keeps noon
+(the clock is in the seed, not the soil — gardeners
+argue about why, in two families now). Harvest:
+**Noon Seed** (new item) — oil-rich, gathered in the
+hour or not at all: the meadow's provisions with a
+deadline.
+
+**218. Lambswool** — Meadow. *Flora* x Ordinary.
+Plantiform (a ground-cover mat, leaf-wool thick);
+modifier: slept-on — it grows plush where grazers
+rest and thin where they don't, so an old meadow is
+upholstered in a map of its herds' favorite naps
+(Meadowbacks cultivate it by sleeping; the entry
+records the arrangement as the meadow's softest
+symbiosis). Stationary, creeping. Cultivation: a mat
+division transplants whole — homesteads plant it at
+doorsteps as the country's welcome mat. Harvest: cut
+wool-fiber, **Lambswool** (item, its name) — bedding
+and bandage grade, the starter economy's soft stuff.
+
+**219. Bog Lantern** — Wetland. *Flora* x **Gel**.
+Plantiform (a sedge crowned with gel pods);
+modifier: lit — its pods are gel sacs of biolume,
+lit at dusk, dimmed at dawn: the marsh's own lanterns,
+uncounted along the banks (Lantern Fern lights the
+woods' floors; the bog lantern lights the WATER's
+edge, which is a different congregation — Foam Frogs
+moor to its stalks, and the Fen Lurker's pool goes
+quiet in its light for reasons the lurker keeps).
+Stationary. Cultivation: a pod set at a pond edge
+roots in the wet season. Harvest: a whole pod,
+carefully: **Bog Light** (new item) — a gel lantern
+that feeds on pond water and lasts a season: the wet
+country's lamp oil, grown.
+
+**220. Silt Rose** — Wetland. *Flora* x Ordinary —
+the Wetland's rose. Plantiform (rose plan, mud-
+rooted); modifier: filtering — its root-mat drinks
+silt: the water around a silt rose runs CLEAR in a
+visible ring (the Stillmouth's garden and the Deep
+Carp's visiting place; where the ring fails, the
+water is wrong before any animal says so — the
+minnow's readout, rooted). Stationary. Cultivation:
+a cutting in any silty edge. Harvest: petals,
+**Silt Petal** (new item) — a water-clarifier for
+cisterns and camps: one petal, one clear bucket, an
+old traveler's trick the codex finally writes down.
+
+**221. Ghost Orchid** — Fungal country. *Flora* x
+Ordinary. Plantiform (orchid plan, LEAFLESS);
+modifier: myco-fed — it has no green in it at all:
+it eats FUNGUS, tapping the mycelium networks like a
+pale spy at the kingdom's table (Earth's myco-
+heterotrophs, cited under the familiar license — the
+flora kingdom's one true parasite of the fungal
+world, and impossibly beautiful: white, translucent,
+lit faintly by what it steals). Stationary.
+Cultivation: nearly none — it transplants only WITH
+its host fungus, in the dark, and sulks in light
+(the roster's fussiest flora, dethroning the Grave
+Vine). Harvest: never sanctioned — its flowers,
+**Ghost Bloom** (new item), are gathered only from
+naturally fallen blooms, by custom older than the
+codex's manners: you do not pick the ghost; the
+ghost, occasionally, provides.
+
+**222. Spore Fern** — Fungal country. *Flora* x
+Ordinary. Plantiform (fern plan); modifier: farming —
+its fronds CATCH spores on sticky upper surfaces and
+CULTIVATE them: each frond is a hanging garden of
+the country's fungi, weeded by the fern's own
+chemistry to the useful kinds (the Mulch Beetle's
+field station and the Glow Grub's landlord — grubs
+winter under its fronds in farmed glow). Stationary.
+Cultivation: a frond-division carries its garden
+with it — the only flora that transplants an ecology.
+Harvest: frond-clippings with their crop, unlisted —
+compost's aristocracy, per the beetles.
+
+**223. Coalwood** — Ember. *Flora* x Ordinary.
+Plantiform (tree plan); modifier: self-charred —
+its outer wood chars as it grows, so a living
+coalwood is a black pillar with a green crown, and
+its heartwood is PRE-CHARRED timber (the Smoke Tree
+smolders in the hybrid country; the coalwood is
+Ember proper's quieter version: the fire already
+happened, inside the tree, on schedule). Stationary.
+Cultivation: saplings take only in ash-fed soil.
+Harvest: felled, **Coalwood Timber** (new item) —
+building wood that will not burn, because it
+already has: the Ember country's gift to every
+fireplace on the graph.
+
+**224. Flame Lily** — Ember. *Flora* x Ordinary.
+Plantiform (lily plan); modifier: fire-seeded — its
+seeds germinate ONLY after flame passes (Earth's
+serotiny, cited): a flame lily field is a promise
+written against the next burn, and after a Drift
+fire the Ashen fields bloom red in a single week
+(the Ashpicker's calendar and the whole country's
+proof that fire is a season, not an ending).
+Stationary. Cultivation: plant the seed and BURN
+the bed lightly, or wait for the country to do it.
+Harvest: bulbs, **Flame Bulb** (new item) — pepper-
+hot, storable: Ember's spice, with a germination
+warning on the label the codex insists upon.
+
+**225. Thaw Rose** — Saltglass (the Thaw). *Flora*
+x **Crystalline** — the family's rose, and the
+material's fourth flora. Plantiform (rose plan);
+modifier: ice-petaled — its petals hold grown
+crystal at their rims and bloom IN MELTWATER for
+one week of the Thaw: the variant's calendar in a
+flower (the Thawmole thaws by it; travelers time
+the crossing by it). Stationary. Cultivation: a
+cutting in thaw soil, kept cold. Harvest: a whole
+bloom in its week: **Thaw Bloom** (new item) —
+a rose that stays cold in the hand for a day: the
+flats' one luxury, couriered at speed to homesteads
+that keep a cold box for exactly this.
+
+**226. Salt Daisy** — Saltglass (the Flats).
+*Flora* x Ordinary. Plantiform (daisy plan);
+modifier: crust-petaled — its petals wear a fine
+salt crust that it SHEDS at noon daily (the Pan
+Lizard's statue hours are measured against the
+daisy's shedding by the flats' children, in a game
+with no rules written anywhere). Stationary.
+Cultivation: any salt soil, any neglect. Harvest:
+petals, unlisted — salt-pickling grade, the flats'
+small change; its seeds are the Saltpicker's
+winter income, and the entry braids the bird to the
+flower as the flats' whole economy in miniature.
+
+**227. Rime Grass** — Frost. *Flora* x Ordinary.
+Plantiform (grass plan); modifier: feathered — it
+grows RIME FEATHERS on its blades in the still cold,
+so a rime grass field shimmers like a down bed (the
+Driftworm travels under it; the Frost Vole caches in
+its root-mat; the Stillwhite's famous silence is
+partly this grass eating the wind). Stationary.
+Cultivation: turf divisions transplant in cold soil
+only. Harvest: spring blades, unlisted — thatch of
+the first quality; its real yield is the field
+itself: a homestead that keeps rime grass at its
+walls stands measurably warmer, and winter camps
+are pitched in its lee across the family.
+
+**228. Aurora Vine** — Frost (the Ice Fangs).
+*Flora* x Ordinary. Plantiform (vine plan);
+modifier: sky-lit — during the long nights it
+glows in shifting aurora colors, brightest when the
+sky itself is lit (a vine that answers the aurora
+in kind — Spire Bats roost in its lit tangles, and
+a Fangs cliff in vine season is the family's one
+festival of color). Stationary, climbing.
+Cultivation: a cutting on any cold cliff.
+Harvest: lit tendrils, cut: **Aurora Cord** (new
+item) — a cord that glows faintly for a week after
+cutting: the winter country's trail-marker and tent-
+line, visible through a night of any length.
+
+**229. Bridge Moss** — Rootwood (the bridges).
+*Flora* x Ordinary. Plantiform (moss plan);
+modifier: gripping — it is the root bridges'
+CARPET: it makes bark walkable, cushions the
+crossing, and knits small cracks in living root
+(the Deck Weaver tends it, eats its pests, and
+patrols its edges — the bridge is a structure; the
+moss is what makes it a ROAD; builders rate a
+crossing by its moss the way sailors rate a harbor).
+Stationary, spreading. Cultivation: a handful,
+pressed to any root or beam, takes in a season —
+the roster's most useful transplant, per the
+weavers. Harvest: none sanctioned; a crossing
+stripped of moss is a crossing condemned, and the
+entry leaves the custom there.
+
+**230. Canopy Orchid** — Rootwood (the high crowns).
+*Flora* x Ordinary — the family's second orchid,
+and the Ghost's bright cousin. Plantiform (orchid
+plan, epiphyte); modifier: crown-kept — it lives
+only in the highest crowns (the First Tree's foothill
+canopy, the Arch Trees' elbows), rooted in bark-
+moss, pollinated by the Canopy Cup's tenants (the
+cup holds the pond, the pond keeps the insects, the
+insects keep the orchid: the Rootwood stack in one
+flower). Stationary — its seeds ride wind and
+weaver alike. Cultivation: possible only in a kept
+canopy — a homestead must first grow the tree,
+then the moss, then wait (the entry calls this the
+slowest door in the family's garden, and leaves it
+as an honor). Harvest: fallen blooms only, **Canopy
+Bloom** (new item) — perfume-grade, gathered from
+the bridge moss where they land like the canopy's
+confetti.
+
+**231. Dust Rose** — Bone. *Flora* x Ordinary — the
+family's rose. Plantiform (rose plan, bone-white);
+modifier: dust-fed — it grows ONLY in bone-dust
+soil, and its blooms open the color of old ivory,
+with a scent the entry records as "the Graveyard,
+sweetened" (Dust Moths carry its pollen bone to
+bone — the moth's second cargo, after bonemoss
+spore: the Graveyard's upkeep has a florist).
+Stationary. Cultivation: a cutting in bonemeal-fed
+soil takes — the economy's meal, spent as earth.
+Harvest: **Dust Petal** (new item) — mourning-pale,
+used in the far country for dyes that hold their
+color in sun: the white fields' one export of
+softness.
+
+**232. Rib Grass** — Bone (the Leviathan Graveyard).
+*Flora* x Ordinary. Plantiform (grass plan);
+modifier: rib-threaded — it grows in long lines
+THROUGH the ribcages, rooting rib to rib, so the
+Graveyard's skeletons wear green seams (the Rib
+Spider anchors its lines to the grass's strongest
+stands — spider and grass hold the ribs between
+them like two guilds sharing a scaffold). Stationary.
+Cultivation: seed scattered on any bone-field takes
+where bones lie. Harvest: its seed-heads, **Rib
+Seed** (new item) — a hard pale grain, the Bone
+country's own cereal: marrow-flat bread starts
+here, and the Marrow Deer's rub-sites are always
+near its stands.
+
+**233. Gale Grass** — Storm (the Charged Flats).
+*Flora* x Ordinary. Plantiform (grass plan);
+modifier: tuned — its blades are hollow and
+length-sorted by the wind itself, so a gale grass
+field SINGS in weather, each stand a chord (the Pan
+Piper's meadows borrow the trick; here it is the
+flats' whole instrument — and a navigation aid: the
+chords shift BEFORE the zot's banner when charge
+gathers, the flora kingdom joining the flats'
+warning system in music). Stationary. Cultivation:
+turf set in any storm soil takes a season to tune.
+Harvest: cut blades, **Gale Straw** (new item) —
+for pipes, calls, and the far craft of instruments:
+the Storm country's first export of music.
+
+**234. Kite Flower** — Storm (Skyfall Basin).
+*Flora* x Ordinary. Plantiform (a tall basin
+flower); modifier: sail-seeded — its seeds are
+KITES: broad-winged, front-riding, traveling
+between basins on the same weather the Storm Kite
+owns (the kite is the flower's animal namesake by
+the Basin's own usage, the entry notes — the country
+named the bird after the seed, or the seed after
+the bird, and the Basin declines to remember).
+Stationary; its generations commute. Cultivation:
+a grounded seed roots eagerly in basin soil.
+Harvest: unopened buds, **Kite Bud** (new item) —
+a storm-tea, tart and bright, brewed across the
+family for the fronts' long evenings.
+
+**235. Doorstep Rose** — The Living. *Flora* x
+Ordinary — the valley's rose. Plantiform (rose
+plan); modifier: threshold-true — it grows at
+DOORWAYS: it blooms in proportion to a door's use,
+so a kept homestead's step flowers and an abandoned
+one goes bare within a season (the Hearthroot
+upholsters the dwelling; the doorstep rose SIGNS
+it — and where the Hearth Dog sleeps, the rose
+blooms first: the entry records the sequence without
+explaining it, as the valley prefers). Stationary.
+Cultivation: plant it at a threshold and USE the
+door; that is the whole art. Harvest: petals,
+unlisted — the valley's small change; in a Hungry
+valley, the codex notes, count your doors by the
+roses, and be concerned by any door that blooms
+which you did not build.
+
+**236. Guest Flower** — The Living. *Flora* x
+Ordinary. Plantiform (a low, wide bloom);
+modifier: approach-open — it OPENS when someone
+approaches and closes when the path empties (the
+Guest Bird's floral pair — the valley's greeting at
+ankle height; a path lined with guest flowers
+announces a traveler better than any bell, and the
+valley's homesteads plant them as the doorbell
+predates the door). Stationary. Cultivation: a
+division at any walked edge. Harvest: none — its
+yield is its behavior. THE MIRROR, one line, as the
+family requires: in a Hungry valley, the guest
+flower opens when NO one approaches — toward the
+empty path, patiently, like a held door — and the
+entry advises reading that the way the Hound taught
+you: a greeting aimed at nobody is a lure.
+
+**237. Clock Bloom** — Precursor (the Garden).
+*Flora* x Forged. Plantiform (a bred bed-flower);
+modifier: timetable — each bed opens at an exact
+hour, bred into the strain: the gardens were
+planted as CLOCKS, beds for the hours, and in the
+Garden they still keep precursor time — which no
+longer matches the sun, the drift being measurable
+and mournful (the Spiral Moth pollinates them on
+schedule, backwards wings and all in the Untended,
+where the clocks run strangest). Stationary.
+Cultivation: bed-cuttings keep their hour in any
+garden soil — a homestead may plant a clock, if it
+accepts the clock's opinion of the hour. Harvest:
+**Clock Petal** (new item) — a petal whose color
+states its bed's hour: the far country's timepiece,
+grown.
+
+**238. Glyph Vine** — Precursor (the Garden, the
+ruins' edges). *Flora* x Forged. Plantiform (vine
+plan); modifier: lettered — bred to grow GLYPH-
+SHAPED leaves in sequence along its stems: the
+gardens' handwriting, still writing (what it writes
+has never repeated in recorded watching; the
+helmet's glyph layer reads the leaves as it reads
+the Glyph Carp's scales — almost — and the two
+almosts are, the entry notes, the same almost: the
+gardeners taught two kingdoms their letters, and
+both are still practicing). Stationary, climbing.
+Cultivation: a cutting grows letters in any ruin-
+adjacent soil; the letters are not the gardener's
+choice. Harvest: fallen letter-leaves, **Glyph
+Leaf** (new item) — kept as curios, pressed in
+codexes, traded by chroniclers at rates the entry
+refuses to stabilize.
+
+**239. Roadweed** — wide-range (Temperate + Open
+ranges: paths of Meadow, Rootwood, Fungal, Wetland,
+Bone, Storm, Saltglass). *Flora* x Ordinary.
+Plantiform (a flat rosette); modifier: trample-
+proof — it flowers AFTER being stepped on: the
+hoof and the boot are its pollinators of condition,
+and a road is known by its roadweed the way a river
+is known by its reeds (Waygrass marks the route by
+seed-drift; roadweed marks it by SURVIVAL — between
+them, the world's walking is annotated in two
+hands). Stationary, path-locked. Cultivation: it
+arrives; that is the cultivation. Harvest: its
+leaves, unlisted — a poultice green, the traveler's
+salve, free at every roadside in seven families.
+
+**240. Night Candle** — wide-range (Warm + Temperate
+ranges: Ember's margins, Meadow, Storm's lowlands,
+the Living's edge). *Flora* x Ordinary. Plantiform
+(a tall, white, single bloom); modifier: moth-lit —
+it opens at dusk, white and scent-heavy, visible
+and fragrant at a hundred paces of dark: the night
+shift's flora tithe, pollinated by Gap Moths,
+Driftmoths, and the far country's whole night air
+(its scent is its seed's courier — on still nights
+the smell of one candle lays a road the moths fly
+like a river). Stationary. Cultivation: a division
+in any warm-temperate soil, planted at dusk, by
+custom and possibly by requirement. Harvest: the
+bloom at midnight, **Night Wax** (new item) — its
+thick petals render a clean-burning wax: the far
+country's candle, grown where the nights are long.
+
+Flora Flood One closes: the green kingdom gains
+twenty-four citizens and every family gains its
+rose. Roster designed total: 240. The fungus flood
+follows next, by Adam's order — the third kingdom's
+census, at the same scale.

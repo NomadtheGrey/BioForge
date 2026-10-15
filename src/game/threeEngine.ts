@@ -305,6 +305,7 @@ export class BioForgeThreeEngine {
     bone_fragment: { color: 0xd8cfb8, intensity: 0.1, distance: 2, y: 0.5 },
     leviathan_ribs: { color: 0xe2dac6, intensity: 0.2, distance: 4.5, y: 3 },
     fulgurite: { color: 0xfbbf24, intensity: 0.35, distance: 2.5, y: 0.6 },
+    petrified_shroom: { color: 0xa8a29e, intensity: 0.12, distance: 2.5, y: 2 },
     ruin_exit: { color: 0x2dd4bf, intensity: 0.9, distance: 4.5, y: 1.4 },
     precursor_cache: { color: 0x67e8f9, intensity: 0.55, distance: 3, y: 0.8 },
     artifact_heart: { color: 0xfb7185, intensity: 1.1, distance: 5.5, y: 1.5 },

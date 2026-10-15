@@ -195,6 +195,69 @@ export const BIOME_VARIANTS: BiomeVariantDef[] = [
     },
   },
   {
+    // The Mycelium Web (Fungal fill-in, 2026-10-15): the family
+    // as ONE NETWORK — the giant shrooms grow in rings and arcs,
+    // the web showing through the ground (worldGen plants the
+    // pattern). The spore air breathes with the whole ring.
+    id: 'mycelium_web',
+    family: 'fungal',
+    name: 'The Mycelium Web',
+    minHops: 2,
+    rarity: 'uncommon',
+    tint: { color: 0x4c1d95, strength: 0.55 }, // deep network violet
+    floraDensityMult: 1.25,
+    faunaDensityMult: 0.85,
+    effect: 'spore_stamina',
+    lightDistanceMult: 1,
+    lightIntensityMult: 1.05,
+    nameParts: {
+      first: ['Woven', 'Vast', 'Patient', 'Silent', 'Deep'],
+      second: ['Web', 'Network', 'Reach', 'Threads', 'Knot'],
+    },
+  },
+  {
+    // The Glowfen (Fungal fill-in, 2026-10-15): the luminous
+    // face — cave glow-fungus growing TOPSIDE, light pushed up
+    // and out. Pure fungal (the pools are biolume, not water —
+    // the variant rule holds). The gentle face of the family.
+    id: 'glowfen',
+    family: 'fungal',
+    name: 'The Glowfen',
+    minHops: 2,
+    rarity: 'uncommon',
+    tint: { color: 0x365a6e, strength: 0.45 }, // teal-violet glow
+    floraDensityMult: 1.15,
+    faunaDensityMult: 0.9,
+    effect: null,
+    lightDistanceMult: 1.15,
+    lightIntensityMult: 1.25,
+    nameParts: {
+      first: ['Glowing', 'Bright', 'Soft', 'Pale', 'Kind'],
+      second: ['Fen', 'Pools', 'Lights', 'Marsh', 'Glow'],
+    },
+  },
+  {
+    // The Petrified Grove (Fungal fill-in, 2026-10-15): the
+    // quiet face — shroom giants turned to STONE, standing as
+    // grey scenery in sparse country. Subtraction as content
+    // (the Ashen Drift pattern): what is here is what died here.
+    id: 'petrified_grove',
+    family: 'fungal',
+    name: 'The Petrified Grove',
+    minHops: 3,
+    rarity: 'rare',
+    tint: { color: 0x6e6a75, strength: 0.55 }, // stone grey-violet
+    floraDensityMult: 0.55,
+    faunaDensityMult: 0.7,
+    effect: null,
+    lightDistanceMult: 1,
+    lightIntensityMult: 0.95,
+    nameParts: {
+      first: ['Stone', 'Silent', 'Ancient', 'Grey', 'Patient'],
+      second: ['Grove', 'Giants', 'Rest', 'Forest', 'Stand'],
+    },
+  },
+  {
     // MIRROR MARSH (Adam, 2026-10-15): the wetland's still twin —
     // pools of reflective liquid, light that travels twice as far
     // across them, pollinator moths over the water, and wading

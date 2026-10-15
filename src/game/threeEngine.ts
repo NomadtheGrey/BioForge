@@ -37,6 +37,12 @@ const SLOPE_SAMPLE_DISTANCE = 1;
 // sits exactly one wall-height above its level-0 counterpart. Structure
 // levels (StructureEntity.level) multiply this.
 const STORY_HEIGHT = 2.4;
+// Touch-drag camera sensitivity, in radians per CSS pixel. Mouse
+// pointer-lock look uses Three's own 0.002 factor; a finger drag is a
+// shorter physical travel for the same turn, so touch gets a larger
+// step. The pitch clamp matches PointerLockControls' vertical range.
+const TOUCH_LOOK_SENSITIVITY = 0.0042;
+const TOUCH_LOOK_MAX_PITCH = Math.PI / 2;
 
 
 // Pre-allocated scratch vectors to prevent GC allocations in render loop (Rule 3)
@@ -45,6 +51,7 @@ const SCRATCH_VEC_B = new THREE.Vector3();
 const SCRATCH_RAY_ORIGIN = new THREE.Vector3();
 const SCRATCH_RAY_DIR = new THREE.Vector3();
 const CENTER_SCREEN_UV = new THREE.Vector2(0, 0);
+const SCRATCH_LOOK_EULER = new THREE.Euler(0, 0, 0, 'YXZ');
 
 export interface ThreeEngineCallbacks {
   onFloraInteract?: (flora: FloraEntity) => void;
@@ -426,6 +433,39 @@ export class BioForgeThreeEngine {
 
   public isPointerLocked(): boolean {
     return this.controls.isLocked;
+  }
+
+  /**
+   * Rotate the first-person camera from a touch drag.
+   *
+   * PointerLockControls only consumes mouse movement while locked,
+   * so touch look writes the SAME YXZ yaw/pitch representation into
+   * the camera quaternion. That keeps the movement controller,
+   * minimap facing, placement rotation, and a later desktop mouse
+   * lock all reading one continuous orientation — there is no second
+   * touch-only camera state to reconcile.
+   */
+  public applyTouchLook(deltaX: number, deltaY: number): void {
+    if (!Number.isFinite(deltaX) || !Number.isFinite(deltaY)) return;
+    SCRATCH_LOOK_EULER.setFromQuaternion(this.camera.quaternion, 'YXZ');
+    SCRATCH_LOOK_EULER.y -= deltaX * TOUCH_LOOK_SENSITIVITY;
+    SCRATCH_LOOK_EULER.x -= deltaY * TOUCH_LOOK_SENSITIVITY;
+    SCRATCH_LOOK_EULER.x = Math.max(
+      -TOUCH_LOOK_MAX_PITCH,
+      Math.min(TOUCH_LOOK_MAX_PITCH, SCRATCH_LOOK_EULER.x)
+    );
+    SCRATCH_LOOK_EULER.z = 0;
+    this.camera.quaternion.setFromEuler(SCRATCH_LOOK_EULER);
+  }
+
+  /**
+   * Deliberate touch interaction: the TouchControls overlay calls
+   * this for a short tap or its USE button. It deliberately funnels
+   * through the exact center-screen raycast desktop clicks use, so
+   * flora/fauna/structure/ground priority cannot drift by platform.
+   */
+  public interactAtCenter(): void {
+    this.handleCenterClick();
   }
 
   public setPlayerPosition(x: number, z: number, level: number = 0, jumpOffset: number = 0) {
@@ -1912,9 +1952,12 @@ private initEventListeners() {
     // Invoke authoritative game frame callback
     this.callbacks.onFrame?.(delta);
 
-    // Update reticle hover targets in 1st person (throttled to 10 Hz / every 100ms)
+    // Update reticle hover targets in 1st person (throttled to 10 Hz
+    // / every 100ms). Desktop requires pointer lock; touch has no
+    // lock to wait for, so the same target inspector must refresh
+    // whenever pointer lock is unavailable there.
     this.reticleTimer += delta;
-    if (this.controls.isLocked && this.reticleTimer >= 0.1) {
+    if ((this.controls.isLocked || !this.pointerLockAvailable()) && this.reticleTimer >= 0.1) {
       this.reticleTimer = 0;
       this.updateReticleAim();
     }

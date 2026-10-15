@@ -84,6 +84,9 @@ export interface UseToolInteractionsParams {
   hasItem: (itemId: ItemId, minCount?: number) => boolean;
   resetFloraHarvest: (floraId: string, regrowthDuration: number) => void;
   applyFloraFertilizer: (floraId: string, type: 'growth' | 'yield') => void;
+  // Feeding the valley (Living, 2026-10-15): App owns the
+  // satiation deadline; feeding a heartbloom pushes it forward.
+  valleySatiatedUntilRef: { current: number };
   addFlora: (flora: FloraEntity) => void;
   addStructure: (structure: StructureEntity) => void;
   removeStructure: (structureId: string) => void;
@@ -146,6 +149,7 @@ export function useToolInteractions({
   hasItem,
   resetFloraHarvest,
   applyFloraFertilizer,
+  valleySatiatedUntilRef,
   addFlora,
   addStructure,
   removeStructure,
@@ -245,6 +249,14 @@ export function useToolInteractions({
         // Rootwood (2026-10-15): the premium building wood, plus
         // the fibrous bark the slabs shed.
         return { item: 'heartwood', count: flora.fertilizedYield ? 3 : 2, extras: [['soft_fiber', 1]] };
+      case 'dusk_grass':
+        // Living (2026-10-15): valley fiber — the purple-black
+        // grass cuts to soft fiber, with dew on the blades.
+        return { item: 'soft_fiber', count: flora.fertilizedYield ? 3 : 2, extras: [['dew_essence', 1]] };
+      case 'heartbloom':
+        // Living (2026-10-15): the heart gives its sap freely —
+        // double when the valley has been fed (fertilizedYield).
+        return { item: 'heart_sap', count: flora.fertilizedYield ? 2 : 1, extras: [['dew_essence', 2]] };
       case 'stormcatcher':
         // Storm (2026-10-15): the crown fuses its gathered charge
         // into fulgurite glass; dew beads on the reed after rain.
@@ -424,6 +436,23 @@ export function useToolInteractions({
         if (hasItem(loadedId, 1)) {
           deductInventoryItem(loadedId, 1);
           soundEngine.playFertilize();
+          // FEEDING THE VALLEY (Living, 2026-10-15): fertilizer on
+          // a HEARTBLOOM is not gardening — it is a meal. The
+          // valley eats, and a hungry host stops grabbing while
+          // it digests (~5 minutes, session-scoped in v1). The
+          // fertilizer still applies (a fed heart yields double).
+          if (targetFlora.species === 'heartbloom') {
+            valleySatiatedUntilRef.current = performance.now() + 300_000;
+            applyFloraFertilizer(targetFlora.id, loadedType);
+            multiplayerManager.broadcastEntityUpsert('flora', {
+              ...targetFlora,
+              ...(loadedType === 'growth'
+                ? { fertilizedGrowth: true, fertilizerTimer: FERTILIZER_DURATION_SECONDS }
+                : { fertilizedYield: true }),
+            });
+            postNotification('The Valley Eats', 'The heartbloom folds around the offering and the whole valley seems to exhale. If this host was hungry, the grabbing stops while it digests.', 'craft', '#ef4444');
+            return;
+          }
           applyFloraFertilizer(targetFlora.id, loadedType);
           multiplayerManager.broadcastEntityUpsert('flora', {
             ...targetFlora,
@@ -591,6 +620,10 @@ export function useToolInteractions({
                               ? 'bone_meal' // the bloom regrows from the country's stock, not a pouch
                               : flora.species === 'stormcatcher'
                                 ? 'fulgurite_shard' // the storm regrows its glass
+                                : flora.species === 'dusk_grass'
+                                  ? 'soft_fiber' // valley grass regrows from the valley
+                                  : flora.species === 'heartbloom'
+                                    ? 'heart_sap' // and the heart regrows from the valley too
                     : (`seed_${flora.species}` as ItemId);
       const rawName = flora.species.replace(/_/g, ' ');
       const speciesName = rawName.charAt(0).toUpperCase() + rawName.slice(1);

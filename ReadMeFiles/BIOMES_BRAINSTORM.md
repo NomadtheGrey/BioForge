@@ -285,11 +285,22 @@ question round — the table below is the draft to argue with.
   the 'ramp' is a ladder tower in v1 — true sloped walking is
   P5-terrain machinery, and when terrain lands the towers can
   grow real ramps. WORLD_GEN_VERSION 10.
-- **Bone** — family min 3. *Leviathan Graveyard* (min 3, RARE):
-  one impossible skeleton, fertile soil, reverent quiet.
-  *Questions: is a graveyard rolled like other zones, or is it a
-  LANDMARK — at most one per world sector, however the dice fall?
-  What grows in bone-soil that grows nowhere else?*
+- **Bone** ✓ BUILT (2026-10-15) — the NINTH family built:
+  graveyard country, death-fertile, scavenger land. Tier 2,
+  family min 3, uncommon; bands 10% at 3 hops. Adam's round
+  answers: the Graveyard ROLLS as a rare variant — rarity does
+  the scarcity work, no landmark bookkeeping (zone rolls stay
+  pure functions of seed + coords); gravebloom and BONE MEAL
+  approved. Variants, all built: *The Bonefields* (min 3,
+  uncommon — fragments everywhere, flora in their shade), *The
+  Marrow Flats* (min 3, uncommon — the generous face, flora
+  x1.3), *Leviathan Graveyard* (min 4, RARE — ONE impossible
+  skeleton as generated scenery: ribs seven meters tall you
+  walk under, a skull like a house; exactly one per graveyard
+  zone, harness-asserted). Bone fragments scatter through every
+  bone zone. GRAVEBLOOM — a pale flower rooted in bone —
+  harvests to bone meal x2 + dew; vesper gliders hold the
+  scavenger sky here. WORLD_GEN_VERSION 12.
 - **Storm** — family min 3 per the GATE CAP (rarity does the far
   work). *Magnetic Dunes* (RARE): black sand, storms reshape it,
   caches surface and vanish. *Skyfall Basin* (RARE): nutrient

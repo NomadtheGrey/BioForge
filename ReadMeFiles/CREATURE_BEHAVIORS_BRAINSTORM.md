@@ -228,3 +228,11 @@ Forged category — and the ones standing in the game today are
 DEAD: big ribcage-and-skull husks generating as scenery,
 thickest in the Tending Field. A LIVING tender (if one ever
 wakes) is a Forged Fauna design seat for this chat.
+
+Flora note (Bone, 2026-10-15): Gravebloom — a pale flower
+rooted in bone itself, marrow-gold heart — grows in every Bone
+zone (Marrow Flats thickest) and harvests to BONE MEAL + dew;
+solvent returns the meal. Bone country's creature seats —
+family signature (a scavenger; the gliders already hold the
+sky here by census) and a Leviathan Graveyard unique (what
+lives IN the ribs?) — are EMPTY and belong to this chat.

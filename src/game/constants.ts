@@ -122,6 +122,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'uncommon',
     maxStack: 99,
   },
+  living_thread: {
+    id: 'living_thread',
+    name: 'Living Thread',
+    category: 'raw',
+    description: 'Precursor bio-tech fiber — thread that was grown, not spun, and still faintly alive. Their living machines were woven from this.',
+    iconName: 'Sprout',
+    color: '#d9f99d',
+    rarity: 'rare',
+    maxStack: 99,
+  },
   // Radar ingredients (2026-10-14): the Prismatic Field Radar's supply
   // chain — two new species yields plus the four Tier-1 subassemblies
   // they feed (recipes below; tier math in CORE_MECHANICS.md).
@@ -1495,6 +1505,18 @@ export const INITIAL_CODEX: CodexEntry[] = [
     tamingOrCraftNotes: 'Harvest with the glove for heartwood. Look for the stands near the bridge towers — and in the Rootfall, where a giant came down, they grow thickest.',
     biome: 'Rootwood zones',
     iconColor: '#b08968',
+  },
+  {
+    species: 'precursor_bloom',
+    name: 'Precursor Bloom',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A flower too perfect to be an accident — eight identical petals around a golden core, planted in spirals by gardeners ten thousand years gone. It is still following their instructions.',
+    byproducts: ['Living Thread', 'Dew Essence'],
+    tamingOrCraftNotes: 'Harvest with the glove for living thread. The gardens pay twice (Adam): the thread, and rich ordinary stock all around it.',
+    biome: 'Precursor zones',
+    iconColor: '#d9f99d',
   },
   {
     species: 'mirror_lily',

@@ -783,7 +783,7 @@ const {
         } else if (variant.id === 'precursor_tending') {
           postNotification(
             'The Tending Field',
-            'The densest bloom spirals in the world, and the old cultivation machinery still standing in the rows. Rare country. Whatever tended this place left its tools behind.',
+            'The densest bloom spirals in the world — and the tenders still standing in the rows: huge grown things, hollow and long dead. They were never built. They were grown, and the gardens outlived them.',
             'system',
             '#e7f0b0',
           );

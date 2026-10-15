@@ -115,6 +115,47 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       group.add(dais);
       return group;
     },
+    // Tender husk (2026-10-15, Adam's ruling): NOT a machine — a
+    // FORGED creature, grown by the precursors for garden work,
+    // biggish and long dead. A hollow ribcage of chitin arcs over
+    // a spine beam, a cracked skull-dome at the head end, a few
+    // ribs broken or fallen. Pale, dry, silent — scenery that was
+    // once somebody's workforce.
+    'tender_husk': () => {
+      const group = new THREE.Group();
+      const boneMat = new THREE.MeshStandardMaterial({ color: 0xd6cdb4, roughness: 0.95 });
+      const darkMat = new THREE.MeshStandardMaterial({ color: 0x8a7f63, roughness: 1 });
+      // The spine beam, low and long.
+      const spine = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.3, 4.4), darkMat);
+      spine.position.y = 1.55; spine.castShadow = true; group.add(spine);
+      // Ribs: arcs shrinking toward the tail; two are broken stubs.
+      for (let i = 0; i < 6; i++) {
+        const t = i / 5;
+        const radius = 1.5 - t * 0.55;
+        const z = -1.9 + i * 0.72;
+        if (i === 2 || i === 4) {
+          const stub = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.09, 6, 12, Math.PI * 0.5), boneMat);
+          stub.position.set(0.9, 0.4, z); stub.rotation.z = 0.5; stub.rotation.y = Math.PI / 2;
+          stub.castShadow = true; group.add(stub);
+          continue;
+        }
+        const rib = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.09, 6, 14, Math.PI), boneMat);
+        rib.position.set(0, 0.25, z);
+        rib.rotation.y = Math.PI / 2;
+        rib.castShadow = true; group.add(rib);
+      }
+      // The skull-dome at the head end — a cracked hollow shell.
+      const skull = new THREE.Mesh(new THREE.SphereGeometry(0.85, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.62), boneMat);
+      skull.position.set(0, 1.35, 2.35); skull.rotation.x = 0.5; skull.castShadow = true; group.add(skull);
+      const jaw = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.18, 0.9), darkMat);
+      jaw.position.set(0, 0.55, 2.6); jaw.rotation.x = 0.25; group.add(jaw);
+      // Legs: jointed stilts, folded where it died standing.
+      for (const sx of [-1, 1]) for (const sz of [-1.3, 1.3]) {
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.06, 1.5, 6), darkMat);
+        leg.position.set(sx * 0.75, 0.75, sz); leg.rotation.z = sx * 0.18; leg.castShadow = true; group.add(leg);
+      }
+      return group;
+    },
     // The portal home inside an instanced cavern: a standing ring of
     // dark rock and violet light (kin to the iris door's frame, so it
     // reads as "door" at a glance), with a translucent inner disc —

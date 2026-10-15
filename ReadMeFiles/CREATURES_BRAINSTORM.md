@@ -787,6 +787,235 @@ welcome.
   richest compost, the tended-looking groves near the husk —
   someone has been gardening the dark for a long time.
 
+## Second roster pass — the newer families' emblems (2026-10-15)
+
+Adam's word: "Proceed with your ideas." The four shipped
+families got their emblems in the first pass; these six complete
+the emblem layer for the full draft family roster (Saltglass,
+Rootwood, Bone, Storm, The Living, Precursor). Two of them lean
+on biome-doc facts as written there (Saltglass creatures
+navigate by vibration; the Living Valley splits Welcoming /
+Hungry by host temperament) — where those docs change, these
+designs follow. A Frost emblem is deliberately NOT designed: if
+the biome program produces that family (Adam has relayed the
+idea to them), its emblem follows their production, the way
+these followed the shipped families'.
+
+### 7. Shard Grazer — the Saltglass emblem (family layer)
+
+- **Life**: Fauna x Crystalline — Axis 1's crystal-animal cell,
+  in its first real design. **Layer**: family emblem — census
+  [saltglass].
+- **Shape**: Quadruped primary; modifiers: plate-backed,
+  small-eyed (glare has edited its face), crystal-hooved.
+- **Locomotion**: Walking, slow and placed — every step is also
+  a listening.
+- **Spectra**: Temperament calm-wary / Social small herds /
+  Speed slow / Size large-mid / Diet grazer-accreter — crops
+  crystalline reeds, and minerals accrete into its plates as
+  it ages (the material's verb, on an animal) / Day-night
+  crepuscular — feeds at dawn and dusk, stands frozen in shade
+  through the glare hours, slows to near-torpor in the bitter
+  night / Curiosity low / Territory roaming (reed-bed circuit) /
+  Tameability 30% — and the lure alone does not do it: taming
+  is RESONANCE work, a rhythm tapped on crystal that the herd
+  answers through the ground (the gauntlet learns a Saltglass
+  accent; design note, not a new system).
+- **Taming life**: Follow = a placed, deliberate escort; Stay =
+  statues in shade; Guard = VIBRATION SENTINEL — it feels
+  approach through the ground and stamps once, a warning that
+  arrives through the player's feet before their eyes.
+- **Drops**: plates shed with age — **Saltglass Shards** (new
+  item), the surface cousin of the caves' Sunshard.
+- **Hook**: glare country's answer to eyesight. Where the
+  grazers stand frozen, it is the dangerous bright hour; where
+  they feed, it is safe to be out. The family, readable at a
+  glance — which is what an emblem is for.
+
+### 8. Canopy Sloth — the Rootwood emblem (family layer)
+
+- **Life**: Fauna x Ordinary, with flora symbiosis (canopy
+  moss grows in its fur; it carries a garden slowly).
+  **Layer**: family emblem — census [rootwood].
+- **Shape**: Quadruped primary; modifiers: long-armed,
+  moss-furred, hook-clawed.
+- **Locomotion**: Climbing primary + Walking secondary (the
+  ground is a rumor it has heard; it descends perhaps weekly).
+- **Spectra**: Temperament placid, the calmest entry on the
+  roster / Social solo / Speed the roster's floor — it makes
+  the Meadowback look hurried / Size mid / Diet grazer
+  (canopy leaves, resin blooms) / Day-night both, in the
+  sloth's own proportion — long sleeps, slow wakes, at any
+  hour / Curiosity low-mid / Territory one root-tree, held
+  for life / Tameability 45% — calm is approachable; the
+  obstacle is not trust but TEMPO, and the lure must be
+  offered at sloth speed.
+- **Taming life**: Follow = canopy-parallel — it travels the
+  branches above your path (the swimmer's shore rule, one
+  storey up); Stay = settles into its tree; Guard = HIGH
+  LOOKOUT — from its perch it sees approaches early and
+  hoots once, low; in Normal / Hostile that hoot is a real
+  warning system with a long fuse.
+- **Drops**: sheds **Canopy Moss** (new item) — dense living
+  mulch; a compost-kin material in later design, not load-
+  bearing yet.
+- **Hook**: vertical country's anchor. Its tree is a landmark
+  players navigate by ("sloth tree, then north"), and its
+  fur-moss makes it the only animal that is visibly a place.
+
+### 9. Bonepicker — the Bone emblem (family layer)
+
+- **Life**: Fauna x Ordinary. **Layer**: family emblem —
+  census [bone].
+- **Shape**: Winged primary; modifiers: bare-headed,
+  broad-winged. On the ground it stands biped-style and hops —
+  the vulture's undignified second locomotion, kept honestly.
+- **Locomotion**: Aerial primary at the glider-leaning mark
+  (it soars; flapping is for takeoffs and bad days) + Walking
+  secondary (ground hops at a carcass).
+- **Spectra**: Temperament calm-bold — aggressive nowhere,
+  afraid of almost nothing / Social loose gatherings — where
+  something has died, the pickers assemble, and the assembly
+  is a landmark / Speed wind's pace / Size large by wingspan,
+  light by body / Diet SCAVENGER — the spectra field's showcase
+  entry; it eats what the world is done with / Day-night
+  diurnal (it rides thermals; night is for roosting on bones) /
+  Curiosity HIGH — new deaths, new ruins, new players, it
+  comes to look at all of it / Territory the widest roam on
+  the roster — a circuit of graveyards / Tameability 20%,
+  and time-gated in spirit: it respects PROVISION over
+  attempts — a player who regularly leaves carrion where it
+  can find it earns, over days, a picker that follows. Days,
+  not clicks.
+- **Taming life**: Follow = a circling shadow, a comfort in
+  the country it haunts; Stay = roosts near base on any high
+  point provided; Guard = AERIAL LOOKOUT — stoops and screams
+  at small ground threats, and its circling point is a
+  warning other creatures read too.
+- **Drops**: sheds **Grave Feathers** (new item) — long flight
+  feathers, found at roosts; patience loot, the vesper
+  pattern at the opposite end of the size axis.
+- **Hook**: death, made useful and visible. Its circling
+  MARKS what explorers want — carcasses, graveyards,
+  leviathan bones — a natural signal readable from zones
+  away; and where it roosts, bone dust enriches the soil
+  (Bone family's "death-fertile" rule, wearing feathers).
+
+### 10. Storm Kite — the Storm emblem (family layer)
+
+- **Life**: Fauna x Ordinary. **Layer**: family emblem —
+  census [storm]. This design spends the Shape axis's reserved
+  seat: the creature that is MOSTLY WING.
+- **Shape**: Winged primary (nearly all of it) ; modifiers:
+  ribbon-tailed (a long streamer tail that is rudder,
+  anchor-line, and signature), slight-bodied.
+- **Locomotion**: Aerial primary — glider-leaning to obligate
+  in updraft country (storms are its meadows) + Drifting
+  secondary (long wind-rides between dune fields). At rest it
+  ANCHORS: tail wrapped on rock or wreck, body flagged in the
+  wind — stationary by grip, not by nature.
+- **Spectra**: Temperament skittish-wild / Social loose
+  kettles — soaring gatherings over the dunes / Speed the
+  wind's, for better and worse / Size mid body, huge span /
+  Diet hunter — aerial gnats, small flyers, and Skyfall's
+  airborne nutrient rain (it eats weather) / Day-night day,
+  and STORM-ACTIVE — bad weather wakes it; calm grounds it;
+  the family's inversion, on wings / Curiosity mid / Territory
+  a vast roam, but anchor sites are defended fiercely /
+  Tameability 25% — the path is a PERCH: build high, in open
+  wind, and a kite may adopt it as an anchor; adoption is the
+  taming, and the builder verb is the lure.
+- **Taming life**: Follow = soaring arcs overhead (the aerial
+  form of the shore rule); Stay = anchors to the highest
+  nearby point; Guard = WEATHER SENTINEL — a tamed kite's
+  behavior is a forecast: restless circling and low anchoring
+  mean a storm is coming before the sky admits it.
+- **Drops**: sheds **Kite Ribbons** (new item) — tail
+  streamers; a fiber-family material (kin to soft fiber),
+  molted at anchors each season of play.
+- **Hook**: the storm country's flag. Players read the dunes
+  by it — where kites kettle, the updrafts are; where every
+  kite has anchored low, you should think about shelter too.
+
+### 11. Greeter — the Living emblem (family layer)
+
+- **Life**: Fauna x Ordinary, in such deep symbiosis with its
+  valley that the Kind line is the argument: an animal wearing
+  Plantiform, networked into the land it stands on.
+  **Layer**: family emblem — census [living].
+- **Shape**: Plantiform primary + Quadruped secondary
+  (root-legs; it can relocate, at the speed of reconsidering).
+  Modifier: frond-handed — one reaching, waving limb that is
+  the whole species' first impression.
+- **Locomotion**: Stationary primary + Walking secondary —
+  the hermit's precedent, inverted: the Greeter is rooted by
+  preference and walks like an afterthought.
+- **Spectra** — recorded as the template's first MIRROR entry:
+  **Temperament = the valley's.** In a Welcoming valley the
+  Greeter is gentle, reaching out to touch visitors' hands
+  with its frond (the settled lore: the hello and the grab
+  start with the same gesture). In a Hungry valley the same
+  reach is a lure. Other spectra: Social one per grove,
+  networked / Speed slowest-walk / Size large / Diet
+  photosynthesizer + soil-feeder (Welcoming) OR hunter-by-
+  lure (Hungry) — Diet is the second mirror field /
+  Day-night diurnal (Welcoming) / dusk-active (Hungry) /
+  Curiosity TOTAL — everything that enters the grove gets
+  greeted; that is what it is FOR / Territory its rooting
+  spot, absolutely / Tameability: Welcoming 60% (it wants to
+  say hello; taming is answering) / Hungry UNTAMABLE —
+  dangerous in Normal / Hostile; in Peaceful its grab holds
+  but does not harm — a fright and a lesson in reading
+  valleys, per the Peaceful awareness pattern.
+- **Drops**: Welcoming groves shed **Hello Cuttings** (new
+  item) — a frond cutting that can root where planted
+  (build-phase question: decorative, or a small living
+  light?); Hungry groves drop nothing safely, which is also
+  information.
+- **Hook**: the valley, made personal and readable. A player
+  learns a Living zone's temperament from its Greeter before
+  they learn it from the land — the emblem as the family's
+  face, in the family's own gesture.
+
+### 12. Garden Warden — the Precursor emblem (family layer)
+
+- **Life**: Fauna x Forged — Axis 1's forged-animal cell, in
+  its flagship design. **Layer**: family emblem — census
+  [precursor]. One per garden, ruin, or tended place, if that.
+- **Shape**: Biped primary — near-human proportions, and the
+  note from Axis 3 applies in full: person-shape is the POINT
+  here and only here, because the makers shaped it in their
+  image. Modifiers: smooth-faced (features implied, never
+  quite resolved), tool-handed.
+- **Locomotion**: Walking — a measured patrol, unhurried for
+  centuries.
+- **Spectra**: Temperament calm-implacable / Social solo /
+  Speed mid and TIRELESS / Size human-large / Diet NONE —
+  the template's first null diet, recorded as data, not an
+  omission (it tends gardens; it does not eat) / Day-night
+  always — no sleep cycle; it dims at night like a banked
+  lamp, and patrols on / Curiosity procedural — it inspects
+  intruders and CLASSIFIES them; the inspection is slow,
+  thorough, and the most frightening calm on the roster /
+  Territory the garden's bounds, absolute / Tameability
+  UNTAMABLE — still on duty (the behavior doc's reason,
+  kept). NEGOTIABLE, though: solvent put away, slow
+  movements, nothing picked in its sight, and a tolerated
+  presence is earned — the negotiated-untamable pattern.
+- **Drops**: none, ever — harming one is a statement a player
+  makes on purpose. Instead, the GIFT pattern: a tolerated
+  player occasionally finds a tended cutting or seed left at
+  the garden's edge (**Warden's Tithe** — recorded as a
+  behavior, its item being ordinary garden flora, not a new
+  material).
+- **Hook**: precursor country with a caretaker. It explains
+  the tended ruins (someone has been gardening), teaches
+  ruins etiquette by enforcing it, and carries lore without
+  ever speaking a fate's name — a living fossil of the
+  Gardeners and the Departure, which it will not confirm,
+  because fates are never named in the UI and the Warden
+  keeps the makers' rules better than anyone.
+
 ## Build note — species as data (Adam's question, 2026-10-15)
 
 Adam asked whether each creature / plant needs its own code

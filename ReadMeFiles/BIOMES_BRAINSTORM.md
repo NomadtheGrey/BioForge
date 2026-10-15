@@ -1,10 +1,14 @@
 # Biomes — Brainstorm + Settled Rules
 
-**Status: MIXED (updated 2026-10-14).** The "Settled rules" section is
+**Status: MIXED (updated 2026-10-15).** The "Settled rules" section is
 decided, and the first four ecological types are now implemented under
-the per-zone model described below. The biome candidates remain
-BRAINSTORM ONLY — none are pinned; they get sorted later, and chosen
-ones move into CORE_MECHANICS.md.
+the per-zone model described below. On 2026-10-15 Adam settled the
+GROWTH FRAMEWORK (families + variants, two-biome combinations as a
+graph/matrix, plausible adjacency) — see "The biome graph" below.
+The specific family roster, variant names, and hybrid names inside
+that framework remain working drafts for his eyeball, and the biome
+candidates remain BRAINSTORM ONLY; chosen ones move into
+CORE_MECHANICS.md when they ship.
 
 ## Settled rules (pinned)
 
@@ -57,6 +61,100 @@ ones move into CORE_MECHANICS.md.
   across zones (the host simulates the occupied ones); pets need a zone-hop
   rule (v1: a following pet reappears beside its owner after a transition).
   Only the occupied instance needs full simulation and rendering.
+
+## The biome graph — families, variants, combinations (Adam, 2026-10-15)
+
+The growth framework, in Adam's formulation: **biomes form a graph —
+lay the families on both axes of a matrix, and where two line up,
+their combination is a hybrid biome.** The diagonal is the pure
+biomes; every off-diagonal cell is a crossfade of its row and
+column. It effectively **squares the biome count**: with *N*
+families the world holds *N* pure biomes plus *N(N−1)/2* hybrids —
+4 families → 10 zone identities, 6 → 21, 10 → 55 — each hybrid
+needing only a name pool, a tint blend, and a rule or two of its
+own, because both parents already exist.
+
+- **Families and variants ("adjacently similar" is fine).** A
+  *family* carries the baseline rules — affinity class, density,
+  hazards, the gauntlet/helmet adaptation it teaches. A *variant*
+  is a specific place inside a family: same skeleton, own tint,
+  name pool, spawn seasoning, and one or two signature features.
+  The four shipped biomes (meadow, wetland, fungal, ember) are the
+  first families; the twelve candidates below slot in as variants.
+- **Combinations.** A zone may be a crossfade of two families. A
+  hybrid inherits both parents' affinity lists (a species at home
+  in either parent can appear) and blends their rules; its own
+  signature feature comes from the *tension* between the parents.
+- **Plausible adjacency (Adam's Ember/Wetland rule).** Clashing
+  families never border directly — water does not leak into fire
+  country and put it out. Where the graph would place a clash side
+  by side, the world grows their HYBRID as the margin between them:
+  the crossfade is the buffer. Generation consequence, noted for
+  the build: zone rolls can no longer be fully independent — a new
+  zone's roll must glance at its already-rolled neighbors (the
+  host generates and stores zones, so neighbors exist to consult).
+
+### The family roster (working draft — 10 families)
+
+The shipped four, plus six promoted from the candidate bank and
+Adam's Living thread. Each family is also a rung on the adaptation
+ladder the gauntlet and helmet learn from (spore country teaches
+filtration, ember teaches thermal lining, saltglass teaches
+polarized fields, storm teaches stabilization…):
+
+1. **Meadow** (shipped) — temperate life, home ground.
+2. **Wetland** (shipped) — water, reeds, mist.
+3. **Fungal** (shipped) — dark, spores, decomposers.
+4. **Ember** (shipped) — heat, vents, ash.
+5. **Saltglass** — glare, crystal, freeze-thaw swings. *(Saltglass
+   Flats, Brine Shallows)*
+6. **Rootwood** — canopy, giant roots, vertical shade. *(Rootwood
+   Canopy)*
+7. **Bone** — graveyards, death-fertile, scavenger country.
+   *(Leviathan Graveyard)*
+8. **Storm** — magnetic fields, shifting sand, updrafts.
+   *(Magnetic Dunes, Skyfall Basin)*
+9. **The Living** — the land is one organism (see below).
+   *(Welcoming Valley, Hungry Valley)*
+10. **Precursor** — nature growing through engineered geometry.
+    *(Precursor Garden)*
+
+Meadow variants on the bank: Leviathan Graveyard belongs to Bone
+above; Mirror Marsh is Wetland's; Biolume Caverns is Fungal gone
+fully dark (and already lives as the first cave stratum's name);
+Lag Fields sit as Wetland × Storm's strange mist country.
+
+### The Living family — one organism, two temperaments
+
+The valley is a single dormant organism, and hosts have
+temperaments (Adam, 2026-10-15: "does the flora almost behave like
+fauna? Do alien vines reach out to touch you and say hello? Are
+there hostile valleys that try to eat you?"):
+
+- **The Welcoming Valley.** Curious, gentle flora: vines reach out
+  and brush the traveler — a hello. The ground heals shallow
+  damage; buildings are ACCEPTED, rooted in and strengthened.
+- **The Hungry Valley.** Carnivorous flora with fauna behavior:
+  stalking snap-vines, bushes leaning in to taste the air,
+  unattended drops quietly digested, buildings pushed out like
+  splinters. The hello and the grab begin with the same gesture —
+  a vine reaching toward you; color and speed teach the difference.
+- Mechanically near: snap traps are already flora with appetites,
+  and taming already treats plants and creatures with the same
+  interaction bones. Flora with fauna states (idle → alert → lunge)
+  is an extension, not an invention.
+
+### Example hybrids (working draft names)
+
+- **Wetland × Ember → the Scalding Fens.** Geothermal marsh: steam
+  vents, hot pools, resin plants grown fat. The clash, resolved
+  into a real place — and the buffer that keeps its parents apart.
+- **Meadow × Fungal → the Mulchwood.** Sunlit rot: giant
+  toadstools in clearings, compost country, decomposers at peace.
+- **Wetland × Saltglass → the Brine Shallows.** Salt crust cracking
+  over mudflats, glare doubled on standing water.
+- **Ember × Storm → the Iron Ashes.** Black magnetic sand over vent
+  country; storms drag the dunes into new shapes overnight.
 
 ## Implemented first pass (2026-10-14)
 

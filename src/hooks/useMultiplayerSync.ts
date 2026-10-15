@@ -21,7 +21,7 @@ import { multiplayerManager, type EntityKind, type EntitySnapshot } from '../gam
 import { soundEngine } from '../audio/soundEngine';
 import { routeForZoneTag, storeEntityEvent, type ZoneStores } from '../game/zoneSync';
 import { generateSeededWorld } from '../game/worldGen';
-import { SPAWN_ZONE, zoneBiomeAt, zoneKey, type ZoneCoords } from '../game/zones';
+import { SPAWN_ZONE, zoneBiomeAt, zoneVariantAt, zoneKey, type ZoneCoords } from '../game/zones';
 import type { WorldSnapshot } from '../game/saveSystem';
 import type { BioForgeThreeEngine } from '../game/threeEngine';
 import type { PendingTravel } from './useZoneTravel';
@@ -329,7 +329,7 @@ export function useMultiplayerSync(deps: MultiplayerSyncDeps): UseMultiplayerSyn
           drops: data.drops,
         });
         if (worldSeedRef.current) {
-          engineRef.current?.setZoneBiome(zoneBiomeAt(worldSeedRef.current, hostZone.zx, hostZone.zz));
+          engineRef.current?.setZoneBiome(zoneBiomeAt(worldSeedRef.current, hostZone.zx, hostZone.zz), zoneVariantAt(worldSeedRef.current, hostZone.zx, hostZone.zz)?.tint ?? null);
         }
         setDayNightCycle(data.dayNightCycle);
       },

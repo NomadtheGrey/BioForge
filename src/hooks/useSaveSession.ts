@@ -25,7 +25,7 @@ import {
   type GameDifficulty, type SaveMetadata, type SavedGameRecord, type WorldSnapshot,
 } from '../game/saveSystem';
 import { INITIAL_STRUCTURES } from './useWorldEntities';
-import { SPAWN_ZONE, zoneKey, zoneBiomeAt } from '../game/zones';
+import { SPAWN_ZONE, zoneKey, zoneBiomeAt, zoneVariantAt } from '../game/zones';
 import { generateSeededWorld } from '../game/worldGen';
 import { multiplayerManager } from '../game/multiplayer';
 import type { InstanceState } from './useInstances';
@@ -264,7 +264,7 @@ export function useSaveSession(deps: SaveSessionDeps) {
       // saves pass null and keep the plain quadrant colors). This is
       // the only biome repaint on load — handleSelectSave used to do
       // it for the spawn zone before zones could be restored mid-map.
-      engineRef.current?.setZoneBiome(record.worldSeed ? zoneBiomeAt(record.worldSeed, restoredZone.zx, restoredZone.zz) : null);
+      engineRef.current?.setZoneBiome(record.worldSeed ? zoneBiomeAt(record.worldSeed, restoredZone.zx, restoredZone.zz) : null, record.worldSeed ? zoneVariantAt(record.worldSeed, restoredZone.zx, restoredZone.zz)?.tint ?? null : null);
       // Gauntlet migration (types pass, 2026-10-15): the gauntlet is
       // issued equipment now, so every loaded world wears one — grant
       // it where an older save predates the starter kit. And fairness

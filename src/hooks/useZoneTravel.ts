@@ -21,7 +21,7 @@ import { useRef, useState } from 'react';
 import type { BioForgeThreeEngine } from '../game/threeEngine';
 import type { FirstPersonMovementController } from '../game/controller';
 import type { WorldSnapshot } from '../game/saveSystem';
-import { SPAWN_ZONE, zoneBiomeAt, zoneHops, zoneInfo, zoneKey, biomeDisplayName, type ZoneCoords } from '../game/zones';
+import { SPAWN_ZONE, zoneBiomeAt, zoneVariantAt, zoneHops, zoneInfo, zoneKey, biomeDisplayName, type ZoneCoords } from '../game/zones';
 import { generateSeededWorld } from '../game/worldGen';
 import { multiplayerManager } from '../game/multiplayer';
 import { snapshotOf, buildZoneSyncTravel as buildZoneSyncTravelPayload, type ZoneStores } from '../game/zoneSync';
@@ -217,7 +217,7 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
     // 3. Stand there: identity, paint, position, story, momentum.
     playerZoneRef.current = { zx: nx, zz: nz };
     setPlayerZone({ zx: nx, zz: nz });
-    engineRef.current?.setZoneBiome(zoneBiomeAt(seed, nx, nz));
+    engineRef.current?.setZoneBiome(zoneBiomeAt(seed, nx, nz), zoneVariantAt(seed, nx, nz)?.tint ?? null);
     applyPlayerLevel(0);
     jumpRef.current = { y: 0, vy: 0, bounceFlip: false };
     playerPosRef.current = { x: entry.x, z: entry.z, rotation: pos.rotation };

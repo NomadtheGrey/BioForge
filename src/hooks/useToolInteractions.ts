@@ -245,6 +245,10 @@ export function useToolInteractions({
         // Rootwood (2026-10-15): the premium building wood, plus
         // the fibrous bark the slabs shed.
         return { item: 'heartwood', count: flora.fertilizedYield ? 3 : 2, extras: [['soft_fiber', 1]] };
+      case 'precursor_bloom':
+        // Precursor (2026-10-15): living thread from the petals,
+        // dew beaded in the golden core — the gardens pay twice.
+        return { item: 'living_thread', count: flora.fertilizedYield ? 3 : 2, extras: [['dew_essence', 1]] };
       case 'mirror_lily':
         // Mirror Marsh (2026-10-15): the pads cup the doubled light
         // and bead it as dew; a reed sometimes roots alongside.
@@ -574,6 +578,8 @@ export function useToolInteractions({
                         ? 'nevermelt_ice' // ice does not seed; a carried piece is the stock
                         : flora.species === 'heartroot'
                           ? 'heartwood' // a cut heart is the stock; roots regrow from the giant, not from seed pouches
+                          : flora.species === 'precursor_bloom'
+                            ? 'living_thread' // grown thread is its own propagule
                     : (`seed_${flora.species}` as ItemId);
       const rawName = flora.species.replace(/_/g, ' ');
       const speciesName = rawName.charAt(0).toUpperCase() + rawName.slice(1);

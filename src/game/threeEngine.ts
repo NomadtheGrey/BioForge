@@ -28,11 +28,76 @@ import { FATE_STYLES, type WorldFate } from './ruins';
 
 const IRIS_DOOR_TRIGGER_RADIUS = 2.5;
 // Structures sit on ROLLING terrain (see terrainHeightAt): floors ride
-// this far above the sampled center height so a slab can never dip
-// under the surface between slope samples, and floor slope is sampled
-// this far either side of center — half the 2 m tile, i.e. its edges.
+// this far above their build's datum height so a slab can never dip
+// under the surface between slope samples.
 const FLOOR_TERRAIN_LIFT = 0.03;
-const SLOPE_SAMPLE_DISTANCE = 1;
+// Two structure anchors within this distance belong to the same build
+// for datum purposes: floor tiles are 2 m apart center-to-center, a
+// wall anchor sits 1 m from its floor's, and corner-touching tiles
+// meet at ~2.83 m.
+const STRUCTURE_LINK_DISTANCE = 2.85;
+
+/**
+ * The grid-built types that share build datums. Standalone objects —
+ * the forge, the cultivation mound, cave mouths, ruin landmarks —
+ * are NOT builds: they keep their own ground height and never join
+ * (or drag) a neighboring build's datum.
+ */
+const BUILDING_TYPES: ReadonlySet<string> = new Set([
+  'root_tile_floor',
+  'chitin_glass_wall',
+  'iris_slit_door',
+  'spore_canopy',
+  'vine_ladder',
+  'tamed_snap_trap_turret',
+  'lantern_fern_post',
+]);
+
+/**
+ * One flat DATUM per build (Adam, 2026-10-14: buildings must "line up
+ * somehow straight"). Connected building pieces — anchors within link
+ * distance, unioned transitively — share a single ground height: the
+ * LOWEST anchor height in the group, so nothing floats and uphill
+ * pieces settle into the rise like foundations. A lone piece is its
+ * own build and keeps its own height; non-building structures always
+ * keep theirs. Exported for the harness; the engine recomputes it on
+ * every structure sync.
+ */
+export function computeStructureDatums(
+  structures: readonly { id: string; worldX: number; worldZ: number; type: string }[],
+  heightAt: (x: number, z: number) => number,
+): Map<string, number> {
+  const buildings = structures.filter((s) => BUILDING_TYPES.has(s.type));
+  const parent = buildings.map((_, i) => i);
+  const find = (i: number): number => {
+    while (parent[i] !== i) {
+      parent[i] = parent[parent[i]];
+      i = parent[i];
+    }
+    return i;
+  };
+  for (let i = 0; i < buildings.length; i++) {
+    for (let j = i + 1; j < buildings.length; j++) {
+      const a = buildings[i];
+      const b = buildings[j];
+      if (Math.hypot(a.worldX - b.worldX, a.worldZ - b.worldZ) <= STRUCTURE_LINK_DISTANCE) {
+        const ra = find(i);
+        const rb = find(j);
+        if (ra !== rb) parent[ra] = rb;
+      }
+    }
+  }
+  const lowest = new Map<number, number>();
+  buildings.forEach((s, i) => {
+    const root = find(i);
+    const h = heightAt(s.worldX, s.worldZ);
+    if (h < (lowest.get(root) ?? Infinity)) lowest.set(root, h);
+  });
+  const out = new Map<string, number>();
+  structures.forEach((s) => out.set(s.id, heightAt(s.worldX, s.worldZ)));
+  buildings.forEach((s, i) => out.set(s.id, lowest.get(find(i))!));
+  return out;
+}
 // One story of building: wall posts are 2.4 m tall, so a level-1 piece
 // sits exactly one wall-height above its level-0 counterpart. Structure
 // levels (StructureEntity.level) multiply this.
@@ -530,13 +595,19 @@ export class BioForgeThreeEngine {
     );
   }
 
+  // The current build datums (see computeStructureDatums): recomputed
+  // on every structure sync, keyed by structure id, with a cell index
+  // so the entity-less placement ghost can find its build.
+  private structureDatums: Map<string, number> = new Map();
+  private structureDatumCells: Map<string, number> = new Map();
+
   /**
-   * Seat a structure (or its placement ghost) on the terrain: height at
-   * its center, and — for root-tile floors — a tilt matching the local
-   * slope, so the slab hugs the ground like a flagstone instead of
-   * clipping into a rise or hovering over a dip. Other structures take
-   * the height only: leaning walls would look drunk, and a few cm of
-   * settle at the base reads as "set into the ground" anyway.
+   * Seat a structure (or its placement ghost) on its build's DATUM:
+   * one flat ground height shared by every connected piece, all of
+   * them plumb. (Until 2026-10-14 ground floors TILTED to the local
+   * slope — Adam reversed that call in game: individually tilted
+   * slabs fanned against straight walls and nothing lined up. The
+   * land keeps its roll; buildings now level themselves.)
    */
   private applyTerrainTransform(
     mesh: THREE.Group,
@@ -546,35 +617,28 @@ export class BioForgeThreeEngine {
     rotation: number,
     level: number = 0
   ): void {
-    // Story levels stack on the terrain height: a level-1 wall stands
-    // where a level-0 wall's top ends, whatever the ground does below.
-    const groundY = this.terrainHeightAt(worldX, worldZ) + level * STORY_HEIGHT;
-    if (type !== 'root_tile_floor') {
-      mesh.position.set(worldX, groundY, worldZ);
-      mesh.rotation.set(0, rotation, 0);
-      return;
+    const entityId = (mesh.userData?.entity as StructureEntity | undefined)?.id;
+    let datum = entityId ? this.structureDatums.get(entityId) : undefined;
+    if (datum === undefined) {
+      // No entity (the placement ghost): borrow the datum of any
+      // build in the touched cells, taken with this spot's own height
+      // — the placed piece joins that build and the shared datum
+      // becomes the lower of the two, so the preview tells the truth.
+      let best: number | undefined;
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dz = -1; dz <= 1; dz++) {
+          const d = this.structureDatumCells.get(`${Math.round(worldX / 2) + dx},${Math.round(worldZ / 2) + dz}`);
+          if (d !== undefined && (best === undefined || d < best)) best = d;
+        }
+      }
+      if (best !== undefined) datum = Math.min(best, this.terrainHeightAt(worldX, worldZ));
     }
-    mesh.position.set(worldX, groundY + FLOOR_TERRAIN_LIFT, worldZ);
-    if (level > 0) {
-      // A ceiling floor must be FLAT — it rests on wall tops, not on the
-      // hillside. Only ground floors tilt with the terrain.
-      mesh.quaternion.copy(
-        new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotation)
-      );
-      return;
-    }
-    const hL = this.terrainHeightAt(worldX - SLOPE_SAMPLE_DISTANCE, worldZ);
-    const hR = this.terrainHeightAt(worldX + SLOPE_SAMPLE_DISTANCE, worldZ);
-    const hD = this.terrainHeightAt(worldX, worldZ - SLOPE_SAMPLE_DISTANCE);
-    const hU = this.terrainHeightAt(worldX, worldZ + SLOPE_SAMPLE_DISTANCE);
-    const normal = new THREE.Vector3(
-      hL - hR,
-      2 * SLOPE_SAMPLE_DISTANCE,
-      hD - hU
-    ).normalize();
-    const tilt = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
-    const yaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotation);
-    mesh.quaternion.copy(yaw).multiply(tilt);
+    // Story levels stack on the datum: a level-1 wall stands where a
+    // level-0 wall's top ends, whatever the ground does below.
+    const groundY = (datum ?? this.terrainHeightAt(worldX, worldZ)) + level * STORY_HEIGHT;
+    const lift = type === 'root_tile_floor' ? FLOOR_TERRAIN_LIFT : 0;
+    mesh.position.set(worldX, groundY + lift, worldZ);
+    mesh.rotation.set(0, rotation, 0);
   }
 
   private buildTerrain() {
@@ -862,6 +926,18 @@ export class BioForgeThreeEngine {
   // Bio-Structures & Proximity Doors
   // --------------------------------------------------------------------------
   public syncStructures(structuresList: StructureEntity[], playerX?: number, playerZ?: number) {
+    // Build datums first: every mesh seated below reads them.
+    this.structureDatums = computeStructureDatums(structuresList, (x, z) => this.terrainHeightAt(x, z));
+    this.structureDatumCells = new Map();
+    structuresList.forEach((s) => {
+      // Only building pieces advertise a datum to the placement ghost.
+      if (!BUILDING_TYPES.has(s.type)) return;
+      const d = this.structureDatums.get(s.id);
+      if (d !== undefined) {
+        this.structureDatumCells.set(`${Math.round(s.worldX / 2)},${Math.round(s.worldZ / 2)}`, d);
+      }
+    });
+
     const activeIds = new Set(structuresList.map((s) => s.id));
 
     this.structureMeshMap.forEach((mesh, id) => {

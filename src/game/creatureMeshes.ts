@@ -351,6 +351,29 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'obsidian_bloom': {
+        // Obsidian Garden (2026-10-15): a flower of fused black
+        // glass — flattened shard-petals around a violet heart.
+        // Metalness + low roughness gives it the glassy catch.
+        const glassMat = new THREE.MeshStandardMaterial({ color: 0x171021, metalness: 0.65, roughness: 0.22, emissive: 0x1e1033, emissiveIntensity: 0.6 });
+        const heartMat = new THREE.MeshStandardMaterial({ color: 0x8b5cf6, roughness: 0.3, emissive: 0x7c3aed, emissiveIntensity: 1.1 });
+        const stemMat2 = new THREE.MeshStandardMaterial({ color: 0x241a2e, roughness: 0.8 });
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.08, 0.7, 6), stemMat2);
+        stem.position.y = 0.35; stem.castShadow = true; group.add(stem);
+        for (let i = 0; i < 6; i++) {
+          const petal = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.5, 4), glassMat);
+          const a = (i / 6) * Math.PI * 2;
+          petal.scale.z = 0.35; // flattened into a shard
+          petal.position.set(Math.cos(a) * 0.16, 0.82, Math.sin(a) * 0.16);
+          petal.rotation.set(Math.sin(a) * 0.8, 0, -Math.cos(a) * 0.8);
+          group.add(petal);
+        }
+        const heart = new THREE.Mesh(new THREE.OctahedronGeometry(0.09), heartMat);
+        heart.position.y = 0.84;
+        group.add(heart);
+        break;
+      }
+
       case 'mirror_lily': {
         // Mirror Marsh (2026-10-15): the pool IS the mesh — a flat
         // reflective disc of mirror-liquid with lily pads riding it.

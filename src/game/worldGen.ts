@@ -742,6 +742,41 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
   }
 
   // ---------------------------------------------------------------------
+  // Obsidian Garden blooms (2026-10-15) — variant-gated BONUS life:
+  // black glass flowers fused by the old burning, source of the
+  // obsidian_shard crafting material.
+  // ---------------------------------------------------------------------
+  if (zoneVariant?.id === 'obsidian_garden') {
+    const gardenRng = createSeededRandom(stream('flora:obsidianbloom'));
+    let plantedGlass = 0;
+    for (let attempt = 0; attempt < 50 && plantedGlass < 6; attempt++) {
+      const x = (gardenRng() * 2 - 1) * 44;
+      const z = (gardenRng() * 2 - 1) * 44;
+      if (Math.hypot(x, z) < 8) continue;
+      if (flora.some((f) => Math.hypot(f.x - x, f.z - z) < 2.0)) continue;
+      flora.push({
+        id: `flora_obsidian_${plantedGlass}`,
+        species: 'obsidian_bloom',
+        x,
+        z,
+        biome: zoneBiome,
+        rotation: gardenRng() * Math.PI * 2,
+        scale: 1.0 + gardenRng() * 0.5,
+        growthStage: 3,
+        growthProgress: 1,
+        fertilizedGrowth: false,
+        fertilizedYield: false,
+        fertilizerTimer: 0,
+        harvestReady: true,
+        harvestTimer: 0,
+        isHazardous: false,
+        swayOffset: 700 + plantedGlass,
+      });
+      plantedGlass++;
+    }
+  }
+
+  // ---------------------------------------------------------------------
   // Cave mouths (P3, surface half) — grown LAST, once the surface they
   // must respect exists: mouths keep their footprint clear of the
   // homestead (spawn zone only — it's the only zone with one) and of

@@ -1397,6 +1397,18 @@ export const INITIAL_CODEX: CodexEntry[] = [
     iconColor: '#2dd4bf',
   },
   {
+    species: 'cinder_bloom',
+    name: 'Cinder Bloom',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A flower that grows on the vents of the Ember Scar, drinking heat that would kill anything softer. Its cup beads with resin the sun has already cured.',
+    byproducts: ['Resin Sap', 'Dew Essence'],
+    tamingOrCraftNotes: 'Harvest with the glove — mind the hour. The scar is dangerous at noon and warm at midnight; the bloom keeps the same hours as the scar itself.',
+    biome: 'Ember Scar zones',
+    iconColor: '#ff7a2a',
+  },
+  {
     species: 'mirror_lily',
     name: 'Mirror Lily',
     type: 'flora',

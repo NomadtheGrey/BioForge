@@ -326,6 +326,31 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'cinder_bloom': {
+        // Ember Scar (2026-10-15): a flower growing ON a vent — a
+        // charred disc at its base, a dark stem, and layered ember
+        // petals around a glowing core. It drinks the heat.
+        const charMat = new THREE.MeshStandardMaterial({ color: 0x1f1512, roughness: 1 });
+        const stemMat = new THREE.MeshStandardMaterial({ color: 0x3a2320, roughness: 0.9 });
+        const petalMat = new THREE.MeshStandardMaterial({ color: 0xd9481c, roughness: 0.55, emissive: 0x7c2d12, emissiveIntensity: 0.5 });
+        const coreMat = new THREE.MeshStandardMaterial({ color: 0xffb25e, roughness: 0.3, emissive: 0xff7a2a, emissiveIntensity: 1.2 });
+        const base = new THREE.Mesh(new THREE.CircleGeometry(0.55, 12), charMat);
+        base.rotation.x = -Math.PI / 2; base.position.y = 0.02; group.add(base);
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.09, 0.8, 6), stemMat);
+        stem.position.y = 0.4; stem.castShadow = true; group.add(stem);
+        for (let i = 0; i < 5; i++) {
+          const petal = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.42, 5), petalMat);
+          const a = (i / 5) * Math.PI * 2;
+          petal.position.set(Math.cos(a) * 0.17, 0.86, Math.sin(a) * 0.17);
+          petal.rotation.set(Math.sin(a) * 0.7, 0, -Math.cos(a) * 0.7);
+          group.add(petal);
+        }
+        const core = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), coreMat);
+        core.position.y = 0.88;
+        group.add(core);
+        break;
+      }
+
       case 'mirror_lily': {
         // Mirror Marsh (2026-10-15): the pool IS the mesh — a flat
         // reflective disc of mirror-liquid with lily pads riding it.

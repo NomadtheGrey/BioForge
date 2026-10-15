@@ -122,6 +122,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'uncommon',
     maxStack: 99,
   },
+  bone_meal: {
+    id: 'bone_meal',
+    name: 'Bone Meal',
+    category: 'raw',
+    description: 'Ground gravebloom and bonemeal dust — death, fully composted. The richest soil-food in the world; whatever the fertilizer system becomes, this will matter to it.',
+    iconName: 'Sparkles',
+    color: '#e7e5e4',
+    rarity: 'uncommon',
+    maxStack: 99,
+  },
   living_thread: {
     id: 'living_thread',
     name: 'Living Thread',
@@ -497,6 +507,30 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     description: 'The gardeners grew their help: a tender, shaped for the rows — and this one died standing, ten thousand years ago. Hollow ribs, a cracked skull-dome, nothing inside but wind. It was never built. It was grown.',
     iconName: 'Bone',
     color: '#d6cdb4',
+    rarity: 'rare',
+    maxStack: 1,
+  },
+  // Bone scenery (2026-10-15): world generation grows these in
+  // Bone country — fragments everywhere; the leviathan only in
+  // its Graveyard (which ROLLS as a rare variant, Adam's call:
+  // rarity does the scarcity, no landmark bookkeeping).
+  bone_fragment: {
+    id: 'bone_fragment',
+    name: 'Bone Fragment',
+    category: 'structure',
+    description: 'A rib, a shard, half a jaw — something big died here once, and the country has been telling the story ever since.',
+    iconName: 'Bone',
+    color: '#d6cdb4',
+    rarity: 'common',
+    maxStack: 1,
+  },
+  leviathan_ribs: {
+    id: 'leviathan_ribs',
+    name: 'The Leviathan',
+    category: 'structure',
+    description: 'Ribs you walk under. A skull like a house. Whatever this was, it was the biggest thing in its world, and its world ended anyway. The soil around it is the richest in the country.',
+    iconName: 'Bone',
+    color: '#e2dac6',
     rarity: 'rare',
     maxStack: 1,
   },
@@ -1533,6 +1567,18 @@ export const INITIAL_CODEX: CodexEntry[] = [
     tamingOrCraftNotes: 'Harvest with the glove for living thread. The gardens pay twice (Adam): the thread, and rich ordinary stock all around it.',
     biome: 'Precursor zones',
     iconColor: '#d9f99d',
+  },
+  {
+    species: 'gravebloom',
+    name: 'Gravebloom',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A pale flower that grows out of bone itself — roots in a rib, petals like bleached silk, a marrow-gold heart. Bone country feeds everything that ever died here forward into it.',
+    byproducts: ['Bone Meal', 'Dew Essence'],
+    tamingOrCraftNotes: 'Harvest with the glove for bone meal.',
+    biome: 'Bone zones',
+    iconColor: '#e7e5e4',
   },
   {
     species: 'mirror_lily',

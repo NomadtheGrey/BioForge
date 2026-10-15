@@ -20,6 +20,7 @@ export type ItemId =
   | 'nevermelt_ice'
   | 'heartwood'
   | 'living_thread'
+  | 'bone_meal'
   | 'basic_compost'
   | 'glow_spore'
   | 'hand_lantern_fern'
@@ -63,6 +64,8 @@ export type ItemId =
   | 'vine_shaft'
   | 'ruin_landmark'
   | 'tender_husk'
+  | 'bone_fragment'
+  | 'leviathan_ribs'
   | 'ruin_exit'
   | 'precursor_cache'
   | 'artifact_heart'
@@ -148,7 +151,8 @@ export type FloraSpecies =
   | 'prism_reed'
   | 'rime_spire'
   | 'heartroot'
-  | 'precursor_bloom';
+  | 'precursor_bloom'
+  | 'gravebloom';
 
 export interface FloraEntity {
   id: string;
@@ -225,6 +229,8 @@ export type StructureType =
   | 'vine_shaft'
   | 'ruin_landmark'
   | 'tender_husk'
+  | 'bone_fragment'
+  | 'leviathan_ribs'
   | 'ruin_exit'
   | 'precursor_cache'
   | 'artifact_heart'

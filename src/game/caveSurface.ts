@@ -253,6 +253,8 @@ const BIOME_ACCENTS: Record<BiomeId, { type: CaveDressingType; count: number }[]
   rootwood: [{ type: 'reed_cluster', count: 3 }],
   // Precursor (2026-10-15): their glow gardens reached even here.
   precursor: [{ type: 'glow_fungus_cluster', count: 3 }],
+  // Bone (2026-10-15): parched, cracked earth at the mouth.
+  bone: [{ type: 'heat_cracked_stone', count: 2 }],
 };
 
 function dressMouth(rng: () => number, anchor: { x: number; z: number; facing: number }, biome: BiomeId): CaveDressingPiece[] {

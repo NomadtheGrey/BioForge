@@ -47,6 +47,8 @@ export interface GameLoopDeps {
   keysPressed: { current: Record<string, boolean> };
   touchInputRef: { current: TouchMoveInput };
   staminaRef: { current: number };
+  /** True while the player stands in spore-thick variant air. */
+  sporeStaminaRef: { current: boolean };
   lastStaminaSync: { current: number };
   sprinting: { current: boolean };
   edgePushRef: { current: { dir: 'N' | 'S' | 'E' | 'W'; since: number } | null };
@@ -99,7 +101,7 @@ export interface GameLoopDeps {
 export function useGameLoop(deps: GameLoopDeps): void {
   const {
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
-    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, lastStaminaSync,
+    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, lastStaminaSync,
     sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
@@ -287,7 +289,14 @@ export function useGameLoop(deps: GameLoopDeps): void {
         }
 
         const isSprintingNow = wantSprint && moveResult.isMoving && !isPaused;
-        const staminaDelta = isSprintingNow ? -18 * dt : (moveResult.isMoving ? 8 : 14) * dt;
+        // Variant effect (Adam, 2026-10-15): Fungal Hollow air is
+        // spore-thick — standing in it taxes stamina 8/s, exactly
+        // cancelling walking regen and slowing rest recovery. The
+        // planned answer is a helmet + filter upgrade; until it
+        // exists, the hollow is a place you cross, not linger in.
+        // Surface only — underground is cave air, not hollow air.
+        const sporeTax = sporeStaminaRef.current && activeInstance.kind === 'surface' ? 8 * dt : 0;
+        const staminaDelta = (isSprintingNow ? -18 * dt : (moveResult.isMoving ? 8 : 14) * dt) - sporeTax;
         staminaRef.current = Math.max(0, Math.min(100, staminaRef.current + staminaDelta));
         if (performance.now() - lastStaminaSync.current > 100) {
           lastStaminaSync.current = performance.now();

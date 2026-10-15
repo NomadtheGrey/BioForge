@@ -50,6 +50,7 @@ import {
   zoneKey,
   zoneHudLabels,
   zoneVariantAt,
+  livingHeartAt,
   type ZoneCoords,
 } from './game/zones';
 import { routeForZoneTag, storeEntityEvent, snapshotOf, buildZoneSyncTravel as buildZoneSyncTravelPayload, type ZoneStores } from './game/zoneSync';
@@ -416,6 +417,12 @@ export default function App() {
     []
   );
 
+  // Feeding the valley (Living, 2026-10-15): the satiation
+  // deadline lives HERE because the tool hook composes before
+  // the variant-effect refs below — App owns it; the loop and
+  // the tool hook both read the same ref.
+  const valleySatiatedUntilRef = useRef(0);
+
   // 4. Encapsulated Tool Interactions
   const {
     handleGroundClick,
@@ -435,6 +442,7 @@ export default function App() {
     hasItem,
     resetFloraHarvest,
     applyFloraFertilizer,
+    valleySatiatedUntilRef,
     addFlora,
     addStructure,
     removeStructure,
@@ -661,6 +669,23 @@ const {
     if (zotWarnTimeoutRef.current) clearTimeout(zotWarnTimeoutRef.current);
     zotWarnTimeoutRef.current = setTimeout(() => setZotWarn(false), 2300);
   };
+  // The Living (2026-10-15): temperament refs + the grab cue.
+  // The valley satiation deadline is shared: useToolInteractions
+  // pushes it forward when a heartbloom is fed; the loop obeys.
+  const livingWelcomeRef = useRef(false);
+  const livingHungerRef = useRef(false);
+  const livingTwomindedRef = useRef(false);
+  const livingHeartRef = useRef<{ x: number; z: number; r: number } | null>(null);
+  const grabStateRef = useRef({ timer: 14, warned: false, warnX: 0, warnZ: 0 });
+  const grabSnareUntilRef = useRef(0);
+  const onGrabWarningRef = useRef<(() => void) | null>(null);
+  const [grabWarn, setGrabWarn] = useState(false);
+  const grabWarnTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  onGrabWarningRef.current = () => {
+    setGrabWarn(true);
+    if (grabWarnTimeoutRef.current) clearTimeout(grabWarnTimeoutRef.current);
+    grabWarnTimeoutRef.current = setTimeout(() => setGrabWarn(false), 2000);
+  };
   const healthRef = useRef(100);
   const lastHealthSync = useRef(0);
   // Death + respawn (Adam, 2026-10-15): the loop fires
@@ -692,6 +717,30 @@ const {
     stormZotRef.current = sessionSeed && zoneBiomeAt(sessionSeed, playerZone.zx, playerZone.zz) === 'storm'
       ? (variant?.zotIntervalSec ?? 35)
       : 0;
+    // The Living's temperaments (2026-10-15): the variant IS the
+    // mood. Two-Minded carries living_hunger as its effect id;
+    // the loop splits it by the heart thicket (livingHeartRef).
+    livingWelcomeRef.current = variant?.effect === 'living_welcome';
+    livingHungerRef.current = variant?.effect === 'living_hunger' && variant?.id !== 'twominded_valley';
+    livingTwomindedRef.current = variant?.id === 'twominded_valley';
+    livingHeartRef.current = variant?.id === 'twominded_valley' && sessionSeed
+      ? livingHeartAt(sessionSeed, playerZone.zx, playerZone.zz)
+      : null;
+    // The Content Valley (2026-10-15): plain Living zones have no
+    // variant, so the variant chain below never speaks for them —
+    // the family's home face gets its own one-time word.
+    if (sessionSeed && !variant && zoneBiomeAt(sessionSeed, playerZone.zx, playerZone.zz) === 'living') {
+      const plainKey = `${sessionSeed}:living:plain`;
+      if (!variantAlertedRef.current.has(plainKey)) {
+        variantAlertedRef.current.add(plainKey);
+        postNotification(
+          'The Content Valley',
+          'This whole valley is one organism — the purple-black grass is its skin, and somewhere in it beats a single heartbloom. It knows you are here. It does not mind. Not all of its moods are this calm.',
+          'system',
+          '#c084fc',
+        );
+      }
+    }
     if (variant && sessionSeed) {
       const key = `${sessionSeed}:${variant.id}`;
       if (!variantAlertedRef.current.has(key)) {
@@ -850,6 +899,27 @@ const {
             'system',
             '#a5d8e8',
           );
+        } else if (variant.id === 'welcoming_valley') {
+          postNotification(
+            'Welcoming Valley',
+            'The valley is in its generous mood — the ground itself heals you while you stand in it. Somewhere in it beats one heartbloom; even a kind host likes to be fed.',
+            'system',
+            '#e9d5ff',
+          );
+        } else if (variant.id === 'hungry_valley') {
+          postNotification(
+            'Hungry Valley',
+            'The hello and the grab begin with the same gesture here. When the ground rustles and the edges of your sight go red, MOVE — the roots lash the spot you stood on. Or feed the heartbloom, and it will digest instead of hunting.',
+            'system',
+            '#fda4af',
+          );
+        } else if (variant.id === 'twominded_valley') {
+          postNotification(
+            'Two-Minded Valley',
+            'Both moods at once: the clearings heal you, and the thicket around its heartbloom grabs. Learn where the heart grows, and you know which valley you are standing in.',
+            'system',
+            '#d8b4fe',
+          );
         } else if (variant.id === 'mirror_marsh') {
           postNotification(
             'The Mirror Marsh',
@@ -881,7 +951,7 @@ const {
   useGameLoop({
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
     jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, lastStaminaSync,
-    sprinting, sporeStaminaRef, marshSluggishRef, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
+    sprinting, sporeStaminaRef, marshSluggishRef, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef,
@@ -1051,6 +1121,17 @@ const {
         <div
           className="absolute inset-0 pointer-events-none z-40"
           style={{ background: 'radial-gradient(ellipse at center, transparent 52%, rgba(251,191,36,0.28) 100%)', boxShadow: 'inset 0 0 120px rgba(253,230,138,0.35)' }}
+        />
+      )}
+
+      {/* Grab WARNING (Living, 2026-10-15): the rustle before the
+          roots lash — deep red at the edges. The fairness cue for
+          the grab, same contract as the zot's still-bright flash:
+          see it, move off the spot, watch the ground grab air. */}
+      {grabWarn && (
+        <div
+          className="absolute inset-0 pointer-events-none z-40"
+          style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(159,18,57,0.32) 100%)', boxShadow: 'inset 0 0 120px rgba(190,18,60,0.4)' }}
         />
       )}
 

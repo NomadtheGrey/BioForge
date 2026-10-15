@@ -57,6 +57,19 @@ export interface GameLoopDeps {
   // strikes in Storm country (0 = not storm country), and the
   // warning callback App uses for the still-bright cue.
   stormZotRef: { current: number };
+  // The Living (2026-10-15): temperament refs — welcome heals,
+  // hunger grabs, twominded decides by the heart-thicket patch
+  // (livingHeartRef, set by App per zone). grabState is the
+  // grab timer + warned spot; the snare deadline slows movement;
+  // the satiation deadline (fed heartbloom) pauses the grabs.
+  livingWelcomeRef: { current: boolean };
+  livingHungerRef: { current: boolean };
+  livingTwomindedRef: { current: boolean };
+  livingHeartRef: { current: { x: number; z: number; r: number } | null };
+  grabStateRef: { current: { timer: number; warned: boolean; warnX: number; warnZ: number } };
+  grabSnareUntilRef: { current: number };
+  valleySatiatedUntilRef: { current: number };
+  onGrabWarningRef: { current: (() => void) | null };
   onZotWarningRef: { current: (() => void) | null };
   zotStateRef: { current: { timer: number; warned: boolean } };
   thawColdRef: { current: boolean };
@@ -122,7 +135,7 @@ export interface GameLoopDeps {
 export function useGameLoop(deps: GameLoopDeps): void {
   const {
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
-    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
+    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
     sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
@@ -173,7 +186,10 @@ export function useGameLoop(deps: GameLoopDeps): void {
         // planned answer is a boots module (Waders); until boots
         // exist, the marsh is country you feel in your legs.
         const wading = marshSluggishRef.current && instanceRef.current.kind === 'surface' ? 0.85 : 1;
-        movementController.current.sprintMultiplier = (wantSprint ? 1.6 : 1) * wading;
+        // Rooted by the valley (Living, 2026-10-15): a landed
+        // grab holds you at 40% speed while the snare lasts.
+        const snared = performance.now() < grabSnareUntilRef.current && instanceRef.current.kind === 'surface' ? 0.4 : 1;
+        movementController.current.sprintMultiplier = (wantSprint ? 1.6 : 1) * wading * snared;
 
         // Inside an instance, the instance grid itself is the walls
         // (caverns use their grid raw; ruins pass the collision copy).
@@ -393,6 +409,65 @@ export function useGameLoop(deps: GameLoopDeps): void {
             }
             zotState.timer = stormZotRef.current * (0.6 + Math.random() * 0.8);
             zotState.warned = false;
+          }
+        }
+
+        // ---------------------------------------------------------
+        // The LIVING (2026-10-15): one organism, two temperaments.
+        // WELCOME: the ground heals (+1.2/s toward 100, surface).
+        // HUNGER: the grab — warned ~2s ahead (App banner), aimed
+        // at the spot you stood on; move 3.5m+ and it grabs air.
+        // A landed grab: 10 health (death rules as scar heat) and
+        // a 3s root-snare at 40% speed. FEEDING a heartbloom
+        // satiates: grabs pause while the valley digests.
+        // TWO-MINDED: hunger inside the heart thicket, welcome
+        // outside it — decided per frame by distance to the heart.
+        if ((livingWelcomeRef.current || livingHungerRef.current || livingTwomindedRef.current) && activeInstance.kind === 'surface') {
+          let welcomeHere = livingWelcomeRef.current;
+          let hungerHere = livingHungerRef.current;
+          if (livingTwomindedRef.current && livingHeartRef.current) {
+            const heart = livingHeartRef.current;
+            const inThicket = Math.hypot(playerPosRef.current.x - heart.x, playerPosRef.current.z - heart.z) < heart.r;
+            welcomeHere = !inThicket;
+            hungerHere = inThicket;
+          }
+          if (welcomeHere && healthRef.current < 100) {
+            healthRef.current = Math.min(100, healthRef.current + 1.2 * dt);
+            if (performance.now() - lastHealthSync.current > 200) {
+              lastHealthSync.current = performance.now();
+              setHealth(healthRef.current);
+            }
+          }
+          if (hungerHere) {
+            const grab = grabStateRef.current;
+            if (performance.now() < valleySatiatedUntilRef.current) {
+              grab.timer = 12; // digesting — the timer holds
+              grab.warned = false;
+            } else {
+              grab.timer -= dt;
+              if (grab.timer <= 2.0 && !grab.warned) {
+                grab.warned = true;
+                grab.warnX = playerPosRef.current.x;
+                grab.warnZ = playerPosRef.current.z;
+                onGrabWarningRef.current?.();
+              }
+              if (grab.timer <= 0) {
+                const moved = Math.hypot(playerPosRef.current.x - grab.warnX, playerPosRef.current.z - grab.warnZ);
+                if (moved <= 3.5) {
+                  const floor = deathArmedRef.current ? 0 : 1;
+                  healthRef.current = Math.max(floor, healthRef.current - 10);
+                  setHealth(healthRef.current);
+                  lastHealthSync.current = performance.now();
+                  grabSnareUntilRef.current = performance.now() + 3000;
+                  if (deathArmedRef.current && healthRef.current <= 0 && !playerDeadRef.current) {
+                    playerDeadRef.current = true;
+                    onPlayerDeathRef.current?.();
+                  }
+                }
+                grab.timer = 22 * (0.7 + Math.random() * 0.6);
+                grab.warned = false;
+              }
+            }
           }
         }
 

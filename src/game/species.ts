@@ -42,6 +42,7 @@ export type SpeciesProfile =
   | 'predator'  // territorial hunter (chitin_stalker)
   | 'drifter'   // airborne, unhurried, untamable (mirror_moth)
   | 'glider'    // airborne, wary (vesper_glider)
+  | 'flyer'     // airborne, powered — flaps more than it glides (vent_drake)
   | 'hare'      // burst-fast prey animal (pale_hare)
   | 'insect'    // tiny background life (dew_gnat, glint_beetle)
   | 'bird'      // ground birds with opinions (sedge_hen)
@@ -92,6 +93,29 @@ export interface SpeciesHunt {
   biteCooldownSeconds: number;
 }
 
+/**
+ * The flight spec (creature build phase, slice 6, 2026-10-15):
+ * how a species' body is DRAWN above the terrain. The sim stays
+ * 2D (as it always has — the vesper glider shipped that way);
+ * flight is altitude + a rise-and-settle bob + a wing flap for
+ * meshes that name their wings 'wingL'/'wingR'. The flight
+ * spectrum from the design pass lives in these numbers: powered
+ * fliers flap fast and bob quick (the Spire Bat), obligate
+ * gliders ride high and slow (the Bonepicker).
+ */
+export interface SpeciesFlight {
+  /** Cruise height above the terrain, meters. */
+  altitude: number;
+  /** Rise-and-settle amplitude, meters. */
+  bobHeight: number;
+  /** Bob cycles per second (radians of animTime, like the
+   *  shipped branches use). */
+  bobRate: number;
+  /** Wing flap rate; absent = no wing flap (a blur-winged
+   *  insect, or a shape that reads better still). */
+  flapRate?: number;
+}
+
 export interface SpeciesBonusSpawn {
   /** Family affinities — the zone's biome OR a hybrid's secondary
    *  family both count, the same admixture rule the census uses.
@@ -135,6 +159,9 @@ export interface SpeciesDef {
    *  Tamed hunters never hunt the player; on guard they patrol
    *  like the stalker always did. */
   hunt?: SpeciesHunt;
+  /** The flight spec (slice 6): present only on airborne
+   *  species. Draw-only — see SpeciesFlight. */
+  flight?: SpeciesFlight;
   /** Present only for route-3 species (see header). */
   bonusSpawn: SpeciesBonusSpawn | null;
 }
@@ -189,6 +216,10 @@ export const SPECIES: Record<FaunaSpecies, SpeciesDef> = {
     // Pollinators shake dew from the mirror lilies as they drift;
     // wild or tame, the marsh provides (2026-10-15).
     byproduct: { item: 'dew_essence', seconds: 50, tamedOnly: false },
+    // Hover-drift (slice 6): the moth had no lift branch in the
+    // mesh updater — the table's flight spec finally draws it at
+    // the height its design always claimed.
+    flight: { altitude: 0.9, bobHeight: 0.15, bobRate: 2.2, flapRate: 5.5 },
     bonusSpawn: null, // radar special (Mirror Marsh block in worldGen)
   },
   vesper_glider: {
@@ -201,6 +232,10 @@ export const SPECIES: Record<FaunaSpecies, SpeciesDef> = {
     // NATURAL shedding: the radar's supply chain must never require
     // harming one (Adam, 2026-10-14) — the vanes are non-lethal.
     byproduct: { item: 'sonar_vane', seconds: 45, tamedOnly: false },
+    // Its shipped glide, documented as data (slice 6): the
+    // bespoke branch in updateFaunaMesh still draws it (named
+    // wings), and these numbers match that branch exactly.
+    flight: { altitude: 0.85, bobHeight: 0.22, bobRate: 1.7, flapRate: 2.6 },
     bonusSpawn: null, // radar special (meadow/fungal block in worldGen)
   },
   scale_bear: {
@@ -307,6 +342,9 @@ export const SPECIES: Record<FaunaSpecies, SpeciesDef> = {
     bait: null,
     petName: 'Dew Gnat',
     byproduct: null,
+    // Its shipped darting hover, documented as data (slice 6);
+    // the bespoke branch still draws it.
+    flight: { altitude: 0.55, bobHeight: 0.13, bobRate: 7.3 },
     bonusSpawn: {
       biomes: 'all',
       count: 3,
@@ -1306,6 +1344,146 @@ export const SPECIES: Record<FaunaSpecies, SpeciesDef> = {
       speed: 1.1, // glacial, until it isn't
       speedJitter: 0.05,
       health: 160,
+    },
+  },
+
+  // ------------------------------------------------------------------
+  // Slice 6 (2026-10-15) — THE AERIAL SLICE: the table learns
+  // flight (see SpeciesFlight), and the sky's cast lands.
+  // ------------------------------------------------------------------
+
+  // #9 — the Bone emblem, a glider shipped as a glider: a
+  // bare-headed, broad-winged scavenger whose circling MARKS
+  // what explorers want — carcasses, graveyards, leviathan
+  // bones. 20%, and time-gated in spirit: it respects
+  // PROVISION over attempts (v1 ships the lure; the carrion
+  // economy is a later slice). Sheds Grave Feathers at roosts
+  // — patience loot, the vesper pattern at the opposite end
+  // of the size axis.
+  bonepicker: {
+    id: 'bonepicker',
+    name: 'Bonepicker',
+    profile: 'glider',
+    tameChance: 0.2,
+    bait: 'nectar',
+    petName: 'Bonepicker',
+    byproduct: { item: 'grave_feather', seconds: 300, tamedOnly: false },
+    flight: { altitude: 2.4, bobHeight: 0.35, bobRate: 0.9, flapRate: 1.1 },
+    bonusSpawn: {
+      biomes: ['bone'],
+      count: 2, // where something has died, the pickers assemble
+      minRadius: 12,
+      spacing: 6,
+      speed: 2.2, // the wind's pace
+      speedJitter: 0.15,
+      health: 40,
+    },
+  },
+
+  // #10 — the Storm emblem: the creature that is MOSTLY WING,
+  // a slight body on a huge span with a ribbon tail that is
+  // rudder, anchor-line, and signature. 25% — the design's
+  // path is a perch (build high, in open wind, and a kite may
+  // adopt it); v1 ships the lure and keeps the perch for a
+  // later behavior slice. Sheds Kite Ribbons at its anchors.
+  storm_kite: {
+    id: 'storm_kite',
+    name: 'Storm Kite',
+    profile: 'glider',
+    tameChance: 0.25,
+    bait: 'nectar',
+    petName: 'Storm Kite',
+    byproduct: { item: 'kite_ribbon', seconds: 300, tamedOnly: false },
+    flight: { altitude: 3.0, bobHeight: 0.4, bobRate: 1.1, flapRate: 1.4 },
+    bonusSpawn: {
+      biomes: ['storm'],
+      count: 1,
+      minRadius: 14,
+      spacing: 8,
+      speed: 2.6, // the wind's, for better and worse
+      speedJitter: 0.2,
+      health: 35,
+    },
+  },
+
+  // #129 — the Scar's chimney-keeper: a soot-sailed drake
+  // that dive-hunts the vent fields. It rides slice 5's hunt
+  // from the air — the chase is drawn at altitude, the bite
+  // lands the same. 10%, by provision at ITS vent, over
+  // weeks. THE TELL (design): its shadow crosses the vent
+  // steam before the dive; in v1 the alert carries it.
+  vent_drake: {
+    id: 'vent_drake',
+    name: 'Vent Drake',
+    profile: 'flyer',
+    tameChance: 0.1,
+    bait: 'nectar',
+    petName: 'Vent Drake',
+    byproduct: null,
+    hunt: { aggroRange: 10, damage: 11, biteRange: 2.0, biteCooldownSeconds: 1.5 },
+    flight: { altitude: 2.6, bobHeight: 0.35, bobRate: 1.4, flapRate: 2.2 },
+    bonusSpawn: {
+      biomes: ['ember'],
+      count: 1,
+      minRadius: 14,
+      spacing: 8,
+      speed: 2.8, // fast in the dive, lazy in the climb
+      speedJitter: 0.15,
+      health: 55,
+    },
+  },
+
+  // #30 — the Fangs' second set of teeth, soft ones: a huge-
+  // eared bat of the spire ledges, a colony animal — it bonds
+  // to a ROOST, not a person (colony-logic taming; v1 ships
+  // the lure at the design's 20%). Sheds Spire Down from the
+  // roost floor — insulation-kin to Frost Velvet, the cold
+  // answered at two scales, stag and bat. Shares the Fangs
+  // with the fangwolf pack, which is the design's own joke:
+  // the eruption, still going on at night, on wings.
+  spire_bat: {
+    id: 'spire_bat',
+    name: 'Spire Bat',
+    profile: 'flyer',
+    tameChance: 0.2,
+    bait: 'nectar',
+    petName: 'Spire Bat',
+    byproduct: { item: 'spire_down', seconds: 240, tamedOnly: false },
+    flight: { altitude: 1.8, bobHeight: 0.3, bobRate: 3.2, flapRate: 6.5 },
+    bonusSpawn: {
+      biomes: ['frost'],
+      variant: 'frost_fangs',
+      count: 3, // a colony's overflow
+      minRadius: 10,
+      spacing: 3,
+      speed: 3.0,
+      speedJitter: 0.25,
+      health: 10,
+    },
+  },
+
+  // #61 — the Graveyard's courier: a pale, grave-quiet moth,
+  // the treaty's third signatory — it eats Bonemoss spores
+  // and carries them bone to bone on dusted wings. Untamable
+  // by smallness; the Graveyard's small citizens are staff,
+  // not stock. No drops.
+  dust_moth: {
+    id: 'dust_moth',
+    name: 'Dust Moth',
+    profile: 'flyer',
+    tameChance: null,
+    bait: null,
+    petName: 'Dust Moth',
+    byproduct: null,
+    flight: { altitude: 1.1, bobHeight: 0.25, bobRate: 2.4, flapRate: 5.0 },
+    bonusSpawn: {
+      biomes: ['bone'],
+      count: 3, // loose dusk companies over the bones
+      minRadius: 8,
+      spacing: 3,
+      speed: 1.2, // flutter and settle
+      speedJitter: 0.2,
+      health: 4,
     },
   },
 };

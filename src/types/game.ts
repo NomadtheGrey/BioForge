@@ -19,6 +19,9 @@ export type ItemId =
   | 'prism_hair'
   | 'lodestone_sand'
   | 'field_scute'
+  | 'grave_feather'
+  | 'kite_ribbon'
+  | 'spire_down'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -248,7 +251,13 @@ export type FaunaSpecies =
   | 'prism_cat'
   | 'fen_lurker'
   | 'hollow_widow'
-  | 'sporeback';
+  | 'sporeback'
+  // Slice 6 (2026-10-15) — the aerial cast.
+  | 'bonepicker'
+  | 'storm_kite'
+  | 'vent_drake'
+  | 'spire_bat'
+  | 'dust_moth';
 
 export interface FaunaEntity {
   id: string;

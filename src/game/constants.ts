@@ -484,6 +484,22 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 1,
   },
+  // Not a buildable either (2026-10-15, Adam's ruling): the
+  // tenders were never machines — this is a biological planet.
+  // Tender husks are FORGED creatures (grown, not evolved;
+  // purpose-shaped by the precursors for garden work), biggish
+  // and long dead, standing in the Precursor rows as husks.
+  // World generation grows them; the entry gives hover/scan a name.
+  tender_husk: {
+    id: 'tender_husk',
+    name: 'Tender Husk',
+    category: 'structure',
+    description: 'The gardeners grew their help: a tender, shaped for the rows — and this one died standing, ten thousand years ago. Hollow ribs, a cracked skull-dome, nothing inside but wind. It was never built. It was grown.',
+    iconName: 'Bone',
+    color: '#d6cdb4',
+    rarity: 'rare',
+    maxStack: 1,
+  },
   // Ruin interior structures (P4 interior stage, game/ruinInterior.ts):
   // like the cave portals, these exist only inside an instance's
   // structure list — never in a save, a pouch, or the builder's cycle.

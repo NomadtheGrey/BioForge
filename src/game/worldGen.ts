@@ -1120,10 +1120,46 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
     }
   }
 
+  // ---------------------------------------------------------------------
+  // Tender husks (Precursor, 2026-10-15, Adam's ruling) — there
+  // are no machines on this planet. The tenders were FORGED
+  // creatures: grown, purpose-shaped for garden work, biggish —
+  // and dead ten thousand years. Their husks stand in the rows
+  // as scenery: thickest in the Tending Field, rare elsewhere in
+  // precursor country.
+  // ---------------------------------------------------------------------
+  const huskStructures: StructureEntity[] = [];
+  if (zoneBiome === 'precursor') {
+    const huskRng = createSeededRandom(stream('structures:tenderhusks'));
+    const huskCount = zoneVariant?.id === 'precursor_tending' ? 3 + Math.floor(huskRng() * 2)
+      : zoneVariant?.id === 'precursor_garden' ? 1 + Math.floor(huskRng() * 2)
+      : zoneVariant?.id === 'precursor_untended' ? 1
+      : (huskRng() < 0.5 ? 1 : 0);
+    let placedHusks = 0;
+    for (let attempt = 0; attempt < huskCount * 6 && placedHusks < huskCount; attempt++) {
+      const x = (huskRng() * 2 - 1) * 40;
+      const z = (huskRng() * 2 - 1) * 40;
+      const blocked = [...structures, ...ruinStructures].some((st) => Math.hypot(st.worldX - x, st.worldZ - z) < 7)
+        || huskStructures.some((st) => Math.hypot(st.worldX - x, st.worldZ - z) < 9);
+      if (blocked) continue;
+      huskStructures.push({
+        id: `husk_${zoneZx}_${zoneZz}_${placedHusks}`,
+        type: 'tender_husk',
+        gridX: Math.round(x / 2),
+        gridZ: Math.round(z / 2),
+        worldX: x,
+        worldZ: z,
+        rotation: huskRng() * Math.PI * 2,
+        level: 0, health: 9999, maxHealth: 9999, doorOpenProgress: 0,
+      });
+      placedHusks++;
+    }
+  }
+
   return {
     flora: [...flora, ...caveFlora],
     fauna,
-    structures: [...structures, ...ruinStructures, ...bridgeStructures],
+    structures: [...structures, ...ruinStructures, ...bridgeStructures, ...huskStructures],
     relaxedPlacements: floraScatter.relaxed + faunaScatter.relaxed,
   };
 }

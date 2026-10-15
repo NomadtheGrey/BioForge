@@ -1,12 +1,13 @@
 # GENERATION ALGORITHMS — INDEX
 
-> **Status: MIXED (2026-10-14).** P1, P2, and P3 have been promoted from
-> the standalone lab (`~/workspace/bioforge-gen-lab/`) into the game and
-> are marked **SHIPPED** below. P4's SURFACE stage has shipped (fates,
-> per-zone placement, landmarks); its interior stage is next. P5 is
-> future work. The families are listed **in integration priority
-> order** — per the standing rule, algorithms enter the game one at a
-> time, each proven before the next.
+> **Status: MIXED (2026-10-14).** P1, P2, P3, and P4 have been promoted
+> from the standalone lab (`~/workspace/bioforge-gen-lab/`) into the
+> game and are marked **SHIPPED** below — P4 is COMPLETE (surface
+> landmarks and enterable interiors). P5 (terrain) is future work,
+> gated on a design discussion with Adam. The families are listed
+> **in integration priority order** — per the standing rule,
+> algorithms enter the game one at a time, each proven before the
+> next.
 
 ## Shared contract (all generators)
 
@@ -228,8 +229,15 @@ stone with a gate + threshold; the stored link record (fate /
 variant / tier / dressing / exit spawn) is bookkeeping for the
 interior stage, which derives from (seed + instanceId + fate)
 alone. Existing saves keep their snapshots and grow no ruins.
-The INTERIOR stage (clicking a gate to descend into the generated
-ruin) is the remaining P4 step.
+**INTERIOR STAGE SHIPPED 2026-10-14** (game/ruinInterior.ts):
+clicking a landmark's threshold stone enters the instanced ruin —
+the fate's variant layout (roomGraph / bsp / placedRooms per
+FATE_STYLES), precursor caches whose loot is seeded by cache id,
+an artifact heart in the deepest room, and glyph-stone lore
+(RUIN_LORE, 11 fates × shallow/deep/heart). Instance machinery
+mirrors the caverns (parked surface world, wake-up-outside
+saves, zone tags); ruins refuse building and planting. With this,
+**P4 is complete end-to-end**, like P3 before it.
 
 **The candidates:**
 - **roomGraph** — rooms grow root-like from the entrance room

@@ -1,16 +1,24 @@
 # RUINS GENERATION (BRAINSTORM / LAB)
 
-> **Status: LAB + SURFACE STAGE SHIPPED (2026-10-14).** The interior
-> algorithms below were built and measured in the standalone
-> generation lab (`~/workspace/bioforge-gen-lab/`, `src/ruinsLab.mjs`,
-> run `node evaluate-ruins.mjs`). The SURFACE stage is now in the
-> game (game/ruins.ts): Adam's two calls are settled — the world's
-> fate picks the variant (table in ruins.ts FATE_STYLES), and the
-> fate derives from the world seed, hidden from the UI. Zones grow
-> fate-tinted ruin landmarks by hop distance (spawn = traces at
-> most); the interior wiring (entering a ruin) is the remaining
-> step, and it will consume the variant table and the lab
-> generators below.
+> **Status: SHIPPED COMPLETE (2026-10-14) — P4 is done.** The
+> interior algorithms below were built and measured in the
+> standalone generation lab (`~/workspace/bioforge-gen-lab/`,
+> `src/ruinsLab.mjs`, run `node evaluate-ruins.mjs`). The SURFACE
+> stage is in the game (game/ruins.ts): Adam's two calls are
+> settled — the world's fate picks the variant (table in ruins.ts
+> FATE_STYLES), and the fate derives from the world seed, hidden
+> from the UI. Zones grow fate-tinted ruin landmarks by hop
+> distance (spawn = traces at most). The INTERIOR stage shipped
+> the same day (game/ruinInterior.ts): clicking a landmark's
+> threshold enters the generated ruin — the fate's layout variant,
+> precursor caches (deep ones can hold radar subassemblies), an
+> artifact heart in the deepest room (Precursor Shards + the
+> fate's heart line), and glyph stones carrying the fate's lore
+> (RUIN_LORE; the fate is still never named). One deliberate fix
+> over the lab: room-graph reachability did not survive corridor
+> crossings at grid level (~⅓ of ruins were damage-sealed), so the
+> port enforces "damage never seals a room" on the grid —
+> harness-verified across all fate × tier × variant combinations.
 
 ## What a ruin is
 

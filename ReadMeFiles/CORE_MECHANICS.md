@@ -102,6 +102,15 @@ Fauna are categorized into two behavioral classes:
 
 ### 4.5. First-Person Perspective, Viewmodel & Collision Physics
 * **Camera Perspective:** Full 1st-person camera at eye-level height ($y \approx 1.6$) driven by `PointerLockControls`.
+* **Playing on a phone (touch mode, shipped 2026-10-14):** On
+  coarse-pointer devices there is no pointer lock — and the game
+  no longer asks for it: the simulation runs unlocked, a floating
+  thumbstick moves (push far to sprint), dragging looks, and taps
+  use the active tool at the reticle, with on-screen USE and JUMP
+  buttons and tap targets for cycling seeds / fertilizer /
+  blueprints. The HUD rearranges for the small screen (compact
+  vitals, 48 px hotbar, the minimap yields on short landscape
+  heights). Desktop play is unchanged in every particular.
 * **Aim & Reticle:** Central crosshair with distance-bounded raycasting (up to 7.5 meters) for interactive harvesting, scanning, planting, and solvent spraying.
 * **Viewmodel (Hands & Active Bio-Tools):**
   * Renders porcelain explorer gauntlets and active bio-tools in front of the camera.

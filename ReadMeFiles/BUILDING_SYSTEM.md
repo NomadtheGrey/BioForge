@@ -31,8 +31,16 @@ playtest session (corner gaps, stacking, traversal).
 - Every structure has a story level (`StructureEntity.level`; absent =
   0, the ground story). One story = 2.4 m (`STORY_HEIGHT`), the height
   of a wall.
-- Ground floors tilt with the terrain; upper floors (ceilings) are
-  flat — they rest on wall tops.
+- Buildings LEVEL THEMSELVES (Adam, 2026-10-14 — reversing the
+  earlier follow-the-slope call, whose tilted ground-floor slabs
+  fanned against straight walls in game): connected building
+  pieces (floors, walls, doors, ceilings, vine ladders, turrets,
+  lantern posts) share ONE flat datum — the lowest ground height
+  among the build's anchors — and all stand plumb on it, stories
+  stacking from the datum. Standalone objects (the forge, the
+  cultivation mound) and landmarks (cave mouths, ruins) are not
+  builds: they keep their own ground height. The placement ghost
+  previews at the datum of the build it touches.
 - Collision is scoped to the player's story: upper walls don't block
   the floor below, ground furniture doesn't block the floor above,
   plants never collide with upper stories.

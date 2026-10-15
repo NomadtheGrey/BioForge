@@ -70,8 +70,11 @@ export function zoneCoordsAt(x: number, z: number): ZoneCoords {
 // weights. The gradient is the pinned world-progression rule in zone
 // form: meadow fades, wetland carries the near rings, fungal moves in,
 // and ember — the strange one — only exists 3+ zones out and dominates
-// the far field.
-const ZONE_BIOME_BANDS: { maxHops: number; table: [BiomeId, number][] }[] = [
+// the far field. Exported (2026-10-15) so the biome harness can hold
+// the table to the registry in biomes.ts: a biome's FIRST appearance
+// here must equal its registered minHops — the per-biome distance
+// gates Adam's biome graph is authored with.
+export const ZONE_BIOME_BANDS: { maxHops: number; table: [BiomeId, number][] }[] = [
   { maxHops: 0, table: [['meadow', 1]] },
   { maxHops: 1, table: [['meadow', 0.45], ['wetland', 0.55]] },
   { maxHops: 2, table: [['meadow', 0.2], ['wetland', 0.4], ['fungal', 0.4]] },

@@ -28,20 +28,57 @@
 
 export type BiomeId = 'meadow' | 'wetland' | 'fungal' | 'ember';
 
+/** How often a biome shows up among the rolls it's eligible for. */
+export type BiomeRarity = 'common' | 'uncommon' | 'rare';
+
 export interface BiomeDef {
   id: BiomeId;
   /** Position-acceptance multipliers: how thick life grows in such a zone. */
   floraDensity: number;
   faunaDensity: number;
+  /**
+   * The biome-graph facts (Adam, 2026-10-15): the four shipped
+   * types are FAMILIES — the top level of the biome matrix — and
+   * biomes are TIERED by nature: four shells of rising danger,
+   * exoticness, and rarity around the spawn zone (I Hearthlands,
+   * II The Wilds, III Strange Country, IV The Far Weird). The
+   * tier is the coarse dial — other systems (cave size, ruin
+   * size, clue and artifact density) will read a zone's tier to
+   * scale themselves — while MINIMUM DISTANCE (in zone hops) is
+   * the tier's concrete gate, refinable per biome, and RARITY is
+   * the weight class among eligible rolls. Tier, distance, and
+   * rarity must trend together (the biome harness checks the
+   * registry never lets a nearer tier out-rank a farther gate),
+   * and zones.ts' band table must agree with minHops: a biome's
+   * first band appearance IS its minHops.
+   */
+  tier: 1 | 2 | 3 | 4;
+  minHops: number;
+  rarity: BiomeRarity;
 }
 
 /** The biome table — the rules live here, tunable in one place. */
 export const BIOMES: BiomeDef[] = [
-  { id: 'meadow', floraDensity: 1.2, faunaDensity: 1.2 }, // starter: fertile, alive
-  { id: 'wetland', floraDensity: 1.1, faunaDensity: 1.0 }, // lush, soggy
-  { id: 'fungal', floraDensity: 1.0, faunaDensity: 0.8 }, // sparser life in the dark
-  { id: 'ember', floraDensity: 0.8, faunaDensity: 0.9 }, // harsher ground, thinner cover
+  { id: 'meadow', floraDensity: 1.2, faunaDensity: 1.2, tier: 1, minHops: 0, rarity: 'common' }, // starter: fertile, alive
+  { id: 'wetland', floraDensity: 1.1, faunaDensity: 1.0, tier: 1, minHops: 1, rarity: 'common' }, // lush, soggy
+  { id: 'fungal', floraDensity: 1.0, faunaDensity: 0.8, tier: 2, minHops: 2, rarity: 'common' }, // sparser life in the dark
+  { id: 'ember', floraDensity: 0.8, faunaDensity: 0.9, tier: 3, minHops: 3, rarity: 'uncommon' }, // harsher ground, thinner cover
 ];
+
+/** A biome's exoticness/danger tier (1 = hearthlands … 4 = far weird). */
+export function biomeTier(id: BiomeId): number {
+  return BIOMES.find((b) => b.id === id)?.tier ?? 1;
+}
+
+/** A biome's minimum distance from the spawn zone, in hops. */
+export function biomeMinHops(id: BiomeId): number {
+  return BIOMES.find((b) => b.id === id)?.minHops ?? 0;
+}
+
+/** A biome's rarity class among eligible rolls. */
+export function biomeRarity(id: BiomeId): BiomeRarity {
+  return BIOMES.find((b) => b.id === id)?.rarity ?? 'common';
+}
 
 /**
  * How a zone's biome TINTS its ground. The terrain's base color still

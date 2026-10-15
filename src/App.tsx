@@ -646,6 +646,21 @@ const {
   const scarHeatRef = useRef(false);
   const thawColdRef = useRef(false);
   const stillColdRef = useRef(false);
+  // Storm zots (2026-10-15): mean seconds between lightning
+  // strikes (0 outside Storm country), the strike timer state
+  // the loop owns, and the warning callback → the still-bright
+  // banner below. The zot is FAIR: warned ~2.5s ahead, and any
+  // roof/floor overhead (bridges included) takes the bolt.
+  const stormZotRef = useRef(0);
+  const zotStateRef = useRef({ timer: 20, warned: false });
+  const onZotWarningRef = useRef<(() => void) | null>(null);
+  const [zotWarn, setZotWarn] = useState(false);
+  const zotWarnTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  onZotWarningRef.current = () => {
+    setZotWarn(true);
+    if (zotWarnTimeoutRef.current) clearTimeout(zotWarnTimeoutRef.current);
+    zotWarnTimeoutRef.current = setTimeout(() => setZotWarn(false), 2300);
+  };
   const healthRef = useRef(100);
   const lastHealthSync = useRef(0);
   // Death + respawn (Adam, 2026-10-15): the loop fires
@@ -671,6 +686,12 @@ const {
     scarHeatRef.current = variant?.effect === 'scar_heat';
     thawColdRef.current = variant?.effect === 'thaw_cold';
     stillColdRef.current = variant?.effect === 'frost_stillcold';
+    // Storm zots are FAMILY-wide (2026-10-15): plain Storm zones
+    // zot at the family default (35s); variants carry their own
+    // interval (Dunes angry, Skyfall calm).
+    stormZotRef.current = sessionSeed && zoneBiomeAt(sessionSeed, playerZone.zx, playerZone.zz) === 'storm'
+      ? (variant?.zotIntervalSec ?? 35)
+      : 0;
     if (variant && sessionSeed) {
       const key = `${sessionSeed}:${variant.id}`;
       if (!variantAlertedRef.current.has(key)) {
@@ -808,6 +829,27 @@ const {
             'system',
             '#efe9d8',
           );
+        } else if (variant.id === 'charged_flats') {
+          postNotification(
+            'The Charged Flats',
+            'The air hums and your skin prickles. Lightning zots this country every half-minute or so — when the air goes still and bright, get under a roof, a ruin slab, or a bridge. Out in the open, a strike costs blood and empties your wind.',
+            'system',
+            '#fbbf24',
+          );
+        } else if (variant.id === 'magnetic_dunes') {
+          postNotification(
+            'Magnetic Dunes',
+            'Black sand, and the charge at its angriest — strikes come twice as often here, and fulgurite fingers crowd the dunes. Cross it sheltered, or cross it fast.',
+            'system',
+            '#f59e0b',
+          );
+        } else if (variant.id === 'skyfall_basin') {
+          postNotification(
+            'Skyfall Basin',
+            'Strange calm. The basin drinks the charge — strikes are rare here, and the stormcatchers grow rich on what the sky gives up. Old reports say the rain falls up in this place; the quiet, at least, is real.',
+            'system',
+            '#a5d8e8',
+          );
         } else if (variant.id === 'mirror_marsh') {
           postNotification(
             'The Mirror Marsh',
@@ -839,7 +881,7 @@ const {
   useGameLoop({
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
     jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, lastStaminaSync,
-    sprinting, sporeStaminaRef, marshSluggishRef, scarHeatRef, thawColdRef, stillColdRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
+    sprinting, sporeStaminaRef, marshSluggishRef, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef,
@@ -1000,6 +1042,17 @@ const {
     <div className="relative w-screen h-screen overflow-hidden bg-slate-950 font-sans select-none">
       {/* 3D WebGL Canvas Viewport */}
       <div ref={containerRef} className="absolute inset-0 cursor-crosshair" />
+
+      {/* Storm zot WARNING (2026-10-15): the still-bright moment
+          before a strike — a pale amber bloom at the screen's
+          edges. This flash IS the fairness mechanism: ~2.5s of
+          warning to get under cover. Pointer-transparent. */}
+      {zotWarn && (
+        <div
+          className="absolute inset-0 pointer-events-none z-40"
+          style={{ background: 'radial-gradient(ellipse at center, transparent 52%, rgba(251,191,36,0.28) 100%)', boxShadow: 'inset 0 0 120px rgba(253,230,138,0.35)' }}
+        />
+      )}
 
       {/* Phone controls: only on touch-first devices, only once a
           world is entered, and never underneath an open modal. The

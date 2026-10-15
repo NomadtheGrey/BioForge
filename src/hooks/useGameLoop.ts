@@ -53,6 +53,12 @@ export interface GameLoopDeps {
   marshSluggishRef: { current: boolean };
   /** True while the player stands in an Ember Scar zone. */
   scarHeatRef: { current: boolean };
+  // Storm zots (2026-10-15): the mean seconds between lightning
+  // strikes in Storm country (0 = not storm country), and the
+  // warning callback App uses for the still-bright cue.
+  stormZotRef: { current: number };
+  onZotWarningRef: { current: (() => void) | null };
+  zotStateRef: { current: { timer: number; warned: boolean } };
   thawColdRef: { current: boolean };
   stillColdRef: { current: boolean };
   healthRef: { current: number };
@@ -62,6 +68,7 @@ export interface GameLoopDeps {
   /** Latched while a death is being answered (respawn in flight). */
   playerDeadRef: { current: boolean };
   onPlayerDeathRef: { current: (() => void) | null };
+  // (storm zot refs are declared beside scarHeatRef above)
   lastStaminaSync: { current: number };
   sprinting: { current: boolean };
   edgePushRef: { current: { dir: 'N' | 'S' | 'E' | 'W'; since: number } | null };
@@ -115,7 +122,7 @@ export interface GameLoopDeps {
 export function useGameLoop(deps: GameLoopDeps): void {
   const {
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
-    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, scarHeatRef, thawColdRef, stillColdRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
+    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
     sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
@@ -346,6 +353,46 @@ export function useGameLoop(deps: GameLoopDeps): void {
             }
           } else {
             staminaRef.current = Math.min(100, staminaRef.current + 8 * dt);
+          }
+        }
+
+        // ---------------------------------------------------------
+        // Storm ZOTS (2026-10-15, Adam: "occasionally zotting the
+        // player with lightning"). Fairness first: the air goes
+        // still-bright ~2.5s BEFORE each strike (App's warning
+        // banner), and a roof/floor overhead — a house, a ruin
+        // slab, a ROOT BRIDGE deck — takes the bolt instead. A
+        // hit costs 15 health and empties stamina; death rules
+        // are scar heat's (armed on Normal/Hostile, floored at
+        // 1 on Peaceful, respawn callback at 0). Surface only.
+        // The timer lives in refs the block owns via closure
+        // variables on the hook's ref objects below.
+        if (stormZotRef.current > 0 && activeInstance.kind === 'surface') {
+          const zotState = zotStateRef.current;
+          zotState.timer -= dt;
+          if (zotState.timer <= 2.5 && !zotState.warned) {
+            zotState.warned = true;
+            onZotWarningRef.current?.();
+          }
+          if (zotState.timer <= 0) {
+            const cellX = Math.round(playerPosRef.current.x / 2);
+            const cellZ = Math.round(playerPosRef.current.z / 2);
+            const sheltered = structuresListRef.current.some(
+              (st) => (st.level ?? 0) >= 1 && st.gridX === cellX && st.gridZ === cellZ,
+            );
+            if (!sheltered) {
+              staminaRef.current = 0;
+              const floor = deathArmedRef.current ? 0 : 1;
+              healthRef.current = Math.max(floor, healthRef.current - 15);
+              setHealth(healthRef.current);
+              lastHealthSync.current = performance.now();
+              if (deathArmedRef.current && healthRef.current <= 0 && !playerDeadRef.current) {
+                playerDeadRef.current = true;
+                onPlayerDeathRef.current?.();
+              }
+            }
+            zotState.timer = stormZotRef.current * (0.6 + Math.random() * 0.8);
+            zotState.warned = false;
           }
         }
 

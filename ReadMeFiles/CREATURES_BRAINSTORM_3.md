@@ -1934,3 +1934,301 @@ Precursor, Storm x Living, Living x Frost, Precursor
 x Frost — reserved for wave six, where they belong:
 the graph's strange edge, taken whole.
 Roster designed total: 170.
+
+## Sixteenth roster pass — the water column
+
+Adam's question (2026-10-15) found the roster's
+assumption and named it: the design had water
+everywhere and a water COLUMN nowhere. The facts, for
+the record: no zone is a water zone — water lives
+INSIDE zones (marsh wading, ponds, pools, the Singing
+Ice's frozen lake-field); and per the biome program's
+own open list, the liquid is NOT always water — alien
+rivers are wanted there and undesigned, creatures
+included (that seat gets its own pass; see the close
+of this one). What this pass designs is the column
+itself, in three depth bands — SUNLIT / MIDDLE / DEEP —
+and Adam's three habits, four citizens each: the
+AMPHIBIOUS (both worlds), the SOMETIMES-BELOW (visitors
+to the deep), and the ALWAYS-BELOW (the deep's own).
+
+### Always below
+
+**171. Lake Leviathan** — the great lakes (Wetland's
+deep form; a rumor under the Singing Ice). **The
+water epic — the fourth LANDSCAPE citizen.** Fauna x
+Ordinary. Shape: Finned at geography's scale;
+modifier: depth-kept — it does not surface; what the
+surface world knows is a slow shadow in deep water, a
+back breaking the surface ONCE a season in fog, and
+the Drift Krill's clouds parting around a shape.
+Locomotion: Swimming, unhurried past the template's
+use of the word. Spectra: abyssally calm (the family
+temperament of all four epics, and the entry notes
+the kinship) / SOLO / a season's pace / Size LANDSCAPE,
+the fourth use of the word / Diet filter-grazer of
+the deep lakes' krill-fall and plankton weather /
+Day-night: it follows the krill cloud's rising from
+BELOW, a deeper clock under the lake's clock /
+Curiosity none / Territory one great lake, wholly /
+UNTAMABLE — geography, submerged. Drops: none. Hook:
+the lakes needed a reason to be DEEP in the player's
+imagination even where no one swims; a shadow that
+size is a reason that works through ice, fog, and
+fifty meters of black water.
+
+**172. Deep Carp** — the great lakes' bottoms
+(Wetland; the Singing Ice's under-ice deeps).
+Fauna x Ordinary. Shape: Finned (carp plan, beardled
+and broad); modifier: silt-colored. Locomotion:
+Swimming, bottom-hugging. Spectra: placid / loose
+bottom companies / slow / LARGE for a fish / Diet
+bottom grazer — krill-fall, lakebed rot, the deeps'
+slow groceries (the krill cloud's sink-side partner:
+what the cloud sheds, the carp inherits) / Day-night
+indifferent at depth / Curiosity whisker-led — it
+investigates by taste at range / Territory a lakebed
+circuit / Tameability: not applicable in the
+Stillmouth's sense — it cannot be kept, but it CAN be
+befriended at a feeding place over seasons, and old
+carp at old homesteads are a Wetland institution the
+codex records without instructions. Drops: none.
+Hook: the deep band needs a citizen at
+conversational scale; the carp is the bottom's
+neighbor, where the leviathan is its weather.
+
+**173. Pale Eel** — the deep dark (Frost's under-ice
+lakes, Wetland's deepest pools). Fauna x Ordinary.
+Shape: Serpentine; modifier: eyeless-pale — it hunts
+by vibration in water that has never had light to
+lose. Locomotion: Swimming. Spectra: patient /
+loose deep companies / still, then a corkscrew /
+mid / Diet hunter of the dark band — deep carp at
+their grazing, krill at their sinking, the Ice Maw's
+leavings from above (it is the maw's understudy in
+small) / Day-night: there is no day / Curiosity
+vibrational / Territory a deep basin / Tameability
+0%. Tell, for the under-ice traveler: its passage
+makes the ice HUM at a pitch below the song — the
+Singing Ice's bass note has two authors, and the
+entry teaches the difference (the maw's note TRAVELS;
+the eel's note GATHERS). Drops: none. Hook: the
+Steam Eel owns the clash-margin's bright channels;
+the pale eel owns the dark below everything; the
+roster's two eels are a depth gauge.
+
+**174. Deep Reef** — the great lakes' floors
+(Wetland). *Fauna* x Ordinary — COLLECTIVE and
+STATIONARY both (the pass's double-corner citizen):
+a colony-animal of ten thousand sessile mouths
+building ONE structure — ridges, arches, and chimneys
+of grown shell in water too deep for light, lit only
+by what visits it (glow-fall from the krill's dead,
+the pale eel's passing sheen). Locomotion: Stationary,
+by colony. Spectra (collective reading): temperament
+a slow architecture / Social COLLECTIVE absolute /
+Speed geological / Size: a reef can be a LAKEBED'S
+whole quarter — the entry records reefs as the
+always-below band's landscape, at furniture rather
+than citizen scale, deliberately / Diet filterer of
+the whole water column's fall / Day-night: it eats
+the night-rising krill's leavings at dawn, on a
+schedule the lake keeps / Cultivation: a reef-seed
+(a living fragment) set on a deep floor grows at
+reef pace — a homestead's longest investment, noted
+for the chroniclers / Harvest: dead reef-shell,
+gathered at the shallows' edge: **Reef Shell** (new
+item) — the deep's building stone, carried up by
+storms. Hook: the Stillmouth sits the shore alone;
+the reef builds the deep a CITY, and the column is
+furnished top to bottom.
+
+### Sometimes below
+
+**175. Plunge Duck** — ponds and lake edges (Meadow,
+Wetland; the wet range's ponds). Fauna x Ordinary.
+Shape: Winged (duck plan); modifier: sleeked — it
+wears water like a coat it can leave. Locomotion:
+Aerial, flyer-leaning + Swimming with full DIVES —
+it is the ponds' commuter between the skater's
+surface and the minnow's depth (it eats Brook
+Minnows at the dive and Hedge Sparrow gossip at the
+bank, and the entry declines to rank the diets).
+Spectra: cheerful / pond companies / quick / small /
+Diet diver-omnivore / diurnal / Curiosity total,
+splash-first / Territory a pond / Tameability 55% —
+the pond's easiest friendship after the turtle's; it
+will follow a keeper between ponds like a rumor with
+wings. Drops: none. Hook: the sometimes-below band
+needed a citizen whose commute is VISIBLE and
+joyful; the duck is the water column's front door.
+
+**176. Diver Beetle** — ponds across the temperate
+range (Meadow, Wetland, Rootwood, Fungal). Fauna x
+Ordinary. Shape: Multiped (beetle plan); modifier:
+silver-bellied — it carries its air as a bright
+bubble under its shell, visible as it rows.
+Locomotion: Swimming — it rows UPSIDE-DOWN beneath
+the surface film, feet on the water's ceiling (the
+Pond Skater walks the top millimeter; the beetle
+walks the same millimeter from underneath: one film,
+two citizens, opposite sides, and the entry keeps
+the image because the film deserves it). Spectra:
+industrious / loose pond companies / rowing-quick /
+small / Diet hunter of the film's underside — larvae,
+fallen gnats, the surface's whole economy eaten from
+below / Day-night: it hunts the film by day and rests
+under leaves by night / Curiosity mid / Territory a
+pond's film / Tameability 30% — keepable in a jar for
+a day for study, and the codex's tone suggests the
+jar should be a pond instead. Drops: none. Hook:
+the smallest sometimes-below citizen makes the
+surface film a BORDER with traffic on both sides,
+which is the water column in miniature.
+
+**177. Foam Frog** — Wetland pools (the Fens'
+cooler margins secondarily). Fauna x Ordinary.
+Shape: Quadruped (frog plan); modifier: foam-nesting
+— it sleeps and breeds in a raft of its own foam,
+moored to reeds. Locomotion: Swimming + Hopping: it
+HUNTS below (a frog-shaped shadow among the minnow
+ribbons) and SLEEPS above, in the foam, in the sun
+— the sometimes-below band's siesta citizen.
+Spectra: placid / foam companies at the good pools /
+still, then a tongue / small / Diet hunter of pool
+life from beneath / crepuscular / Curiosity low /
+Territory one pool and its foam-anchor / Tameability
+45% — a homestead pond that grows foam rafts has
+been accepted, and the entry records acceptance as
+the frog's form of signing. Drops: none; dried foam,
+unlisted, is the pool country's bandage (kept as
+flavor until a system claims it). Hook: between the
+lily that holds and the snapper that waits, the
+pools needed a citizen whose relationship to the
+surface is a NAP.
+
+**178. Dartfisher** — streams and pond edges (Meadow,
+Wetland, Rootwood — the wet range). Fauna x Ordinary.
+Shape: Winged (a small, bright, blade-bodied bird);
+modifier: patient-to-vertical — it hovers, folds,
+and becomes a thrown dart. Locomotion: Aerial,
+flyer-leaning + plunge-DIVING — it is the Brook
+Minnow's named predator at last (the minnow entry
+promised hunters; the dartfisher is the one written
+in light: a flash, a ring on the water, a bird on a
+reed with the school's citizen in its bill). Spectra:
+intense / SOLO and mated pairs / the roster's fastest
+small transaction / small / Diet minnows and film
+life / diurnal / Curiosity target-shaped / Territory
+a stream-reach and its perches / Tameability 20% —
+perch-loyal like the pickers: keep a good perch-
+branch over a homestead stream and a dartfisher may
+take the tenancy. Drops: molted dart-feathers at the
+perches, unlisted. Hook: the sometimes-below band
+closes with a citizen who visits the deep the way
+lightning visits the Flats — briefly, exactly, and
+for keeps.
+
+### Amphibious
+
+**179. Mudskipper** — the Brine Shallows, Wetland's
+mudflats. Fauna x Ordinary. Shape: Finned (a fish
+plan, honestly); modifier: fin-legged — it walks on
+its pectorals, climbs mangrove-analog roots, and
+breathes through its skin in the wet air: the
+roster's most Earth-honest citizen, named for the
+real animal without embarrassment (the oddly familiar
+license, exercised at full strength — Adam's graph
+asked for alien AND familiar, and this is the
+familiar anchor of the water column). Locomotion:
+Swimming + Walking, alternating by the hour.
+Spectra: bold / mudflat companies with strict
+personal bubbles — its territorial displays are the
+flats' puppet theater, fin-flags and all / quick /
+small / Diet picker of the mud's surface / tidal —
+its day is the tide's, and the entry records tide
+as a CLOCK the flats keep that the zones' other
+citizens ignore at their peril / Curiosity total /
+Territory one mud-patch / Tameability 35% — it will
+take food from a still hand at the flat's edge, and
+judge the hand's stillness as the whole exam. Drops:
+none. Hook: the amphibious band opens with the
+citizen that never fully commits to either element
+and thrives in the doorway.
+
+**180. Bog Cow** — Wetland (Meadow's marshes
+secondarily). Fauna x Ordinary. Shape: Quadruped
+(bovine plan, hippo-hearted); modifier: pondweed-
+draped — it surfaces from a wade wearing the pond.
+Locomotion: Walking + Swimming — it wades belly-deep
+for hours, grazes the SUBMERGED meadows (its head
+goes under for a minute at a time, unhurried), and
+in flood season it is the flood's citizen: the Surge
+Runners ride debris mats the bog cows' grazing made,
+and the entry braids the two files without comment.
+Spectra: placid, immovable / loose marsh herds /
+slow / LARGE / Diet grazer of two worlds' grass,
+the drowned half preferred / diurnal / Curiosity low /
+Territory a marsh circuit / Tameability 50% — the
+Wetland's Meadowback: the comparison is the entry's
+own, and it notes the bog cow is the calmer of the
+two (water teaches patience the meadow can't). Drops:
+shed winter coat, unlisted. Hook: every column band
+needed a grazer; the amphibious band's is a cow that
+treats the waterline as a rumor.
+
+**181. Flood Fern** — *Flora* x Ordinary — Wetland
+(the Thirsty Marsh's edges). Shape: Plantiform (fern
+plan); modifier: two-leaved — it grows AIR leaves
+(lacy, ordinary) and WATER leaves (ribbons, submerged)
+from the same crown, switching emphasis with the
+season: drowned half the year, it is fully aquatic in
+flood and fully a fern in drought, and both are its
+ordinary life (the amphibious band's flora citizen —
+the pass insists the habit is a KINGDOM-crossing
+category, not a fauna trait). Locomotion: Stationary.
+Spectra (flora reading): Social flood-meadow stands /
+Diet light in two media, at two rates / Day-night
+indifferent / Cultivation: crown-divisions planted
+at any waterline take eagerly — the homestead pond's
+first citizen, usually / Harvest: water-ribbons cut
+in flood season: **Flood Ribbon** (new item) — a
+silky aquatic fiber, the wet country's weaving
+starts here. Spore Stag country knows it: the stag's
+antlers carry its spores between floods (the web,
+as ever, is the text). Hook: the waterline is a
+border most citizens visit; the flood fern LIVES
+there, in both countries at once, all year.
+
+**182. Landfish** — Wetland (between pools, in wet
+weather). Fauna x Ordinary. Shape: Finned;
+modifier: journey-built — thick-skinned, air-tolerant,
+with pectorals like elbows. Locomotion: Swimming +
+Walking (the land half is a determined, flopping,
+ELBOWED crawl, undertaken at night in rain, between a
+drying pool and a deeper one — it appears on paths
+after storms, traveling with total commitment, and
+startles more travelers than any predator in the
+family). Spectra: determined / SOLO travelers,
+congregating only in the destination pools / slow on
+land, adequate in water, and the entry respects both
+gaits equally / mid / Diet pool-picker / NOCTURNAL
+in transit, diurnal at home / Curiosity route-shaped /
+Territory two pools and the road between — the only
+citizen on the roster whose territory includes a
+COMMUTE / Tameability 40% — by keeping its destination
+pool clean and its road unblocked (a homestead on its
+road will meet it at the doorstep in the rain, and
+the codex advises stepping aside with respect).
+Drops: none. Hook: the water column closes with the
+citizen that refuses to let the column be a place —
+for the landfish, water is a NETWORK, land is just
+the slow part of the river, and it walks the
+difference at night, in the rain, elbows first.
+
+Roster designed total: 182. The column stands:
+surface, film, middle, deep — each with citizens,
+each band braided to the others. The alien rivers
+remain, by the biome doc's own framing, a pass of
+their own ( liquids, banks, and citizens together),
+and the queue holds them after the epics.

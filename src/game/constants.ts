@@ -596,6 +596,72 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     maxStack: 1,
   },
 
+  // ── Pouch upgrades (Adam, 2026-10-15) ─────────────────────────
+  // Carrying capacity is a craftable ladder (game/pouch.ts): owning
+  // one of these raises EVERY stack's cap to its tier's number.
+  woven_pouch: {
+    id: 'woven_pouch',
+    name: 'Woven Pouch',
+    category: 'equipment',
+    description: 'A belt pouch woven tight from lantern-fern fiber. Raises every stack you carry to 25.',
+    iconName: 'Briefcase',
+    color: '#84cc16',
+    rarity: 'common',
+    maxStack: 1,
+  },
+  resin_satchel: {
+    id: 'resin_satchel',
+    name: 'Resin-Bound Satchel',
+    category: 'equipment',
+    description: 'A satchel stiffened with resin and wetland reeds — it holds its shape and a great deal more. Raises every stack you carry to 50.',
+    iconName: 'Briefcase',
+    color: '#d97706',
+    rarity: 'uncommon',
+    maxStack: 1,
+  },
+  living_rucksack: {
+    id: 'living_rucksack',
+    name: 'Living Rucksack',
+    category: 'equipment',
+    description: 'A gentle symbiote pack with a prismatic heart; its inner pockets keep quietly rearranging to fit. Raises every stack you carry to 100.',
+    iconName: 'Briefcase',
+    color: '#c084fc',
+    rarity: 'rare',
+    maxStack: 1,
+  },
+
+  // ── Storage pod + upgrade kits (Adam, 2026-10-15) ────────────
+  storage_pod: {
+    id: 'storage_pod',
+    name: 'Storage Pod',
+    category: 'structure',
+    description: 'A grown storage pod: place it with the Bio-Builder and stash up to 4 kinds of things, 25 each. Click it to open. Upgrade kits grow it into a Hutch, then a Vault.',
+    iconName: 'Package',
+    color: '#f59e0b',
+    rarity: 'common',
+    maxStack: 10,
+  },
+  storage_kit_hutch: {
+    id: 'storage_kit_hutch',
+    name: 'Hutch Growth Kit',
+    category: 'equipment',
+    description: 'A nutrient graft for a placed Storage Pod: apply it from the pod\'s panel to grow the pod into a Storage Hutch — 8 kinds of things, 50 each.',
+    iconName: 'PackagePlus',
+    color: '#d97706',
+    rarity: 'uncommon',
+    maxStack: 1,
+  },
+  storage_kit_vault: {
+    id: 'storage_kit_vault',
+    name: 'Vault Growth Kit',
+    category: 'equipment',
+    description: 'A prismatic graft for a placed Storage Hutch: apply it from the pod\'s panel to grow the hutch into a Storage Vault — 12 kinds of things, 100 each.',
+    iconName: 'PackagePlus',
+    color: '#c084fc',
+    rarity: 'rare',
+    maxStack: 1,
+  },
+
 };
 
 /**
@@ -941,6 +1007,92 @@ export const RECIPES: CraftingRecipe[] = [
       { id: 'dew_essence', count: 2 },
     ],
     craftTimeMs: 2000,
+  },
+  // Pouch upgrades + storage (Adam, 2026-10-15): the carrying
+  // ladder. The pouch quests in game/quests.ts mirror the tier-1
+  // lists (pouch + pod) exactly — keep them in step.
+  {
+    id: 'craft_woven_pouch',
+    outputId: 'woven_pouch',
+    outputCount: 1,
+    name: 'Woven Pouch',
+    description: 'Weave a belt pouch from lantern-fern fiber — every stack you carry grows to 25.',
+    category: 'composites',
+    ingredients: [
+      { id: 'soft_fiber', count: 6 },
+      { id: 'dew_essence', count: 2 },
+    ],
+    craftTimeMs: 2000,
+  },
+  {
+    id: 'craft_resin_satchel',
+    outputId: 'resin_satchel',
+    outputCount: 1,
+    name: 'Resin-Bound Satchel',
+    description: 'Stiffen a satchel with resin and wetland reeds — every stack you carry grows to 50.',
+    category: 'composites',
+    ingredients: [
+      { id: 'resin_sap', count: 4 },
+      { id: 'resonant_reed', count: 4 },
+      { id: 'soft_fiber', count: 2 },
+    ],
+    craftTimeMs: 2500,
+  },
+  {
+    id: 'craft_living_rucksack',
+    outputId: 'living_rucksack',
+    outputCount: 1,
+    name: 'Living Rucksack',
+    description: 'Grow a symbiote pack around a prismatic heart — every stack you carry grows to 100.',
+    category: 'composites',
+    ingredients: [
+      { id: 'carapace_scale', count: 4 },
+      { id: 'prismatic_core', count: 1 },
+      { id: 'soft_fiber', count: 4 },
+    ],
+    craftTimeMs: 3000,
+  },
+  {
+    id: 'craft_storage_pod',
+    outputId: 'storage_pod',
+    outputCount: 1,
+    name: 'Storage Pod',
+    description: 'Grow a storage pod to place with the Bio-Builder: 4 kinds of things, 25 each. Click it to open.',
+    category: 'composites',
+    ingredients: [
+      { id: 'resin_sap', count: 4 },
+      { id: 'soft_fiber', count: 4 },
+      { id: 'carapace_scale', count: 2 },
+    ],
+    craftTimeMs: 2500,
+  },
+  {
+    id: 'craft_storage_kit_hutch',
+    outputId: 'storage_kit_hutch',
+    outputCount: 1,
+    name: 'Hutch Growth Kit',
+    description: 'Apply to a placed Storage Pod from its panel: grows it into a Hutch — 8 kinds of things, 50 each.',
+    category: 'composites',
+    ingredients: [
+      { id: 'resin_sap', count: 4 },
+      { id: 'resonant_reed', count: 2 },
+      { id: 'soft_fiber', count: 2 },
+    ],
+    craftTimeMs: 2500,
+  },
+  {
+    id: 'craft_storage_kit_vault',
+    outputId: 'storage_kit_vault',
+    outputCount: 1,
+    name: 'Vault Growth Kit',
+    description: 'Apply to a placed Storage Hutch from its panel: grows it into a Vault — 12 kinds of things, 100 each.',
+    category: 'composites',
+    ingredients: [
+      { id: 'carapace_scale', count: 4 },
+      { id: 'prismatic_core', count: 1 },
+      { id: 'resin_sap', count: 2 },
+    ],
+    craftTimeMs: 3000,
   },
   // Prismatic Field Radar — subassemblies (Tier 1 by the recipe
   // graph: every ingredient is a Tier 0 raw). The radar itself
@@ -1305,6 +1457,9 @@ export const DEBUG_KIT: Record<ItemId, number> = {
   gauntlet_solvent_module: 1,
   gauntlet_lure_module: 1,
   gauntlet_synthesizer_upgrade: 1,
+  // The top pouch tier rides along, so a debug session carries at
+  // the real ladder's ceiling (stack cap 100), not tier 0's 10.
+  living_rucksack: 1,
   // (A partial map asserted whole, the inventory system's standing
   // convention — absent ids read as zero.)
 } as Record<ItemId, number>;

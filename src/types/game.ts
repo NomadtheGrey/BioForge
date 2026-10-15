@@ -47,6 +47,10 @@ export type ItemId =
   | 'bio_forge_station'
   | 'tamed_snap_trap_turret'
   | 'cultivation_mound'
+  // The storage pod (Adam, 2026-10-15): a placed, upgradable stash.
+  // One structure type for all three tiers — the tier lives on the
+  // entity's `storage` record, and kits raise it in place.
+  | 'storage_pod'
   | 'vine_ladder'
   | 'cave_mouth'
   | 'cave_exit'
@@ -76,7 +80,17 @@ export type ItemId =
   | 'gauntlet_planter_module'
   | 'gauntlet_builder_module'
   | 'gauntlet_solvent_module'
-  | 'gauntlet_lure_module';
+  | 'gauntlet_lure_module'
+  // Pouch UPGRADES (Adam, 2026-10-15): carrying capacity is a
+  // craftable ladder too — owning a pouch item raises every stack's
+  // cap (game/pouch.ts). Equipment like the modules: held, not spent.
+  | 'woven_pouch'
+  | 'resin_satchel'
+  | 'living_rucksack'
+  // Storage-pod UPGRADE KITS: consumable crafts applied to a PLACED
+  // pod from its storage panel — they raise the pod's tier in place.
+  | 'storage_kit_hutch'
+  | 'storage_kit_vault';
 
 export type ToolType =
   | 'harvest_glove'
@@ -186,6 +200,7 @@ export type StructureType =
   | 'bio_forge_station'
   | 'tamed_snap_trap_turret'
   | 'cultivation_mound'
+  | 'storage_pod'
   | 'vine_ladder'
   | 'cave_mouth'
   | 'cave_exit'
@@ -320,6 +335,14 @@ export interface StructureEntity {
   color?: string;
   /** Present only on cave_mouth structures: the portal link + dressing. */
   cave?: CaveLinkData;
+  /**
+   * Present only on storage_pod structures (Adam, 2026-10-15): the
+   * pod's tier and what it holds. Placed pods start at tier 1,
+   * empty; upgrade kits raise the tier in place, contents kept.
+   * Rides the world snapshot inside the structure, host-saved like
+   * everything else in the structures list.
+   */
+  storage?: { tier: number; items: Partial<Record<ItemId, number>> };
   /** Present only on ruin_landmark structures: fate/variant/tier record. */
   ruin?: RuinLinkData;
 }

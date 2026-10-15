@@ -36,7 +36,7 @@ CORE_MECHANICS.md when they ship.
   key. Crafting tiers are just the recipe graph; there are no artificial tier
   locks. A player may push into a dangerous zone early and simply feel
   under-equipped.
-- **The Field Synthesizer Gauntlet is the survival platform.** Resources
+- **The Living Gauntlet is the survival platform.** Resources
   gathered along the way improve it into environmental adaptations, e.g.:
   spore country → grown filtration membrane; ember country → thermal lining
   and heat-resistant resin; saltglass glare/cold → polarized insulated field;

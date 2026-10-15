@@ -141,6 +141,61 @@ export function zoneInfo(seedStr: string, zx: number, zz: number): ZoneInfo {
 }
 
 /** Display form of a biome id: 'fungal' -> 'Fungal'. */
+/**
+ * The HUD's zone labels for where the player stands (extracted from
+ * App.tsx 2026-10-15 under the push-size trigger — this is pure
+ * zones logic). Zone identification is a HELMET feature (Adam,
+ * 2026-10-15): until a helmet with the zone-identifier upgrade
+ * exists (`zoneIdInstalled`), the label does not name the land — it
+ * carries the unidentified placeholder; the coordinates stay,
+ * because counting zones from home is dead reckoning, not a sensor
+ * reading. The edge label names the country beyond the nearest
+ * border within 10 m, under the same gate.
+ */
+export interface ZoneHudLabels {
+  name: string;
+  biomeLabel: string | null;
+  coordsLabel: string;
+  edgeLabel: string | null;
+}
+
+export function zoneHudLabels(
+  seed: string,
+  zone: ZoneCoords,
+  playerX: number,
+  playerZ: number,
+  zoneIdInstalled: boolean,
+): ZoneHudLabels {
+  const coordsLabel = `Zone ${zone.zx}, ${zone.zz}`;
+  if (!seed) {
+    return { name: 'Starting Zone', biomeLabel: null, coordsLabel, edgeLabel: null };
+  }
+  const here = zoneInfo(seed, zone.zx, zone.zz);
+  const name = zoneIdInstalled ? here.name : 'Unidentified Country';
+  const biomeLabel = zoneIdInstalled
+    ? biomeDisplayName(here.biome)
+    : 'Zone Identifier not installed — a helmet upgrade reads the land';
+  // Within 10 m of the nearest border: the country beyond it.
+  // North is -Z, per the minimap's orientation.
+  const edges = [
+    { dir: 'North', dist: 50 + playerZ, zx: zone.zx, zz: zone.zz - 1 },
+    { dir: 'South', dist: 50 - playerZ, zx: zone.zx, zz: zone.zz + 1 },
+    { dir: 'West', dist: 50 + playerX, zx: zone.zx - 1, zz: zone.zz },
+    { dir: 'East', dist: 50 - playerX, zx: zone.zx + 1, zz: zone.zz },
+  ];
+  const nearest = edges.reduce((a, b) => (b.dist < a.dist ? b : a));
+  let edgeLabel: string | null = null;
+  if (nearest.dist <= 10) {
+    if (!zoneIdInstalled) {
+      edgeLabel = `${nearest.dir} — Unidentified Country`;
+    } else {
+      const beyond = zoneInfo(seed, nearest.zx, nearest.zz);
+      edgeLabel = `${nearest.dir} — ${beyond.name} · ${biomeDisplayName(beyond.biome)}`;
+    }
+  }
+  return { name, biomeLabel, coordsLabel, edgeLabel };
+}
+
 export function biomeDisplayName(biome: BiomeId): string {
   return biome.charAt(0).toUpperCase() + biome.slice(1);
 }

@@ -725,6 +725,15 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // worn vanes whether it is wild or tame (the radar's supply
           // chain must never require harming one — Adam, 2026-10-14:
           // the vanes are a non-lethal byproduct).
+          // Mirror Moth byproduct (Dew Essence) — pollinators shake
+          // dew from the mirror lilies as they drift; wild or tame,
+          // the marsh provides (2026-10-15).
+          if (fauna.species === 'mirror_moth' && byproductTimer > 50) {
+            byproductTimer = 0;
+            spawnDroppedItem('dew_essence', 1, x, z);
+            onCritterExcrete?.('mirror_moth');
+          }
+
           if (fauna.species === 'vesper_glider' && byproductTimer > 45) {
             byproductTimer = 0;
             spawnDroppedItem('sonar_vane', 1, x, z);

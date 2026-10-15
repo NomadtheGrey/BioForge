@@ -225,6 +225,10 @@ export function useToolInteractions({
       case 'shelf_shroom':
         // Bracket shelves: fibrous and tough, like growing leather.
         return { item: 'soft_fiber', count: flora.fertilizedYield ? 4 : 2, extras: [['basic_compost', 1]] };
+      case 'mirror_lily':
+        // Mirror Marsh (2026-10-15): the pads cup the doubled light
+        // and bead it as dew; a reed sometimes roots alongside.
+        return { item: 'dew_essence', count: flora.fertilizedYield ? 5 : 3, extras: [['resonant_reed', 1]] };
       case 'bell_bloom':
       default:
         return { item: 'dew_essence', count: flora.fertilizedYield ? 4 : 2, extras: [['soft_fiber', 1]] };

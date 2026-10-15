@@ -38,6 +38,15 @@ export const CAVERN_GEN_VERSION = 1;
 
 /** In-game cavern size in cells (one cell = 2 m → an 88 m zone). */
 export const CAVERN_GRID_CELLS = 44;
+// The GRADIENT STEP (2026-10-15, Adam's directive): cave SIZE
+// listens to distance too — a mouth's cavern grows with the hops
+// of the zone it opens in. Near home the grid is the classic 44
+// (0-1 hops stay byte-identical); far mouths open into wider
+// dark, up to 56 cells (112 m). Depth levels share their mouth's
+// size: the input is the mouth's hops at every level.
+export function cavernCellsForHops(zoneHopsFromSpawn: number): number {
+  return CAVERN_GRID_CELLS + Math.min(12, Math.floor(Math.max(0, zoneHopsFromSpawn) / 2) * 2);
+}
 
 export type CavernFeatureType = 'glow_fungus' | 'common_resource' | 'rare_mineral' | 'hazard' | 'heart' | 'descent' | 'vine_shaft';
 
@@ -770,9 +779,24 @@ export function generateGameCavernLevel(
   const vineChance = depthLevel >= 2 ? 0.5 : undefined;
 
   const rich = 1 + 0.35 * (depthLevel - 1);
+  // Level-1 richness ALSO rides the gradient (2026-10-15): a far
+  // mouth's first level is richer at the door — rares fastest,
+  // fungus gently, as with depth. Near home (0-2 hops) the plain
+  // defaults hold, byte-identical.
+  const hopRich = 1 + Math.min(0.6, Math.max(0, zoneHopsFromSpawn) * 0.075);
+  const hopRare = 1 + Math.min(0.9, Math.max(0, zoneHopsFromSpawn) * 0.11);
+  const level1Targets =
+    zoneHopsFromSpawn >= 3
+      ? {
+          glow_fungus: Math.round(36 * (1 + (hopRich - 1) * 0.5)),
+          common_resource: Math.round(22 * hopRich),
+          rare_mineral: Math.round(12 * hopRare),
+          hazard: Math.round(6 * hopRich),
+        }
+      : undefined;
   const featureTargets =
     depthLevel <= 1
-      ? undefined
+      ? level1Targets
       : {
           glow_fungus: Math.round(36 * (1 + 0.15 * (depthLevel - 1))),
           common_resource: Math.round(22 * rich),
@@ -789,10 +813,11 @@ export function generateGameCavernLevel(
   // function of the seeds, so all clients land on the same attempt.
   for (let attempt = 0; attempt < 8; attempt++) {
     const attemptZoneId = attempt === 0 ? zoneId : `${zoneId}#r${attempt}`;
+    const cells = cavernCellsForHops(zoneHopsFromSpawn);
     const result = generateCavern(worldSeed, {
       zoneId: attemptZoneId,
-      width: CAVERN_GRID_CELLS,
-      height: CAVERN_GRID_CELLS,
+      width: cells,
+      height: cells,
       surfaceAnchor,
       depthLevel,
       descentChance,

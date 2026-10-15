@@ -153,6 +153,16 @@ function tierDown(tier: RuinTierId): RuinTierId {
 export const RUIN_TRACES_CHANCE_SPAWN = 0.55;
 /** Any other zone's chance of one ruin at its hop tier. */
 export const RUIN_PRESENCE_CHANCE = 0.62;
+// The GRADIENT STEP (2026-10-15, Adam's directive: distance drives
+// ruin presence as it already drives ruin size): presence and the
+// second-site chance RISE with hops — far country is older, more
+// built-on, more lost. Near home the constants above hold.
+export function ruinPresenceForHops(hops: number): number {
+  return Math.min(0.88, RUIN_PRESENCE_CHANCE + hops * 0.03);
+}
+export function ruinSecondForHops(hops: number): number {
+  return Math.min(0.3, RUIN_SECOND_CHANCE + hops * 0.02);
+}
 /** Given one ruin, the chance of a second, one tier smaller. */
 export const RUIN_SECOND_CHANCE = 0.12;
 
@@ -289,9 +299,9 @@ export function generateZoneRuins(
   if (hops === 0) {
     if (rng() < RUIN_TRACES_CHANCE_SPAWN) tiers.push('traces');
   } else {
-    if (rng() < RUIN_PRESENCE_CHANCE) {
+    if (rng() < ruinPresenceForHops(hops)) {
       tiers.push(tierForHops(hops));
-      if (rng() < RUIN_SECOND_CHANCE) tiers.push(tierDown(tierForHops(hops)));
+      if (rng() < ruinSecondForHops(hops)) tiers.push(tierDown(tierForHops(hops)));
     }
   }
   if (tiers.length === 0) return { sites: [] };

@@ -106,6 +106,12 @@ export interface GameLoopDeps {
   accumulatedDayTime: { current: number };
   selectedStructureRef: { current: StructureType };
   touchModeRef: { current: boolean };
+  /** Pause-mode latch (Adam, 2026-10-15): set via the engine's
+   *  onBackgroundReturn when the player comes back from a
+   *  background tab; while set, the whole sim holds. */
+  returnPausedRef: { current: boolean };
+  /** App's latch setter for the engine's background-return report. */
+  onBackgroundReturn: () => void;
   isPointerLockedRef: { current: boolean };
   activeModalRef: { current: string | null };
   structuresListRef: { current: StructureEntity[] };
@@ -139,7 +145,7 @@ export function useGameLoop(deps: GameLoopDeps): void {
     sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
-    touchModeRef, isPointerLockedRef, activeModalRef,
+    touchModeRef, isPointerLockedRef, activeModalRef, returnPausedRef, onBackgroundReturn,
     structuresListRef, floraListRef,
     activeToolRef, lastBroadcastTime, lastMinimapUpdateTime, latestStateRef, currentZoneId,
     applyPlayerLevel, postNotification, setStamina, setHealth, setMinimapPos,
@@ -160,9 +166,17 @@ export function useGameLoop(deps: GameLoopDeps): void {
     onStructureInteract: (structure) => toolHandlersRef.current.handleStructureInteract(structure),
       onEntityHover: (target: HoverTarget) => setHoverInfo(target),
       onLockChange: (locked) => setIsPointerLocked(locked),
+      onBackgroundReturn: () => onBackgroundReturn(),
       onFrame: (dt: number) => {
         // Guard Clause 1: Engine unready
         if (!engineRef.current) return;
+
+        // PAUSE MODE on background return (Adam, 2026-10-15): the
+        // whole simulation holds — no movement, no world ticks, no
+        // day advance, no broadcasts — until the player resumes
+        // from the HUD overlay. The engine still renders its
+        // backdrop behind the overlay; only the sim waits.
+        if (returnPausedRef.current) return;
 
         // 1. Controller Update
         // Paused while a modal is open — or, on mouse-driven

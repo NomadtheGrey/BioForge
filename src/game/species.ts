@@ -51,7 +51,8 @@ export type SpeciesProfile =
   | 'turtle'    // unhurried to the template's limit (mud_turtle)
   | 'colony'    // the colony is the creature (hollow_hermit)
   | 'territorial' // defends one place, reluctantly (rootfall_bear)
-  | 'radial';   // no front to be curious with (kiln_star)
+  | 'radial'    // no front to be curious with (kiln_star)
+  | 'serpent';  // the graph's recurring answer to "what hunts here?" (slag_serpent)
 
 export interface SpeciesByproduct {
   /** Item shed on the ground when the timer fires. */
@@ -65,6 +66,30 @@ export interface SpeciesByproduct {
    *         vanes; the moth's dew and the hare's fur follow it).
    */
   tamedOnly: boolean;
+}
+
+/**
+ * The hunt spec (creature build phase, slice 5, 2026-10-15): a
+ * species carrying one is DANGEROUS, and the danger doctrine
+ * rides on these numbers — every danger has a readable tell
+ * (the alert: inside aggroRange a wild hunter stops and faces
+ * you, in EVERY difficulty), and attacks exist only where the
+ * world is armed (Normal/Hostile): there the hunter chases and
+ * bites for `damage` a hit. Peaceful keeps the theater and
+ * skips the teeth, exactly as the stalker's shipped pattern
+ * promised. A species' profile stays its verbs — a grazer can
+ * carry a hunt (the Sporeback's startle-charge) without
+ * becoming a predator.
+ */
+export interface SpeciesHunt {
+  /** Meters: inside this, a wild hunter notices you. */
+  aggroRange: number;
+  /** Player health per landed bite (the player pool is 100). */
+  damage: number;
+  /** Meters: a chase converts to bites inside this. */
+  biteRange: number;
+  /** Seconds between bites while in range. */
+  biteCooldownSeconds: number;
 }
 
 export interface SpeciesBonusSpawn {
@@ -106,6 +131,10 @@ export interface SpeciesDef {
   /** Default companion name granted on a successful tame. */
   petName: string;
   byproduct: SpeciesByproduct | null;
+  /** The hunt spec (slice 5): present only on dangerous species.
+   *  Tamed hunters never hunt the player; on guard they patrol
+   *  like the stalker always did. */
+  hunt?: SpeciesHunt;
   /** Present only for route-3 species (see header). */
   bonusSpawn: SpeciesBonusSpawn | null;
 }
@@ -144,6 +173,10 @@ export const SPECIES: Record<FaunaSpecies, SpeciesDef> = {
     bait: 'predator',
     petName: 'Base Guardian Stalker',
     byproduct: { item: 'carapace_scale', seconds: 35, tamedOnly: true },
+    // The original hunter: its shipped AGGRO_RANGE was 8 — the
+    // table carries the same number now, and the sim reads it
+    // from here (slice 5 generalization).
+    hunt: { aggroRange: 8, damage: 8, biteRange: 1.6, biteCooldownSeconds: 1.2 },
     bonusSpawn: null, // census species
   },
   mirror_moth: {
@@ -802,6 +835,10 @@ export const SPECIES: Record<FaunaSpecies, SpeciesDef> = {
     bait: 'nectar',
     petName: 'Cinderhound',
     byproduct: { item: 'cinder_scale', seconds: 180, tamedOnly: false },
+    // The emblem hunts (slice 5): burst ambushes from vent
+    // steam on armed worlds; on Peaceful its scales tick and
+    // glow as it notices you — the alert IS the tell.
+    hunt: { aggroRange: 9, damage: 10, biteRange: 1.8, biteCooldownSeconds: 1.4 },
     bonusSpawn: {
       biomes: ['ember'],
       count: 1,
@@ -1072,6 +1109,203 @@ export const SPECIES: Record<FaunaSpecies, SpeciesDef> = {
       speed: 0.6, // tipping-slow; its geometry is its pace
       speedJitter: 0.05,
       health: 45,
+    },
+  },
+
+  // ------------------------------------------------------------------
+  // Slice 5 (2026-10-15) — THE DANGER SLICE: the hunt system
+  // generalizes off the stalker's species key onto the table,
+  // and the bench's first hunters ride it. Doctrine (pass 12):
+  // every danger has a readable tell — here it is the alert,
+  // a wild hunter stopping to face you inside its aggro range;
+  // on Peaceful that regard is the whole event, and on armed
+  // worlds the chase and bite behind it are real.
+  // ------------------------------------------------------------------
+
+  // #132 — the roster's first true PACK hunter: a fang pack
+  // runs the Stag herds' rotation like auditors run books.
+  // Tameability 10%, the Bench's floor, and the entry is blunt
+  // about the method: not the pack, never the pack — a lone
+  // yearling, over a winter. Dealt as a pack of three, denning
+  // in the Ice Fangs (variant gate; the pack's hunting circuit
+  // ranges the Stillwhite in the design's prose).
+  fangwolf: {
+    id: 'fangwolf',
+    name: 'Fangwolf',
+    profile: 'predator',
+    tameChance: 0.1,
+    bait: 'nectar',
+    petName: 'Fangwolf',
+    byproduct: null,
+    hunt: { aggroRange: 10, damage: 9, biteRange: 1.8, biteCooldownSeconds: 1.1 },
+    bonusSpawn: {
+      biomes: ['frost'],
+      variant: 'frost_fangs',
+      count: 3, // a pack, dealt together
+      minRadius: 14,
+      spacing: 3,
+      speed: 3.0, // pursuit-fast; endurance over burst
+      speedJitter: 0.15,
+      health: 80,
+    },
+  },
+
+  // #131 — the family's ground itself, armed: a scorpion
+  // under the crust, defensive-aggressive, whose tail and
+  // claws are grown saltglass. Untameable. Its molted tail-
+  // segments work as SALTGLASS SHARD — the shard economy's
+  // seventh door, mined from a hazard's leavings.
+  salt_scorpion: {
+    id: 'salt_scorpion',
+    name: 'Salt Scorpion',
+    profile: 'predator',
+    tameChance: null,
+    bait: null,
+    petName: 'Salt Scorpion',
+    byproduct: { item: 'saltglass_shard', seconds: 300, tamedOnly: false },
+    hunt: { aggroRange: 6, damage: 11, biteRange: 1.7, biteCooldownSeconds: 1.5 },
+    bonusSpawn: {
+      biomes: ['saltglass'],
+      count: 1,
+      minRadius: 12,
+      spacing: 6,
+      speed: 1.5, // a sting's speed in a slow body
+      speedJitter: 0.1,
+      health: 55,
+    },
+  },
+
+  // #128 — Ember's answer to "what hunts here?": a slag
+  // serpent of the Drift and the Scar, a ripple of heat-
+  // shimmer before it is a snake. Ambush-aggressive, strike-
+  // fast, untameable. (Its ash-devil surfacing spiral — the
+  // optical tell — is later polish; the alert carries the
+  // doctrine in v1.)
+  slag_serpent: {
+    id: 'slag_serpent',
+    name: 'Slag Serpent',
+    profile: 'serpent',
+    tameChance: null,
+    bait: null,
+    petName: 'Slag Serpent',
+    byproduct: null,
+    hunt: { aggroRange: 8, damage: 12, biteRange: 2.0, biteCooldownSeconds: 1.6 },
+    bonusSpawn: {
+      biomes: ['ember'],
+      count: 1,
+      minRadius: 14,
+      spacing: 8,
+      speed: 2.4,
+      speedJitter: 0.1,
+      health: 95,
+    },
+  },
+
+  // #130 — the glare, hunting: a refractive cat that hunts at
+  // high noon when its coat works and the glare blinds
+  // everything else. Untameable (it can be baited into shadow
+  // a moment, which the entry records as a trick, not a
+  // friendship). Sheds Prism Hair in its shadow-tracks,
+  // gathered at dawn — an ambient wild shed, at dawn's pace.
+  prism_cat: {
+    id: 'prism_cat',
+    name: 'Prism Cat',
+    profile: 'predator',
+    tameChance: null,
+    bait: null,
+    petName: 'Prism Cat',
+    byproduct: { item: 'prism_hair', seconds: 300, tamedOnly: false },
+    hunt: { aggroRange: 9, damage: 10, biteRange: 1.7, biteCooldownSeconds: 1.2 },
+    bonusSpawn: {
+      biomes: ['saltglass'],
+      count: 1,
+      minRadius: 12,
+      spacing: 6,
+      speed: 3.0, // stillness and explosions
+      speedJitter: 0.15,
+      health: 50,
+    },
+  },
+
+  // #124 — the Wetland's stillness, with an author: a log-
+  // bodied ambusher that owns one pool utterly. At rest it IS
+  // a drowned log; the tell is the pool's small life going
+  // quiet. Untameable, and the heaviest bite on the bench —
+  // an ambusher's whole speed budget, spent at once. (Dealt
+  // on the marsh's ground in v1; pool-anchored placement is
+  // the water slice's refinement.)
+  fen_lurker: {
+    id: 'fen_lurker',
+    name: 'Fen Lurker',
+    profile: 'predator',
+    tameChance: null,
+    bait: null,
+    petName: 'Fen Lurker',
+    byproduct: null,
+    hunt: { aggroRange: 6, damage: 14, biteRange: 2.0, biteCooldownSeconds: 1.6 },
+    bonusSpawn: {
+      biomes: ['wetland'],
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 2.6,
+      speedJitter: 0.1,
+      health: 120,
+    },
+  },
+
+  // #127 — fluency as menace: a long-legged widow of the
+  // Hollow who webs GLOW GRUBS into her snares alive, so her
+  // hunting webs glow exactly like safe fungal ground
+  // lighting. The tell: her webs' glow doesn't flicker — real
+  // grub light breathes. Untameable. (The webs themselves —
+  // and Widow Silk from abandoned ones — are a later slice;
+  // the widow ships first.)
+  hollow_widow: {
+    id: 'hollow_widow',
+    name: 'Hollow Widow',
+    profile: 'predator',
+    tameChance: null,
+    bait: null,
+    petName: 'Hollow Widow',
+    byproduct: null,
+    hunt: { aggroRange: 7, damage: 9, biteRange: 1.8, biteCooldownSeconds: 1.3 },
+    bonusSpawn: {
+      biomes: ['fungal'],
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 2.2,
+      speedJitter: 0.1,
+      health: 45,
+    },
+  },
+
+  // #126 — the groves' weather: a walking grove of fruiting
+  // towers, placid until STARTLED — a startled sporeback
+  // CHARGES, and the charge is area denial as a panic reflex.
+  // Profile stays grazer (its verbs are a grazer's); the hunt
+  // carries the charge. 10% — taming as an etiquette exam:
+  // never, ever surprise it. (The spore-cloud answer and the
+  // Peaceful stop-short are later polish; the charge itself
+  // rides the hunt in v1.)
+  sporeback: {
+    id: 'sporeback',
+    name: 'Sporeback',
+    profile: 'grazer',
+    tameChance: 0.1,
+    bait: 'nectar',
+    petName: 'Sporeback',
+    byproduct: null,
+    hunt: { aggroRange: 7, damage: 10, biteRange: 2.2, biteCooldownSeconds: 2.0 },
+    bonusSpawn: {
+      biomes: ['fungal'],
+      count: 1,
+      minRadius: 14,
+      spacing: 8,
+      speed: 1.1, // glacial, until it isn't
+      speedJitter: 0.05,
+      health: 160,
     },
   },
 };

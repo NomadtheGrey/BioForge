@@ -24,7 +24,6 @@ import {
   ITEMS,
   NON_BUILDABLE_STRUCTURE_IDS,
   getRecipeTier,
-  DEBUG_KIT,
 } from './game/constants';
 import { BioForgeThreeEngine } from './game/threeEngine';
 import { soundEngine } from './audio/soundEngine';
@@ -78,9 +77,13 @@ import { HUD } from './components/HUD';
 import { QuestLogModal } from './components/QuestLogModal';
 import { TOOL_NAMES } from './game/quests';
 import { useQuests } from './hooks/useQuests';
+import { useStorage } from './hooks/useStorage';
+import { useDebugKit } from './hooks/useDebugKit';
 import { TouchControls, type TouchMoveInput } from './components/TouchControls';
 import { BioForgeModal } from './components/BioForgeModal';
 import { InventoryModal } from './components/InventoryModal';
+import { StorageModal } from './components/StorageModal';
+import { POUCH_TIER_CAPS, pouchTierOf } from './game/pouch';
 import { CodexModal } from './components/CodexModal';
 import { MultiplayerModal } from './components/MultiplayerModal';
 import { ControlsGuideModal } from './components/ControlsGuideModal';
@@ -106,6 +109,7 @@ export default function App() {
     hasItem,
     craftRecipe,
     restoreInventory,
+    setOverflowHandler,
   } = useInventory();
 
   const {
@@ -226,13 +230,16 @@ export default function App() {
     updateTick,
     upsertDroppedItem,
     removeDroppedItem,
+    spawnDroppedItem,
     replaceWorld,
   } = useWorldEntities();
 
   // 2. Modals & UI States
   const [activeModal, setActiveModal] = useState<
-    'bioforge' | 'inventory' | 'codex' | 'multiplayer' | 'controls' | 'devtools' | 'quests' | null
+    'bioforge' | 'inventory' | 'codex' | 'multiplayer' | 'controls' | 'devtools' | 'quests' | 'storage' | null
   >(null);
+  // Which storage pod the StorageModal shows (id; entity re-read live).
+  const [storageTargetId, setStorageTargetId] = useState<string | null>(null);
   const [codexList, setCodexList] = useState<CodexEntry[]>(INITIAL_CODEX);
   const [dayNightCycle, setDayNightCycle] = useState<number>(0.35);
   const [isMuted, setIsMuted] = useState(false);
@@ -1190,6 +1197,11 @@ export default function App() {
     setCodexList,
     postNotification,
     onOpenBioForgeModal: openBioForgeModal,
+    onOpenStorage: (structure) => {
+      setStorageTargetId(structure.id);
+      setActiveModal('storage');
+    },
+    spawnDroppedItem,
     triggerHarvestFx,
     triggerSolventFx,
 
@@ -1908,30 +1920,28 @@ const saveNow = useCallback((): void => {
   // callback safely stays stable for the interval/pagehide effects.
 }, []);
 
-// Debug kit swap (Adam, 2026-10-15 — a for-now development tool
-// while the starter throttle settles): the backquote key swaps the
-// pouch for the full DEBUG_KIT and back. The real pouch waits in
-// debugStashRef, and saveNow writes the stash while a swap is
-// active — a debug session can never pollute a save with free
-// goods. Creating or loading a world clears the swap (see
-// handleCreateSave / applySavedGame).
-const debugStashRef = useRef<Record<ItemId, number> | null>(null);
-const toggleDebugKit = useCallback((): void => {
-  if (debugStashRef.current === null) {
-    debugStashRef.current = { ...latestStateRef.current.inventory };
-    restoreInventory({ ...DEBUG_KIT });
-    postNotification(
-      'Debug Kit ON',
-      'Pouch swapped to the full debug kit — press ` again to swap back. Saves keep your real pouch.',
-      'system',
-      '#f59e0b',
-    );
-  } else {
-    restoreInventory(debugStashRef.current);
-    debugStashRef.current = null;
-    postNotification('Debug Kit OFF', 'Your real pouch is back.', 'system', '#34d399');
-  }
-}, [restoreInventory, postNotification]);
+// Debug kit swap (backquote key): hooks/useDebugKit — the real
+// pouch waits in debugStashRef and saveNow writes the stash while
+// a swap is active, so a debug session can't pollute a save.
+const { debugStashRef, toggleDebugKit } = useDebugKit({
+  getInventory: () => latestStateRef.current.inventory,
+  restoreInventory,
+  postNotification,
+});
+
+// Pouch overflow + storage-pod transfers: hooks/useStorage.
+const { handleStorageDeposit, handleStorageWithdraw, handleStorageUpgrade } =
+  useStorage({
+    getInventory: () => latestStateRef.current.inventory,
+    getPlayerPosition,
+    addInventoryItem,
+    deductInventoryItem,
+    upsertStructure,
+    spawnDroppedItem,
+    setOverflowHandler,
+    postNotification,
+  });
+const pouchTierNow = pouchTierOf(inventory);
 
 // Load the save library once at boot, for the start screen.
 useEffect(() => {
@@ -2682,6 +2692,12 @@ const GAUNTLET_TYPES_PASS_EPOCH_MS = Date.UTC(2026, 9, 15, 4, 0, 0);
     return 'No fertilizer — craft at Bio-Forge [B]';
   })();
 
+  // The storage pod the panel is showing, if it still stands.
+  const storagePod =
+    activeModal === 'storage' && storageTargetId
+      ? structuresList.find((s) => s.id === storageTargetId && s.type === 'storage_pod')
+      : undefined;
+
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-slate-950 font-sans select-none">
       {/* 3D WebGL Canvas Viewport */}
@@ -2784,6 +2800,21 @@ const GAUNTLET_TYPES_PASS_EPOCH_MS = Date.UTC(2026, 9, 15, 4, 0, 0);
         onToggleShowHud={(show) => updateQuestProgress({ showHud: show })}
         onTrack={(questId) => updateQuestProgress({ trackedId: questId })}
       />
+      {/* The open storage pod (entity re-read live from the list). */}
+      {activeModal === 'storage' && storagePod && (
+        <StorageModal
+          structure={storagePod}
+          inventory={inventory}
+          pouchCap={POUCH_TIER_CAPS[pouchTierNow]}
+          onClose={() => {
+            setActiveModal(null);
+            setStorageTargetId(null);
+          }}
+          onDeposit={handleStorageDeposit}
+          onWithdraw={handleStorageWithdraw}
+          onUpgrade={handleStorageUpgrade}
+        />
+      )}
       <BioForgeModal
         isOpen={activeModal === 'bioforge'}
         onClose={() => setActiveModal(null)}

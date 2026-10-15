@@ -21,7 +21,7 @@ import { useRef, useState } from 'react';
 import type { BioForgeThreeEngine } from '../game/threeEngine';
 import type { FirstPersonMovementController } from '../game/controller';
 import type { WorldSnapshot } from '../game/saveSystem';
-import { SPAWN_ZONE, zoneBiomeAt, zoneVariantAt, zoneHops, zoneInfo, zoneKey, biomeDisplayName, type ZoneCoords } from '../game/zones';
+import { SPAWN_ZONE, zoneBiomeAt, zoneVariantAt, zoneFaceAt, zoneHops, zoneInfo, zoneKey, biomeDisplayName, type ZoneCoords } from '../game/zones';
 import { generateSeededWorld } from '../game/worldGen';
 import { multiplayerManager } from '../game/multiplayer';
 import { snapshotOf, buildZoneSyncTravel as buildZoneSyncTravelPayload, type ZoneStores } from '../game/zoneSync';
@@ -218,7 +218,7 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
     // 3. Stand there: identity, paint, position, story, momentum.
     playerZoneRef.current = { zx: nx, zz: nz };
     setPlayerZone({ zx: nx, zz: nz });
-    engineRef.current?.setZoneBiome(zoneBiomeAt(seed, nx, nz), zoneVariantAt(seed, nx, nz)?.tint ?? null, zoneVariantAt(seed, nx, nz) ? { distanceMult: zoneVariantAt(seed, nx, nz)!.lightDistanceMult, intensityMult: zoneVariantAt(seed, nx, nz)!.lightIntensityMult } : null);
+    engineRef.current?.setZoneBiome(zoneBiomeAt(seed, nx, nz), zoneFaceAt(seed, nx, nz)?.tint ?? null, zoneFaceAt(seed, nx, nz) ? { distanceMult: zoneFaceAt(seed, nx, nz)!.lightDistanceMult, intensityMult: zoneFaceAt(seed, nx, nz)!.lightIntensityMult } : null);
     applyPlayerLevel(0);
     jumpRef.current = { y: 0, vy: 0, bounceFlip: false };
     playerPosRef.current = { x: entry.x, z: entry.z, rotation: pos.rotation };

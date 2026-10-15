@@ -50,6 +50,7 @@ import {
   zoneKey,
   zoneHudLabels,
   zoneVariantAt,
+  zoneHybridAt,
   livingHeartAt,
   type ZoneCoords,
 } from './game/zones';
@@ -704,13 +705,18 @@ const {
   }, [playerState.health]);
   const variantAlertedRef = useRef<Set<string>>(new Set());
   useEffect(() => {
-    const variant = sessionSeed ? zoneVariantAt(sessionSeed, playerZone.zx, playerZone.zz) : null;
+    // The margin check comes FIRST (2026-10-15): a hybrid zone's
+    // face is its hybrid def — variant suppressed, effects read
+    // from whichever face the zone wears.
+    const hybrid = sessionSeed ? zoneHybridAt(sessionSeed, playerZone.zx, playerZone.zz) : null;
+    const variant = hybrid ? null : (sessionSeed ? zoneVariantAt(sessionSeed, playerZone.zx, playerZone.zz) : null);
+    const faceEffect = variant?.effect ?? hybrid?.def.effect ?? null;
     deathArmedRef.current = (currentSaveRef.current?.difficulty ?? 'peaceful') !== 'peaceful';
-    sporeStaminaRef.current = variant?.effect === 'spore_stamina';
-    marshSluggishRef.current = variant?.effect === 'marsh_sluggish';
-    scarHeatRef.current = variant?.effect === 'scar_heat';
-    thawColdRef.current = variant?.effect === 'thaw_cold';
-    stillColdRef.current = variant?.effect === 'frost_stillcold';
+    sporeStaminaRef.current = faceEffect === 'spore_stamina';
+    marshSluggishRef.current = faceEffect === 'marsh_sluggish';
+    scarHeatRef.current = faceEffect === 'scar_heat';
+    thawColdRef.current = faceEffect === 'thaw_cold';
+    stillColdRef.current = faceEffect === 'frost_stillcold';
     // Storm zots are FAMILY-wide (2026-10-15): plain Storm zones
     // zot at the family default (35s); variants carry their own
     // interval (Dunes angry, Skyfall calm).
@@ -729,7 +735,7 @@ const {
     // The Content Valley (2026-10-15): plain Living zones have no
     // variant, so the variant chain below never speaks for them —
     // the family's home face gets its own one-time word.
-    if (sessionSeed && !variant && zoneBiomeAt(sessionSeed, playerZone.zx, playerZone.zz) === 'living') {
+    if (sessionSeed && !variant && !hybrid && zoneBiomeAt(sessionSeed, playerZone.zx, playerZone.zz) === 'living') {
       const plainKey = `${sessionSeed}:living:plain`;
       if (!variantAlertedRef.current.has(plainKey)) {
         variantAlertedRef.current.add(plainKey);
@@ -739,6 +745,55 @@ const {
           'system',
           '#c084fc',
         );
+      }
+    }
+    if (hybrid && sessionSeed) {
+      const key = `${sessionSeed}:hybrid:${hybrid.def.id}`;
+      if (!variantAlertedRef.current.has(key)) {
+        variantAlertedRef.current.add(key);
+        if (hybrid.def.id === 'ember|wetland') {
+          postNotification(
+            'The Scalding Fens',
+            'Where marsh meets ember, the land compromises in steam: hot pools, warm mud, and heat that taxes you by day like the Scar itself. The water did not put the fire out. They negotiated.',
+            'system',
+            '#fdba74',
+          );
+        } else if (hybrid.def.id === 'fungal|meadow') {
+          postNotification(
+            'The Mulchwood',
+            'Meadow grass over fungal dark — a soft, rich, spore-sweet wood. The air taxes your stamina gently, as in the Hollow; the ground gives back more than it takes.',
+            'system',
+            '#bef264',
+          );
+        } else if (hybrid.def.id === 'saltglass|wetland') {
+          postNotification(
+            'The Brine Shallows',
+            'Salt country dissolving into marsh: bright pans, dark water, life armored against both. Neither family won here. Both stayed.',
+            'system',
+            '#99f6e4',
+          );
+        } else if (hybrid.def.id === 'ember|storm') {
+          postNotification(
+            'The Iron Ashes',
+            'Burned country under a charged sky. The zots still fall here — keep a roofline in reach, as in any Storm zone.',
+            'system',
+            '#fca5a5',
+          );
+        } else if (hybrid.def.id === 'frost|rootwood') {
+          postNotification(
+            'The Frozen Forest',
+            'Trees standing in frost country, rimed and silent, roots locked in white ground. The wood endures; so does the cold.',
+            'system',
+            '#bae6fd',
+          );
+        } else {
+          postNotification(
+            hybrid.def.name,
+            'Margin country — two lands meeting, and the blend growing where they touch. Life from both families grows here; the zone ahead and behind stay purely themselves.',
+            'system',
+            '#e7e5e4',
+          );
+        }
       }
     }
     if (variant && sessionSeed) {

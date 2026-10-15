@@ -51,6 +51,7 @@ import {
   zoneHudLabels,
   zoneVariantAt,
   zoneHybridAt,
+  zoneWeatherAt,
   livingHeartAt,
   type ZoneCoords,
 } from './game/zones';
@@ -711,6 +712,12 @@ const {
     const hybrid = sessionSeed ? zoneHybridAt(sessionSeed, playerZone.zx, playerZone.zz) : null;
     const variant = hybrid ? null : (sessionSeed ? zoneVariantAt(sessionSeed, playerZone.zx, playerZone.zz) : null);
     const faceEffect = variant?.effect ?? hybrid?.def.effect ?? null;
+    // Weather (2026-10-15): the zone's sky, resolved in zones.ts;
+    // the engine renders it and hides it indoors on its own.
+    if (sessionSeed) {
+      const sky = zoneWeatherAt(sessionSeed, playerZone.zx, playerZone.zz);
+      engineRef.current?.setWeather(sky.mode, sky.intensity);
+    }
     deathArmedRef.current = (currentSaveRef.current?.difficulty ?? 'peaceful') !== 'peaceful';
     sporeStaminaRef.current = faceEffect === 'spore_stamina';
     marshSluggishRef.current = faceEffect === 'marsh_sluggish';
@@ -950,7 +957,7 @@ const {
         } else if (variant.id === 'skyfall_basin') {
           postNotification(
             'Skyfall Basin',
-            'Strange calm. The basin drinks the charge — strikes are rare here, and the stormcatchers grow rich on what the sky gives up. Old reports say the rain falls up in this place; the quiet, at least, is real.',
+            'Strange calm. The basin drinks the charge — strikes are rare here, and the stormcatchers grow rich on what the sky gives up. And the old reports were right: watch the rain. It falls UP.',
             'system',
             '#a5d8e8',
           );

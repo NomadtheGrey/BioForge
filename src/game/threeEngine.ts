@@ -267,6 +267,8 @@ export class BioForgeThreeEngine {
     heartroot: { color: 0xd9a05b, intensity: 0.35, distance: 2.5, y: 0.5 },
     gravebloom: { color: 0xf0d9a0, intensity: 0.3, distance: 2.5, y: 0.7 },
     stormcatcher: { color: 0xfbbf24, intensity: 0.45, distance: 3, y: 1.6 },
+    dusk_grass: { color: 0xa855f7, intensity: 0.3, distance: 2.5, y: 0.5 },
+    heartbloom: { color: 0xef4444, intensity: 0.65, distance: 4, y: 0.9 },
     precursor_bloom: { color: 0xf5d76e, intensity: 0.45, distance: 3, y: 0.9 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {

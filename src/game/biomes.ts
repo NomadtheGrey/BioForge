@@ -26,7 +26,7 @@
 // that here; the lab keeps its own copy for the record.
 // ============================================================================
 
-export type BiomeId = 'meadow' | 'wetland' | 'fungal' | 'ember' | 'saltglass' | 'frost' | 'rootwood' | 'precursor' | 'bone' | 'storm';
+export type BiomeId = 'meadow' | 'wetland' | 'fungal' | 'ember' | 'saltglass' | 'frost' | 'rootwood' | 'precursor' | 'bone' | 'storm' | 'living';
 
 /** How often a biome shows up among the rolls it's eligible for. */
 export type BiomeRarity = 'common' | 'uncommon' | 'rare';
@@ -70,6 +70,7 @@ export const BIOMES: BiomeDef[] = [
   { id: 'precursor', floraDensity: 1.1, faunaDensity: 0.8, tier: 2, minHops: 3, rarity: 'uncommon' }, // the 8th family built: gardens of the vanished — nature growing through engineered geometry
   { id: 'bone', floraDensity: 0.9, faunaDensity: 0.9, tier: 2, minHops: 3, rarity: 'uncommon' }, // the 9th family built: graveyard country — death-fertile, scavenger land
   { id: 'storm', floraDensity: 0.85, faunaDensity: 0.8, tier: 3, minHops: 3, rarity: 'uncommon' }, // the 10th family built: the FIRST Tier 3 family — charged country, lightning that occasionally zots the player (Adam)
+  { id: 'living', floraDensity: 1.25, faunaDensity: 0.9, tier: 3, minHops: 3, rarity: 'rare' }, // the 11th and FINAL family built: one organism, a whole valley — content by default, moody by variant (Adam's spectrum)
 ];
 
 /** A biome's exoticness/danger tier (0 = hearthlands … 3 = far weird). */
@@ -106,6 +107,7 @@ export const BIOME_TINTS: Record<BiomeId, { color: number; strength: number }> =
   precursor: { color: 0xa8b56b, strength: 0.45 }, // pale gold-green, cultivated light
   bone: { color: 0xd8cfb8, strength: 0.5 }, // parchment bone-pale
   storm: { color: 0x6b7c8c, strength: 0.5 }, // slate storm-grey
+  living: { color: 0x4a3560, strength: 0.5 }, // deep violet — no chlorophyll on this planet (Adam)
 };
 
 /** Weight bonus a biome-affined species gets inside its home biome(s). */
@@ -130,7 +132,7 @@ export const BIOME_HOME_BONUS = 1.5;
 // zone (weight 1) — most eligible zones stay plain.
 
 /** The player-facing effect a variant carries, if any. */
-export type BiomeEffectId = 'spore_stamina' | 'marsh_sluggish' | 'scar_heat' | 'thaw_cold' | 'frost_stillcold' | 'storm_zot';
+export type BiomeEffectId = 'spore_stamina' | 'marsh_sluggish' | 'scar_heat' | 'thaw_cold' | 'frost_stillcold' | 'storm_zot' | 'living_welcome' | 'living_hunger';
 
 export interface BiomeVariantDef {
   id: string;
@@ -661,6 +663,70 @@ export const BIOME_VARIANTS: BiomeVariantDef[] = [
     nameParts: {
       first: ['Calm', 'Bright', 'Open', 'Patient', 'High'],
       second: ['Basin', 'Skyfall', 'Bowl', 'Fields', 'Rest'],
+    },
+  },
+  {
+    // Welcoming Valley (Living, 2026-10-15): the host in its
+    // generous mood — the ground HEALS you as you stand in it.
+    // One face of Adam's temperament spectrum; the plain family
+    // (no variant) is the Content Valley, which does neither.
+    id: 'welcoming_valley',
+    family: 'living',
+    name: 'Welcoming Valley',
+    minHops: 3,
+    rarity: 'uncommon',
+    tint: { color: 0x6b4a7a, strength: 0.45 }, // warm violet-gold
+    floraDensityMult: 1.35,
+    faunaDensityMult: 1.05,
+    effect: 'living_welcome',
+    lightDistanceMult: 1.05,
+    lightIntensityMult: 1.1,
+    nameParts: {
+      first: ['Welcoming', 'Gentle', 'Open', 'Warm', 'Kind'],
+      second: ['Valley', 'Vale', 'Arms', 'Reach', 'Rest'],
+    },
+  },
+  {
+    // Hungry Valley (Living, 2026-10-15): the host in its taking
+    // mood — the GRAB. Warned like the zot (fairness), aimed at
+    // the spot you stood on (move and it grabs air), and FEEDING
+    // the heartbloom quiets it while it digests.
+    id: 'hungry_valley',
+    family: 'living',
+    name: 'Hungry Valley',
+    minHops: 3,
+    rarity: 'rare',
+    tint: { color: 0x4a2438, strength: 0.55 }, // deep red-violet
+    floraDensityMult: 1.1,
+    faunaDensityMult: 0.9,
+    effect: 'living_hunger',
+    lightDistanceMult: 1,
+    lightIntensityMult: 0.95,
+    nameParts: {
+      first: ['Hungry', 'Patient', 'Waiting', 'Deep', 'Red'],
+      second: ['Valley', 'Vale', 'Maw', 'Reach', 'Throat'],
+    },
+  },
+  {
+    // Two-Minded Valley (Living, 2026-10-15): BOTH temperaments
+    // at once, split by ground (Adam) — it heals in its
+    // clearings and grabs in its HEART THICKET, the seeded patch
+    // around the heartbloom (zones.livingHeartAt). The rarest
+    // face of the strangest family.
+    id: 'twominded_valley',
+    family: 'living',
+    name: 'Two-Minded Valley',
+    minHops: 4,
+    rarity: 'rare',
+    tint: { color: 0x54355e, strength: 0.5 }, // mid violet
+    floraDensityMult: 1.2,
+    faunaDensityMult: 1.0,
+    effect: 'living_hunger', // the loop special-cases twominded: hunger only inside the thicket, welcome outside
+    lightDistanceMult: 1,
+    lightIntensityMult: 1.0,
+    nameParts: {
+      first: ['Two-Minded', 'Divided', 'Strange', 'Patient', 'Vast'],
+      second: ['Valley', 'Vale', 'Body', 'Reach', 'Heart'],
     },
   },
 ];

@@ -75,6 +75,14 @@ export type ItemId =
   | 'zot_skin'
   | 'ironjaw_plate'
   | 'worn_skull'
+  | 'tending_cutting'
+  | 'hearth_bloom'
+  | 'puff_spore'
+  | 'smoke_heart'
+  | 'creep_sheet'
+  | 'star_glass'
+  | 'quiver_gel'
+  | 'pod_bladder'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -328,7 +336,20 @@ export type FloraSpecies =
   | 'thaw_rose'
   | 'dust_rose'
   | 'obsidian_rose'
-  | 'hedge_rose';
+  | 'hedge_rose'
+  // Flora wave 6 (slice 18, 2026-10-16) — the final flora.
+  | 'raincatcher'
+  | 'tending_vine'
+  | 'hearthroot'
+  | 'puffbell'
+  | 'arch_tree'
+  | 'smoke_tree'
+  | 'lightcreep'
+  | 'zot_star'
+  | 'grabvine'
+  | 'maw_bloom'
+  | 'quiver_cap'
+  | 'balloon_vine';
 
 export interface FloraEntity {
   id: string;

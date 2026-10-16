@@ -140,8 +140,12 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     wave 4: twelve species incl. three bench hunters
  *     (Bonebreaker, Zot Serpent, Ironjaw) and the Brambleback,
  *     the Hedge Rose's planter. Table-only change.
+ * v33: creature build phase, slice 18 (2026-10-16) — flora
+ *     wave 6, THE FINAL FLORA WAVE: the bench's last twelve
+ *     (Raincatcher, Arch Tree, Maw Bloom, Grabvine and kin).
+ *     The flora roster is complete: 72 of 72. Table-only.
  */
-export const WORLD_GEN_VERSION = 32; // v32 (2026-10-16): creature slice 17 — fauna wave 4, twelve species; v31 was creature slice 16 (flora wave 5)
+export const WORLD_GEN_VERSION = 33; // v33 (2026-10-16): creature slice 18 — flora wave 6, the final flora (roster complete); v32 was creature slice 17 (fauna wave 4)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

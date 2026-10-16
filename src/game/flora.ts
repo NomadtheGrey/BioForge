@@ -91,6 +91,16 @@ export interface FloraDef {
   /** Hazardous flora (the snap trap's kin): the entity is stamped
    *  isHazardous and the shipped hazard machinery applies. */
   hazardous?: boolean;
+  /** Harvest window (slice 40, 2026-10-16): the crop only holds
+   *  together around one hour of the day/night cycle — the glove
+   *  refuses outside it, with `closedText` as the honest tell of
+   *  what the player is looking at instead. Phase convention is
+   *  the game's: 0.5 is noon, 0/1 is midnight; the window runs
+   *  ±0.09 of phase (~108 seconds of real time at the ten-minute
+   *  rotation). The solvent's propagule reclaim is NOT gated —
+   *  spores and stock exist at every hour; only the crop keeps
+   *  the appointment. */
+  harvestWindow?: { around: 'noon' | 'midnight'; closedText: string };
   bonusGrow: FloraBonusGrow | null;
 }
 
@@ -847,6 +857,7 @@ export const FLORA: Record<string, FloraDef> = {
     name: 'Meltcap',
     kind: 'fungus',
     harvest: { item: 'meltcap', count: 1, fertilizedCount: 2 },
+    harvestWindow: { around: 'midnight', closedText: 'In this light it is already half meltwater — the cap keeps only at midnight. Come back in the deep of the night.' },
     bonusGrow: {
       biomes: ['fungal'],
       count: 3,
@@ -1592,13 +1603,14 @@ export const FLORA: Record<string, FloraDef> = {
   // weathers, and the meadow keeps the appointment with it.
   // Its seed is the meadow's provisions with a deadline:
   // gathered in the hour or not at all. (The hour-window is
-  // behavior; the table deals the flower honestly and lets
-  // the noon discipline live in its texts for now.)
+  // behavior; the noon discipline is LIVE (slice 40) —
+  // the glove refuses outside the noon window.)
   noonflower: {
     id: 'noonflower',
     name: 'Noonflower',
     kind: 'flora',
     harvest: { item: 'noon_seed', count: 1, fertilizedCount: 2 },
+    harvestWindow: { around: 'noon', closedText: 'The head is shut fast — it opens for one hour at true noon, in all weathers, and the meadow keeps the appointment. Come back at midday.' },
     bonusGrow: {
       biomes: ['meadow'],
       count: 3,
@@ -2498,13 +2510,14 @@ export const FLORA: Record<string, FloraDef> = {
   // #334 — a cap that opens at NOON and closes by two (the
   // Noonflower keeps the meadow's hour in the other kingdom):
   // the pans' brief course, gathered at a run. Its noon
-  // window is bespoke behavior (deferred, like Meltcap's
-  // midnight) — v1 deals it as an honest cap.
+  // window is LIVE (slice 40, 2026-10-16): the glove
+  // refuses outside noon, per the harvestWindow field.
   sun_cap: {
     id: 'sun_cap',
     name: 'Sun Cap',
     kind: 'fungus',
     harvest: { item: 'sun_cap', count: 1, fertilizedCount: 2 },
+    harvestWindow: { around: 'noon', closedText: 'The cap is shut — it opens at noon and closes by two, and the pans keep the deadline. Come back at the height of the day, at a run.' },
     bonusGrow: {
       biomes: ['meadow', 'saltglass'],
       hybrid: ['meadow', 'saltglass'],
@@ -2582,13 +2595,14 @@ export const FLORA: Record<string, FloraDef> = {
   // night — up at dusk, down at dawn, in meadow, marsh-edge
   // and grove alike (the Meltcap keeps the fungus kingdom's
   // other night appointment). Its midnight window is bespoke
-  // (deferred, like Meltcap's) — v1 deals an honest cap. The
+  // (window LIVE, slice 40: midnight, like Meltcap's). The
   // dark hours' provision, picked by lantern.
   night_cap: {
     id: 'night_cap',
     name: 'Night Cap',
     kind: 'fungus',
     harvest: { item: 'night_cap', count: 1, fertilizedCount: 2 },
+    harvestWindow: { around: 'midnight', closedText: 'By day the cap is down and the pantry is shut — it fruits at midnight, picked by lantern. Come back in the dark hours.' },
     bonusGrow: {
       biomes: ['meadow', 'rootwood', 'fungal', 'wetland', 'living'],
       count: 3,
@@ -2990,13 +3004,14 @@ export const FLORA: Record<string, FloraDef> = {
   // #240 — a tall white candle-flower of the warm and
   // temperate ranges: its thick petals render a clean-burning
   // wax — the far country's candle, grown. The bloom opens at
-  // midnight (window bespoke, deferred like its kin); v1
-  // deals an honest flower.
+  // midnight (window LIVE, slice 40, like its kin); the
+  // glove refuses outside it.
   night_candle: {
     id: 'night_candle',
     name: 'Night Candle',
     kind: 'flora',
     harvest: { item: 'night_wax', count: 1, fertilizedCount: 2 },
+    harvestWindow: { around: 'midnight', closedText: 'By day it is only a promise — the candle blooms at midnight, and the wax renders from the bloom. Come back in the dark.' },
     bonusGrow: {
       biomes: ['ember', 'meadow', 'storm', 'living'],
       count: 2,

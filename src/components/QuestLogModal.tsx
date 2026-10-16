@@ -175,6 +175,20 @@ export const QuestLogModal = ({
                                 {Math.min(g.have, g.count)}/{g.count}
                               </span>
                             ))}
+                            {/* The craft the gathers serve — the same
+                                final checkbox the tracker shows */}
+                            {v.completion && (
+                              <span
+                                className={`text-[11px] px-2 py-0.5 rounded-lg border font-semibold ${
+                                  v.completion.done || done
+                                    ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-200'
+                                    : 'border-amber-400/40 bg-amber-500/10 text-amber-200'
+                                }`}
+                              >
+                                {(v.completion.done || done) && '✓ '}
+                                {v.completion.label}
+                              </span>
+                            )}
                           </div>
                         )}
                       </div>

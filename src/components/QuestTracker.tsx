@@ -13,20 +13,32 @@
  * button up top and the Q hotkey both open the list, never this
  * card directly.
  */
+import { X } from 'lucide-react';
 import { ITEMS } from '../game/constants';
 import type { QuestProgressView } from '../game/quests';
-import { MODULE_FOR_TOOL, TOOL_NAMES } from '../game/quests';
 
 interface QuestTrackerProps {
   view: QuestProgressView;
+  /** Close this quest's card (Adam, 2026-10-15): the tracker
+   * rests; the quest stays in the log, ready to re-track. */
+  onDismiss?: () => void;
 }
 
-export const QuestTracker = ({ view }: QuestTrackerProps) => {
+export const QuestTracker = ({ view, onDismiss }: QuestTrackerProps) => {
   const { def, gather } = view;
-  const unlockDone = def.unlockTool ? view.complete : false;
 
   return (
-    <div className="pointer-events-none w-52 min-[760px]:w-60 rounded-2xl border border-emerald-400/25 bg-slate-950/70 backdrop-blur-md px-3.5 py-3 shadow-xl">
+    <div className="relative pointer-events-none w-52 min-[760px]:w-60 rounded-2xl border border-emerald-400/25 bg-slate-950/70 backdrop-blur-md px-3.5 py-3 shadow-xl">
+      {/* The little X (Adam): close this quest; reselect it in the log */}
+      {onDismiss && (
+        <button
+          onClick={onDismiss}
+          title="Close this quest (reopen it from the quest log)"
+          className="pointer-events-auto absolute top-2 right-2 w-5 h-5 rounded-md flex items-center justify-center text-slate-400 hover:text-slate-100 hover:bg-slate-700/60 transition-colors"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      )}
       {/* Header: tier chip + quest title */}
       <div className="flex items-center gap-2">
         <span className="text-[9px] font-black tracking-[0.18em] px-1.5 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-400/30 text-emerald-300">
@@ -67,26 +79,24 @@ export const QuestTracker = ({ view }: QuestTrackerProps) => {
           </li>
         ))}
 
-        {/* The craft step itself, for module quests */}
-        {def.unlockTool && (
+        {/* The craft step itself — EVERY quest's final checkbox
+            (Adam, 2026-10-15): the gathers exist to make this. */}
+        {view.completion && (
           <li
-            className={`flex items-center gap-2 text-xs ${
-              unlockDone ? 'text-emerald-300' : 'text-amber-200'
+            className={`flex items-center gap-2 text-xs pt-1 mt-1 border-t border-slate-700/50 ${
+              view.completion.done ? 'text-emerald-300' : 'text-amber-200'
             }`}
           >
             <span
               className={`flex-none w-4 h-4 rounded-md border flex items-center justify-center text-[10px] font-black ${
-                unlockDone
+                view.completion.done
                   ? 'bg-emerald-500/25 border-emerald-400/50 text-emerald-300'
                   : 'border-amber-400/50 text-transparent'
               }`}
             >
               ✓
             </span>
-            <span className="flex-1 truncate">
-              Craft the module — unlock {TOOL_NAMES[def.unlockTool]}
-              {MODULE_FOR_TOOL[def.unlockTool] ? '' : ''}
-            </span>
+            <span className="flex-1 truncate">{view.completion.label}</span>
           </li>
         )}
       </ul>

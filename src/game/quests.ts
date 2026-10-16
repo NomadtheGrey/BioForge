@@ -31,7 +31,7 @@
  */
 
 import type { ItemId, ToolType, CraftingRecipe } from '../types/game';
-import { RECIPES, getRecipeTier, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from './constants';
+import { ITEMS, RECIPES, getRecipeTier, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from './constants';
 
 /** Every tool the hotbar can hold, in hotbar order. */
 export const ALL_TOOLS: ToolType[] = [
@@ -120,11 +120,16 @@ export const QUESTS: QuestDef[] = [
     tier: 1,
     title: 'First Harvest',
     blurb:
-      'Your gauntlet wakes knowing one trick: harvest. Work the glowing lantern ferns — everything you need grows at the homestead.',
+      'Your gauntlet wakes knowing one trick: harvest. Work the glowing lantern ferns — everything you need grows at the homestead — then weave the fixings into a Hand Lantern-Fern, your first light.',
     gather: [
       { itemId: 'soft_fiber', count: 3 },
       { itemId: 'dew_essence', count: 2 },
     ],
+    // The pattern every quest follows (Adam, 2026-10-15): the
+    // gathers serve a craft, and the craft is the quest's final
+    // checkbox. The lantern is the first useful thing those
+    // ingredients make (fiber 2 + dew 1 of what's gathered).
+    completeItem: 'hand_lantern_fern',
   },
   {
     // The carrying ladder joins the quests (Adam, 2026-10-15):
@@ -326,6 +331,11 @@ export interface QuestProgressView {
   /** Derived-complete right now (before any latch): module owned,
    * graft owned, or every gather objective met. */
   complete: boolean;
+  /** The quest's final checkbox (Adam, 2026-10-15): every
+   * gathering quest exists to craft something, and this line
+   * says what — and whether it's been crafted. Null only for a
+   * quest with no craft at its end (none in the chain today). */
+  completion: { label: string; done: boolean } | null;
 }
 
 /** Compute a quest's live view from the pouch + unlocked tools. */
@@ -346,7 +356,21 @@ export function questView(
   } else {
     complete = gather.every((g) => g.done);
   }
-  return { def, gather, complete };
+  // The final checkbox line, worded by what the craft is: a
+  // module names the tool it unlocks; an item names itself.
+  let completion: QuestProgressView['completion'] = null;
+  if (def.unlockTool) {
+    completion = {
+      label: `Craft the module — unlock ${TOOL_NAMES[def.unlockTool]}`,
+      done: complete,
+    };
+  } else if (def.completeItem) {
+    completion = {
+      label: `Craft: ${ITEMS[def.completeItem]?.name ?? def.completeItem}`,
+      done: complete,
+    };
+  }
+  return { def, gather, complete, completion };
 }
 
 /**
@@ -358,6 +382,7 @@ export function trackedQuest(
   completedIds: string[],
   trackedId: string | null,
   views: QuestProgressView[],
+  dismissedId?: string | null,
 ): QuestProgressView | null {
   const isDone = (v: QuestProgressView) =>
     v.complete || completedIds.includes(v.def.id);
@@ -365,5 +390,10 @@ export function trackedQuest(
     const picked = views.find((v) => v.def.id === trackedId);
     if (picked && !isDone(picked)) return picked;
   }
-  return views.find((v) => !isDone(v)) ?? null;
+  const front = views.find((v) => !isDone(v)) ?? null;
+  // The X on the tracker (Adam, 2026-10-15): when the chain's
+  // front quest is the dismissed one, the tracker rests —
+  // tracking it again from the quest log brings it back.
+  if (front && dismissedId && front.def.id === dismissedId) return null;
+  return front;
 }

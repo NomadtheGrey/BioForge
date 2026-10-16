@@ -65,6 +65,7 @@ export function useQuests({
     questProgress?.completedIds ?? [],
     questProgress?.trackedId ?? null,
     questViews,
+    questProgress?.dismissedId ?? null,
   );
   const showQuestHud = questProgress?.showHud ?? false;
 

@@ -512,6 +512,11 @@ export interface QuestProgressState {
   completedIds: string[];
   trackedId: string | null;
   showHud: boolean;
+  /** The quest the player closed with the tracker's X (Adam,
+   * 2026-10-15): the tracker rests instead of falling back to it.
+   * Not an abandonment — tracking it again from the quest log
+   * clears the dismissal. Optional: older saves predate it. */
+  dismissedId?: string | null;
 }
 
 export interface PlayerState {

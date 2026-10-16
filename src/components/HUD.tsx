@@ -114,6 +114,9 @@ interface HUDProps {
    * wants the tracker card shown (the list's checkbox). Null view =
    * chain finished or not applicable; the card rests. */
   questView: QuestProgressView | null;
+  /** Close the tracked quest's card (its X) — App records the
+   * dismissal; the quest stays in the log for re-tracking. */
+  onDismissQuest?: () => void;
   showQuestHud: boolean;
   dayNightCycle: number;
   onToggleDayNight: () => void;
@@ -177,6 +180,7 @@ export const HUD: React.FC<HUDProps> = ({
   onToolLocked,
   onOpenQuests,
   questView,
+  onDismissQuest,
   showQuestHud,
   dayNightCycle,
   onToggleDayNight,
@@ -596,7 +600,7 @@ export const HUD: React.FC<HUDProps> = ({
           joystick reaches. */}
       {showQuestHud && questView && (
         <div className="absolute left-3 top-[31%] z-20 pointer-events-none">
-          <QuestTracker view={questView} />
+          <QuestTracker view={questView} onDismiss={onDismissQuest} />
         </div>
       )}
 

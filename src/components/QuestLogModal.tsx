@@ -12,13 +12,27 @@
  * Quests unlock in chain order: a quest is available when every
  * quest before it is complete. Tracking is a preference, not a
  * gate — any available quest can be pinned to the tracker.
+ *
+ * PLAYSTYLE TABS (Adam, 2026-10-16): the log now opens through a
+ * row of tabs — All Quests plus the seven playstyles from
+ * ReadMeFiles/PLAYER_STYLES.md (the taxonomy and the per-quest
+ * population map live in game/questStyles.ts). The tabs are a
+ * LENS, never lanes: nobody picks a style, every tab is always
+ * there, and chain state, tracking, and completion are global —
+ * the same quest shows the same face in every tab it appears in.
+ * All Quests keeps the chapter view (and the Field Notes);
+ * Completionists is the master ledger (every quest, plus the
+ * notes). The panel widened to max-w-4xl to give the tab bar room
+ * to wrap to two rows without crowding the cards.
  */
+import { useState } from 'react';
 import { ScrollText, X } from 'lucide-react';
 import { ITEMS } from '../game/constants';
 import { FIELD_NOTES } from '../game/fieldNotes';
 import type { FieldNotesState } from '../game/fieldNotesBook';
 import type { CodexEntry } from '../types/game';
 import type { QuestProgressView } from '../game/quests';
+import { PLAYSTYLE_TABS, questInStyle, type PlayStyleId } from '../game/questStyles';
 
 interface QuestLogModalProps {
   isOpen: boolean;
@@ -45,6 +59,10 @@ export const QuestLogModal = ({
   fieldNotesState,
   codexList,
 }: QuestLogModalProps) => {
+  // The active playstyle lens. Hooks run before the isOpen guard —
+  // App keeps this component mounted and flips the flag.
+  const [activeTab, setActiveTab] = useState<PlayStyleId>('all');
+
   if (!isOpen) return null;
 
   const isDone = (v: QuestProgressView) =>
@@ -56,9 +74,173 @@ export const QuestLogModal = ({
 
   const chapters = [1, 2, 3] as const;
 
+  const activeTabMeta = PLAYSTYLE_TABS.find((t) => t.id === activeTab) ?? PLAYSTYLE_TABS[0];
+  const tabViews = (tab: PlayStyleId) => views.filter((v) => questInStyle(v.def.id, tab));
+  const tabDoneCount = (tab: PlayStyleId) => tabViews(tab).filter(isDone).length;
+
+  // One quest card, rendered identically in every view — the
+  // chain state it shows is global, so a quest's face never
+  // changes with the lens you found it through.
+  const renderQuestCard = (v: QuestProgressView) => {
+    const idx = views.indexOf(v);
+    const done = isDone(v);
+    const available = done || idx === firstOpenIdx;
+    const tracked = trackedId === v.def.id;
+    return (
+      <div
+        key={v.def.id}
+        className={`rounded-2xl border px-4 py-3 ${
+          done
+            ? 'border-emerald-500/25 bg-emerald-950/20'
+            : available
+              ? 'border-slate-600 bg-slate-900/70'
+              : 'border-slate-800 bg-slate-900/30 opacity-55'
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <span
+            className={`flex-none w-6 h-6 rounded-lg border flex items-center justify-center text-xs font-black ${
+              done
+                ? 'bg-emerald-500/25 border-emerald-400/50 text-emerald-300'
+                : 'border-slate-600 text-slate-500'
+            }`}
+          >
+            {done ? '✓' : available ? '•' : '🔒'}
+          </span>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-bold text-slate-100">
+              {v.def.title}
+            </div>
+            <div className="text-[11px] text-slate-400 leading-snug">
+              {v.def.blurb}
+            </div>
+          </div>
+          {!done && available && (
+            <button
+              onClick={() => onTrack(v.def.id)}
+              className={`flex-none text-[11px] font-bold px-3 py-1.5 rounded-xl border ${
+                tracked
+                  ? 'border-emerald-400/60 bg-emerald-500/20 text-emerald-200'
+                  : 'border-slate-600 bg-slate-800/70 text-slate-200 hover:border-emerald-400/50'
+              }`}
+            >
+              {tracked ? 'TRACKING' : 'TRACK'}
+            </button>
+          )}
+          {done && (
+            <span className="flex-none text-[11px] font-black tracking-wider text-emerald-300">
+              DONE
+            </span>
+          )}
+        </div>
+        {/* Gather checkmarks */}
+        {(!done || v.gather.length > 0) && available && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {v.gather.map((g) => (
+              <span
+                key={g.itemId}
+                className={`text-[11px] px-2 py-0.5 rounded-lg border ${
+                  g.done || done
+                    ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-200'
+                    : 'border-slate-700 bg-slate-800/50 text-slate-300'
+                }`}
+              >
+                {(g.done || done) && '✓ '}
+                {ITEMS[g.itemId]?.name ?? g.itemId} ·{' '}
+                {Math.min(g.have, g.count)}/{g.count}
+              </span>
+            ))}
+            {/* The craft the gathers serve — the same
+                final checkbox the tracker shows */}
+            {v.completion && (
+              <span
+                className={`text-[11px] px-2 py-0.5 rounded-lg border font-semibold ${
+                  v.completion.done || done
+                    ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-200'
+                    : 'border-amber-400/40 bg-amber-500/10 text-amber-200'
+                }`}
+              >
+                {(v.completion.done || done) && '✓ '}
+                {v.completion.label}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // The chapter-grouped ledger — the All Quests view, and the
+  // Completionists master ledger (same chapters, same cards).
+  const renderChapterSections = () => (
+    <>
+      {chapters.map((chapter) => {
+        const chapterViews = views.filter((v) => v.def.questChapter === chapter);
+        if (chapterViews.length === 0) return null;
+        return (
+          <div key={chapter}>
+            <div className="text-[10px] font-black tracking-[0.22em] text-emerald-300/80 mb-2">
+              {chapter === 1
+                ? 'CHAPTER 1 — GAUNTLET BASICS'
+                : chapter === 2
+                  ? 'CHAPTER 2 — FIELD SYNTHESIS'
+                  : 'CHAPTER 3 — EYES & FEET'}
+            </div>
+            <div className="space-y-2">
+              {chapterViews.map(renderQuestCard)}
+            </div>
+          </div>
+        );
+      })}
+    </>
+  );
+
+  // FIELD NOTES — the discovery layer (data: slice 46;
+  // wiring: dev chat, 2026-10-16). Locked notes are
+  // ABSENT, never greyed — this whole section renders
+  // only once the player has scanned something with a
+  // story. A witnessed note carries its moment under
+  // the clue, as a record. Nothing here is tracked to
+  // the HUD, by design. Shown in the All Quests view
+  // and the Completionists ledger.
+  const renderFieldNotes = () => {
+    if (fieldNotesState.unlocked.length === 0) return null;
+    return (
+      <div>
+        <div className="text-[10px] font-black tracking-[0.22em] text-amber-300/80 mb-2">
+          FIELD NOTES — {fieldNotesState.unlocked.length}/{FIELD_NOTES.length} FOUND
+        </div>
+        <div className="space-y-2">
+          {FIELD_NOTES.filter((n) => fieldNotesState.unlocked.includes(n.id)).map((note) => {
+            const witnessed = fieldNotesState.witnessed.includes(note.id);
+            const name = note.species
+              ? (codexList.find((c) => c.species === note.species)?.name
+                ?? note.species.replace(/_/g, ' '))
+              : 'The Great Ones';
+            return (
+              <div key={note.id} className="rounded-xl border border-amber-400/25 bg-amber-500/5 px-3.5 py-2.5">
+                <div className="text-[13px] font-bold text-amber-100">{name}</div>
+                <p className="mt-0.5 text-[12px] italic leading-snug text-slate-300">{note.clue}</p>
+                {witnessed && (
+                  <div className="mt-1.5 text-[11px] font-semibold text-amber-200/90">
+                    ✓ Witnessed — {note.witness}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const styleViews = activeTab !== 'all' && activeTab !== 'completionists'
+    ? tabViews(activeTab)
+    : [];
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-      <div className="glass-panel-biolum w-full max-w-2xl max-h-[640px] rounded-3xl flex flex-col overflow-hidden border border-emerald-500/30 shadow-2xl">
+      <div className="glass-panel-biolum w-full max-w-4xl max-h-[88vh] rounded-3xl flex flex-col overflow-hidden border border-emerald-500/30 shadow-2xl">
         {/* Header */}
         <div className="px-6 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-900/60">
           <div className="flex items-center gap-3">
@@ -100,145 +282,80 @@ export const QuestLogModal = ({
           </span>
         </label>
 
-        {/* Chapter sections */}
+        {/* Playstyle tabs — a lens, not lanes (Adam, 2026-10-16).
+            Nobody chooses a style; the tabs simply re-shelve the
+            same quests by the verb they teach. The bar wraps to a
+            second row at this width by design. Each tab carries
+            its progress count, and the active tab's promise line
+            sits under the bar. */}
+        <div className="mx-6 mt-4">
+          <div className="flex flex-wrap gap-1.5">
+            {PLAYSTYLE_TABS.map((tab) => {
+              const total = tabViews(tab.id).length;
+              const doneCount = tabDoneCount(tab.id);
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-bold transition-colors ${
+                    active
+                      ? 'border-emerald-400/60 bg-emerald-500/20 text-emerald-100'
+                      : 'border-slate-700 bg-slate-900/60 text-slate-300 hover:border-emerald-400/40 hover:text-slate-100'
+                  }`}
+                >
+                  <span>{tab.icon}</span>
+                  <span>{tab.label}</span>
+                  <span className={`font-mono text-[10px] ${active ? 'text-emerald-300' : 'text-slate-500'}`}>
+                    {doneCount}/{total}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="mt-2 text-[11px] text-slate-400 leading-snug">
+            <span className="text-slate-200 font-semibold">{activeTabMeta.label}.</span>{' '}
+            {activeTabMeta.promise}
+            <span className="text-slate-500">
+              {' '}No style is chosen — every quest can be run from any tab it appears in.
+            </span>
+          </p>
+        </div>
+
+        {/* Content — the chapter ledger for All / Completionists,
+            or the active style's shelf in chain order. */}
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
-          {chapters.map((chapter) => {
-            const chapterViews = views.filter((v) => v.def.questChapter === chapter);
-            if (chapterViews.length === 0) return null;
-            return (
-              <div key={chapter}>
-                <div className="text-[10px] font-black tracking-[0.22em] text-emerald-300/80 mb-2">
-                  {chapter === 1
-                    ? 'CHAPTER 1 — GAUNTLET BASICS'
-                    : chapter === 2
-                      ? 'CHAPTER 2 — FIELD SYNTHESIS'
-                      : 'CHAPTER 3 — EYES & FEET'}
-                </div>
-                <div className="space-y-2">
-                  {chapterViews.map((v) => {
-                    const idx = views.indexOf(v);
-                    const done = isDone(v);
-                    const available = done || idx === firstOpenIdx;
-                    const tracked = trackedId === v.def.id;
-                    return (
-                      <div
-                        key={v.def.id}
-                        className={`rounded-2xl border px-4 py-3 ${
-                          done
-                            ? 'border-emerald-500/25 bg-emerald-950/20'
-                            : available
-                              ? 'border-slate-600 bg-slate-900/70'
-                              : 'border-slate-800 bg-slate-900/30 opacity-55'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span
-                            className={`flex-none w-6 h-6 rounded-lg border flex items-center justify-center text-xs font-black ${
-                              done
-                                ? 'bg-emerald-500/25 border-emerald-400/50 text-emerald-300'
-                                : 'border-slate-600 text-slate-500'
-                            }`}
-                          >
-                            {done ? '✓' : available ? '•' : '🔒'}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-bold text-slate-100">
-                              {v.def.title}
-                            </div>
-                            <div className="text-[11px] text-slate-400 leading-snug">
-                              {v.def.blurb}
-                            </div>
-                          </div>
-                          {!done && available && (
-                            <button
-                              onClick={() => onTrack(v.def.id)}
-                              className={`flex-none text-[11px] font-bold px-3 py-1.5 rounded-xl border ${
-                                tracked
-                                  ? 'border-emerald-400/60 bg-emerald-500/20 text-emerald-200'
-                                  : 'border-slate-600 bg-slate-800/70 text-slate-200 hover:border-emerald-400/50'
-                              }`}
-                            >
-                              {tracked ? 'TRACKING' : 'TRACK'}
-                            </button>
-                          )}
-                          {done && (
-                            <span className="flex-none text-[11px] font-black tracking-wider text-emerald-300">
-                              DONE
-                            </span>
-                          )}
-                        </div>
-                        {/* Gather checkmarks */}
-                        {(!done || v.gather.length > 0) && available && (
-                          <div className="mt-2 flex flex-wrap gap-1.5">
-                            {v.gather.map((g) => (
-                              <span
-                                key={g.itemId}
-                                className={`text-[11px] px-2 py-0.5 rounded-lg border ${
-                                  g.done || done
-                                    ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-200'
-                                    : 'border-slate-700 bg-slate-800/50 text-slate-300'
-                                }`}
-                              >
-                                {(g.done || done) && '✓ '}
-                                {ITEMS[g.itemId]?.name ?? g.itemId} ·{' '}
-                                {Math.min(g.have, g.count)}/{g.count}
-                              </span>
-                            ))}
-                            {/* The craft the gathers serve — the same
-                                final checkbox the tracker shows */}
-                            {v.completion && (
-                              <span
-                                className={`text-[11px] px-2 py-0.5 rounded-lg border font-semibold ${
-                                  v.completion.done || done
-                                    ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-200'
-                                    : 'border-amber-400/40 bg-amber-500/10 text-amber-200'
-                                }`}
-                              >
-                                {(v.completion.done || done) && '✓ '}
-                                {v.completion.label}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-          {/* FIELD NOTES — the discovery layer (data: slice 46;
-              wiring: dev chat, 2026-10-16). Locked notes are
-              ABSENT, never greyed — this whole section renders
-              only once the player has scanned something with a
-              story. A witnessed note carries its moment under
-              the clue, as a record. Nothing here is tracked to
-              the HUD, by design. */}
-          {fieldNotesState.unlocked.length > 0 && (
+          {activeTab === 'all' || activeTab === 'completionists' ? (
+            <>
+              {renderChapterSections()}
+              {renderFieldNotes()}
+            </>
+          ) : (
             <div>
-              <div className="text-[10px] font-black tracking-[0.22em] text-amber-300/80 mb-2">
-                FIELD NOTES — {fieldNotesState.unlocked.length}/{FIELD_NOTES.length} FOUND
-              </div>
-              <div className="space-y-2">
-                {FIELD_NOTES.filter((n) => fieldNotesState.unlocked.includes(n.id)).map((note) => {
-                  const witnessed = fieldNotesState.witnessed.includes(note.id);
-                  const name = note.species
-                    ? (codexList.find((c) => c.species === note.species)?.name
-                      ?? note.species.replace(/_/g, ' '))
-                    : 'The Great Ones';
-                  return (
-                    <div key={note.id} className="rounded-xl border border-amber-400/25 bg-amber-500/5 px-3.5 py-2.5">
-                      <div className="text-[13px] font-bold text-amber-100">{name}</div>
-                      <p className="mt-0.5 text-[12px] italic leading-snug text-slate-300">{note.clue}</p>
-                      {witnessed && (
-                        <div className="mt-1.5 text-[11px] font-semibold text-amber-200/90">
-                          ✓ Witnessed — {note.witness}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+              {styleViews.length > 0 ? (
+                <div className="space-y-2">
+                  {styleViews.map(renderQuestCard)}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-slate-800 bg-slate-900/40 px-4 py-6 text-center">
+                  <div className="text-2xl mb-1.5">{activeTabMeta.icon}</div>
+                  <div className="text-sm font-bold text-slate-200">
+                    No quests shelved here — yet
+                  </div>
+                  <div className="text-[11px] text-slate-400 mt-1">
+                    {activeTabMeta.promise}
+                  </div>
+                </div>
+              )}
+              {/* An honest note where the shelf is still being
+                  stocked — it names the feed instead of faking
+                  content (see questStyles.ts on the gaps). */}
+              {activeTabMeta.comingSoon && (
+                <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/30 px-3.5 py-2.5 text-[11px] text-slate-400 leading-snug">
+                  <span className="text-slate-300 font-semibold">Still growing:</span>{' '}
+                  {activeTabMeta.comingSoon}
+                </div>
+              )}
             </div>
           )}
         </div>

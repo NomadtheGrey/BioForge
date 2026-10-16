@@ -35,7 +35,7 @@ export const CELL_SIZE = 2;
 export const EDGE_PANEL_TYPES: StructureType[] = ['chitin_glass_wall', 'iris_slit_door'];
 
 /** Cell pieces that form the ground layer (one per cell). */
-export const GROUND_LAYER_TYPES: StructureType[] = ['root_tile_floor', 'cultivation_mound'];
+export const GROUND_LAYER_TYPES: StructureType[] = ['root_tile_floor', 'cultivation_mound', 'heart_tile'];
 
 export function isEdgePanel(type: StructureType): boolean {
   return EDGE_PANEL_TYPES.includes(type);

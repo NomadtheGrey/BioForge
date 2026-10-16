@@ -47,6 +47,7 @@ const STRUCTURE_LINK_DISTANCE = 2.85;
  */
 const BUILDING_TYPES: ReadonlySet<string> = new Set([
   'root_tile_floor',
+  'heart_tile',
   'chitin_glass_wall',
   'iris_slit_door',
   'spore_canopy',
@@ -501,6 +502,7 @@ export class BioForgeThreeEngine {
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },
+    heart_tile: { color: 0xfb7185, intensity: 0.55, distance: 2.8, y: 0.5 },
     chitin_glass_wall: { color: 0x67e8f9, intensity: 0.55, distance: 2.5, y: 1.2 },
     iris_slit_door: { color: 0xf0abfc, intensity: 0.55, distance: 2.5, y: 1.2 },
     spore_canopy: { color: 0xa78bfa, intensity: 0.9, distance: 3.5, y: 2.6 },
@@ -972,7 +974,7 @@ export class BioForgeThreeEngine {
     // Story levels stack on the datum: a level-1 wall stands where a
     // level-0 wall's top ends, whatever the ground does below.
     const groundY = (datum ?? this.terrainHeightAt(worldX, worldZ)) + level * STORY_HEIGHT;
-    const lift = type === 'root_tile_floor' ? FLOOR_TERRAIN_LIFT : 0;
+    const lift = type === 'root_tile_floor' || type === 'heart_tile' ? FLOOR_TERRAIN_LIFT : 0;
     mesh.position.set(worldX, groundY + lift, worldZ);
     mesh.rotation.set(0, rotation, 0);
   }

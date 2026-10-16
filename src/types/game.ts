@@ -83,6 +83,15 @@ export type ItemId =
   | 'star_glass'
   | 'quiver_gel'
   | 'pod_bladder'
+  | 'noon_seed'
+  | 'lambswool'
+  | 'coalwood_timber'
+  | 'aurora_cord'
+  | 'canopy_bloom'
+  | 'rib_seed'
+  | 'kite_bud'
+  | 'clock_petal'
+  | 'roadweed_leaf'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -349,7 +358,20 @@ export type FloraSpecies =
   | 'grabvine'
   | 'maw_bloom'
   | 'quiver_cap'
-  | 'balloon_vine';
+  | 'balloon_vine'
+  // Flora wave 7 (slice 19, 2026-10-16).
+  | 'noonflower'
+  | 'lambswool'
+  | 'spore_fern'
+  | 'coalwood'
+  | 'aurora_vine'
+  | 'bridge_moss'
+  | 'canopy_orchid'
+  | 'rib_grass'
+  | 'kite_flower'
+  | 'guest_flower'
+  | 'clock_bloom'
+  | 'roadweed';
 
 export interface FloraEntity {
   id: string;

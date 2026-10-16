@@ -141,11 +141,13 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     (Bonebreaker, Zot Serpent, Ironjaw) and the Brambleback,
  *     the Hedge Rose's planter. Table-only change.
  * v33: creature build phase, slice 18 (2026-10-16) — flora
- *     wave 6, THE FINAL FLORA WAVE: the bench's last twelve
- *     (Raincatcher, Arch Tree, Maw Bloom, Grabvine and kin).
- *     The flora roster is complete: 72 of 72. Table-only.
+ *     wave 6: twelve species incl. the Raincatcher, the Arch
+ *     Tree, the Maw Bloom, and the Grabvine. Table-only.
+ * v34: creature build phase, slice 19 (2026-10-16) — flora
+ *     wave 7: the meadow bench and the roadsides (Noonflower,
+ *     Lambswool, Coalwood, Roadweed and kin). Table-only.
  */
-export const WORLD_GEN_VERSION = 33; // v33 (2026-10-16): creature slice 18 — flora wave 6, the final flora (roster complete); v32 was creature slice 17 (fauna wave 4)
+export const WORLD_GEN_VERSION = 34; // v34 (2026-10-16): creature slice 19 — flora wave 7; v33 was creature slice 18 (flora wave 6)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

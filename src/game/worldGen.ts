@@ -281,8 +281,16 @@ import type { PondDef, RiverSeg } from './terrain';
  *     anchored to a stretch of channel, with ponds kept as
  *     the fallback where no river runs wet. Lava rivers
  *     never qualify.
+ * v57: creature build phase, slice 42 (2026-10-16) — one-
+ *     offs III, on best judgement: the HOLLOW HERMIT keeps
+ *     its schedule (still by day) and its dawn trade (a
+ *     Hollow Heart Spore for a night of stillness); the MOON
+ *     MOTH flies the Night Candle's road; the GLOOM SLUG
+ *     sheds Gloom Gel where it crawls; PUFFBELLS puff on the
+ *     hour, synchronized by the shared clock; BOILER CRABS
+ *     vent steam. Generation learns nothing new.
  */
-export const WORLD_GEN_VERSION = 56; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
+export const WORLD_GEN_VERSION = 57; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

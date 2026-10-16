@@ -17,6 +17,7 @@ import {
   GameNotification,
 } from '../types/game';
 import { ITEMS } from '../game/constants';
+import { TUNNEL_MAX_MOUTHS } from '../game/tunnel';
 import { createSeededRandom, hashStringToSeed } from '../game/motion';
 import { ruinLoreLine } from '../game/ruinInterior';
 import { soundEngine } from '../audio/soundEngine';
@@ -158,6 +159,11 @@ export interface UseToolInteractionsParams {
   /** Open a storage pod's panel (App shows StorageModal). */
   onOpenStorage: (structure: StructureEntity) => void;
   onOpenVat: (structure: StructureEntity) => void;
+  /** BioTunnel mouth click (Adam, 2026-10-16): App runs the
+   *  transit to the other mouth (or explains a dormant one). */
+  onTunnelTransit: (structure: StructureEntity) => void;
+  /** Mouths in the whole known world — the pair cap's count. */
+  getTunnelMouthCount: () => number;
   /** Spawn a dropped item in the world (storage spills, overflow). */
   spawnDroppedItem: (itemId: ItemId, count: number, x: number, z: number) => void;
   triggerHarvestFx: (x: number, z: number) => void;
@@ -210,6 +216,8 @@ export function useToolInteractions({
   onOpenBioForgeModal,
   onOpenStorage,
   onOpenVat,
+  onTunnelTransit,
+  getTunnelMouthCount,
   spawnDroppedItem,
   triggerHarvestFx,
   triggerSolventFx,
@@ -1155,6 +1163,22 @@ export function useToolInteractions({
         return;
       }
 
+      // The BioTunnel rule (Adam, 2026-10-16): ONE living pair.
+      // A third mouth has nowhere to grow — the count spans every
+      // visited zone, since the other end may stand countries away.
+      if (
+        selectedStructureType === 'biotunnel_mouth' &&
+        getTunnelMouthCount() >= TUNNEL_MAX_MOUTHS
+      ) {
+        postNotification(
+          'The Tunnel Is Already Whole',
+          'One organism, two mouths — that is all a BioTunnel can be. Dissolve an end to move it.',
+          'alert',
+          '#fbbf24',
+        );
+        return;
+      }
+
       deductInventoryItem(selectedStructureType, 1);
       soundEngine.playBuildPlace();
 
@@ -1178,6 +1202,11 @@ export function useToolInteractions({
         // A culture vat is born tier 1, resting (Adam, 2026-10-15).
         ...(selectedStructureType === 'culture_vat'
           ? { vat: { tier: 1 } }
+          : {}),
+        // A BioTunnel mouth is born unpaired; App's pairing sweep
+        // lights it when its other half exists (game/tunnel.ts).
+        ...(selectedStructureType === 'biotunnel_mouth'
+          ? { tunnel: { paired: false } }
           : {}),
       };
 
@@ -1220,7 +1249,8 @@ export function useToolInteractions({
       // behave exactly as a builder placement would.
       if (
         activeTool === 'harvest_glove' &&
-        selectedStructureType === 'storage_pod'
+        (selectedStructureType === 'storage_pod' ||
+          selectedStructureType === 'biotunnel_mouth')
       ) {
         handleBuildPlacement(worldX, worldZ);
         return;
@@ -1854,6 +1884,23 @@ export function useToolInteractions({
         return;
       }
       onOpenVat(structure);
+      return;
+    }
+    // BioTunnel mouths (Adam, 2026-10-16): the pod's grammar with
+    // a journey at the end of it. Solvent dissolves (the pouch gets
+    // the mouth back; the survivor goes dormant on its own), the
+    // scanner reads it, the builder falls through to build on it,
+    // and every other tool STEPS THROUGH — App runs the transit.
+    if (structure.type === 'biotunnel_mouth' && activeTool !== 'builder') {
+      if (activeTool === 'solvent_sprayer') {
+        handleSolventSprayer(structure);
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onTunnelTransit(structure);
       return;
     }
     if (activeTool === 'solvent_sprayer') {

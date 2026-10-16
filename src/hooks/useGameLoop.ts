@@ -115,6 +115,8 @@ export interface GameLoopDeps {
   isPointerLockedRef: { current: boolean };
   activeModalRef: { current: string | null };
   structuresListRef: { current: StructureEntity[] };
+  /** Refresh derived BioTunnel pairing on the live list (App). */
+  annotateTunnelPairing: (structures: StructureEntity[]) => void;
   floraListRef: { current: FloraEntity[] };
   activeToolRef: { current: ToolType };
   lastBroadcastTime: { current: number };
@@ -146,7 +148,7 @@ export function useGameLoop(deps: GameLoopDeps): void {
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef, returnPausedRef, onBackgroundReturn,
-    structuresListRef, floraListRef,
+    structuresListRef, floraListRef, annotateTunnelPairing,
     activeToolRef, lastBroadcastTime, lastMinimapUpdateTime, latestStateRef, currentZoneId,
     applyPlayerLevel, postNotification, setStamina, setHealth, setMinimapPos,
     setDayNightCycle, setHoverInfo, setIsPointerLocked,
@@ -579,7 +581,8 @@ export function useGameLoop(deps: GameLoopDeps): void {
         // shows where the hand will set it down.
         const podByHand =
           activeToolRef.current === 'harvest_glove' &&
-          selectedStructureRef.current === 'storage_pod';
+          (selectedStructureRef.current === 'storage_pod' ||
+            selectedStructureRef.current === 'biotunnel_mouth');
         if (activeToolRef.current === 'builder' || podByHand) {
           const pt = engineRef.current.getAimGroundIntersection();
           if (pt) {
@@ -698,6 +701,7 @@ export function useGameLoop(deps: GameLoopDeps): void {
   }, [faunaList]);
 
   useEffect(() => {
+    annotateTunnelPairing(structuresList);
     engineRef.current?.syncStructures(structuresList, playerPosRef.current.x, playerPosRef.current.z);
   }, [structuresList]);
 

@@ -266,8 +266,15 @@ import type { PondDef } from './terrain';
  *     pin), keeps the doorstep, and bonds reversed (three
  *     offerings and the dog decides) or leaves undecided.
  *     Generation only stops dealing it; the rest is sim.
+ * v55: creature build phase, slice 40 (2026-10-16) — the
+ *     clock's first creature uses: HARVEST WINDOWS (Meltcap,
+ *     Night Cap and Night Candle keep midnight; Sun Cap and
+ *     Noonflower keep noon — the glove refuses out of the
+ *     hour) and the DRIFT KRILL's night rise (mid-water by
+ *     day, up under the film at midnight). Generation learns
+ *     nothing new; the tables and the light changed.
  */
-export const WORLD_GEN_VERSION = 54; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
+export const WORLD_GEN_VERSION = 55; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

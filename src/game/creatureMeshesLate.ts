@@ -1299,6 +1299,203 @@ export function buildLateFaunaMesh(
         break;
       }
 
+      case 'mirror_jelly': {
+        // The marsh looking at itself (pond build): a clear bell
+        // whose top is a still mirror, tendrils trailing.
+        const bell = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({
+          color: 0xbae6fd, roughness: 0.15, transparent: true, opacity: 0.55,
+        }));
+        bell.scale.set(1, 0.75, 1);
+        bell.position.y = 0.02;
+        group.add(bell);
+        const mirrorTop = new THREE.Mesh(new THREE.CircleGeometry(0.2, 12), new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.1, metalness: 0.7 }));
+        mirrorTop.rotation.x = -Math.PI / 2;
+        mirrorTop.position.y = 0.24;
+        group.add(mirrorTop);
+        for (let i = 0; i < 6; i++) {
+          const tendril = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.008, 0.34, 5), new THREE.MeshStandardMaterial({
+            color: 0xe0f2fe, roughness: 0.4, transparent: true, opacity: 0.7,
+          }));
+          const a = (i / 6) * Math.PI * 2;
+          tendril.position.set(Math.cos(a) * 0.18, -0.16, Math.sin(a) * 0.18);
+          group.add(tendril);
+        }
+        break;
+      }
+
+      case 'pond_skater': {
+        // Six dimples in the water (pond build): a small body on
+        // long mirror-footed legs riding the film itself.
+        const legMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.5 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), legMat);
+        body.scale.set(1, 0.7, 1.8);
+        body.position.y = 0.09;
+        group.add(body);
+        for (let i = 0; i < 6; i++) {
+          const side = i % 2 === 0 ? 1 : -1;
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.005, 0.34, 4), legMat);
+          leg.position.set(side * 0.16, 0.04, -0.08 + Math.floor(i / 2) * 0.08);
+          leg.rotation.z = side * 1.15;
+          group.add(leg);
+        }
+        break;
+      }
+
+      case 'brine_jelly': {
+        // Salt-crusted at the rim, clear at the heart (pond build).
+        const bell = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({
+          color: 0xfef3c7, roughness: 0.3, transparent: true, opacity: 0.6,
+        }));
+        bell.scale.set(1, 0.7, 1);
+        group.add(bell);
+        const crust = new THREE.Mesh(new THREE.TorusGeometry(0.27, 0.045, 6, 14), new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 1 }));
+        crust.rotation.x = Math.PI / 2;
+        crust.position.y = 0.0;
+        group.add(crust);
+        const heart = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), new THREE.MeshStandardMaterial({
+          color: 0xe0f2fe, roughness: 0.2, transparent: true, opacity: 0.8,
+        }));
+        heart.position.y = 0.02;
+        group.add(heart);
+        break;
+      }
+
+      case 'sumpfish': {
+        // Sump patience, drawn (pond build): stout, olive, unbothered.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0x71713f, roughness: 0.9 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), hideMat);
+        body.scale.set(1, 0.85, 1.6);
+        group.add(body);
+        const tail = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.22, 6), hideMat);
+        tail.rotation.x = -Math.PI / 2;
+        tail.scale.set(1, 1, 0.3);
+        tail.position.set(0, 0, -0.32);
+        group.add(tail);
+        break;
+      }
+
+      case 'brook_minnow': {
+        // A ribbon of one (pond build): the school reads at
+        // count, not at size.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.35, metalness: 0.4 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), hideMat);
+        body.scale.set(0.8, 0.7, 2);
+        group.add(body);
+        const tail = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.1, 5), hideMat);
+        tail.rotation.x = -Math.PI / 2;
+        tail.scale.set(1, 1, 0.25);
+        tail.position.set(0, 0, -0.15);
+        group.add(tail);
+        break;
+      }
+
+      case 'ice_maw': {
+        // The travelling note, drawn (pond build): mostly jaw.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0xdbeafe, roughness: 0.5 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 8), hideMat);
+        body.scale.set(1, 0.8, 1.9);
+        group.add(body);
+        const jawMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.6 });
+        for (let i = 0; i < 6; i++) {
+          const tooth = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.12, 5), jawMat);
+          tooth.position.set(-0.12 + (i % 3) * 0.12, -0.1, 0.42 + Math.floor(i / 3) * 0.08);
+          tooth.rotation.x = Math.PI;
+          group.add(tooth);
+        }
+        const tail = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.4, 6), hideMat);
+        tail.rotation.x = -Math.PI / 2;
+        tail.scale.set(1, 1, 0.25);
+        tail.position.set(0, 0, -0.68);
+        group.add(tail);
+        break;
+      }
+
+      case 'drift_krill': {
+        // The citizen is the cloud (pond build): each spawn draws
+        // a loose knot of the ten thousand.
+        const krillMat = new THREE.MeshStandardMaterial({ color: 0xfda4af, roughness: 0.5, transparent: true, opacity: 0.85 });
+        for (let i = 0; i < 7; i++) {
+          const speck = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 5), krillMat);
+          speck.scale.set(0.8, 0.7, 2.2);
+          speck.position.set(Math.sin(i * 2.4) * 0.16, Math.cos(i * 1.7) * 0.08, Math.cos(i * 2.4) * 0.16);
+          speck.rotation.y = i * 1.3;
+          group.add(speck);
+        }
+        break;
+      }
+
+      case 'deep_carp': {
+        // A square meter of silt, defended by indifference (pond build).
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0x92600f, roughness: 0.7 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 8), hideMat);
+        body.scale.set(1, 0.9, 1.7);
+        group.add(body);
+        const tail = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.42, 6), hideMat);
+        tail.rotation.x = -Math.PI / 2;
+        tail.scale.set(1, 1, 0.2);
+        tail.position.set(0, 0, -0.66);
+        group.add(tail);
+        for (const side of [-1, 1]) {
+          const barbel = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.006, 0.2, 4), hideMat);
+          barbel.position.set(side * 0.1, -0.08, 0.5);
+          barbel.rotation.x = 1.1;
+          barbel.rotation.z = side * 0.4;
+          group.add(barbel);
+        }
+        break;
+      }
+
+      case 'pale_eel': {
+        // The gathering note, drawn (pond build): eyeless pale chain.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.45, transparent: true, opacity: 0.9 });
+        for (let i = 0; i < 6; i++) {
+          const seg = new THREE.Mesh(new THREE.SphereGeometry(0.085 - i * 0.008, 8, 6), hideMat);
+          seg.scale.set(1, 0.8, 1.3);
+          seg.position.set(Math.sin(i * 0.7) * 0.05, 0, -i * 0.15);
+          group.add(seg);
+        }
+        break;
+      }
+
+      case 'plunge_duck': {
+        // Three commutes, one bird (pond build): wings named for
+        // the flap branch; the dive lives in its table note.
+        const featherMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.8 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), featherMat);
+        body.scale.set(1, 0.85, 1.5);
+        body.position.y = 0.05;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.7 }));
+        head.position.set(0, 0.16, 0.22);
+        group.add(head);
+        const bill = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.03, 0.12), new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.6 }));
+        bill.position.set(0, 0.14, 0.34);
+        group.add(bill);
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 6), featherMat);
+          wing.scale.set(1.6, 0.18, 0.8);
+          wing.position.set(side * 0.22, 0.12, -0.02);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          group.add(wing);
+        }
+        break;
+      }
+
+      case 'mirror_fish': {
+        // The sky's copy, studied from beneath (pond build): a
+        // flat bright disc riding the film upside-down.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0xe0f2fe, roughness: 0.2, metalness: 0.5 });
+        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.04, 12), hideMat);
+        body.scale.set(1, 1, 1.5);
+        group.add(body);
+        const tail = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.18, 5), hideMat);
+        tail.rotation.x = -Math.PI / 2;
+        tail.scale.set(1, 1, 0.25);
+        tail.position.set(0, 0, -0.3);
+        group.add(tail);
+        break;
+      }
+
     default:
       return null;
   }

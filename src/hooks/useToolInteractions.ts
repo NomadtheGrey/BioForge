@@ -131,6 +131,7 @@ export interface UseToolInteractionsParams {
   instanceKind: () => 'surface' | 'cavern' | 'ruin';
   tameFauna: (faunaId: string, customName: string, state: FaunaEntity['state']) => void;
   hearthFeed: (faunaId: string) => number;
+  loadHeartbearer: (faunaId: string, item: ItemId) => number;
   /** The day/night clock, read at click time (slice 40): App's
    *  cycle via its latest-state mirror — 0.25 sunrise, 0.5 noon,
    *  0.75 sunset, 0 midnight. */
@@ -225,6 +226,7 @@ export function useToolInteractions({
   instanceKind,
   tameFauna,
   hearthFeed,
+  loadHeartbearer,
   getDayNightCycle,
   setFaunaCommand,
   onRequestRelease,
@@ -882,6 +884,47 @@ export function useToolInteractions({
       const def = speciesDef(fauna.species);
 
       // -------------------------------------------------------------
+      // THE HEARTBEARER (slice 48, 2026-10-16): not a taming —
+      // a loading. The lure is the offering hand: with it, you
+      // place ONE edible from your pouch on the bearer's back,
+      // and the sim's road delivers it to the valley's heart.
+      // The pantry is the valley's own (nectar, the heart's
+      // sap, eggs and caps) — the bearer carries food, not
+      // freight, and its back holds four.
+      // -------------------------------------------------------------
+      if (fauna.species === 'heartbearer') {
+        if ((fauna.cargoItems ?? []).length >= 4) {
+          postNotification('Fully Laden', 'The Heartbearer already carries all its broad back holds. It will deliver, in its own time — follow it, if you want to see the heart\'s road.', 'alert', '#fbbf24');
+          return;
+        }
+        const EDIBLE_PANTRY: ItemId[] = ['sweet_nectar', 'heart_sap', 'sedge_egg', 'haycap', 'sun_cap', 'meltcap'];
+        const offering = EDIBLE_PANTRY.find((i) => hasItem(i, 1));
+        if (!offering) {
+          postNotification('An Offering for the Road', 'The Heartbearer carries food to the valley\'s heart — nectar, heart sap, eggs, caps: something edible from your pouch, laid on its back, is delivered. You carry nothing it can use.', 'alert', '#fbbf24');
+          return;
+        }
+        deductInventoryItem(offering, 1);
+        const aboard = loadHeartbearer(fauna.id, offering);
+        postNotification('Loaded for the Heart', `${ITEMS[offering]?.name || 'Your offering'} rides the Heartbearer\'s back now — ${aboard} aboard. It will be delivered to the valley\'s heart, and a fed heart answers.`, 'tame', '#2dd4bf');
+        return;
+      }
+
+      // -------------------------------------------------------------
+      // THE ANSWER DEER (slice 48): the gate before the generic
+      // lure. The deer's method is the tamer's own state — the
+      // sim has been collecting your calm on the deer itself
+      // (calmRegard: seconds of slow company, over days). Too
+      // little collected calm and the offering is refused
+      // BEFORE any nectar is spent: the mirror is not fed, it
+      // is met. Enough, and the ordinary roll below decides —
+      // the deer's table odds, on a courtship already earned.
+      // -------------------------------------------------------------
+      if (fauna.species === 'answer_deer' && (fauna.calmRegard ?? 0) < 45) {
+        postNotification('It Keeps What You Bring It', 'The Answer Deer mirrors the visitor it is with — and what it has been brought so far is hurry. Be near it. Be slow. Let a little calm collect, over time, and then offer, at the speed you brought it.', 'alert', '#fbbf24');
+        return;
+      }
+
+      // -------------------------------------------------------------
       // THE HEARTH DOG (slice 39, 2026-10-16): the roster's one
       // REVERSED taming. This dog was never lured — it ARRIVED at
       // the heart tile (the sim walks it in), and the lure here is
@@ -1100,7 +1143,7 @@ export function useToolInteractions({
         return;
       }
     },
-    [hasItem, deductInventoryItem, tameFauna, hearthFeed, postNotification]
+    [hasItem, deductInventoryItem, tameFauna, hearthFeed, loadHeartbearer, postNotification]
   );
 
   // 6. Bio-Builder Placement

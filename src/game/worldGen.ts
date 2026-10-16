@@ -176,8 +176,12 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     Tool Cap, Night Cap, Trail Cap, Great Puff and kin).
  *     Flora meshes split: floraMeshesLate.ts inaugurated.
  *     Table-only change.
+ * v42: creature build phase, slice 27 (2026-10-16) — flora
+ *     wave 12: the trees, vines and mosses (Answer Tree,
+ *     Relic Tree, Ironwood, Row Moss, Gloam Fern and kin).
+ *     Table-only change.
  */
-export const WORLD_GEN_VERSION = 41; // v41 (2026-10-16): creature slice 26 — flora wave 11, fungus tail; v40 was creature slice 25 (flora wave 10)
+export const WORLD_GEN_VERSION = 42; // v42 (2026-10-16): creature slice 27 — flora wave 12, trees/vines/mosses; v41 was creature slice 26 (flora wave 11)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

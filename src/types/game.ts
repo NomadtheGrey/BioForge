@@ -140,6 +140,14 @@ export type ItemId =
   | 'sweet_cap'
   | 'great_puff'
   | 'rust_cap'
+  | 'greeting_cap'
+  | 'relic_fruit'
+  | 'ironwood'
+  | 'marrow_bloom'
+  | 'gloam_frond'
+  | 'flood_ribbon'
+  | 'ice_bloom'
+  | 'ripple_bell'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -471,7 +479,20 @@ export type FloraSpecies =
   | 'trail_cap'
   | 'sweet_cap'
   | 'great_puff'
-  | 'rust_cap';
+  | 'rust_cap'
+  // Flora wave 12 (slice 27, 2026-10-16) — trees, vines, mosses.
+  | 'answer_tree'
+  | 'greeting_cap'
+  | 'relic_tree'
+  | 'ironwood'
+  | 'glare_vine'
+  | 'marrow_vine'
+  | 'row_moss'
+  | 'prism_moss'
+  | 'gloam_fern'
+  | 'flood_fern'
+  | 'ice_bloom'
+  | 'ripple_bell';
 
 export interface FloraEntity {
   id: string;

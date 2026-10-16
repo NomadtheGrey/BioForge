@@ -492,6 +492,7 @@ export class BioForgeThreeEngine {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },
     heart_tile: { color: 0xfb7185, intensity: 0.55, distance: 2.8, y: 0.5 },
     chitin_glass_wall: { color: 0x67e8f9, intensity: 0.55, distance: 2.5, y: 1.2 },
+    rootweave_wall: { color: 0xa3e635, intensity: 0.35, distance: 2.2, y: 1.2 },
     iris_slit_door: { color: 0xf0abfc, intensity: 0.55, distance: 2.5, y: 1.2 },
     spore_canopy: { color: 0xa78bfa, intensity: 0.9, distance: 3.5, y: 2.6 },
     bio_forge_station: { color: 0x22d3ee, intensity: 0.9, distance: 3.5, y: 1.4 },

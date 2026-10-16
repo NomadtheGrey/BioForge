@@ -171,8 +171,13 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     wave 10, the cap bench: twelve fungus species (Row Cap,
  *     Wild Cap, Rib Cap, Iron Cap, Sun Cap and kin).
  *     Table-only change.
+ * v41: creature build phase, slice 26 (2026-10-16) — flora
+ *     wave 11, the fungus tail: twelve species (Mist Cap,
+ *     Tool Cap, Night Cap, Trail Cap, Great Puff and kin).
+ *     Flora meshes split: floraMeshesLate.ts inaugurated.
+ *     Table-only change.
  */
-export const WORLD_GEN_VERSION = 40; // v40 (2026-10-16): creature slice 25 — flora wave 10, cap bench; v39 was creature slice 24 (fauna wave 7)
+export const WORLD_GEN_VERSION = 41; // v41 (2026-10-16): creature slice 26 — flora wave 11, fungus tail; v40 was creature slice 25 (flora wave 10)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

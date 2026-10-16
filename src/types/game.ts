@@ -130,6 +130,16 @@ export type ItemId =
   | 'iron_cap'
   | 'hedge_cap'
   | 'sun_cap'
+  | 'mist_cap'
+  | 'tool_foam'
+  | 'night_cap'
+  | 'dark_cap'
+  | 'husk_cap'
+  | 'shell_cap'
+  | 'trail_cap'
+  | 'sweet_cap'
+  | 'great_puff'
+  | 'rust_cap'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -448,7 +458,20 @@ export type FloraSpecies =
   | 'brine_cap'
   | 'iron_cap'
   | 'hedge_cap'
-  | 'sun_cap';
+  | 'sun_cap'
+  // Flora wave 11 (slice 26, 2026-10-16) — the fungus tail.
+  | 'mist_cap'
+  | 'tool_cap'
+  | 'sail_cap'
+  | 'night_cap'
+  | 'storm_mold'
+  | 'dark_cap'
+  | 'husk_cap'
+  | 'shell_cap'
+  | 'trail_cap'
+  | 'sweet_cap'
+  | 'great_puff'
+  | 'rust_cap';
 
 export interface FloraEntity {
   id: string;

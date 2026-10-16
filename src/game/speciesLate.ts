@@ -825,7 +825,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     },
   },
 
-  // #142 — the Garden Warden's plan, war-kept: taller in the
+  // #142 — the Garden Keeper's plan, war-kept: taller in the
   // shoulders, its gardening tools long since re-purposed,
   // holding the Untended by requisition and habit. A HUNTER
   // of the bench: it warns (Peaceful theater), chases and
@@ -835,11 +835,11 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
   // word) on the killLoot rail slice 32 built. Untameable.
   feral_warden: {
     id: 'feral_warden',
-    name: 'Feral Warden',
+    name: 'Feral Bailiff',
     profile: 'territorial',
     tameChance: null,
     bait: null,
-    petName: 'Feral Warden',
+    petName: 'Feral Bailiff',
     byproduct: null,
     hunt: { aggroRange: 8, damage: 11, biteRange: 1.3, biteCooldownSeconds: 1.4 },
     killLoot: [['requisition', 1]],
@@ -970,7 +970,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
   },
 
   // #183 — LANDSCAPE, the word's fifth use: a biped at hill
-  // scale — the Garden Warden's plan written in mountains,
+  // scale — the Garden Keeper's plan written in mountains,
   // still gardening the far garden country at a pace of
   // seasons per gesture.
   garden_colossus: {

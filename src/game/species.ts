@@ -186,6 +186,15 @@ export interface SpeciesBonusSpawn {
    *  worlds have no ponds, so pond life is never sown on dry
    *  ripple. The true swimmers live behind this gate. */
   pond?: boolean;
+  /** River gate (slice 41, 2026-10-16): when true, the species
+   *  deals along this zone's WET, WATER river segments
+   *  (zoneRiversAt, filtered by the same wet test the renderer
+   *  uses — lava rivers never qualify), anchored on the bank
+   *  with its wander clamped to a short stretch. Rivers are
+   *  the named home: a river species that ALSO carries the
+   *  pond gate falls back to ponds in zones where no wet water
+   *  runs, and deals nowhere in landform-less worlds. */
+  river?: boolean;
   /** Individuals dealt per eligible zone. */
   count: number;
   /** Keep this far from the zone center (the radar species use 10). */

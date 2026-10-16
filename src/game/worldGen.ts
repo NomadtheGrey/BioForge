@@ -57,8 +57,8 @@ import type { FaunaEntity, FaunaSpecies, FloraEntity, FloraSpecies, StructureEnt
 import { generateCaveSurface, HOMESTEAD_BLOCKERS } from './caveSurface';
 import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
 import { BONUS_SPAWN_SPECIES } from './species';
-import { zonePondsAt } from './terrain';
-import type { PondDef } from './terrain';
+import { zonePondsAt, zoneRiversAt, landformHeightAt } from './terrain';
+import type { PondDef, RiverSeg } from './terrain';
 
 /**
  * Stamp recorded on saves so future format/gen changes can migrate.
@@ -273,8 +273,16 @@ import type { PondDef } from './terrain';
  *     hour) and the DRIFT KRILL's night rise (mid-water by
  *     day, up under the film at midnight). Generation learns
  *     nothing new; the tables and the light changed.
+ * v56: creature build phase, slice 41 (2026-10-16) — the
+ *     RIVER GATE: the silver set (Silver Skater, Silverfin,
+ *     Plated Crab, Silver Dipper) and the Mirror Heron deal
+ *     along wet water river segments — their designs' named
+ *     home since the pond group shipped them as a stand-in —
+ *     anchored to a stretch of channel, with ponds kept as
+ *     the fallback where no river runs wet. Lava rivers
+ *     never qualify.
  */
-export const WORLD_GEN_VERSION = 55; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
+export const WORLD_GEN_VERSION = 56; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -622,6 +630,25 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0, opt
       zonePonds = zonePondsAt(seedStr, zoneZx, zoneZz).filter((p) => p.liquid === 'water');
     }
     return zonePonds;
+  };
+  // This zone's WET WATER river segments, resolved lazily like
+  // the ponds (river gate, slice 41, 2026-10-16): a segment
+  // qualifies when its liquid is water (ember's lava rivers
+  // never do) and its level stands above the carved channel at
+  // its midpoint — the same wet test the renderer applies, so
+  // river life is dealt exactly where water actually shows.
+  let zoneRiverSegs: RiverSeg[] | null = null;
+  const riverSegsHere = (): RiverSeg[] => {
+    if (!worldHasLandforms) return [];
+    if (zoneRiverSegs === null) {
+      zoneRiverSegs = zoneRiversAt(seedStr, zoneZx, zoneZz).filter((s) => {
+        if (s.liquid !== 'water') return false;
+        const mx = (s.x1 + s.x2) / 2;
+        const mz = (s.z1 + s.z2) / 2;
+        return s.waterY > landformHeightAt(seedStr, mx, mz) + 0.05;
+      });
+    }
+    return zoneRiverSegs;
   };
   // The zone's single biome — its identity — drives every biome rule
   // below for the whole zone.
@@ -1091,16 +1118,40 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0, opt
       // a placement rule, never a dice roll.
       if (spec.weather && zoneWeatherAt(seedStr, zoneZx, zoneZz).mode !== spec.weather) continue;
       // Pond gate (pond build, 2026-10-16): pond species deal
-      // only into one of this zone's ponds.
-      const ponds = spec.pond ? pondsHere() : [];
-      if (spec.pond && ponds.length === 0) continue;
+      // only into one of this zone's ponds. River gate (slice
+      // 41): river species deal along the zone's wet water
+      // segments — the named home — and fall back to ponds
+      // (when they also carry the pond gate) where no wet
+      // water runs. A river species with neither water in the
+      // zone deals nowhere here.
+      const ponds = spec.pond || spec.river ? pondsHere() : [];
+      const riverSegs = spec.river ? riverSegsHere() : [];
+      if (spec.pond && !spec.river && ponds.length === 0) continue;
+      if (spec.river && riverSegs.length === 0 && (ponds.length === 0 || !spec.pond)) continue;
       const bonusRng = createSeededRandom(stream(`fauna:bonus:${def.id}`));
       let placed = 0;
       for (let attempt = 0; attempt < 40 && placed < spec.count; attempt++) {
         let x = (bonusRng() * 2 - 1) * 44;
         let z = (bonusRng() * 2 - 1) * 44;
         let pondAnchor: { x: number; z: number; radius: number } | undefined;
-        if (spec.pond) {
+        if (riverSegs.length > 0) {
+          // River placement: a seeded point along a wet water
+          // segment, jittered a step toward the bank. The
+          // anchor is that point and the clamp disc is a short
+          // stretch of river (6 m) — the sim's pond clamp keeps
+          // the citizen on its reach of the channel, swimmers
+          // draw on the river's surface, and the flyers fish
+          // the stretch they were dealt.
+          const seg = riverSegs[Math.floor(bonusRng() * riverSegs.length)];
+          const t = bonusRng();
+          const wx = seg.x1 + (seg.x2 - seg.x1) * t;
+          const wz = seg.z1 + (seg.z2 - seg.z1) * t;
+          const jx = wx + (bonusRng() * 2 - 1) * 1.5;
+          const jz = wz + (bonusRng() * 2 - 1) * 1.5;
+          x = jx - zoneZx * 100;
+          z = jz - zoneZz * 100;
+          pondAnchor = { x: wx - zoneZx * 100, z: wz - zoneZz * 100, radius: 6 };
+        } else if (spec.pond) {
           // Pond placement: inside the disc at a seeded angle and
           // depth — the pond is the home, so the zone-center
           // minRadius rule does not apply. The anchor + radius

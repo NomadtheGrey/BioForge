@@ -16,12 +16,18 @@
 import * as THREE from 'three';
 import type { FloraEntity } from '../types/game';
 import type { StructureMaterials } from './structureBuilders';
+import { buildLateFloraMesh } from './floraMeshesLate';
 
 export function buildFloraMesh(
   flora: FloraEntity,
   materials: StructureMaterials,
   terrainHeightAt: (x: number, z: number) => number,
 ): THREE.Group {
+    // Late-wave species live in floraMeshesLate.ts (the split,
+    // slice 26 — this file reached the size cap's edge). Try
+    // there first; fall through on null.
+    const late = buildLateFloraMesh(flora, materials, terrainHeightAt);
+    if (late) return late;
     const group = new THREE.Group();
     group.userData = { type: 'flora', entity: flora };
 

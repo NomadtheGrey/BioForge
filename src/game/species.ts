@@ -1804,9 +1804,10 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
   // that carries food from the valley's edges to the heart
   // point, in all weathers, on paths it keeps — the whole
   // valley reads its heart-scent as SAFE CONDUCT. Not
-  // tameable; its load-delivery office (anything edible
-  // placed on its back is DELIVERED to the Heartbloom) is a
-  // later behavior slice.
+  // tameable; its load-delivery office RUNS (creature slice
+  // 48): anything edible placed on its back (the lure is the
+  // offering hand) is DELIVERED to the heart on its route,
+  // and a fed heart answers with its sap.
   heartbearer: {
     id: 'heartbearer',
     name: 'Heartbearer',

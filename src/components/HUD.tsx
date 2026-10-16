@@ -318,7 +318,15 @@ export const HUD: React.FC<HUDProps> = ({
     : null;
 
   let descriptorExtra: string | null = null;
-  if (descriptorTool?.id === 'builder') {
+  if (
+    descriptorTool?.id === 'harvest_glove' &&
+    selectedStructureType === 'storage_pod'
+  ) {
+    // The by-hand pod (Adam, 2026-10-15): with the pod selected,
+    // the harvest glove's descriptor teaches the exemption —
+    // grown, not built; click the ground to set it down.
+    descriptorExtra = `Selected Blueprint: ${ITEMS[selectedStructureType]?.name || selectedStructureType} — ×${countOf(selectedStructureType)} in pouch · Click the ground to set it down by hand`;
+  } else if (descriptorTool?.id === 'builder') {
     descriptorExtra = `Selected Blueprint: ${ITEMS[selectedStructureType]?.name || selectedStructureType} — ×${countOf(selectedStructureType)} in pouch`;
   } else if (descriptorTool?.id === 'planter_trowel') {
     descriptorExtra = `Selected Seed: ${ITEMS[selectedSeedId]?.name || selectedSeedId} — ×${countOf(selectedSeedId)} · Loaded Fertilizer: ${ITEMS[selectedFertilizerId]?.name || selectedFertilizerId} — ×${countOf(selectedFertilizerId)}`;
@@ -735,7 +743,9 @@ export const HUD: React.FC<HUDProps> = ({
       {/* Bottom Bar: Tool Selection, Active Sub-item, and Main Windows */}
       <div className={`flex flex-col items-center w-full ${touchMode ? 'gap-2' : 'gap-3'}`}>
         {/* Contextual Active Sub-Selection Info */}
-        {playerState.activeTool === 'builder' && (
+        {(playerState.activeTool === 'builder' ||
+          (playerState.activeTool === 'harvest_glove' &&
+            selectedStructureType === 'storage_pod')) && (
           <div
             className={`pointer-events-auto glass-panel px-4 py-1.5 rounded-2xl flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs ${
               touchMode ? 'max-w-[74vw] justify-start self-start' : 'max-w-[96vw] justify-center'

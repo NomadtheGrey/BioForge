@@ -1099,12 +1099,27 @@ export function useToolInteractions({
         handleBuildPlacement(worldX, worldZ);
         return;
       }
+      // A grown storage pod is set down BY HAND (Adam, 2026-10-15):
+      // it's grown, not built, so the harvest glove — the hand every
+      // player starts with — places it when it's the selected
+      // blueprint, no Bio-Builder required. Everything BUILT still
+      // waits for the Builder module; this is the pod's one
+      // exemption, and it runs the builder's own placement path, so
+      // occupancy, rotation, and the pod's born-tier-1 storage all
+      // behave exactly as a builder placement would.
+      if (
+        activeTool === 'harvest_glove' &&
+        selectedStructureType === 'storage_pod'
+      ) {
+        handleBuildPlacement(worldX, worldZ);
+        return;
+      }
       if (activeTool === 'planter_trowel') {
         handlePlanterAction(worldX, worldZ);
         return;
       }
     },
-    [activeTool, handleBuildPlacement, handlePlanterAction]
+    [activeTool, handleBuildPlacement, handlePlanterAction, selectedStructureType]
   );
 
   const handleFloraInteract = useCallback(

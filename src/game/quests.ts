@@ -91,9 +91,10 @@ export interface QuestGatherObjective {
 export interface QuestDef {
   id: string;
   /** The gauntlet ladder's bands: 1 = the basic modules, 2 = Field
-   * Synthesis. The quest list groups by tier (Adam: "a list of the
-   * same tier mini quests"). */
-  tier: 1 | 2 | 3;
+   * Synthesis. The quest list groups by CHAPTER (Adam: "a list of
+   * the same tier mini quests" — the field was renamed from tier to
+   * questChapter 2026-10-16; "tier" belongs to crafting). */
+  questChapter: 1 | 2 | 3;
   title: string;
   /** One warm line of direction — a hint, not a lecture. */
   blurb: string;
@@ -117,7 +118,7 @@ export interface QuestDef {
 export const QUESTS: QuestDef[] = [
   {
     id: 'q_first_harvest',
-    tier: 1,
+    questChapter: 1,
     title: 'First Harvest',
     blurb:
       'Your gauntlet wakes knowing one trick: harvest. Work the glowing lantern ferns — everything you need grows at the homestead — then weave the fixings into a Hand Lantern-Fern, your first light.',
@@ -135,7 +136,7 @@ export const QUESTS: QuestDef[] = [
     // The carrying ladder joins the quests (Adam, 2026-10-15):
     // pockets hold 10 of a thing; a woven pouch makes it 25.
     id: 'q_pouch',
-    tier: 1,
+    questChapter: 1,
     title: 'Room to Breathe',
     blurb:
       'Your pockets hold 10 of anything, and the meadow is generous. Weave a Woven Pouch at the Bio-Forge — every stack you carry grows to 25.',
@@ -151,7 +152,7 @@ export const QUESTS: QuestDef[] = [
     // satchel's goods are all early-country, so its quest stands
     // right behind the pouch's). Gather list mirrors the recipe.
     id: 'q_satchel',
-    tier: 1,
+    questChapter: 1,
     title: 'Bound for More',
     blurb:
       'The Woven Pouch helped. It was not enough. Stiffen a Resin-Bound Satchel with wetland reeds — every stack you carry grows to 50.',
@@ -167,7 +168,7 @@ export const QUESTS: QuestDef[] = [
     // than later"): it used to wait behind the Builder quest
     // because a pod is only useful once you can place it.
     id: 'q_storage',
-    tier: 1,
+    questChapter: 1,
     title: 'A Place for Things',
     blurb:
       'Grow a Storage Pod at the Bio-Forge and set it down by hand — a grown pod needs no Bio-Builder. Click the pod to open it: a home for the surplus, and growth kits make it a Hutch, then a Vault.',
@@ -180,7 +181,7 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'q_scanner',
-    tier: 1,
+    questChapter: 1,
     title: 'Eyes Open',
     blurb:
       'Gather the parts and craft a Scanner Module at the Bio-Forge. Knowing what a thing IS comes before using it.',
@@ -192,7 +193,7 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'q_planter',
-    tier: 1,
+    questChapter: 1,
     title: 'Sow the Future',
     blurb:
       'Compost comes from mature harvests — every grown plant you pick leaves some behind. Craft the Planter Module and start gardening.',
@@ -204,7 +205,7 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'q_builder',
-    tier: 1,
+    questChapter: 1,
     title: 'Raise the Walls',
     blurb:
       'Resin from the sap-weaver binds living wood. Craft the Builder Module and the homestead can grow.',
@@ -216,7 +217,7 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'q_solvent',
-    tier: 1,
+    questChapter: 1,
     title: 'Nothing Wasted',
     blurb:
       'Craft the Solvent Module. From here on, nothing you build is a mistake — it all dissolves back into your pouch.',
@@ -228,7 +229,7 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'q_lure',
-    tier: 1,
+    questChapter: 1,
     title: 'Make a Friend',
     blurb:
       'The last basic module: a lure woven sweet. Craft it, and the wildlife stops being scenery.',
@@ -240,7 +241,7 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'q_field_synthesis',
-    tier: 2,
+    questChapter: 2,
     title: 'The Forge in Your Hand',
     blurb:
       'Tier 2: graft a miniature bio-forge onto your gauntlet and synthesize tier 1–2 recipes anywhere — Field Synthesis. The homestead stops being a leash.',
@@ -258,7 +259,7 @@ export const QUESTS: QuestDef[] = [
     // and ruin goods — but it HAS a quest now, so the ladder's
     // top is visible from the climb. Gather list mirrors it.
     id: 'q_rucksack',
-    tier: 2,
+    questChapter: 2,
     title: 'The Pack That Breathes',
     blurb:
       'Grow a symbiote pack around a prismatic heart — a Living Rucksack. Every stack you carry grows to 100, and the pack carries a little of itself.',
@@ -279,7 +280,7 @@ export const QUESTS: QuestDef[] = [
   // ----------------------------------------------------------------
   {
     id: 'q_helm',
-    tier: 3,
+    questChapter: 3,
     title: 'Eyes on the Land',
     blurb:
       'The gauntlet acts; the helm will know. Grow a Homestead Helm from hearthlands country — its band carries the basic radar, and every lens you ever grind mounts on it.',
@@ -292,7 +293,7 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'q_trail_lens',
-    tier: 3,
+    questChapter: 3,
     title: 'First Words',
     blurb:
       'Grind a Trail Lens and the land starts introducing itself: the family of every country you stand in, named.',
@@ -304,7 +305,7 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'q_quicksteps',
-    tier: 3,
+    questChapter: 3,
     title: 'Take the Step',
     blurb:
       'Feet last, and not least: grow the Quicksteps — the living set every impediment growth mounts on. Sure footing first; the marsh, the water, and the fire country after.',
@@ -317,7 +318,7 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'q_waders',
-    tier: 3,
+    questChapter: 3,
     title: 'Dry Feet',
     blurb:
       'The Mirror Marsh drags at every step and names its answer in its own alert: Waders. Grow a pair and wade like you mean it.',
@@ -330,7 +331,7 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'q_stillsteps',
-    tier: 3,
+    questChapter: 3,
     title: 'Walk the Water',
     blurb:
       'Stillsteps grow a tension film under the sole. Still water holds you. Walk it.',
@@ -342,7 +343,7 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'q_webfoots',
-    tier: 3,
+    questChapter: 3,
     title: "The River's Own",
     blurb:
       'Webfoots: reed-vane webs for the swim. The water stops being an argument.',
@@ -355,7 +356,7 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'q_ember_soles',
-    tier: 3,
+    questChapter: 3,
     title: 'Cross the Fire',
     blurb:
       "The Scar's ground warns you. Ember Soles — obsidian tread in heat-cured resin — answer.",
@@ -367,7 +368,7 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'q_spore_filter',
-    tier: 3,
+    questChapter: 3,
     title: 'Breathe Easy',
     blurb:
       "The Hollow taxes every breath. A Spore Filter stops the tax at your face.",
@@ -380,7 +381,7 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'q_biolume_visor',
-    tier: 3,
+    questChapter: 3,
     title: 'Light Below',
     blurb:
       'The deep strata are named for darkness. A Biolume Visor reads living light through all of it.',
@@ -392,7 +393,7 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'q_shade_visor',
-    tier: 3,
+    questChapter: 3,
     title: 'Against the Glare',
     blurb:
       'The Flats run bright enough to wash the world out. A Shade Visor dims glare country to bearable.',
@@ -404,7 +405,7 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'q_identifier',
-    tier: 3,
+    questChapter: 3,
     title: 'Name the Country',
     blurb:
       "Every country so far: 'Unidentified.' Grind the Identifier Lens and the land gives up its name — family, variant, and all.",
@@ -416,7 +417,7 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'q_radar',
-    tier: 3,
+    questChapter: 3,
     title: 'The Far Eye',
     blurb:
       'Four subassemblies, one instrument. Grow the Prismatic Field Radar and the minimap pings what is worth walking for.',
@@ -430,7 +431,7 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'q_glyph_lens',
-    tier: 3,
+    questChapter: 3,
     title: 'Read the Stones',
     blurb:
       'The glyph stones have been holding back their deep lines. A Glyph Lens reads them first — and ruin caches glow faintly through the walls.',
@@ -442,7 +443,7 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'q_charge_sight',
-    tier: 3,
+    questChapter: 3,
     title: 'Where the Sky Falls',
     blurb:
       'Zots warn by banner today. Charge Sight — fulgurite over a prismatic heart — paints the warned spot on the ground itself.',

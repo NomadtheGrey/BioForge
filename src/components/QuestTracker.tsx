@@ -42,7 +42,7 @@ export const QuestTracker = ({ view, onDismiss }: QuestTrackerProps) => {
       {/* Header: tier chip + quest title */}
       <div className="flex items-center gap-2">
         <span className="text-[9px] font-black tracking-[0.18em] px-1.5 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-400/30 text-emerald-300">
-          TIER {def.tier}
+          CHAPTER {def.questChapter}
         </span>
         <span className="text-[10px] font-black tracking-[0.18em] text-emerald-200/70">
           MINI-QUEST

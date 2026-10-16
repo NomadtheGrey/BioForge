@@ -16,6 +16,7 @@ import {
   FloraEntity,
 } from '../types/game';
 import { BIOMES, ITEMS } from '../game/constants';
+import { isFloorType } from '../game/placement';
 
 export interface MinimapProps {
   playerX: number;
@@ -330,7 +331,7 @@ export const Minimap: React.FC<MinimapProps> = ({
                 const { cx, cy, dist } = toRadarCanvas(s.worldX, s.worldZ, currentSize);
                 if (dist > radarRadius) return null;
                 const isWall = s.type === 'chitin_glass_wall';
-                const isFloor = s.type === 'root_tile_floor' || s.type === 'heart_tile';
+                const isFloor = isFloorType(s.type);
                 const isTurret = s.type === 'tamed_snap_trap_turret';
                 const color = isTurret ? '#ef4444' : isWall ? '#38bdf8' : isFloor ? '#0d9488' : '#a855f7';
                 const labelName = ITEMS[s.type]?.name || s.type;

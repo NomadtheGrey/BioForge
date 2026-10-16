@@ -37,6 +37,23 @@ export const EDGE_PANEL_TYPES: StructureType[] = ['chitin_glass_wall', 'iris_sli
 /** Cell pieces that form the ground layer (one per cell). */
 export const GROUND_LAYER_TYPES: StructureType[] = ['root_tile_floor', 'cultivation_mound', 'heart_tile'];
 
+/**
+ * Floor-kind structures (Adam, 2026-10-16): the walkable build
+ * surfaces. Footing, landing support, terrain lift, collision,
+ * the ladder's floor checks, and the map's floor color all ask
+ * THIS set instead of re-deciding floor-ness per system — a new
+ * floor joins here once and behaves everywhere. (The ground-layer
+ * list above is the wider occupancy family: floors plus the mound.)
+ */
+export const FLOOR_TYPES: ReadonlySet<StructureType> = new Set([
+  'root_tile_floor',
+  'heart_tile',
+]);
+
+export function isFloorType(type: StructureType): boolean {
+  return FLOOR_TYPES.has(type);
+}
+
 export function isEdgePanel(type: StructureType): boolean {
   return EDGE_PANEL_TYPES.includes(type);
 }

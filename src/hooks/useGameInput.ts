@@ -18,6 +18,7 @@
 
 import { useRef, useCallback, useEffect, useMemo, type Dispatch, type SetStateAction } from 'react';
 import { ITEMS, NON_BUILDABLE_STRUCTURE_IDS } from '../game/constants';
+import { isFloorType } from '../game/placement';
 import { TOOL_NAMES } from '../game/quests';
 import { soundEngine } from '../audio/soundEngine';
 import type { BioForgeThreeEngine } from '../game/threeEngine';
@@ -222,7 +223,7 @@ export function useGameInput(deps: GameInputDeps) {
     const structs = structuresListRef.current;
     const floorAt = (gx: number, gz: number, level: number): boolean =>
       structs.some(
-        (s) => (s.type === 'root_tile_floor' || s.type === 'heart_tile') && (s.level ?? 0) === level && s.gridX === gx && s.gridZ === gz
+        (s) => isFloorType(s.type) && (s.level ?? 0) === level && s.gridX === gx && s.gridZ === gz
       );
 
     if (floorAt(cellGX, cellGZ, 1)) return { near: true, blocked: 'opening' };

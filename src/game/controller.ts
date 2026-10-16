@@ -7,6 +7,7 @@
 import * as THREE from 'three';
 import { StructureEntity, FloraEntity } from '../types/game';
 import { resolveMovementWithCollision, type CavernGridRef } from './collision';
+import { isFloorType } from './placement';
 
 // Scratch vectors pre-allocated at module scope (Rule 3)
 const SCRATCH_FORWARD = new THREE.Vector3();
@@ -60,7 +61,7 @@ export class FirstPersonMovementController {
     let onFloor = false;
     for (let i = 0; i < structures.length; i++) {
       const s = structures[i];
-      if (s.type !== 'root_tile_floor' && s.type !== 'heart_tile') {
+      if (!isFloorType(s.type)) {
         continue;
       }
       if ((s.level ?? 0) !== playerLevel) {

@@ -1610,7 +1610,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     id: 'requisition',
     name: 'Requisition',
     category: 'raw',
-    description: 'A glyph Requisition — the Feral Warden\'s receipts, treasure-grade paperwork: a treasure map in the makers\' filing system, pointing where the Warden stored what it confiscated.',
+    description: 'A glyph Requisition — the Feral Bailiff\'s receipts, treasure-grade paperwork: a treasure map in the makers\' filing system, pointing where the Warden stored what it confiscated.',
     iconName: 'Scroll',
     color: '#fbbf24',
     rarity: 'rare',

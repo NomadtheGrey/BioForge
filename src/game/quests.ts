@@ -155,10 +155,25 @@ export type QuestGoal =
   | { kind: 'families'; count: number }
   | { kind: 'dogBond' }
   | { kind: 'vatHatch' }
-  | { kind: 'madeMet'; count: number };
+  | { kind: 'madeMet'; count: number }
+  // V2 kinds (2026-10-16): the deferred set's signals, plus the
+  // one goal that reads the POUCH instead of the signals record.
+  | { kind: 'homeStone' }
+  | { kind: 'itemCount'; itemId: ItemId; count: number }
+  | { kind: 'tunnel' }
+  | { kind: 'homeOrganism' }
+  | { kind: 'gardenHarvest' }
+  | { kind: 'hum' }
+  | { kind: 'walkBack' };
 
-/** Is this goal state true in the player's signals right now? */
-export function goalMet(goal: QuestGoal, signals: QuestSignals | undefined): boolean {
+/** Is this goal state true right now? Signal goals read the
+ * QuestSignals record; the itemCount goal reads the pouch
+ * (questView passes it through — a held set is a held set). */
+export function goalMet(
+  goal: QuestGoal,
+  signals: QuestSignals | undefined,
+  inventory?: Record<ItemId, number>,
+): boolean {
   const s = signals ?? {};
   switch (goal.kind) {
     case 'ruinEnter': return (s.ruins?.length ?? 0) >= 1;
@@ -170,12 +185,23 @@ export function goalMet(goal: QuestGoal, signals: QuestSignals | undefined): boo
     case 'dogBond': return s.dogBonded === true;
     case 'vatHatch': return s.hatched === true;
     case 'madeMet': return (s.madeMet?.length ?? 0) >= goal.count;
+    case 'homeStone': return s.homeStone === true;
+    case 'itemCount': return (inventory?.[goal.itemId] ?? 0) >= goal.count;
+    case 'tunnel': return s.tunnel === true;
+    case 'homeOrganism': return s.homeOrganism === true;
+    case 'gardenHarvest': return s.gardenHarvest === true;
+    case 'hum': return s.hum === true;
+    case 'walkBack': return s.walkBack === true;
   }
 }
 
 /** The live progress line a goal-state quest shows in place of
  * gather checkmarks — where you stand, in plain words. */
-export function goalProgressText(goal: QuestGoal, signals: QuestSignals | undefined): string {
+export function goalProgressText(
+  goal: QuestGoal,
+  signals: QuestSignals | undefined,
+  inventory?: Record<ItemId, number>,
+): string {
   const s = signals ?? {};
   switch (goal.kind) {
     case 'ruinEnter': return (s.ruins?.length ?? 0) >= 1 ? 'You have stood inside a house of the Precursors' : 'Cross the threshold of any ruin';
@@ -187,6 +213,13 @@ export function goalProgressText(goal: QuestGoal, signals: QuestSignals | undefi
     case 'dogBond': return s.dogBonded ? 'The dog has decided' : 'Win the hearth dog’s decision';
     case 'vatHatch': return s.hatched ? 'Something has woken in the vat' : 'Hatch a creature in the Culture Vat';
     case 'madeMet': return `Made things met — ${Math.min(s.madeMet?.length ?? 0, goal.count)} of ${goal.count}`;
+    case 'homeStone': return s.homeStone ? 'The doorstep stone has spoken' : 'Read the carved stone at the spawn remnant';
+    case 'itemCount': return `Fate Fragments kept — ${Math.min(inventory?.[goal.itemId] ?? 0, goal.count)} of ${goal.count}`;
+    case 'tunnel': return s.tunnel ? 'The tunnel has carried you' : 'Cross through your own BioTunnel';
+    case 'homeOrganism': return s.homeOrganism ? 'Your home is a living thing' : 'A heart set down, a hearth grown, a companion in residence';
+    case 'gardenHarvest': return s.gardenHarvest ? 'The old soil has answered' : 'Plant in a Precursor Garden and harvest what grows';
+    case 'hum': return s.hum ? 'The homestead hums' : 'Hearth, vat, and stores, all running at once';
+    case 'walkBack': return s.walkBack ? 'You stood there again' : 'Return on foot to the place the land took you';
   }
 }
 
@@ -711,6 +744,108 @@ export const ASK_THE_WORLD_QUESTS: QuestDef[] = [
     rewardItems: [{ itemId: 'prismatic_core', count: 1 }],
     rewardNote: 'A Prismatic Core, for the one who has stood everywhere.',
   },
+  // ------------------------------------------------------------------
+  // V2 (2026-10-16): the deferred set — the doorstep, the set's
+  // completion, and the cards whose signals App can read today.
+  // ------------------------------------------------------------------
+  {
+    // B2 — cross your own tunnel.
+    id: 'q_aw_two_mouths',
+    questChapter: 2,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For the builders',
+    title: 'Two Mouths, One Animal',
+    blurb:
+      'A BioTunnel is one creature with a mouth at each end of your life. Grow the pair, step in at home, and step out somewhere that matters.',
+    gather: [],
+    completeWhen: { kind: 'tunnel' },
+    rewardItems: [{ itemId: 'living_thread', count: 1 }],
+    rewardNote: 'A Living Thread — and a far country that knows your name.',
+  },
+  {
+    // S1 — home as an organism.
+    id: 'q_aw_home_organism',
+    questChapter: 2,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For the homesteaders',
+    title: 'Home Is an Organism',
+    blurb:
+      'A camp is where you sleep. A home is a living thing that knows your name: a heart set in the ground, a hearth grown, a companion in residence. Make the place that would bring you back from anywhere.',
+    gather: [],
+    completeWhen: { kind: 'homeOrganism' },
+    rewardNote: 'The home is kept — heart, hearth, and resident together.',
+  },
+  {
+    // G1 — the old garden's soil.
+    id: 'q_aw_old_garden',
+    questChapter: 2,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For the green thumbs',
+    title: 'The Old Garden',
+    blurb:
+      'In the Precursor Garden the old growers’ soil is still laid out in its spirals, still rich, still patient. Plant something in it. Harvest what their ground makes of your seed.',
+    gather: [],
+    completeWhen: { kind: 'gardenHarvest' },
+    rewardItems: [{ itemId: 'living_thread', count: 2 }],
+    rewardNote: 'Living Thread, twice over — the old soil still teaches.',
+  },
+  {
+    // M2 — the stone by the door.
+    id: 'q_aw_doorstep',
+    questChapter: 3,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For those who come home',
+    title: 'The Doorstep Stone',
+    blurb:
+      'There is a carved stone near where you first woke, in the little remnant you have walked past a hundred times. You could not read it then. The Glyph Lens says otherwise now.',
+    gather: [],
+    completeWhen: { kind: 'homeStone' },
+    rewardItems: [{ itemId: 'precursor_shard', count: 2 }],
+    rewardNote: 'Two Precursor Shards, from the cache beneath the stone.',
+  },
+  {
+    // N1 — the humming homestead.
+    id: 'q_aw_hum',
+    questChapter: 3,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For the engineers',
+    title: 'The Humming Homestead',
+    blurb:
+      'One grown thing is a tool. A hearth lit, a vat breathing, storage holding — that is a system, and a system hums. Bring your home to the hum, once, all of it running together.',
+    gather: [],
+    completeWhen: { kind: 'hum' },
+    rewardItems: [{ itemId: 'prismatic_core', count: 1 }],
+    rewardNote: 'A Prismatic Core — the hum, made solid once.',
+  },
+  {
+    // O2 — walk back.
+    id: 'q_aw_walk_back',
+    questChapter: 3,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For the survivalists',
+    title: 'Walk Back',
+    blurb:
+      'When the land takes you, you wake at home and your pouch is kind. The place that took you is still out there. Go back to it on foot and stand there again.',
+    gather: [],
+    completeWhen: { kind: 'walkBack' },
+    rewardItems: [{ itemId: 'precursor_shard', count: 1 }],
+    rewardNote: 'A Precursor Shard — and having stood there again.',
+  },
+  {
+    // M6 — the assembled truth. The chapter itself is delivered
+    // by App at this latch (game/awChapters.ts), naming the
+    // world's fate outright — the one earned exception.
+    id: 'q_aw_happened',
+    questChapter: 3,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For whoever is left',
+    title: 'What Happened Here',
+    blurb:
+      'Five fragments. Five houses. Put what they kept in one place, and this world’s story can finally be read whole.',
+    gather: [],
+    completeWhen: { kind: 'itemCount', itemId: 'aw_fragment', count: 5 },
+    rewardNote: 'The chapter itself — and a Listening Shell’s promise. (The Shell comes with the artifacts pass.)',
+  },
 ];
 
 /** Kept for the gen-lab harness's parity checks. */
@@ -841,7 +976,7 @@ export function questView(
   let complete: boolean;
   if (def.completeWhen) {
     // Ask the World line: completion is a goal state, not a craft.
-    complete = goalMet(def.completeWhen, signals);
+    complete = goalMet(def.completeWhen, signals, inventory);
   } else if (def.unlockTool) {
     complete = unlockedTools.includes(def.unlockTool);
   } else if (def.completeItem) {
@@ -854,7 +989,7 @@ export function questView(
   let completion: QuestProgressView['completion'] = null;
   let progressText: string | null = null;
   if (def.completeWhen) {
-    progressText = goalProgressText(def.completeWhen, signals);
+    progressText = goalProgressText(def.completeWhen, signals, inventory);
     completion = { label: progressText, done: complete };
   } else if (def.unlockTool) {
     completion = {

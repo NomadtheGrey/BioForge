@@ -28,6 +28,7 @@ import {
   deriveUnlockedTools,
   questView,
   trackedQuest,
+  type QuestDef,
   type QuestProgressView,
 } from '../game/quests';
 
@@ -54,6 +55,10 @@ export interface UseQuestsArgs {
    * overflow drop apply exactly as for any other gain). Optional:
    * without it, item rewards are simply not granted. */
   grantItems?: (items: { itemId: ItemId; count: number }[]) => void;
+  /** Called once per quest at the moment it latches complete
+   * (App uses it for the Ask the World chapter delivery — the
+   * one completion that is an event, not just a record). */
+  onQuestComplete?: (def: QuestDef) => void;
 }
 
 export interface UseQuestsResult {
@@ -72,6 +77,7 @@ export function useQuests({
   postNotification,
   hasStarted,
   grantItems,
+  onQuestComplete,
 }: UseQuestsArgs): UseQuestsResult {
   const unlockedTools = deriveUnlockedTools(inventory, grandfathered);
   // Views derive from the pouch AND the goal-state signals; the
@@ -93,10 +99,7 @@ export function useQuests({
     questViews,
     questProgress?.dismissedId ?? null,
   );
-  // Visible at first (Adam, 2026-10-16): the tracker is a HUD
-  // element like any other — on until the player turns it off
-  // (the log's checkbox, or Options → Mini-Quest Tracker).
-  const showQuestHud = questProgress?.showHud ?? true;
+  const showQuestHud = questProgress?.showHud ?? false;
 
   // Quest-progress writes, with silent adoption for veterans: the
   // first time a pre-quest save touches the system, everything its
@@ -110,7 +113,7 @@ export function useQuests({
     setQuestProgress({
       completedIds: questViews.filter((v) => v.complete).map((v) => v.def.id),
       trackedId: null,
-      showHud: true,
+      showHud: false,
       ...patch,
     });
   };
@@ -135,6 +138,7 @@ export function useQuests({
     doneIds.forEach((id) => {
       const def = ALL_QUEST_DEFS.find((q) => q.id === id);
       if (def) {
+        onQuestComplete?.(def);
         // Line quests grant their reward at the latch: items into
         // the pouch (through App's grant callback), and the note
         // rides the completion notice so the player hears what

@@ -191,6 +191,7 @@ export type ItemId =
   | 'sunshard'
   | 'violet_prism'
   | 'precursor_shard'
+  | 'aw_fragment'
   | 'resonant_reed'
   | 'sonar_vane'
   | 'resonant_antenna_fan'
@@ -1153,6 +1154,25 @@ export interface QuestSignals {
   hatched?: boolean;
   dogBonded?: boolean;
   madeMet?: string[];
+  /** V2 (2026-10-16): the doorstep stone read at the spawn
+   *  remnant. */
+  homeStone?: boolean;
+  /** V2: a BioTunnel pair traversed. */
+  tunnel?: boolean;
+  /** V2: the homestead composite (heart tile + hearth + a
+   *  companion in residence). */
+  homeOrganism?: boolean;
+  /** V2: something planted and harvested in a Precursor
+   *  Garden. */
+  gardenHarvest?: boolean;
+  /** V2: the homestead systems humming together (hearth + a
+   *  gestating vat + a holding storage pod). */
+  hum?: boolean;
+  /** V2: the zone key ("zx,zz") where the player last fell —
+   *  Walk Back reads it; cleared when the walk is done. */
+  fellZone?: string;
+  /** V2: the player returned on foot to where they fell. */
+  walkBack?: boolean;
 }
 
 export interface QuestProgressState {

@@ -4,7 +4,7 @@
  * Enforces CODE_MANIFESTO.md Rules 1 (Guard Clauses), 2 (Functional Style), 8 (Modular Separation), 9 (Strict Type Safety)
  */
 
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import {
   FloraEntity,
   FaunaEntity,
@@ -23,6 +23,7 @@ import { soundEngine } from '../audio/soundEngine';
 import { multiplayerManager } from '../game/multiplayer';
 import { FLORA_MATURE_SECONDS, FERTILIZER_DURATION_SECONDS } from './useWorldEntities';
 import { speciesDef } from '../game/species';
+import { sampleItemId } from '../game/vat';
 import { floraDef } from '../game/flora';
 import { GROUND_LAYER_TYPES, isEdgePanel, isLadder, occupancyConflict, placementFor } from '../game/placement';
 
@@ -123,6 +124,9 @@ export interface UseToolInteractionsParams {
   instanceKind: () => 'surface' | 'cavern' | 'ruin';
   tameFauna: (faunaId: string, customName: string, state: FaunaEntity['state']) => void;
   setFaunaCommand: (faunaId: string, cmd: 'follow' | 'stay' | 'guard') => void;
+  /** Ask App to confirm a RELEASE (Adam, 2026-10-15): the cycle's
+   *  guarded fourth stop — never applied by the click itself. */
+  onRequestRelease: (fauna: FaunaEntity) => void;
   setCodexList: React.Dispatch<React.SetStateAction<CodexEntry[]>>;
   postNotification: (
     title: string,
@@ -133,6 +137,7 @@ export interface UseToolInteractionsParams {
   onOpenBioForgeModal: () => void;
   /** Open a storage pod's panel (App shows StorageModal). */
   onOpenStorage: (structure: StructureEntity) => void;
+  onOpenVat: (structure: StructureEntity) => void;
   /** Spawn a dropped item in the world (storage spills, overflow). */
   spawnDroppedItem: (itemId: ItemId, count: number, x: number, z: number) => void;
   triggerHarvestFx: (x: number, z: number) => void;
@@ -170,10 +175,12 @@ export function useToolInteractions({
   instanceKind,
   tameFauna,
   setFaunaCommand,
+  onRequestRelease,
   setCodexList,
   postNotification,
   onOpenBioForgeModal,
   onOpenStorage,
+  onOpenVat,
   spawnDroppedItem,
   triggerHarvestFx,
   triggerSolventFx,
@@ -568,6 +575,14 @@ export function useToolInteractions({
       // everything inside drops at the pod's feet, then the pod
       // itself returns to the pouch like any structure. Nothing a
       // player stored is ever deleted by a misclick of solvent.
+      // A gestating vat gives its SAMPLE back before it dissolves
+      // (the pod's spill rule, narrowed to the heart): the soup is
+      // spent into the culture, but the cutting itself is too
+      // precious to delete by a misclick.
+      if (structure.type === 'culture_vat' && structure.vat?.gestating) {
+        spawnDroppedItem(sampleItemId(structure.vat.gestating.species), 1, structure.worldX, structure.worldZ);
+      }
+
       if (structure.type === 'storage_pod' && structure.storage) {
         Object.entries(structure.storage.items).forEach(([itemId, count]) => {
           if ((count ?? 0) > 0) {
@@ -691,9 +706,25 @@ export function useToolInteractions({
   );
 
   // 5. Taming Lure
+  // Release arming (Adam, 2026-10-15): the command cycle is
+  // follow -> stay -> guard -> RELEASE? -> follow... The release
+  // stop never applies on its click: it arms and raises App's
+  // confirm; the NEXT lure click (confirm answered either way)
+  // passes the stop and lands on follow. A fresh tame clears the
+  // arm, so a re-won creature's cycle asks again like new.
+  const releaseArmedRef = useRef<Set<string>>(new Set());
+
   const handleTameFauna = useCallback(
     (fauna: FaunaEntity): void => {
       if (fauna.isTamed) {
+        // The guarded fourth stop: leaving GUARD, the cycle asks
+        // about release before it may wrap to follow.
+        if ((fauna.command ?? 'follow') === 'guard' && !releaseArmedRef.current.has(fauna.id)) {
+          releaseArmedRef.current.add(fauna.id);
+          onRequestRelease(fauna);
+          return;
+        }
+        releaseArmedRef.current.delete(fauna.id);
         const order: Array<'follow' | 'stay' | 'guard'> = ['follow', 'stay', 'guard'];
         const next = order[(order.indexOf(fauna.command ?? 'follow') + 1) % order.length];
         const petName = fauna.customName || fauna.species.replace('_', ' ');
@@ -736,6 +767,7 @@ export function useToolInteractions({
         }
 
         soundEngine.playTameCritter();
+        releaseArmedRef.current.delete(fauna.id);
         tameFauna(fauna.id, def.petName, 'following');
 
         postNotification(
@@ -816,6 +848,7 @@ export function useToolInteractions({
         }
 
         soundEngine.playTameCritter();
+        releaseArmedRef.current.delete(fauna.id);
         tameFauna(fauna.id, def.petName, 'following');
 
         postNotification(
@@ -1099,6 +1132,10 @@ export function useToolInteractions({
         // A storage pod is born tier 1 and empty (Adam, 2026-10-15).
         ...(selectedStructureType === 'storage_pod'
           ? { storage: { tier: 1, items: {} } }
+          : {}),
+        // A culture vat is born tier 1, resting (Adam, 2026-10-15).
+        ...(selectedStructureType === 'culture_vat'
+          ? { vat: { tier: 1 } }
           : {}),
       };
 
@@ -1639,6 +1676,21 @@ export function useToolInteractions({
         return;
       }
       onOpenStorage(structure);
+      return;
+    }
+    // Culture vats (Adam, 2026-10-15): the pod's exact grammar —
+    // any tool except the builder opens the vat's panel; solvent
+    // and scanner keep their meanings.
+    if (structure.type === 'culture_vat' && activeTool !== 'builder') {
+      if (activeTool === 'solvent_sprayer') {
+        handleSolventSprayer(structure);
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onOpenVat(structure);
       return;
     }
     if (activeTool === 'solvent_sprayer') {

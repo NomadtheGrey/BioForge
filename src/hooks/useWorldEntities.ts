@@ -14,6 +14,7 @@ import {
 } from '../types/game';
 import { multiplayerManager } from '../game/multiplayer';
 import { speciesDef } from '../game/species';
+import { sampleItemId, SAMPLE_SHED_SECONDS_TAMED, SAMPLE_SHED_SECONDS_WILD } from '../game/vat';
 import type { WorldSnapshot } from '../game/saveSystem';
 
 
@@ -390,6 +391,7 @@ export interface UseWorldEntitiesResult {
   removeStructure: (structureId: string) => void;
   tameFauna: (faunaId: string, customName: string, state: FaunaEntity['state']) => void;
   setFaunaCommand: (faunaId: string, cmd: 'follow' | 'stay' | 'guard') => void;
+  releaseFauna: (faunaId: string) => void;
   upsertFauna: (fauna: FaunaEntity) => void;
   removeFauna: (faunaId: string) => void;
   spawnDroppedItem: (itemId: DroppedItemEntity['itemId'], count: number, x: number, z: number) => void;
@@ -434,6 +436,12 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   useEffect(() => {
     structuresRef.current = structuresList;
   }, [structuresList]);
+
+  // Culture-vat gestation clock (2026-10-16): progress accrues in
+  // the tick every frame, but the structures list is only WRITTEN
+  // when a whole second has accrued — a per-frame write would
+  // re-render the app at sim rate for the sake of a patience bar.
+  const vatClockRef = useRef(0);
 
   const addFlora = useCallback((flora: FloraEntity): void => {
     setFloraList((prev) => [...prev, flora]);
@@ -536,6 +544,20 @@ export function useWorldEntities(): UseWorldEntitiesResult {
     });
   }, []);
 
+  // Release (Adam, 2026-10-15): the bond is spent — the creature
+  // is wild again, here, in this zone, keeping the name it was
+  // granted (a released creature is a known animal, not a
+  // stranger). Reached only through the confirm in the tame flow.
+  const releaseFauna = useCallback((faunaId: string): void => {
+    setFaunaList((prev) =>
+      prev.map((fn) =>
+        fn.id === faunaId
+          ? { ...fn, isTamed: false, tamedBy: undefined, command: undefined, anchorX: undefined, anchorZ: undefined, state: 'wandering' as const }
+          : fn
+      )
+    );
+  }, []);
+
   const setFaunaCommand = useCallback((faunaId: string, cmd: 'follow' | 'stay' | 'guard'): void => {
     setFaunaList((prev) =>
       prev.map((fn) =>
@@ -631,11 +653,16 @@ export function useWorldEntities(): UseWorldEntitiesResult {
       // Drops a collector reaches this tick land here; they are removed
       // and credited after the fauna pass (drops are separate state).
       const collectedDrops: DroppedItemEntity[] = [];
-      setFaunaList((prevFauna) =>
-        prevFauna.map((fauna) => {
+      setFaunaList((prevFauna) => {
+        // Damage dealt this pass by defending followers (see the
+        // defend block in the companion orders) — applied after
+        // the map, when every creature's new state is known.
+        const defenderDamage = new Map<string, number>();
+        const mappedFauna = prevFauna.map((fauna) => {
           let { x, z, state, isTamed, targetX, targetZ, byproductTimer, command } = fauna;
           // Hunter bite cooldown (slice 5); absent on older saves.
           let biteTimer = fauna.biteTimer ?? 0;
+          let sampleTimer = fauna.sampleTimer ?? 0;
 
           // --- Companion orders (tamed, with a command set) ---
           if (isTamed && command === 'follow') {
@@ -674,6 +701,32 @@ export function useWorldEntities(): UseWorldEntitiesResult {
               targetX = fauna.anchorX ?? targetX;
               targetZ = fauna.anchorZ ?? targetZ;
               state = Math.hypot(targetX - x, targetZ - z) <= 0.4 ? 'idle' : 'wandering';
+            }
+          }
+
+          // DEFEND folds into FOLLOW (Adam, 2026-10-15): no
+          // separate defend command — a follower that CAN hunt
+          // watches for a wild hunter currently attacking its
+          // person and goes for it. The bite lands in the damage
+          // ledger below; the pass applies it after the map, and
+          // a hunter brought down leaves its remains — a sample.
+          const myHunt = isTamed && command === 'follow' ? speciesDef(fauna.species).hunt : undefined;
+          if (myHunt) {
+            const threat = prevFauna.find(
+              (other) =>
+                !other.isTamed &&
+                other.state === 'attacking' &&
+                speciesDef(other.species).hunt &&
+                Math.hypot(other.x - playerX, other.z - playerZ) <= 12,
+            );
+            if (threat) {
+              targetX = threat.x;
+              targetZ = threat.z;
+              state = 'attacking';
+              if (Math.hypot(threat.x - x, threat.z - z) <= myHunt.biteRange && biteTimer <= 0) {
+                defenderDamage.set(threat.id, (defenderDamage.get(threat.id) ?? 0) + myHunt.damage);
+                biteTimer = myHunt.biteCooldownSeconds;
+              }
             }
           }
 
@@ -752,6 +805,20 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // harming or taming the species (Adam, 2026-10-14: the
           // glider's vanes are a non-lethal byproduct; the moth's
           // dew and the pale hare's fur follow the same ruling).
+          // Sample sheds (creature renewal, 2026-10-16): besides
+          // its byproduct, every creature sheds a SAMPLE of
+          // itself on a long clock — tamed ones on the kind
+          // interval, the wild far more rarely, leaving traces
+          // where they wander. Adam's ruling: samples come from
+          // LIVING things or the dead; the living come first,
+          // and a guardian's kill (above) is the dead's door.
+          sampleTimer += dt;
+          const sampleThreshold = isTamed ? SAMPLE_SHED_SECONDS_TAMED : SAMPLE_SHED_SECONDS_WILD;
+          if (sampleTimer >= sampleThreshold) {
+            sampleTimer = 0;
+            spawnDroppedItem(sampleItemId(fauna.species), 1, x, z);
+          }
+
           const shed = speciesDef(fauna.species).byproduct;
           if (shed && byproductTimer > shed.seconds && (!shed.tamedOnly || isTamed)) {
             byproductTimer = 0;
@@ -769,12 +836,25 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             targetZ,
             byproductTimer,
             biteTimer,
+            sampleTimer,
             animTime: fauna.animTime + dt,
           };
           if (syncFaunaNow) multiplayerManager.broadcastEntityUpsert('fauna', nextFauna);
           return nextFauna;
-        })
-      );
+        });
+        if (defenderDamage.size === 0) return mappedFauna;
+        // A wild hunter brought down by a guardian leaves its
+        // remains where it fell — and remains are a SAMPLE, the
+        // dead's half of Adam's sample ruling.
+        return mappedFauna.flatMap((f) => {
+          const dmg = defenderDamage.get(f.id);
+          if (!dmg) return [f];
+          const health = f.health - dmg;
+          if (health > 0) return [{ ...f, health }];
+          spawnDroppedItem(sampleItemId(f.species), 1, f.x, f.z);
+          return [];
+        });
+      });
 
       // Guard-collectors deliver: remove what they fetched and credit it
       // through the normal pickup path — the same result as the player
@@ -787,6 +867,30 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           multiplayerManager.broadcastEntityRemove('drop', d.id);
         });
       }
+
+        // 1b. Culture Vat Gestations (Adam, 2026-10-15): a vat's
+        // culture works in loaded-zone time — this zone's structures
+        // are the loaded ones by construction — and progress rides
+        // the structure record into the world snapshot, so a
+        // gestation survives saving, travel, and sleep. Written at
+        // most once a second (see vatClockRef).
+        vatClockRef.current += dt;
+        if (vatClockRef.current >= 1) {
+          const wholeSeconds = Math.floor(vatClockRef.current);
+          vatClockRef.current -= wholeSeconds;
+          const vats = structuresRef.current;
+          if (vats.some((st) => st.type === 'culture_vat' && st.vat?.gestating && st.vat.gestating.progress < st.vat.gestating.total)) {
+            setStructuresList((prev) =>
+              prev.map((st) => {
+                if (st.type !== 'culture_vat' || !st.vat?.gestating) return st;
+                const g = st.vat.gestating;
+                if (g.progress >= g.total) return st;
+                return { ...st, vat: { ...st.vat, gestating: { ...g, progress: Math.min(g.total, g.progress + wholeSeconds) } } };
+              }),
+            );
+          }
+        }
+
       }
 
       // 2. Flora Growth & Replenish Tick (host authority)
@@ -879,6 +983,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
     removeStructure,
     tameFauna,
     setFaunaCommand,
+    releaseFauna,
     upsertFauna,
     removeFauna,
     spawnDroppedItem,

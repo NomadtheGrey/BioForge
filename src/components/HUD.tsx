@@ -18,7 +18,6 @@ import {
   Minimize2,
   Save,
   Flashlight,
-  Radar,
   ChevronLeft,
   ChevronRight,
   ScrollText,
@@ -98,10 +97,16 @@ interface HUDProps {
   /** While inside a cavern: where the cave exit is (the radar draws a
    * violet way-out arrow toward it). Null on the surface. */
   caveExitTarget: { x: number; z: number } | null;
-  /** True while the Prismatic Field Radar is the held Left-Hand
-   * instrument: the Minimap draws its find pings. */
+  /** True while a helmet radar is installed (tier ≥ 1): the
+   * Minimap draws its find pings. Ownership-derived in App — the
+   * radar is helmet gear, never a held item (Adam, 2026-10-16). */
   radarActive: boolean;
-  /** Click on the Left Hand slot: cycle the owned instruments, or stow. */
+  /** The helmet radar's tier (App-derived): 0 = no radar
+   * installed, 1 = wayfinding (helm + Prismatic Field Radar),
+   * 2 = creature location (the Prismatic Lifefinder growth joins
+   * them). Forwarded to the Minimap, which tiers its pings. */
+  radarTier: number;
+  /** Click on the Left Hand slot: hold the Hand Lantern-Fern, or stow it. */
   onToggleHeldItem: () => void;
   /** Gauntlet modules (2026-10-15): the tools whose modules are
    * grafted on. Locked tiles render dimmed with a lock and report
@@ -184,6 +189,7 @@ export const HUD: React.FC<HUDProps> = ({
   zoneCoordsLabel,
   caveExitTarget,
   radarActive,
+  radarTier,
   onToggleHeldItem,
   unlockedTools,
   onToolLocked,
@@ -524,6 +530,7 @@ export const HUD: React.FC<HUDProps> = ({
               zoneCoordsLabel={zoneCoordsLabel}
               exitTarget={caveExitTarget}
               radarActive={radarActive}
+              radarTier={radarTier}
               compact={touchMode}
               />
             </HudPanel>
@@ -1126,20 +1133,22 @@ export const HUD: React.FC<HUDProps> = ({
               touchMode ? 'max-w-full justify-start overflow-x-auto pb-0.5' : ''
             }`}
           >
-            {/* Left Hand (Adam, 2026-10-14): the off-hand slot for
-                instruments. Click cycles the ones you own — the Hand
-                Lantern-Fern (a light that follows you; see
-                threeEngine.setHeldLight) and the Prismatic Field
-                Radar (minimap pings) — then stows. */}
+            {/* Left Hand (Adam, 2026-10-14): the off-hand slot.
+                Since the radar conversion (2026-10-16) it holds ONE
+                instrument — the Hand Lantern-Fern (a light that
+                follows you; see threeEngine.setHeldLight). The
+                Prismatic Field Radar used to cycle through here; it
+                is helmet gear now and never a held item. Click
+                holds the lantern, or stows it. */}
             <button
               onClick={onToggleHeldItem}
-              title={playerState.heldItemId === 'prismatic_field_radar' ? 'Left Hand: Prismatic Field Radar — click to cycle or stow' : playerState.heldItemId ? 'Left Hand: Hand Lantern-Fern — click to cycle or stow' : 'Left Hand: empty — click to hold an instrument (Lantern-Fern or Field Radar)'}
+              title={playerState.heldItemId ? 'Left Hand: Hand Lantern-Fern — click to stow' : 'Left Hand: empty — click to hold the Hand Lantern-Fern'}
               className={`pointer-events-auto glass-panel rounded-2xl flex flex-col items-center gap-1 shadow-2xl transition-all active:scale-95 ${
                 touchMode ? 'p-1.5' : 'p-2'
               }`}
             >
-              <span className={`${touchMode ? 'h-9 w-9' : 'h-10 w-10'} rounded-xl flex items-center justify-center border ${playerState.heldItemId === 'prismatic_field_radar' ? 'bg-violet-950/80 border-violet-400/70 text-violet-300 shadow-md shadow-violet-500/30' : playerState.heldItemId ? 'bg-cyan-950/80 border-cyan-400/70 text-cyan-300 shadow-md shadow-cyan-500/30' : 'bg-slate-900/60 border-slate-700/60 text-slate-500'}`}>
-                {playerState.heldItemId === 'prismatic_field_radar' ? <Radar className="w-5 h-5" /> : playerState.heldItemId ? <Flashlight className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
+              <span className={`${touchMode ? 'h-9 w-9' : 'h-10 w-10'} rounded-xl flex items-center justify-center border ${playerState.heldItemId ? 'bg-cyan-950/80 border-cyan-400/70 text-cyan-300 shadow-md shadow-cyan-500/30' : 'bg-slate-900/60 border-slate-700/60 text-slate-500'}`}>
+                {playerState.heldItemId ? <Flashlight className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
               </span>
               {!touchMode && (
                 <span className="text-[8px] font-tech font-bold tracking-widest text-slate-400 uppercase">Left Hand</span>

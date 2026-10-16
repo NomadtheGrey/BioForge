@@ -83,7 +83,7 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({
                 <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold">Mouse Wheel · ↑ ↓</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex justify-between items-center">
-                <span className="text-slate-300">Left-Hand Instrument — cycle the Hand Lantern-Fern / Prismatic Field Radar, or stow it</span>
+                <span className="text-slate-300">Left-Hand Instrument — hold the Hand Lantern-Fern (a light that follows you), or stow it. (The Prismatic Field Radar is helmet gear, not a held item.)</span>
                 <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold">Click the Left Hand slot</span>
               </div>
             </div>

@@ -5,7 +5,7 @@
  */
 
 import * as THREE from 'three';
-import { ToolType, StructureType } from '../types/game';
+import { ToolType, StructureType, ItemId } from '../types/game';
 
 export class FirstPersonViewmodel {
   public root: THREE.Group = new THREE.Group();
@@ -17,6 +17,8 @@ export class FirstPersonViewmodel {
   // Tool Sub-Meshes
   private toolMeshes: Map<ToolType, THREE.Group> = new Map();
   private hologramMesh: THREE.Mesh | null = null;
+  /** The striker slot's swappable group (weapons build). */
+  private strikerGroup: THREE.Group | null = null;
 
   // Animation States
   private idleTime: number = 0;
@@ -233,6 +235,14 @@ export class FirstPersonViewmodel {
     builderTool.add(this.hologramMesh);
     this.toolMeshes.set('builder', builderTool);
 
+    // 7. The Striker (weapons build, Adam, 2026-10-16): slot 7's
+    // group starts EMPTY and is re-grown by setStriker() whenever
+    // the drawn weapon changes — six grown weapons, one shared
+    // hand. Default draw until App says otherwise: the Barb.
+    this.strikerGroup = new THREE.Group();
+    this.toolMeshes.set('striker', this.strikerGroup);
+    this.setStriker('briar_barb');
+
     // Attach all and set visibility
     this.toolMeshes.forEach((mesh) => {
       this.toolHolder.add(mesh);
@@ -253,6 +263,97 @@ export class FirstPersonViewmodel {
 
   public setBlueprint(blueprint: StructureType) {
     this.selectedBlueprint = blueprint;
+  }
+
+  /**
+   * Re-grow the striker hand around a different weapon (weapons
+   * build, 2026-10-16). Called by the engine whenever the drawn
+   * weapon changes (slot toggle, tier upgrade, first craft). The
+   * six models are grown from the same primitives-and-palette
+   * idiom as every other tool: a thorn, a pod, a fang, a puffer,
+   * a glass edge, a charged lance — silhouettes distinct enough
+   * to read at a glance, colors keyed to their item definitions.
+   */
+  public setStriker(weaponId: ItemId) {
+    if (!this.strikerGroup) return;
+    // Clear the old growth (geometries/materials stay registered
+    // for disposal; the group just lets go of its children).
+    while (this.strikerGroup.children.length > 0) {
+      this.strikerGroup.remove(this.strikerGroup.children[0]);
+    }
+    const grown = new THREE.Group();
+    const mat = (color: number, opts?: { emissive?: number; intensity?: number; roughness?: number; transparent?: boolean; opacity?: number }) =>
+      this.registerMaterial(
+        new THREE.MeshStandardMaterial({
+          color,
+          roughness: opts?.roughness ?? 0.45,
+          emissive: opts?.emissive ?? color,
+          emissiveIntensity: opts?.intensity ?? 0,
+          transparent: opts?.transparent ?? false,
+          opacity: opts?.opacity ?? 1,
+        })
+      );
+    const add = (geom: THREE.BufferGeometry, material: THREE.Material, x: number, y: number, z: number, rx = 0, rz = 0) => {
+      const mesh = new THREE.Mesh(this.registerGeometry(geom), material);
+      mesh.position.set(x, y, z);
+      mesh.rotation.x = rx;
+      mesh.rotation.z = rz;
+      grown.add(mesh);
+      return mesh;
+    };
+    switch (weaponId) {
+      case 'briar_barb': {
+        // A resin thorn off the knuckle + its shed-scale footing.
+        add(new THREE.ConeGeometry(0.02, 0.17, 6), mat(0x65a30d, { roughness: 0.6 }), 0.02, 0.02, -0.17, -Math.PI / 2);
+        add(new THREE.SphereGeometry(0.032, 8, 6), mat(0xb45309, { roughness: 0.7 }), 0.02, 0.01, -0.09);
+        break;
+      }
+      case 'spit_pod': {
+        // A squeezable pod: squashed bulb, nozzle, spine tips.
+        const pod = add(new THREE.SphereGeometry(0.045, 10, 8), mat(0x4ade80, { roughness: 0.35, emissive: 0x4ade80, intensity: 0.25 }), 0.02, 0.03, -0.1);
+        pod.scale.set(1, 0.85, 1.35);
+        add(new THREE.ConeGeometry(0.016, 0.05, 8), mat(0x166534), 0.02, 0.03, -0.17, -Math.PI / 2);
+        [-0.014, 0, 0.014].forEach((ox) =>
+          add(new THREE.ConeGeometry(0.005, 0.025, 5), mat(0xd9f99d), 0.02 + ox, 0.045, -0.155, -Math.PI / 2)
+        );
+        break;
+      }
+      case 'chitin_fang': {
+        // Layered carapace blade, fire-darkened toward the tip.
+        add(new THREE.ConeGeometry(0.026, 0.13, 6), mat(0xd97706, { roughness: 0.55 }), 0.02, 0.02, -0.13, -Math.PI / 2);
+        add(new THREE.ConeGeometry(0.016, 0.12, 6), mat(0x7c2d12, { roughness: 0.5 }), 0.02, 0.025, -0.22, -Math.PI / 2);
+        add(new THREE.SphereGeometry(0.034, 8, 6), mat(0x92400e, { roughness: 0.7 }), 0.02, 0.01, -0.07);
+        break;
+      }
+      case 'spore_puffer': {
+        // A fungal bulb with a wide mouth and glowing spore freckles.
+        const bulb = add(new THREE.SphereGeometry(0.05, 10, 8), mat(0xa3e635, { roughness: 0.5 }), 0.02, 0.03, -0.1);
+        bulb.scale.set(1, 0.9, 1.2);
+        add(new THREE.CylinderGeometry(0.032, 0.02, 0.05, 10), mat(0x65a30d), 0.02, 0.03, -0.165, Math.PI / 2);
+        [[-0.02, 0.06], [0.025, 0.055], [0.0, 0.075]].forEach(([ox, oy]) =>
+          add(new THREE.SphereGeometry(0.007, 6, 6), mat(0xecfccb, { emissive: 0xa3e635, intensity: 1.2 }), 0.02 + ox, oy, -0.13)
+        );
+        break;
+      }
+      case 'glass_sting': {
+        // A translucent saltglass edge on a pale thread spine.
+        add(new THREE.ConeGeometry(0.014, 0.24, 4), mat(0x67e8f9, { transparent: true, opacity: 0.75, emissive: 0x67e8f9, intensity: 0.35, roughness: 0.15 }), 0.02, 0.02, -0.19, -Math.PI / 2);
+        add(new THREE.CylinderGeometry(0.006, 0.006, 0.1, 6), mat(0xe2e8f0, { roughness: 0.3 }), 0.02, 0.015, -0.06, Math.PI / 2);
+        break;
+      }
+      case 'storm_lance': {
+        // A dark grown shaft, a jagged fulgurite head, and the
+        // prismatic heart glowing at the grip.
+        add(new THREE.CylinderGeometry(0.009, 0.011, 0.22, 7), mat(0x334155, { roughness: 0.4 }), 0.02, 0.02, -0.13, Math.PI / 2);
+        add(new THREE.ConeGeometry(0.013, 0.09, 5), mat(0xfbbf24, { emissive: 0xf59e0b, intensity: 0.8 }), 0.02, 0.02, -0.27, -Math.PI / 2);
+        add(new THREE.ConeGeometry(0.008, 0.05, 5), mat(0xfde68a, { emissive: 0xf59e0b, intensity: 1.0 }), 0.03, 0.035, -0.25, -Math.PI / 2, 0.3);
+        add(new THREE.SphereGeometry(0.02, 8, 8), mat(0xc084fc, { emissive: 0xa855f7, intensity: 1.4 }), 0.02, 0.03, -0.04);
+        break;
+      }
+      default:
+        break;
+    }
+    this.strikerGroup.add(grown);
   }
 
   public triggerAction() {

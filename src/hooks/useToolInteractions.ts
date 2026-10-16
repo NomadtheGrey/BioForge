@@ -24,6 +24,8 @@ import { multiplayerManager } from '../game/multiplayer';
 import { FLORA_MATURE_SECONDS, FERTILIZER_DURATION_SECONDS } from './useWorldEntities';
 import { speciesDef } from '../game/species';
 import { sampleItemId } from '../game/vat';
+import { bestWeapon } from '../game/weapons';
+import type { WeaponDef } from '../game/weapons';
 import { floraDef } from '../game/flora';
 import { GROUND_LAYER_TYPES, isEdgePanel, isLadder, occupancyConflict, placementFor } from '../game/placement';
 
@@ -130,6 +132,19 @@ export interface UseToolInteractionsParams {
   /** Stamp a wild creature with the solvent's emergency dissolve
    *  (Adam, 2026-10-16); gating lives with the sim (useWorldEntities). */
   applyDissolve: (faunaId: string) => void;
+  /** The strikers (weapons build, Adam, 2026-10-16): a close hit
+   *  lands through the sim; a ranged shot enters its projectile
+   *  ledger. Gating (companions, Peaceful) lives with the sim. */
+  strikeFauna: (faunaId: string, damage: number, flinchSeconds: number) => void;
+  fireProjectile: (shot: { targetId: string; aimX: number; aimZ: number; damage: number; burstRadius?: number; travelSeconds: number }) => void;
+  /** Which draw the striker slot holds — App owns it ('close' |
+   *  'ranged'); the drawn weapon derives from the pouch + this. */
+  strikerDrawRef: { current: 'close' | 'ranged' };
+  /** Pay stamina for a strike; false when too winded. App owns
+   *  stamina (the loop's ref), bridged here. */
+  spendStamina: (amount: number) => boolean;
+  /** The visible shot: a tracer from the player to (x, z). */
+  triggerShotFx: (x: number, z: number, burst: boolean) => void;
   setCodexList: React.Dispatch<React.SetStateAction<CodexEntry[]>>;
   postNotification: (
     title: string,
@@ -182,6 +197,11 @@ export function useToolInteractions({
   setFaunaCommand,
   onRequestRelease,
   applyDissolve,
+  strikeFauna,
+  fireProjectile,
+  strikerDrawRef,
+  spendStamina,
+  triggerShotFx,
   setCodexList,
   postNotification,
   onOpenBioForgeModal,
@@ -1156,6 +1176,21 @@ export function useToolInteractions({
   // Unified Interactions Handlers (Flat, zero else)
   const handleGroundClick = useCallback(
     (worldX: number, worldZ: number): void => {
+      if (activeTool === 'striker') {
+        // Striking at open ground: a close weapon swings at the
+        // air; a ranged weapon looses at the point (a burst shot
+        // still bursts — wild things standing there are struck).
+        const weapon = drawnWeapon();
+        if (!weapon) return;
+        if (weapon.kind === 'ranged') {
+          const player = getPlayerPosition();
+          if (Math.hypot(worldX - player.x, worldZ - player.z) > 42) return;
+        }
+        if (!tryStrikePace(weapon)) return;
+        if (weapon.kind === 'close') soundEngine.playStrikeSwing();
+        else strikerShootAt(weapon, worldX, worldZ, '');
+        return;
+      }
       if (activeTool === 'builder') {
         handleBuildPlacement(worldX, worldZ);
         return;
@@ -1180,7 +1215,7 @@ export function useToolInteractions({
         return;
       }
     },
-    [activeTool, handleBuildPlacement, handlePlanterAction, selectedStructureType]
+    [activeTool, handleBuildPlacement, handlePlanterAction, selectedStructureType, fireProjectile, triggerShotFx, spendStamina, inventory, strikerDrawRef, getPlayerPosition]
   );
 
   const handleFloraInteract = useCallback(
@@ -1201,9 +1236,69 @@ export function useToolInteractions({
         handleSolventFlora(flora);
         return;
       }
+      if (activeTool === 'striker') {
+        // A plant is not a target: the close draw swings past it,
+        // the ranged draw looses at its foot — either way the
+        // plant itself is unharmed (the glove does the gathering).
+        const weapon = drawnWeapon();
+        if (!weapon) return;
+        if (!tryStrikePace(weapon)) return;
+        if (weapon.kind === 'close') soundEngine.playStrikeSwing();
+        else strikerShootAt(weapon, flora.x, flora.z, '');
+        return;
+      }
     },
-    [activeTool, handleHarvestFlora, handleScanTarget, handlePlanterAction, handleSolventFlora]
+    [activeTool, handleHarvestFlora, handleScanTarget, handlePlanterAction, handleSolventFlora, fireProjectile, triggerShotFx, spendStamina, inventory, strikerDrawRef]
   );
+
+  /**
+   * THE STRIKER (weapons build, Adam, 2026-10-16). The seventh
+   * slot draws ONE owned weapon — the best of the drawn kind, the
+   * other kind if the drawn kind was never grown — and a click
+   * uses it in the game's click grammar: click the creature to
+   * strike it, click the ground to swing or loose at that point.
+   * Close strikes are reach-checked here and land through the sim
+   * (damage + flinch); ranged shots enter the sim's projectile
+   * ledger aimed at where the target stood. Stamina and cooldown
+   * are paid on every attempt, hits and whiffs alike — but never
+   * on a click at a COMPANION: the striker stays its hand before
+   * any cost, the same immunity the solvent keeps.
+   */
+  const lastStrikeAtRef = useRef(0);
+  const drawnWeapon = (): WeaponDef | undefined => {
+    const draw = strikerDrawRef.current;
+    return bestWeapon(inventory, draw) ?? bestWeapon(inventory, draw === 'close' ? 'ranged' : 'close');
+  };
+  /** Gate a strike attempt on the weapon's cooldown and the
+   *  player's stamina. The pace stamp is set even when stamina
+   *  fails, so a winded player hears about it once per cooldown,
+   *  not once per click. */
+  const tryStrikePace = (weapon: WeaponDef): boolean => {
+    const now = performance.now() / 1000;
+    if (now - lastStrikeAtRef.current < weapon.cooldownSeconds) return false;
+    lastStrikeAtRef.current = now;
+    if (!spendStamina(weapon.staminaCost)) {
+      postNotification('Too Winded to Strike', 'Striking takes stamina — catch your breath.', 'alert', '#f59e0b');
+      return false;
+    }
+    return true;
+  };
+  /** Loose the drawn ranged weapon at a point: the shot enters
+   *  the sim's ledger with its travel time, and the tracer flies. */
+  const strikerShootAt = (weapon: WeaponDef, x: number, z: number, targetId: string): void => {
+    const player = getPlayerPosition();
+    const dist = Math.hypot(x - player.x, z - player.z);
+    fireProjectile({
+      targetId,
+      aimX: x,
+      aimZ: z,
+      damage: weapon.damage,
+      burstRadius: weapon.burstRadius,
+      travelSeconds: dist / (weapon.projectileSpeed ?? 16),
+    });
+    soundEngine.playStrikeShot();
+    triggerShotFx(x, z, weapon.burstRadius !== undefined);
+  };
 
   const handleFaunaInteract = useCallback(
     (fauna: FaunaEntity): void => {
@@ -1227,8 +1322,41 @@ export function useToolInteractions({
         triggerSprayJetFx(fauna.x, fauna.z);
         return;
       }
+      if (activeTool === 'striker') {
+        const weapon = drawnWeapon();
+        if (!weapon) return;
+        // Companions are immune — the hand stays BEFORE any cost.
+        if (fauna.isTamed) {
+          postNotification(
+            'Companion',
+            `${fauna.customName || fauna.species} trusts you — your striker stays its hand. Your weapons never harm your own.`,
+            'system',
+            '#38bdf8',
+          );
+          return;
+        }
+        const player = getPlayerPosition();
+        const dist = Math.hypot(fauna.x - player.x, fauna.z - player.z);
+        if (weapon.kind === 'ranged' && dist > 42) {
+          postNotification('Too Far', 'Even a grown lance has its limits — close the distance.', 'alert', '#f59e0b');
+          return;
+        }
+        if (!tryStrikePace(weapon)) return;
+        if (weapon.kind === 'close') {
+          soundEngine.playStrikeSwing();
+          // Reach, plus a half-meter of grace: a timely hit lands
+          // just outside bite range (the table's whole point).
+          if (dist <= (weapon.reach ?? 2.4) + 0.6) {
+            strikeFauna(fauna.id, weapon.damage, weapon.flinchSeconds ?? 0.35);
+            soundEngine.playStrikeHit();
+          }
+        } else {
+          strikerShootAt(weapon, fauna.x, fauna.z, fauna.id);
+        }
+        return;
+      }
     },
-    [activeTool, handleTameFauna, handleScanTarget, applyDissolve, triggerSprayJetFx]
+    [activeTool, handleTameFauna, handleScanTarget, applyDissolve, triggerSprayJetFx, strikeFauna, fireProjectile, triggerShotFx, spendStamina, inventory, strikerDrawRef, postNotification, getPlayerPosition]
   );
 
   // Builder on a CEILING tile with a floor selected: GROW the ceiling

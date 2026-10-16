@@ -62,6 +62,11 @@ export interface GameInputDeps {
   postNotification: (title: string, message: string, type?: GameNotification['type'], iconColor?: string) => void;
   /** LAZY: the debug-kit swap (Backquote), defined below in App. */
   onToggleDebugKit: () => void;
+  /** LAZY: swap the striker slot's draw (close ↔ ranged), defined
+   *  in App — the weapons build (Adam, 2026-10-16). Triggered by
+   *  re-selecting slot 7 (key tap or hotbar click) and by the
+   *  mouse wheel while the striker is in hand. */
+  onToggleStrikerDraw: () => void;
 }
 
 export function useGameInput(deps: GameInputDeps) {
@@ -70,10 +75,11 @@ export function useGameInput(deps: GameInputDeps) {
     activeModal, isPointerLocked, playerState, inventory,
     structuresListRef, floraListRef, bounceGraceUntil, unlockedTools,
     setActiveTool, setSelectedStructureType, setSelectedSeedId, setSelectedFertilizerId,
-    setActiveModal, postNotification, onToggleDebugKit,
+    setActiveModal, postNotification, onToggleDebugKit, onToggleStrikerDraw,
   } = deps;
   // The keyboard handler calls the toggle through the lazy dep.
   const toggleDebugKit = onToggleDebugKit;
+  const toggleStrikerDraw = onToggleStrikerDraw;
 
   // Movement Keys & High-Frequency Refs (Rule 3: Performance & Memoization)
   const keysPressed = useRef<Record<string, boolean>>({});
@@ -301,12 +307,29 @@ export function useGameInput(deps: GameInputDeps) {
 
   const handleSelectTool = (tool: ToolType): void => {
     if (!unlockedTools.includes(tool)) {
+      // The striker is not a module (weapons build): its lock
+      // message names the crafts that fill the slot instead.
+      if (tool === 'striker') {
+        postNotification(
+          'The Striker Slot Is Empty',
+          'No weapon grown yet — grow a Briar Barb or a Spit Pod at the Bio-Forge and slot 7 wakes.',
+          'alert',
+          '#f59e0b',
+        );
+        return;
+      }
       postNotification(
         'Module Not Grafted',
         `The ${TOOL_NAMES[tool]} is a gauntlet module — craft it at the Bio-Forge to unlock it. Your quest list [Q] shows the way.`,
         'alert',
         '#f59e0b',
       );
+      return;
+    }
+    // Re-selecting the striker while it is in hand swaps its draw
+    // (Adam, 2026-10-16: number tap switches close ↔ ranged).
+    if (tool === 'striker' && playerState.activeTool === 'striker') {
+      toggleStrikerDraw();
       return;
     }
     setActiveTool(tool);
@@ -412,7 +435,9 @@ export function useGameInput(deps: GameInputDeps) {
         lastWTap.current = now;
       }
 
-      // Tools 1 - 6 selection
+      // Tools 1 - 7 selection (7 = the striker slot; tapping it
+      // while the striker is in hand swaps the draw — see
+      // handleSelectTool).
       const toolKeyMap: Record<string, typeof playerState.activeTool> = {
         '1': 'harvest_glove',
         '2': 'bio_scanner',
@@ -420,6 +445,7 @@ export function useGameInput(deps: GameInputDeps) {
         '4': 'solvent_sprayer',
         '5': 'taming_lure',
         '6': 'builder',
+        '7': 'striker',
       };
       if (toolKeyMap[e.key]) {
         handleSelectTool(toolKeyMap[e.key]);
@@ -459,14 +485,19 @@ export function useGameInput(deps: GameInputDeps) {
       if (activeModal !== null) return;
       if (e.deltaY === 0) return;
       const tool = playerState.activeTool;
-      if (tool !== 'planter_trowel' && tool !== 'builder') return;
+      if (tool !== 'planter_trowel' && tool !== 'builder' && tool !== 'striker') return;
       const now = performance.now();
       if (now - lastWheelCycleRef.current < 150) return;
       lastWheelCycleRef.current = now;
       if (tool === 'planter_trowel') {
         cycleSelectedSeed(e.deltaY > 0 ? 1 : -1);
-      } else {
+      } else if (tool === 'builder') {
         cycleSelectedStructure(e.deltaY > 0 ? 1 : -1);
+      } else {
+        // The striker has no sub-selection of its own, so with it
+        // in hand the wheel means the draw swap (Adam, 2026-10-16:
+        // mouse wheel switches between ranged and melee).
+        toggleStrikerDraw();
       }
     };
 
@@ -474,7 +505,7 @@ export function useGameInput(deps: GameInputDeps) {
     return () => {
       window.removeEventListener('wheel', handleWheel);
     };
-  }, [activeModal, playerState.activeTool, cycleSelectedSeed, cycleSelectedStructure]);
+  }, [activeModal, playerState.activeTool, cycleSelectedSeed, cycleSelectedStructure, toggleStrikerDraw]);
 
   return {
     keysPressed, lastWTap, sprinting, touchInputRef, staminaRef, lastStaminaSync,

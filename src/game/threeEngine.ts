@@ -469,6 +469,21 @@ export class BioForgeThreeEngine {
     flood_fern: { color: 0x38bdf8, intensity: 0.3, distance: 2, y: 0.3 },
     ice_bloom: { color: 0xe0f2fe, intensity: 0.45, distance: 2.5, y: 0.3 },
     ripple_bell: { color: 0x93c5fd, intensity: 0.35, distance: 2, y: 0.3 },
+    // Flora wave 13 (creature slice 28, 2026-10-16): orchids,
+    // reeds and candles — the Night Candle lights at candle
+    // height, plainly.
+    night_candle: { color: 0xfefce8, intensity: 0.5, distance: 2.5, y: 0.5 },
+    scar_orchid: { color: 0xfda4af, intensity: 0.35, distance: 2, y: 0.3 },
+    ashveil: { color: 0xa8a29e, intensity: 0.2, distance: 2, y: 0.2 },
+    chime_reed: { color: 0xbae6fd, intensity: 0.3, distance: 2, y: 0.4 },
+    sky_lily: { color: 0xf0abfc, intensity: 0.4, distance: 2, y: 0.3 },
+    fall_orchid: { color: 0xf9a8d4, intensity: 0.35, distance: 2, y: 0.4 },
+    deck_flower: { color: 0xc4b5fd, intensity: 0.35, distance: 2, y: 0.3 },
+    feral_rose: { color: 0xe11d48, intensity: 0.35, distance: 2, y: 0.4 },
+    bone_orchid: { color: 0xfafaf9, intensity: 0.3, distance: 2, y: 0.3 },
+    marrow_reed: { color: 0xfef3c7, intensity: 0.25, distance: 2, y: 0.4 },
+    pale_sedge: { color: 0xe7e5e4, intensity: 0.2, distance: 2, y: 0.25 },
+    snow_cress: { color: 0xf0fdf4, intensity: 0.3, distance: 2, y: 0.2 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },

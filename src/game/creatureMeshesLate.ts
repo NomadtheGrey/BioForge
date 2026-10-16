@@ -802,6 +802,243 @@ export function buildLateFaunaMesh(
         break;
       }
 
+      case 'scaldback': {
+        // A hot stone that swims ashore (slice 24): a husk
+        // dome with fins.
+        const dome = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 7, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x92400e, roughness: 0.9 }));
+        dome.position.y = 0.04;
+        group.add(dome);
+        const finMat = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.8, side: THREE.DoubleSide });
+        for (const side of [-1, 1]) {
+          const fin = new THREE.Mesh(new THREE.CircleGeometry(0.07, 7), finMat);
+          fin.position.set(side * 0.16, 0.03, 0.02);
+          fin.rotation.y = side * 0.7;
+          group.add(fin);
+        }
+        break;
+      }
+
+      case 'row_tender': {
+        // THE EMBLEM (slice 24): a forged keeper with tool-arms.
+        const chassis = new THREE.Mesh(new THREE.SphereGeometry(0.13, 9, 7), new THREE.MeshStandardMaterial({ color: 0xa8a29e, roughness: 0.5, metalness: 0.5 }));
+        chassis.scale.set(1, 0.85, 1.25);
+        chassis.position.y = 0.16;
+        group.add(chassis);
+        const legMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.5, metalness: 0.6 });
+        for (let i = 0; i < 3; i++) {
+          for (const side of [-1, 1]) {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.008, 0.18, 4), legMat);
+            leg.position.set(side * 0.11, 0.08, 0.08 - i * 0.08);
+            leg.rotation.z = side * 0.5;
+            group.add(leg);
+          }
+        }
+        // Two tool-arms forward, implements down.
+        for (const side of [-1, 1]) {
+          const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.008, 0.16, 4), legMat);
+          arm.position.set(side * 0.07, 0.14, 0.17);
+          arm.rotation.x = 0.7;
+          group.add(arm);
+          const toolHead = new THREE.Mesh(new THREE.ConeGeometry(0.02, 0.05, 4), new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 0.3, metalness: 0.7 }));
+          toolHead.position.set(side * 0.07, 0.05, 0.22);
+          toolHead.rotation.x = Math.PI;
+          group.add(toolHead);
+        }
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.025, 7, 6), new THREE.MeshStandardMaterial({ color: 0xa3e635, emissive: 0x4d7c0f, emissiveIntensity: 0.7, roughness: 0.3 }));
+        eye.position.set(0, 0.2, 0.14);
+        group.add(eye);
+        break;
+      }
+
+      case 'feral_tender': {
+        // The shadow, same make (slice 24): a tender overgrown,
+        // tools worn like arguments.
+        const chassis = new THREE.Mesh(new THREE.SphereGeometry(0.13, 9, 7), new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.7, metalness: 0.3 }));
+        chassis.scale.set(1, 0.85, 1.25);
+        chassis.position.y = 0.16;
+        group.add(chassis);
+        const vine = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.018, 5, 10), new THREE.MeshStandardMaterial({ color: 0x365314, roughness: 1 }));
+        vine.position.y = 0.18;
+        vine.rotation.x = 1.2;
+        group.add(vine);
+        const legMat = new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 0.6, metalness: 0.4 });
+        for (let i = 0; i < 3; i++) {
+          for (const side of [-1, 1]) {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.008, 0.18, 4), legMat);
+            leg.position.set(side * 0.11, 0.08, 0.08 - i * 0.08);
+            leg.rotation.z = side * 0.5;
+            group.add(leg);
+          }
+        }
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.025, 7, 6), new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xa16207, emissiveIntensity: 0.7, roughness: 0.3 }));
+        eye.position.set(0, 0.2, 0.14);
+        group.add(eye);
+        break;
+      }
+
+      case 'blink_hare': {
+        // Present in pieces (slice 24): a pale hare, trailing
+        // edge.
+        const furMat = new THREE.MeshStandardMaterial({ color: 0xf5f5f4, roughness: 0.95, transparent: true, opacity: 0.92 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.085, 8, 6), furMat);
+        body.scale.set(0.85, 0.9, 1.3);
+        group.add(body);
+        for (const side of [-1, 1]) {
+          const ear = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.13, 5), furMat);
+          ear.position.set(side * 0.03, 0.13, 0.05);
+          group.add(ear);
+        }
+        const wispTail = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 5), new THREE.MeshStandardMaterial({ color: 0xe7e5e4, roughness: 1, transparent: true, opacity: 0.4 }));
+        wispTail.position.set(0.05, 0, -0.14);
+        group.add(wispTail);
+        break;
+      }
+
+      case 'sky_jelly': {
+        // Swimming in weather (slice 24): a rain-clear dome
+        // with a fringe.
+        const dome = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 7, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({
+          color: 0xbae6fd, roughness: 0.15, transparent: true, opacity: 0.55,
+        }));
+        group.add(dome);
+        const fringeMat = new THREE.MeshStandardMaterial({ color: 0xe0f2fe, roughness: 0.4, transparent: true, opacity: 0.7 });
+        for (let i = 0; i < 5; i++) {
+          const a = (i / 5) * Math.PI * 2;
+          const strand = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.002, 0.14, 3), fringeMat);
+          strand.position.set(Math.cos(a) * 0.09, -0.08, Math.sin(a) * 0.09);
+          group.add(strand);
+        }
+        break;
+      }
+
+      case 'hearth_dog': {
+        // Unremarkable in every proportion (slice 24): a
+        // mid-sized dog, arriving.
+        const coatMat = new THREE.MeshStandardMaterial({ color: 0xa16207, roughness: 0.95 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.12, 9, 7), coatMat);
+        body.scale.set(0.85, 0.85, 1.35);
+        body.position.y = 0.16;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 6), coatMat);
+        head.position.set(0, 0.24, 0.15);
+        group.add(head);
+        const snout = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 5), coatMat);
+        snout.scale.set(0.8, 0.7, 1.2);
+        snout.position.set(0, 0.21, 0.22);
+        group.add(snout);
+        const legMat = new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.95 });
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.016, 0.14, 5), legMat);
+          leg.position.set(sx * 0.07, 0.07, sz * 0.1);
+          group.add(leg);
+        }
+        const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.008, 0.14, 4), coatMat);
+        tail.position.set(0, 0.22, -0.17);
+        tail.rotation.x = -0.8;
+        group.add(tail);
+        break;
+      }
+
+      case 'false_greeter': {
+        // The wrong number of implications (slice 24): a
+        // greeter-shaped courtesy, slightly too symmetrical.
+        const robeMat = new THREE.MeshStandardMaterial({ color: 0x7c6bb0, roughness: 0.8 });
+        const robe = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.42, 8), robeMat);
+        robe.position.y = 0.21;
+        group.add(robe);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 7), new THREE.MeshStandardMaterial({ color: 0xd8b4fe, roughness: 0.7 }));
+        head.position.y = 0.48;
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.012, 0.2, 4), robeMat);
+          arm.position.set(side * 0.14, 0.3, 0.03);
+          arm.rotation.z = side * 1.9; // both arms raised in welcome
+          group.add(arm);
+        }
+        // Three eyes. The record only implies; the mesh commits.
+        const eyeMat = new THREE.MeshStandardMaterial({ color: 0x1e1b4b, roughness: 0.3 });
+        for (const ex of [-0.03, 0, 0.03]) {
+          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.011, 5, 4), eyeMat);
+          eye.position.set(ex, 0.5 + (ex === 0 ? 0.02 : 0), 0.07);
+          group.add(eye);
+        }
+        break;
+      }
+
+      case 'storm_roc': {
+        // Grand scale (slice 24): a weather-front of a bird —
+        // built at roughly triple the flyer norm.
+        const featherMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.9 });
+        const wingMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9, side: THREE.DoubleSide });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.26, 10, 8), featherMat);
+        body.scale.set(0.85, 0.9, 1.4);
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 7), featherMat);
+        head.position.set(0, 0.08, 0.34);
+        group.add(head);
+        const beak = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.22, 6), new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.5 }));
+        beak.position.set(0, 0.05, 0.52);
+        beak.rotation.x = Math.PI / 2;
+        group.add(beak);
+        // The underside IS the weather: a pale storm belly.
+        const belly = new THREE.Mesh(new THREE.SphereGeometry(0.2, 9, 7), new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.9 }));
+        belly.position.set(0, -0.08, 0.02);
+        group.add(belly);
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.38), wingMat);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          wing.position.set(side * 0.72, 0.06, -0.02);
+          wing.rotation.x = -Math.PI / 2 + 0.06;
+          group.add(wing);
+        }
+        break;
+      }
+
+      case 'feral_warden': {
+        // War-kept (slice 24): a tall forged biped, tools
+        // re-purposed.
+        const plateMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.5, metalness: 0.6 });
+        const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 0.34, 7), plateMat);
+        torso.position.y = 0.42;
+        group.add(torso);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), plateMat);
+        head.position.y = 0.66;
+        group.add(head);
+        const visor = new THREE.Mesh(new THREE.SphereGeometry(0.03, 6, 5), new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xa16207, emissiveIntensity: 0.8, roughness: 0.3 }));
+        visor.position.set(0, 0.67, 0.05);
+        group.add(visor);
+        for (const side of [-1, 1]) {
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.02, 0.26, 5), plateMat);
+          leg.position.set(side * 0.05, 0.13, 0);
+          group.add(leg);
+          const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.015, 0.3, 5), plateMat);
+          arm.position.set(side * 0.13, 0.45, 0);
+          arm.rotation.z = side * 0.35;
+          group.add(arm);
+        }
+        // One re-purposed tool, held low.
+        const toolBlade = new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.16, 4), new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 0.3, metalness: 0.7 }));
+        toolBlade.position.set(0.18, 0.26, 0.02);
+        toolBlade.rotation.x = Math.PI;
+        group.add(toolBlade);
+        break;
+      }
+
+      case 'heartling': {
+        // The valley's own (slice 24): small, round, and NOT
+        // a mouse.
+        const furMat = new THREE.MeshStandardMaterial({ color: 0xf9a8d4, roughness: 0.95 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.075, 9, 7), furMat);
+        body.scale.set(1, 0.95, 1.1);
+        group.add(body);
+        for (const side of [-1, 1]) {
+          const ear = new THREE.Mesh(new THREE.CircleGeometry(0.028, 8), new THREE.MeshStandardMaterial({ color: 0xfbcfe8, roughness: 0.9, side: THREE.DoubleSide }));
+          ear.position.set(side * 0.045, 0.075, 0.02);
+          group.add(ear);
+        }
+        break;
+      }
+
     default:
       return null;
   }

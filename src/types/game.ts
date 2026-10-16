@@ -191,6 +191,7 @@ export type ItemId =
   | 'sunshard'
   | 'violet_prism'
   | 'precursor_shard'
+  | 'aw_fragment'
   | 'resonant_reed'
   | 'sonar_vane'
   | 'resonant_antenna_fan'
@@ -1133,10 +1134,54 @@ export interface BiomeArea {
  * tracked, tracker hidden; the quest list still opens and the show
  * checkbox there can wake the tracker).
  */
+/**
+ * Goal-state signals for the ASK THE WORLD quest line (Adam,
+ * 2026-10-16): the durable record of things the player has DONE
+ * and SEEN — zones stood in, ruins entered, stones read, a heart
+ * reached, a creature hatched or bonded — written by small
+ * observer effects in App and read by the line's quests through
+ * game/quests.ts goalMet(). Everything optional: saves from
+ * before the line simply have no signals yet. Biome ids are
+ * stored as plain strings to keep this file import-light.
+ */
+export interface QuestSignals {
+  families?: string[];
+  hybrid?: boolean;
+  tier3?: boolean;
+  ruins?: string[];
+  glyphRuins?: string[];
+  heart?: boolean;
+  hatched?: boolean;
+  dogBonded?: boolean;
+  madeMet?: string[];
+  /** V2 (2026-10-16): the doorstep stone read at the spawn
+   *  remnant. */
+  homeStone?: boolean;
+  /** V2: a BioTunnel pair traversed. */
+  tunnel?: boolean;
+  /** V2: the homestead composite (heart tile + hearth + a
+   *  companion in residence). */
+  homeOrganism?: boolean;
+  /** V2: something planted and harvested in a Precursor
+   *  Garden. */
+  gardenHarvest?: boolean;
+  /** V2: the homestead systems humming together (hearth + a
+   *  gestating vat + a holding storage pod). */
+  hum?: boolean;
+  /** V2: the zone key ("zx,zz") where the player last fell —
+   *  Walk Back reads it; cleared when the walk is done. */
+  fellZone?: string;
+  /** V2: the player returned on foot to where they fell. */
+  walkBack?: boolean;
+}
+
 export interface QuestProgressState {
   completedIds: string[];
   trackedId: string | null;
   showHud: boolean;
+  /** Ask the World goal-state signals (above). Optional: older
+   *  saves predate the line. */
+  signals?: QuestSignals;
   /** The quest the player closed with the tracker's X (Adam,
    * 2026-10-15): the tracker rests instead of falling back to it.
    * Not an abandonment — tracking it again from the quest log

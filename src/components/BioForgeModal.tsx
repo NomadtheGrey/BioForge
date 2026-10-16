@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { X, Sparkles, Check, AlertCircle, ArrowRight } from 'lucide-react';
+import { X, Sparkles, Check, AlertCircle, ArrowRight, Search, Sprout } from 'lucide-react';
 import { CraftingRecipe, ItemId, StructureType } from '../types/game';
 import { ITEMS, RECIPES, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../game/constants'
 import { isGauntletUpgrade, isGearItem, gearTierOf, accessTierOf } from '../game/quests';
+import { BASE_SUPPLY_GROUPS, baseSupplyGroupOf, isBaseSupply } from '../game/baseSupplies';
 import { soundEngine } from '../audio/soundEngine';
 import { RecipeFlowchart } from './RecipeFlowchart';
 
@@ -13,6 +14,9 @@ interface BioForgeModalProps {
   nearForge: boolean;
   hasSynthesizer: boolean;
   onCraftRecipe: (recipe: CraftingRecipe) => void;
+  /** Grow Prerequisites (Adam, 2026-10-16): grow a short
+   *  reagent's whole chain for the selected recipe in one pass. */
+  onGrowPrerequisites?: (recipe: CraftingRecipe, ingredientId: ItemId) => void;
   onSelectStructureBlueprint?: (type: StructureType) => void;
 }
 
@@ -23,9 +27,10 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   nearForge,
   hasSynthesizer,
   onCraftRecipe,
+  onGrowPrerequisites,
   onSelectStructureBlueprint,
 }) => {
-  const [activeCategory, setActiveCategory] = useState<'all' | 'seeds' | 'fertilizers' | 'composites' | 'defenses' | 'gauntlet' | 'helmet' | 'boots'>('all');
+  const [activeCategory, setActiveCategory] = useState<'all' | 'seeds' | 'fertilizers' | 'composites' | 'defenses' | 'gauntlet' | 'helmet' | 'boots' | 'base'>('all');
   const [selectedRecipe, setSelectedRecipe] = useState<CraftingRecipe>(RECIPES[0]);
   const [isCrafting, setIsCrafting] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'tree'>('list');
@@ -35,11 +40,26 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   // B-key bug, found 2026-10-16 — this filter's first home was
   // under that return in both tabbed screens).
   const [tierFilter, setTierFilter] = useState<'all' | 'raw' | 1 | 2 | 3>('all');
+  // Search (Adam, 2026-10-16): three or more letters, matched as
+  // a consecutive substring of the item's name, case-blind —
+  // "vat", "Cul" and "ulture" all find the Culture Vat. While a
+  // search is live it searches EVERYTHING (tabs and tier row
+  // stand down), because a finder that respects the filter you
+  // forgot you set is a finder that lies.
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchTerm = searchQuery.trim().toLowerCase();
+  const searchActive = searchTerm.length >= 3;
+  const matchesSearch = (r: CraftingRecipe) =>
+    (ITEMS[r.outputId]?.name ?? '').toLowerCase().includes(searchTerm);
 
   if (!isOpen) return null;
 
   const filteredRecipes = RECIPES.filter((r) => {
     if (activeCategory === 'all') return true;
+    // Base Supplies (Adam, 2026-10-16): everything you'd build
+    // the base with — the classifier lives in game/baseSupplies
+    // and is shared with the pouch, so the shelf never drifts.
+    if (activeCategory === 'base') return isBaseSupply(r.outputId);
     // Gear-line tabs (Adam, 2026-10-15) filter by what a recipe
     // MAKES, not by its recipe category: the Gauntlet tab gathers
     // the one-time gauntlet upgrades (modules + Field Synthesizer),
@@ -65,7 +85,9 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     if (tierFilter === 'raw') return ITEMS[r.outputId]?.category === 'raw';
     return accessTierOf(r) === tierFilter;
   };
-  const visibleRecipes = filteredRecipes.filter(tierVisible);
+  const visibleRecipes = searchActive
+    ? RECIPES.filter(matchesSearch)
+    : filteredRecipes.filter(tierVisible);
   const TYPE_GROUPS: { id: string; label: string }[] = [
     { id: 'equipment', label: 'Equipment' },
     { id: 'structure', label: 'Structures' },
@@ -77,8 +99,18 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     | { kind: 'heading'; label: string }
     | { kind: 'recipe'; recipe: CraftingRecipe };
   const listEntries: ListEntry[] = [];
-  if (tierFilter === 'all') {
+  if (searchActive || (tierFilter === 'all' && activeCategory !== 'base')) {
     visibleRecipes.forEach((recipe) => listEntries.push({ kind: 'recipe', recipe }));
+  } else if (activeCategory === 'base') {
+    // The Base Supplies shelf groups by what a piece is FOR in
+    // the base (game/baseSupplies), with the tier row still
+    // filtering which pieces show.
+    for (const g of BASE_SUPPLY_GROUPS) {
+      const rs = visibleRecipes.filter((r) => baseSupplyGroupOf(r.outputId) === g.id);
+      if (rs.length === 0) continue;
+      listEntries.push({ kind: 'heading', label: g.label });
+      rs.forEach((recipe) => listEntries.push({ kind: 'recipe', recipe }));
+    }
   } else {
     for (const g of TYPE_GROUPS) {
       const rs = visibleRecipes.filter((r) => ITEMS[r.outputId]?.category === g.id);
@@ -159,6 +191,36 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
           </button>
         </div>
 
+        {/* Search (Adam, 2026-10-16): near the top, over both
+            tab rows. Three letters or more and the list becomes
+            every recipe whose product's name holds those letters
+            in a row — tabs and tiers stand down until it clears. */}
+        <div className="px-6 pt-3 pb-1 flex items-center gap-2">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search recipes… (3+ letters)"
+              className="w-full bg-slate-900/70 border border-slate-700/70 rounded-xl pl-8 pr-8 py-1.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/50"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-200"
+                aria-label="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+          {searchActive && (
+            <span className="text-[11px] text-cyan-300/90 font-tech">
+              {visibleRecipes.length} match{visibleRecipes.length === 1 ? '' : 'es'} for “{searchQuery.trim()}” — searching all recipes
+            </span>
+          )}
+        </div>
+
         {/* Categories Bar */}
         <div className="px-6 py-3 border-b border-slate-800/70 bg-slate-900/30 flex items-center gap-2 overflow-x-auto">
           {[
@@ -170,6 +232,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
             { id: 'fertilizers', label: 'Fertilizers' },
             { id: 'composites', label: 'Living Composites' },
             { id: 'defenses', label: 'Bio-Defenses' },
+            { id: 'base', label: 'Base Supplies' },
           ].map((cat) => (
             <button
               key={cat.id}
@@ -228,7 +291,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
         <div className="flex-1 flex overflow-hidden">
           {/* Left: Recipe List / Tree */}
           <div className="w-1/2 border-r border-slate-800/80 overflow-hidden">
-            {viewMode === 'tree' ? (
+            {viewMode === 'tree' && !searchActive ? (
               <RecipeFlowchart
                 inventory={inventory}
                 nearForge={nearForge}
@@ -240,7 +303,9 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
               <div className="h-full overflow-y-auto p-4 space-y-2">
                 {visibleRecipes.length === 0 && (
                   <div className="text-center text-slate-500 text-xs font-tech py-10">
-                    Nothing here yet.
+                    {searchActive
+                      ? `No recipes match “${searchQuery.trim()}”.`
+                      : 'Nothing here yet.'}
                   </div>
                 )}
                 {listEntries.map((entry) => {
@@ -370,6 +435,22 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                             style={{ backgroundColor: ingItem.color }}
                           />
                           <span className="font-medium">{ingItem.name}</span>
+                          {/* Grow Prerequisites (Adam, 2026-10-16):
+                              a short reagent that is itself crafted
+                              offers to grow its whole chain in one
+                              pass, right here — no bouncing between
+                              recipes to assemble a Tier 2/3 craft. */}
+                          {!hasEnough && onGrowPrerequisites && RECIPES.some((r) => r.outputId === ing.id) && (
+                            <button
+                              onClick={() => onGrowPrerequisites(selectedRecipe, ing.id)}
+                              disabled={isCrafting}
+                              title={`Grow the ${ingItem.name} this recipe needs — and anything IT needs — in one pass`}
+                              className="flex items-center gap-1 text-[10px] font-tech font-bold px-2 py-1 rounded-lg border border-emerald-500/40 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 disabled:opacity-50 transition-colors"
+                            >
+                              <Sprout className="w-3 h-3" />
+                              Grow Prerequisites
+                            </button>
+                          )}
                         </div>
                         <div className="flex items-center gap-1.5 font-mono font-semibold">
                           <span>{currentAmount}</span>

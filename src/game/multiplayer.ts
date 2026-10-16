@@ -7,7 +7,7 @@ import {
 } from '../types/game';
 import type { WorldSnapshot } from './saveSystem';
 
-const RELAY_BASE_URL = 'wss://bioforge-relay.nomadthegrey71.workers.dev';
+export const RELAY_BASE_URL = 'wss://bioforge-relay.nomadthegrey71.workers.dev';
 const MAX_SEEN_MESSAGE_IDS = 1000;
 const RELAY_RECONNECT_DELAY_MS = 3000;
 const PLAYER_NAME_STORAGE_KEY = 'bioforge_player_name';

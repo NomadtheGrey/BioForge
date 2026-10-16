@@ -18,6 +18,7 @@ import {
   FloraSpecies,
   ToolType,
   QuestProgressState,
+  QuestSignals,
 } from './types/game';
 import {
   INITIAL_CODEX,
@@ -79,7 +80,11 @@ import { StartScreenModal } from './components/StartScreenModal';
 // UI Components
 import { HUD } from './components/HUD';
 import { QuestLogModal } from './components/QuestLogModal';
-import { TOOL_NAMES, accessTierOf } from './game/quests';
+import { TOOL_NAMES, accessTierOf, MADE_SPECIES_IDS } from './game/quests';
+import { BIOMES } from './game/biomes';
+import { fateForWorld } from './game/ruins';
+import { AW_CHAPTERS, type AwChapter } from './game/awChapters';
+import { ChapterModal } from './components/ChapterModal';
 import { bestWeapon } from './game/weapons';
 import type { WeaponDef } from './game/weapons';
 import { useQuests } from './hooks/useQuests';
@@ -128,6 +133,7 @@ export default function App() {
     deductInventoryItem,
     hasItem,
     craftRecipe,
+    growPrerequisites,
     restoreInventory,
     setOverflowHandler,
   } = useInventory();
@@ -587,6 +593,8 @@ export default function App() {
           'system',
           '#2dd4bf',
         );
+        // Ask the World: the crossing itself is the goal state.
+        awMergeRef.current((s) => (s.tunnel ? s : { ...s, tunnel: true }));
       }, 650);
       window.setTimeout(() => {
         setTunnelFade(0);
@@ -595,6 +603,19 @@ export default function App() {
     },
     [completeTravel, postNotification],
   );
+
+  // Ask the World signal bridge (Adam, 2026-10-16): the tool
+  // interactions hook composes BEFORE useQuests in this file, so
+  // its glyph/heart callbacks cannot call the quest writer
+  // directly. They call through this ref instead — the real merge
+  // function is assigned right after useQuests below, and clicks
+  // only happen long after the whole composition has run (the
+  // established lazy-bridge pattern of this file).
+  const awMergeRef = useRef<(mutate: (s: QuestSignals) => QuestSignals) => void>(() => {});
+  // Walk Back bookkeeping: the player has left the zone they
+  // fell in at least once since falling (so standing there again
+  // is a RETURN, not the respawn itself).
+  const leftFellZoneRef = useRef(false);
 
   // 4. Encapsulated Tool Interactions
   const {
@@ -659,6 +680,35 @@ export default function App() {
     triggerShotFx,
     triggerStrikeHitFx: (x: number, z: number) => engineRef.current?.triggerStrikeBurst(x, z),
     onRequestRelease: (fauna) => setPendingRelease(fauna),
+    // Ask the World: a glyph read names its ruin by structure id
+    // (ruinglyph_<instanceId>_<feature>) — strip the prefix and
+    // the trailing feature segment and the ruin's key remains.
+    // The doorstep stone at the spawn remnant carries its own id
+    // (homeglyph_spawn) and its own signal.
+    onGlyphRead: (glyphId) => {
+      if (glyphId.startsWith('homeglyph')) {
+        awMergeRef.current((s) => (s.homeStone ? s : { ...s, homeStone: true }));
+        return;
+      }
+      const ruinKey = glyphId.slice('ruinglyph_'.length, glyphId.lastIndexOf('_'));
+      awMergeRef.current((s) => {
+        const glyphRuins = s.glyphRuins ?? [];
+        return glyphRuins.includes(ruinKey) ? s : { ...s, glyphRuins: [...glyphRuins, ruinKey] };
+      });
+    },
+    // Ask the World: a harvest in the Precursor Garden variant —
+    // the zone question is answered here, where zone knowledge
+    // lives; the interaction only reports that a harvest landed.
+    onFloraHarvest: () => {
+      if (!worldSeedRef.current) return;
+      const info = zoneInfo(worldSeedRef.current, playerZoneRef.current.zx, playerZoneRef.current.zz);
+      if (info.variant?.id === 'precursor_garden') {
+        awMergeRef.current((s) => (s.gardenHarvest ? s : { ...s, gardenHarvest: true }));
+      }
+    },
+    onHeartReached: () => {
+      awMergeRef.current((s) => (s.heart ? s : { ...s, heart: true }));
+    },
     spawnDroppedItem,
     triggerHarvestFx,
     triggerSolventFx,
@@ -774,7 +824,134 @@ export default function App() {
       setQuestProgress,
       postNotification,
       hasStarted,
+      // Ask the World rewards grant through the ordinary gain, so
+      // pouch caps and the overflow drop apply as anywhere else.
+      grantItems: (items) => {
+        items.forEach((i) => addInventoryItem(i.itemId, i.count));
+      },
+      // The chapter delivery: when the fragment set completes,
+      // the world's story opens — the fate named outright, the
+      // one earned exception (game/awChapters.ts).
+      onQuestComplete: (def) => {
+        if (def.id === 'q_aw_happened' && worldSeedRef.current) {
+          setAwChapter(AW_CHAPTERS[fateForWorld(worldSeedRef.current)]);
+        }
+      },
     });
+
+  // The Ask the World chapter, once earned (modal state).
+  const [awChapter, setAwChapter] = useState<AwChapter | null>(null);
+
+  // ------------------------------------------------------------------
+  // Ask the World — signal writers (Adam, 2026-10-16)
+  // ------------------------------------------------------------------
+  // Small observers that record what the player has DONE and SEEN
+  // into questProgress.signals; the line's quests derive their
+  // completion from that record (game/quests.ts goalMet). Every
+  // writer is a no-op until its fact changes, so these effects
+  // cost a comparison per zone step, fauna change, or codex page.
+  const questProgressRef = useRef(questProgress);
+  questProgressRef.current = questProgress;
+  awMergeRef.current = (mutate) => {
+    const cur = questProgressRef.current;
+    if (!cur) return;
+    const before = cur.signals ?? {};
+    const after = mutate(before);
+    if (after !== before) updateQuestProgress({ signals: after });
+  };
+
+  // Zones stood in: families, hybrid country, the far families.
+  useEffect(() => {
+    if (!hasStarted || !worldSeedRef.current) return;
+    const info = zoneInfo(worldSeedRef.current, playerZone.zx, playerZone.zz);
+    const tier = BIOMES.find((b) => b.id === info.biome)?.tier ?? 0;
+    awMergeRef.current((s) => {
+      const families = s.families ?? [];
+      const next: QuestSignals = { ...s };
+      let changed = false;
+      if (!families.includes(info.biome)) { next.families = [...families, info.biome]; changed = true; }
+      if (info.hybrid && !s.hybrid) { next.hybrid = true; changed = true; }
+      if (tier >= 3 && !s.tier3) { next.tier3 = true; changed = true; }
+      // Walk Back: standing in the fell zone again after having
+      // left it at least once is the return the quest asks for.
+      if (s.fellZone) {
+        const here = `${playerZone.zx},${playerZone.zz}`;
+        if (here !== s.fellZone) {
+          leftFellZoneRef.current = true;
+        } else if (leftFellZoneRef.current && !s.walkBack) {
+          next.walkBack = true;
+          next.fellZone = undefined;
+          changed = true;
+        }
+      }
+      return changed ? next : s;
+    });
+  }, [playerZone, hasStarted]);
+
+  // Ruins entered, by instance.
+  useEffect(() => {
+    if (!hasStarted || !inRuin) return;
+    const inst = instanceRef.current;
+    if (inst.kind !== 'ruin') return;
+    const id = inst.instanceId;
+    awMergeRef.current((s) => {
+      const ruins = s.ruins ?? [];
+      return ruins.includes(id) ? s : { ...s, ruins: [...ruins, id] };
+    });
+  }, [inRuin, hasStarted]);
+
+  // The vat's children (their ids carry the fauna_vat_ hatch
+  // prefix) and the hearth dog's decision (a tamed hearth_dog).
+  useEffect(() => {
+    if (!hasStarted) return;
+    const hatched = faunaList.some((f) => f.id.startsWith('fauna_vat_'));
+    const dogBonded = faunaList.some((f) => f.species === 'hearth_dog' && f.isTamed);
+    awMergeRef.current((s) => {
+      if ((!hatched || s.hatched) && (!dogBonded || s.dogBonded)) return s;
+      return { ...s, hatched: s.hatched || hatched, dogBonded: s.dogBonded || dogBonded };
+    });
+  }, [faunaList, hasStarted]);
+
+  // Made things met, read off the codex's discovered pages.
+  useEffect(() => {
+    if (!hasStarted) return;
+    const met = codexList
+      .filter((e) => e.discovered && MADE_SPECIES_IDS.includes(e.species as string))
+      .map((e) => e.species as string);
+    awMergeRef.current((s) => {
+      const prev = s.madeMet ?? [];
+      return prev.length === met.length ? s : { ...s, madeMet: met };
+    });
+  }, [codexList, hasStarted]);
+
+  // The homestead composites: home-as-organism (a heart tile
+  // set down, a hearthpod grown, a tamed companion in residence
+  // near the heart) and the hum (hearth + a gestating vat + a
+  // storage pod actually holding something) — both are pure
+  // readings of the structure and fauna lists.
+  useEffect(() => {
+    if (!hasStarted) return;
+    const heart = structuresList.find((s) => s.type === 'heart_tile');
+    const hearth = structuresList.some((s) => s.type === 'hearthpod');
+    const vatBreathing = structuresList.some((s) => s.type === 'culture_vat' && s.vat?.gestating);
+    const storesHolding = structuresList.some(
+      (s) => s.storage && Object.values(s.storage.items ?? {}).some((n) => (n ?? 0) > 0),
+    );
+    const resident = heart
+      ? faunaList.some(
+          (f) => f.isTamed && Math.hypot(f.x - heart.worldX, f.z - heart.worldZ) <= 15,
+        )
+      : false;
+    const home = Boolean(heart) && hearth && resident;
+    const hum = hearth && vatBreathing && storesHolding;
+    if (!home && !hum) return;
+    awMergeRef.current((s) => {
+      const nextHome = s.homeOrganism || home || undefined;
+      const nextHum = s.hum || hum || undefined;
+      if (nextHome === s.homeOrganism && nextHum === s.hum) return s;
+      return { ...s, homeOrganism: nextHome, hum: nextHum };
+    });
+  }, [structuresList, faunaList, hasStarted]);
 
   // ------------------------------------------------------------------
   // Game input (hooks/useGameInput.ts — seam 5 of the App refactor)
@@ -885,6 +1062,43 @@ const {
   removeFlora, removeFauna, removeStructure, removeDroppedItem,
   addStructure, resetFloraHarvest, tameFauna, replaceWorld,
 });
+
+  // ------------------------------------------------------------------
+  // Ask the World — the doorstep remnant (Adam, 2026-10-16)
+  // ------------------------------------------------------------------
+  // Every world keeps a small Precursor remnant near the spawn —
+  // fallen pillars and ONE carved glyph stone, silent until read
+  // (the Doorstep Stone quest sends the player home to it). New
+  // worlds could grow it at creation; existing worlds already
+  // hold their spawn zone in the snapshot, so the remnant is
+  // ENSURED instead: the world author (solo, or the co-op host)
+  // places it the first time the spawn zone is stood in without
+  // one, and from then on it rides the snapshot like any other
+  // structure. Its fate is the world's fate — the stone has been
+  // telling this world's story, unread, since the first morning.
+  useEffect(() => {
+    if (!hasStarted) return;
+    if (!(playerZone.zx === 0 && playerZone.zz === 0)) return;
+    if (isConnected && !isHost) return; // guests receive it by snapshot
+    if (!worldSeedRef.current) return;
+    if (structuresList.some((s) => s.id.startsWith('homeglyph'))) return;
+    const heart = structuresList.find((s) => s.type === 'heart_tile');
+    const baseX = heart?.worldX ?? 0;
+    const baseZ = heart?.worldZ ?? 0;
+    addStructure({
+      id: 'homeglyph_spawn',
+      type: 'ruin_glyph',
+      gridX: Math.round((baseX + 9) / 2),
+      gridZ: Math.round((baseZ + 4) / 2),
+      worldX: baseX + 9,
+      worldZ: baseZ + 4,
+      rotation: 0,
+      health: 9999,
+      maxHealth: 9999,
+      doorOpenProgress: 0,
+      ruinFeature: { fate: fateForWorld(worldSeedRef.current), band: 'shallow' },
+    });
+  }, [hasStarted, playerZone, structuresList, isConnected, isHost, addStructure]);
 
   // --------------------------------------------------------------------------
   // Game loop (hooks/useGameLoop.ts — seam 6 of the App refactor)
@@ -1264,6 +1478,15 @@ const {
   }, [sessionSeed, playerZone, postNotification]);
 
   const handlePlayerDeath = useCallback((): void => {
+    // Ask the World (Walk Back): remember where the land took
+    // you — unless it was the spawn zone itself, where waking
+    // at home already IS the return.
+    const pz = playerZoneRef.current;
+    if (!(pz.zx === 0 && pz.zz === 0)) {
+      leftFellZoneRef.current = false;
+      const key = `${pz.zx},${pz.zz}`;
+      awMergeRef.current((s) => ({ ...s, fellZone: key }));
+    }
     healthRef.current = playerState.maxHealth;
     setHealth(playerState.maxHealth);
     staminaRef.current = 100;
@@ -1432,6 +1655,53 @@ const {
         setSelectedStructureType('sample_rack');
       }
     }
+  };
+
+  // Grow Prerequisites (Adam, 2026-10-16): the Bio-Forge reagent
+  // rows offer to grow a short ingredient's whole chain in one
+  // pass (useInventory.growPrerequisites does the atomic work).
+  // Access gates on the PARENT recipe — the same tether that
+  // will govern crafting it — and one summary notification
+  // reports the haul instead of a toast per sub-craft.
+  const handleGrowPrerequisites = (parent: CraftingRecipe, ingredientId: ItemId) => {
+    const ing = parent.ingredients.find((i) => i.id === ingredientId);
+    if (!ing) return;
+    const access = checkCraftAccess();
+    const forgeOnly = accessTierOf(parent) >= 3;
+    if (!access.nearForge && (forgeOnly || !access.hasSynthesizer)) {
+      postNotification(
+        'Synthesis Blocked',
+        forgeOnly
+          ? 'Advanced synthesis requires a bio-forge station.'
+          : 'Too far from a bio-forge station — the Field Synthesizer lets you craft in the field.',
+        'craft',
+        '#f59e0b'
+      );
+      return;
+    }
+    const grown = growPrerequisites(ingredientId, ing.count);
+    const targetName = ITEMS[ingredientId]?.name || ingredientId;
+    if (grown.length === 0) {
+      postNotification(
+        'Nothing to Grow',
+        `No path to more ${targetName} — a raw ingredient is missing, or the pouch is full of it.`,
+        'alert',
+        '#f59e0b'
+      );
+      return;
+    }
+    const summary = grown
+      .map((g) => `${g.times * g.recipe.outputCount}× ${ITEMS[g.recipe.outputId]?.name || g.recipe.outputId}`)
+      .join(', ');
+    const nowHave = (inventory[ingredientId] || 0) + grown
+      .filter((g) => g.recipe.outputId === ingredientId)
+      .reduce((sum, g) => sum + g.times * g.recipe.outputCount, 0);
+    postNotification(
+      'Prerequisites Grown',
+      `Grew ${summary}. ${targetName}: ${Math.min(nowHave, ing.count)}/${ing.count} for ${parent.name}.`,
+      'craft',
+      '#34d399'
+    );
   };
 
   const craftAccess = checkCraftAccess();
@@ -1648,6 +1918,9 @@ const {
           })
         }
       />
+      {/* The Ask the World chapter (Adam, 2026-10-16): opens once,
+          at the moment the fragment set completes. */}
+      {awChapter && <ChapterModal chapter={awChapter} onClose={() => setAwChapter(null)} />}
       {/* Release confirmation (Adam, 2026-10-15): letting a
           companion go is the one command that always asks. */}
       {pendingRelease && (
@@ -1734,6 +2007,7 @@ const {
         nearForge={craftAccess.nearForge}
         hasSynthesizer={craftAccess.hasSynthesizer}
         onCraftRecipe={handleCraftRecipe}
+        onGrowPrerequisites={handleGrowPrerequisites}
         onSelectStructureBlueprint={(type) => {
           setSelectedStructureType(type);
           setActiveTool('builder');

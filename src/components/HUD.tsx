@@ -169,6 +169,86 @@ import { MODULE_FOR_TOOL, gearTierOf } from '../game/quests';
 import { useHudLayout, type HudPanelId } from '../hooks/useHudLayout';
 import { HudPanel } from './HudPanel';
 import { HudOptionsPanel } from './HudOptionsPanel';
+import { multiplayerManager, RELAY_BASE_URL } from '../game/multiplayer';
+
+/**
+ * SessionStats — the FPS + PING readout in the session bar
+ * (Adam, 2026-10-16). Both numbers are MEASURED, never
+ * decorative: FPS counts real animation frames on this client;
+ * PING times a round trip to the co-op relay host — and only
+ * while a session is live. Solo, there is no peer and no relay
+ * traffic, so PING honestly reads —.
+ */
+const SessionStats: React.FC = () => {
+  const [fps, setFps] = useState<number | null>(null);
+  const [ping, setPing] = useState<number | null>(null);
+
+  // Frame counter: tally rAF callbacks over ~0.5s windows.
+  useEffect(() => {
+    let raf = 0;
+    let frames = 0;
+    let windowStart = performance.now();
+    const tick = (now: number) => {
+      frames += 1;
+      const elapsed = now - windowStart;
+      if (elapsed >= 500) {
+        setFps(Math.round((frames * 1000) / elapsed));
+        frames = 0;
+        windowStart = now;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  // Relay probe: a timed no-cors fetch of the relay's HTTPS
+  // origin every 4s while connected (the socket itself exposes
+  // no round-trip API to the browser). A failed probe clears
+  // the number rather than leaving a stale one up.
+  useEffect(() => {
+    let cancelled = false;
+    const probe = async () => {
+      if (!multiplayerManager.isConnected) {
+        if (!cancelled) setPing(null);
+        return;
+      }
+      const url = RELAY_BASE_URL.replace(/^wss:/, 'https:');
+      const started = performance.now();
+      try {
+        await fetch(url, { mode: 'no-cors', cache: 'no-store' });
+        if (!cancelled) setPing(Math.round(performance.now() - started));
+      } catch {
+        if (!cancelled) setPing(null);
+      }
+    };
+    probe();
+    const id = setInterval(probe, 4000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, []);
+
+  return (
+    <div
+      className="flex items-center gap-2 px-1.5 font-mono text-[11px] text-slate-400"
+      title="Frames per second on this device, and the round trip to the co-op relay while a session is live"
+    >
+      <span>
+        FPS{' '}
+        <span className="text-slate-200 font-semibold">{fps ?? '—'}</span>
+      </span>
+      <span className="text-slate-600">·</span>
+      <span>
+        PING{' '}
+        <span className="text-slate-200 font-semibold">
+          {ping !== null ? `${ping}ms` : '—'}
+        </span>
+      </span>
+    </div>
+  );
+};
 
 export const HUD: React.FC<HUDProps> = ({
   playerState,
@@ -418,15 +498,20 @@ export const HUD: React.FC<HUDProps> = ({
             the BOTTOM bar — quick nav, hotbar, Left Hand — off the
             bottom edge of shorter windows: the "lost" Gauntlet
             HUD. Out of flow, the column can be any height without
-            moving anything else; the max-height + scroll guard
-            keeps its own tail reachable on short screens. The
-            p-2 / -m-2 pair leaves room for the panels' corner
-            badges, which overhang by 8px. */}
+            moving anything else. The p-2 / -m-2 pair leaves room
+            for the panels' corner badges, which overhang by 8px.
+            NO scroll guard (Adam's playtest, 2026-10-16): the
+            max-height + overflow this column used to carry made
+            it a clipping container — a panel dragged toward the
+            bottom of the screen sliced off at the guard's edge,
+            and its clip line cut the resting stack's shadows.
+            Panels must travel the full screen; on a very short
+            window the resting stack's tail can run past the
+            bottom edge instead, which Adam accepted — every
+            panel is draggable and hideable. */}
         <div
-          className={`absolute z-20 flex min-w-0 flex-col gap-2.5 overflow-y-auto p-2 -m-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
-            touchMode
-              ? 'left-2 top-2 max-h-[calc(100dvh-1rem)]'
-              : 'left-4 top-4 max-h-[calc(100dvh-2rem)]'
+          className={`absolute z-20 flex min-w-0 flex-col gap-2.5 p-2 -m-2 ${
+            touchMode ? 'left-2 top-2' : 'left-4 top-4'
           }`}
         >
           <div
@@ -745,6 +830,18 @@ export const HUD: React.FC<HUDProps> = ({
               {roomCode ? `Room: ${roomCode} (${peerCount + 1})` : 'P2P Co-Op'}
             </span>
           </button>
+
+          {/* FPS + PING, right of the co-op segment (Adam,
+              2026-10-16 — the row had the room, so it lives
+              here rather than widening the bar). Desktop only:
+              touch keeps the row icon-only, as the bar's other
+              labels already do. */}
+          {!touchMode && (
+            <>
+              <div className="w-px h-6 bg-slate-700/60" />
+              <SessionStats />
+            </>
+          )}
           </div>
 
           {/* Second row: the system toggles and the two list

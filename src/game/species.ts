@@ -3293,6 +3293,309 @@ export const SPECIES: Record<FaunaSpecies, SpeciesDef> = {
       health: 65,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Slice 20 (2026-10-16) — fauna wave 5: the worms and the
+  // margins (the Iron Ashes' evidence chain completed, the
+  // clash margin's eel, the garden that nests).
+  // ------------------------------------------------------------------
+
+  // #15 — the biome program asked whether anything NESTS in
+  // the glass gardens: yes — a lightly-crystalline winged
+  // nester of the Obsidian Garden (gated to the garden as
+  // built, in Saltglass country). 30%: a tenant's rate, not
+  // a pet's.
+  shardwing: {
+    id: 'shardwing',
+    name: 'Shardwing',
+    profile: 'flyer',
+    tameChance: 0.3,
+    bait: 'nectar',
+    petName: 'Shardwing',
+    byproduct: null,
+    flight: { altitude: 2.2, bobHeight: 0.25, bobRate: 1.8, flapRate: 3.4 },
+    bonusSpawn: {
+      biomes: ['saltglass'],
+      variant: 'obsidian_garden',
+      count: 2,
+      minRadius: 10,
+      spacing: 6,
+      speed: 2.2,
+      speedJitter: 0.15,
+      health: 14,
+    },
+  },
+
+  // #26 — iron-fed and plate-ringed: it burrows the Iron
+  // Ashes' magnetic sand (the ground rumbles with a metallic
+  // note where it passes) and sheds ring-plates — Ironworm
+  // Plate, the original the Ironjaw wears secondhand. 10%:
+  // even its taming is mostly mineral.
+  ironworm: {
+    id: 'ironworm',
+    name: 'Ironworm',
+    profile: 'insect',
+    tameChance: 0.1,
+    bait: 'nectar',
+    petName: 'Ironworm',
+    byproduct: { item: 'ironworm_plate', seconds: 300, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['ember', 'storm'],
+      hybrid: ['ember', 'storm'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      speed: 1.0,
+      speedJitter: 0.1,
+      health: 40,
+    },
+  },
+
+  // #29 — the Ashswimmer's rhyme in the opposite country:
+  // white-furred, blind, burrowing THROUGH SNOWPACK in the
+  // Stillwhite — the mode reads its substrate honestly.
+  // 35%.
+  driftworm: {
+    id: 'driftworm',
+    name: 'Driftworm',
+    profile: 'insect',
+    tameChance: 0.35,
+    bait: 'nectar',
+    petName: 'Driftworm',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['frost'],
+      variant: 'frost_stillwhite',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      speed: 1.1,
+      speedJitter: 0.1,
+      health: 30,
+    },
+  },
+
+  // #34 — it swims ASH: finned along the rings, ash-fed, in
+  // the Ashen Drift — the Driftworm's plan in the country
+  // where the drifts burn. 15%. Its shed fin-rings are
+  // recorded WITHOUT an item on purpose (ash and chitin,
+  // compost-grade leavings): no byproduct.
+  ashswimmer: {
+    id: 'ashswimmer',
+    name: 'Ashswimmer',
+    profile: 'insect',
+    tameChance: 0.15,
+    bait: 'nectar',
+    petName: 'Ashswimmer',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['ember'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      speed: 1.4,
+      speedJitter: 0.15,
+      health: 22,
+    },
+  },
+
+  // #54 — clear-bodied: you see its last meal as a silhouette,
+  // which IS the encounter. A frost-veined crystalline serpent
+  // of the Saltglass × Frost country, slithering over ice.
+  // 10%. It sheds whole, in one clear tube: Glass Shed.
+  glass_snake: {
+    id: 'glass_snake',
+    name: 'Glass Snake',
+    profile: 'serpent',
+    tameChance: 0.1,
+    bait: 'nectar',
+    petName: 'Glass Snake',
+    byproduct: { item: 'glass_shed', seconds: 360, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['saltglass', 'frost'],
+      hybrid: ['saltglass', 'frost'],
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 1.9,
+      speedJitter: 0.1,
+      health: 20,
+    },
+  },
+
+  // #56 — the CLASH MARGIN's citizen: where Ember and Frost
+  // face off without touching, the argument makes a place —
+  // meltwater channels in black rock, steam standing in cold
+  // air — and this eel keeps the channels. 20%.
+  steam_eel: {
+    id: 'steam_eel',
+    name: 'Steam Eel',
+    profile: 'serpent',
+    tameChance: 0.2,
+    bait: 'nectar',
+    petName: 'Steam Eel',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['ember', 'frost'],
+      hybrid: ['ember', 'frost'],
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 1.8,
+      speedJitter: 0.1,
+      health: 24,
+    },
+  },
+
+  // #72 — its whole art is the FREEZE: at a threat it flattens,
+  // salt-mottled and pan-still, and becomes a sculpture of
+  // itself. A statue-lizard startling at your feet is the
+  // flats' smallest jump and best joke — the design protects
+  // it, and so does this table: no drops, no hunt, all joke.
+  // 40%.
+  pan_lizard: {
+    id: 'pan_lizard',
+    name: 'Pan Lizard',
+    profile: 'lizard',
+    tameChance: 0.4,
+    bait: 'nectar',
+    petName: 'Pan Lizard',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['saltglass'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      speed: 2.2, // bursts, then sculpture
+      speedJitter: 0.2,
+      health: 10,
+    },
+  },
+
+  // #74 — a midge is a rumor with wings: a pale COLONY at
+  // small scale over the Frost family's seeps, obligate
+  // flyers at whisper height. Untameable — there is no
+  // individual here to tame; the colony is the citizen.
+  seep_midge: {
+    id: 'seep_midge',
+    name: 'Seep Midge',
+    profile: 'insect',
+    tameChance: null,
+    bait: null,
+    petName: 'Seep Midge',
+    byproduct: null,
+    flight: { altitude: 0.7, bobHeight: 0.15, bobRate: 3.0, flapRate: 14 },
+    bonusSpawn: {
+      biomes: ['frost'],
+      count: 4,
+      minRadius: 8,
+      spacing: 2,
+      speed: 1.6,
+      speedJitter: 0.25,
+      health: 3,
+    },
+  },
+
+  // #85 — its wings carry the gardeners' Archimedean spiral,
+  // one per wing, EXACT — a moth the gardens signed. An
+  // obligate flyer of the family cast. (Tameability is the
+  // design's quiet field here; the table reads a garden
+  // citizen at 35%, the moth rate's daylight end.)
+  spiral_moth: {
+    id: 'spiral_moth',
+    name: 'Spiral Moth',
+    profile: 'flyer',
+    tameChance: 0.35,
+    bait: 'nectar',
+    petName: 'Spiral Moth',
+    byproduct: null,
+    flight: { altitude: 1.6, bobHeight: 0.25, bobRate: 1.8, flapRate: 4.5 },
+    bonusSpawn: {
+      biomes: ['precursor'],
+      count: 2,
+      minRadius: 9,
+      spacing: 5,
+      speed: 1.8,
+      speedJitter: 0.15,
+      health: 8,
+    },
+  },
+
+  // #96 — the valley's own animal, grown the way the Greeter
+  // is grown, running the mirror rule like everything in the
+  // Living: in a Welcoming valley it is the hound at the
+  // threshold that wags; in a Hungry one, the hound at the
+  // threshold. Untameable — it belongs to the valley, not to
+  // you. (Its bespoke threshold behavior is deferred with
+  // the valley staff's other behaviors; the table deals the
+  // citizen.)
+  threshold_hound: {
+    id: 'threshold_hound',
+    name: 'Threshold Hound',
+    profile: 'predator',
+    tameChance: null,
+    bait: null,
+    petName: 'Threshold Hound',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['living'],
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 2.0,
+      speedJitter: 0.1,
+      health: 55,
+    },
+  },
+
+  // #103 — a patient, long-legged picker of the White Fields,
+  // white-mottled, working the salt pans bone by bone. A lined
+  // nest's fallen lining is Picker Down: white, salt-stiff,
+  // the fields' one soft export. 25%.
+  saltpicker: {
+    id: 'saltpicker',
+    name: 'Saltpicker',
+    profile: 'flyer',
+    tameChance: 0.25,
+    bait: 'nectar',
+    petName: 'Saltpicker',
+    byproduct: { item: 'picker_down', seconds: 360, tamedOnly: false },
+    flight: { altitude: 1.9, bobHeight: 0.25, bobRate: 1.8, flapRate: 4.0 },
+    bonusSpawn: {
+      biomes: ['saltglass', 'bone'],
+      hybrid: ['saltglass', 'bone'],
+      count: 2,
+      minRadius: 10,
+      spacing: 6,
+      speed: 2.1,
+      speedJitter: 0.15,
+      health: 16,
+    },
+  },
+
+  // #161 — arm-long at the big end, in the Drowned Graveyard
+  // where the Graveyard's low edge floods and the bones stand
+  // in black water: a leech of the margin pools. Untameable
+  // (0%) — the margin's tithe-collector, and nobody's pet.
+  marrow_leech: {
+    id: 'marrow_leech',
+    name: 'Marrow Leech',
+    profile: 'slug',
+    tameChance: null,
+    bait: null,
+    petName: 'Marrow Leech',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['wetland', 'bone'],
+      hybrid: ['wetland', 'bone'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      speed: 0.9,
+      speedJitter: 0.1,
+      health: 35,
+    },
+  },
 };
 
 /** The one lookup every shared system uses. */

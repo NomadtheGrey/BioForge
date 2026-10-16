@@ -126,6 +126,7 @@ export interface UseToolInteractionsParams {
    *  restricted to glow spores in caverns. */
   instanceKind: () => 'surface' | 'cavern' | 'ruin';
   tameFauna: (faunaId: string, customName: string, state: FaunaEntity['state']) => void;
+  hearthFeed: (faunaId: string) => number;
   setFaunaCommand: (faunaId: string, cmd: 'follow' | 'stay' | 'guard') => void;
   /** Ask App to confirm a RELEASE (Adam, 2026-10-15): the cycle's
    *  guarded fourth stop — never applied by the click itself. */
@@ -202,6 +203,7 @@ export function useToolInteractions({
   onExitRuin,
   instanceKind,
   tameFauna,
+  hearthFeed,
   setFaunaCommand,
   onRequestRelease,
   applyDissolve,
@@ -795,6 +797,52 @@ export function useToolInteractions({
       // comes from the species table — see game/species.ts.
       const def = speciesDef(fauna.species);
 
+      // -------------------------------------------------------------
+      // THE HEARTH DOG (slice 39, 2026-10-16): the roster's one
+      // REVERSED taming. This dog was never lured — it ARRIVED at
+      // the heart tile (the sim walks it in), and the lure here is
+      // only an offering dish. Three accepted offerings — spaced,
+      // because a dog decides at its own pace (one counts per
+      // minute) — and the third is the decision: it bonds as a
+      // full pet, follow/stay/guard all at full fluency, having
+      // watched how you live. A dog with no decide clock never
+      // arrived (it was dealt wild, or grown in the vat) and the
+      // whole business is refused: those keep their own counsel.
+      // -------------------------------------------------------------
+      if (fauna.species === 'hearth_dog') {
+        if (fauna.hearthDecideTimer === undefined) {
+          postNotification('It Keeps Its Own Counsel', 'This dog did not arrive — and a dog that did not arrive cannot be courted.', 'alert', '#fbbf24');
+          return;
+        }
+        if ((fauna.hearthFedTimer ?? 999) < 60) {
+          postNotification('Still Deciding', 'The dog is digesting your last offering — and your character. Give it a minute.', 'alert', '#fbbf24');
+          return;
+        }
+        if (!hasItem('sweet_nectar', 1)) {
+          postNotification('Sweet Nectar Needed', 'An offering is an offering: the dog takes Sweet Nectar like everyone, whatever it privately thinks of the menu.', 'alert', '#fbbf24');
+          return;
+        }
+        deductInventoryItem('sweet_nectar', 1);
+        const feedings = hearthFeed(fauna.id);
+        if (feedings >= 3) {
+          soundEngine.playTameCritter();
+          releaseArmedRef.current.delete(fauna.id);
+          tameFauna(fauna.id, def.petName, 'following');
+          postNotification(
+            'The Dog Has Decided',
+            'Three offerings, honestly given — the Hearth Dog has chosen this home. Follow, stay, and guard, all at full fluency: it has been watching how you live, and it has views.',
+            'tame',
+            '#2dd4bf'
+          );
+          multiplayerManager.broadcastFaunaTame(fauna.id, multiplayerManager.playerName);
+        } else if (feedings === 2) {
+          postNotification('Second Offering Accepted', 'The dog eats, then settles a little closer to the door than last time. It has started keeping your hours.', 'tame', '#2dd4bf');
+        } else {
+          postNotification('First Offering Accepted', 'The dog eats, unhurried, watching you over the dish. The audition has begun — yours.', 'tame', '#2dd4bf');
+        }
+        return;
+      }
+
       if (fauna.species === 'soft_puff' || fauna.species === 'burrow_mouse') {
         if (!hasItem('sweet_nectar', 1)) {
           postNotification('Sweet Nectar Needed', `Harvest Sweet Nectar from Petal-Mills or craft bait in the Bio-Forge [B] to tame a ${def.name}.`, 'alert', '#fbbf24');
@@ -925,7 +973,7 @@ export function useToolInteractions({
         return;
       }
     },
-    [hasItem, deductInventoryItem, tameFauna, postNotification]
+    [hasItem, deductInventoryItem, tameFauna, hearthFeed, postNotification]
   );
 
   // 6. Bio-Builder Placement

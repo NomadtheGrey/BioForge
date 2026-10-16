@@ -1339,7 +1339,9 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
   // #152 — the collective citizen of the great pond country:
   // the cloud is the creature. Untameable, unharvestable at
   // scale. Its night rise to the surface (the lakes' second
-  // clock) is flavor in v1 — it rides mid-water.
+  // clock) went LIVE in slice 40 (2026-10-16) once the
+  // day/night cycle had a real sky: it rides mid-water by
+  // day and eases up to just under the film at midnight.
   drift_krill: {
     id: 'drift_krill',
     name: 'Drift Krill',
@@ -1348,7 +1350,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     bait: null,
     petName: 'Drift Krill',
     byproduct: null,
-    swim: { depth: 0.5 },
+    swim: { depth: 0.5, nightRise: 0.08 },
     bonusSpawn: {
       biomes: ['wetland', 'frost'],
       pond: true,

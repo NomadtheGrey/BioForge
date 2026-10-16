@@ -336,6 +336,20 @@ export class BioForgeThreeEngine {
     rime_grass: { color: 0xe0f2fe, intensity: 0.3, distance: 2, y: 0.3 },
     fang_fern: { color: 0xa5f3fc, intensity: 0.35, distance: 2.5, y: 0.4 },
     mirror_cap: { color: 0x94a3b8, intensity: 0.3, distance: 2.5, y: 0.3 },
+    // Flora wave 4 (creature slice 14, 2026-10-16): the fungus
+    // bench — crystal citizens glow, the rest keep ground halos.
+    meltcap: { color: 0xe9d5ff, intensity: 0.45, distance: 3, y: 0.4 },
+    poolcap: { color: 0x6ee7b7, intensity: 0.35, distance: 2.5, y: 0.3 },
+    saltcap: { color: 0xa5f3fc, intensity: 0.45, distance: 3, y: 0.4 },
+    tomb_cap: { color: 0xd6d3d1, intensity: 0.2, distance: 2, y: 0.3 },
+    ring_cap: { color: 0x4ade80, intensity: 0.3, distance: 2.5, y: 0.3 },
+    veil_cap: { color: 0xf1f5f9, intensity: 0.3, distance: 2.5, y: 0.5 },
+    glass_cap: { color: 0x67e8f9, intensity: 0.55, distance: 3.5, y: 0.4 },
+    heart_shelf: { color: 0xb45309, intensity: 0.2, distance: 2, y: 0.8 },
+    bone_puff: { color: 0xf5f5f4, intensity: 0.25, distance: 2, y: 0.3 },
+    wind_puff: { color: 0xe7e5e4, intensity: 0.25, distance: 2, y: 0.3 },
+    door_cap: { color: 0xa3e635, intensity: 0.3, distance: 2.5, y: 0.5 },
+    glyph_cap: { color: 0xa3e635, intensity: 0.35, distance: 2.5, y: 0.4 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },

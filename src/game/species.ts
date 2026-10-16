@@ -518,7 +518,7 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
     tameChance: 0.45,
     bait: 'nectar',
     petName: 'Sedge Hen',
-    byproduct: null,
+    byproduct: { item: 'sedge_egg', seconds: 1200, tamedOnly: false }, // Slice 37 (2026-10-16): it lays in the reeds — the roster's first egg, live at last (the codex promised it from the start).
     bonusSpawn: {
       biomes: ['meadow', 'wetland'],
       count: 2,
@@ -1326,8 +1326,9 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
   // a drowned log; the tell is the pool's small life going
   // quiet. Untameable, and the heaviest bite on the bench —
   // an ambusher's whole speed budget, spent at once. (Dealt
-  // on the marsh's ground in v1; pool-anchored placement is
-  // the water slice's refinement.)
+  // on the marsh's ground in v1; POND-ANCHORED since slice 37
+  // (2026-10-16) — the water slice's refinement, delivered:
+  // it owns a pond now, and strikes from inside it.)
   fen_lurker: {
     id: 'fen_lurker',
     name: 'Fen Lurker',
@@ -1337,10 +1338,12 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
     petName: 'Fen Lurker',
     byproduct: null,
     hunt: { aggroRange: 6, damage: 14, biteRange: 2.0, biteCooldownSeconds: 1.6 },
+    swim: { depth: 0.6 },
     bonusSpawn: {
       biomes: ['wetland'],
+      pond: true,
       count: 1,
-      minRadius: 12,
+      minRadius: 0,
       spacing: 8,
       speed: 2.6,
       speedJitter: 0.1,
@@ -1555,8 +1558,8 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
   // opposite covenant. An algae-crowned ambusher that accepts
   // offerings AT DISTANCE (an occupied snapper is a safe
   // snapper — a legitimate Wetland strategy, blessed by its
-  // entry). Untameable; hunts on the marsh's ground in v1 like
-  // the Fen Lurker — its pool is the pond system's future.
+  // entry). Untameable; POND-ANCHORED since slice 37, like
+  // the Fen Lurker — its pool arrived with the pond system.
   pool_snapper: {
     id: 'pool_snapper',
     name: 'Pool Snapper',
@@ -1566,10 +1569,12 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
     petName: 'Pool Snapper',
     byproduct: null,
     hunt: { aggroRange: 5, damage: 12, biteRange: 1.8, biteCooldownSeconds: 1.4 },
+    swim: { depth: 0.9 },
     bonusSpawn: {
       biomes: ['wetland'],
+      pond: true,
       count: 1,
-      minRadius: 12,
+      minRadius: 0,
       spacing: 8,
       speed: 1.4, // a lunge, otherwise stone
       speedJitter: 0.1,
@@ -2386,8 +2391,9 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
   // #165 — the White Graveyard's hunter: a broad, silent
   // owl whitened permanently by the fields it hunts. 15%,
   // the owl rate. (Its roost pellets, full of clean bone,
-  // are the economy's strangest door — a place-drop for a
-  // later slice.)
+  // are the economy's strangest door — LIVE since slice 37
+  // (2026-10-16): the owl sheds Clean Bone where it lives,
+  // wild or won; the place-drop rides the shed rail.)
   grave_owl: {
     id: 'grave_owl',
     name: 'Grave Owl',
@@ -2395,7 +2401,7 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
     tameChance: 0.15,
     bait: 'nectar',
     petName: 'Grave Owl',
-    byproduct: null,
+    byproduct: { item: 'clean_bone', seconds: 1800, tamedOnly: false },
     flight: { altitude: 2.7, bobHeight: 0.25, bobRate: 1.7, flapRate: 4.2 },
     bonusSpawn: {
       biomes: ['bone', 'frost'],

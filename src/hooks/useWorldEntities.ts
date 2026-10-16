@@ -279,8 +279,11 @@ const INITIAL_FAUNA: FaunaEntity[] = [
 
 export const INITIAL_STRUCTURES: StructureEntity[] = [
   {
-    id: 'struct_start_floor_1',
-    type: 'root_tile_floor',
+    // The heart cell of the homestead pad is the Heart Tile
+    // (Adam, 2026-10-16): the default respawn point, there from the
+    // world's first morning. Everywhere else a root floor serves.
+    id: 'struct_start_heart_tile',
+    type: 'heart_tile',
     gridX: 0,
     gridZ: 0,
     worldX: 0,

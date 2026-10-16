@@ -1166,7 +1166,7 @@ const {
     setStamina(100);
     postNotification(
       'Taken by the Land',
-      'You wake at the spawn base, whole and breathing. The country keeps its dangers; it does not keep you.',
+      'You wake at the spawn base, whole and breathing — on the heart tile at its center. The country keeps its dangers; it does not keep you.',
       'system',
       '#f87171',
     );

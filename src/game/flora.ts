@@ -2510,6 +2510,238 @@ export const FLORA: Record<string, FloraDef> = {
       scale: 0.9,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Wave 11 (slice 26, 2026-10-16) — the fungus tail: the
+  // kingdom's vapor and forged citizens, its night shift, and
+  // its largest puff.
+  // ------------------------------------------------------------------
+
+  // #314 — the kingdom's second VAPOR citizen: a cap that
+  // fruits IN FOG and makes more — its spore-release thickens
+  // the Mirror Marsh's banks as it feeds on them. The fog's
+  // provision, gathered by feel as much as sight.
+  mist_cap: {
+    id: 'mist_cap',
+    name: 'Mist Cap',
+    kind: 'fungus',
+    harvest: { item: 'mist_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['wetland'],
+      variant: 'mirror_marsh',
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 0.9,
+    },
+  },
+
+  // #315 — the kingdom's second FORGED citizen: a BRED
+  // utility cap whose flesh is a springy foam — the gardeners
+  // grew it as padding, and its harvest is the padding
+  // itself: Tool Foam, cut to shape.
+  tool_cap: {
+    id: 'tool_cap',
+    name: 'Tool Cap',
+    kind: 'fungus',
+    harvest: { item: 'tool_foam', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['living'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #316 — the kingdom's third VAPOR citizen: a cap that
+  // inflates a single SAIL of membrane and rides the Basin's
+  // winds away. Never harvested in flight; grounded sails
+  // fruit a season where they fall, and the Basin's farmers
+  // mark the landings like weather. The yield is the marking:
+  // no item.
+  sail_cap: {
+    id: 'sail_cap',
+    name: 'Sail Cap',
+    kind: 'fungus',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['storm'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1,
+    },
+  },
+
+  // #317 — the Temperate night shift: a cap fruiting ONLY at
+  // night — up at dusk, down at dawn, in meadow, marsh-edge
+  // and grove alike (the Meltcap keeps the fungus kingdom's
+  // other night appointment). Its midnight window is bespoke
+  // (deferred, like Meltcap's) — v1 deals an honest cap. The
+  // dark hours' provision, picked by lantern.
+  night_cap: {
+    id: 'night_cap',
+    name: 'Night Cap',
+    kind: 'fungus',
+    harvest: { item: 'night_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['meadow', 'rootwood', 'fungal', 'wetland', 'living'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 0.9,
+    },
+  },
+
+  // #318 — a mold that blooms in the HOURS AFTER a front —
+  // gray-green films on stone and stem, gone in two days: it
+  // is the fronts' footnote, weather's own marginalia. NO
+  // harvest: its yield is the record.
+  storm_mold: {
+    id: 'storm_mold',
+    name: 'Storm Mold',
+    kind: 'fungus',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['storm', 'meadow', 'saltglass', 'ember'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 1,
+    },
+  },
+
+  // #319 — a cap of the shallow dark: the surface's lightless
+  // places — Underroot, bridge-undersides, husks, the
+  // Graveyard's interiors. Glow-gilled faintly, kin to the
+  // Gloom Cap in the next parish of dark.
+  dark_cap: {
+    id: 'dark_cap',
+    name: 'Dark Cap',
+    kind: 'fungus',
+    harvest: { item: 'dark_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['rootwood', 'bone'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.85,
+    },
+  },
+
+  // #320 — a cap fruiting INSIDE SKULLS — in the eye-sockets'
+  // shade, in the cranium's damp (the Skull Hermit's tenancy
+  // law, applied to fungus): gathered from UNOCCUPIED skulls
+  // only, per the ants' treaty.
+  husk_cap: {
+    id: 'husk_cap',
+    name: 'Husk Cap',
+    kind: 'fungus',
+    harvest: { item: 'husk_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['bone'],
+      variant: 'leviathan_graveyard',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.85,
+    },
+  },
+
+  // #321 — a cap fruiting on reef-shell and lakestone at the
+  // great lake's waterline: the Deep Reef's shore embassy —
+  // lacustrine, mild, the lake's own course, dealt at the
+  // Singing Ice's shore.
+  shell_cap: {
+    id: 'shell_cap',
+    name: 'Shell Cap',
+    kind: 'fungus',
+    harvest: { item: 'shell_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['frost'],
+      variant: 'frost_singing',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #322 — a cap fruiting on the Grass Leviathan's DUNG, in
+  // its trail, at HEROIC scale: a single cap feeds a camp —
+  // the plains' providence, at walking pace, a week behind
+  // the weather that made it. (The leviathan itself waits on
+  // the oversize tier; its trail is already generous.)
+  trail_cap: {
+    id: 'trail_cap',
+    name: 'Trail Cap',
+    kind: 'fungus',
+    harvest: { item: 'trail_cap', count: 1, fertilizedCount: 1 },
+    bonusGrow: {
+      biomes: ['meadow', 'storm'],
+      hybrid: ['meadow', 'storm'],
+      count: 1,
+      minRadius: 11,
+      spacing: 6,
+      scale: 1.6,
+    },
+  },
+
+  // #323 — a honey-tasting cap of the valley groves (the
+  // Greeting Cap bows in the hybrid country; the sweet cap
+  // is the family's own): the Living's dessert, with the
+  // one-bite rule printed on the codex page in the old hand.
+  sweet_cap: {
+    id: 'sweet_cap',
+    name: 'Sweet Cap',
+    kind: 'fungus',
+    harvest: { item: 'sweet_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['living'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #324 — a puffball at SHEEP SIZE: the deep plains' white
+  // dome that the Long Grazers step around. Young ones are a
+  // feast fungus, cut in steaks: the plains' celebration
+  // course.
+  great_puff: {
+    id: 'great_puff',
+    name: 'Great Puff',
+    kind: 'fungus',
+    harvest: { item: 'great_puff', count: 1, fertilizedCount: 1 },
+    bonusGrow: {
+      biomes: ['meadow'],
+      count: 1,
+      minRadius: 11,
+      spacing: 6,
+      scale: 2,
+    },
+  },
+
+  // #326 — a cap of iron-red flesh fruiting on the Ashes'
+  // slag (the Iron Cap takes the country's metal as sheen;
+  // the rust cap takes it as body): strong, metallic — the
+  // smelters' course, portion-noted like its cousin.
+  rust_cap: {
+    id: 'rust_cap',
+    name: 'Rust Cap',
+    kind: 'fungus',
+    harvest: { item: 'rust_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['ember', 'storm'],
+      hybrid: ['ember', 'storm'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
 };
 
 /** Table lookup by species id (the hook + worldGen read here). */

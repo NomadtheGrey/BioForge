@@ -18,6 +18,7 @@ import {
   FloraSpecies,
   ToolType,
   QuestProgressState,
+  QuestSignals,
 } from './types/game';
 import {
   INITIAL_CODEX,
@@ -79,7 +80,8 @@ import { StartScreenModal } from './components/StartScreenModal';
 // UI Components
 import { HUD } from './components/HUD';
 import { QuestLogModal } from './components/QuestLogModal';
-import { TOOL_NAMES, accessTierOf } from './game/quests';
+import { TOOL_NAMES, accessTierOf, MADE_SPECIES_IDS } from './game/quests';
+import { BIOMES } from './game/biomes';
 import { bestWeapon } from './game/weapons';
 import type { WeaponDef } from './game/weapons';
 import { useQuests } from './hooks/useQuests';
@@ -596,6 +598,15 @@ export default function App() {
     [completeTravel, postNotification],
   );
 
+  // Ask the World signal bridge (Adam, 2026-10-16): the tool
+  // interactions hook composes BEFORE useQuests in this file, so
+  // its glyph/heart callbacks cannot call the quest writer
+  // directly. They call through this ref instead — the real merge
+  // function is assigned right after useQuests below, and clicks
+  // only happen long after the whole composition has run (the
+  // established lazy-bridge pattern of this file).
+  const awMergeRef = useRef<(mutate: (s: QuestSignals) => QuestSignals) => void>(() => {});
+
   // 4. Encapsulated Tool Interactions
   const {
     handleGroundClick,
@@ -659,6 +670,19 @@ export default function App() {
     triggerShotFx,
     triggerStrikeHitFx: (x: number, z: number) => engineRef.current?.triggerStrikeBurst(x, z),
     onRequestRelease: (fauna) => setPendingRelease(fauna),
+    // Ask the World: a glyph read names its ruin by structure id
+    // (ruinglyph_<instanceId>_<feature>) — strip the prefix and
+    // the trailing feature segment and the ruin's key remains.
+    onGlyphRead: (glyphId) => {
+      const ruinKey = glyphId.slice('ruinglyph_'.length, glyphId.lastIndexOf('_'));
+      awMergeRef.current((s) => {
+        const glyphRuins = s.glyphRuins ?? [];
+        return glyphRuins.includes(ruinKey) ? s : { ...s, glyphRuins: [...glyphRuins, ruinKey] };
+      });
+    },
+    onHeartReached: () => {
+      awMergeRef.current((s) => (s.heart ? s : { ...s, heart: true }));
+    },
     spawnDroppedItem,
     triggerHarvestFx,
     triggerSolventFx,
@@ -774,7 +798,82 @@ export default function App() {
       setQuestProgress,
       postNotification,
       hasStarted,
+      // Ask the World rewards grant through the ordinary gain, so
+      // pouch caps and the overflow drop apply as anywhere else.
+      grantItems: (items) => {
+        items.forEach((i) => addInventoryItem(i.itemId, i.count));
+      },
     });
+
+  // ------------------------------------------------------------------
+  // Ask the World — signal writers (Adam, 2026-10-16)
+  // ------------------------------------------------------------------
+  // Small observers that record what the player has DONE and SEEN
+  // into questProgress.signals; the line's quests derive their
+  // completion from that record (game/quests.ts goalMet). Every
+  // writer is a no-op until its fact changes, so these effects
+  // cost a comparison per zone step, fauna change, or codex page.
+  const questProgressRef = useRef(questProgress);
+  questProgressRef.current = questProgress;
+  awMergeRef.current = (mutate) => {
+    const cur = questProgressRef.current;
+    if (!cur) return;
+    const before = cur.signals ?? {};
+    const after = mutate(before);
+    if (after !== before) updateQuestProgress({ signals: after });
+  };
+
+  // Zones stood in: families, hybrid country, the far families.
+  useEffect(() => {
+    if (!hasStarted || !worldSeedRef.current) return;
+    const info = zoneInfo(worldSeedRef.current, playerZone.zx, playerZone.zz);
+    const tier = BIOMES.find((b) => b.id === info.biome)?.tier ?? 0;
+    awMergeRef.current((s) => {
+      const families = s.families ?? [];
+      const next: QuestSignals = { ...s };
+      let changed = false;
+      if (!families.includes(info.biome)) { next.families = [...families, info.biome]; changed = true; }
+      if (info.hybrid && !s.hybrid) { next.hybrid = true; changed = true; }
+      if (tier >= 3 && !s.tier3) { next.tier3 = true; changed = true; }
+      return changed ? next : s;
+    });
+  }, [playerZone, hasStarted]);
+
+  // Ruins entered, by instance.
+  useEffect(() => {
+    if (!hasStarted || !inRuin) return;
+    const inst = instanceRef.current;
+    if (inst.kind !== 'ruin') return;
+    const id = inst.instanceId;
+    awMergeRef.current((s) => {
+      const ruins = s.ruins ?? [];
+      return ruins.includes(id) ? s : { ...s, ruins: [...ruins, id] };
+    });
+  }, [inRuin, hasStarted]);
+
+  // The vat's children (their ids carry the fauna_vat_ hatch
+  // prefix) and the hearth dog's decision (a tamed hearth_dog).
+  useEffect(() => {
+    if (!hasStarted) return;
+    const hatched = faunaList.some((f) => f.id.startsWith('fauna_vat_'));
+    const dogBonded = faunaList.some((f) => f.species === 'hearth_dog' && f.isTamed);
+    awMergeRef.current((s) => {
+      if ((!hatched || s.hatched) && (!dogBonded || s.dogBonded)) return s;
+      return { ...s, hatched: s.hatched || hatched, dogBonded: s.dogBonded || dogBonded };
+    });
+  }, [faunaList, hasStarted]);
+
+  // Made things met, read off the codex's discovered pages.
+  useEffect(() => {
+    if (!hasStarted) return;
+    const met = codexList
+      .filter((e) => e.discovered && MADE_SPECIES_IDS.includes(e.species as string))
+      .map((e) => e.species as string);
+    awMergeRef.current((s) => {
+      const prev = s.madeMet ?? [];
+      return prev.length === met.length ? s : { ...s, madeMet: met };
+    });
+  }, [codexList, hasStarted]);
 
   // ------------------------------------------------------------------
   // Game input (hooks/useGameInput.ts — seam 5 of the App refactor)

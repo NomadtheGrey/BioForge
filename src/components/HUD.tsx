@@ -342,7 +342,8 @@ export const HUD: React.FC<HUDProps> = ({
   if (
     descriptorTool?.id === 'harvest_glove' &&
     (selectedStructureType === 'storage_pod' ||
-      selectedStructureType === 'biotunnel_mouth')
+      selectedStructureType === 'biotunnel_mouth' ||
+      selectedStructureType === 'sample_rack')
   ) {
     // The by-hand pod (Adam, 2026-10-15): with the pod selected,
     // the harvest glove's descriptor teaches the exemption —
@@ -767,7 +768,8 @@ export const HUD: React.FC<HUDProps> = ({
         {/* Contextual Active Sub-Selection Info */}
         {(playerState.activeTool === 'builder' ||
           (playerState.activeTool === 'harvest_glove' &&
-            selectedStructureType === 'storage_pod')) && (
+            (selectedStructureType === 'storage_pod' ||
+              selectedStructureType === 'sample_rack'))) && (
           <div
             className={`pointer-events-auto glass-panel px-4 py-1.5 rounded-2xl flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs ${
               touchMode ? 'max-w-[74vw] justify-start self-start' : 'max-w-[96vw] justify-center'

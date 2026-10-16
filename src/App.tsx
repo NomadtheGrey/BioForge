@@ -1386,6 +1386,9 @@ const {
       if (recipe.outputId === 'storage_pod') {
         setSelectedStructureType('storage_pod');
       }
+      if (recipe.outputId === 'sample_rack') {
+        setSelectedStructureType('sample_rack');
+      }
     }
   };
 
@@ -1430,7 +1433,9 @@ const {
   // The storage pod the panel is showing, if it still stands.
   const storagePod =
     activeModal === 'storage' && storageTargetId
-      ? structuresList.find((s) => s.id === storageTargetId && s.type === 'storage_pod')
+      ? structuresList.find(
+          (s) => s.id === storageTargetId && (s.type === 'storage_pod' || s.type === 'sample_rack'),
+        )
       : undefined;
 
   // The culture vat the panel is showing, if it still stands.

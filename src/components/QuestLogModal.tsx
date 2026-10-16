@@ -15,6 +15,9 @@
  */
 import { ScrollText, X } from 'lucide-react';
 import { ITEMS } from '../game/constants';
+import { FIELD_NOTES } from '../game/fieldNotes';
+import type { FieldNotesState } from '../game/fieldNotesBook';
+import type { CodexEntry } from '../types/game';
 import type { QuestProgressView } from '../game/quests';
 
 interface QuestLogModalProps {
@@ -26,6 +29,8 @@ interface QuestLogModalProps {
   showHud: boolean;
   onToggleShowHud: (show: boolean) => void;
   onTrack: (questId: string) => void;
+  fieldNotesState: FieldNotesState;
+  codexList: CodexEntry[];
 }
 
 export const QuestLogModal = ({
@@ -37,6 +42,8 @@ export const QuestLogModal = ({
   showHud,
   onToggleShowHud,
   onTrack,
+  fieldNotesState,
+  codexList,
 }: QuestLogModalProps) => {
   if (!isOpen) return null;
 
@@ -200,6 +207,40 @@ export const QuestLogModal = ({
               </div>
             );
           })}
+          {/* FIELD NOTES — the discovery layer (data: slice 46;
+              wiring: dev chat, 2026-10-16). Locked notes are
+              ABSENT, never greyed — this whole section renders
+              only once the player has scanned something with a
+              story. A witnessed note carries its moment under
+              the clue, as a record. Nothing here is tracked to
+              the HUD, by design. */}
+          {fieldNotesState.unlocked.length > 0 && (
+            <div>
+              <div className="text-[10px] font-black tracking-[0.22em] text-amber-300/80 mb-2">
+                FIELD NOTES — {fieldNotesState.unlocked.length}/{FIELD_NOTES.length} FOUND
+              </div>
+              <div className="space-y-2">
+                {FIELD_NOTES.filter((n) => fieldNotesState.unlocked.includes(n.id)).map((note) => {
+                  const witnessed = fieldNotesState.witnessed.includes(note.id);
+                  const name = note.species
+                    ? (codexList.find((c) => c.species === note.species)?.name
+                      ?? note.species.replace(/_/g, ' '))
+                    : 'The Great Ones';
+                  return (
+                    <div key={note.id} className="rounded-xl border border-amber-400/25 bg-amber-500/5 px-3.5 py-2.5">
+                      <div className="text-[13px] font-bold text-amber-100">{name}</div>
+                      <p className="mt-0.5 text-[12px] italic leading-snug text-slate-300">{note.clue}</p>
+                      {witnessed && (
+                        <div className="mt-1.5 text-[11px] font-semibold text-amber-200/90">
+                          ✓ Witnessed — {note.witness}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

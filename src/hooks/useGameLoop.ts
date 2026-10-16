@@ -22,6 +22,7 @@ import { BioForgeThreeEngine } from '../game/threeEngine';
 import type { FirstPersonMovementController, ControllerInputState } from '../game/controller';
 import * as THREE from 'three';
 import { occupancyConflict, placementFor, isFloorType } from '../game/placement';
+import { noteIdForPickupItem } from '../game/fieldNotesBook';
 import { multiplayerManager } from '../game/multiplayer';
 import { soundEngine } from '../audio/soundEngine';
 import { ITEMS } from '../game/constants';
@@ -111,6 +112,10 @@ export interface GameLoopDeps {
     addInventoryItem: (itemId: ItemId, quantity: number) => void;
     updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number) => void, attacksArmed?: boolean, dayPhase?: number) => void;
     postNotification: (title: string, message: string, type?: GameNotification['type'], iconColor?: string) => void;
+    // The Field Notes witness sink (App's recordFieldWitness,
+    // fieldNotesBook.ts) — optional so the loop never hard-depends
+    // on the book; sim-side witnesses ride in through here too.
+    recordFieldWitness?: (noteId: string) => void;
     getPlacementRotation: () => number;
   } };
   accumulatedTickTime: { current: number };
@@ -666,6 +671,11 @@ export function useGameLoop(deps: GameLoopDeps): void {
             moveResult.z,
             (pickedItem) => {
               liveGameRefs.current.addInventoryItem(pickedItem.itemId, pickedItem.count);
+              // Field Notes pickup witnesses (fieldNotesBook): a
+              // shed gel, scale, plate or requisition collected is
+              // the note's named moment.
+              const pickupWitness = noteIdForPickupItem(pickedItem.itemId);
+              if (pickupWitness) liveGameRefs.current.recordFieldWitness?.(pickupWitness);
               soundEngine.playHarvest();
               liveGameRefs.current.postNotification(
                 'Item Collected',

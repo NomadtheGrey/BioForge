@@ -24,6 +24,7 @@ import {
   createSaveMetadata, loadSavedGame, storeSavedGame,
   type GameDifficulty, type SaveMetadata, type SavedGameRecord, type WorldSnapshot,
 } from '../game/saveSystem';
+import type { FieldNotesState } from '../game/fieldNotesBook';
 import { INITIAL_STRUCTURES } from './useWorldEntities';
 import { SPAWN_ZONE, zoneKey, zoneBiomeAt, zoneVariantAt, zoneFaceAt } from '../game/zones';
 import { generateSeededWorld } from '../game/worldGen';
@@ -58,10 +59,12 @@ export interface SaveSessionDeps {
   inventory: InventoryMap;
   playerState: PlayerState;
   codexList: CodexEntry[];
+  fieldNotesState: FieldNotesState;
   dayNightCycle: number;
   restoreInventory: (saved: InventoryMap) => void;
   restorePlayerState: (state: PlayerState) => void;
   setCodexList: (list: CodexEntry[]) => void;
+  setFieldNotesState: (state: FieldNotesState) => void;
   setDayNightCycle: (value: number) => void;
   setQuestProgress: (progress: QuestProgressState) => void;
   replaceWorld: (world: WorldSnapshot) => void;
@@ -80,8 +83,8 @@ export function useSaveSession(deps: SaveSessionDeps) {
     playerZoneRef, setPlayerZone, visitedZonesRef, worldSeedRef, setSessionSeed,
     cavePlantingsRef, resetInstanceState,
     floraList, faunaList, structuresList, droppedItems,
-    inventory, playerState, codexList, dayNightCycle,
-    restoreInventory, restorePlayerState, setCodexList, setDayNightCycle, setQuestProgress,
+    inventory, playerState, codexList, fieldNotesState, dayNightCycle,
+    restoreInventory, restorePlayerState, setCodexList, setFieldNotesState, setDayNightCycle, setQuestProgress,
     replaceWorld, enterFullscreenOnTouch, postNotification, getDebugStashRef,
     captureCavePlantings, plantingsKey,
   } = deps;
@@ -110,12 +113,12 @@ export function useSaveSession(deps: SaveSessionDeps) {
   // one exists purely for save/snapshot assembly.)
   const latestStateRef = useRef({
     floraList, faunaList, structuresList, droppedItems,
-    inventory, playerState, codexList, dayNightCycle,
+    inventory, playerState, codexList, fieldNotesState, dayNightCycle,
   });
   useEffect(() => {
     latestStateRef.current = {
       floraList, faunaList, structuresList, droppedItems,
-      inventory, playerState, codexList, dayNightCycle,
+      inventory, playerState, codexList, fieldNotesState, dayNightCycle,
     };
   });
 
@@ -193,7 +196,7 @@ export function useSaveSession(deps: SaveSessionDeps) {
     }
     // While a debug-kit swap is active, the STASH is the pouch of
     // record — saves never see the kit (see toggleDebugKit).
-    const record = buildSavedGame(meta, buildWorldSnapshot(), getDebugStashRef().current ?? s.inventory, buildCurrentPlayerState(), s.dayNightCycle, s.codexList, cavePlantingsRef.current);
+    const record = buildSavedGame(meta, buildWorldSnapshot(), getDebugStashRef().current ?? s.inventory, buildCurrentPlayerState(), s.dayNightCycle, s.codexList, cavePlantingsRef.current, s.fieldNotesState);
     // Zone travel (2026-10-15): the record also carries every visited
     // zone's snapshot plus where the player is standing. The `world`
     // field above already holds the CURRENT zone's snapshot (the save
@@ -314,6 +317,7 @@ export function useSaveSession(deps: SaveSessionDeps) {
         rotation: record.playerState.rotation,
       };
       setCodexList(record.codexList);
+      setFieldNotesState(record.fieldNotes ?? { unlocked: [], witnessed: [] });
       setDayNightCycle(record.dayNightCycle);
     };
 

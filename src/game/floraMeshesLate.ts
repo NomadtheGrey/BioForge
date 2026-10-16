@@ -522,6 +522,178 @@ export function buildLateFloraMesh(
         break;
       }
 
+      case 'scald_fern': {
+        // Self-heating medicine (slice 29): fronds over a
+        // steam wisp.
+        const frondMat = new THREE.MeshStandardMaterial({ color: 0xea580c, roughness: 0.85, side: THREE.DoubleSide });
+        for (let i = 0; i < 5; i++) {
+          const a = (i / 5) * Math.PI * 2;
+          const frond = new THREE.Mesh(new THREE.PlaneGeometry(0.08, 0.3), frondMat);
+          frond.position.set(Math.cos(a) * 0.06, 0.15, Math.sin(a) * 0.06);
+          frond.rotation.set(0.5, -a, 0);
+          group.add(frond);
+        }
+        const steam = new THREE.Mesh(new THREE.SphereGeometry(0.05, 7, 6), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, transparent: true, opacity: 0.3 }));
+        steam.position.y = 0.2;
+        group.add(steam);
+        break;
+      }
+
+      case 'mulch_rose': {
+        // The census's rich entry (slice 29): a deep pink
+        // rose on finished beds.
+        const bed = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.17, 0.05, 9), new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 1 }));
+        bed.position.y = 0.025;
+        group.add(bed);
+        const cane = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.016, 0.26, 5), new THREE.MeshStandardMaterial({ color: 0x365314, roughness: 0.9 }));
+        cane.position.y = 0.17;
+        group.add(cane);
+        const bloom = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), new THREE.MeshStandardMaterial({ color: 0xbe185d, roughness: 0.65 }));
+        bloom.position.y = 0.33;
+        group.add(bloom);
+        break;
+      }
+
+      case 'brine_rose': {
+        // Seasoning and souvenir (slice 29): a pale pink rose
+        // with a salt rind at its base.
+        const cane = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.016, 0.28, 5), new THREE.MeshStandardMaterial({ color: 0x365314, roughness: 0.9 }));
+        cane.position.y = 0.14;
+        group.add(cane);
+        const bloom = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), new THREE.MeshStandardMaterial({ color: 0xf9a8d4, roughness: 0.65 }));
+        bloom.position.y = 0.31;
+        group.add(bloom);
+        const rind = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.008, 4, 12), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 }));
+        rind.rotation.x = Math.PI / 2;
+        rind.position.y = 0.03;
+        group.add(rind);
+        break;
+      }
+
+      case 'frost_reed': {
+        // Organ pipes filling with winter (slice 29): ice-
+        // cored stems.
+        const stemMat = new THREE.MeshStandardMaterial({ color: 0xa5f3fc, roughness: 0.3, transparent: true, opacity: 0.85 });
+        for (let i = 0; i < 4; i++) {
+          const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.015, 0.44 + (i % 2) * 0.07, 6), stemMat);
+          stem.position.set(-0.08 + i * 0.055, 0.22, (i % 2) * 0.04);
+          group.add(stem);
+        }
+        break;
+      }
+
+      case 'snow_shelf': {
+        // The third parish (slice 29): rimed brackets on a
+        // frozen trunk.
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.13, 0.44, 8), new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.95 }));
+        trunk.position.y = 0.22;
+        group.add(trunk);
+        const shelfMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.6 });
+        for (let i = 0; i < 2; i++) {
+          const shelf = new THREE.Mesh(new THREE.CylinderGeometry(0.09 - i * 0.02, 0.1 - i * 0.02, 0.025, 9, 1, false, 0, Math.PI), shelfMat);
+          shelf.position.set(0, 0.15 + i * 0.16, 0.08);
+          group.add(shelf);
+        }
+        break;
+      }
+
+      case 'sump_cap': {
+        // Lit by its appetizer (slice 29): a glow-gilled cap
+        // on a raft log.
+        const log = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.34, 7), new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 1 }));
+        log.rotation.z = Math.PI / 2;
+        log.position.y = 0.05;
+        group.add(log);
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.03, 0.1, 6), new THREE.MeshStandardMaterial({ color: 0x14532d, roughness: 0.9 }));
+        stalk.position.y = 0.13;
+        group.add(stalk);
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.075, 9, 6, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.8 }));
+        cap.position.y = 0.18;
+        group.add(cap);
+        const gills = new THREE.Mesh(new THREE.CircleGeometry(0.06, 8), new THREE.MeshStandardMaterial({ color: 0x4ade80, emissive: 0x16a34a, emissiveIntensity: 0.8, roughness: 0.5, side: THREE.DoubleSide }));
+        gills.rotation.x = Math.PI / 2;
+        gills.position.y = 0.175;
+        group.add(gills);
+        break;
+      }
+
+      case 'grave_puff': {
+        // Plain as its name (slice 29): a gray puffball, deliberate.
+        const puff = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), new THREE.MeshStandardMaterial({ color: 0xa8a29e, roughness: 1 }));
+        puff.scale.y = 0.9;
+        puff.position.y = 0.09;
+        group.add(puff);
+        break;
+      }
+
+      case 'salt_mold': {
+        // The flats' second skin (slice 29): a crystal-edged
+        // film on crust.
+        const crust = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.3, 0.03, 10), new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.6 }));
+        crust.position.y = 0.015;
+        group.add(crust);
+        const film = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.23, 0.035, 10), new THREE.MeshStandardMaterial({ color: 0xe0f2fe, roughness: 0.4 }));
+        film.position.y = 0.017;
+        group.add(film);
+        break;
+      }
+
+      case 'ash_mold': {
+        // Succession itself (slice 29): a gray-green film on
+        // an old burn.
+        const burn = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.16, 0.06, 8), new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 1 }));
+        burn.position.y = 0.03;
+        group.add(burn);
+        const film = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 6), new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 1 }));
+        film.scale.y = 0.4;
+        film.position.y = 0.05;
+        group.add(film);
+        break;
+      }
+
+      case 'nest_cap': {
+        // The tenancy outranks the appetite (slice 29): a
+        // broad flat cap, lined.
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.045, 0.14, 7), new THREE.MeshStandardMaterial({ color: 0x92400e, roughness: 0.95 }));
+        stalk.position.y = 0.07;
+        group.add(stalk);
+        const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.13, 0.035, 11), new THREE.MeshStandardMaterial({ color: 0xa16207, roughness: 0.9 }));
+        cap.position.y = 0.15;
+        group.add(cap);
+        const lining = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.02, 10), new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 1 }));
+        lining.position.y = 0.17;
+        group.add(lining);
+        break;
+      }
+
+      case 'frost_mold': {
+        // Inherited, not gathered (slice 29): a pale fur
+        // lining a tunnel mouth.
+        const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.03, 6, 10, Math.PI), new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.9 }));
+        mouth.position.y = 0.02;
+        group.add(mouth);
+        const fur = new THREE.Mesh(new THREE.SphereGeometry(0.085, 8, 6), new THREE.MeshStandardMaterial({ color: 0xbae6fd, roughness: 1 }));
+        fur.scale.y = 0.5;
+        fur.position.y = 0.03;
+        group.add(fur);
+        break;
+      }
+
+      case 'steam_cap': {
+        // The margin's one address (slice 29): a cap in its
+        // own steam.
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.035, 0.12, 6), new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.9 }));
+        stalk.position.y = 0.06;
+        group.add(stalk);
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.08, 9, 6, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.7 }));
+        cap.position.y = 0.12;
+        group.add(cap);
+        const steam = new THREE.Mesh(new THREE.SphereGeometry(0.06, 7, 6), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, transparent: true, opacity: 0.35 }));
+        steam.position.y = 0.2;
+        group.add(steam);
+        break;
+      }
+
     default:
       return null;
   }

@@ -550,6 +550,7 @@ export default function App() {
     strikerDrawRef,
     spendStamina,
     triggerShotFx,
+    triggerStrikeHitFx: (x: number, z: number) => engineRef.current?.triggerStrikeBurst(x, z),
     onRequestRelease: (fauna) => setPendingRelease(fauna),
     spawnDroppedItem,
     triggerHarvestFx,

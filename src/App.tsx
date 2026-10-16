@@ -158,6 +158,7 @@ export default function App() {
     removeStructure,
     tameFauna,
     setFaunaCommand,
+    applyDissolve,
     releaseFauna,
     upsertFauna,
     removeFauna,
@@ -488,6 +489,7 @@ export default function App() {
       setVatTargetId(structure.id);
       setActiveModal('vat');
     },
+    applyDissolve,
     onRequestRelease: (fauna) => setPendingRelease(fauna),
     spawnDroppedItem,
     triggerHarvestFx,

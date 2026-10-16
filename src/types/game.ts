@@ -95,6 +95,15 @@ export type ItemId =
   | 'ironworm_plate'
   | 'glass_shed'
   | 'picker_down'
+  | 'bog_jelly'
+  | 'salt_jelly'
+  | 'ice_shelf'
+  | 'marrow_earth'
+  | 'static_cap'
+  | 'hearth_cap'
+  | 'bed_cap'
+  | 'path_puff'
+  | 'scar_cap'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -374,7 +383,20 @@ export type FloraSpecies =
   | 'kite_flower'
   | 'guest_flower'
   | 'clock_bloom'
-  | 'roadweed';
+  | 'roadweed'
+  // Flora wave 8 (slice 21, 2026-10-16) — fungus bench I.
+  | 'bog_jelly'
+  | 'reed_rust'
+  | 'salt_jelly'
+  | 'ice_shelf'
+  | 'root_cup'
+  | 'marrow_mold'
+  | 'static_cap'
+  | 'hearth_cap'
+  | 'bed_cap'
+  | 'path_puff'
+  | 'dew_mold'
+  | 'scar_cap';
 
 export interface FloraEntity {
   id: string;

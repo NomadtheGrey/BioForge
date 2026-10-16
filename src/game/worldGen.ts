@@ -149,8 +149,12 @@ import { BONUS_SPAWN_SPECIES } from './species';
  * v35: creature build phase, slice 20 (2026-10-16) — fauna
  *     wave 5: the worms and the margins (Ironworm, Steam Eel,
  *     Shardwing, Threshold Hound and kin). Table-only change.
+ * v36: creature build phase, slice 21 (2026-10-16) — flora
+ *     wave 8, the fungus bench I: twelve species (Bog Jelly,
+ *     Root Cup, Static Cap, Hearth Cap, Scar Cap and kin).
+ *     Table-only change.
  */
-export const WORLD_GEN_VERSION = 35; // v35 (2026-10-16): creature slice 20 — fauna wave 5; v34 was creature slice 19 (flora wave 7)
+export const WORLD_GEN_VERSION = 36; // v36 (2026-10-16): creature slice 21 — flora wave 8, fungus bench I; v35 was creature slice 20 (fauna wave 5)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

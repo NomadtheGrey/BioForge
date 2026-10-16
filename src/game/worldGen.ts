@@ -289,8 +289,14 @@ import type { PondDef, RiverSeg } from './terrain';
  *     sheds Gloom Gel where it crawls; PUFFBELLS puff on the
  *     hour, synchronized by the shared clock; BOILER CRABS
  *     vent steam. Generation learns nothing new.
+ * v58: creature build phase, slice 43 (2026-10-16) — the
+ *     HEARTH WISP certifies: wisps take up at hearthpods
+ *     (the dev chat's flameless hearth, landed today), and
+ *     HEARTH CAPS fruit only in a certified hearth's ash —
+ *     the growth tick holds them at stage 3 otherwise.
+ *     Behavior-only; generation learns nothing new.
  */
-export const WORLD_GEN_VERSION = 57; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
+export const WORLD_GEN_VERSION = 58; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

@@ -108,6 +108,14 @@ import { getProjectWorkspaceFiles } from './utils/workspaceFiles';
 // comfortably after the last pre-module world could be created.
 const GAUNTLET_MODULE_EPOCH_MS = Date.UTC(2026, 9, 15, 16, 0, 0);
 
+// The landform epoch (P5 terrain move 1, Adam, 2026-10-16):
+// worlds created before this moment keep the original uniform
+// ripple as their ground — their land is part of their history,
+// the same grandfathering the gauntlet modules got. Worlds
+// created after it grow on the shaped landform field
+// (game/terrain.ts). 13:00 UTC = 9:00 AM EDT on build day.
+const LANDFORM_EPOCH_MS = Date.UTC(2026, 9, 16, 13, 0, 0);
+
 export default function App() {
   const containerRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<BioForgeThreeEngine | null>(null);
@@ -640,6 +648,23 @@ export default function App() {
     !currentSaveRef.current ||
     (currentSaveRef.current.createdAt ?? 0) < GAUNTLET_MODULE_EPOCH_MS;
   const questProgress = playerState.questProgress;
+
+  // Landform context (P5 terrain move 1, Adam, 2026-10-16): keep
+  // the engine's ground shaped for the world and zone the player
+  // is actually in. Legacy = the save predates the landform epoch
+  // (or no save is open — guests read their host's snapshot into
+  // a local record, so their epoch is their own save's; a shape
+  // mismatch across a co-op pair is cosmetic only, since heights
+  // are rendered locally and never synced as state).
+  useEffect(() => {
+    const createdAt = currentSaveRef.current?.createdAt ?? 0;
+    engineRef.current?.setTerrainContext(
+      worldSeedRef.current,
+      playerZone.zx,
+      playerZone.zz,
+      createdAt < LANDFORM_EPOCH_MS,
+    );
+  }, [playerZone, hasStarted]);
   const { unlockedTools, questViews, trackedView, showQuestHud, updateQuestProgress } =
     useQuests({
       inventory,

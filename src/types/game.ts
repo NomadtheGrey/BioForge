@@ -386,7 +386,20 @@ export type FaunaSpecies =
   | 'sap_turtle'
   | 'ashpicker'
   | 'grave_owl'
-  | 'zot_hopper';
+  | 'zot_hopper'
+  // Slice 13 (2026-10-16) — fauna wave 2, the small skies.
+  | 'hedge_sparrow'
+  | 'snow_finch'
+  | 'winter_wren'
+  | 'cinder_finch'
+  | 'fen_finch'
+  | 'ruin_sparrow'
+  | 'field_crow'
+  | 'moon_moth'
+  | 'dust_lizard'
+  | 'sleet_frog'
+  | 'frost_newt'
+  | 'cinder_toad';
 
 export interface FaunaEntity {
   id: string;
@@ -413,10 +426,6 @@ export interface FaunaEntity {
    *  saves; the sim treats absent as 0. Tamed creatures shed on
    *  the kind interval; wild ones leave rarer traces. */
   sampleTimer?: number;
-  /** Solvent dissolve clock (Adam, 2026-10-16): seconds of
-   *  dissolve remaining after an emergency spray; while it runs,
-   *  the creature takes damage over time and flees. */
-  dissolveTimer?: number;
   animTime: number;
   /** Biome TYPE this creature spawned in (world-gen stamp; absent on old saves). */
   biome?: BiomeId;

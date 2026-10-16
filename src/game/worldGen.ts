@@ -120,8 +120,11 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     wave 3: twelve more table species (four hybrid citizens,
  *     the gardeners' Forged fungus, the marsh's second mirror).
  *     Table-only change.
+ * v28: creature build phase, slice 13 (2026-10-16) — fauna
+ *     wave 2, the small skies: twelve wide-range songbirds and
+ *     small fry on the four range sets. Table-only change.
  */
-export const WORLD_GEN_VERSION = 27; // v27 (2026-10-16): creature slice 12 — flora wave 3, twelve species; v26 was creature slice 11 (the fauna wave)
+export const WORLD_GEN_VERSION = 28; // v28 (2026-10-16): creature slice 13 — fauna wave 2, the small skies; v27 was creature slice 12 (flora wave 3)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

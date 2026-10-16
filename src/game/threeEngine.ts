@@ -21,6 +21,7 @@ import { FirstPersonViewmodel } from './viewmodel';
 import { landformHeightAt, type PondLiquid } from './terrain';
 import { buildWaterGroup, waterSurfaceFromLists, waterDepthFromLists, liquidFromLists, type PondLocal, type RiverSegLocal } from './waterField';
 import { SkyRig } from './skyRig';
+import { updateHearthTag } from './hearthTag';
 import { isFloorType, BUILDING_TYPES, isDoorType } from './placement';
 import { BIOME_TINTS } from './biomes';
 import type { BiomeId } from './biomes';
@@ -1417,6 +1418,14 @@ export class BioForgeThreeEngine {
       const kindKey = `${f.species}:${f.isTamed ? 'tamed' : 'wild'}`;
       const mesh = this.ensureBoundMesh(this.faunaMeshMap, this.faunaGroup, f, kindKey, (e) => this.creatureKit.createFaunaMesh(e));
       this.creatureKit.updateFaunaMesh(mesh, f, wiggleDt);
+      // Hearth Dog (Adam, 2026-10-16): growth scale + the visible
+      // decide timer — the tag keeper lives in hearthTag.ts.
+      if (f.species === 'hearth_dog') {
+        const ageDays = f.hearthAgeDays ?? (f.isTamed ? 10 : 0);
+        const growth = 0.5 + 0.5 * Math.min(1, Math.max(0, ageDays / 10));
+        mesh.scale.setScalar(growth);
+        updateHearthTag(mesh, f, growth);
+      }
     });
   }
 

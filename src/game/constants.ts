@@ -2114,6 +2114,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 2,
   },
+  rootweave_wall: {
+    id: 'rootweave_wall',
+    name: 'Rootweave Wall',
+    category: 'structure',
+    description: 'Root slats laced with fiber withies and bound in resin — opaque, sturdy, and cheap: no chitin, no dew, no glass. The budget wall, and a vine ladder\'s best friend: hang ladders on its edges and climb.',
+    iconName: 'Layers',
+    color: '#a16207',
+    rarity: 'common',
+    maxStack: 99,
+  },
   chitin_glass_wall: {
     id: 'chitin_glass_wall',
     name: 'Chitin-Glass Wall',
@@ -2863,6 +2873,19 @@ export const RECIPES: CraftingRecipe[] = [
       { id: 'basic_compost', count: 1 },
     ],
     craftTimeMs: 1000,
+  },
+  {
+    id: 'craft_rootweave_wall',
+    outputId: 'rootweave_wall',
+    outputCount: 2,
+    name: 'Rootweave Wall (x2)',
+    description: 'Weave root slats and fiber withies into opaque wall panels, bound with resin. Cheap cover that asks nothing of a beetle.',
+    category: 'composites',
+    ingredients: [
+      { id: 'soft_fiber', count: 3 },
+      { id: 'resin_sap', count: 1 },
+    ],
+    craftTimeMs: 1200,
   },
   {
     id: 'craft_chitin_wall',

@@ -2389,6 +2389,296 @@ export const SPECIES: Record<FaunaSpecies, SpeciesDef> = {
       health: 14,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Slice 13 (2026-10-16) — fauna wave 2, the small skies: the
+  // wide-range songbirds and small fry the design's four range
+  // sets (Temperate/Wet/Cold/Warm/Open) call for. A zone's
+  // small life is what makes it read as lived-in.
+  // ------------------------------------------------------------------
+
+  // #111 — the everywhere-bird of the settled graph: hedges,
+  // root eaves, marsh banks, garden walls. The Temperate +
+  // Wet range's default citizen. 60%: sparrow-easy.
+  hedge_sparrow: {
+    id: 'hedge_sparrow',
+    name: 'Hedge Sparrow',
+    profile: 'flyer',
+    tameChance: 0.6,
+    bait: 'nectar',
+    petName: 'Hedge Sparrow',
+    byproduct: null,
+    flight: { altitude: 1.5, bobHeight: 0.2, bobRate: 2.4, flapRate: 6.5 },
+    bonusSpawn: {
+      biomes: ['meadow', 'rootwood', 'fungal', 'wetland'],
+      count: 3,
+      minRadius: 7,
+      spacing: 3,
+      speed: 2.2,
+      speedJitter: 0.2,
+      health: 6,
+    },
+  },
+
+  // #113 — it follows cold the way others follow rivers:
+  // appearing with the first frosts on Saltglass ground.
+  // The Cold Range's finch. 45%.
+  snow_finch: {
+    id: 'snow_finch',
+    name: 'Snow Finch',
+    profile: 'flyer',
+    tameChance: 0.45,
+    bait: 'nectar',
+    petName: 'Snow Finch',
+    byproduct: null,
+    flight: { altitude: 1.8, bobHeight: 0.2, bobRate: 2.2, flapRate: 6.0 },
+    bonusSpawn: {
+      biomes: ['frost', 'saltglass', 'bone', 'storm'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      speed: 2.2,
+      speedJitter: 0.2,
+      health: 6,
+    },
+  },
+
+  // #338 — round as a snowball, and it sings from BENEATH
+  // the snowpack's edge, in the vole's own airspace — the
+  // Cold Range heard from under its own blanket. 50%.
+  winter_wren: {
+    id: 'winter_wren',
+    name: 'Winter Wren',
+    profile: 'flyer',
+    tameChance: 0.5,
+    bait: 'nectar',
+    petName: 'Winter Wren',
+    byproduct: null,
+    flight: { altitude: 1.2, bobHeight: 0.15, bobRate: 2.6, flapRate: 6.5 },
+    bonusSpawn: {
+      biomes: ['frost', 'saltglass', 'bone', 'storm'],
+      count: 2,
+      minRadius: 8,
+      spacing: 4,
+      speed: 2.0,
+      speedJitter: 0.2,
+      health: 6,
+    },
+  },
+
+  // #341 — ash-billed: it cracks ember-country seeds no
+  // other small bill attempts, its throat feathers singed
+  // decoratively by long practice. The Warm Range's finch.
+  // 55%.
+  cinder_finch: {
+    id: 'cinder_finch',
+    name: 'Cinder Finch',
+    profile: 'flyer',
+    tameChance: 0.55,
+    bait: 'nectar',
+    petName: 'Cinder Finch',
+    byproduct: null,
+    flight: { altitude: 1.6, bobHeight: 0.2, bobRate: 2.3, flapRate: 6.2 },
+    bonusSpawn: {
+      biomes: ['ember', 'meadow', 'storm'],
+      count: 3,
+      minRadius: 7,
+      spacing: 3,
+      speed: 2.2,
+      speedJitter: 0.2,
+      health: 6,
+    },
+  },
+
+  // #343 — reed-footed: it walks the reed mats and lily
+  // edges like a small citizen of the surface. The Wet
+  // Range's finch. 50%.
+  fen_finch: {
+    id: 'fen_finch',
+    name: 'Fen Finch',
+    profile: 'flyer',
+    tameChance: 0.5,
+    bait: 'nectar',
+    petName: 'Fen Finch',
+    byproduct: null,
+    flight: { altitude: 1.4, bobHeight: 0.2, bobRate: 2.3, flapRate: 6.2 },
+    bonusSpawn: {
+      biomes: ['wetland', 'rootwood', 'meadow', 'fungal'],
+      count: 3,
+      minRadius: 7,
+      spacing: 3,
+      speed: 2.1,
+      speedJitter: 0.2,
+      health: 6,
+    },
+  },
+
+  // #346 — masonry-nesting: it nests in WALLS — Precursor
+  // first, and wherever old places are: the Graveyard's
+  // stones, the Rootfall, the old burns. A ruin with no
+  // ruin sparrows is a ruin nobody has audited lately. 60%.
+  ruin_sparrow: {
+    id: 'ruin_sparrow',
+    name: 'Ruin Sparrow',
+    profile: 'flyer',
+    tameChance: 0.6,
+    bait: 'nectar',
+    petName: 'Ruin Sparrow',
+    byproduct: null,
+    flight: { altitude: 1.7, bobHeight: 0.2, bobRate: 2.4, flapRate: 6.5 },
+    bonusSpawn: {
+      biomes: ['precursor', 'bone', 'rootwood', 'ember'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      speed: 2.2,
+      speedJitter: 0.2,
+      health: 6,
+    },
+  },
+
+  // #348 — a crow, honestly: the Temperate + Open + Wet
+  // range's trader-in-miniature — where the Storm Crow runs
+  // the far country's barter at legendary scale, the field
+  // crow practices the family trade at pocket scale. 35%.
+  // (Its gift-trading is a behavior, not a shed — no
+  // byproduct in v1; the crow decides what a gift is.)
+  field_crow: {
+    id: 'field_crow',
+    name: 'Field Crow',
+    profile: 'flyer',
+    tameChance: 0.35,
+    bait: 'nectar',
+    petName: 'Field Crow',
+    byproduct: null,
+    flight: { altitude: 2.2, bobHeight: 0.25, bobRate: 2.0, flapRate: 5.2 },
+    bonusSpawn: {
+      biomes: ['meadow', 'rootwood', 'fungal', 'wetland', 'bone', 'saltglass'],
+      count: 2,
+      minRadius: 9,
+      spacing: 5,
+      speed: 2.4,
+      speedJitter: 0.2,
+      health: 12,
+    },
+  },
+
+  // #345 — the Night Candle's pollinator, named at last
+  // call: a great pale moth, candle-drawn, drifting the
+  // temperate and warm ranges at bloom height. Untameable
+  // (0% — it has an appointment with every candle bloom in
+  // the county, nightly).
+  moon_moth: {
+    id: 'moon_moth',
+    name: 'Moon Moth',
+    profile: 'insect',
+    tameChance: null,
+    bait: null,
+    petName: 'Moon Moth',
+    byproduct: null,
+    flight: { altitude: 1.9, bobHeight: 0.3, bobRate: 1.6, flapRate: 4.5 },
+    bonusSpawn: {
+      biomes: ['meadow', 'ember', 'storm', 'living', 'fungal'],
+      count: 2,
+      minRadius: 9,
+      spacing: 5,
+      speed: 1.4, // drift, not dash
+      speedJitter: 0.15,
+      health: 6,
+    },
+  },
+
+  // #340 — it runs ON the dust's surface at speed, feet
+  // slapping, never breaking the crust: the Warm + Open
+  // range's sprinter, a lizard plan at finch weight. 35%.
+  dust_lizard: {
+    id: 'dust_lizard',
+    name: 'Dust Lizard',
+    profile: 'lizard',
+    tameChance: 0.35,
+    bait: 'nectar',
+    petName: 'Dust Lizard',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['ember', 'saltglass', 'bone', 'meadow'],
+      count: 2,
+      minRadius: 8,
+      spacing: 4,
+      speed: 3.0, // dust-running
+      speedJitter: 0.25,
+      health: 10,
+    },
+  },
+
+  // #347 — the first voice of the cold country thawing: an
+  // ice-tolerant frog that sings in thaw pools with ice
+  // still in them. The Cold + Wet margins' herald. 45%.
+  sleet_frog: {
+    id: 'sleet_frog',
+    name: 'Sleet Frog',
+    profile: 'amphibian',
+    tameChance: 0.45,
+    bait: 'nectar',
+    petName: 'Sleet Frog',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['frost', 'wetland', 'saltglass'],
+      count: 3,
+      minRadius: 7,
+      spacing: 3,
+      speed: 1.3,
+      speedJitter: 0.2,
+      health: 8,
+    },
+  },
+
+  // #106 — the Ember Newt's composition in mirror: a finned
+  // marsh newt in water that skins with ice by night, in
+  // the Cold Marsh where Wetland meets Frost. 50%.
+  frost_newt: {
+    id: 'frost_newt',
+    name: 'Frost Newt',
+    profile: 'amphibian',
+    tameChance: 0.5,
+    bait: 'nectar',
+    petName: 'Frost Newt',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['wetland', 'frost'],
+      hybrid: ['wetland', 'frost'],
+      count: 2,
+      minRadius: 9,
+      spacing: 4,
+      speed: 1.2,
+      speedJitter: 0.1,
+      health: 12,
+    },
+  },
+
+  // #53 — a toad that has given up on hurrying, and made a
+  // home of it: fungus-hosting and cap-backed, a small
+  // ember-tolerant cap growing on its back in the
+  // Chitin-Stalker country where Fungal meets Ember. 55%:
+  // it was never going anywhere anyway.
+  cinder_toad: {
+    id: 'cinder_toad',
+    name: 'Cinder Toad',
+    profile: 'amphibian',
+    tameChance: 0.55,
+    bait: 'nectar',
+    petName: 'Cinder Toad',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['fungal', 'ember'],
+      hybrid: ['fungal', 'ember'],
+      count: 3,
+      minRadius: 8,
+      spacing: 4,
+      speed: 0.8,
+      speedJitter: 0.05,
+      health: 16,
+    },
+  },
 };
 
 /** The one lookup every shared system uses. */

@@ -58,7 +58,9 @@ export function createCreatureMeshKit(
   }
 
   function updateFloraMesh(mesh: THREE.Group, flora: FloraEntity): void {
-    updateFloraMeshImpl(mesh, flora);
+    // The phase rides along (slice 42): the puffbell keeps the
+    // hour by it, and synchronizes by sharing it.
+    updateFloraMeshImpl(mesh, flora, dayPhaseAt?.());
   }
 
   function createFaunaMesh(fauna: FaunaEntity): THREE.Group {
@@ -1803,6 +1805,16 @@ export function createCreatureMeshKit(
         const vent = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.05, 0.12, 6), shellMat);
         vent.position.y = 0.53;
         group.add(vent);
+        // The steam itself (slice 42): a soft blob the update
+        // branch breathes out of the vent on the crab's own
+        // cycle — the Fens' plumbing, visibly regulating.
+        const steam = new THREE.Mesh(
+          new THREE.SphereGeometry(0.09, 8, 6),
+          new THREE.MeshBasicMaterial({ color: 0xf8fafc, transparent: true, opacity: 0 })
+        );
+        steam.name = 'steamPuff';
+        steam.position.y = 0.62;
+        group.add(steam);
         for (let i = 0; i < 3; i++) {
           for (const side of [-1, 1]) {
             const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.012, 0.3, 4), shellMat);
@@ -2660,6 +2672,30 @@ export function createCreatureMeshKit(
       // quick double-bob — the mesh rides at pest height while the
       // simulation stays 2D, exactly like the glider's glide.
       mesh.position.y = groundY + 0.55 + Math.sin(fauna.animTime * 7.3) * 0.13;
+    }
+
+    if (fauna.species === 'boiler_crab') {
+      // Venting (slice 42, 2026-10-16): the crab regulates its
+      // pool's temperature by clearing blockages in steam — in
+      // v1 the venting is the visible signature: a soft blob
+      // breathes out of the vent nub on a seven-second cycle,
+      // offset per crab (hashStringToSeed keeps each kettle on
+      // its own schedule, like the wiggle flavors below).
+      const steam = mesh.getObjectByName('steamPuff');
+      if (steam) {
+        const offset = (hashStringToSeed(fauna.id) % 700) / 100;
+        const t = (fauna.animTime + offset) % 7;
+        const p = t < 1.6 ? t / 1.6 : 0;
+        const mat = (steam as THREE.Mesh).material as THREE.MeshBasicMaterial;
+        if (p > 0) {
+          const s = 0.5 + p * 1.6;
+          steam.scale.set(s, s * (1 + p * 0.6), s);
+          steam.position.y = 0.62 + p * 0.55;
+          mat.opacity = 0.38 * Math.sin(Math.PI * p);
+        } else {
+          mat.opacity = 0;
+        }
+      }
     }
 
     if (fauna.species === 'vesper_glider') {

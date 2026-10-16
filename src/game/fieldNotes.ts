@@ -186,6 +186,20 @@ export const FIELD_NOTES: FieldNote[] = [
   },
 
   // -----------------------------------------------------------------
+  {
+    id: 'note_spiral_moth',
+    species: 'spiral_moth',
+    kind: 'fauna',
+    clue: 'The gardens signed their moths: a true spiral on each wing, exact. In an untended garden the spirals run backward. Learn to read moths, and you can read a garden\'s keeping at thirty paces.',
+    witness: 'Read an untended garden by its moths.',
+  },
+  {
+    id: 'note_meadowback',
+    species: 'meadowback',
+    kind: 'fauna',
+    clue: 'The great grazer\'s herd keeps a sentinel in rotation — one head up while the others crop. Tamed and set to guard, it does not fight: it watches, and its low bell tells you what it sees. A warning where the world is armed; an announcement where it is not.',
+    witness: 'The sentinel bell, heard.',
+  },
   // The shown — the behavior is visible; the note names it, so
   // the player knows what they are looking at.
   // -----------------------------------------------------------------

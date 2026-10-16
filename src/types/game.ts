@@ -866,6 +866,11 @@ export interface FaunaEntity {
   // READ by the lure — the roster's only tame whose method is
   // the tamer's own state. Persists with the fauna: calm is
   // collected over days, not in one held breath.
+  // The variant of the zone this citizen was dealt into
+  // (slice 49), stamped at generation when the zone HAS a
+  // variant. The Spiral Moth reads its keeping from it: in
+  // an Untended garden, the signed spirals run backward.
+  homeVariant?: string;
   calmRegard?: number;
   // The Heartbearer's load (slice 48): edibles placed on its
   // back, delivered to the valley's heart on its route. The

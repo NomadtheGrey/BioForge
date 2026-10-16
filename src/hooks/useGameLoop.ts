@@ -110,7 +110,7 @@ export interface GameLoopDeps {
   liveGameRefs: { current: {
     hasItem: (itemId: ItemId, quantity: number) => boolean;
     addInventoryItem: (itemId: ItemId, quantity: number) => void;
-    updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number) => void, attacksArmed?: boolean, dayPhase?: number, onFieldWitness?: (noteId: string) => void) => void;
+    updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number) => void, attacksArmed?: boolean, dayPhase?: number, onFieldWitness?: (noteId: string) => void, onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void) => void;
     postNotification: (title: string, message: string, type?: GameNotification['type'], iconColor?: string) => void;
     // The Field Notes witness sink (App's recordFieldWitness,
     // fieldNotesBook.ts) — optional so the loop never hard-depends
@@ -719,7 +719,21 @@ export function useGameLoop(deps: GameLoopDeps): void {
             // stamps the notes it can see happen — an escort
             // performed, a verdict filed, a gift left at dawn —
             // through App's append-only, deduped sink.
-            (noteId) => liveGameRefs.current.recordFieldWitness?.(noteId)
+            (noteId) => liveGameRefs.current.recordFieldWitness?.(noteId),
+            // The Meadowback's sentinel bell (creature slice
+            // 49): the sim reports; the loop announces. A
+            // threat-bell on armed worlds, a visitor-bell on
+            // Peaceful — the same low note, read by context.
+            (_species, kind) => {
+              liveGameRefs.current.postNotification(
+                'The Sentinel Bell',
+                kind === 'threat'
+                  ? 'A low bell-note rolls out from your Meadowback — something nearby is hunting.'
+                  : 'A low bell-note from your Meadowback, unhurried — it has seen a visitor, and announced it.',
+                'system',
+                '#a3a380'
+              );
+            }
           );
         }
 

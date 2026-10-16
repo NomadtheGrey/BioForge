@@ -814,8 +814,11 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
   // a tended fungus comb, harvesting trimmings to feed it and
   // eating its fruit — the meadow's surplus becomes the fungal
   // country's food on six legs. 40%: a beetle that farms
-  // understands an offering. (Its compost-engine burrows are a
-  // later economy slice.)
+  // understands an offering. (Slice 45, 2026-10-16: the compost
+  // engine is LIVE — finished compost at the burrow mouth is
+  // the byproduct shed below: the game's own growth fertilizer,
+  // so the creature economy shakes the crafting economy's hand
+  // with no new item and no harm anywhere in the chain.)
   mulch_beetle: {
     id: 'mulch_beetle',
     name: 'Mulch Beetle',
@@ -823,7 +826,11 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
     tameChance: 0.4,
     bait: 'nectar',
     petName: 'Mulch Beetle',
-    byproduct: null,
+    // The compost engine (slice 45): a working colony's finished
+    // compost, left at the burrow mouth on a slow clock, wild
+    // and tamed alike — taming is a reliable trimming supply,
+    // and this is what the supply becomes.
+    byproduct: { item: 'growth_fertilizer', seconds: 2400, tamedOnly: false },
     bonusSpawn: {
       biomes: ['meadow', 'fungal'],
       count: 2,

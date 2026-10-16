@@ -1319,15 +1319,16 @@ const {
   // the hand honest.
   // ------------------------------------------------------------------------
   const handleToggleHeldItem = useCallback((): void => {
-    // The Left Hand holds INSTRUMENTS, and the slot CYCLES the ones
-    // you own (Adam, 2026-10-14): click takes the first, click again
-    // swaps to the next, click past the last stows it. Lantern vs
-    // radar is a real choice in the dark — light, or knowledge.
-    const HOLDABLES: ItemId[] = ['hand_lantern_fern', 'prismatic_field_radar'];
+    // The Left Hand holds the LANTERN — the slot raises the one
+    // instrument kept for it, a second click stows it (Adam,
+    // 2026-10-14). The Prismatic Field Radar used to share this
+    // slot; it is a HELMET upgrade now (Adam, 2026-10-16) and
+    // lives in the helm's radar track, installed by ownership.
+    const HOLDABLES: ItemId[] = ['hand_lantern_fern'];
     const held = playerState.heldItemId;
     const owned = HOLDABLES.filter((id) => id === held || hasItem(id, 1));
     if (owned.length === 0) {
-      postNotification('Empty Left Hand', 'Craft a Hand Lantern-Fern or a Prismatic Field Radar at the Bio-Forge [B] to hold an instrument.', 'alert', '#fbbf24');
+      postNotification('Empty Left Hand', 'Craft a Hand Lantern-Fern at the Bio-Forge [B] to hold it here.', 'alert', '#fbbf24');
       return;
     }
     const idx = held ? owned.indexOf(held) : -1;
@@ -1336,16 +1337,25 @@ const {
     if (next) {
       deductInventoryItem(next, 1);
       setHeldItemId(next);
-      if (next === 'prismatic_field_radar') {
-        postNotification('Radar Raised', 'The Prismatic Field Radar takes your left hand — the minimap now pings caves, ruins, deep shafts, and rare lives.', 'craft', '#a855f7');
-      } else {
-        postNotification('Lantern Raised', 'The Hand Lantern-Fern takes your left hand — its light goes where you go.', 'craft', '#22d3ee');
-      }
+      postNotification('Lantern Raised', 'The Hand Lantern-Fern takes your left hand — its light goes where you go.', 'craft', '#22d3ee');
     } else {
       setHeldItemId(null);
       postNotification('Left Hand Free', `${ITEMS[held as ItemId]?.name ?? 'Item'} stowed back in your pouch.`, 'craft', '#94a3b8');
     }
   }, [playerState.heldItemId, addInventoryItem, deductInventoryItem, hasItem, setHeldItemId, postNotification]);
+
+  // Radar migration (Adam, 2026-10-16): a save from before the
+  // conversion can come back holding the radar in the Left Hand —
+  // raising it had DEDUCTED it from the pouch, so hand it back
+  // and clear the hand. The radar's seat is the helm now; owning
+  // it is what installs it. Clearing the hand is the guard: the
+  // effect re-runs on the cleared value and stops.
+  useEffect(() => {
+    if (playerState.heldItemId !== 'prismatic_field_radar') return;
+    addInventoryItem('prismatic_field_radar', 1);
+    setHeldItemId(null);
+    postNotification('Radar Finds Its Seat', 'The Prismatic Field Radar belongs in the Homestead Helm now — it rides there whenever helm and radar are both yours.', 'craft', '#a855f7');
+  }, [playerState.heldItemId, addInventoryItem, setHeldItemId, postNotification]);
 
   // Where the way out is, while inside a cavern — the radar's violet
   // exit arrow (HUD → Minimap) aims at it. On the spawn zone's
@@ -1476,6 +1486,19 @@ const {
       ? structuresList.find((s) => s.id === vatTargetId && s.type === 'culture_vat')
       : undefined;
 
+  // The radar's tier (Adam's taxonomy, 2026-10-16): the helm
+  // carries the radar track — TIER 1 wayfinding when helm +
+  // radar are owned, TIER 2 creature location when the
+  // Lifefinder growth joins them. Ownership IS installation
+  // (the same reading the HUD's panel gate uses).
+  const radarTier = !hasItem('homestead_helm', 1)
+    ? 0
+    : hasItem('prismatic_field_radar', 1) && hasItem('prismatic_lifefinder', 1)
+      ? 2
+      : hasItem('prismatic_field_radar', 1)
+        ? 1
+        : 0;
+
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-slate-950 font-sans select-none">
       {/* 3D WebGL Canvas Viewport */}
@@ -1560,7 +1583,8 @@ const {
         zoneCoordsLabel={inCavern || inRuin ? 'Instanced Zone' : zoneCoordsLabel}
         inventory={inventory}
         caveExitTarget={caveExitTarget}
-        radarActive={playerState.heldItemId === 'prismatic_field_radar'}
+        radarActive={radarTier >= 1}
+        radarTier={radarTier}
         onToggleHeldItem={handleToggleHeldItem}
         dayNightCycle={dayNightCycle}
         onToggleDayNight={() => {

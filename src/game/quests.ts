@@ -262,6 +262,40 @@ export const QUESTS: QuestDef[] = [
     completeItem: 'gauntlet_synthesizer_upgrade',
   },
   {
+    // The radar thread moved EARLY (Adam, 2026-10-16): it sat at
+    // #24 in chapter 3, where nobody met it until the game was
+    // nearly done teaching. The radar is a HELMET upgrade with
+    // tiers, and the log now says so from chapter 2 — the craft
+    // is early-feasible (four tier-1 subassemblies), and the
+    // pings wake when the Homestead Helm (chapter 3) is owned.
+    id: 'q_radar',
+    questChapter: 2,
+    title: 'The Far Eye',
+    blurb:
+      'Four subassemblies, one instrument. The radar rides in the Homestead Helm — grow it now, and it wakes the day the helm is yours, pinging the places worth walking for.',
+    gather: [
+      { itemId: 'resonant_antenna_fan', count: 1 },
+      { itemId: 'sonar_receiver', count: 1 },
+      { itemId: 'chitin_housing', count: 1 },
+      { itemId: 'biolume_power_cell', count: 1 },
+    ],
+    completeItem: 'prismatic_field_radar',
+  },
+  {
+    id: 'q_lifefinder',
+    questChapter: 2,
+    title: 'The Near Eye',
+    blurb:
+      'The Far Eye finds places; the living are nearer and quieter. Grow the Prismatic Lifefinder onto the radar, and the minimap answers for the rare lives too.',
+    gather: [
+      { itemId: 'resonant_antenna_fan', count: 1 },
+      { itemId: 'biolume_power_cell', count: 1 },
+      { itemId: 'glow_spore', count: 2 },
+      { itemId: 'dew_essence', count: 1 },
+    ],
+    completeItem: 'prismatic_lifefinder',
+  },
+  {
     // The ladder's top rung (Adam, 2026-10-15): it waits at the
     // chain's end because its heart is a prismatic core — cave
     // and ruin goods — but it HAS a quest now, so the ladder's
@@ -422,20 +456,6 @@ export const QUESTS: QuestDef[] = [
       { itemId: 'prismatic_core', count: 1 },
     ],
     completeItem: 'identifier_lens',
-  },
-  {
-    id: 'q_radar',
-    questChapter: 3,
-    title: 'The Far Eye',
-    blurb:
-      'Four subassemblies, one instrument. Grow the Prismatic Field Radar and the minimap pings what is worth walking for.',
-    gather: [
-      { itemId: 'resonant_antenna_fan', count: 1 },
-      { itemId: 'sonar_receiver', count: 1 },
-      { itemId: 'chitin_housing', count: 1 },
-      { itemId: 'biolume_power_cell', count: 1 },
-    ],
-    completeItem: 'prismatic_field_radar',
   },
   {
     id: 'q_glyph_lens',

@@ -1862,13 +1862,29 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   prismatic_field_radar: {
     id: 'prismatic_field_radar',
     name: 'Prismatic Field Radar',
-    // Equipment, not a raw material — it is held in the left hand
-    // and read as gear by every other system (wart fix, 2026-10-15,
-    // spotted by the dev chat's tier-tab landing).
+    // Equipment, not a raw material — a HELMET upgrade (Adam,
+    // 2026-10-16): it rides in the Homestead Helm, installed by
+    // ownership, and read as gear by every other system (wart
+    // fix, 2026-10-15, spotted by the dev chat's tier-tab landing).
     category: 'equipment',
-    description: 'The four subassemblies, grown together into one listening instrument. Hold it in your Left Hand and the minimap pings what is worth walking for: cave mouths, precursor ruins, deep shafts, and the rare lives.',
+    description: 'The four subassemblies, grown together into one listening instrument. It rides in the Homestead Helm — own helm and radar both, and the minimap pings the places worth walking for: cave mouths, precursor ruins, and deep shafts.',
     iconName: 'Radar',
     color: '#a855f7',
+    rarity: 'prismatic',
+    maxStack: 1,
+  },
+  prismatic_lifefinder: {
+    id: 'prismatic_lifefinder',
+    name: 'Prismatic Lifefinder',
+    // The radar track's TIER 2 (Adam's taxonomy, 2026-10-16):
+    // a second listening growth ON the helm's radar — the radar
+    // itself stays owned; this is a growth, not a replacement
+    // (the helmet doctrine: base + growths). Tier 1 finds
+    // places; the Lifefinder adds the living.
+    category: 'equipment',
+    description: 'A second listening array, grown onto the helm radar. The places were only half the world — with the Lifefinder, the rare lives answer by name on the minimap: the stalker, the snap-trap.',
+    iconName: 'Radar',
+    color: '#e879f9',
     rarity: 'prismatic',
     maxStack: 1,
   },
@@ -2856,6 +2872,7 @@ export const HELMET_GEAR_ITEM_IDS: ItemId[] = [
   'chitin_housing',
   'biolume_power_cell',
   'prismatic_field_radar',
+  'prismatic_lifefinder',
   // The helmet line proper (published 2026-10-15): the base helm
   // and the lens track join the radar family in the tab.
   'homestead_helm',

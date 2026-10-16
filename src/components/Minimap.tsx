@@ -34,10 +34,15 @@ export interface MinimapProps {
    * When set, the rim arrow points THERE (violet) instead of toward
    * the surface spawn, which isn't in this coordinate space. */
   exitTarget?: { x: number; z: number } | null;
-  /** True while the crafted Prismatic Field Radar is held in the
-   * Left Hand: the map pings caves, ruins, deep shafts, and rare
-   * lives (Adam, 2026-10-14 — the radar's reveal is the ping). */
+  /** The helm radar is live (tier 1+): the map pings the places
+   * worth walking for (Adam, 2026-10-14 — the radar's reveal is
+   * the ping; its seat moved from the Left Hand to the
+   * Homestead Helm, 2026-10-16). */
   radarActive?: boolean;
+  /** Radar tier (Adam's taxonomy): 1 = wayfinding (places),
+   * 2 = + creature location (the rare lives answer by name).
+   * Defaults from radarActive for callers predating the tiers. */
+  radarTier?: number;
   /** Phone arrangement (Adam, 2026-10-14): the full-size map hung
    * down into the left thumbstick's field. Compact draws the same
    * map smaller so it fits between the vitals card and the stick. */
@@ -58,6 +63,7 @@ export const Minimap: React.FC<MinimapProps> = ({
   zoneCoordsLabel,
   exitTarget = null,
   radarActive = false,
+  radarTier = radarActive ? 1 : 0,
   compact = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
@@ -160,13 +166,15 @@ export const Minimap: React.FC<MinimapProps> = ({
   const exitArrowY = currentSize / 2 + Math.sin(exitAngle) * spawnRimR;
   const exitArrowDeg = (exitAngle * 180) / Math.PI;
 
-  // Prismatic Field Radar pings: while the crafted radar is HELD,
-  // the finds worth walking for — cave mouths, ruin gates, the deep
-  // shafts underground, and the rare lives (stalker, snap-trap).
+  // Prismatic Field Radar pings, tiered (Adam's taxonomy):
+  // TIER 1 wayfinding — cave mouths, ruin gates, the deep shafts
+  // underground; TIER 2 adds creature location — the rare lives
+  // (stalker, snap-trap) answer by name. The radar rides in the
+  // Homestead Helm now; ownership is installation.
   // Drawn as diamonds: on the scope when in range, riding the rim
   // at their bearing when beyond it (the home arrow's language).
   const pingTargets = useMemo(() => {
-    if (!radarActive) return [] as { id: string; x: number; z: number; color: string; label: string }[];
+    if (!radarActive || radarTier < 1) return [] as { id: string; x: number; z: number; color: string; label: string }[];
     const out: { id: string; x: number; z: number; color: string; label: string }[] = [];
     for (const s of structures) {
       if (s.type === 'cave_mouth') out.push({ id: s.id, x: s.worldX, z: s.worldZ, color: '#a855f7', label: 'Cave Mouth' });
@@ -174,14 +182,17 @@ export const Minimap: React.FC<MinimapProps> = ({
       else if (s.type === 'cave_descent') out.push({ id: s.id, x: s.worldX, z: s.worldZ, color: '#7c3aed', label: 'Cave Descent' });
       else if (s.type === 'vine_shaft') out.push({ id: s.id, x: s.worldX, z: s.worldZ, color: '#34d399', label: 'Vine Shaft — the way up' });
     }
-    for (const f of fauna) {
-      if (f.species === 'chitin_stalker') out.push({ id: f.id, x: f.x, z: f.z, color: '#ec4899', label: 'Chitin Stalker' });
-    }
-    for (const f of flora) {
-      if (f.species === 'snap_trap') out.push({ id: f.id, x: f.x, z: f.z, color: '#f43f5e', label: 'Snap-Trap' });
+    // Tier 2 — creature location: the rare lives join the scope.
+    if (radarTier >= 2) {
+      for (const f of fauna) {
+        if (f.species === 'chitin_stalker') out.push({ id: f.id, x: f.x, z: f.z, color: '#ec4899', label: 'Chitin Stalker' });
+      }
+      for (const f of flora) {
+        if (f.species === 'snap_trap') out.push({ id: f.id, x: f.x, z: f.z, color: '#f43f5e', label: 'Snap-Trap' });
+      }
     }
     return out;
-  }, [radarActive, structures, fauna, flora]);
+  }, [radarActive, radarTier, structures, fauna, flora]);
 
   return (
     <div className="pointer-events-auto flex flex-col gap-1.5 select-none animate-fade-in">

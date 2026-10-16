@@ -44,6 +44,29 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       group.add(floor);
       return group;
     },
+    // The Heart Tile (Adam, 2026-10-16): the spawn base's default
+    // respawn point — a root floor grown with a heart of its own.
+    // Same slab as a root tile, with a heartwood knot at its center
+    // ringed in a faint rose glow: the spot a fallen player wakes on.
+    'heart_tile': () => {
+      const group = new THREE.Group();
+      const slab = new THREE.Mesh(new THREE.BoxGeometry(2, 0.12, 2), materials.woodRoot);
+      slab.position.y = 0.06;
+      slab.receiveShadow = true;
+      group.add(slab);
+      const knotMat = new THREE.MeshStandardMaterial({ color: 0x9f1239, roughness: 0.6, emissive: 0xe11d48, emissiveIntensity: 0.35 });
+      const knot = new THREE.Mesh(new THREE.SphereGeometry(0.34, 16, 12), knotMat);
+      knot.scale.y = 0.45;
+      knot.position.y = 0.12;
+      knot.castShadow = true;
+      group.add(knot);
+      const ringMat = new THREE.MeshStandardMaterial({ color: 0x881337, roughness: 0.5, emissive: 0xf43f5e, emissiveIntensity: 0.5 });
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.52, 0.045, 8, 24), ringMat);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.y = 0.13;
+      group.add(ring);
+      return group;
+    },
     'chitin_glass_wall': () => {
       const group = new THREE.Group();
       const postGeom = new THREE.CylinderGeometry(0.12, 0.12, 2.4, 8);

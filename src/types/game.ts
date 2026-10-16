@@ -212,6 +212,7 @@ export type ItemId =
   | 'yield_fertilizer'
   // Bio-Composite Building Seed-Nodes
   | 'root_tile_floor'
+  | 'heart_tile'
   | 'chitin_glass_wall'
   | 'iris_slit_door'
   | 'lantern_fern_post'
@@ -778,6 +779,7 @@ export interface FaunaEntity {
 
 export type StructureType =
   | 'root_tile_floor'
+  | 'heart_tile'
   | 'chitin_glass_wall'
   | 'iris_slit_door'
   | 'lantern_fern_post'

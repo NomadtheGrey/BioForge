@@ -254,6 +254,18 @@ export function useSaveSession(deps: SaveSessionDeps) {
       if (!restoredZones.has(zoneKey(restoredZone.zx, restoredZone.zz))) {
         restoredZones.set(zoneKey(restoredZone.zx, restoredZone.zz), record.world);
       }
+      // The Heart Tile (Adam, 2026-10-16): the spawn base's default
+      // respawn point. Worlds saved before it existed have a plain
+      // root floor at the heart cell — convert it in place (same id,
+      // same cell; only the type changes) so every world wakes on
+      // the tile. Idempotent: a world that has one is untouched.
+      const spawnSnap = restoredZones.get(zoneKey(SPAWN_ZONE.zx, SPAWN_ZONE.zz));
+      if (spawnSnap && !spawnSnap.structures.some((s) => s.type === 'heart_tile')) {
+        const heartCell = spawnSnap.structures.find(
+          (s) => s.type === 'root_tile_floor' && s.gridX === 0 && s.gridZ === 0,
+        );
+        if (heartCell) heartCell.type = 'heart_tile';
+      }
       visitedZonesRef.current = restoredZones;
       playerZoneRef.current = restoredZone;
       setPlayerZone(restoredZone);

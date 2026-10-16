@@ -153,8 +153,12 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     wave 8, the fungus bench I: twelve species (Bog Jelly,
  *     Root Cup, Static Cap, Hearth Cap, Scar Cap and kin).
  *     Table-only change.
+ * v37: creature build phase, slice 22 (2026-10-16) — fauna
+ *     wave 6: the winged ranges and the wisps (Hearth Wisp,
+ *     Deck Weaver, Lake Glider, Walking Root and kin).
+ *     Table-only change.
  */
-export const WORLD_GEN_VERSION = 36; // v36 (2026-10-16): creature slice 21 — flora wave 8, fungus bench I; v35 was creature slice 20 (fauna wave 5)
+export const WORLD_GEN_VERSION = 37; // v37 (2026-10-16): creature slice 22 — fauna wave 6; v36 was creature slice 21 (flora wave 8)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

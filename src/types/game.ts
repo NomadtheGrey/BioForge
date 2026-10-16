@@ -104,6 +104,11 @@ export type ItemId =
   | 'bed_cap'
   | 'path_puff'
   | 'scar_cap'
+  | 'deck_silk'
+  | 'fisher_down'
+  | 'kite_pennant'
+  | 'shard_wing'
+  | 'root_crown'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -573,7 +578,20 @@ export type FaunaSpecies =
   | 'spiral_moth'
   | 'threshold_hound'
   | 'saltpicker'
-  | 'marrow_leech';
+  | 'marrow_leech'
+  // Slice 22 (2026-10-16) — fauna wave 6.
+  | 'hearth_wisp'
+  | 'relay_wisp'
+  | 'gap_moth'
+  | 'deck_weaver'
+  | 'lake_glider'
+  | 'frost_fisher'
+  | 'ash_lark'
+  | 'reedbird'
+  | 'storm_thrush'
+  | 'blizzard_kite'
+  | 'shard_moth'
+  | 'walking_root';
 
 export interface FaunaEntity {
   id: string;

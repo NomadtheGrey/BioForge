@@ -26,6 +26,8 @@
  *     toward the neighbor zone's shaped height, reaching an even
  *     50/50 exactly AT the border — so the ground is continuous
  *     across the seam even where two families' shapes disagree.
+ *  5. PONDS (move 2) — seeded basin dips carved into the field,
+ *     resolved as data by zonePondsAt (see the pond section).
  *
  * Adam's concern, designed for: BUILDING on uneven land. Two
  * protections stack — the datum rule (connected builds share one
@@ -44,6 +46,15 @@
 import { zoneBiomeAt } from './zones';
 import { hashStringToSeed } from './motion';
 import type { BiomeId } from './biomes';
+
+/**
+ * The landform epoch: worlds created before this moment keep the
+ * original ripple as their ground (and hold no ponds); worlds
+ * created after it grow on the shaped, pond-carved field. App
+ * gates engine context on it; generation gates pond life on it.
+ * 13:00 UTC = 9:00 AM EDT, 2026-10-16.
+ */
+export const LANDFORM_EPOCH_MS = Date.UTC(2026, 9, 16, 13, 0, 0);
 
 // ---- Layer 1: seeded value noise -------------------------------------------
 
@@ -162,12 +173,13 @@ function zoneOf(w: number): number {
 }
 
 /**
- * The landform height at a WORLD point (meters). Pure in
- * (seedStr, wx, wz): same inputs, same height, on every client,
- * in every zone, forever — the property zone borders, host
- * authority, and the datum system all silently rely on.
+ * The SHAPED height at a world point, before ponds carve it.
+ * Internal: pond candidates measure themselves against this
+ * surface (measuring against the carved field would recurse —
+ * candidates define the carving). Everything outside this file
+ * wants landformHeightAt, the carved truth.
  */
-export function landformHeightAt(seedStr: string, wx: number, wz: number): number {
+function shapedFieldAt(seedStr: string, wx: number, wz: number): number {
   const seedNum = seedNumOf(seedStr);
   const zx = zoneOf(wx);
   const zz = zoneOf(wz);
@@ -198,4 +210,123 @@ export function landformHeightAt(seedStr: string, wx: number, wz: number): numbe
     h = blendAxis(lz + ZONE_SIZE / 2, zoneBiomeAt(seedStr, zx, zz - 1), Math.abs(zx) + Math.abs(zz - 1));
   }
   return h;
+}
+
+// ---- Layer 5: ponds (P5 move 2, Adam, 2026-10-16) ---------------------------
+//
+// Ponds are CARVED into the shaped field — smooth basin dips — not
+// hunted as natural basins: the shaped field is too smooth to
+// guarantee closed basins, and a spawn gate that starves is a lie.
+// Each zone rolls seeded candidates; its family's APPETITE decides
+// how many ponds its country holds. The dip field is a pure
+// WORLD-space function (a point feels its own zone's ponds and any
+// neighbor pond within reach), so carving never breaks a seam —
+// the terrain harness re-proves continuity against the carved
+// field. Adam's sequence: water now, rivers next, then lava
+// (ember's appetite opens then) and brine; the liquid field rides
+// the data from day one so those slot in without a shape change.
+
+/** Liquids a pond can hold. v1 ships 'water' alone. */
+export type PondLiquid = 'water';
+
+export interface PondDef {
+  /** World coords of the pond's center. */
+  cx: number;
+  cz: number;
+  /** Water-disc radius in meters. */
+  radius: number;
+  /** World height of the liquid surface. */
+  waterY: number;
+  liquid: PondLiquid;
+  /** Carve depth in meters (the bowl below the shaped field). */
+  depth: number;
+}
+
+const POND_APPETITE: Record<BiomeId, { max: number; chance: number }> = {
+  meadow: { max: 2, chance: 0.55 },
+  wetland: { max: 3, chance: 0.8 },
+  fungal: { max: 2, chance: 0.6 },
+  ember: { max: 0, chance: 0 }, // ember's ponds arrive with lava
+  saltglass: { max: 1, chance: 0.4 },
+  frost: { max: 1, chance: 0.45 },
+  rootwood: { max: 1, chance: 0.5 },
+  precursor: { max: 1, chance: 0.35 },
+  bone: { max: 1, chance: 0.4 },
+  storm: { max: 1, chance: 0.4 },
+  living: { max: 2, chance: 0.6 },
+};
+
+function pondRoll(seedNum: number, zx: number, zz: number, i: number, salt: number): number {
+  let h = (seedNum * 31 + zx * 374761393 + zz * 668265263 + i * 974634211 + salt * 1442695041) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+}
+
+/**
+ * One zone's ponds, as data. Deterministic in (seedStr, zx, zz);
+ * nothing is stored anywhere — every consumer (engine rendering,
+ * worldGen creature gates, movement) resolves the same list.
+ * Water levels are measured against the SHAPED field (see
+ * shapedFieldAt) and capped below the lowest rim, so a pond on a
+ * slope never floats its downhill edge; a site whose cap would
+ * crush the surface to the floor is rejected outright.
+ */
+export function zonePondsAt(seedStr: string, zx: number, zz: number): PondDef[] {
+  const ap = POND_APPETITE[zoneBiomeAt(seedStr, zx, zz)];
+  if (!ap || ap.max === 0) return [];
+  const seedNum = seedNumOf(seedStr);
+  const out: PondDef[] = [];
+  for (let i = 0; i < ap.max; i++) {
+    if (pondRoll(seedNum, zx, zz, i, 1) > ap.chance) continue;
+    const cx = zx * ZONE_SIZE + (pondRoll(seedNum, zx, zz, i, 2) * 76 - 38);
+    const cz = zz * ZONE_SIZE + (pondRoll(seedNum, zx, zz, i, 3) * 76 - 38);
+    // Nobody spawns underwater: the spawn zone keeps its center dry.
+    if (zx === 0 && zz === 0 && Math.hypot(cx, cz) < 16) continue;
+    const radius = 4.5 + pondRoll(seedNum, zx, zz, i, 4) * 5;
+    const depth = 1.3 + pondRoll(seedNum, zx, zz, i, 5) * 0.8;
+    const hC = shapedFieldAt(seedStr, cx, cz);
+    let rim = Infinity;
+    for (const [ox, oz] of [[radius, 0], [-radius, 0], [0, radius], [0, -radius]] as const) {
+      rim = Math.min(rim, shapedFieldAt(seedStr, cx + ox, cz + oz));
+    }
+    const carvedCenter = hC - depth;
+    // The rim's carved height ≈ shaped rim less this pond's own dip
+    // at d = radius (dip factor (cos(pi/1.7)+1)/2 ≈ 0.363).
+    const surface = Math.min(carvedCenter + depth * 0.62, rim - depth * 0.363 - 0.15);
+    if (surface <= carvedCenter + 0.3) continue;
+    out.push({ cx, cz, radius, waterY: surface, liquid: 'water', depth });
+  }
+  return out;
+}
+
+/** The carve at a world point: the deepest dip among ponds in
+ *  reach (MAX, not sum — overlapping bowls merge at the deeper
+ *  one's depth, keeping every floor where its waterY math put it). */
+function pondDipAt(seedStr: string, wx: number, wz: number): number {
+  const zx = zoneOf(wx);
+  const zz = zoneOf(wz);
+  let dip = 0;
+  for (let dz = -1; dz <= 1; dz++) {
+    for (let dx = -1; dx <= 1; dx++) {
+      for (const p of zonePondsAt(seedStr, zx + dx, zz + dz)) {
+        const reach = p.radius * 1.7;
+        const d = Math.hypot(wx - p.cx, wz - p.cz);
+        if (d >= reach) continue;
+        const t = d / reach;
+        dip = Math.max(dip, (p.depth * (Math.cos(Math.PI * t) + 1)) / 2);
+      }
+    }
+  }
+  return dip;
+}
+
+/**
+ * The landform height at a WORLD point (meters): the shaped field
+ * with ponds carved in. Pure in (seedStr, wx, wz) — same inputs,
+ * same height, on every client, in every zone, forever: the
+ * property zone borders, host authority, and the datum system
+ * all silently rely on.
+ */
+export function landformHeightAt(seedStr: string, wx: number, wz: number): number {
+  return shapedFieldAt(seedStr, wx, wz) - pondDipAt(seedStr, wx, wz);
 }

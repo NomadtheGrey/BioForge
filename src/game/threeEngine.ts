@@ -484,6 +484,20 @@ export class BioForgeThreeEngine {
     marrow_reed: { color: 0xfef3c7, intensity: 0.25, distance: 2, y: 0.4 },
     pale_sedge: { color: 0xe7e5e4, intensity: 0.2, distance: 2, y: 0.25 },
     snow_cress: { color: 0xf0fdf4, intensity: 0.3, distance: 2, y: 0.2 },
+    // Flora wave 14 (creature slice 29, 2026-10-16): THE
+    // FINAL flora wave — the Sump Cap keeps its own light.
+    scald_fern: { color: 0xfb923c, intensity: 0.35, distance: 2, y: 0.3 },
+    mulch_rose: { color: 0xbe185d, intensity: 0.35, distance: 2, y: 0.4 },
+    brine_rose: { color: 0xf9a8d4, intensity: 0.35, distance: 2, y: 0.4 },
+    frost_reed: { color: 0xa5f3fc, intensity: 0.3, distance: 2, y: 0.4 },
+    snow_shelf: { color: 0xe2e8f0, intensity: 0.25, distance: 2, y: 0.4 },
+    sump_cap: { color: 0x4ade80, intensity: 0.5, distance: 2.5, y: 0.25 },
+    grave_puff: { color: 0xa8a29e, intensity: 0.25, distance: 2, y: 0.3 },
+    salt_mold: { color: 0xe0f2fe, intensity: 0.3, distance: 2, y: 0.2 },
+    ash_mold: { color: 0x78716c, intensity: 0.2, distance: 2, y: 0.2 },
+    nest_cap: { color: 0xa16207, intensity: 0.3, distance: 2, y: 0.3 },
+    frost_mold: { color: 0xbae6fd, intensity: 0.3, distance: 2, y: 0.2 },
+    steam_cap: { color: 0xf1f5f9, intensity: 0.35, distance: 2, y: 0.3 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },

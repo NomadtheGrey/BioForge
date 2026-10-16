@@ -1067,6 +1067,256 @@ export const FLORA: Record<string, FloraDef> = {
       scale: 0.9,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Wave 5 (slice 16, 2026-10-16) — the rose bench and far
+  // flora: the design's informal rose census (a rose for every
+  // country that would have one), the sky's pond, the banner,
+  // the wrong bloom, and the rolling sage.
+  // ------------------------------------------------------------------
+
+  // #50 — a POND IN THE SKY: a broad living bowl on the
+  // canopy's branches, holding rain for weeks — froglets and
+  // skater-kin live in it, a whole wetland the size of a
+  // hat. Its water is canopy rain, unhurried: the cleanest
+  // drink in the family. The cup refills and does not mind,
+  // within reason.
+  canopy_cup: {
+    id: 'canopy_cup',
+    name: 'Canopy Cup',
+    kind: 'flora',
+    harvest: { item: 'cup_water', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['rootwood'],
+      count: 2,
+      minRadius: 11,
+      spacing: 6,
+      scale: 1.3,
+    },
+  },
+
+  // #60 — it gives its length to the wind: a vine anchored
+  // hard in the high rocks, streaming HORIZONTAL in storm
+  // weather like a banner — the Storm country's flag, grown.
+  // Cut lengths are Banner Fiber, storm-grade: the Storm
+  // economy pays in things that hold against wind.
+  banner_vine: {
+    id: 'banner_vine',
+    name: 'Banner Vine',
+    kind: 'flora',
+    harvest: { item: 'banner_fiber', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['storm'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 1.1,
+    },
+  },
+
+  // #68 — the Gravebloom's hybrid cousin: a fungus wearing
+  // a flower's whole performance — bone-rooted, corpse-pale
+  // with a marrow-gold heart, in the Bone × Fungal country.
+  // Night-cut petals shake loose Grave Pollen: marrow-gold,
+  // sweet, uncanny.
+  charnel_bloom: {
+    id: 'charnel_bloom',
+    name: 'Charnel Bloom',
+    kind: 'fungus',
+    harvest: { item: 'grave_pollen', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['bone', 'fungal'],
+      hybrid: ['bone', 'fungal'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1,
+    },
+  },
+
+  // #91 — same gold core, same eight petals, wound the
+  // OTHER way: the Untended's bloom, spiral-REVERSED — the
+  // true bloom's mirror in the gardens nobody kept. It
+  // yields Wrong Thread, recorded as a NON-material: it
+  // spools like Living Thread and UNWINDS in the hand over
+  // hours. The item carries the warning in its text.
+  wrongbloom: {
+    id: 'wrongbloom',
+    name: 'Wrongbloom',
+    kind: 'flora',
+    harvest: { item: 'wrong_thread', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['precursor'],
+      variant: 'precursor_untended',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1,
+    },
+  },
+
+  // #93 — the mode's plant citizen: a sage ball of the Wind
+  // Plains that, at season's turn, lets go of its root and
+  // becomes its own seed-head — ROLLING, wind-driven. (Dealt
+  // rooted, in season, like everything the loop plants; its
+  // travels are its own affair.) A rooted sage yields Sage
+  // Leaf, plains herb, storm-cured.
+  tumble_sage: {
+    id: 'tumble_sage',
+    name: 'Tumble Sage',
+    kind: 'flora',
+    harvest: { item: 'sage_leaf', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['meadow', 'storm'],
+      hybrid: ['meadow', 'storm'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 0.9,
+    },
+  },
+
+  // #211 — forever at the moment of opening: a river flower
+  // blooming INSIDE the amber flow, visible through it at
+  // peak — the Sap Rivers are full of perfect flowers
+  // arranged by centuries of current like a pressed
+  // collection. In the great melt years the river gives up
+  // a bloom or two at the banks, whole: treasured, and
+  // priced like it (one per harvest, fertilized or not).
+  amber_bloom: {
+    id: 'amber_bloom',
+    name: 'Amber Bloom',
+    kind: 'flora',
+    harvest: { item: 'amber_bloom', count: 1, fertilizedCount: 1 },
+    bonusGrow: {
+      biomes: ['rootwood'],
+      count: 2,
+      minRadius: 11,
+      spacing: 6,
+      scale: 0.9,
+    },
+  },
+
+  // #220 — the Wetland's rose, mud-rooted and filtering:
+  // its root-mat drinks silt, and the water around a silt
+  // rose runs CLEAR in a visible ring — the Stillmouth's
+  // garden. Its petal is a water-clarifier: one petal, one
+  // clear bucket, an old traveler's trick.
+  silt_rose: {
+    id: 'silt_rose',
+    name: 'Silt Rose',
+    kind: 'flora',
+    harvest: { item: 'silt_petal', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['wetland'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      scale: 1,
+    },
+  },
+
+  // #221 — it has no green in it at all: a leafless orchid
+  // that eats FUNGUS, tapping the mycelium networks like a
+  // pale spy at the kingdom's table. Its flowers are
+  // gathered ONLY from naturally fallen blooms, by custom
+  // older than the codex's manners — the table honors the
+  // custom: the harvest is the fallen bloom, never the cut.
+  ghost_orchid: {
+    id: 'ghost_orchid',
+    name: 'Ghost Orchid',
+    kind: 'flora',
+    harvest: { item: 'ghost_bloom', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['fungal'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #225 — the variant's calendar in a flower: an
+  // ice-petaled rose blooming IN MELTWATER for one week of
+  // the Thaw, petals holding grown crystal at their rims.
+  // A whole bloom in its week stays cold in the hand for a
+  // day: the flats' one luxury.
+  thaw_rose: {
+    id: 'thaw_rose',
+    name: 'Thaw Rose',
+    kind: 'flora',
+    harvest: { item: 'thaw_bloom', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['saltglass'],
+      variant: 'saltglass_thaw',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1,
+    },
+  },
+
+  // #231 — the family's rose, bone-white: it grows ONLY in
+  // bone-dust soil, blooms the color of old ivory, with a
+  // scent recorded as "the Graveyard, sweetened" — Dust
+  // Moths carry its pollen bone to bone. Its petal dyes
+  // hold their color in sun: the white fields' one export
+  // of softness.
+  dust_rose: {
+    id: 'dust_rose',
+    name: 'Dust Rose',
+    kind: 'flora',
+    harvest: { item: 'dust_petal', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['bone'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 1,
+    },
+  },
+
+  // #258 — the rose census's dark entry: glass-petaled,
+  // black, glossy, sharp-edged as the Garden's own soil.
+  // (The design entry files it under Ember's telling of the
+  // Obsidian Garden; the garden as BUILT belongs to
+  // Saltglass, so the rose gates there — a gloved petal is
+  // the black work's material, edge and all.)
+  obsidian_rose: {
+    id: 'obsidian_rose',
+    name: 'Obsidian Rose',
+    kind: 'flora',
+    harvest: { item: 'obsidian_petal', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['saltglass'],
+      variant: 'obsidian_garden',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1,
+    },
+  },
+
+  // #262 — the rose census's KEYSTONE: hedge-built, and
+  // planted-by-walking — THIS is the species the Brambleback
+  // plants, its seeds passing through the animal and
+  // sprouting behind it, in the Hedgewood where Meadow
+  // meets Rootwood. Its hips are the hedge country's trail
+  // fruit: vitamin-bright, free along every hedge.
+  hedge_rose: {
+    id: 'hedge_rose',
+    name: 'Hedge Rose',
+    kind: 'flora',
+    harvest: { item: 'hedge_hip', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['meadow', 'rootwood'],
+      hybrid: ['meadow', 'rootwood'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      scale: 1,
+    },
+  },
 };
 
 /** Table lookup by species id (the hook + worldGen read here). */
@@ -1078,7 +1328,7 @@ export function floraDef(id: FloraSpecies): FloraDef | undefined {
 export const BONUS_GROW_FLORA: FloraDef[] = Object.values(FLORA).filter((d) => d.bonusGrow !== null);
 
 // ---------------------------------------------------------------------------
-// Codex entries (waves 1–4). They live HERE, with the flora table, rather
+// Codex entries (waves 1–5). They live HERE, with the flora table, rather
 // than in constants.ts: INITIAL_CODEX spreads this array in, and
 // constants.ts has outgrown what a single push can carry — the flora
 // codex travelling with the flora table keeps both files pushable
@@ -1660,5 +1910,149 @@ export const FLORA_CODEX: CodexEntry[] = [
     tamingOrCraftNotes: 'Harvest with the glove, and bring the codex habit: the treasure here is free, and it is perishable in the oldest way.',
     biome: 'Precursor (the ruins\' edges)',
     iconColor: '#a3e635',
+  },
+  {
+    species: 'canopy_cup',
+    name: 'Canopy Cup',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A pond in the sky: a broad living bowl on the canopy\'s branches, holding rain for weeks — froglets, skater-kin, a whole wetland the size of a hat, suspended in the family that builds with height. The Rootwood keeps its water at every storey, and the top storey\'s is the cleanest.',
+    byproducts: ['Cup Water (canopy rain, unhurried)'],
+    tamingOrCraftNotes: 'Harvest with the glove — the cleanest drink in the family. The cup refills and does not mind, within reason.',
+    biome: 'Rootwood (family cast)',
+    iconColor: '#38bdf8',
+  },
+  {
+    species: 'banner_vine',
+    name: 'Banner Vine',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'It gives its length to the wind: a vine anchored hard in the high rocks, streaming horizontal in storm weather like a banner — the Storm country\'s flag, grown, announcing the wind\'s direction and temper to anyone who can read a vine.',
+    byproducts: ['Banner Fiber (cut lengths, storm-grade)'],
+    tamingOrCraftNotes: 'Harvest with the glove — storm-grade fiber, kin to Kite Ribbon in the crafting family: the Storm economy pays in things that hold against wind.',
+    biome: 'Storm (family cast)',
+    iconColor: '#f43f5e',
+  },
+  {
+    species: 'charnel_bloom',
+    name: 'Charnel Bloom',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The Gravebloom\'s hybrid cousin, and the comparison is the design: where the gravebloom is a flower that happens to grow on graves, the charnel bloom is a FUNGUS wearing a flower\'s whole performance — bone-rooted, corpse-pale, with a marrow-gold heart it shows only at night.',
+    byproducts: ['Grave Pollen (night-cut petals)'],
+    tamingOrCraftNotes: 'Harvest with the glove at night — marrow-gold, sweet, uncanny. What it crafts into is later design\'s business.',
+    biome: 'Bone × Fungal (hybrid country only)',
+    iconColor: '#fbbf24',
+  },
+  {
+    species: 'wrongbloom',
+    name: 'Wrongbloom',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'Same gold core, same eight petals, wound the OTHER way: the Untended\'s bloom, spiral-reversed — the true bloom\'s mirror in the gardens nobody kept. It yields Wrong Thread, recorded as a non-material: it looks like Living Thread, spools like it, and unwinds in the hand over hours, and crafts made with it quietly come undone.',
+    byproducts: ['Wrong Thread (a non-material — it unwinds)'],
+    tamingOrCraftNotes: 'Harvest with the glove, and label the spool twice. The Untended\'s joke is only funny the first time.',
+    biome: 'Precursor (the Untended)',
+    iconColor: '#a78bfa',
+  },
+  {
+    species: 'tumble_sage',
+    name: 'Tumble Sage',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The rolling mode\'s plant citizen: a sage ball of the Wind Plains that, at season\'s turn, lets go of its root and becomes its own seed-head — the whole plant, traveling as luggage and luggage as plant. Rooted, in season, it is a plains herb of the first respect.',
+    byproducts: ['Sage Leaf (a rooted sage, storm-cured)'],
+    tamingOrCraftNotes: 'Harvest with the glove while it is rooted. Chasing it across the Wind Plains is exercise the codex declines to prescribe.',
+    biome: 'Meadow × Storm (the Wind Plains only)',
+    iconColor: '#a3a380',
+  },
+  {
+    species: 'amber_bloom',
+    name: 'Amber Bloom',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'Forever at the moment of opening: a river flower blooming inside the amber flow of the Sap Rivers, visible through the amber at peak — the river is a pressed collection arranged by centuries of current, and every bloom in it is perfect, and every bloom in it is spoken for by the river.',
+    byproducts: ['Amber Bloom (in the great melt years, one or two, whole, at the banks)'],
+    tamingOrCraftNotes: 'Harvest with the glove in the melt years only — flood-rare, and priced like it. The river gives up its flowers the way it gives up everything: on its schedule.',
+    biome: 'Rootwood (in the Sap Rivers)',
+    iconColor: '#f59e0b',
+  },
+  {
+    species: 'silt_rose',
+    name: 'Silt Rose',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The Wetland\'s rose, mud-rooted and filtering: its root-mat drinks silt, and the water around a silt rose runs clear in a visible ring — the Stillmouth\'s garden, and the marsh\'s waterworks in a flower. Where the ring fails, the water is telling you something about the rose.',
+    byproducts: ['Silt Petal'],
+    tamingOrCraftNotes: 'Harvest with the glove — one petal, one clear bucket: a water-clarifier for cisterns and camps, an old traveler\'s trick the codex finally writes down.',
+    biome: 'Wetland (family cast)',
+    iconColor: '#9f7a5a',
+  },
+  {
+    species: 'ghost_orchid',
+    name: 'Ghost Orchid',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'It has no green in it at all: a leafless orchid that eats fungus, tapping the mycelium networks like a pale spy at the kingdom\'s table — the flora kingdom\'s one citizen who pays no sunlight tax, in the country where the sun is a rumor anyway.',
+    byproducts: ['Ghost Bloom (naturally fallen blooms ONLY, by custom older than the codex\'s manners)'],
+    tamingOrCraftNotes: 'Gather fallen blooms with the glove. You do not cut a ghost orchid; the custom is older than the codex, and the Hollow keeps its customs.',
+    biome: 'Fungal (family country)',
+    iconColor: '#f1f5f9',
+  },
+  {
+    species: 'thaw_rose',
+    name: 'Thaw Rose',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The variant\'s calendar in a flower: an ice-petaled rose blooming in meltwater for one week of the Thaw, its petals holding grown crystal at their rims — when the thaw roses open on the flats, the flats are open, and the country\'s short bright season is officially in session.',
+    byproducts: ['Thaw Bloom (a whole bloom, in its week)'],
+    tamingOrCraftNotes: 'Harvest with the glove in the bloom week — a rose that stays cold in the hand for a day: the flats\' one luxury, couriered at speed.',
+    biome: 'Saltglass (the Thaw)',
+    iconColor: '#fda4af',
+  },
+  {
+    species: 'dust_rose',
+    name: 'Dust Rose',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The family\'s rose, bone-white: it grows only in bone-dust soil, and its blooms open the color of old ivory, with a scent the record phrases carefully — "the Graveyard, sweetened." Dust Moths carry its pollen bone to bone, a white service for a white flower.',
+    byproducts: ['Dust Petal'],
+    tamingOrCraftNotes: 'Harvest with the glove — mourning-pale, used for dyes that hold their color in sun: the white fields\' one export of softness.',
+    biome: 'Bone (family cast)',
+    iconColor: '#f5f5f4',
+  },
+  {
+    species: 'obsidian_rose',
+    name: 'Obsidian Rose',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The rose census\'s dark entry: glass-petaled — black, glossy, sharp-edged as the Garden\'s own soil. (Its design entry files it under Ember\'s telling of the Obsidian Garden; the garden as built stands in Saltglass country, and the rose, being a plant, lives where the garden is.) The Shardwing nests above it, and the garden keeps both.',
+    byproducts: ['Obsidian Petal (a petal, gloved)'],
+    tamingOrCraftNotes: 'Harvest with the glove, and mean the glove — the black work\'s material, edge and all.',
+    biome: 'Saltglass (the Obsidian Garden)',
+    iconColor: '#1c1917',
+  },
+  {
+    species: 'hedge_rose',
+    name: 'Hedge Rose',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The rose census\'s keystone: hedge-built, and planted-by-walking — this is the species the Brambleback plants, its seeds passing through the animal and sprouting behind it along every Hedgewood path. The hedge is a collaboration neither party signed, and both parties keep.',
+    byproducts: ['Hedge Hip (the hedge country\'s trail fruit)'],
+    tamingOrCraftNotes: 'Gather the hips with the glove — vitamin-bright, free along every hedge in the wood. Thank the brambleback by leaving the path as you found it.',
+    biome: 'Meadow × Rootwood (the Hedgewood only)',
+    iconColor: '#e11d48',
   },
 ];

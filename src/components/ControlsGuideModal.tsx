@@ -79,8 +79,12 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({
                 <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold">Double-tap W</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex justify-between items-center">
-                <span className="text-slate-300">Cycle Seed / Fertilizer / Blueprint</span>
+                <span className="text-slate-300">Cycle Seed / Blueprint (wheel) · Fertilizer / Blueprint (arrows, with the trowel or builder in hand)</span>
                 <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold">Mouse Wheel · ↑ ↓</span>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex justify-between items-center">
+                <span className="text-slate-300">Left-Hand Instrument — cycle the Hand Lantern-Fern / Prismatic Field Radar, or stow it</span>
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold">Click the Left Hand slot</span>
               </div>
             </div>
           </div>
@@ -138,6 +142,14 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({
                 </div>
                 <p className="text-[11px] text-slate-400">Grows interlocking root floors, chitin-glass walls, and proximity iris doors on grid cells. Pieces face the way you face (90° steps) — turn to make corners. Click a wall with a wall selected to stack a story; with a floor selected to lay a ceiling over your side; then click a ceiling tile to grow it toward where you face, middle tiles included. With a vine ladder selected, click a wall to grow a ladder up its face.</p>
               </div>
+
+              <div className="p-3 rounded-xl bg-slate-900/40 border border-slate-800">
+                <div className="flex items-center gap-2 text-yellow-300 font-bold mb-1">
+                  <span className="font-mono bg-slate-800 px-1.5 py-0.2 rounded text-[11px]">[7]</span>
+                  <span>Striker</span>
+                </div>
+                <p className="text-[11px] text-slate-400">The gauntlet's weapon slot — one grown striker at a time, close or ranged. With the Striker in hand, tap [7] again or roll the mouse wheel to swap between your best close and ranged weapons. Click a creature to strike it.</p>
+              </div>
             </div>
           </div>
 
@@ -146,14 +158,10 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({
             <h3 className="text-xs font-tech font-bold uppercase tracking-wider text-emerald-400 mb-3 flex items-center gap-2">
               <Cpu className="w-4 h-4" /> Interface Shortcuts
             </h3>
-            <div className="grid grid-cols-5 gap-2 text-xs">
+            <div className="grid grid-cols-4 gap-2 text-xs">
               <div className="p-2.5 rounded-xl bg-slate-900/50 border border-slate-800 text-center">
                 <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold block mb-1">[B]</span>
                 <span className="text-slate-300">Bio-Forge Crafting</span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-slate-900/50 border border-slate-800 text-center">
-                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-amber-300 font-bold block mb-1">[?]</span>
-                <span className="text-slate-300">This Guide</span>
               </div>
               <div className="p-2.5 rounded-xl bg-slate-900/50 border border-slate-800 text-center">
                 <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-emerald-300 font-bold block mb-1">[I]</span>
@@ -167,7 +175,28 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({
                 <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-pink-300 font-bold block mb-1">[M]</span>
                 <span className="text-slate-300">P2P Multiplayer</span>
               </div>
+              <div className="p-2.5 rounded-xl bg-slate-900/50 border border-slate-800 text-center">
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-teal-300 font-bold block mb-1">[Q]</span>
+                <span className="text-slate-300">Mini-Quests</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-900/50 border border-slate-800 text-center">
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-amber-300 font-bold block mb-1">[?]</span>
+                <span className="text-slate-300">This Guide</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-900/50 border border-slate-800 text-center">
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-slate-300 font-bold block mb-1">[Esc]</span>
+                <span className="text-slate-300">Release Mouse / Close Window</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-900/50 border border-slate-800 text-center">
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-slate-300 font-bold block mb-1">[`]</span>
+                <span className="text-slate-300">Debug Kit (dev)</span>
+              </div>
             </div>
+            <p className="text-[11px] text-slate-400 mt-3">
+              The HUD itself is yours to arrange: every panel can be dragged by its corner grip and
+              hidden with its ✕. Bring panels back — and find more display options as they arrive —
+              on the pause screen's <span className="text-cyan-300 font-bold">OPTIONS</span> button.
+            </p>
           </div>
 
           {/* Core Loop Summary */}

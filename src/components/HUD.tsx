@@ -22,6 +22,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ScrollText,
+  Settings2,
 } from 'lucide-react';
 import {
   ToolType,
@@ -160,6 +161,9 @@ interface HUDProps {
 import { QuestTracker } from './QuestTracker';
 import type { QuestProgressView } from '../game/quests';
 import { MODULE_FOR_TOOL, gearTierOf } from '../game/quests';
+import { useHudLayout, type HudPanelId } from '../hooks/useHudLayout';
+import { HudPanel } from './HudPanel';
+import { HudOptionsPanel } from './HudOptionsPanel';
 
 export const HUD: React.FC<HUDProps> = ({
   playerState,
@@ -213,7 +217,14 @@ export const HUD: React.FC<HUDProps> = ({
   fauna = [],
   flora = [],
 }) => {
-  const [isMinimapVisible, setIsMinimapVisible] = useState<boolean>(true);
+  // HUD arrangement (Adam, 2026-10-16): which panels are shown and
+  // where the player has dragged them. Owned by useHudLayout and
+  // persisted per-device; the pause overlay's OPTIONS button opens
+  // the HudOptionsPanel that restores anything hidden from here.
+  const hudLayout = useHudLayout();
+  const [showHudOptions, setShowHudOptions] = useState<boolean>(false);
+  // HudPanel's ✕ delivers just the panel id; hiding is always "true".
+  const hideHudPanel = (panelId: HudPanelId) => hudLayout.setHidden(panelId, true);
   const isDay = dayNightCycle > 0.25 && dayNightCycle < 0.75;
 
   const tools: { id: ToolType; label: string; key: string; icon: string; desc: string; color: string }[] = [
@@ -369,19 +380,36 @@ export const HUD: React.FC<HUDProps> = ({
           has to choose a phone arrangement — fixed desktop widths
           do not shrink on their own. */}
       <div className="flex items-start justify-between w-full gap-2">
-        {/* Left: Bio-Suit Vitals & Tactical Minimap Radar. On a
-            SHORT screen (a sideways phone) the stack turns into a
-            row — vitals and radar side by side — so the radar stays
-            visible without reaching down into the thumbstick's
-            field (Adam's landscape playtest, 2026-10-14: hiding it
-            sideways took his navigation away). */}
-        <div
-          className={`flex min-w-0 flex-col gap-2.5 ${
-            touchMode ? '[@media(max-height:540px)]:flex-row [@media(max-height:540px)]:items-start' : ''
-          }`}
-        >
+        {/* Left column (Adam's HUD pass, 2026-10-16): ONE stack in
+            reading order — Vitals, then the Radar, then the
+            mini-quest tracker BELOW the radar (it used to float at
+            31% and sit on top of the radar), then the Controls card
+            below that. Every panel is a HudPanel: draggable by its
+            corner grip, hideable by its ✕, restorable from Pause →
+            Options. On a SHORT screen (a sideways phone) the
+            vitals + radar pair turns into a row — side by side — so
+            the radar stays visible without reaching down into the
+            thumbstick's field (Adam's landscape playtest,
+            2026-10-14: hiding it sideways took his navigation
+            away). */}
+        <div className="flex min-w-0 flex-col gap-2.5">
           <div
-            className={`pointer-events-auto flex flex-col glass-panel rounded-2xl ${
+            className={`flex min-w-0 gap-2.5 ${
+              touchMode
+                ? 'flex-col [@media(max-height:540px)]:flex-row [@media(max-height:540px)]:items-start'
+                : 'flex-col'
+            }`}
+          >
+          {!hudLayout.isHidden('vitals') && (
+            <HudPanel
+              id="vitals"
+              label="Bio-Suit Vitals"
+              offset={hudLayout.offsetOf('vitals')}
+              onMove={hudLayout.setOffset}
+              onClose={hideHudPanel}
+            >
+          <div
+            className={`flex flex-col glass-panel rounded-2xl ${
               touchMode ? 'w-52 gap-1.5 p-2.5' : 'w-72 gap-2 p-3.5'
             }`}
           >
@@ -435,11 +463,23 @@ export const HUD: React.FC<HUDProps> = ({
             </div>
           </div>
 
+            </HudPanel>
+          )}
+
           {/* Minimap Widget. Always visible in play (Adam,
               2026-10-14): sideways it rides beside the vitals card
-              in the row layout above instead of disappearing. */}
-          {isMinimapVisible && (
-            <div>
+              in the row layout above instead of disappearing. Its
+              visibility is a HUD-layout choice now (the session
+              bar's Map button and Pause → Options both switch the
+              same 'radar' panel). */}
+          {!hudLayout.isHidden('radar') && (
+            <HudPanel
+              id="radar"
+              label="Radar / Minimap"
+              offset={hudLayout.offsetOf('radar')}
+              onMove={hudLayout.setOffset}
+              onClose={hideHudPanel}
+            >
               <Minimap
               playerX={playerState.x}
               playerZ={playerState.z}
@@ -454,18 +494,115 @@ export const HUD: React.FC<HUDProps> = ({
               radarActive={radarActive}
               compact={touchMode}
               />
-            </div>
+            </HudPanel>
+          )}
+          </div>
+
+          {/* Mini-quest tracker (2026-10-15; moved 2026-10-16):
+              the little quest HUD now lives IN the left stack,
+              directly below the radar — it used to float at
+              top-[31%] and cover the radar. Renders only when the
+              player wants it (the quest list's checkbox) and a
+              quest is being followed, and the HUD layout has not
+              hidden it (its ✕ / Pause → Options). */}
+          {showQuestHud && questView && !hudLayout.isHidden('tracker') && (
+            <HudPanel
+              id="tracker"
+              label="Mini-Quest Tracker"
+              offset={hudLayout.offsetOf('tracker')}
+              onMove={hudLayout.setOffset}
+              onClose={hideHudPanel}
+            >
+              <QuestTracker view={questView} onDismiss={onDismissQuest} />
+            </HudPanel>
+          )}
+
+          {/* Controls Card (Adam, 2026-10-14; moved 2026-10-16):
+              the everyday keys live IN the HUD — glanceable in the
+              left column, below the quest tracker — instead of only
+              inside the Controls Guide modal. It used to float at
+              bottom-52 over the bottom bar; the stack order is now
+              its home, and dragging can take it anywhere else.
+              Deliberately terse; the full guide is one [?] press
+              away. Hidden on small screens so it never crowds the
+              hotbar. */}
+          {!hudLayout.isHidden('controls') && (
+            <HudPanel
+              id="controls"
+              label="Controls Card"
+              offset={hudLayout.offsetOf('controls')}
+              onMove={hudLayout.setOffset}
+              onClose={hideHudPanel}
+              className="hidden md:block"
+            >
+              <div className="glass-panel px-3 py-2.5 rounded-2xl border border-slate-700/50 shadow-lg">
+                <div className="text-[9px] font-tech font-bold tracking-widest text-slate-400 uppercase mb-1.5">
+                  Controls
+                </div>
+                <div className="space-y-1 text-[10px] font-mono leading-none">
+                  <div className="flex items-center gap-2">
+                    <span className="text-cyan-300 font-bold w-20">W A S D</span>
+                    <span className="text-slate-300">Move · W×2 sprint</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-cyan-300 font-bold w-20">Mouse</span>
+                    <span className="text-slate-300">Look · Click uses tool</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-cyan-300 font-bold w-20">Space</span>
+                    <span className="text-slate-300">Jump · on a Bounce-Shroom: bounce a story up, steer mid-air</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-cyan-300 font-bold w-20">1 – 7</span>
+                    <span className="text-slate-300">Select tool · 7 = Striker</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-cyan-300 font-bold w-20">7 again · Wheel</span>
+                    <span className="text-slate-300">Striker in hand: swap close ↔ ranged draw</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-cyan-300 font-bold w-20">Wheel</span>
+                    <span className="text-slate-300">Cycle seed (trowel) / blueprint (builder)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-cyan-300 font-bold w-20">↑ ↓</span>
+                    <span className="text-slate-300">Cycle fertilizer (trowel) / blueprint (builder)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-cyan-300 font-bold w-20">B · I · C · M · Q</span>
+                    <span className="text-slate-300">Forge · Pouch · Codex · Co-op · Quests</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-cyan-300 font-bold w-20">Esc</span>
+                    <span className="text-slate-300">Release mouse · close window</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-cyan-300 font-bold w-20">?</span>
+                    <span className="text-slate-300">Full controls guide</span>
+                  </div>
+                </div>
+              </div>
+            </HudPanel>
           )}
         </div>
 
         {/* Center Top: Biome & Day/Night — one grouped bar. Touch
             keeps it only once the screen is wide enough to carry
-            all three top groups without squeezing the world out. */}
-        <div
-          className={`pointer-events-auto glass-panel px-2 py-1.5 rounded-2xl items-center gap-1 shadow-lg ${
-            touchMode ? 'hidden min-[760px]:flex' : 'flex'
-          }`}
-        >
+            all three top groups without squeezing the world out.
+            Scootched RIGHT (Adam, 2026-10-16): it used to float at
+            center and overlap the Bio-Suit Integrity card on
+            narrower windows; ml-auto now parks it against the
+            session bar, clear of the vitals. */}
+        {!hudLayout.isHidden('zone') && (
+          <HudPanel
+            id="zone"
+            label="Zone Name & Sol-Cycle"
+            offset={hudLayout.offsetOf('zone')}
+            onMove={hudLayout.setOffset}
+            onClose={hideHudPanel}
+            className={`ml-auto shrink-0 ${touchMode ? 'hidden min-[760px]:block' : ''}`}
+          >
+        <div className="glass-panel px-2 py-1.5 rounded-2xl flex items-center gap-1 shadow-lg">
           <div className="px-2.5 py-1 flex items-center gap-2.5">
             <Compass className="w-4 h-4 text-cyan-400" />
             <div className="flex flex-col">
@@ -507,11 +644,26 @@ export const HUD: React.FC<HUDProps> = ({
             )}
           </button>
         </div>
+          </HudPanel>
+        )}
 
-        {/* Right Top: one grouped action bar — save, session, and system
-            buttons live together in a single panel instead of floating
-            as separate pills. Inner buttons are flat "ghost" buttons. */}
-        <div className="pointer-events-auto glass-panel p-1.5 rounded-2xl flex shrink-0 items-center gap-1 shadow-lg">
+        {/* Right Top: the session bar — save, session, and system
+            buttons in ONE panel instead of floating as separate
+            pills. Two rows now (Adam, 2026-10-16): the old single
+            row ran so wide it crowded the zone panel into the
+            vitals card; stacked, the bar is roughly half as wide.
+            Inner buttons are flat "ghost" buttons. */}
+        {!hudLayout.isHidden('session') && (
+          <HudPanel
+            id="session"
+            label="Session Bar"
+            offset={hudLayout.offsetOf('session')}
+            onMove={hudLayout.setOffset}
+            onClose={hideHudPanel}
+            className="shrink-0"
+          >
+        <div className="glass-panel p-1.5 rounded-2xl flex flex-col gap-1 shadow-lg">
+          <div className="flex items-center gap-1">
           {/* Save World (manual save — autosave also runs every 30s) */}
           {onSave && (
             <button
@@ -542,9 +694,11 @@ export const HUD: React.FC<HUDProps> = ({
               {roomCode ? `Room: ${roomCode} (${peerCount + 1})` : 'P2P Co-Op'}
             </span>
           </button>
+          </div>
 
-          <div className="w-px h-6 bg-slate-700/60" />
-
+          {/* Second row: the system toggles and the two list
+              openers (quests + guide). */}
+          <div className="flex items-center gap-1">
           {/* Sound Toggle */}
           <button
             onClick={onToggleMute}
@@ -567,12 +721,13 @@ export const HUD: React.FC<HUDProps> = ({
             </button>
           )}
 
-          {/* Minimap Radar Toggle */}
+          {/* Minimap Radar Toggle — switches the same 'radar'
+              layout panel the ✕ and Pause → Options control. */}
           <button
-            onClick={() => setIsMinimapVisible((prev) => !prev)}
-            title={isMinimapVisible ? 'Hide Minimap Radar' : 'Show Minimap Radar'}
+            onClick={() => hudLayout.setHidden('radar', !hudLayout.isHidden('radar'))}
+            title={hudLayout.isHidden('radar') ? 'Show Minimap Radar' : 'Hide Minimap Radar'}
             className={`p-2 rounded-xl transition-colors flex items-center gap-1.5 ${
-              isMinimapVisible
+              !hudLayout.isHidden('radar')
                 ? 'text-cyan-300 bg-cyan-950/50'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800/70'
             }`}
@@ -621,24 +776,23 @@ export const HUD: React.FC<HUDProps> = ({
           >
             <HelpCircle className="w-4 h-4 text-slate-300" />
           </button>
+          </div>
         </div>
+          </HudPanel>
+        )}
       </div>
 
-      {/* Mini-quest tracker (2026-10-15): the little quest HUD.
-          Renders only when the player wants it (the quest list's
-          checkbox) and a quest is being followed; it lives mid-left
-          where neither the top bar, the hotbar, nor the touch
-          joystick reaches. */}
-      {showQuestHud && questView && (
-        <div className="absolute left-3 top-[31%] z-20 pointer-events-none">
-          <QuestTracker view={questView} onDismiss={onDismissQuest} />
-        </div>
-      )}
+      {/* The mini-quest tracker used to float here at top-[31%],
+          where it covered the radar. It now renders inside the
+          left column stack, directly below the radar (see the top
+          bar above) — Adam's HUD pass, 2026-10-16. */}
 
       {/* True-Center Reticle: absolutely centered to match the interaction raycast
           (screen-center NDC 0,0). The old flex-centered reticle sat below true
           center because the tall vitals/minimap stack made the top bar much
-          taller than the bottom bar. */}
+          taller than the bottom bar. Toggle-only in HUD Options —
+          no grip / ✕ of its own (they would cover the aim point). */}
+      {!hudLayout.isHidden('reticle') && (
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="relative flex items-center justify-center w-7 h-7">
           <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400" />
@@ -649,6 +803,7 @@ export const HUD: React.FC<HUDProps> = ({
           <div className="absolute -right-1 w-0.5 h-1.5 bg-cyan-400/60" />
         </div>
       </div>
+      )}
 
       {/* Pause Mode — background return (Adam, 2026-10-15): the sim
           is latched on hold; resuming is a deliberate tap. */}
@@ -657,12 +812,25 @@ export const HUD: React.FC<HUDProps> = ({
           <div className="glass-panel-biolum px-6 py-4 rounded-2xl flex flex-col items-center gap-3 border border-cyan-500/50 shadow-2xl">
             <span className="font-tech text-sm tracking-widest text-cyan-200 font-bold">PAUSED</span>
             <span className="text-xs text-slate-300">You stepped away — the world waited.</span>
-            <button
-              onClick={onResumeFromReturn}
-              className="px-5 py-2 rounded-2xl text-xs font-tech font-bold text-cyan-300 border border-cyan-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer"
-            >
-              RESUME
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onResumeFromReturn}
+                className="px-5 py-2 rounded-2xl text-xs font-tech font-bold text-cyan-300 border border-cyan-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+              >
+                RESUME
+              </button>
+              {/* HUD Options (Adam, 2026-10-16): the standing home
+                  for HUD settings, and the way back for any panel
+                  hidden by its ✕ — it lives here, on the pause
+                  overlay, because this overlay can never itself be
+                  hidden. */}
+              <button
+                onClick={() => setShowHudOptions(true)}
+                className="px-5 py-2 rounded-2xl text-xs font-tech font-bold text-slate-200 border border-slate-500/60 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <Settings2 className="w-3.5 h-3.5" /> OPTIONS
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -694,12 +862,22 @@ export const HUD: React.FC<HUDProps> = ({
         )}
       </div>
 
-      {/* Notification Toast Stack on Right */}
+      {/* Notification Toast Stack on Right — a HUD panel like the
+          rest (drag it, hide it) whenever a toast is on screen. */}
+      {notifications.length > 0 && !hudLayout.isHidden('notifications') && (
       <div
-        className={`absolute flex flex-col gap-2 pointer-events-none ${
+        className={`absolute ${
           touchMode ? 'right-2 top-16 max-w-[72vw]' : 'right-4 top-20 max-w-sm'
         }`}
       >
+        <HudPanel
+          id="notifications"
+          label="Notifications"
+          offset={hudLayout.offsetOf('notifications')}
+          onMove={hudLayout.setOffset}
+          onClose={hideHudPanel}
+        >
+        <div className="flex flex-col gap-2">
         {notifications.slice(0, 4).map((n) => (
           <div
             key={n.id}
@@ -715,53 +893,15 @@ export const HUD: React.FC<HUDProps> = ({
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Controls Card (Adam, 2026-10-14): the everyday keys live IN the
-          HUD — glanceable in the bottom-left corner — instead of only
-          inside the Controls Guide modal. Deliberately terse; the full
-          guide is one [?] press away. Hidden on small screens so it
-          never crowds the hotbar. It floats HIGH (bottom-52) so it sits
-          over — never over-lapping — the bottom bar's Bio-Forge /
-          Pouch / Codex windows row (Adam: the first placement, down at
-          bottom-4, obscured that row). */}
-      <div className="absolute left-4 bottom-52 pointer-events-none hidden md:block">
-        <div className="glass-panel px-3 py-2.5 rounded-2xl border border-slate-700/50 shadow-lg">
-          <div className="text-[9px] font-tech font-bold tracking-widest text-slate-400 uppercase mb-1.5">
-            Controls
-          </div>
-          <div className="space-y-1 text-[10px] font-mono leading-none">
-            <div className="flex items-center gap-2">
-              <span className="text-cyan-300 font-bold w-20">W A S D</span>
-              <span className="text-slate-300">Move · W×2 sprint</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-cyan-300 font-bold w-20">Mouse</span>
-              <span className="text-slate-300">Look · Click uses tool</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-cyan-300 font-bold w-20">Wheel · ↑↓</span>
-              <span className="text-slate-300">Cycle seed / fertilizer / blueprint</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-cyan-300 font-bold w-20">1 – 6</span>
-              <span className="text-slate-300">Select tool</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-cyan-300 font-bold w-20">Space</span>
-              <span className="text-slate-300">Jump · on a Bounce-Shroom: bounce a story up, steer mid-air</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-cyan-300 font-bold w-20">B · I · C · M</span>
-              <span className="text-slate-300">Forge · Pouch · Codex · Co-op</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-cyan-300 font-bold w-20">?</span>
-              <span className="text-slate-300">Full controls guide</span>
-            </div>
-          </div>
         </div>
+        </HudPanel>
       </div>
+      )}
+
+      {/* The Controls Card used to float here at bottom-52; it
+          now lives in the left column stack under the quest
+          tracker (see the top bar above) — Adam's HUD pass,
+          2026-10-16. */}
 
       {/* Bottom Bar: Tool Selection, Active Sub-item, and Main Windows */}
       <div className={`flex flex-col items-center w-full ${touchMode ? 'gap-2' : 'gap-3'}`}>
@@ -867,7 +1007,15 @@ export const HUD: React.FC<HUDProps> = ({
           }`}
         >
           {/* Main Quick Nav Buttons — one grouped bar, ghost buttons */}
-          <div className="pointer-events-auto glass-panel p-1.5 rounded-2xl flex items-center gap-1 shadow-lg">
+          {!hudLayout.isHidden('quicknav') && (
+            <HudPanel
+              id="quicknav"
+              label="Quick Nav"
+              offset={hudLayout.offsetOf('quicknav')}
+              onMove={hudLayout.setOffset}
+              onClose={hideHudPanel}
+            >
+          <div className="glass-panel p-1.5 rounded-2xl flex items-center gap-1 shadow-lg">
             <button
               onClick={onOpenBioForge}
               className={`hover:bg-cyan-950/60 text-cyan-300 font-tech font-bold text-xs rounded-xl flex items-center gap-2 transition-all active:scale-95 ${
@@ -898,9 +1046,20 @@ export const HUD: React.FC<HUDProps> = ({
               <span>{touchMode ? 'Codex' : 'Codex [C]'}</span>
             </button>
           </div>
+            </HudPanel>
+          )}
 
-          {/* Tool Hotbar (1 - 6) */}
-          {/* Hotbar Row: Left Hand slot beside the tools */}
+          {/* Tool Hotbar (1 - 7) */}
+          {/* Hotbar Row: Left Hand slot beside the tools — one
+              HudPanel, so the pair drags and hides together. */}
+          {!hudLayout.isHidden('hotbar') && (
+            <HudPanel
+              id="hotbar"
+              label="Tool Hotbar & Left Hand"
+              offset={hudLayout.offsetOf('hotbar')}
+              onMove={hudLayout.setOffset}
+              onClose={hideHudPanel}
+            >
           <div
             className={`flex items-end gap-2 ${
               touchMode ? 'max-w-full justify-start overflow-x-auto pb-0.5' : ''
@@ -979,8 +1138,16 @@ export const HUD: React.FC<HUDProps> = ({
             })}
           </div>
           </div>
+            </HudPanel>
+          )}
         </div>
       </div>
+
+      {/* The HUD Options screen (Pause → OPTIONS). Rendered at the
+          root so it survives the pause overlay closing. */}
+      {showHudOptions && (
+        <HudOptionsPanel layout={hudLayout} onClose={() => setShowHudOptions(false)} />
+      )}
     </div>
   );
 };

@@ -2791,7 +2791,7 @@ export const FLORA: Record<string, FloraDef> = {
   // #201 — a FORGED tree of the Ossuary Gardens — the
   // gardeners kept a bone garden; of course they did. Its
   // fruit is cache-grade treasure that GROWS: sweet, stone-
-  // hard, keeping forever — and the Feral Warden's patrol is
+  // hard, keeping forever — and the Feral Bailiff's patrol is
   // partly an orchard patrol.
   relic_tree: {
     id: 'relic_tree',

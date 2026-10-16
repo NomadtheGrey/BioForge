@@ -127,6 +127,10 @@ export interface UseToolInteractionsParams {
   instanceKind: () => 'surface' | 'cavern' | 'ruin';
   tameFauna: (faunaId: string, customName: string, state: FaunaEntity['state']) => void;
   hearthFeed: (faunaId: string) => number;
+  /** The day/night clock, read at click time (slice 40): App's
+   *  cycle via its latest-state mirror — 0.25 sunrise, 0.5 noon,
+   *  0.75 sunset, 0 midnight. */
+  getDayNightCycle: () => number;
   setFaunaCommand: (faunaId: string, cmd: 'follow' | 'stay' | 'guard') => void;
   /** Ask App to confirm a RELEASE (Adam, 2026-10-15): the cycle's
    *  guarded fourth stop — never applied by the click itself. */
@@ -204,6 +208,7 @@ export function useToolInteractions({
   instanceKind,
   tameFauna,
   hearthFeed,
+  getDayNightCycle,
   setFaunaCommand,
   onRequestRelease,
   applyDissolve,
@@ -357,6 +362,25 @@ export function useToolInteractions({
         return;
       }
 
+      // Harvest windows (slice 40, 2026-10-16): a few crops keep
+      // an appointment with the clock — the Meltcap holds only at
+      // midnight, the Noonflower opens only at noon, and their
+      // kin besides (the flora table's harvestWindow field). The
+      // glove refuses outside the window with the species' own
+      // closedText as the tell: what you are looking at instead
+      // of a crop. The solvent is NOT gated — a propagule can be
+      // reclaimed at any hour; only the crop keeps the hour.
+      const windowDef = floraDef(flora.species)?.harvestWindow;
+      if (windowDef) {
+        const phase = getDayNightCycle();
+        const dist =
+          windowDef.around === 'noon' ? Math.abs(phase - 0.5) : Math.min(phase, 1 - phase);
+        if (dist > 0.09) {
+          postNotification('Out of Its Hour', windowDef.closedText, 'alert', '#fbbf24');
+          return;
+        }
+      }
+
       soundEngine.playHarvest();
       triggerHarvestFx(flora.x, flora.z);
 
@@ -401,7 +425,7 @@ export function useToolInteractions({
       );
 
     },
-    [addInventoryItem, resetFloraHarvest, setCodexList, postNotification, triggerHarvestFx]
+    [addInventoryItem, resetFloraHarvest, setCodexList, postNotification, triggerHarvestFx, getDayNightCycle]
   );
 
   // 2. Bio-Scanner

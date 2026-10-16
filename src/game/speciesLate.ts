@@ -878,4 +878,276 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
       health: 8,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Slice 30 (2026-10-16) — THE OVERSIZE TIER, fauna side.
+  // Adam's proceed (2026-10-16) delegated the scale calls:
+  // the doctrine applied here — ONE per zone at most, dealt
+  // far out (minRadius 15+), slow, heavy (health 400–900),
+  // untameable: these are landscape citizens, not pets and
+  // not bosses. The Lake Leviathan is NOT here — it is a
+  // lake creature and waits with the pond group.
+  // ------------------------------------------------------------------
+
+  // #99 — a hill-backed quadruped of the far plains: its back
+  // grows grass, its migration writes the Trail Caps' road,
+  // and its shed winter coat-slabs are meadow in brick form —
+  // left as scenery by the codex, and by this table.
+  grass_leviathan: {
+    id: 'grass_leviathan',
+    name: 'Grass Leviathan',
+    profile: 'grazer',
+    tameChance: null,
+    bait: null,
+    petName: 'Grass Leviathan',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['meadow', 'storm'],
+      count: 1,
+      minRadius: 16,
+      spacing: 12,
+      speed: 0.9,
+      speedJitter: 0.05,
+      health: 600,
+    },
+  },
+
+  // #155 — the CLOUD shape's grand citizen: a whale plan
+  // drawn in vapor, at landscape-adjacent scale, above the
+  // high Storm country. Its shed vapor-rain falls as the
+  // cleanest water in the world — which is weather, not an
+  // item: no byproduct.
+  cloud_whale: {
+    id: 'cloud_whale',
+    name: 'Cloud Whale',
+    profile: 'drifter',
+    tameChance: null,
+    bait: null,
+    petName: 'Cloud Whale',
+    byproduct: null,
+    flight: { altitude: 9, bobHeight: 0.5, bobRate: 0.8 },
+    bonusSpawn: {
+      biomes: ['storm'],
+      count: 1,
+      minRadius: 16,
+      spacing: 12,
+      speed: 1.4,
+      speedJitter: 0.05,
+      health: 500,
+    },
+  },
+
+  // #170 — the roster's third LANDSCAPE-scale citizen: the
+  // far flats where the Graveyard's weather is made, walking
+  // in Bone × Storm country at geology's pace. Nothing taken.
+  storm_leviathan: {
+    id: 'storm_leviathan',
+    name: 'Storm Leviathan',
+    profile: 'grazer',
+    tameChance: null,
+    bait: null,
+    petName: 'Storm Leviathan',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['bone', 'storm'],
+      hybrid: ['bone', 'storm'],
+      count: 1,
+      minRadius: 17,
+      spacing: 12,
+      speed: 0.7,
+      speedJitter: 0.05,
+      health: 800,
+    },
+  },
+
+  // #183 — LANDSCAPE, the word's fifth use: a biped at hill
+  // scale — the Garden Warden's plan written in mountains,
+  // still gardening the far garden country at a pace of
+  // seasons per gesture.
+  garden_colossus: {
+    id: 'garden_colossus',
+    name: 'Garden Colossus',
+    profile: 'grazer',
+    tameChance: null,
+    bait: null,
+    petName: 'Garden Colossus',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['precursor'],
+      count: 1,
+      minRadius: 17,
+      spacing: 12,
+      speed: 0.6,
+      speedJitter: 0.05,
+      health: 700,
+    },
+  },
+
+  // #186 — LANDSCAPE, at terrain scale: an ash-mantled
+  // quadruped that has slept so long under the Drift that the
+  // Drift files it as geography. Speed 0 is not a bug: it is
+  // asleep. Dealt as scenery that breathes.
+  sleeping_mountain: {
+    id: 'sleeping_mountain',
+    name: 'Sleeping Mountain',
+    profile: 'grazer',
+    tameChance: null,
+    bait: null,
+    petName: 'Sleeping Mountain',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['ember'],
+      count: 1,
+      minRadius: 16,
+      spacing: 12,
+      speed: 0,
+      speedJitter: 0,
+      health: 900,
+    },
+  },
+
+  // #188 — HUGE, the tier under LANDSCAPE, kept distinct on
+  // purpose: it can be SEEN ACROSS, end to end, on a clear
+  // day, which no true landscape citizen can. It sheds plates
+  // of grown glass along its route: Behemoth Glass, the
+  // thickest natural saltglass in the world. Untameable (0%).
+  glass_behemoth: {
+    id: 'glass_behemoth',
+    name: 'Glass Behemoth',
+    profile: 'grazer',
+    tameChance: null,
+    bait: null,
+    petName: 'Glass Behemoth',
+    byproduct: { item: 'behemoth_glass', seconds: 600, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['saltglass'],
+      count: 1,
+      minRadius: 16,
+      spacing: 12,
+      speed: 0.8,
+      speedJitter: 0.05,
+      health: 450,
+    },
+  },
+
+  // #189 — HUGE: a tortoise-plan elder of the Marrow Flats —
+  // the Boneback's grandmother, singular — forest-shelled,
+  // bonemoss growing on her like a kept garden. The moss is
+  // scenery; nothing is taken from the grandmother.
+  old_marrow: {
+    id: 'old_marrow',
+    name: 'Old Marrow',
+    profile: 'turtle',
+    tameChance: null,
+    bait: null,
+    petName: 'Old Marrow',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['bone'],
+      count: 1,
+      minRadius: 16,
+      spacing: 12,
+      speed: 0.5,
+      speedJitter: 0.05,
+      health: 550,
+    },
+  },
+
+  // #190 — HUGE: a mammoth at the word's full weight, herd-
+  // mother of the Stillwhite's far reaches. She sheds winter
+  // wool at her rubbing stones: Mother Wool, the cold graph's
+  // heaviest insulation. Untameable (0%) — a mother is not a
+  // mount.
+  winter_mother: {
+    id: 'winter_mother',
+    name: 'Winter Mother',
+    profile: 'grazer',
+    tameChance: null,
+    bait: null,
+    petName: 'Winter Mother',
+    byproduct: { item: 'mother_wool', seconds: 480, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['frost'],
+      variant: 'frost_stillwhite',
+      count: 1,
+      minRadius: 16,
+      spacing: 12,
+      speed: 0.9,
+      speedJitter: 0.05,
+      health: 500,
+    },
+  },
+
+  // #191 — HUGE: a finned whale that SWIMS THE DUNES, through
+  // sand as through its first element, surfacing along the
+  // Magnetic Dunes' margin (the Dune Caps surface in its
+  // churned beds). Untameable (0%).
+  dune_whale: {
+    id: 'dune_whale',
+    name: 'Dune Whale',
+    profile: 'grazer',
+    tameChance: null,
+    bait: null,
+    petName: 'Dune Whale',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['saltglass', 'storm'],
+      hybrid: ['saltglass', 'storm'],
+      count: 1,
+      minRadius: 16,
+      spacing: 12,
+      speed: 1.1,
+      speedJitter: 0.05,
+      health: 480,
+    },
+  },
+
+  // #193 — fungus-kingdom fauna at GIANT scale: a colony-mind
+  // in a husk the size of a house, in the Hollow Hermit's
+  // line, in the Hollow's deep rooms. It is less an animal
+  // than a tenancy agreement with legs.
+  great_hermit: {
+    id: 'great_hermit',
+    name: 'Great Hermit',
+    profile: 'colony',
+    tameChance: null,
+    bait: null,
+    petName: 'Great Hermit',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['fungal'],
+      count: 1,
+      minRadius: 15,
+      spacing: 12,
+      speed: 0.4,
+      speedJitter: 0.05,
+      health: 400,
+    },
+  },
+
+  // #194 — HUGE: a segmented worm at the scale the word
+  // starts to fail, fulgurite-lined, burrowing the Charged
+  // Flats' deep country. Its abandoned tunnels are the flats'
+  // mines — fulgurite by the cartload through the economy's
+  // EXISTING door, at geology's rates: no byproduct here.
+  // Untameable (0%).
+  tempest_worm: {
+    id: 'tempest_worm',
+    name: 'Tempest Worm',
+    profile: 'serpent',
+    tameChance: null,
+    bait: null,
+    petName: 'Tempest Worm',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['storm'],
+      variant: 'charged_flats',
+      count: 1,
+      minRadius: 16,
+      spacing: 12,
+      speed: 1.3,
+      speedJitter: 0.05,
+      health: 520,
+    },
+  },
 };

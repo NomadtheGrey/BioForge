@@ -779,7 +779,7 @@ export const INITIAL_CODEX: CodexEntry[] = [
     scannedCount: 0,
     description: 'A supply line with legs: a broad-backed porter that carries food — fallen fruit, compost, offerings — from the valley\'s edges to the heart point, in all weathers, on paths it keeps. The whole valley reads its heart-scent as safe conduct. Follow one and you will be led, by the country\'s own road, to its heart.',
     byproducts: [],
-    tamingOrCraftNotes: 'Not tameable — but you may add to its load: anything edible placed on a heartbearer\'s back is delivered to the Heartbloom. That supply chain is still being built.',
+    tamingOrCraftNotes: 'Not tameable — but you may add to its load: anything edible placed on a heartbearer\'s back is delivered to the Heartbloom. Follow one, and it will show you the heart\'s own road.',
     biome: 'The Living (both faces)',
     iconColor: '#b91c1c',
   },

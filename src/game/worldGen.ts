@@ -157,8 +157,12 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     wave 6: the winged ranges and the wisps (Hearth Wisp,
  *     Deck Weaver, Lake Glider, Walking Root and kin).
  *     Table-only change.
+ * v38: creature build phase, slice 23 (2026-10-16) — flora
+ *     wave 9, the fungus bench II: twelve species (Strike Cap,
+ *     Basin Puff, Prism Cap, Song Cap, Gloom Cap and kin).
+ *     Table-only change.
  */
-export const WORLD_GEN_VERSION = 37; // v37 (2026-10-16): creature slice 22 — fauna wave 6; v36 was creature slice 21 (flora wave 8)
+export const WORLD_GEN_VERSION = 38; // v38 (2026-10-16): creature slice 23 — flora wave 9, fungus bench II; v37 was creature slice 22 (fauna wave 6)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

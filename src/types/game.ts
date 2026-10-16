@@ -109,6 +109,15 @@ export type ItemId =
   | 'kite_pennant'
   | 'shard_wing'
   | 'root_crown'
+  | 'strike_cap'
+  | 'dune_cap'
+  | 'basin_puff'
+  | 'thaw_jelly'
+  | 'prism_gill'
+  | 'still_cap'
+  | 'fang_shelf'
+  | 'canopy_cap'
+  | 'gloom_cap'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -401,7 +410,20 @@ export type FloraSpecies =
   | 'bed_cap'
   | 'path_puff'
   | 'dew_mold'
-  | 'scar_cap';
+  | 'scar_cap'
+  // Flora wave 9 (slice 23, 2026-10-16) — fungus bench II.
+  | 'drift_mold'
+  | 'glass_mold'
+  | 'strike_cap'
+  | 'dune_cap'
+  | 'basin_puff'
+  | 'thaw_jelly'
+  | 'prism_cap'
+  | 'still_cap'
+  | 'fang_shelf'
+  | 'song_cap'
+  | 'canopy_cap'
+  | 'gloom_cap';
 
 export interface FloraEntity {
   id: string;

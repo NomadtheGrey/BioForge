@@ -440,6 +440,20 @@ export class BioForgeThreeEngine {
     iron_cap: { color: 0x78716c, intensity: 0.3, distance: 2, y: 0.3 },
     hedge_cap: { color: 0x4d7c0f, intensity: 0.25, distance: 2, y: 0.3 },
     sun_cap: { color: 0xfde047, intensity: 0.45, distance: 2.5, y: 0.3 },
+    // Flora wave 11 (creature slice 26, 2026-10-16): the
+    // fungus tail — the Dark Cap keeps the faintest gill-glow.
+    mist_cap: { color: 0xe2e8f0, intensity: 0.3, distance: 2, y: 0.3 },
+    tool_cap: { color: 0xfbbf24, intensity: 0.3, distance: 2, y: 0.3 },
+    sail_cap: { color: 0xf0f9ff, intensity: 0.3, distance: 2, y: 0.4 },
+    night_cap: { color: 0x312e81, intensity: 0.35, distance: 2, y: 0.3 },
+    storm_mold: { color: 0x6b7c5e, intensity: 0.2, distance: 2, y: 0.2 },
+    dark_cap: { color: 0x60a5fa, intensity: 0.35, distance: 2, y: 0.25 },
+    husk_cap: { color: 0xd6d3d1, intensity: 0.25, distance: 2, y: 0.3 },
+    shell_cap: { color: 0xfde68a, intensity: 0.3, distance: 2, y: 0.3 },
+    trail_cap: { color: 0xa16207, intensity: 0.3, distance: 2.5, y: 0.4 },
+    sweet_cap: { color: 0xf59e0b, intensity: 0.4, distance: 2, y: 0.3 },
+    great_puff: { color: 0xf8fafc, intensity: 0.3, distance: 2.5, y: 0.5 },
+    rust_cap: { color: 0xb91c1c, intensity: 0.3, distance: 2, y: 0.3 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },

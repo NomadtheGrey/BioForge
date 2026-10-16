@@ -1915,6 +1915,281 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'pool_snapper': {
+        // The other disposition (slice 7): a jaw-forward turtle
+        // wearing its algae crown — a small green island that
+        // was not there yesterday.
+        const shellMat = new THREE.MeshStandardMaterial({ color: 0x3f6212, roughness: 0.95 });
+        const jawMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.8 });
+        const shell = new THREE.Mesh(new THREE.SphereGeometry(0.48, 14, 10), shellMat);
+        shell.scale.set(1, 0.55, 1.15);
+        shell.position.y = 0.32;
+        shell.castShadow = true;
+        group.add(shell);
+        const jaw = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), jawMat);
+        jaw.scale.set(1.25, 0.55, 1);
+        jaw.position.set(0, 0.22, 0.55);
+        group.add(jaw);
+        const crown = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), shellMat);
+        crown.scale.set(1, 0.3, 1);
+        crown.position.y = 0.58;
+        group.add(crown);
+        break;
+      }
+
+      case 'meadow_bull': {
+        // The first lesson in being watched back (slice 7): a
+        // bull-built grazer — hump, horns, and the stare drawn
+        // at eye height.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0x92400e, roughness: 0.95 });
+        const hornMat = new THREE.MeshStandardMaterial({ color: 0xe7e5e4, roughness: 0.7 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.55, 0.95, 8, 14), hideMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.95;
+        body.castShadow = true;
+        group.add(body);
+        const hump = new THREE.Mesh(new THREE.SphereGeometry(0.42, 10, 8), hideMat);
+        hump.scale.set(0.9, 0.7, 0.9);
+        hump.position.set(0, 1.42, 0.25);
+        group.add(hump);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.34, 12, 10), hideMat);
+        head.scale.set(0.95, 0.9, 1.1);
+        head.position.set(0, 0.82, 0.95);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const horn = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.42, 6), hornMat);
+          horn.position.set(side * 0.36, 1.0, 0.9);
+          horn.rotation.z = side * 1.15;
+          group.add(horn);
+        }
+        break;
+      }
+
+      case 'canopy_sloth': {
+        // A place, hanging (slice 7): long hook-clawed arms and
+        // a fur-garden of moss — drawn at canopy height by the
+        // flight spec, arms down as if around a branch that is
+        // everywhere and nowhere.
+        const furMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 1 });
+        const mossMat = new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 1 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.34, 12, 10), furMat);
+        body.scale.set(0.95, 1.1, 0.9);
+        body.position.y = 0.1;
+        body.castShadow = true;
+        group.add(body);
+        const moss = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), mossMat);
+        moss.scale.set(1, 0.5, 1);
+        moss.position.y = 0.38;
+        group.add(moss);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), furMat);
+        head.position.set(0, -0.28, 0.12);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.06, 0.5, 4, 8), furMat);
+          arm.position.set(side * 0.3, 0.45, 0);
+          arm.rotation.z = side * 0.35;
+          group.add(arm);
+        }
+        break;
+      }
+
+      case 'crown_cat': {
+        // Presence as policy (slice 7): a long cat lying along
+        // its branch — drawn at canopy height, tail tip the
+        // only confession of attention.
+        const coatMat = new THREE.MeshStandardMaterial({ color: 0x3f6212, roughness: 0.9 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.17, 0.6, 6, 10), coatMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.05;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), coatMat);
+        head.position.set(0, 0.1, 0.52);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const ear = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.1, 4), coatMat);
+          ear.position.set(side * 0.07, 0.22, 0.5);
+          group.add(ear);
+        }
+        const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.035, 0.55, 4, 6), coatMat);
+        tail.rotation.x = 1.35;
+        tail.position.set(0, -0.05, -0.6);
+        group.add(tail);
+        break;
+      }
+
+      case 'path_beetle': {
+        // Sleeves rolled (slice 7): a palm-sized bronze beetle
+        // with brooms for feet — the brush skirt rides in front.
+        const shellMat = new THREE.MeshStandardMaterial({
+          color: 0xb45309, roughness: 0.35, metalness: 0.6,
+        });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), shellMat);
+        body.scale.set(1, 0.7, 1.3);
+        body.position.y = 0.09;
+        group.add(body);
+        const brushMat = new THREE.MeshStandardMaterial({ color: 0xd6d3a8, roughness: 1 });
+        for (const side of [-1, 1]) {
+          const brush = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 5), brushMat);
+          brush.scale.set(1, 0.5, 1.4);
+          brush.position.set(side * 0.08, 0.03, 0.14);
+          group.add(brush);
+        }
+        break;
+      }
+
+      case 'gladhand': {
+        // Hospitality, total (slice 7): a walking plantiform
+        // usher — a stem body, two arms, and leaf-hands all
+        // along them, all of them offered.
+        const stemMat = new THREE.MeshStandardMaterial({ color: 0x65a30d, roughness: 0.8 });
+        const leafMat = new THREE.MeshStandardMaterial({
+          color: 0x4ade80, roughness: 0.6, side: THREE.DoubleSide,
+          emissive: 0x166534, emissiveIntensity: 0.3,
+        });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.16, 0.55, 6, 10), stemMat);
+        body.position.y = 0.62;
+        body.castShadow = true;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 6), leafMat);
+        head.position.set(0, 1.12, 0);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.045, 0.4, 4, 6), stemMat);
+          arm.position.set(side * 0.26, 0.78, 0.05);
+          arm.rotation.z = side * 0.9;
+          group.add(arm);
+          for (let i = 0; i < 3; i++) {
+            const hand = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 5), leafMat);
+            hand.scale.set(1.2, 0.25, 1);
+            hand.position.set(side * (0.34 + i * 0.09), 0.62 + i * 0.14, 0.06);
+            group.add(hand);
+          }
+        }
+        break;
+      }
+
+      case 'taster': {
+        // The valley's sentence, at ankle height (slice 7): a
+        // low, long sampler on many small legs, tongue fanned
+        // toward the visitor it is considering.
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x713f12, roughness: 0.85 });
+        const tongueMat = new THREE.MeshStandardMaterial({
+          color: 0xdb2777, roughness: 0.5, emissive: 0x9d174d, emissiveIntensity: 0.4,
+        });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.16, 0.7, 6, 10), bodyMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.24;
+        group.add(body);
+        for (let i = 0; i < 4; i++) {
+          for (const side of [-1, 1]) {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.01, 0.2, 4), bodyMat);
+            leg.position.set(side * 0.14, 0.08, 0.36 - i * 0.24);
+            leg.rotation.z = side * 0.5;
+            group.add(leg);
+          }
+        }
+        for (const side of [-1, 1]) {
+          const tongue = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.22, 4), tongueMat);
+          tongue.position.set(side * 0.05, 0.22, 0.62);
+          tongue.rotation.x = Math.PI / 2 - 0.25;
+          tongue.rotation.y = side * 0.3;
+          group.add(tongue);
+        }
+        break;
+      }
+
+      case 'heartbearer': {
+        // Safe conduct, walking (slice 7): a broad-backed
+        // porter — the flat back IS the profession — with a
+        // heartbloom bud riding where the loads go.
+        const coatMat = new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.9 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.5, 0.85, 8, 12), coatMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.92;
+        body.castShadow = true;
+        group.add(body);
+        const back = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.1, 1.0), coatMat);
+        back.position.y = 1.42;
+        group.add(back);
+        const bud = new THREE.Mesh(
+          new THREE.SphereGeometry(0.13, 8, 6),
+          new THREE.MeshStandardMaterial({ color: 0xfda4af, emissive: 0xbe123c, emissiveIntensity: 0.7, roughness: 0.5 })
+        );
+        bud.position.set(0, 1.56, -0.25);
+        group.add(bud);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 10, 8), coatMat);
+        head.scale.set(0.85, 0.9, 1.15);
+        head.position.set(0, 0.95, 0.85);
+        group.add(head);
+        break;
+      }
+
+      case 'dusk_grazer': {
+        // Wearing the color of what it eats (slice 7): a low
+        // grazer in the duskgrass's own black-violet.
+        const coatMat = new THREE.MeshStandardMaterial({
+          color: 0x4c1d95, roughness: 0.95, emissive: 0x2e1065, emissiveIntensity: 0.35,
+        });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.36, 0.65, 8, 12), coatMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.68;
+        body.castShadow = true;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), coatMat);
+        head.scale.set(0.85, 0.9, 1.2);
+        head.position.set(0, 0.62, 0.65);
+        group.add(head);
+        break;
+      }
+
+      case 'answer_deer': {
+        // It keeps what you bring it (slice 7): a graceful
+        // pale-gold deer — the mirror, drawn calm.
+        const coatMat = new THREE.MeshStandardMaterial({ color: 0xfcd34d, roughness: 0.85 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 0.6, 8, 12), coatMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.82;
+        body.castShadow = true;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 8), coatMat);
+        head.scale.set(0.8, 0.9, 1.3);
+        head.position.set(0, 1.05, 0.62);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const antler = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.3, 5), coatMat);
+          antler.position.set(side * 0.1, 1.28, 0.56);
+          antler.rotation.z = side * -0.4;
+          group.add(antler);
+          const ear = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 5), coatMat);
+          ear.scale.set(1.4, 0.5, 0.8);
+          ear.position.set(side * 0.16, 1.08, 0.55);
+          group.add(ear);
+        }
+        break;
+      }
+
+      case 'edge_wren': {
+        // The reading, with wings (slice 7): a tiny border
+        // bird, drawn bright — at a Welcoming edge it approves
+        // of you, and it shows.
+        const featherMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.8 });
+        const wingMat = new THREE.MeshStandardMaterial({ color: 0xfde68a, roughness: 0.7, side: THREE.DoubleSide });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), featherMat);
+        body.scale.set(0.9, 0.9, 1.25);
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), featherMat);
+        head.position.set(0, 0.04, 0.09);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.14), wingMat);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          wing.position.set(side * 0.17, 0.03, -0.01);
+          wing.rotation.x = -Math.PI / 2 + 0.1;
+          group.add(wing);
+        }
+        break;
+      }
+
       default: {
         const body = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 12), materials.biolumAmber);
         body.position.y = 0.3;

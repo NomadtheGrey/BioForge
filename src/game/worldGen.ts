@@ -309,8 +309,16 @@ import type { PondDef, RiverSeg } from './terrain';
  *     sage left unharvested lets go, rolls downwind shedding
  *     leaf, and re-roots — the Wind Plains' migration at
  *     garden scale. Behavior-only; generation unchanged.
+ * v61: creature build phase, slice 46 (2026-10-16) — FIELD
+ *     NOTES: the discovery layer for the one-offs (Adam's
+ *     concern — bespoke behaviors were undiscoverable). A
+ *     data table of clue-voiced notes keyed to first scan,
+ *     plus codex clause fixes where a page didn't teach its
+ *     own mechanic (the moth's road, the krill's rise, the
+ *     duck's dive, the crab's venting). The quest-log
+ *     wiring is the dev chat's lane, specced in the file.
  */
-export const WORLD_GEN_VERSION = 60; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
+export const WORLD_GEN_VERSION = 61; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

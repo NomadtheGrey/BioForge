@@ -1464,6 +1464,7 @@ export function buildFloraMesh(
         const twigMat = new THREE.MeshStandardMaterial({ color: 0xa3a380, roughness: 1 });
         const ball = new THREE.Mesh(new THREE.SphereGeometry(0.26, 10, 8), twigMat);
         ball.position.y = 0.26;
+        ball.name = 'sageBall';
         group.add(ball);
         const leafMat = new THREE.MeshStandardMaterial({ color: 0x84cc16, roughness: 0.9 });
         for (let i = 0; i < 5; i++) {
@@ -2595,5 +2596,20 @@ export function updateFloraMeshImpl(mesh: THREE.Group, flora: FloraEntity, dayPh
           mat.opacity = 0;
         }
       }
+    }
+
+    // THE ROLL, DRAWN (slice 45, 2026-10-16): while the sim
+    // has a Tumble Sage loosed (roll velocity on the entity),
+    // the ball tumbles — spinning around the horizontal axis
+    // its travel dictates — and bounces, the bounce keyed to
+    // distance covered so it reads at any frame rate. The
+    // entity does the traveling; this only does the tumbling.
+    if (flora.species === 'tumble_sage' && flora.rollVx !== undefined) {
+      const ball = mesh.getObjectByName('sageBall');
+      if (ball) {
+        const axis = new THREE.Vector3(flora.rollVz ?? 0, 0, -(flora.rollVx ?? 0)).normalize();
+        ball.rotateOnWorldAxis(axis, 0.11);
+      }
+      mesh.position.y += Math.abs(Math.sin(flora.x * 2.1 + flora.z * 1.7)) * 0.16;
     }
   }

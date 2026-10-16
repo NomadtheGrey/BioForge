@@ -1758,6 +1758,40 @@ export class BioForgeThreeEngine {
     });
   }
 
+  /**
+   * A landed strike's burst (weapons build, 2026-10-16): a short
+   * amber-white star of sap and chitin flecks at the struck
+   * creature — the visual period on a close hit, thrown outward
+   * rather than boiled upward like the dissolve's fizz.
+   */
+  public triggerStrikeBurst(x: number, z: number) {
+    const count = 14;
+    const geom = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      pos[i * 3] = (Math.random() - 0.5) * 0.7;
+      pos[i * 3 + 1] = Math.random() * 0.9 + 0.25;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 0.7;
+    }
+    geom.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({
+      color: 0xfbbf24,
+      size: 0.24,
+      transparent: true,
+      opacity: 0.95,
+      blending: THREE.AdditiveBlending,
+    });
+    const points = new THREE.Points(geom, mat);
+    points.position.set(x, this.terrainHeightAt(x, z), z);
+    this.particlesGroup.add(points);
+    this.transientParticles.push({
+      mesh: points,
+      life: 0,
+      maxLife: 0.32,
+      vel: new THREE.Vector3(0, 1.4, 0),
+    });
+  }
+
   public triggerSolventSprayEffect(x: number, z: number) {
     const count = 35;
     const geom = new THREE.BufferGeometry();

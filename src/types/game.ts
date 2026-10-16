@@ -55,6 +55,8 @@ export type ItemId =
   | 'glass_cap'
   | 'bone_puff'
   | 'door_cap'
+  | 'mote_dust'
+  | 'sapwing_film'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -420,7 +422,20 @@ export type FaunaSpecies =
   | 'dust_lizard'
   | 'sleet_frog'
   | 'frost_newt'
-  | 'cinder_toad';
+  | 'cinder_toad'
+  // Slice 15 (2026-10-16) — fauna wave 3.
+  | 'rootborer'
+  | 'fog_calf'
+  | 'mote_swarm'
+  | 'guest_bird'
+  | 'rib_walker'
+  | 'pan_piper'
+  | 'logback'
+  | 'driftmoth'
+  | 'stillmouth'
+  | 'pale_grazer'
+  | 'amber_snail'
+  | 'sapwing';
 
 export interface FaunaEntity {
   id: string;

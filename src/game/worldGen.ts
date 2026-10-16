@@ -128,8 +128,12 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     corrects two wave-3 variant gates that were typo'd
  *     ('ice_fangs'/'vent_fields' never matched a variant id,
  *     so Fang Fern and Vent Rose never dealt).
+ * v30: creature build phase, slice 15 (2026-10-16) — fauna
+ *     wave 3: twelve species incl. the first stationary fauna
+ *     (Stillmouth, speed 0 by design) and two vapor citizens
+ *     (Fog Calf, Mote Swarm). Table-only change.
  */
-export const WORLD_GEN_VERSION = 29; // v29 (2026-10-16): creature slice 14 — flora wave 4, the fungus bench (+ two gate typo fixes); v28 was creature slice 13 (fauna wave 2)
+export const WORLD_GEN_VERSION = 30; // v30 (2026-10-16): creature slice 15 — fauna wave 3, twelve species; v29 was creature slice 14 (flora wave 4)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

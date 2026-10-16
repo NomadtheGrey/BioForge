@@ -15,6 +15,7 @@ import {
 import { multiplayerManager } from '../game/multiplayer';
 import { speciesDef } from '../game/species';
 import { sampleItemId, SAMPLE_SHED_SECONDS_TAMED, SAMPLE_SHED_SECONDS_WILD } from '../game/vat';
+import type { ItemId } from '../types/game';
 import type { WorldSnapshot } from '../game/saveSystem';
 
 
@@ -477,6 +478,10 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   const hermitRegardRef = useRef<Map<string, number>>(new Map());
   // Cadence for the wisp/hearthpod assignment pass (slice 43).
   const wispCheckRef = useRef(0);
+  // Root Otter cache clocks (slice 44): seconds since each
+  // otter last banked a cache. Per-otter, unhurried, unseen —
+  // dividends are not announced.
+  const otterCacheRef = useRef<Map<string, number>>(new Map());
   const prevPhaseRef = useRef(0.35);
   const lastPlayerPosRef = useRef<{ x: number; z: number } | null>(null);
 
@@ -828,6 +833,48 @@ export function useWorldEntities(): UseWorldEntitiesResult {
         hermitRegardRef.current.clear();
       }
       prevPhaseRef.current = phaseNow;
+
+      // ---------------------------------------------------------------
+      // THE OTTER'S BANK (slice 44, 2026-10-16): the Root Otter
+      // steals small bright things into root-caches — the wet
+      // branch of the crow's barter economy. The sim keeps the
+      // dividend half: on a long, per-otter clock (roughly a day
+      // and a half of loaded time, jittered by the otter's own
+      // id so no two bank alike), a wild otter slips a cache into
+      // the roots a few meters off — something bright, rolled
+      // from the treasure table below. Otter Treasure is a
+      // CATEGORY, not an item, exactly as designed: the table
+      // decides the treasure, the otter decides the bank. (The
+      // stealing half — lifting from the player's own pouch —
+      // stays design-only: the sim holds no inventory, and a
+      // dividend needs no theft to be believed in.)
+      // ---------------------------------------------------------------
+      if (simulateWorld) {
+        for (const f of faunaRef.current) {
+          if (f.species !== 'root_otter' || f.isTamed) continue;
+          const banked = (otterCacheRef.current.get(f.id) ?? 0) + dt;
+          const threshold = 900 + ((f.id.charCodeAt(f.id.length - 1) * 37) % 500);
+          if (banked >= threshold) {
+            otterCacheRef.current.set(f.id, 0);
+            const roll = Math.random();
+            const treasure: [ItemId, number] =
+              roll < 0.08
+                ? ['silver_scale', 1]
+                : roll < 0.35
+                  ? ['dew_essence', 2]
+                  : roll < 0.6
+                    ? ['glow_spore', 1]
+                    : roll < 0.82
+                      ? ['lodestone_sand', 2]
+                      : ['vibrant_petal', 2];
+            const ang = Math.random() * Math.PI * 2;
+            const dist = 3 + Math.random() * 4;
+            spawnDroppedItem(treasure[0], treasure[1], f.x + Math.cos(ang) * dist, f.z + Math.sin(ang) * dist);
+          } else {
+            otterCacheRef.current.set(f.id, banked);
+          }
+        }
+      }
 
       // ---------------------------------------------------------------
       // THE HEARTH WISP TAKES UP (slice 43, 2026-10-16): the

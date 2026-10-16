@@ -221,7 +221,10 @@ export interface SpeciesDef {
    *  'nectar'  = 1x Sweet Nectar, the standard lure flow;
    *  'predator' = the stalker's bespoke offering (kept in the hook);
    *  null = no lure flow (untamable). */
-  bait: 'nectar' | 'predator' | null;
+  // 'heart_sap' (slice 44): the Rootfall Bear's rent returned as
+  // an offering — a bespoke taming branch reads it, the way the
+  // Hearth Dog's branch reads its offerings.
+  bait: 'nectar' | 'predator' | 'heart_sap' | null;
   /** Default companion name granted on a successful tame. */
   petName: string;
   byproduct: SpeciesByproduct | null;
@@ -780,9 +783,21 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
     name: 'Rootfall Bear',
     profile: 'territorial',
     tameChance: 0.2,
-    bait: 'nectar',
+    // The landlord negotiation (slice 44, 2026-10-16): the
+    // bear is courted with its own rent — Heart Sap, which it
+    // leaves at the hollow mouth (the byproduct below) and
+    // accepts back as an offering, at its own odds. A bespoke
+    // branch in the taming flow reads the 'heart_sap' bait.
+    bait: 'heart_sap',
     petName: 'Rootfall Bear',
     byproduct: { item: 'heart_sap', seconds: 300, tamedOnly: false },
+    // Sleepy-territorial, as designed: it defends the hollow
+    // with enormous reluctance and total conviction, in that
+    // order — which in table terms is a provoked-only hunt.
+    // Walking past, gathering the rent quietly, even watching
+    // from the clearing's edge: none of it wakes the landlord.
+    // Laying a hand on him is another tenancy entirely.
+    hunt: { aggroRange: 6, damage: 18, biteRange: 2.2, biteCooldownSeconds: 2.5, provokedOnly: true },
     bonusSpawn: {
       biomes: ['rootwood'],
       variant: 'rootwood_rootfall',
@@ -2029,9 +2044,17 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
     bait: 'nectar',
     petName: 'Root Otter',
     byproduct: null,
+    // A swimmer of the Drowned Roots (slice 44, 2026-10-16):
+    // the design's whole body is an argument that water and
+    // root are one medium, so it deals at the hybrid's ponds
+    // and rides them at the surface. Its caches — small bright
+    // things banked in the roots, appearing like dividends —
+    // are kept by the sim (see useWorldEntities).
+    swim: { depth: 0.25 },
     bonusSpawn: {
       biomes: ['wetland', 'rootwood'],
       hybrid: ['wetland', 'rootwood'],
+      pond: true,
       count: 2, // small family rafts
       minRadius: 10,
       spacing: 5,

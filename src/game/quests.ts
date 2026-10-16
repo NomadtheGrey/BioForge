@@ -93,7 +93,7 @@ export interface QuestDef {
   /** The gauntlet ladder's bands: 1 = the basic modules, 2 = Field
    * Synthesis. The quest list groups by tier (Adam: "a list of the
    * same tier mini quests"). */
-  tier: 1 | 2;
+  tier: 1 | 2 | 3;
   title: string;
   /** One warm line of direction — a hint, not a lecture. */
   blurb: string;
@@ -268,6 +268,176 @@ export const QUESTS: QuestDef[] = [
       { itemId: 'soft_fiber', count: 4 },
     ],
     completeItem: 'living_rucksack',
+  },
+  // ----------------------------------------------------------------
+  // CHAPTER 3 — EYES & FEET (published 2026-10-15): the helmet and
+  // Quicksteps lines join the chain. Adam's sequencing holds: the
+  // gauntlet's story first, the platforms after. Every quest
+  // follows the one pattern — gathers mirror its recipe, and the
+  // craft itself is the final checkbox (completeItem). The worn
+  // EFFECTS land with the platform builds; the paper is live now.
+  // ----------------------------------------------------------------
+  {
+    id: 'q_helm',
+    tier: 3,
+    title: 'Eyes on the Land',
+    blurb:
+      'The gauntlet acts; the helm will know. Grow a Homestead Helm from hearthlands country — its band carries the basic radar, and every lens you ever grind mounts on it.',
+    gather: [
+      { itemId: 'carapace_scale', count: 2 },
+      { itemId: 'soft_fiber', count: 2 },
+      { itemId: 'resin_sap', count: 1 },
+    ],
+    completeItem: 'homestead_helm',
+  },
+  {
+    id: 'q_trail_lens',
+    tier: 3,
+    title: 'First Words',
+    blurb:
+      'Grind a Trail Lens and the land starts introducing itself: the family of every country you stand in, named.',
+    gather: [
+      { itemId: 'sunshard', count: 1 },
+      { itemId: 'resin_sap', count: 1 },
+    ],
+    completeItem: 'trail_lens',
+  },
+  {
+    id: 'q_waders',
+    tier: 3,
+    title: 'Dry Feet',
+    blurb:
+      'The Mirror Marsh drags at every step and names its answer in its own alert: Waders. Grow a pair and wade like you mean it.',
+    gather: [
+      { itemId: 'dew_essence', count: 2 },
+      { itemId: 'soft_fiber', count: 1 },
+      { itemId: 'resin_sap', count: 1 },
+    ],
+    completeItem: 'waders',
+  },
+  {
+    id: 'q_stillsteps',
+    tier: 3,
+    title: 'Walk the Water',
+    blurb:
+      'Stillsteps grow a tension film under the sole. Still water holds you. Walk it.',
+    gather: [
+      { itemId: 'dew_essence', count: 3 },
+      { itemId: 'resin_sap', count: 2 },
+    ],
+    completeItem: 'stillsteps',
+  },
+  {
+    id: 'q_webfoots',
+    tier: 3,
+    title: "The River's Own",
+    blurb:
+      'Webfoots: reed-vane webs for the swim. The water stops being an argument.',
+    gather: [
+      { itemId: 'resonant_reed', count: 2 },
+      { itemId: 'soft_fiber', count: 2 },
+      { itemId: 'resin_sap', count: 1 },
+    ],
+    completeItem: 'webfoots',
+  },
+  {
+    id: 'q_ember_soles',
+    tier: 3,
+    title: 'Cross the Fire',
+    blurb:
+      "The Scar's ground warns you. Ember Soles — obsidian tread in heat-cured resin — answer.",
+    gather: [
+      { itemId: 'obsidian_shard', count: 2 },
+      { itemId: 'resin_sap', count: 1 },
+    ],
+    completeItem: 'ember_soles',
+  },
+  {
+    id: 'q_spore_filter',
+    tier: 3,
+    title: 'Breathe Easy',
+    blurb:
+      "The Hollow taxes every breath. A Spore Filter stops the tax at your face.",
+    gather: [
+      { itemId: 'glow_spore', count: 2 },
+      { itemId: 'soft_fiber', count: 1 },
+      { itemId: 'resin_sap', count: 1 },
+    ],
+    completeItem: 'spore_filter',
+  },
+  {
+    id: 'q_biolume_visor',
+    tier: 3,
+    title: 'Light Below',
+    blurb:
+      'The deep strata are named for darkness. A Biolume Visor reads living light through all of it.',
+    gather: [
+      { itemId: 'sunshard', count: 2 },
+      { itemId: 'glow_spore', count: 2 },
+    ],
+    completeItem: 'biolume_visor',
+  },
+  {
+    id: 'q_shade_visor',
+    tier: 3,
+    title: 'Against the Glare',
+    blurb:
+      'The Flats run bright enough to wash the world out. A Shade Visor dims glare country to bearable.',
+    gather: [
+      { itemId: 'saltglass_shard', count: 1 },
+      { itemId: 'resin_sap', count: 1 },
+    ],
+    completeItem: 'shade_visor',
+  },
+  {
+    id: 'q_identifier',
+    tier: 3,
+    title: 'Name the Country',
+    blurb:
+      "Every country so far: 'Unidentified.' Grind the Identifier Lens and the land gives up its name — family, variant, and all.",
+    gather: [
+      { itemId: 'saltglass_shard', count: 2 },
+      { itemId: 'prismatic_core', count: 1 },
+    ],
+    completeItem: 'identifier_lens',
+  },
+  {
+    id: 'q_radar',
+    tier: 3,
+    title: 'The Far Eye',
+    blurb:
+      'Four subassemblies, one instrument. Grow the Prismatic Field Radar and the minimap pings what is worth walking for.',
+    gather: [
+      { itemId: 'resonant_antenna_fan', count: 1 },
+      { itemId: 'sonar_receiver', count: 1 },
+      { itemId: 'chitin_housing', count: 1 },
+      { itemId: 'biolume_power_cell', count: 1 },
+    ],
+    completeItem: 'prismatic_field_radar',
+  },
+  {
+    id: 'q_glyph_lens',
+    tier: 3,
+    title: 'Read the Stones',
+    blurb:
+      'The glyph stones have been holding back their deep lines. A Glyph Lens reads them first — and ruin caches glow faintly through the walls.',
+    gather: [
+      { itemId: 'precursor_shard', count: 2 },
+      { itemId: 'saltglass_shard', count: 1 },
+    ],
+    completeItem: 'glyph_lens',
+  },
+  {
+    id: 'q_charge_sight',
+    tier: 3,
+    title: 'Where the Sky Falls',
+    blurb:
+      'Zots warn by banner today. Charge Sight — fulgurite over a prismatic heart — paints the warned spot on the ground itself.',
+    gather: [
+      { itemId: 'fulgurite_shard', count: 1 },
+      { itemId: 'prismatic_core', count: 1 },
+    ],
+    completeItem: 'charge_sight',
   },
 ];
 

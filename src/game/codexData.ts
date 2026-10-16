@@ -6,8 +6,12 @@
  * trigger (constants was at ~125K of the ~131K single-push cap):
  * pure data, no logic, moved whole. constants.ts re-exports
  * INITIAL_CODEX from here, so existing imports never moved.
+ * (Regenerated on the slice-9 tip: the creatures chat's 5a pass
+ * had already moved the new flora entries' codex home — this
+ * file carries the current, complete set.)
  */
 import type { CodexEntry } from '../types/game';
+import { FLORA_CODEX } from './flora';
 
 export const INITIAL_CODEX: CodexEntry[] = [
   {
@@ -946,6 +950,8 @@ export const INITIAL_CODEX: CodexEntry[] = [
     biome: 'The Living (the heart points)',
     iconColor: '#e11d48',
   },
+  ...FLORA_CODEX,
+
   {
     species: 'iris_slit_door',
     name: 'Iris-Slit Proximity Door',

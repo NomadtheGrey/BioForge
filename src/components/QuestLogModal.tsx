@@ -47,7 +47,7 @@ export const QuestLogModal = ({
   // any available-or-done quest may be re-tracked for its checks.
   const firstOpenIdx = views.findIndex((v) => !isDone(v));
 
-  const tiers = [1, 2] as const;
+  const tiers = [1, 2, 3] as const;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
@@ -103,7 +103,9 @@ export const QuestLogModal = ({
                 <div className="text-[10px] font-black tracking-[0.22em] text-emerald-300/80 mb-2">
                   {tier === 1
                     ? 'TIER 1 — GAUNTLET BASICS'
-                    : 'TIER 2 — FIELD SYNTHESIS'}
+                    : tier === 2
+                      ? 'TIER 2 — FIELD SYNTHESIS'
+                      : 'TIER 3 — EYES & FEET'}
                 </div>
                 <div className="space-y-2">
                   {tierViews.map((v) => {

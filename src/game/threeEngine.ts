@@ -306,6 +306,21 @@ export class BioForgeThreeEngine {
     coal_cap: { color: 0xea580c, intensity: 0.4, distance: 2.5, y: 0.4 },
     snow_morel: { color: 0x78716c, intensity: 0.2, distance: 2, y: 0.3 },
     ink_cap: { color: 0x9ca3af, intensity: 0.2, distance: 2, y: 0.5 },
+    // Flora wave 2 (creature slice 10, 2026-10-16): the Bog
+    // Lantern and Glowcap are real lamps; the Stormroot's fruit
+    // smolders amber; the rest keep ground-flora halos.
+    bonemoss: { color: 0x14532d, intensity: 0.2, distance: 2, y: 0.2 },
+    listening_fern: { color: 0x4ade80, intensity: 0.3, distance: 2.5, y: 0.6 },
+    snowbell: { color: 0xbae6fd, intensity: 0.4, distance: 2.5, y: 0.6 },
+    grave_vine: { color: 0xf1f5f9, intensity: 0.25, distance: 2, y: 0.4 },
+    saltroot: { color: 0xa5f3fc, intensity: 0.35, distance: 3, y: 0.6 },
+    stormroot: { color: 0xfbbf24, intensity: 0.5, distance: 3, y: 0.4 },
+    bog_lantern: { color: 0xa3e635, intensity: 0.8, distance: 4.5, y: 0.6 },
+    gale_grass: { color: 0xfde68a, intensity: 0.25, distance: 2, y: 0.5 },
+    doorstep_rose: { color: 0xfb7185, intensity: 0.3, distance: 2.5, y: 0.4 },
+    glyph_vine: { color: 0xa3e635, intensity: 0.35, distance: 2.5, y: 0.7 },
+    glowcap: { color: 0x4ade80, intensity: 0.85, distance: 4.5, y: 0.4 },
+    ash_puff: { color: 0xd6d3d1, intensity: 0.2, distance: 2, y: 0.2 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },

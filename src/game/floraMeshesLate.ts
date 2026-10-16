@@ -694,6 +694,61 @@ export function buildLateFloraMesh(
         break;
       }
 
+      case 'valley_heart': {
+        // The valley decides here (slice 31, landscape flora):
+        // one great tree, canopy as micro-biome — drawn wide
+        // and layered; the scale row does the rest.
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.45, 1.6, 10), new THREE.MeshStandardMaterial({ color: 0x713f12, roughness: 1 }));
+        trunk.position.y = 0.8;
+        group.add(trunk);
+        const canopyMat = new THREE.MeshStandardMaterial({ color: 0x65a30d, roughness: 1 });
+        for (let i = 0; i < 4; i++) {
+          const blob = new THREE.Mesh(new THREE.SphereGeometry(0.75 - i * 0.08, 10, 8), canopyMat);
+          blob.position.set((i % 2 === 0 ? 1 : -1) * 0.4 * (i > 1 ? 0.5 : 1), 1.9 + i * 0.22, (i % 3 === 0 ? 1 : -1) * 0.3);
+          group.add(blob);
+        }
+        break;
+      }
+
+      case 'mother_grove': {
+        // One organism, miles across (slice 31): the grove-
+        // cluster presence — a ring of its fingers, one body.
+        const capMat = new THREE.MeshStandardMaterial({ color: 0xa16207, roughness: 0.9 });
+        const stalkMat = new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 0.95 });
+        for (let i = 0; i < 5; i++) {
+          const a = (i / 5) * Math.PI * 2;
+          const x = Math.cos(a) * 0.35, z = Math.sin(a) * 0.35;
+          const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.05, 0.3 + (i % 3) * 0.1, 6), stalkMat);
+          stalk.position.set(x, 0.2, z);
+          group.add(stalk);
+          const cap = new THREE.Mesh(new THREE.SphereGeometry(0.14, 9, 6, 0, Math.PI * 2, 0, Math.PI / 2), capMat);
+          cap.position.set(x, 0.35 + (i % 3) * 0.1, z);
+          group.add(cap);
+        }
+        // The center finger, eldest.
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.08, 0.5, 7), stalkMat);
+        stalk.position.y = 0.25;
+        group.add(stalk);
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.24, 10, 7, 0, Math.PI * 2, 0, Math.PI / 2), capMat);
+        cap.position.y = 0.5;
+        group.add(cap);
+        break;
+      }
+
+      case 'first_tree': {
+        // A zone's ceiling (slice 31): the standing sibling —
+        // a straight giant with a high, wide crown.
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.5, 2.1, 10), new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 1 }));
+        trunk.position.y = 1.05;
+        group.add(trunk);
+        const crownMat = new THREE.MeshStandardMaterial({ color: 0x365314, roughness: 1 });
+        const crown = new THREE.Mesh(new THREE.SphereGeometry(0.95, 11, 8), crownMat);
+        crown.scale.set(1.25, 0.6, 1.25);
+        crown.position.y = 2.5;
+        group.add(crown);
+        break;
+      }
+
     default:
       return null;
   }

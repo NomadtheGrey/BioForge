@@ -23,6 +23,7 @@ import { soundEngine } from '../audio/soundEngine';
 import { multiplayerManager } from '../game/multiplayer';
 import { FLORA_MATURE_SECONDS, FERTILIZER_DURATION_SECONDS } from './useWorldEntities';
 import { speciesDef } from '../game/species';
+import { floraDef } from '../game/flora';
 import { GROUND_LAYER_TYPES, isEdgePanel, isLadder, occupancyConflict, placementFor } from '../game/placement';
 
 // A new plant must be at least this far (meters) from every existing one —
@@ -185,6 +186,22 @@ export function useToolInteractions({
   const computeHarvestYields = (
     flora: FloraEntity
   ): { item: ItemId; count: number; extras: [ItemId, number][] } => {
+    // Flora table first (creature slice 9, 2026-10-15): species that
+    // live in flora.ts carry their yields as DATA — one table, read by
+    // both the glove and the solvent, so the two can never drift (the
+    // rule this function was built on, extended). The switch below
+    // remains the home for the census/dressing species whose yields
+    // carry bespoke commentary; new species should land in the table,
+    // not here.
+    const tableDef = floraDef(flora.species);
+    if (tableDef?.harvest) {
+      const h = tableDef.harvest;
+      return {
+        item: h.item,
+        count: flora.fertilizedYield ? h.fertilizedCount : h.count,
+        extras: h.extras ?? [],
+      };
+    }
     switch (flora.species) {
       case 'lantern_fern':
         return { item: 'soft_fiber', count: flora.fertilizedYield ? 5 : 2, extras: [['dew_essence', 1]] };

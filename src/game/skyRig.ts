@@ -221,6 +221,124 @@ function makeMoonTexture(base: string, patch: string, seed: number): THREE.Canva
   return tex;
 }
 
+/**
+ * A nebula: overlapping radial-gradient clouds in one hue
+ * family, composited additively at render time. The canvas
+ * itself is soft blobs with feathered edges and a few darker
+ * dust lanes cut across — pretty at very low opacity, which is
+ * how the dome wears them.
+ */
+function makeNebulaTexture(seed: number, hues: number[]): THREE.CanvasTexture {
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d')!;
+  const rnd = seededRandom(seed);
+  for (let i = 0; i < 9; i++) {
+    const x = size * (0.3 + rnd() * 0.4);
+    const y = size * (0.3 + rnd() * 0.4);
+    const r = size * (0.14 + rnd() * 0.24);
+    const hue = hues[i % hues.length];
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, `hsla(${hue}, 85%, 68%, ${0.16 + rnd() * 0.14})`);
+    g.addColorStop(0.6, `hsla(${hue}, 80%, 55%, ${0.07 + rnd() * 0.06})`);
+    g.addColorStop(1, `hsla(${hue}, 80%, 50%, 0)`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, size, size);
+  }
+  // Dust lanes: a couple of dark soft strokes across the glow.
+  ctx.globalCompositeOperation = 'destination-out';
+  for (let i = 0; i < 3; i++) {
+    const y = size * (0.32 + rnd() * 0.36);
+    const g = ctx.createLinearGradient(0, y - 12, 0, y + 12);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(0.5, `rgba(0,0,0,${0.25 + rnd() * 0.2})`);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, y - 12, size, 24);
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+/**
+ * A galaxy: a bright core and two spiral arms of star-dots on a
+ * logarithmic spiral, drawn once and worn tilted and squashed,
+ * so it reads as a little pinwheel of somebody else's sky.
+ */
+function makeGalaxyTexture(seed: number): THREE.CanvasTexture {
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d')!;
+  const rnd = seededRandom(seed);
+  const c = size / 2;
+  const core = ctx.createRadialGradient(c, c, 0, c, c, size * 0.2);
+  core.addColorStop(0, 'rgba(255,246,224,0.9)');
+  core.addColorStop(0.4, 'rgba(240,220,180,0.35)');
+  core.addColorStop(1, 'rgba(240,220,180,0)');
+  ctx.fillStyle = core;
+  ctx.fillRect(0, 0, size, size);
+  for (let arm = 0; arm < 2; arm++) {
+    for (let i = 0; i < 340; i++) {
+      const t = rnd();
+      const ang = arm * Math.PI + t * 3.6 + (rnd() - 0.5) * 0.35;
+      const r = 6 + t * (size * 0.44);
+      const x = c + Math.cos(ang) * r + (rnd() - 0.5) * 7;
+      const y = c + Math.sin(ang) * r + (rnd() - 0.5) * 7;
+      const a = (1 - t) * (0.25 + rnd() * 0.5);
+      ctx.fillStyle = rnd() > 0.82 ? `rgba(170,196,255,${a})` : `rgba(255,244,220,${a})`;
+      ctx.fillRect(x, y, 1.6, 1.6);
+    }
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+/**
+ * A comet: one canvas carrying the whole apparition — bright
+ * head at the right, a long tapering tail streaming left with a
+ * slight wave, drawn additively. The mesh rotates in its plane
+ * so the tail trails the direction of travel.
+ */
+function makeCometTexture(): THREE.CanvasTexture {
+  const w = 256;
+  const h = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d')!;
+  // Tail: layered translucent wedges, longest and faintest first.
+  for (const [len, alpha, spread] of [[235, 0.1, 13], [185, 0.16, 9], [130, 0.24, 5.5]] as const) {
+    const g = ctx.createLinearGradient(232, 0, 232 - len, 0);
+    g.addColorStop(0, `rgba(190,220,255,${alpha})`);
+    g.addColorStop(1, 'rgba(190,220,255,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(232, h / 2 - 1.5);
+    ctx.lineTo(232 - len, h / 2 - spread);
+    ctx.lineTo(232 - len, h / 2 + spread);
+    ctx.lineTo(232, h / 2 + 1.5);
+    ctx.closePath();
+    ctx.fill();
+  }
+  // Head: glow + core.
+  const glow = ctx.createRadialGradient(228, h / 2, 0, 228, h / 2, 17);
+  glow.addColorStop(0, 'rgba(255,255,255,0.95)');
+  glow.addColorStop(0.35, 'rgba(210,230,255,0.5)');
+  glow.addColorStop(1, 'rgba(210,230,255,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(200, 0, 56, h);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
 export class SkyRig {
   /** The companion sun's light (no shadows; the primary keeps them). */
   public sunLightB: THREE.DirectionalLight;
@@ -239,7 +357,17 @@ export class SkyRig {
    *  whole numbers of orbits per planet rotation and every
    *  client (host and guests alike) sees the same sky. */
   private moons: { mesh: THREE.Mesh; orbitR: number; orbitsPerCycle: number; phase: number; squash: number; depth: number }[] = [];
-  private starPoints: THREE.Points;
+  /** The night dome (2026-10-16 sky rebuild): field stars,
+   *  constellations, nebulae, and galaxies all live in this one
+   *  group so the whole firmament wheels together. */
+  private starDome: THREE.Group = new THREE.Group();
+  /** Night materials that fade WITH the engine-driven star
+   *  signal: the engine's palette pass owns starMaterial's
+   *  opacity; update() reads it and scales each entry by its max. */
+  private nightMats: { mat: THREE.Material; max: number }[] = [];
+  /** Comets (2026-10-16): each crosses the night on its own
+   *  fixed arc during its window of the planet's transit. */
+  private comets: { group: THREE.Group; plane: THREE.Mesh; mat: THREE.MeshBasicMaterial; from: THREE.Vector3; to: THREE.Vector3; start: number; span: number }[] = [];
   private dirLight: THREE.DirectionalLight;
 
   constructor(scene: THREE.Scene, dirLight: THREE.DirectionalLight) {
@@ -259,10 +387,15 @@ export class SkyRig {
       return m;
     };
     // The binary: a large warm primary and its smaller companion.
-    this.sunGlowA = disc(15, 0xffdf8a, 0.28);
-    this.sunMeshA = disc(7, 0xfff3c4, 1);
-    this.sunGlowB = disc(9.5, 0xffc98a, 0.24);
-    this.sunMeshB = disc(4.4, 0xffe3ae, 1);
+    // The binary, re-cast (Adam, 2026-10-16): the primary is a
+    // RED GIANT now — much larger than the old warm sun — and its
+    // companion a smaller blue-white star. They no longer cross
+    // as a fixed pair: update() wheels them around their shared
+    // barycenter as the pair rides the day path.
+    this.sunGlowA = disc(36, 0xff5a2a, 0.3);
+    this.sunMeshA = disc(17, 0xff7a40, 1);
+    this.sunGlowB = disc(11, 0xaac4ff, 0.22);
+    this.sunMeshB = disc(5, 0xdceaff, 1);
     // The ringed giant (ENLARGED, planet upgrade, Adam,
     // 2026-10-16): once a 12-radius disc (~8 degrees of sky), now
     // a 32-radius face with rings out to 62 — over 20 degrees,
@@ -331,37 +464,211 @@ export class SkyRig {
       this.moons.push({ mesh, orbitR: def.orbitR, orbitsPerCycle: def.orbitsPerCycle, phase: def.phase, squash: def.squash, depth: def.depth });
       this.planetGroup.add(mesh);
     }
-    // Stars: a seeded shell (identical on every client), revealed
-    // by the night — opacity is driven from the engine's palette
-    // pass through starMaterial.
-    const starGeo = new THREE.BufferGeometry();
-    const starCount = 700;
-    const pos = new Float32Array(starCount * 3);
-    let s = 1234567;
-    const rnd = () => {
-      s = (s * 1103515245 + 12345) & 0x7fffffff;
-      return s / 0x7fffffff;
+    // -- The night dome (rebuilt, Adam, 2026-10-16) --------------
+    // The old sky scattered 700 identical stars uniformly. This
+    // one is built the way our own sky is built: a galactic BAND
+    // the field crowds toward, a magnitude law (a few bright,
+    // many dim — brightness rides vertex colors, size rides three
+    // layers), twelve seeded CONSTELLATIONS with faint joins,
+    // nebulae, and galaxies. Everything is seeded, so every
+    // client under this sky sees the same firmament, and the
+    // whole dome wheels slowly with the cycle as one body.
+    const dome = this.starDome;
+    const srnd = seededRandom(987123);
+    const SHELL = 178;
+    const dirFromAzEl = (az: number, el: number, r: number): THREE.Vector3 =>
+      new THREE.Vector3(Math.cos(az) * Math.cos(el) * r, Math.sin(el) * r, Math.sin(az) * Math.cos(el) * r);
+    // Field directions: ~55% crowd toward the galactic band (a
+    // great circle whose normal is tilted), the rest go anywhere
+    // in the upper dome — the repeatable "noise" Adam asked for
+    // is this seeded stream plus the band geometry.
+    const bandNormal = new THREE.Vector3(0.42, 1, 0.3).normalize();
+    const bandU = new THREE.Vector3().crossVectors(bandNormal, new THREE.Vector3(0, 0, 1)).normalize();
+    const bandV = new THREE.Vector3().crossVectors(bandNormal, bandU).normalize();
+    const fieldDir = (): THREE.Vector3 => {
+      if (srnd() < 0.55) {
+        const a = srnd() * Math.PI * 2;
+        const off = ((srnd() + srnd() + srnd()) / 1.5 - 1) * 0.21; // ~gaussian, ±12°
+        const d = bandU.clone().multiplyScalar(Math.cos(a)).addScaledVector(bandV, Math.sin(a)).addScaledVector(bandNormal, off).normalize();
+        if (d.y < 0.03) d.y = 0.03 + srnd() * 0.1;
+        return d.normalize();
+      }
+      return dirFromAzEl(srnd() * Math.PI * 2, Math.asin(srnd() * 0.98 + 0.01), 1);
     };
-    for (let i = 0; i < starCount; i++) {
-      const az = rnd() * Math.PI * 2;
-      const el = Math.asin(rnd() * 0.98 + 0.01);
-      const r = 178;
-      pos[i * 3] = Math.cos(az) * Math.cos(el) * r;
-      pos[i * 3 + 1] = Math.sin(el) * r;
-      pos[i * 3 + 2] = Math.sin(az) * Math.cos(el) * r;
+    // The field: 950 stars under the magnitude law, dealt into
+    // three size layers (dim 1.3 / mid 1.9 / bright 2.7 px).
+    const buckets: { size: number; pos: number[]; col: number[] }[] = [
+      { size: 1.3, pos: [], col: [] },
+      { size: 1.9, pos: [], col: [] },
+      { size: 2.7, pos: [], col: [] },
+    ];
+    for (let i = 0; i < 950; i++) {
+      const d = fieldDir();
+      const bright = 0.22 + 0.78 * Math.pow(srnd(), 3);
+      const bucket = buckets[bright > 0.72 ? 2 : bright > 0.45 ? 1 : 0];
+      bucket.pos.push(d.x * SHELL, d.y * SHELL, d.z * SHELL);
+      const tint = srnd();
+      const tr = tint > 0.85 ? 1 : tint > 0.7 ? 0.82 : 0.95;
+      const tb = tint > 0.85 ? 0.78 : tint > 0.7 ? 1 : 0.95;
+      bucket.col.push(bright * tr, bright * 0.93, bright * tb);
     }
-    starGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    this.starMaterial = new THREE.PointsMaterial({
-      color: 0xffffff,
-      size: 1.7,
+    const layerMats = buckets.map((bucket) => {
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(bucket.pos, 3));
+      geo.setAttribute('color', new THREE.Float32BufferAttribute(bucket.col, 3));
+      const mat = new THREE.PointsMaterial({
+        size: bucket.size,
+        sizeAttenuation: false,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0,
+        fog: false,
+        depthWrite: false,
+      });
+      const points = new THREE.Points(geo, mat);
+      points.renderOrder = -11;
+      dome.add(points);
+      return mat;
+    });
+    // The engine's palette pass drives the MID layer directly
+    // (it is starMaterial); the dim and bright layers follow
+    // through nightMats in update().
+    this.starMaterial = layerMats[1];
+    this.nightMats.push({ mat: layerMats[0], max: 0.72 });
+    this.nightMats.push({ mat: layerMats[2], max: 0.95 });
+    // Constellations: twelve seeded random-walk chains. Each is
+    // a little figure a player can find again tomorrow night —
+    // bright stars, with the joins drawn hair-faint.
+    const cPos: number[] = [];
+    const cCol: number[] = [];
+    const linePos: number[] = [];
+    for (let c = 0; c < 12; c++) {
+      const center = dirFromAzEl((c / 12) * Math.PI * 2 + srnd() * 0.7, 0.35 + srnd() * 0.75, 1);
+      const u = new THREE.Vector3().crossVectors(center, new THREE.Vector3(0, 1, 0)).normalize();
+      const v = new THREE.Vector3().crossVectors(center, u).normalize();
+      let p = center.clone();
+      let heading = srnd() * Math.PI * 2;
+      const steps = 4 + Math.floor(srnd() * 4);
+      let prev: THREE.Vector3 | null = null;
+      for (let sIdx = 0; sIdx <= steps; sIdx++) {
+        const pt = p.clone().multiplyScalar(SHELL);
+        cPos.push(pt.x, pt.y, pt.z);
+        const b = 0.85 + srnd() * 0.15;
+        cCol.push(b, b * 0.95, b);
+        if (prev) linePos.push(prev.x, prev.y, prev.z, pt.x, pt.y, pt.z);
+        prev = pt;
+        heading += (srnd() - 0.5) * 0.95;
+        const step = 0.055 + srnd() * 0.05;
+        p = p.addScaledVector(u, Math.cos(heading) * step).addScaledVector(v, Math.sin(heading) * step).normalize();
+      }
+    }
+    const cGeo = new THREE.BufferGeometry();
+    cGeo.setAttribute('position', new THREE.Float32BufferAttribute(cPos, 3));
+    cGeo.setAttribute('color', new THREE.Float32BufferAttribute(cCol, 3));
+    const cMat = new THREE.PointsMaterial({
+      size: 3.0,
       sizeAttenuation: false,
+      vertexColors: true,
       transparent: true,
       opacity: 0,
       fog: false,
       depthWrite: false,
     });
-    this.starPoints = new THREE.Points(starGeo, this.starMaterial);
-    this.starPoints.renderOrder = -11;
+    const cPoints = new THREE.Points(cGeo, cMat);
+    cPoints.renderOrder = -11;
+    dome.add(cPoints);
+    this.nightMats.push({ mat: cMat, max: 0.95 });
+    const lGeo = new THREE.BufferGeometry();
+    lGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePos, 3));
+    const lMat = new THREE.LineBasicMaterial({
+      color: 0x87a6d8,
+      transparent: true,
+      opacity: 0,
+      fog: false,
+      depthWrite: false,
+    });
+    const cLines = new THREE.LineSegments(lGeo, lMat);
+    cLines.renderOrder = -11;
+    dome.add(cLines);
+    this.nightMats.push({ mat: lMat, max: 0.14 });
+    // Nebulae: five soft clouds in their own hue families,
+    // worn additively and dim — color you notice after a moment,
+    // not signage.
+    const nebulaDefs: { az: number; el: number; r: number; hues: number[]; seed: number; max: number }[] = [
+      { az: 0.9, el: 0.62, r: 30, hues: [268, 288, 318], seed: 5101, max: 0.8 },
+      { az: 2.5, el: 0.95, r: 23, hues: [174, 196, 160], seed: 5102, max: 0.65 },
+      { az: 3.9, el: 0.5, r: 35, hues: [330, 288, 24], seed: 5103, max: 0.75 },
+      { az: 5.1, el: 1.05, r: 20, hues: [214, 250, 190], seed: 5104, max: 0.6 },
+      { az: 5.9, el: 0.72, r: 26, hues: [288, 330, 200], seed: 5105, max: 0.7 },
+    ];
+    for (const def of nebulaDefs) {
+      const mat = new THREE.MeshBasicMaterial({
+        map: makeNebulaTexture(def.seed, def.hues),
+        transparent: true,
+        opacity: 0,
+        fog: false,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        side: THREE.DoubleSide,
+      });
+      const mesh = new THREE.Mesh(new THREE.CircleGeometry(def.r, 40), mat);
+      mesh.position.copy(dirFromAzEl(def.az, def.el, SHELL - 8));
+      mesh.lookAt(0, 0, 0);
+      mesh.renderOrder = -12;
+      dome.add(mesh);
+      this.nightMats.push({ mat, max: def.max });
+    }
+    // Galaxies: three little pinwheels, tilted and squashed.
+    const galaxyDefs: { az: number; el: number; r: number; tilt: number; seed: number }[] = [
+      { az: 1.8, el: 0.85, r: 10.5, tilt: 0.7, seed: 6101 },
+      { az: 4.4, el: 0.66, r: 8, tilt: 2.2, seed: 6102 },
+      { az: 5.6, el: 1.15, r: 6.5, tilt: 1.4, seed: 6103 },
+    ];
+    for (const def of galaxyDefs) {
+      const mat = new THREE.MeshBasicMaterial({
+        map: makeGalaxyTexture(def.seed),
+        transparent: true,
+        opacity: 0,
+        fog: false,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        side: THREE.DoubleSide,
+      });
+      const mesh = new THREE.Mesh(new THREE.CircleGeometry(def.r, 40), mat);
+      mesh.position.copy(dirFromAzEl(def.az, def.el, SHELL - 6));
+      mesh.lookAt(0, 0, 0);
+      mesh.rotateZ(def.tilt);
+      mesh.scale.set(1, 0.48, 1);
+      mesh.renderOrder = -12;
+      dome.add(mesh);
+      this.nightMats.push({ mat, max: 0.85 });
+    }
+    this.skyGroup.add(dome);
+    // Comets: two apparitions a night (built here, flown in
+    // update). Each rides the skyGroup, NOT the dome — their
+    // arcs are their own, not the firmament's wheel.
+    const cometDefs: { from: THREE.Vector3; to: THREE.Vector3; start: number; span: number }[] = [
+      { from: dirFromAzEl(0.6, 0.95, 172), to: dirFromAzEl(2.5, 0.32, 172), start: 0.08, span: 0.72 },
+      { from: dirFromAzEl(3.7, 1.08, 172), to: dirFromAzEl(5.4, 0.48, 172), start: 0.34, span: 0.6 },
+    ];
+    for (const def of cometDefs) {
+      const mat = new THREE.MeshBasicMaterial({
+        map: makeCometTexture(),
+        transparent: true,
+        opacity: 0,
+        fog: false,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        side: THREE.DoubleSide,
+      });
+      const plane = new THREE.Mesh(new THREE.PlaneGeometry(36, 9), mat);
+      plane.renderOrder = -10;
+      const group = new THREE.Group();
+      group.add(plane);
+      group.visible = false;
+      this.skyGroup.add(group);
+      this.comets.push({ group, plane, mat, from: def.from, to: def.to, start: def.start, span: def.span });
+    }
     // The companion sun gets its own light; both lights aim
     // through the primary's target, which rides the camera (added
     // to the scene here so its matrix updates).
@@ -373,7 +680,6 @@ export class SkyRig {
     this.skyGroup.add(this.sunGlowB);
     this.skyGroup.add(this.sunMeshB);
     this.skyGroup.add(this.planetGroup);
-    this.skyGroup.add(this.starPoints);
     scene.add(this.skyGroup);
   }
 
@@ -399,15 +705,30 @@ export class SkyRig {
       return new THREE.Vector3(Math.cos(az) * 0.92, el, 0.38).normalize();
     };
     const R = 165;
-    // The binary pair: B trails A along the same path by a
-    // fraction of the day band.
+    // The binary in MUTUAL ORBIT (Adam, 2026-10-16): the pair's
+    // barycenter rides the day path as before, and the two stars
+    // wheel around it — one full revolution per planet rotation
+    // (600 s), slow enough to feel stately, fast enough that the
+    // giant and its companion have visibly swapped sides between
+    // sunrise and sunset. The heavier red giant hugs the center
+    // (7.5 units); the lighter companion swings wider (13). The
+    // orbit is inclined (vertical squash 0.7) so the wheel reads
+    // as a wheel, not a seesaw. Angles derive from the shared
+    // cycle, so every client sees the same configuration.
     const inDayBand = dayT >= -0.04 && dayT <= 1.04;
-    const dirA = pathDir(THREE.MathUtils.clamp(dayT, 0, 1));
-    const dirB = pathDir(THREE.MathUtils.clamp(dayT - 0.055, 0, 1));
+    const bary = pathDir(THREE.MathUtils.clamp(dayT, 0, 1));
+    const side = new THREE.Vector3().crossVectors(bary, new THREE.Vector3(0, 1, 0)).normalize();
+    const upv = new THREE.Vector3().crossVectors(side, bary).normalize();
+    const orbA = Math.PI * 2 * (cycle + 0.13);
+    const off = side
+      .multiplyScalar(Math.cos(orbA))
+      .addScaledVector(upv, Math.sin(orbA) * 0.7);
+    const dirA = bary.clone().multiplyScalar(R).addScaledVector(off, 7.5).normalize();
+    const dirB = bary.clone().multiplyScalar(R).addScaledVector(off, -13).normalize();
     this.sunMeshA.visible = inDayBand;
     this.sunGlowA.visible = inDayBand;
-    this.sunMeshB.visible = inDayBand && dayT > 0.03;
-    this.sunGlowB.visible = this.sunMeshB.visible;
+    this.sunMeshB.visible = inDayBand;
+    this.sunGlowB.visible = inDayBand;
     this.sunMeshA.position.copy(dirA).multiplyScalar(R);
     this.sunGlowA.position.copy(dirA).multiplyScalar(R + 1);
     this.sunMeshB.position.copy(dirB).multiplyScalar(R);
@@ -441,8 +762,38 @@ export class SkyRig {
         );
       }
     }
-    // The star shell wheels very slowly with the cycle.
-    this.starPoints.rotation.y = cycle * 0.8;
+    // The whole night dome wheels very slowly with the cycle.
+    this.starDome.rotation.y = cycle * 0.8;
+    // Night fades: the engine's palette pass sets starMaterial's
+    // opacity from dayness; everything else nocturnal follows
+    // that one signal, scaled by its own max.
+    const nightF = THREE.MathUtils.clamp(this.starMaterial.opacity / 0.95, 0, 1);
+    for (const nm of this.nightMats) {
+      (nm.mat as THREE.Material & { opacity: number }).opacity = nm.max * nightF;
+    }
+    // Comets (2026-10-16): each crosses on its fixed arc during
+    // its window of the planet's transit, fading in and out at
+    // the ends of the run. The tail trails the travel direction:
+    // the plane billboards to the camera, then rolls in its own
+    // plane until the streak points back along the velocity.
+    for (const comet of this.comets) {
+      const p = planetUp ? (planetT - comet.start) / comet.span : -1;
+      if (p < 0 || p > 1) {
+        comet.group.visible = false;
+        continue;
+      }
+      comet.group.visible = true;
+      const pos = comet.from.clone().lerp(comet.to, p).normalize().multiplyScalar(172);
+      const ahead = comet.from.clone().lerp(comet.to, Math.min(1, p + 0.02)).normalize().multiplyScalar(172);
+      const vel = ahead.sub(pos);
+      comet.group.position.copy(pos);
+      comet.group.lookAt(camPos);
+      const viewDir = camPos.clone().sub(pos).normalize();
+      const right = new THREE.Vector3().crossVectors(viewDir, new THREE.Vector3(0, 1, 0)).normalize();
+      const up2 = new THREE.Vector3().crossVectors(right, viewDir).normalize();
+      comet.plane.rotation.z = Math.atan2(vel.dot(up2), vel.dot(right));
+      comet.mat.opacity = Math.sin(Math.PI * p) * 0.95 * nightF;
+    }
     // Lights ride their bodies; one shared target at the camera
     // keeps the direction honest in every zone.
     const target = this.dirLight.target;

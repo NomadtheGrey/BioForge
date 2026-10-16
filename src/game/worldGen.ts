@@ -184,8 +184,16 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     wave 13: the orchids, reeds and candles (Night Candle,
  *     Scar Orchid, Feral Rose, Bone Orchid, Snow Cress and
  *     kin). Table-only change.
+ * v44: creature build phase, slice 29 (2026-10-16) — flora
+ *     wave 14, THE FINAL flora wave: the last twelve land
+ *     species (Scald Fern, Mulch Rose, Brine Rose, Steam Cap
+ *     and the molds). With this version the LAND ROSTER IS
+ *     COMPLETE — 325 of 358 designed species in game. What
+ *     remains is gated on Adam's calls: the landscape flora
+ *     trio, Lake Jelly + the pond fauna (pond system), and
+ *     the oversize tier. Table-only change.
  */
-export const WORLD_GEN_VERSION = 43; // v43 (2026-10-16): creature slice 28 — flora wave 13, orchids/reeds/candles; v42 was creature slice 27 (flora wave 12)
+export const WORLD_GEN_VERSION = 44; // v44 (2026-10-16): creature slice 29 — flora wave 14, FINAL; land roster complete; v43 was creature slice 28 (flora wave 13)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

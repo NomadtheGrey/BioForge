@@ -153,6 +153,12 @@ export type ItemId =
   | 'chime_straw'
   | 'feral_cutting'
   | 'bone_bloom'
+  | 'scald_frond'
+  | 'mulch_petal'
+  | 'brine_bloom'
+  | 'sump_cap'
+  | 'grave_puff'
+  | 'steam_cap'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -510,7 +516,20 @@ export type FloraSpecies =
   | 'bone_orchid'
   | 'marrow_reed'
   | 'pale_sedge'
-  | 'snow_cress';
+  | 'snow_cress'
+  // Flora wave 14 (slice 29, 2026-10-16) — THE FINAL flora wave.
+  | 'scald_fern'
+  | 'mulch_rose'
+  | 'brine_rose'
+  | 'frost_reed'
+  | 'snow_shelf'
+  | 'sump_cap'
+  | 'grave_puff'
+  | 'salt_mold'
+  | 'ash_mold'
+  | 'nest_cap'
+  | 'frost_mold'
+  | 'steam_cap';
 
 export interface FloraEntity {
   id: string;

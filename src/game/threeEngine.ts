@@ -19,7 +19,7 @@ import {
 } from '../types/game';
 import { FirstPersonViewmodel } from './viewmodel';
 import { landformHeightAt, zonePondsAt, type PondDef } from './terrain';
-import { isFloorType, BUILDING_TYPES } from './placement';
+import { isFloorType, BUILDING_TYPES, isDoorType } from './placement';
 import { BIOME_TINTS } from './biomes';
 import type { BiomeId } from './biomes';
 import { cavernCellToWorld, type CavernResult } from './cavern';
@@ -493,6 +493,8 @@ export class BioForgeThreeEngine {
     heart_tile: { color: 0xfb7185, intensity: 0.55, distance: 2.8, y: 0.5 },
     chitin_glass_wall: { color: 0x67e8f9, intensity: 0.55, distance: 2.5, y: 1.2 },
     rootweave_wall: { color: 0xa3e635, intensity: 0.35, distance: 2.2, y: 1.2 },
+    pen_fence: { color: 0x84cc16, intensity: 0.3, distance: 2.0, y: 1.0 },
+    pen_gate: { color: 0xa3e635, intensity: 0.35, distance: 2.2, y: 1.2 },
     iris_slit_door: { color: 0xf0abfc, intensity: 0.55, distance: 2.5, y: 1.2 },
     spore_canopy: { color: 0xa78bfa, intensity: 0.9, distance: 3.5, y: 2.6 },
     bio_forge_station: { color: 0x22d3ee, intensity: 0.9, distance: 3.5, y: 1.4 },
@@ -1547,7 +1549,7 @@ export class BioForgeThreeEngine {
     this.structureMeshMap.forEach((mesh) => {
       const entity = mesh.userData.entity as StructureEntity | undefined;
       if (!entity) return;
-      if (entity.type !== 'iris_slit_door') return;
+      if (!isDoorType(entity.type)) return;
 
       const dist = Math.hypot(playerX - entity.worldX, playerZ - entity.worldZ);
       let isNearby = dist < IRIS_DOOR_TRIGGER_RADIUS;
@@ -1570,6 +1572,12 @@ export class BioForgeThreeEngine {
         irisLeft.position.x = -entity.doorOpenProgress * 0.9;
         irisRight.position.x = entity.doorOpenProgress * 0.9;
 
+      }
+      // The Briar Gate rides the same progress on its hinge:
+      // the swing group turns at the post, a gate opening inward.
+      const gateSwing = mesh.getObjectByName('gateSwing');
+      if (gateSwing) {
+        gateSwing.rotation.y = -entity.doorOpenProgress * 1.85;
       }
     });
   }

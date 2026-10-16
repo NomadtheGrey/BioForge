@@ -167,6 +167,8 @@ export type ItemId =
   | 'leviathan_plate'
   | 'leviathan_hide'
   | 'requisition'
+  | 'lake_jelly'
+  | 'silver_scale'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -543,6 +545,7 @@ export type FloraSpecies =
   | 'nest_cap'
   | 'frost_mold'
   | 'steam_cap'
+  | 'lake_jelly'
   // Landscape flora trio (slice 31, 2026-10-16).
   | 'valley_heart'
   | 'mother_grove'
@@ -770,7 +773,17 @@ export type FaunaSpecies =
   | 'deep_carp'
   | 'pale_eel'
   | 'plunge_duck'
-  | 'mirror_fish';
+  | 'mirror_fish'
+  | 'lake_leviathan'
+  | 'deep_reef'
+  | 'diver_beetle'
+  | 'dartfisher'
+  | 'glyph_carp'
+  | 'silver_skater'
+  | 'silverfin'
+  | 'plated_crab'
+  | 'silver_dipper'
+  | 'mirror_heron';
 
 export interface FaunaEntity {
   id: string;

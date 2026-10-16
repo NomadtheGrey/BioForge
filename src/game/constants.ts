@@ -2505,6 +2505,22 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 99,
   },
+  aw_fragment: {
+    // Ask the World (Adam, 2026-10-16): the fate fragment — one
+    // waits at the heart of every ruin, kept rather than spent.
+    // Five complete a world's set, and the set opens the chapter
+    // that names the fate (game/awChapters.ts). Its flavor in any
+    // given world comes from that world's heart lines, so the
+    // item itself stays plainly named.
+    id: 'aw_fragment',
+    name: 'Fate Fragment',
+    category: 'raw',
+    description: 'The thing a ruin’s heart could not take with it. Kept, not spent — five of these, from five houses, and the world’s story can be read whole.',
+    iconName: 'Gem',
+    color: '#f59e0b',
+    rarity: 'prismatic',
+    maxStack: 99,
+  },
   vine_ladder: {
     id: 'vine_ladder',
     name: 'Vine Ladder',

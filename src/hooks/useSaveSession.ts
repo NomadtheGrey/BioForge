@@ -360,7 +360,7 @@ export function useSaveSession(deps: SaveSessionDeps) {
       // wilderness. Generate from meta.worldSeed: createSaveMetadata
       // guarantees a non-empty seed, and the world must match the seed
       // its save advertises.
-      const generated = generateSeededWorld(meta.worldSeed);
+      const generated = generateSeededWorld(meta.worldSeed, 0, 0, { landform: true });
       const spawnWorld: WorldSnapshot = {
         flora: generated.flora,
         fauna: generated.fauna,

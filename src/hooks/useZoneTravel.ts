@@ -23,6 +23,7 @@ import type { FirstPersonMovementController } from '../game/controller';
 import type { WorldSnapshot } from '../game/saveSystem';
 import { SPAWN_ZONE, zoneBiomeAt, zoneVariantAt, zoneFaceAt, zoneHops, zoneInfo, zoneKey, biomeDisplayName, type ZoneCoords } from '../game/zones';
 import { generateSeededWorld } from '../game/worldGen';
+import { LANDFORM_EPOCH_MS } from '../game/terrain';
 import { multiplayerManager } from '../game/multiplayer';
 import { snapshotOf, buildZoneSyncTravel as buildZoneSyncTravelPayload, type ZoneStores } from '../game/zoneSync';
 import type { GameNotification } from '../types/game';
@@ -79,6 +80,10 @@ export interface ZoneTravelDeps {
   getDayNightCycle: () => number;
   /** LAZY: saveNow, assigned into this ref by App once defined. */
   saveNowRef: { current: () => void };
+  /** LAZY: the open save's creation time (pond gate, P5 move 2):
+   *  zones generated on travel belong to the OPEN world, whose
+   *  epoch decides whether pond life may be sown in them. */
+  getWorldCreatedAt: () => number;
 }
 
 export interface UseZoneTravelResult {
@@ -103,7 +108,7 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
   const {
     engineRef, playerPosRef, movementController, jumpRef, instanceRef,
     replaceWorld, applyPlayerLevel, postNotification,
-    buildWorldSnapshot, getDayNightCycle, saveNowRef,
+    buildWorldSnapshot, getDayNightCycle, saveNowRef, getWorldCreatedAt,
   } = deps;
 
   // The world is a grid of zones; the player stands in exactly one.
@@ -196,7 +201,7 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
     let target = hostSnapshot ?? visitedZonesRef.current.get(nextKey);
     if (hostSnapshot) visitedZonesRef.current.set(nextKey, hostSnapshot);
     if (!target) {
-      const gen = generateSeededWorld(seed, nx, nz);
+      const gen = generateSeededWorld(seed, nx, nz, { landform: getWorldCreatedAt() >= LANDFORM_EPOCH_MS });
       target = { flora: gen.flora, fauna: gen.fauna, structures: gen.structures, drops: [] };
       visitedZonesRef.current.set(nextKey, target);
     }

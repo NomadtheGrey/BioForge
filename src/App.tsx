@@ -55,6 +55,7 @@ import {
   livingHeartAt,
   type ZoneCoords,
 } from './game/zones';
+import { LANDFORM_EPOCH_MS } from './game/terrain';
 import { routeForZoneTag, storeEntityEvent, snapshotOf, buildZoneSyncTravel as buildZoneSyncTravelPayload, type ZoneStores } from './game/zoneSync';
 import { occupancyConflict, placementFor } from './game/placement';
 import { useToolInteractions } from './hooks/useToolInteractions';
@@ -109,13 +110,10 @@ import { getProjectWorkspaceFiles } from './utils/workspaceFiles';
 // comfortably after the last pre-module world could be created.
 const GAUNTLET_MODULE_EPOCH_MS = Date.UTC(2026, 9, 15, 16, 0, 0);
 
-// The landform epoch (P5 terrain move 1, Adam, 2026-10-16):
-// worlds created before this moment keep the original uniform
-// ripple as their ground — their land is part of their history,
-// the same grandfathering the gauntlet modules got. Worlds
-// created after it grow on the shaped landform field
-// (game/terrain.ts). 13:00 UTC = 9:00 AM EDT on build day.
-const LANDFORM_EPOCH_MS = Date.UTC(2026, 9, 16, 13, 0, 0);
+// The landform epoch lives with the field itself (game/terrain.ts):
+// worlds created before it keep the original uniform ripple as
+// their ground — their land is part of their history, the same
+// grandfathering the gauntlet modules got.
 
 export default function App() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -467,6 +465,9 @@ export default function App() {
     buildWorldSnapshot: () => buildWorldSnapshot(),
     getDayNightCycle: () => latestStateRef.current.dayNightCycle,
     saveNowRef,
+    // Lazy: the save session composes below; the getter is only
+    // exercised on travel, long after mount (pond gate, P5 move 2).
+    getWorldCreatedAt: () => currentSaveRef.current?.createdAt ?? 0,
   });
 
   // The descent stack: one frame per level ABOVE the current one,
@@ -766,6 +767,9 @@ export default function App() {
     // The striker draw swap (weapons build): defined just below —
     // ref-driven, fires on the 7 key / wheel / tile click only.
     onToggleStrikerDraw: () => toggleStrikerDraw(),
+    // Pond depth for the hop gate (P5 move 2): the engine owns the
+    // current zone's pond list; input just asks.
+    getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0,
   });
 
 // The striker draw swap (weapons build, Adam, 2026-10-16): flip
@@ -1262,7 +1266,7 @@ const {
   useGameLoop({
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
     jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, lastStaminaSync,
-    sprinting, sporeStaminaRef, marshSluggishRef, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
+    sprinting, sporeStaminaRef, marshSluggishRef, getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef, returnPausedRef,

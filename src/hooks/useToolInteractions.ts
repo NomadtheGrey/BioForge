@@ -860,9 +860,14 @@ export function useToolInteractions({
           );
           multiplayerManager.broadcastFaunaTame(fauna.id, multiplayerManager.playerName);
         } else if (feedings === 2) {
-          postNotification('Second Offering Accepted', 'The dog eats, then settles a little closer to the door than last time. It has started keeping your hours.', 'tame', '#2dd4bf');
+          // The notices name the clock (Adam, 2026-10-16): the
+          // decide window is never only implied — it is stated,
+          // here and on the tag over the dog himself.
+          const daysLeft = Math.max(0, Math.ceil((fauna.hearthDecideTimer ?? 0) / 600));
+          postNotification('Second Offering Accepted', `The dog eats, then settles a little closer to the door than last time. It has started keeping your hours. The decision comes within ${daysLeft} days, one way or the other.`, 'tame', '#2dd4bf');
         } else {
-          postNotification('First Offering Accepted', 'The dog eats, unhurried, watching you over the dish. The audition has begun — yours.', 'tame', '#2dd4bf');
+          const daysLeft = Math.max(0, Math.ceil((fauna.hearthDecideTimer ?? 0) / 600));
+          postNotification('First Offering Accepted', `The dog eats, unhurried, watching you over the dish. The audition has begun — yours. He will decide within ${daysLeft} days; the ring over his head keeps the count.`, 'tame', '#2dd4bf');
         }
         return;
       }

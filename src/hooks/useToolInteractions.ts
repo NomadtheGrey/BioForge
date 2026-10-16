@@ -633,7 +633,7 @@ export function useToolInteractions({
         spawnDroppedItem(sampleItemId(structure.vat.gestating.species), 1, structure.worldX, structure.worldZ);
       }
 
-      if (structure.type === 'storage_pod' && structure.storage) {
+      if ((structure.type === 'storage_pod' || structure.type === 'sample_rack') && structure.storage) {
         Object.entries(structure.storage.items).forEach(([itemId, count]) => {
           if ((count ?? 0) > 0) {
             spawnDroppedItem(itemId as ItemId, count as number, structure.worldX, structure.worldZ);
@@ -1196,7 +1196,7 @@ export function useToolInteractions({
         maxHealth: 120,
         doorOpenProgress: 0,
         // A storage pod is born tier 1 and empty (Adam, 2026-10-15).
-        ...(selectedStructureType === 'storage_pod'
+        ...(selectedStructureType === 'storage_pod' || selectedStructureType === 'sample_rack'
           ? { storage: { tier: 1, items: {} } }
           : {}),
         // A culture vat is born tier 1, resting (Adam, 2026-10-15).
@@ -1250,7 +1250,8 @@ export function useToolInteractions({
       if (
         activeTool === 'harvest_glove' &&
         (selectedStructureType === 'storage_pod' ||
-          selectedStructureType === 'biotunnel_mouth')
+          selectedStructureType === 'biotunnel_mouth' ||
+          selectedStructureType === 'sample_rack')
       ) {
         handleBuildPlacement(worldX, worldZ);
         return;
@@ -1859,7 +1860,7 @@ export function useToolInteractions({
     // meanings (solvent dissolves WITH a spill, handled inside).
     // The builder falls through, so a pod still works as a base
     // block to build on, like any upright piece.
-    if (structure.type === 'storage_pod' && activeTool !== 'builder') {
+    if ((structure.type === 'storage_pod' || structure.type === 'sample_rack') && activeTool !== 'builder') {
       if (activeTool === 'solvent_sprayer') {
         handleSolventSprayer(structure);
         return;

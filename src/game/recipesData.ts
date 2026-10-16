@@ -534,6 +534,20 @@ export const RECIPES: CraftingRecipe[] = [
     craftTimeMs: 2500,
   },
   {
+    id: 'craft_sample_rack',
+    outputId: 'sample_rack',
+    outputCount: 1,
+    name: 'Sample Rack',
+    description: 'Grow a specimen rack for the collection: twenty-four shelves of sample vials, and nothing else fits them.',
+    category: 'composites',
+    ingredients: [
+      { id: 'soft_fiber', count: 2 },
+      { id: 'resin_sap', count: 2 },
+      { id: 'dew_essence', count: 1 },
+    ],
+    craftTimeMs: 2000,
+  },
+  {
     id: 'craft_storage_kit_hutch',
     outputId: 'storage_kit_hutch',
     outputCount: 1,

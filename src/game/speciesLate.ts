@@ -1594,9 +1594,10 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
 
   // #205 — the Pond Skater's plan, richly dressed, on Storm's
   // silver pond country: where its cousin walks, this one
-  // skims — and it will take gnats from a hand at 40%. (Its
-  // entry's rivers are read as pond reaches in v1, like the
-  // whole silver set: ponds are the standing water there is.)
+  // skims — and it will take gnats from a hand at 40%. (The
+  // silver set's rivers are REAL since slice 41: the river
+  // gate deals the set along wet water segments first, with
+  // ponds as the fallback home where no river runs wet.)
   silver_skater: {
     id: 'silver_skater',
     name: 'Silver Skater',
@@ -1609,6 +1610,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     bonusSpawn: {
       biomes: ['storm'],
       pond: true,
+      river: true,
       count: 3,
       minRadius: 0,
       spacing: 4,
@@ -1635,6 +1637,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     bonusSpawn: {
       biomes: ['storm'],
       pond: true,
+      river: true,
       count: 3,
       minRadius: 0,
       spacing: 4,
@@ -1659,6 +1662,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     bonusSpawn: {
       biomes: ['storm'],
       pond: true,
+      river: true,
       count: 2,
       minRadius: 0,
       spacing: 5,
@@ -1684,6 +1688,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     bonusSpawn: {
       biomes: ['storm'],
       pond: true,
+      river: true,
       count: 2,
       minRadius: 0,
       spacing: 5,
@@ -1710,6 +1715,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
       biomes: ['wetland'],
       variant: 'mirror_marsh',
       pond: true,
+      river: true,
       count: 1,
       minRadius: 0,
       spacing: 8,

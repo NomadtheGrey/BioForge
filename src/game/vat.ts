@@ -35,6 +35,11 @@ export function sampleItemId(species: FaunaSpecies): ItemId {
   return `sample_${species}` as ItemId;
 }
 
+/** Is this item one of the vat's sample vials? (The rack's law.) */
+export function isSampleItem(itemId: ItemId): boolean {
+  return itemId.startsWith('sample_');
+}
+
 /**
  * Which band a species gestates in. The band follows its HOME:
  * the highest tier among its dealt families (biomes.ts tiers —

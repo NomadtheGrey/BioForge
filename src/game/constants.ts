@@ -2661,6 +2661,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   },
 
   // ── Storage pod + upgrade kits (Adam, 2026-10-15) ────────────
+  sample_rack: {
+    id: 'sample_rack',
+    name: 'Sample Rack',
+    category: 'structure',
+    description: 'A grown rack of specimen shelves beside the vat\'s work: twenty-four small shelves, twenty-five vials to a shelf — and it keeps SAMPLES ONLY. Set it down by hand and click to open.',
+    iconName: 'FlaskConical',
+    color: '#4ade80',
+    rarity: 'common',
+    maxStack: 10,
+  },
   storage_pod: {
     id: 'storage_pod',
     name: 'Storage Pod',

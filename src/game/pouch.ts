@@ -22,7 +22,7 @@
  * tier in place, contents preserved.
  */
 
-import type { ItemId } from '../types/game';
+import type { ItemId, StructureType } from '../types/game';
 import { ITEMS } from './constants';
 
 /** Stack cap per pouch tier (index = tier). */
@@ -65,6 +65,32 @@ export const STORAGE_TIERS: readonly { slots: number; perStack: number; name: st
   { slots: 12, perStack: 100, name: 'Storage Vault' },
 ];
 
+/**
+ * The Sample Rack's capacity (slice D, 2026-10-16): a pod-family
+ * variant themed to the vat loop — MANY distinct stacks (a
+ * collection is species-wide) of modest depth, samples only.
+ * The samples-only rule itself is enforced at deposit time in
+ * useStorage; this table is only the shape of the shelves.
+ */
+export const SAMPLE_RACK_CAPS: { slots: number; perStack: number; name: string } = {
+  slots: 24,
+  perStack: 25,
+  name: 'Sample Rack',
+};
+
+/**
+ * The capacity row a storage structure actually uses: pods read
+ * the tier table; the rack reads its own fixed row whatever its
+ * stored tier says (racks are born tier 1 and never deepen).
+ */
+export function storageCapsFor(
+  type: StructureType,
+  tier: number,
+): { slots: number; perStack: number; name: string } {
+  if (type === 'sample_rack') return SAMPLE_RACK_CAPS;
+  return STORAGE_TIERS[Math.min(Math.max(tier, 1), STORAGE_TIERS.length) - 1];
+}
+
 /** The kit item that raises a pod FROM the given tier (null at max). */
 export function storageKitFor(tier: number): ItemId | null {
   if (tier === 1) return 'storage_kit_hutch';
@@ -91,8 +117,13 @@ export function storageSlotsUsed(contents: StorageContents): number {
  * Room for `count` more of an item in a pod: bounded by the slot
  * count (a NEW stack needs a free slot) and the per-stack cap.
  */
-export function storageRoomFor(contents: StorageContents, itemId: ItemId): number {
-  const caps = STORAGE_TIERS[Math.min(contents.tier, STORAGE_TIERS.length) - 1];
+export function storageRoomFor(
+  contents: StorageContents,
+  itemId: ItemId,
+  caps: { slots: number; perStack: number } = STORAGE_TIERS[
+    Math.min(Math.max(contents.tier, 1), STORAGE_TIERS.length) - 1
+  ],
+): number {
   const held = contents.items[itemId] ?? 0;
   if (held <= 0 && storageSlotsUsed(contents) >= caps.slots) return 0;
   return Math.max(0, caps.perStack - held);

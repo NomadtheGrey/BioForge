@@ -550,7 +550,15 @@ export interface GeneratedWorld {
  * saved as concrete entities. The zone coordinates decide the zone's
  * biome (zones.ts) — the spawn zone is always a meadow.
  */
-export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): GeneratedWorld {
+export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0, opts?: { landform?: boolean }): GeneratedWorld {
+  // Pond life gate (P5 move 2, Adam, 2026-10-16): pond-gated
+  // species may only be sown where ponds can honestly exist —
+  // landform worlds (created after the landform epoch). Callers
+  // that generate on a world's behalf pass the truth; guest and
+  // sync paths omit it and stay dry by default. Consumed by the
+  // species gates (creatures build) via this binding.
+  const worldHasLandforms = opts?.landform === true;
+  void worldHasLandforms;
   // The zone's single biome — its identity — drives every biome rule
   // below for the whole zone.
   const zoneBiome: BiomeId = zoneBiomeAt(seedStr, zoneZx, zoneZz);

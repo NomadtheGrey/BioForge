@@ -93,7 +93,10 @@ export function useQuests({
     questViews,
     questProgress?.dismissedId ?? null,
   );
-  const showQuestHud = questProgress?.showHud ?? false;
+  // Visible at first (Adam, 2026-10-16): the tracker is a HUD
+  // element like any other — on until the player turns it off
+  // (the log's checkbox, or Options → Mini-Quest Tracker).
+  const showQuestHud = questProgress?.showHud ?? true;
 
   // Quest-progress writes, with silent adoption for veterans: the
   // first time a pre-quest save touches the system, everything its
@@ -107,7 +110,7 @@ export function useQuests({
     setQuestProgress({
       completedIds: questViews.filter((v) => v.complete).map((v) => v.def.id),
       trackedId: null,
-      showHud: false,
+      showHud: true,
       ...patch,
     });
   };

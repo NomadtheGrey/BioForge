@@ -122,6 +122,53 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       group.add(pane);
       return group;
     },
+    // The Hearthpod (Adam, 2026-10-16): a squat grown organ — root
+    // feet, a terracotta pod body, and the arum's spathe opening at
+    // the top around a core that glows dull amber. The glow is the
+    // thermogenic tissue showing through; there is no flame mesh
+    // here and there never will be — the pod cannot burn anything.
+    'hearthpod': () => {
+      const group = new THREE.Group();
+      const footGeom = new THREE.CylinderGeometry(0.07, 0.1, 0.3, 7);
+      for (let i = 0; i < 3; i++) {
+        const a = (i / 3) * Math.PI * 2;
+        const foot = new THREE.Mesh(footGeom, materials.woodRoot);
+        foot.position.set(Math.cos(a) * 0.34, 0.13, Math.sin(a) * 0.34);
+        foot.rotation.z = Math.cos(a) * 0.35;
+        foot.rotation.x = -Math.sin(a) * 0.35;
+        foot.castShadow = true;
+        group.add(foot);
+      }
+      const fleshMat = new THREE.MeshStandardMaterial({ color: 0x9a3412, roughness: 0.75 });
+      const body = new THREE.Mesh(new THREE.SphereGeometry(0.48, 14, 10), fleshMat);
+      body.scale.set(1, 0.82, 1);
+      body.position.y = 0.52;
+      body.castShadow = true;
+      group.add(body);
+      const spatheMat = new THREE.MeshStandardMaterial({ color: 0x7f1d1d, roughness: 0.65, side: THREE.DoubleSide });
+      const spathe = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.15, 0.34, 10, 1, true), spatheMat);
+      spathe.position.y = 0.94;
+      group.add(spathe);
+      // The spathe lip: five petal flaps laid open around the mouth.
+      const lipGeom = new THREE.SphereGeometry(0.16, 8, 6);
+      for (let i = 0; i < 5; i++) {
+        const a = (i / 5) * Math.PI * 2;
+        const lip = new THREE.Mesh(lipGeom, spatheMat);
+        lip.scale.set(1, 0.28, 0.62);
+        lip.position.set(Math.cos(a) * 0.3, 1.1, Math.sin(a) * 0.3);
+        lip.rotation.y = -a;
+        lip.rotation.z = Math.cos(a) * 0.7;
+        lip.rotation.x = Math.sin(a) * 0.7;
+        group.add(lip);
+      }
+      const coreMat = new THREE.MeshStandardMaterial({
+        color: 0x78350f, roughness: 0.4, emissive: 0xffb020, emissiveIntensity: 1.1,
+      });
+      const core = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), coreMat);
+      core.position.y = 0.9;
+      group.add(core);
+      return group;
+    },
     // Rootweave wall (Adam, 2026-10-16): the cheap opaque panel —
     // root slats laced over-and-under with fiber withies between
     // two root posts. The slats nearly touch, so the silhouette

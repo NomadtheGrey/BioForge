@@ -215,6 +215,23 @@ export const RECIPES: CraftingRecipe[] = [
     craftTimeMs: 1500,
   },
   {
+    // The Hearthpod: fiber for the pod body, resin to bind it, and
+    // glow spore for the thermogenic culture — the warmth is grown
+    // in, never lit.
+    id: 'craft_hearthpod',
+    outputId: 'hearthpod',
+    outputCount: 1,
+    name: 'Hearthpod',
+    description: 'Grow a hearth-organ: a pod that warms itself and glows amber, and can never burn a thing.',
+    category: 'composites',
+    ingredients: [
+      { id: 'soft_fiber', count: 2 },
+      { id: 'resin_sap', count: 2 },
+      { id: 'glow_spore', count: 1 },
+    ],
+    craftTimeMs: 2500,
+  },
+  {
     id: 'craft_chitin_wall',
     outputId: 'chitin_glass_wall',
     outputCount: 2,

@@ -222,8 +222,15 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     rides the killLoot rail: destroy the Warden and its
  *     receipts drop beside the sample. One item, one table
  *     row; the last recorded creature debt is paid.
+ * v49: creature build phase, slice 34 (2026-10-16) — THE
+ *     BAILIFF (Adam): the Feral Warden is renamed FERAL
+ *     BAILIFF ("too Minecrafty") — display name and codex
+ *     only; the species id 'feral_warden' is unchanged, so
+ *     saves, samples and vat recipes are untouched. The
+ *     archetype it descends from reads Garden Keeper in the
+ *     codex now, on its page and the Garden Colossus's.
  */
-export const WORLD_GEN_VERSION = 48; // v48 (2026-10-16): creature slice 33 — the Warden's Requisition kill-drop; v47 was creature slice 32 (oversize pin)
+export const WORLD_GEN_VERSION = 49; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

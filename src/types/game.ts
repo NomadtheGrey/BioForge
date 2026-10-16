@@ -37,6 +37,8 @@ export type ItemId =
   | 'gale_straw'
   | 'glyph_leaf'
   | 'ash_puff'
+  | 'ash_feather'
+  | 'rib_silk'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -350,7 +352,20 @@ export type FaunaSpecies =
   | 'far_bat'
   | 'thaw_mouse'
   | 'meal_moth'
-  | 'heart_beetle';
+  | 'heart_beetle'
+  // Slice 11 (2026-10-16) — the fauna wave.
+  | 'long_grazer'
+  | 'harvest_shrew'
+  | 'plain_vole'
+  | 'plainswift'
+  | 'spore_wolf'
+  | 'rib_spider'
+  | 'root_serpent'
+  | 'second_tenant'
+  | 'sap_turtle'
+  | 'ashpicker'
+  | 'grave_owl'
+  | 'zot_hopper';
 
 export interface FaunaEntity {
   id: string;

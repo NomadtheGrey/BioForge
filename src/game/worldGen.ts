@@ -112,8 +112,12 @@ import { BONUS_SPAWN_SPECIES } from './species';
  * v25: creature build phase, slice 10 (2026-10-16) — flora
  *     wave 2: twelve more table species (Bone/Storm/Living
  *     casts, three hybrid citizens). Table-only change.
+ * v26: creature build phase, slice 11 (2026-10-16) — the
+ *     fauna wave: twelve species on the proven rails (pack
+ *     hunt, hybrid gates, rib-height and canopy draws).
+ *     Table-only change.
  */
-export const WORLD_GEN_VERSION = 25; // v25 (2026-10-16): creature slice 10 — flora wave 2, twelve table species; v24 was creature slice 9 (the flora pipeline)
+export const WORLD_GEN_VERSION = 26; // v26 (2026-10-16): creature slice 11 — the fauna wave, twelve species; v25 was creature slice 10 (flora wave 2)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

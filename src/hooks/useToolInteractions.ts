@@ -867,6 +867,42 @@ export function useToolInteractions({
         return;
       }
 
+      // -------------------------------------------------------------
+      // THE ROOTFALL BEAR (slice 44, 2026-10-16): a landlord
+      // negotiation, not a taming. The bear leaves Heart Sap at
+      // the hollow mouth as rent (its table byproduct); the only
+      // offering it entertains is that same sap, returned. The
+      // roll is its table odds — 20%, over days — and the sap is
+      // eaten either way: rent is rent. Tamed, it remains a den
+      // animal by the table's own machinery: tameFauna puts a
+      // hunter on GUARD at its tame spot, and the bear's tame
+      // spot is the hollow — the strongest stay/guard in the
+      // game, while its follow stays a rumor the player may
+      // test with the lure's command cycle like anyone's.
+      // -------------------------------------------------------------
+      if (fauna.species === 'rootfall_bear') {
+        if (!hasItem('heart_sap', 1)) {
+          postNotification('The Landlord\u2019s Rent', 'The bear takes Heart Sap — its own, returned. It leaves the rent at the hollow mouth; gathering it quietly and offering it back is the whole negotiation.', 'alert', '#fbbf24');
+          return;
+        }
+        deductInventoryItem('heart_sap', 1);
+        if (Math.random() < (def.tameChance ?? 0)) {
+          soundEngine.playTameCritter();
+          releaseArmedRef.current.delete(fauna.id);
+          tameFauna(fauna.id, def.petName, 'idle');
+          postNotification(
+            'Tenancy Agreed',
+            'The Rootfall Bear accepts the returned rent and, with it, the arrangement: this hollow has a landlord AND a tenant now, and the guard comes with the lease.',
+            'tame',
+            '#2dd4bf'
+          );
+          multiplayerManager.broadcastFaunaTame(fauna.id, multiplayerManager.playerName);
+        } else {
+          postNotification('The Negotiation Continues', 'The bear eats the sap, considers the tenancy at some length, and rolls over. Nothing about the meeting was a no.', 'tame', '#fbbf24');
+        }
+        return;
+      }
+
       if (fauna.species === 'soft_puff' || fauna.species === 'burrow_mouse') {
         if (!hasItem('sweet_nectar', 1)) {
           postNotification('Sweet Nectar Needed', `Harvest Sweet Nectar from Petal-Mills or craft bait in the Bio-Forge [B] to tame a ${def.name}.`, 'alert', '#fbbf24');

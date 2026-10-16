@@ -454,6 +454,20 @@ export class BioForgeThreeEngine {
     sweet_cap: { color: 0xf59e0b, intensity: 0.4, distance: 2, y: 0.3 },
     great_puff: { color: 0xf8fafc, intensity: 0.3, distance: 2.5, y: 0.5 },
     rust_cap: { color: 0xb91c1c, intensity: 0.3, distance: 2, y: 0.3 },
+    // Flora wave 12 (creature slice 27, 2026-10-16): trees,
+    // vines and mosses — the Gloam Fern lights its own parish.
+    answer_tree: { color: 0x4d7c0f, intensity: 0.25, distance: 2.5, y: 0.6 },
+    greeting_cap: { color: 0xfde047, intensity: 0.35, distance: 2, y: 0.3 },
+    relic_tree: { color: 0xd6d3d1, intensity: 0.3, distance: 2.5, y: 0.6 },
+    ironwood: { color: 0x44403c, intensity: 0.2, distance: 2.5, y: 0.6 },
+    glare_vine: { color: 0xa5f3fc, intensity: 0.45, distance: 2.5, y: 0.3 },
+    marrow_vine: { color: 0xfbcfe8, intensity: 0.3, distance: 2, y: 0.3 },
+    row_moss: { color: 0x84cc16, intensity: 0.25, distance: 2, y: 0.2 },
+    prism_moss: { color: 0x67e8f9, intensity: 0.45, distance: 2.5, y: 0.2 },
+    gloam_fern: { color: 0x2dd4bf, intensity: 0.5, distance: 2.5, y: 0.3 },
+    flood_fern: { color: 0x38bdf8, intensity: 0.3, distance: 2, y: 0.3 },
+    ice_bloom: { color: 0xe0f2fe, intensity: 0.45, distance: 2.5, y: 0.3 },
+    ripple_bell: { color: 0x93c5fd, intensity: 0.35, distance: 2, y: 0.3 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },

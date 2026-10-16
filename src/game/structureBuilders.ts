@@ -83,6 +83,39 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       group.add(pane);
       return group;
     },
+    // Rootweave wall (Adam, 2026-10-16): the cheap opaque panel —
+    // root slats laced over-and-under with fiber withies between
+    // two root posts. The slats nearly touch, so the silhouette
+    // is solid from both faces; the alternating z of slats and
+    // withies is what makes it read as a weave and not a fence
+    // of boards. Ladders hang on its edges like any panel.
+    'rootweave_wall': () => {
+      const group = new THREE.Group();
+      const postGeom = new THREE.CylinderGeometry(0.11, 0.13, 2.4, 8);
+      const leftPost = new THREE.Mesh(postGeom, materials.woodRoot);
+      leftPost.position.set(-0.95, 1.2, 0);
+      leftPost.castShadow = true;
+      const rightPost = leftPost.clone();
+      rightPost.position.x = 0.95;
+      group.add(leftPost);
+      group.add(rightPost);
+      const slatMat = new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.9 });
+      const slatGeom = new THREE.BoxGeometry(1.8, 0.19, 0.06);
+      for (let i = 0; i < 10; i++) {
+        const slat = new THREE.Mesh(slatGeom, slatMat);
+        slat.position.set(0, 0.28 + i * 0.205, i % 2 === 0 ? 0.04 : -0.04);
+        slat.castShadow = true;
+        group.add(slat);
+      }
+      const withyMat = new THREE.MeshStandardMaterial({ color: 0xa16207, roughness: 0.85 });
+      const withyGeom = new THREE.BoxGeometry(0.09, 2.05, 0.05);
+      for (let i = 0; i < 6; i++) {
+        const withy = new THREE.Mesh(withyGeom, withyMat);
+        withy.position.set(-0.75 + i * 0.3, 1.2, i % 2 === 0 ? -0.055 : 0.055);
+        group.add(withy);
+      }
+      return group;
+    },
     // Vine ladder: two springy rails + rungs, standing in the wall's
     // plane so it reads from either face. One segment spans one story.
     'vine_ladder': () => {

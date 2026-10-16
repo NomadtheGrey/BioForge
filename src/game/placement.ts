@@ -32,7 +32,7 @@ import type { StructureEntity, StructureType } from '../types/game';
 export const CELL_SIZE = 2;
 
 /** Structural panels that live on cell edges instead of cell centers. */
-export const EDGE_PANEL_TYPES: StructureType[] = ['chitin_glass_wall', 'iris_slit_door'];
+export const EDGE_PANEL_TYPES: StructureType[] = ['chitin_glass_wall', 'iris_slit_door', 'rootweave_wall'];
 
 /** Cell pieces that form the ground layer (one per cell). */
 export const GROUND_LAYER_TYPES: StructureType[] = ['root_tile_floor', 'cultivation_mound', 'heart_tile'];
@@ -97,6 +97,7 @@ export const BUILDING_TYPES: ReadonlySet<string> = new Set([
   'heart_tile',
   'chitin_glass_wall',
   'iris_slit_door',
+  'rootweave_wall',
   'spore_canopy',
   'vine_ladder',
   'tamed_snap_trap_turret',

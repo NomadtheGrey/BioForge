@@ -216,8 +216,14 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     provide good loot: a table-driven killLoot field
  *     resolved in the shared death sweep beside the sample.
  *     Behavior + table change; generation itself unchanged.
+ * v48: creature build phase, slice 33 (2026-10-16) — THE
+ *     WARDEN'S RECEIPTS (Adam): the Feral Warden's glyph
+ *     Requisition — the kill-drop deferred since slice 24 —
+ *     rides the killLoot rail: destroy the Warden and its
+ *     receipts drop beside the sample. One item, one table
+ *     row; the last recorded creature debt is paid.
  */
-export const WORLD_GEN_VERSION = 47; // v47 (2026-10-16): creature slice 32 — oversize pin (provoked hunts + kill loot); v46 was creature slice 31 (landscape flora trio)
+export const WORLD_GEN_VERSION = 48; // v48 (2026-10-16): creature slice 33 — the Warden's Requisition kill-drop; v47 was creature slice 32 (oversize pin)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

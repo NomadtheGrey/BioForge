@@ -166,6 +166,7 @@ export type ItemId =
   | 'whale_down'
   | 'leviathan_plate'
   | 'leviathan_hide'
+  | 'requisition'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'

@@ -123,8 +123,13 @@ import { BONUS_SPAWN_SPECIES } from './species';
  * v28: creature build phase, slice 13 (2026-10-16) — fauna
  *     wave 2, the small skies: twelve wide-range songbirds and
  *     small fry on the four range sets. Table-only change.
+ * v29: creature build phase, slice 14 (2026-10-16) — flora
+ *     wave 4, the fungus bench: twelve table species; also
+ *     corrects two wave-3 variant gates that were typo'd
+ *     ('ice_fangs'/'vent_fields' never matched a variant id,
+ *     so Fang Fern and Vent Rose never dealt).
  */
-export const WORLD_GEN_VERSION = 28; // v28 (2026-10-16): creature slice 13 — fauna wave 2, the small skies; v27 was creature slice 12 (flora wave 3)
+export const WORLD_GEN_VERSION = 29; // v29 (2026-10-16): creature slice 14 — flora wave 4, the fungus bench (+ two gate typo fixes); v28 was creature slice 13 (fauna wave 2)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

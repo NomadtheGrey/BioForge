@@ -47,6 +47,14 @@ export type ItemId =
   | 'ember_leaf'
   | 'frost_leaf'
   | 'mirror_bloom'
+  | 'meltcap'
+  | 'poolcap'
+  | 'saltcap_heart'
+  | 'tomb_cap'
+  | 'veil_cloth'
+  | 'glass_cap'
+  | 'bone_puff'
+  | 'door_cap'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -261,7 +269,20 @@ export type FloraSpecies =
   | 'mirror_reed'
   | 'rime_grass'
   | 'fang_fern'
-  | 'mirror_cap';
+  | 'mirror_cap'
+  // Flora wave 4 (slice 14, 2026-10-16) — the fungus bench.
+  | 'meltcap'
+  | 'poolcap'
+  | 'saltcap'
+  | 'tomb_cap'
+  | 'ring_cap'
+  | 'veil_cap'
+  | 'glass_cap'
+  | 'heart_shelf'
+  | 'bone_puff'
+  | 'wind_puff'
+  | 'door_cap'
+  | 'glyph_cap';
 
 export interface FloraEntity {
   id: string;

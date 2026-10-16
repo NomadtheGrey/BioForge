@@ -396,6 +396,21 @@ export class BioForgeThreeEngine {
     guest_flower: { color: 0xfda4af, intensity: 0.3, distance: 2, y: 0.2 },
     clock_bloom: { color: 0xc4b5fd, intensity: 0.35, distance: 2.5, y: 0.4 },
     roadweed: { color: 0x65a30d, intensity: 0.2, distance: 2, y: 0.2 },
+    // Flora wave 8 (creature slice 21, 2026-10-16): the
+    // fungus bench — the Static Cap crackles yellow; the
+    // Hearth Cap keeps hearth-warmth.
+    bog_jelly: { color: 0xf59e0b, intensity: 0.3, distance: 2, y: 0.2 },
+    reed_rust: { color: 0xea580c, intensity: 0.25, distance: 2, y: 0.3 },
+    salt_jelly: { color: 0xe0f2fe, intensity: 0.3, distance: 2, y: 0.2 },
+    ice_shelf: { color: 0xbae6fd, intensity: 0.3, distance: 2.5, y: 0.4 },
+    root_cup: { color: 0x38bdf8, intensity: 0.3, distance: 2, y: 0.2 },
+    marrow_mold: { color: 0x44403c, intensity: 0.2, distance: 2, y: 0.2 },
+    static_cap: { color: 0xfde047, intensity: 0.45, distance: 2.5, y: 0.3 },
+    hearth_cap: { color: 0xfb923c, intensity: 0.4, distance: 2.5, y: 0.3 },
+    bed_cap: { color: 0xa3a380, intensity: 0.25, distance: 2, y: 0.3 },
+    path_puff: { color: 0xe7e5e4, intensity: 0.2, distance: 2, y: 0.2 },
+    dew_mold: { color: 0xe2e8f0, intensity: 0.3, distance: 2, y: 0.2 },
+    scar_cap: { color: 0xdc2626, intensity: 0.4, distance: 2.5, y: 0.2 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },

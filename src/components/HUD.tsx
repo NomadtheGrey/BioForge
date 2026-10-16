@@ -309,6 +309,18 @@ export const HUD: React.FC<HUDProps> = ({
   // the HudOptionsPanel that restores anything hidden from here.
   const hudLayout = useHudLayout();
   const [showHudOptions, setShowHudOptions] = useState<boolean>(false);
+  // Escape closes the Options panel too (Adam, 2026-10-16): it
+  // is HUD-internal state rather than an App modal, so the
+  // input hook's Esc-to-close never sees it — this listener is
+  // its X button by keyboard.
+  useEffect(() => {
+    if (!showHudOptions) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowHudOptions(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showHudOptions]);
   // The Prismatic Radar lives IN THE HELMET (Adam, 2026-10-16,
   // correcting a pouch/held reading): it is not a held item. The
   // radar/minimap panel exists only while the radar is INSTALLED —

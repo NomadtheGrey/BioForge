@@ -351,17 +351,22 @@ export function useGameInput(deps: GameInputDeps) {
   // --------------------------------------------------------------------------
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Guard Clause 1: Ignore inputs if user is typing in form/chat fields
-      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) {
-        return;
-      }
-
-      // Guard Clause 2: Handle Escape key to dismiss modals or handle pause state
+      // Escape closes the open dialog, as if its X were clicked
+      // (Adam, 2026-10-16) — handled BEFORE the typing guard:
+      // Esc means "close" even from inside a text field (the
+      // search boxes, the room-code field), where the guard
+      // below otherwise swallows the key and the dialog stays
+      // up. Every other key keeps the guard.
       if (e.key === 'Escape') {
         if (activeModal !== null) {
           setActiveModal(null);
         }
         keysPressed.current = {};
+        return;
+      }
+
+      // Guard Clause 1: Ignore inputs if user is typing in form/chat fields
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) {
         return;
       }
 

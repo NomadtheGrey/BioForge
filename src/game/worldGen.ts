@@ -52,6 +52,7 @@ import { createNoise2D, createSeededRandom, hashStringToSeed } from './motion';
 import { biomeDensityFactor, biomeWeightFactor } from './biomes';
 import type { BiomeId } from './biomes';
 import { zoneBiomeAt, zoneVariantAt, zoneHybridAt, zoneWeatherAt, livingHeartAt } from './zones';
+import { BONUS_GROW_FLORA } from './flora';
 import type { FaunaEntity, FaunaSpecies, FloraEntity, FloraSpecies, StructureEntity } from '../types/game';
 import { generateCaveSurface, HOMESTEAD_BLOCKERS } from './caveSurface';
 import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
@@ -104,8 +105,12 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     eleven species join the table through them and the far
  *     ranges. The gates are generic: future hybrid and
  *     weather-locked species are table entries, not new code.
+ * v24: creature build phase, slice 9 (2026-10-15) — THE FLORA
+ *     PIPELINE: a flora table (flora.ts) + a generic bonus-growth
+ *     loop beside the fauna one, harvest yields as table data.
+ *     Twelve wave-1 species grow through it.
  */
-export const WORLD_GEN_VERSION = 23; // v23 (2026-10-15): creature slice 8 — hybrid + weather gates in the bonus loop, eleven species; v22 was creature slice 7
+export const WORLD_GEN_VERSION = 24; // v24 (2026-10-15): creature slice 9 — the flora pipeline (flora.ts + bonus-growth loop), twelve species; v23 was creature slice 8
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -926,6 +931,62 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
           animTime: 0,
         });
         placed++;
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Designed flora + fungus (creature build phase, slice 9, 2026-10-15)
+  // — GENERIC bonus growth from the flora table (flora.ts), the mirror
+  // of the fauna bonus loop above: biome affinity + the same gates
+  // (variant / hybrid pair / zone weather), dealt outside the census,
+  // never in the spawn zone, one seeded stream per species. A flora
+  // species joins the world by gaining a table entry — no new block
+  // here. (The hand-placed variant dressing blocks below predate the
+  // table and stay as they are.)
+  // ---------------------------------------------------------------------
+  if (!isSpawnZone) {
+    for (const def of BONUS_GROW_FLORA) {
+      const spec = def.bonusGrow;
+      if (!spec) continue;
+      const homeHere =
+        spec.biomes === 'all' ||
+        spec.biomes.includes(zoneBiome) ||
+        (zoneHybrid !== null && spec.biomes.includes(zoneHybrid.secondary));
+      if (!homeHere) continue;
+      if (spec.variant && zoneVariant?.id !== spec.variant) continue;
+      if (spec.hybrid) {
+        if (!zoneHybrid) continue;
+        const pairHere: BiomeId[] = [zoneHybrid.primary, zoneHybrid.secondary];
+        if (!pairHere.includes(spec.hybrid[0]) || !pairHere.includes(spec.hybrid[1])) continue;
+      }
+      if (spec.weather && zoneWeatherAt(seedStr, zoneZx, zoneZz).mode !== spec.weather) continue;
+      const growRng = createSeededRandom(stream(`flora:bonus:${def.id}`));
+      let planted = 0;
+      for (let attempt = 0; attempt < 40 && planted < spec.count; attempt++) {
+        const x = (growRng() * 2 - 1) * 44;
+        const z = (growRng() * 2 - 1) * 44;
+        if (Math.hypot(x, z) < spec.minRadius) continue;
+        if (flora.some((f) => Math.hypot(f.x - x, f.z - z) < spec.spacing)) continue;
+        flora.push({
+          id: `flora_bonus_${def.id}_${planted + 1}`,
+          species: def.id,
+          x,
+          z,
+          biome: zoneBiome,
+          rotation: growRng() * Math.PI * 2,
+          scale: spec.scale * (0.8 + growRng() * 0.5),
+          growthStage: 3 + Math.floor(growRng() * 2), // established or mature
+          growthProgress: 1,
+          fertilizedGrowth: false,
+          fertilizedYield: false,
+          fertilizerTimer: 0,
+          harvestReady: true,
+          harvestTimer: 0,
+          isHazardous: def.hazardous ?? false,
+          swayOffset: 3000 + planted * 7,
+        });
+        planted++;
       }
     }
   }

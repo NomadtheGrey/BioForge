@@ -24,6 +24,9 @@ export type ItemId =
   | 'spire_down'
   | 'canopy_moss'
   | 'dusk_wool'
+  | 'haycap'
+  | 'snow_morel'
+  | 'ink_cap'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -172,7 +175,20 @@ export type FloraSpecies =
   | 'gravebloom'
   | 'stormcatcher'
   | 'dusk_grass'
-  | 'heartbloom';
+  | 'heartbloom'
+  // Slice 9 (2026-10-15) — the flora pipeline's first wave.
+  | 'gulp_lily'
+  | 'waygrass'
+  | 'flame_lily'
+  | 'salt_daisy'
+  | 'compass_cress'
+  | 'ice_grass'
+  | 'field_cap'
+  | 'frostcap'
+  | 'haycap'
+  | 'coal_cap'
+  | 'snow_morel'
+  | 'ink_cap';
 
 export interface FloraEntity {
   id: string;

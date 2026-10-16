@@ -22,10 +22,12 @@ import { ITEMS } from '../game/constants';
 import {
   pouchTierOf,
   stackCapFor,
+  storageCapsFor,
   storageKitFor,
   storageRoomFor,
   type StorageContents,
 } from '../game/pouch';
+import { isSampleItem } from '../game/vat';
 
 interface UseStorageParams {
   getInventory: () => Record<ItemId, number>;
@@ -72,8 +74,14 @@ export function useStorage({
 
   const handleStorageDeposit = useCallback((structure: StructureEntity, itemId: ItemId): void => {
     const contents: StorageContents = structure.storage ?? { tier: 1, items: {} };
+    // The Sample Rack's law (slice D, 2026-10-16): samples only —
+    // its shelves are vial-shaped, and everything else refuses.
+    if (structure.type === 'sample_rack' && !isSampleItem(itemId)) {
+      postNotification('Samples Only', 'The rack\'s shelves hold sample vials and nothing else.', 'alert', '#4ade80');
+      return;
+    }
     const held = getInventory()[itemId] ?? 0;
-    const move = Math.min(held, storageRoomFor(contents, itemId));
+    const move = Math.min(held, storageRoomFor(contents, itemId, storageCapsFor(structure.type, contents.tier)));
     if (move <= 0) {
       postNotification('Pod Is Full', 'No room in this pod for that — upgrade it or stash something else.', 'alert', '#f59e0b');
       return;
@@ -111,6 +119,10 @@ export function useStorage({
   }, [getInventory, addInventoryItem, upsertStructure, postNotification]);
 
   const handleStorageUpgrade = useCallback((structure: StructureEntity): void => {
+    // Racks never deepen (slice D): their shelves are grown to
+    // size. The modal hides the kit row for them; this is the
+    // belt under that suspender.
+    if (structure.type === 'sample_rack') return;
     const contents: StorageContents = structure.storage ?? { tier: 1, items: {} };
     const kit = storageKitFor(contents.tier);
     if (!kit || !deductInventoryItem(kit, 1)) return;

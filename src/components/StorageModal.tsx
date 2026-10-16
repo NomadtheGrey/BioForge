@@ -17,7 +17,8 @@ import React from 'react';
 import { X, Package, ArrowDownToLine, ArrowUpFromLine, Sprout } from 'lucide-react';
 import type { ItemId, StructureEntity } from '../types/game';
 import { ITEMS } from '../game/constants';
-import { STORAGE_TIERS, storageKitFor, storageSlotsUsed, type StorageContents } from '../game/pouch';
+import { STORAGE_TIERS, storageCapsFor, storageKitFor, storageSlotsUsed, type StorageContents } from '../game/pouch';
+import { isSampleItem } from '../game/vat';
 
 interface StorageModalProps {
   /** The pod being viewed (live entity from the structures list). */
@@ -42,9 +43,12 @@ export const StorageModal: React.FC<StorageModalProps> = ({
 }) => {
   const contents: StorageContents = structure.storage ?? { tier: 1, items: {} };
   const tier = Math.min(Math.max(contents.tier, 1), STORAGE_TIERS.length);
-  const caps = STORAGE_TIERS[tier - 1];
-  const nextCaps = tier < STORAGE_TIERS.length ? STORAGE_TIERS[tier] : null;
-  const kitId = storageKitFor(tier);
+  // Capacity by KIND (slice D, 2026-10-16): pods read the tier
+  // table; the Sample Rack reads its own shelf row — and racks
+  // never deepen, so no next tier and no kit, ever.
+  const caps = storageCapsFor(structure.type, tier);
+  const nextCaps = structure.type === 'storage_pod' && tier < STORAGE_TIERS.length ? STORAGE_TIERS[tier] : null;
+  const kitId = structure.type === 'storage_pod' ? storageKitFor(tier) : null;
   const hasKit = kitId ? (inventory[kitId] ?? 0) > 0 : false;
 
   const storedEntries = (Object.entries(contents.items) as [ItemId, number][])
@@ -52,6 +56,7 @@ export const StorageModal: React.FC<StorageModalProps> = ({
     .sort(([a], [b]) => (ITEMS[a]?.name ?? a).localeCompare(ITEMS[b]?.name ?? b));
   const pouchEntries = (Object.entries(inventory) as [ItemId, number][])
     .filter(([id, count]) => count > 0 && ITEMS[id])
+    .filter(([id]) => structure.type !== 'sample_rack' || isSampleItem(id))
     .sort(([a], [b]) => (ITEMS[a]?.name ?? a).localeCompare(ITEMS[b]?.name ?? b));
 
   const stackRow = (

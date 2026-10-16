@@ -240,6 +240,7 @@ export type ItemId =
   // One structure type for all three tiers — the tier lives on the
   // entity's `storage` record, and kits raise it in place.
   | 'storage_pod'
+  | 'sample_rack'
   | 'culture_vat'
   | 'vine_ladder'
   | 'cave_mouth'
@@ -862,6 +863,7 @@ export type StructureType =
   | 'tamed_snap_trap_turret'
   | 'cultivation_mound'
   | 'storage_pod'
+  | 'sample_rack'
   | 'culture_vat'
   | 'vine_ladder'
   | 'cave_mouth'

@@ -596,7 +596,8 @@ export function useGameLoop(deps: GameLoopDeps): void {
         const podByHand =
           activeToolRef.current === 'harvest_glove' &&
           (selectedStructureRef.current === 'storage_pod' ||
-            selectedStructureRef.current === 'biotunnel_mouth');
+            selectedStructureRef.current === 'biotunnel_mouth' ||
+            selectedStructureRef.current === 'sample_rack');
         if (activeToolRef.current === 'builder' || podByHand) {
           const pt = engineRef.current.getAimGroundIntersection();
           if (pt) {

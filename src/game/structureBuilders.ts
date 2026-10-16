@@ -195,6 +195,60 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       group.add(swing);
       return group;
     },
+    // Sample rack (slice D, 2026-10-16): a root frame of specimen
+    // shelves — the vat loop's cabinet. Three shelf boards carry
+    // a still life of sample vials (the collection's promise, not
+    // its contents — pods don't render what they hold either).
+    'sample_rack': () => {
+      const group = new THREE.Group();
+      const frameMat = materials.woodRoot;
+      const postGeom = new THREE.BoxGeometry(0.09, 1.7, 0.09);
+      for (const sx of [-0.8, 0.8]) {
+        for (const sz of [-0.25, 0.25]) {
+          const post = new THREE.Mesh(postGeom, frameMat);
+          post.position.set(sx, 0.85, sz);
+          post.castShadow = true;
+          group.add(post);
+        }
+      }
+      const shelfMat = new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.85 });
+      const vialGlass = new THREE.MeshStandardMaterial({
+        color: 0x99f6e4,
+        roughness: 0.15,
+        metalness: 0.1,
+        transparent: true,
+        opacity: 0.65,
+      });
+      const vialGlowMats = [0x4ade80, 0xf472b6, 0x67e8f9, 0xfacc15].map(
+        (c) =>
+          new THREE.MeshStandardMaterial({
+            color: c,
+            roughness: 0.4,
+            emissive: c,
+            emissiveIntensity: 0.5,
+          }),
+      );
+      const vialGeom = new THREE.CylinderGeometry(0.055, 0.055, 0.24, 8);
+      for (let shelf = 0; shelf < 3; shelf++) {
+        const y = 0.3 + shelf * 0.55;
+        const board = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.05, 0.6), shelfMat);
+        board.position.set(0, y, 0);
+        board.castShadow = true;
+        group.add(board);
+        for (let i = 0; i < 5; i++) {
+          const vial = new THREE.Mesh(vialGeom, vialGlass);
+          vial.position.set(-0.6 + i * 0.3, y + 0.15, (i + shelf) % 2 === 0 ? 0.1 : -0.1);
+          group.add(vial);
+          const fill = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.04, 0.04, 0.1, 8),
+            vialGlowMats[(i + shelf) % vialGlowMats.length],
+          );
+          fill.position.set(vial.position.x, y + 0.1, vial.position.z);
+          group.add(fill);
+        }
+      }
+      return group;
+    },
     // Vine ladder: two springy rails + rungs, standing in the wall's
     // plane so it reads from either face. One segment spans one story.
     'vine_ladder': () => {

@@ -78,6 +78,8 @@ import { StartScreenModal } from './components/StartScreenModal';
 import { HUD } from './components/HUD';
 import { QuestLogModal } from './components/QuestLogModal';
 import { TOOL_NAMES, accessTierOf } from './game/quests';
+import { bestWeapon } from './game/weapons';
+import type { WeaponDef } from './game/weapons';
 import { useQuests } from './hooks/useQuests';
 import { useStorage } from './hooks/useStorage';
 import { useVat } from './hooks/useVat';
@@ -159,6 +161,8 @@ export default function App() {
     tameFauna,
     setFaunaCommand,
     applyDissolve,
+    strikeFauna,
+    fireProjectile,
     releaseFauna,
     upsertFauna,
     removeFauna,
@@ -173,6 +177,33 @@ export default function App() {
   const [activeModal, setActiveModal] = useState<
     'bioforge' | 'inventory' | 'codex' | 'multiplayer' | 'controls' | 'devtools' | 'quests' | 'storage' | 'vat' | null
   >(null);
+
+  // The striker slot's draw (weapons build, Adam, 2026-10-16):
+  // which KIND of weapon slot 7 holds — 'close' or 'ranged'. The
+  // drawn WEAPON derives from the pouch (best owned of the drawn
+  // kind, the other kind when the drawn kind was never grown), and
+  // the viewmodel hand re-grows whenever the draw changes.
+  const [strikerDraw, setStrikerDraw] = useState<'close' | 'ranged'>('close');
+  const strikerDrawRef = useRef<'close' | 'ranged'>('close');
+  const drawnWeapon: WeaponDef | undefined =
+    bestWeapon(inventory, strikerDraw) ?? bestWeapon(inventory, strikerDraw === 'close' ? 'ranged' : 'close');
+  const drawnWeaponRef = useRef<WeaponDef | undefined>(undefined);
+  useEffect(() => {
+    strikerDrawRef.current = strikerDraw;
+    drawnWeaponRef.current = drawnWeapon;
+    if (drawnWeapon) engineRef.current?.setStrikerWeapon(drawnWeapon.itemId);
+  }, [strikerDraw, drawnWeapon]);
+
+  // Pay a strike's stamina (weapons build). Hoisted function
+  // declaration on purpose: useToolInteractions composes ABOVE
+  // useGameInput in this component, but staminaRef is the input
+  // hook's — the body only ever runs at click time, long after
+  // both hooks have run. False = too winded to strike.
+  function spendStamina(amount: number): boolean {
+    if (staminaRef.current < amount) return false;
+    staminaRef.current = Math.max(0, staminaRef.current - amount);
+    return true;
+  }
 
   // Which storage pod the StorageModal shows (id; entity re-read live).
   const [storageTargetId, setStorageTargetId] = useState<string | null>(null);
@@ -352,6 +383,20 @@ export default function App() {
     },
     [getPlayerPosition]
   );
+  // The striker's tracer (weapons build, Adam, 2026-10-16): the
+  // visible shot flies the same line at the same speed as the
+  // sim's ledger entry — travel time derived from the drawn
+  // weapon's table speed, so sight and resolution agree.
+  const triggerShotFx = useCallback(
+    (x: number, z: number, burst: boolean) => {
+      const p = getPlayerPosition();
+      const weapon = drawnWeaponRef.current;
+      const speed = weapon?.projectileSpeed ?? 16;
+      const travel = Math.hypot(x - p.x, z - p.z) / speed;
+      engineRef.current?.triggerShotTracer(p.x, p.z, x, z, travel, burst);
+    },
+    [getPlayerPosition]
+  );
   const getPlayerLevel = useCallback((): number => playerLevelRef.current, []);
 
   // ----------------------------------------------------------------------
@@ -500,6 +545,11 @@ export default function App() {
       setActiveModal('vat');
     },
     applyDissolve,
+    strikeFauna,
+    fireProjectile,
+    strikerDrawRef,
+    spendStamina,
+    triggerShotFx,
     onRequestRelease: (fauna) => setPendingRelease(fauna),
     spawnDroppedItem,
     triggerHarvestFx,
@@ -619,7 +669,29 @@ export default function App() {
     // Lazy: useDebugKit is called just below (it reads the save
     // session's state mirror); the toggle fires on a keypress only.
     onToggleDebugKit: () => toggleDebugKit(),
+    // The striker draw swap (weapons build): defined just below —
+    // ref-driven, fires on the 7 key / wheel / tile click only.
+    onToggleStrikerDraw: () => toggleStrikerDraw(),
   });
+
+// The striker draw swap (weapons build, Adam, 2026-10-16): flip
+// slot 7 between its close and ranged draws — but only when the
+// other kind is actually grown; with one kind owned there is
+// nothing to swap to and the key/wheel simply rests. Ref-driven
+// (draw ref + the save session's inventory mirror) so the input
+// hook's listeners can call it without stale state.
+const toggleStrikerDraw = (): void => {
+  const other = strikerDrawRef.current === 'close' ? 'ranged' : 'close';
+  const weapon = bestWeapon(latestStateRef.current.inventory, other);
+  if (!weapon) return;
+  setStrikerDraw(other);
+  postNotification(
+    'Striker Drawn',
+    `${ITEMS[weapon.itemId].name} — ${other === 'close' ? 'close' : 'ranged'} striker in hand.`,
+    'system',
+    '#facc15',
+  );
+};
 
 // Debug kit swap (backquote key): hooks/useDebugKit — the real
 // pouch waits in debugStashRef and saveNow writes the stash while
@@ -1323,6 +1395,8 @@ const {
         onSelectTool={handleSelectTool}
         unlockedTools={unlockedTools}
         onToolLocked={handleSelectTool}
+        strikerDrawName={drawnWeapon ? ITEMS[drawnWeapon.itemId].name : undefined}
+        strikerDrawKind={drawnWeapon?.kind}
         onOpenQuests={() => setActiveModal('quests')}
         questView={trackedView}
         onDismissQuest={

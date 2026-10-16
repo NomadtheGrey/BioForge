@@ -107,6 +107,11 @@ interface HUDProps {
    * their clicks through onToolLocked instead of selecting. */
   unlockedTools: ToolType[];
   onToolLocked: (tool: ToolType) => void;
+  /** The striker slot's current draw (weapons build, 2026-10-16):
+   *  the drawn weapon's display name and kind, for the slot-7
+   *  tile's icon and descriptor. Absent until a weapon is grown. */
+  strikerDrawName?: string;
+  strikerDrawKind?: 'close' | 'ranged';
   /** Opens the mini-quest LIST (the top-row button; the Q hotkey is
    * App's). The list — not this HUD — owns tracker visibility. */
   onOpenQuests: () => void;
@@ -178,6 +183,8 @@ export const HUD: React.FC<HUDProps> = ({
   onToggleHeldItem,
   unlockedTools,
   onToolLocked,
+  strikerDrawName,
+  strikerDrawKind,
   onOpenQuests,
   questView,
   onDismissQuest,
@@ -258,11 +265,25 @@ export const HUD: React.FC<HUDProps> = ({
       desc: 'Grow interlocking living structures',
       color: '#a855f7',
     },
+    {
+      // The seventh slot (weapons build, 2026-10-16): one slot,
+      // one drawn weapon — the tile wears the DRAWN weapon's face,
+      // and its descriptor names it, so the player always knows
+      // which striker is in hand. Tap 7 (or scroll) swaps the draw.
+      id: 'striker',
+      label: strikerDrawName ?? 'Striker',
+      key: '7',
+      icon: strikerDrawKind === 'ranged' ? '🎯' : '🗡️',
+      desc: strikerDrawName
+        ? `In hand: ${strikerDrawName} (${strikerDrawKind === 'ranged' ? 'ranged' : 'close'}) — tap 7 or scroll to swap the draw`
+        : 'The Striker slot — grow a Briar Barb or a Spit Pod at the Bio-Forge',
+      color: '#facc15',
+    },
   ];
 
   // In-game tool descriptor: replaces native browser tooltips with a styled
   // panel. Shows the hovered tool, or flashes the newly selected tool for
-  // ~3s after keyboard (1-6) / click selection changes.
+  // ~3s after keyboard (1-7) / click selection changes.
   const [hoveredToolId, setHoveredToolId] = useState<ToolType | null>(null);
   const [flashToolId, setFlashToolId] = useState<ToolType | null>(null);
   const flashTimer = useRef<number | null>(null);

@@ -366,6 +366,21 @@ export class BioForgeThreeEngine {
     dust_rose: { color: 0xf5f5f4, intensity: 0.25, distance: 2, y: 0.3 },
     obsidian_rose: { color: 0x57534e, intensity: 0.2, distance: 2, y: 0.3 },
     hedge_rose: { color: 0xe11d48, intensity: 0.3, distance: 2.5, y: 0.4 },
+    // Flora wave 6 (creature slice 18, 2026-10-16): the last
+    // flora — the Raincatcher hangs its sky-light high, the
+    // Smoke Tree's seams glow coal-low, the Maw Bloom lures.
+    raincatcher: { color: 0xbae6fd, intensity: 0.4, distance: 3.5, y: 0.8 },
+    tending_vine: { color: 0xfde68a, intensity: 0.5, distance: 2.5, y: 0.5 },
+    hearthroot: { color: 0xfb923c, intensity: 0.35, distance: 2.5, y: 0.3 },
+    puffbell: { color: 0xd8b4fe, intensity: 0.35, distance: 2.5, y: 0.4 },
+    arch_tree: { color: 0x92400e, intensity: 0.3, distance: 4, y: 1 },
+    smoke_tree: { color: 0xea580c, intensity: 0.5, distance: 3.5, y: 0.5 },
+    lightcreep: { color: 0xa3e635, intensity: 0.4, distance: 2.5, y: 0.2 },
+    zot_star: { color: 0xfde047, intensity: 0.45, distance: 2.5, y: 0.2 },
+    grabvine: { color: 0x4d7c0f, intensity: 0.2, distance: 2, y: 0.2 },
+    maw_bloom: { color: 0xbe185d, intensity: 0.4, distance: 3, y: 0.3 },
+    quiver_cap: { color: 0xa5f3fc, intensity: 0.4, distance: 2.5, y: 0.3 },
+    balloon_vine: { color: 0x86efac, intensity: 0.3, distance: 2.5, y: 0.5 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },

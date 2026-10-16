@@ -57,6 +57,8 @@ import type { FaunaEntity, FaunaSpecies, FloraEntity, FloraSpecies, StructureEnt
 import { generateCaveSurface, HOMESTEAD_BLOCKERS } from './caveSurface';
 import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
 import { BONUS_SPAWN_SPECIES } from './species';
+import { zonePondsAt } from './terrain';
+import type { PondDef } from './terrain';
 
 /**
  * Stamp recorded on saves so future format/gen changes can migrate.
@@ -229,8 +231,18 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     saves, samples and vat recipes are untouched. The
  *     archetype it descends from reads Garden Keeper in the
  *     codex now, on its page and the Garden Colossus's.
+ * v50: creature build phase, slice 35 (2026-10-16) — THE
+ *     POND GATE (Adam's pond pin, P5 move 2): the bonus loops
+ *     learn the pond gate — a species whose spec carries
+ *     `pond` deals only into one of the zone's ponds
+ *     (zonePondsAt, water in v1), only in landform worlds
+ *     (the worldHasLandforms binding above), anchored at the
+ *     pond with the sim clamping its world to the disc, and
+ *     drawn at its swim depth under the surface. Wave A: the
+ *     first eleven pond citizens. The swimmers have waited
+ *     for water since the roster was drawn; the water is in.
  */
-export const WORLD_GEN_VERSION = 49; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
+export const WORLD_GEN_VERSION = 50; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -565,7 +577,20 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0, opt
   // sync paths omit it and stay dry by default. Consumed by the
   // species gates (creatures build) via this binding.
   const worldHasLandforms = opts?.landform === true;
-  void worldHasLandforms;
+  // This zone's ponds, resolved lazily on the first pond-gated
+  // species (pond build, creatures chat, 2026-10-16): pond life
+  // deals only into them, and only in landform worlds at all —
+  // legacy worlds have no ponds to give. Water is v1's only
+  // liquid; the liquid check rides the resolver's field so
+  // later liquids gate by name, not by new code.
+  let zonePonds: PondDef[] | null = null;
+  const pondsHere = (): PondDef[] => {
+    if (!worldHasLandforms) return [];
+    if (zonePonds === null) {
+      zonePonds = zonePondsAt(seedStr, zoneZx, zoneZz).filter((p) => p.liquid === 'water');
+    }
+    return zonePonds;
+  };
   // The zone's single biome — its identity — drives every biome rule
   // below for the whole zone.
   const zoneBiome: BiomeId = zoneBiomeAt(seedStr, zoneZx, zoneZz);
@@ -1033,12 +1058,30 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0, opt
       // deterministic per zone (seed + coordinates), so this is
       // a placement rule, never a dice roll.
       if (spec.weather && zoneWeatherAt(seedStr, zoneZx, zoneZz).mode !== spec.weather) continue;
+      // Pond gate (pond build, 2026-10-16): pond species deal
+      // only into one of this zone's ponds.
+      const ponds = spec.pond ? pondsHere() : [];
+      if (spec.pond && ponds.length === 0) continue;
       const bonusRng = createSeededRandom(stream(`fauna:bonus:${def.id}`));
       let placed = 0;
       for (let attempt = 0; attempt < 40 && placed < spec.count; attempt++) {
-        const x = (bonusRng() * 2 - 1) * 44;
-        const z = (bonusRng() * 2 - 1) * 44;
-        if (Math.hypot(x, z) < spec.minRadius) continue;
+        let x = (bonusRng() * 2 - 1) * 44;
+        let z = (bonusRng() * 2 - 1) * 44;
+        let pondAnchor: { x: number; z: number; radius: number } | undefined;
+        if (spec.pond) {
+          // Pond placement: inside the disc at a seeded angle and
+          // depth — the pond is the home, so the zone-center
+          // minRadius rule does not apply. The anchor + radius
+          // are stamped on the entity for the sim's pond clamp.
+          const pond = ponds[placed % ponds.length];
+          const px = pond.cx - zoneZx * 100;
+          const pz = pond.cz - zoneZz * 100;
+          const ang = bonusRng() * Math.PI * 2;
+          const rr = Math.sqrt(bonusRng()) * pond.radius * 0.7;
+          x = px + Math.cos(ang) * rr;
+          z = pz + Math.sin(ang) * rr;
+          pondAnchor = { x: px, z: pz, radius: pond.radius };
+        } else if (Math.hypot(x, z) < spec.minRadius) continue;
         if (fauna.some((f) => Math.hypot(f.x - x, f.z - z) < spec.spacing)) continue;
         fauna.push({
           id: `fauna_bonus_${def.id}_${placed + 1}`,
@@ -1052,6 +1095,9 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0, opt
           isTamed: false,
           targetX: x,
           targetZ: z,
+          ...(pondAnchor
+            ? { anchorX: pondAnchor.x, anchorZ: pondAnchor.z, pondRadius: pondAnchor.radius }
+            : {}),
           speed: spec.speed + (bonusRng() * 2 - 1) * spec.speedJitter,
           health: spec.health,
           maxHealth: spec.health,
@@ -1089,12 +1135,25 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0, opt
         if (!pairHere.includes(spec.hybrid[0]) || !pairHere.includes(spec.hybrid[1])) continue;
       }
       if (spec.weather && zoneWeatherAt(seedStr, zoneZx, zoneZz).mode !== spec.weather) continue;
+      // Pond gate (pond build, 2026-10-16): the mirror of the
+      // fauna gate — pond flora grows only in a pond.
+      const ponds = spec.pond ? pondsHere() : [];
+      if (spec.pond && ponds.length === 0) continue;
       const growRng = createSeededRandom(stream(`flora:bonus:${def.id}`));
       let planted = 0;
       for (let attempt = 0; attempt < 40 && planted < spec.count; attempt++) {
-        const x = (growRng() * 2 - 1) * 44;
-        const z = (growRng() * 2 - 1) * 44;
-        if (Math.hypot(x, z) < spec.minRadius) continue;
+        let x = (growRng() * 2 - 1) * 44;
+        let z = (growRng() * 2 - 1) * 44;
+        if (spec.pond) {
+          // Pond placement, flora edition: in the disc, toward
+          // its heart (a pond fungus fruits in the water, not on
+          // the bank) — no minRadius rule; the pond is the home.
+          const pond = ponds[planted % ponds.length];
+          const ang = growRng() * Math.PI * 2;
+          const rr = Math.sqrt(growRng()) * pond.radius * 0.75;
+          x = pond.cx - zoneZx * 100 + Math.cos(ang) * rr;
+          z = pond.cz - zoneZz * 100 + Math.sin(ang) * rr;
+        } else if (Math.hypot(x, z) < spec.minRadius) continue;
         if (flora.some((f) => Math.hypot(f.x - x, f.z - z) < spec.spacing)) continue;
         flora.push({
           id: `flora_bonus_${def.id}_${planted + 1}`,

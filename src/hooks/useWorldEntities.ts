@@ -980,8 +980,9 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           byproductTimer: 0,
           animTime: 0,
           hearthFeedings: 0,
-          hearthDecideTimer: 1800, // three ten-minute days to decide
+          hearthDecideTimer: 18000, // thirty ten-minute days to decide (Adam, 2026-10-16: '30 days is fair')
           hearthFedTimer: 999, // the first offering need not wait
+          hearthAgeDays: 0, // arrives a pup — growth is the engine's read of this clock
         };
         setFaunaList((prev) => (prev.some((f) => f.species === 'hearth_dog') ? prev : [...prev, dog]));
       }
@@ -1041,13 +1042,22 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           let phaseTimer = fauna.phaseTimer ?? 0;
           if (diveSpec) phaseTimer = (phaseTimer + dt) % diveSpec.cycleSeconds;
           // Hearth Dog courtship clocks (slice 39): an arrived,
-          // undecided dog counts down its three days of
+          // undecided dog counts down its thirty days of
           // loaded-zone time, and digests between offerings.
           let hearthDecideTimer = fauna.hearthDecideTimer;
           let hearthFedTimer = fauna.hearthFedTimer;
           if (fauna.species === 'hearth_dog' && !isTamed && hearthDecideTimer !== undefined) {
             hearthDecideTimer = Math.max(0, hearthDecideTimer - dt);
             hearthFedTimer = (hearthFedTimer ?? 0) + dt;
+          }
+          // Growth (Adam, 2026-10-16): the dog ages in game days
+          // (600 s each — the planet's rotation), courted or bonded
+          // alike: a pup at arrival, full-grown by day ten. A dog
+          // from before this clock existed starts full-grown if he
+          // is already yours, a pup if he is still deciding.
+          let hearthAgeDays = fauna.hearthAgeDays;
+          if (fauna.species === 'hearth_dog') {
+            hearthAgeDays = (hearthAgeDays ?? (isTamed ? 10 : 0)) + dt / 600;
           }
           // The hermit's regard (slice 42): stillness shown to
           // a wild Hollow Hermit in the night band accrues —
@@ -1331,6 +1341,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             phaseTimer,
             hearthDecideTimer,
             hearthFedTimer,
+            hearthAgeDays,
             health: fauna.health - dissolveDamage,
             animTime: fauna.animTime + dt,
           };

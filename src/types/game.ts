@@ -852,6 +852,8 @@ export interface FaunaEntity {
   hearthFeedings?: number;
   hearthDecideTimer?: number;
   hearthFedTimer?: number;
+  // Hearth Dog growth clock, in game days (0 = fresh pup, 10 = full-grown).
+  hearthAgeDays?: number;
   animTime: number;
   /** Biome TYPE this creature spawned in (world-gen stamp; absent on old saves). */
   biome?: BiomeId;

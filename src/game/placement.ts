@@ -60,6 +60,7 @@ export function isFloorType(type: StructureType): boolean {
  * isWalkOverType, which is floors plus these.
  */
 export const WALK_OVER_TYPES: ReadonlySet<StructureType> = new Set([
+  'woven_rug',
   'cultivation_mound',
   'spore_canopy',
   'vine_ladder',
@@ -208,11 +209,25 @@ export function occupancyConflict(
         s.worldZ === spot.worldZ,
     );
   }
+  // The woven rug (slice E, 2026-10-16) is its own thin family:
+  // it lies OVER the ground layer and UNDER the furniture, so it
+  // coexists with floors and uprights alike and conflicts only
+  // with another rug in the same cell.
+  if (type === 'woven_rug') {
+    return structures.find(
+      (s) =>
+        s.type === 'woven_rug' &&
+        s.gridX === spot.gridX &&
+        s.gridZ === spot.gridZ &&
+        (s.level ?? 0) === spot.level,
+    );
+  }
   const placingGroundLayer = GROUND_LAYER_TYPES.includes(type);
   return structures.find((s) => {
     if (s.gridX !== spot.gridX || s.gridZ !== spot.gridZ) return false;
     if ((s.level ?? 0) !== spot.level) return false; // each story has its own layers
     if (isEdgePanel(s.type) || isLadder(s.type)) return false; // panels/ladders live on edges, not in the cell's layers
+    if (s.type === 'woven_rug') return false; // the rug underlies every layer (slice E)
     return GROUND_LAYER_TYPES.includes(s.type) === placingGroundLayer;
   });
 }

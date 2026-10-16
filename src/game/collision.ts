@@ -73,6 +73,10 @@ function isCollidingWithStructure(
     if (s.type === 'bio_forge_station') obstacleRadius = 1.15;
     if (s.type === 'tamed_snap_trap_turret') obstacleRadius = 0.6;
     if (s.type === 'lantern_fern_post') obstacleRadius = 0.35;
+    // Furniture footprints (slice E): a bed is a body-length
+    // piece; a stool is a small one.
+    if (s.type === 'root_bed') obstacleRadius = 0.85;
+    if (s.type === 'root_stool') obstacleRadius = 0.3;
     // A cave mouth is a rock mass: you walk up TO the opening (the
     // portal radius is 1.4 m) but not into the stone.
     if (s.type === 'cave_mouth') obstacleRadius = 1.3;

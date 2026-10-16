@@ -27,6 +27,16 @@ export type ItemId =
   | 'haycap'
   | 'snow_morel'
   | 'ink_cap'
+  | 'bonemoss'
+  | 'listening_frond'
+  | 'ice_petal'
+  | 'gravevine_flower'
+  | 'saltroot_glass'
+  | 'storm_fruit'
+  | 'bog_light'
+  | 'gale_straw'
+  | 'glyph_leaf'
+  | 'ash_puff'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -215,7 +225,20 @@ export type FloraSpecies =
   | 'haycap'
   | 'coal_cap'
   | 'snow_morel'
-  | 'ink_cap';
+  | 'ink_cap'
+  // Slice 10 (2026-10-16) — flora wave 2.
+  | 'bonemoss'
+  | 'listening_fern'
+  | 'snowbell'
+  | 'grave_vine'
+  | 'saltroot'
+  | 'stormroot'
+  | 'bog_lantern'
+  | 'gale_grass'
+  | 'doorstep_rose'
+  | 'glyph_vine'
+  | 'glowcap'
+  | 'ash_puff';
 
 export interface FloraEntity {
   id: string;

@@ -109,8 +109,11 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     PIPELINE: a flora table (flora.ts) + a generic bonus-growth
  *     loop beside the fauna one, harvest yields as table data.
  *     Twelve wave-1 species grow through it.
+ * v25: creature build phase, slice 10 (2026-10-16) — flora
+ *     wave 2: twelve more table species (Bone/Storm/Living
+ *     casts, three hybrid citizens). Table-only change.
  */
-export const WORLD_GEN_VERSION = 24; // v24 (2026-10-15): creature slice 9 — the flora pipeline (flora.ts + bonus-growth loop), twelve species; v23 was creature slice 8
+export const WORLD_GEN_VERSION = 25; // v25 (2026-10-16): creature slice 10 — flora wave 2, twelve table species; v24 was creature slice 9 (the flora pipeline)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

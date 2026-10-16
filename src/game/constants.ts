@@ -1,4 +1,5 @@
 import { ItemDef, ItemId, CraftingRecipe, CodexEntry } from '../types/game';
+import { FLORA_CODEX } from './flora';
 
 export const ITEMS: Record<ItemId, ItemDef> = {
   // Raw Botanical Byproducts
@@ -169,6 +170,36 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     description: 'Wool shed by Dusk Grazers, black-violet with the duskgrass they eat — light-drinking cloth-stuff, the Living family\'s textile.',
     iconName: 'Shirt',
     color: '#7e57c2',
+    rarity: 'uncommon',
+    maxStack: 99,
+  },
+  haycap: {
+    id: 'haycap',
+    name: 'Haycap',
+    category: 'raw',
+    description: 'The gathered Haycap itself — a pasture mushroom that fruits on hay and herd-leavings, the meadow\'s small recycler, rendered portable.',
+    iconName: 'Sprout',
+    color: '#d6c48f',
+    rarity: 'common',
+    maxStack: 99,
+  },
+  snow_morel: {
+    id: 'snow_morel',
+    name: 'Snow Morel',
+    category: 'raw',
+    description: 'A dark honeycomb morel gathered at the melt lines, where the snowfields retreat — the Stillwhite\'s spring, edible and brief.',
+    iconName: 'Sprout',
+    color: '#57534e',
+    rarity: 'uncommon',
+    maxStack: 99,
+  },
+  ink_cap: {
+    id: 'ink_cap',
+    name: 'Ink Cap',
+    category: 'raw',
+    description: 'The gathered melt of an Ink Cap, bottled by the picking — black fungal ink. The far country\'s texts are copied in this; the kingdom writes its script and then provides the ink.',
+    iconName: 'Droplet',
+    color: '#1c1917',
     rarity: 'uncommon',
     maxStack: 99,
   },
@@ -2422,6 +2453,8 @@ export const INITIAL_CODEX: CodexEntry[] = [
     biome: 'The Living (the heart points)',
     iconColor: '#e11d48',
   },
+  ...FLORA_CODEX,
+
   {
     species: 'iris_slit_door',
     name: 'Iris-Slit Proximity Door',
@@ -2773,6 +2806,9 @@ export const DEBUG_KIT: Record<ItemId, number> = {
   spire_down: 4,
   canopy_moss: 4,
   dusk_wool: 4,
+  haycap: 4,
+  snow_morel: 3,
+  ink_cap: 3,
   lodestone_sand: 4,
   field_scute: 3,
   carapace_scale: 4,

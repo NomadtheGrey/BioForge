@@ -2043,6 +2043,245 @@ export const FLORA: Record<string, FloraDef> = {
       scale: 0.9,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Wave 9 (slice 23, 2026-10-16) — the fungus bench, second
+  // dozen: molds that hold countries together, caps that keep
+  // weather and music.
+  // ------------------------------------------------------------------
+
+  // #290 — a gray mold sheeting the ash in soft patches of
+  // the Ashen Drift: where Ashveil grows in felts, the drift
+  // mold grows in films — and BINDS the ash against wind.
+  // NO harvest: the Drift's skin is not a crop.
+  drift_mold: {
+    id: 'drift_mold',
+    name: 'Drift Mold',
+    kind: 'fungus',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['ember'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      scale: 1,
+    },
+  },
+
+  // #291 — a mold growing ON glass — on the Garden's blooms
+  // and shards, filming them green-black while the Shardwing
+  // nests above it. (Gated to the garden as built, in
+  // Saltglass country; its entry files the garden under
+  // Ember's telling — same discrepancy as the Obsidian Rose,
+  // same ruling.) Scraped mold is a polishing grit, unlisted:
+  // no item.
+  glass_mold: {
+    id: 'glass_mold',
+    name: 'Glass Mold',
+    kind: 'fungus',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['saltglass'],
+      variant: 'obsidian_garden',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #292 — a cap fruiting in fulgurite fields in the DAYS
+  // AFTER a strike: it eats strike-glass grit, so a field's
+  // strike caps are its second archive (the Zot Stars keep
+  // the first). Gritty, mineral — an acquired taste the flats
+  // defend.
+  strike_cap: {
+    id: 'strike_cap',
+    name: 'Strike Cap',
+    kind: 'fungus',
+    harvest: { item: 'strike_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['storm'],
+      variant: 'charged_flats',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #293 — a cap fruiting under dune crests, surfacing after
+  // dew nights (the Dune Whale's passages churn its beds up —
+  // the dunes' provision is found by following whales).
+  // (Gated to the dunes as built, in Saltglass country; its
+  // entry files them under Storm's telling — the margin is
+  // argued over by both families and farmed by the cap.)
+  dune_cap: {
+    id: 'dune_cap',
+    name: 'Dune Cap',
+    kind: 'fungus',
+    harvest: { item: 'dune_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['saltglass'],
+      variant: 'magnetic_dunes',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #294 — a puffball that FILLS WITH UP-RAIN: it drinks the
+  // sky's delivery through its skin and swells — a full puff
+  // is a water-skin that GREW: the Basin's canteen, disposable
+  // and renewable, burst over a cup.
+  basin_puff: {
+    id: 'basin_puff',
+    name: 'Basin Puff',
+    kind: 'fungus',
+    harvest: { item: 'basin_puff', count: 1, fertilizedCount: 1 },
+    bonusGrow: {
+      biomes: ['storm'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1,
+    },
+  },
+
+  // #295 — a jelly fruiting in melt pools in the Thaw's brief
+  // plenty (the Thaw Rose times the bloom; the jelly times
+  // the refreshment). Gathered bare-handed at the melt's
+  // edge: the crossing's pause, in jelly form.
+  thaw_jelly: {
+    id: 'thaw_jelly',
+    name: 'Thaw Jelly',
+    kind: 'fungus',
+    harvest: { item: 'thaw_jelly', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['saltglass'],
+      variant: 'saltglass_thaw',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #296 — the kingdom's third crystal citizen: a cap whose
+  // GILLS are grown saltglass blades. One gill-blade, taken
+  // singly, is a Prism Gill: a razor lens of grown glass —
+  // the far opticians' stock, harvested one lens at a time.
+  prism_cap: {
+    id: 'prism_cap',
+    name: 'Prism Cap',
+    kind: 'fungus',
+    harvest: { item: 'prism_gill', count: 1, fertilizedCount: 1 },
+    bonusGrow: {
+      biomes: ['saltglass'],
+      variant: 'saltglass_prism',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #297 — a cap fruiting standing in open snow, unmelting,
+  // unsnowed — its cap sheds snow as it falls: the Stillwhite's
+  // few punctuation marks, eaten fresh at the snowfield's
+  // edge, cold and clean as the country.
+  still_cap: {
+    id: 'still_cap',
+    name: 'Still Cap',
+    kind: 'fungus',
+    harvest: { item: 'still_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['frost'],
+      variant: 'frost_stillwhite',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #298 — a bracket of the Fang cliffs, shelves rimed like
+  // the teeth they grow under — the Spire Bats' SECOND roof.
+  // Old shelves are bracket stock, winter grade (the Ice
+  // Shelf's cliff cousin).
+  fang_shelf: {
+    id: 'fang_shelf',
+    name: 'Fang Shelf',
+    kind: 'fungus',
+    harvest: { item: 'fang_shelf', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['frost'],
+      variant: 'frost_fangs',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1,
+    },
+  },
+
+  // #299 — a cap fruiting on the lake's shore ice whose
+  // hollow stem RESONATES with the ice's singing: a struck
+  // shore rings, and the caps answer in their key. NO harvest —
+  // the shore's instrument is not cut; it is consulted.
+  song_cap: {
+    id: 'song_cap',
+    name: 'Song Cap',
+    kind: 'fungus',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['frost'],
+      variant: 'frost_singing',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #300 — a tiny cap fruiting on canopy LEAVES, in the high
+  // light (the Canopy Orchid grows in the crowns as flora;
+  // the cap fruits on the leaves as fungus — the crown keeps
+  // both kingdoms). A leaf's worth is the canopy's spice,
+  // gathered by climbers.
+  canopy_cap: {
+    id: 'canopy_cap',
+    name: 'Canopy Cap',
+    kind: 'fungus',
+    harvest: { item: 'canopy_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['rootwood'],
+      variant: 'rootwood_canopy',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.8,
+    },
+  },
+
+  // #301 — a dark cap with GLOWING GILLS — the Glowcap's deep
+  // cousin: cap black, light below. The dark country's
+  // provision, carried glow-side down in the basket, per
+  // custom.
+  gloom_cap: {
+    id: 'gloom_cap',
+    name: 'Gloom Cap',
+    kind: 'fungus',
+    harvest: { item: 'gloom_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['rootwood'],
+      variant: 'rootwood_underroot',
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      scale: 0.9,
+    },
+  },
 };
 
 /** Table lookup by species id (the hook + worldGen read here). */

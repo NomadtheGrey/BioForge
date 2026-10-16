@@ -181,6 +181,181 @@ export function buildLateFloraMesh(
         break;
       }
 
+      case 'answer_tree': {
+        // Composing a reply (slice 27): a broad tree whose
+        // canopy tilts, listening.
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.14, 0.7, 8), new THREE.MeshStandardMaterial({ color: 0x713f12, roughness: 1 }));
+        trunk.position.y = 0.35;
+        group.add(trunk);
+        const canopy = new THREE.Mesh(new THREE.SphereGeometry(0.42, 10, 8), new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 0.95 }));
+        canopy.position.set(0.08, 0.85, 0);
+        canopy.scale.y = 0.8;
+        group.add(canopy);
+        break;
+      }
+
+      case 'greeting_cap': {
+        // The valley's manners (slice 27): a mild lemon cap.
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.035, 0.12, 6), new THREE.MeshStandardMaterial({ color: 0xfefce8, roughness: 0.9 }));
+        stalk.position.y = 0.06;
+        group.add(stalk);
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.08, 9, 6, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xfde047, roughness: 0.7 }));
+        cap.position.y = 0.12;
+        group.add(cap);
+        break;
+      }
+
+      case 'relic_tree': {
+        // An orchard under patrol (slice 27): a pale forged
+        // tree with stone-hard fruit.
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.13, 0.65, 8), new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 0.6, metalness: 0.2 }));
+        trunk.position.y = 0.32;
+        group.add(trunk);
+        const canopy = new THREE.Mesh(new THREE.SphereGeometry(0.36, 9, 7), new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.8 }));
+        canopy.position.y = 0.78;
+        canopy.scale.y = 0.85;
+        group.add(canopy);
+        const fruitMat = new THREE.MeshStandardMaterial({ color: 0xfef3c7, roughness: 0.3, metalness: 0.3 });
+        for (const [fx, fy, fz] of [[0.2, 0.62, 0.1], [-0.18, 0.7, -0.08], [0.02, 0.55, -0.2]] as const) {
+          const fruit = new THREE.Mesh(new THREE.SphereGeometry(0.045, 7, 6), fruitMat);
+          fruit.position.set(fx, fy, fz);
+          group.add(fruit);
+        }
+        break;
+      }
+
+      case 'ironwood': {
+        // Ore at tree pace (slice 27): a dark, dense trunk,
+        // iron-veined.
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.15, 0.7, 8), new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 0.7, metalness: 0.35 }));
+        trunk.position.y = 0.35;
+        group.add(trunk);
+        const canopy = new THREE.Mesh(new THREE.SphereGeometry(0.38, 9, 7), new THREE.MeshStandardMaterial({ color: 0x3f6212, roughness: 0.95 }));
+        canopy.position.y = 0.82;
+        canopy.scale.y = 0.8;
+        group.add(canopy);
+        break;
+      }
+
+      case 'glare_vine': {
+        // The floor is lenses (slice 27): a vine of glass
+        // leaves on a low trellis of itself.
+        const stemMat = new THREE.MeshStandardMaterial({ color: 0x65a30d, roughness: 0.8 });
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 0.3, 5), stemMat);
+        stem.position.y = 0.15;
+        stem.rotation.z = 0.3;
+        group.add(stem);
+        const leafMat = new THREE.MeshStandardMaterial({ color: 0xa5f3fc, roughness: 0.15, metalness: 0.2, transparent: true, opacity: 0.65, side: THREE.DoubleSide });
+        for (let i = 0; i < 4; i++) {
+          const leaf = new THREE.Mesh(new THREE.CircleGeometry(0.05, 7), leafMat);
+          leaf.position.set(-0.06 + i * 0.045, 0.12 + i * 0.06, (i % 2) * 0.05);
+          leaf.rotation.y = i * 0.8;
+          group.add(leaf);
+        }
+        break;
+      }
+
+      case 'marrow_vine': {
+        // The Graveyard's sweetness (slice 27): a vine with
+        // pale honeyed blooms.
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 0.28, 5), new THREE.MeshStandardMaterial({ color: 0x9f1239, roughness: 0.85 }));
+        stem.position.y = 0.14;
+        stem.rotation.z = -0.25;
+        group.add(stem);
+        const bloomMat = new THREE.MeshStandardMaterial({ color: 0xfbcfe8, roughness: 0.7 });
+        for (let i = 0; i < 3; i++) {
+          const bloom = new THREE.Mesh(new THREE.SphereGeometry(0.04, 7, 6), bloomMat);
+          bloom.position.set(0.04 - i * 0.03, 0.1 + i * 0.08, 0.03);
+          group.add(bloom);
+        }
+        break;
+      }
+
+      case 'row_moss': {
+        // The ruler (slice 27): a spiral-true moss mat —
+        // drawn as a ring segment of the great spiral.
+        const mat = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.32, 0.025, 12, 1, false, 0, Math.PI * 1.2), new THREE.MeshStandardMaterial({ color: 0x84cc16, roughness: 1 }));
+        mat.position.y = 0.012;
+        group.add(mat);
+        break;
+      }
+
+      case 'prism_moss': {
+        // The glazier (slice 27): a light-sorting film —
+        // three color patches at noon.
+        const patchCols = [0xf87171, 0x67e8f9, 0xfde047];
+        patchCols.forEach((col, i) => {
+          const patch = new THREE.Mesh(new THREE.CircleGeometry(0.1, 8), new THREE.MeshStandardMaterial({ color: col, roughness: 0.4, transparent: true, opacity: 0.75 }));
+          patch.rotation.x = -Math.PI / 2;
+          patch.position.set(-0.12 + i * 0.12, 0.012 + i * 0.002, (i % 2) * 0.07);
+          group.add(patch);
+        });
+        break;
+      }
+
+      case 'gloam_fern': {
+        // Its own lighting (slice 27): teal-lit fronds.
+        const frondMat = new THREE.MeshStandardMaterial({ color: 0x2dd4bf, roughness: 0.7, emissive: 0x0f766e, emissiveIntensity: 0.55, side: THREE.DoubleSide });
+        for (let i = 0; i < 5; i++) {
+          const a = (i / 5) * Math.PI * 2;
+          const frond = new THREE.Mesh(new THREE.PlaneGeometry(0.07, 0.3), frondMat);
+          frond.position.set(Math.cos(a) * 0.07, 0.14, Math.sin(a) * 0.07);
+          frond.rotation.set(0.5, -a, 0);
+          group.add(frond);
+        }
+        break;
+      }
+
+      case 'flood_fern': {
+        // Two-leaved (slice 27): lacy air fronds above,
+        // ribbon hinted at the base.
+        const frondMat = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.85, side: THREE.DoubleSide });
+        for (let i = 0; i < 5; i++) {
+          const a = (i / 5) * Math.PI * 2;
+          const frond = new THREE.Mesh(new THREE.PlaneGeometry(0.08, 0.32), frondMat);
+          frond.position.set(Math.cos(a) * 0.06, 0.16, Math.sin(a) * 0.06);
+          frond.rotation.set(0.45, -a, 0);
+          group.add(frond);
+        }
+        const ribbon = new THREE.Mesh(new THREE.PlaneGeometry(0.05, 0.2), new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.4, side: THREE.DoubleSide, transparent: true, opacity: 0.8 }));
+        ribbon.position.set(0.1, 0.05, 0.05);
+        ribbon.rotation.z = 0.5;
+        group.add(ribbon);
+        break;
+      }
+
+      case 'ice_bloom': {
+        // The century's appointment (slice 27): one pale
+        // forged bloom, open.
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.025, 0.2, 6), new THREE.MeshStandardMaterial({ color: 0xbae6fd, roughness: 0.4, metalness: 0.3 }));
+        stalk.position.y = 0.1;
+        group.add(stalk);
+        const petalMat = new THREE.MeshStandardMaterial({ color: 0xe0f2fe, roughness: 0.25, metalness: 0.2, side: THREE.DoubleSide });
+        for (let i = 0; i < 6; i++) {
+          const a = (i / 6) * Math.PI * 2;
+          const petal = new THREE.Mesh(new THREE.CircleGeometry(0.05, 7), petalMat);
+          petal.position.set(Math.cos(a) * 0.05, 0.22, Math.sin(a) * 0.05);
+          petal.rotation.set(0.7, -a, 0);
+          group.add(petal);
+        }
+        break;
+      }
+
+      case 'ripple_bell': {
+        // Tuned to water (slice 27): bells on a bank stem.
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.02, 0.3, 5), new THREE.MeshStandardMaterial({ color: 0x3f6212, roughness: 0.9 }));
+        stem.position.y = 0.15;
+        group.add(stem);
+        const bellMat = new THREE.MeshStandardMaterial({ color: 0x93c5fd, roughness: 0.4, metalness: 0.3 });
+        for (let i = 0; i < 3; i++) {
+          const bell = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.07, 8, 1, true), bellMat);
+          bell.position.set((i - 1) * 0.07, 0.26 - Math.abs(i - 1) * 0.03, 0);
+          bell.rotation.x = Math.PI;
+          group.add(bell);
+        }
+        break;
+      }
+
     default:
       return null;
   }

@@ -148,6 +148,11 @@ export type ItemId =
   | 'flood_ribbon'
   | 'ice_bloom'
   | 'ripple_bell'
+  | 'night_wax'
+  | 'scar_bloom'
+  | 'chime_straw'
+  | 'feral_cutting'
+  | 'bone_bloom'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -492,7 +497,20 @@ export type FloraSpecies =
   | 'gloam_fern'
   | 'flood_fern'
   | 'ice_bloom'
-  | 'ripple_bell';
+  | 'ripple_bell'
+  // Flora wave 13 (slice 28, 2026-10-16) — orchids, reeds, candles.
+  | 'night_candle'
+  | 'scar_orchid'
+  | 'ashveil'
+  | 'chime_reed'
+  | 'sky_lily'
+  | 'fall_orchid'
+  | 'deck_flower'
+  | 'feral_rose'
+  | 'bone_orchid'
+  | 'marrow_reed'
+  | 'pale_sedge'
+  | 'snow_cress';
 
 export interface FloraEntity {
   id: string;

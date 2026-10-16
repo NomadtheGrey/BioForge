@@ -180,8 +180,12 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     wave 12: the trees, vines and mosses (Answer Tree,
  *     Relic Tree, Ironwood, Row Moss, Gloam Fern and kin).
  *     Table-only change.
+ * v43: creature build phase, slice 28 (2026-10-16) — flora
+ *     wave 13: the orchids, reeds and candles (Night Candle,
+ *     Scar Orchid, Feral Rose, Bone Orchid, Snow Cress and
+ *     kin). Table-only change.
  */
-export const WORLD_GEN_VERSION = 42; // v42 (2026-10-16): creature slice 27 — flora wave 12, trees/vines/mosses; v41 was creature slice 26 (flora wave 11)
+export const WORLD_GEN_VERSION = 43; // v43 (2026-10-16): creature slice 28 — flora wave 13, orchids/reeds/candles; v42 was creature slice 27 (flora wave 12)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

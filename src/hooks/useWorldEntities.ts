@@ -792,6 +792,11 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // flees while the dissolve runs (the flight block below
           // overrides its hunt) and answers when it ends.
           let provokedTimer = Math.max(0, (fauna.provokedTimer ?? 0) - dt);
+          // Behavior phase clock (slice 38): cycles for species
+          // whose table entry names one (the dive cycle today).
+          const diveSpec = speciesDef(fauna.species).dive;
+          let phaseTimer = fauna.phaseTimer ?? 0;
+          if (diveSpec) phaseTimer = (phaseTimer + dt) % diveSpec.cycleSeconds;
           // A creature won over mid-dissolve is washed clean by
           // the bond — your solvent never harms your own, even
           // retroactively.
@@ -913,6 +918,15 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             if (Math.random() < wanderChance) {
               targetX = x + (Math.random() - 0.5) * WANDER_RADIUS;
               targetZ = z + (Math.random() - 0.5) * WANDER_RADIUS;
+              // THE BLINK (slice 38, 2026-10-16): the Blink Hare
+              // does not walk to its new target — it is simply
+              // THERE, most of the time. The fastest ground
+              // citizen keeps its speed for the chases it cannot
+              // blink out of; its locomotion is the vanish.
+              if (fauna.species === 'blink_hare' && Math.random() < 0.65) {
+                x = targetX;
+                z = targetZ;
+              }
             }
           }
 
@@ -1020,6 +1034,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             dissolveTimer,
             flinchTimer,
             provokedTimer,
+            phaseTimer,
             health: fauna.health - dissolveDamage,
             animTime: fauna.animTime + dt,
           };

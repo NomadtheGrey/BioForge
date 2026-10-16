@@ -93,6 +93,17 @@ export interface SpeciesHunt {
   biteRange: number;
   /** Seconds between bites while in range. */
   biteCooldownSeconds: number;
+  /**
+   * Provoked-only (slice 32, 2026-10-16 — Adam's oversize
+   * pin: "they can be chill until the player messes with
+   * them"): proximity alone NEVER alerts this species. It
+   * hunts only while its FaunaEntity provokedTimer runs —
+   * stamped by player-side harm (a strike, a landed shot, a
+   * dissolve, or a guardian's bite) and refreshed by further
+   * harm. The oversize tier carries this flag: landscape
+   * citizens at peace until somebody starts something.
+   */
+  provokedOnly?: boolean;
 }
 
 /**
@@ -172,6 +183,16 @@ export interface SpeciesDef {
    *  Tamed hunters never hunt the player; on guard they patrol
    *  like the stalker always did. */
   hunt?: SpeciesHunt;
+  /**
+   * Kill loot (slice 32, 2026-10-16 — Adam's oversize pin:
+   * "if killed, they should provide good loot"): extra items
+   * the shared death sweep drops where the creature fell, ON
+   * TOP of the universal sample. [item, count] tuples, like
+   * the flora table's harvest extras. Carried today by the
+   * oversize tier only; the mechanism is general (the Feral
+   * Warden's deferred Requisition could ride it, Adam's call).
+   */
+  killLoot?: [ItemId, number][];
   /** The flight spec (slice 6): present only on airborne
    *  species. Draw-only — see SpeciesFlight. */
   flight?: SpeciesFlight;

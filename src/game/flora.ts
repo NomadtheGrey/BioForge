@@ -65,6 +65,10 @@ export interface FloraBonusGrow {
   hybrid?: readonly [BiomeId, BiomeId];
   /** Weather gate: deals only where the zone's weather matches. */
   weather?: WeatherMode;
+  /** Pond gate (pond build, 2026-10-16): grows ONLY in a pond
+   *  in the zone (zonePondsAt, water in v1), and only in
+   *  landform worlds — the mirror of the fauna pond gate. */
+  pond?: boolean;
   /** Individuals dealt per eligible zone. */
   count: number;
   /** Keep this far from the zone center. */

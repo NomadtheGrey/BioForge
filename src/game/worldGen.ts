@@ -295,8 +295,15 @@ import type { PondDef, RiverSeg } from './terrain';
  *     HEARTH CAPS fruit only in a certified hearth's ash —
  *     the growth tick holds them at stage 3 otherwise.
  *     Behavior-only; generation learns nothing new.
+ * v59: creature build phase, slice 44 (2026-10-16) — the
+ *     ROOTFALL BEAR's landlord negotiation (courted with its
+ *     own Heart Sap rent; provoked-only defense of the
+ *     hollow) and the ROOT OTTER's bank (pond-dealt at last,
+ *     swimming its circuit, caching bright treasure in the
+ *     roots on a long clock). The otter's deal narrows to
+ *     ponded Drowned Roots zones — its country, honestly.
  */
-export const WORLD_GEN_VERSION = 58; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
+export const WORLD_GEN_VERSION = 59; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

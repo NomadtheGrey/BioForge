@@ -395,6 +395,7 @@ export interface UseWorldEntitiesResult {
   removeStructure: (structureId: string) => void;
   tameFauna: (faunaId: string, customName: string, state: FaunaEntity['state']) => void;
   hearthFeed: (faunaId: string) => number;
+  loadHeartbearer: (faunaId: string, item: ItemId) => number;
   setFaunaCommand: (faunaId: string, cmd: 'follow' | 'stay' | 'guard') => void;
   releaseFauna: (faunaId: string) => void;
   applyDissolve: (faunaId: string) => void;
@@ -627,6 +628,19 @@ export function useWorldEntities(): UseWorldEntitiesResult {
       prev.map((fn) => (fn.id === faunaId ? { ...fn, hearthFeedings: count, hearthFedTimer: 0 } : fn))
     );
     return count;
+  }, []);
+
+  // The Heartbearer's load (slice 48): the lure's offering
+  // hand places an edible on the bearer's back (the tool hook
+  // chose and deducted it); the sim carries it from here —
+  // the route below delivers. Cargo caps at four: a broad
+  // back, not a freight line. Returns the load count.
+  const loadHeartbearer = useCallback((faunaId: string, item: ItemId): number => {
+    const bearer = faunaRef.current.find((f) => f.id === faunaId);
+    if (!bearer || bearer.species !== 'heartbearer' || bearer.isTamed) return 0;
+    const cargo = [...(bearer.cargoItems ?? []), item].slice(0, 4);
+    setFaunaList((prev) => prev.map((fn) => (fn.id === faunaId ? { ...fn, cargoItems: cargo } : fn)));
+    return cargo.length;
   }, []);
 
   const upsertFauna = useCallback((fauna: FaunaEntity): void => {
@@ -1214,6 +1228,9 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             // another hook, but a standing tamed bear at the
             // player's side is the same fact, a breath later.
             if (fauna.species === 'rootfall_bear' && isTamed && distToPlayer < 20) witness('note_rootfall_bear');
+            // The deer's answer, likewise: a standing tamed
+            // deer WAS the calm courtship, completed.
+            if (fauna.species === 'answer_deer' && isTamed && distToPlayer < 20) witness('note_answer_deer');
             // Drift Krill, risen: at night the mesh lifts them
             // to the surface on the swim table's nightRise — to
             // be near one in the dark is to see the rise.
@@ -1407,7 +1424,148 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             socialTravel = 0;
           }
 
-          if (!isTamed && !hunterAlert && !staffEngaged) {
+          // -------------------------------------------------------
+          // THE MIRROR (creature slice 48, 2026-10-16): the
+          // Answer Deer mirrors the visitor it is with. Calm
+          // company accrues CALM REGARD on the deer itself —
+          // the courtship the lure reads (45 s of it, gathered
+          // over days, persisted with the fauna). Hurry is
+          // mirrored back as flight; stillness, as stillness.
+          // In Hungry country (a Taster on the roster) the herd
+          // mirrors NOTHING — tuned to an appetite that isn't
+          // yours — and the correct reading is the design's:
+          // believe them, and keep your distance, as they keep
+          // theirs.
+          // -------------------------------------------------------
+          let calmRegard = fauna.calmRegard ?? 0;
+          let deerBusy = false;
+          let deerStilling = false;
+          if (fauna.species === 'answer_deer' && !isTamed) {
+            const hungryCountry = faunaRef.current.some((f) => f.species === 'taster');
+            if (hungryCountry) {
+              calmRegard = Math.max(0, calmRegard - dt * 4);
+              if (socialState === 'startled') {
+                socialState = undefined;
+                socialTimer = 0;
+              }
+              if (distToPlayer < 14) {
+                deerBusy = true;
+                state = 'wandering';
+                const awayA = Math.atan2(x - playerX, z - playerZ);
+                targetX = playerX + Math.sin(awayA) * 17;
+                targetZ = playerZ + Math.cos(awayA) * 17;
+              }
+            } else if (socialState === 'startled') {
+              deerBusy = true;
+              state = 'wandering';
+              socialTimer += dt;
+              calmRegard = Math.max(0, calmRegard - dt * 10);
+              const awayA = Math.atan2(x - playerX, z - playerZ);
+              targetX = x + Math.sin(awayA) * 8;
+              targetZ = z + Math.cos(awayA) * 8;
+              if (socialTimer >= 2.5) {
+                socialState = undefined;
+                socialTimer = 0;
+              }
+            } else if (distToPlayer <= 22) {
+              if (playerSpeed > 3.2) {
+                socialState = 'startled';
+                socialTimer = 0;
+                deerBusy = true;
+                state = 'wandering';
+                const awayA = Math.atan2(x - playerX, z - playerZ);
+                targetX = x + Math.sin(awayA) * 8;
+                targetZ = z + Math.cos(awayA) * 8;
+              } else if (playerSpeed < 0.15) {
+                // Stillness, answered with stillness: the deer
+                // holds, and faces you (the rotation below).
+                deerBusy = true;
+                deerStilling = true;
+                state = 'idle';
+                targetX = x;
+                targetZ = z;
+                if (distToPlayer >= 3.5) calmRegard = Math.min(150, calmRegard + dt);
+              } else if (playerSpeed < 0.6) {
+                // Calm company: the deer grazes a loose ring
+                // around its visitor, in no hurry at all.
+                deerBusy = true;
+                state = 'wandering';
+                const awayA = Math.atan2(x - playerX, z - playerZ);
+                targetX = playerX + Math.sin(awayA) * 7;
+                targetZ = playerZ + Math.cos(awayA) * 7;
+                if (distToPlayer >= 3.5) calmRegard = Math.min(150, calmRegard + dt);
+              } else {
+                calmRegard = Math.max(0, calmRegard - dt * 2);
+              }
+            }
+          }
+
+          // -------------------------------------------------------
+          // THE ROAD (creature slice 48): the Heartbearer walks
+          // its supply line — the valley's heart to the valley's
+          // edge and back, in all weathers, resting a breath at
+          // each end. Anything edible on its back (the lure's
+          // offering hand loads it) is DELIVERED at the heart:
+          // the load is consumed by the country, the delivery
+          // is witnessed, and a fed heart answers with its own
+          // sap — the bloom, doubled, made honest at item
+          // scale. Its outer post is remembered on the bearer:
+          // the route is ITS road, kept the way it keeps it.
+          // -------------------------------------------------------
+          let routeX = fauna.routeX;
+          let routeZ = fauna.routeZ;
+          let cargoItems = fauna.cargoItems;
+          let bearerBusy = false;
+          if (fauna.species === 'heartbearer' && !isTamed) {
+            bearerBusy = true;
+            const heartFlora = floraRef.current.find((fl) => fl.species === 'valley_heart' || fl.species === 'heartbloom');
+            const heartTile = structuresRef.current.find((st) => st.type === 'heart_tile');
+            const hx = heartFlora ? heartFlora.x : heartTile ? heartTile.worldX : 50;
+            const hz = heartFlora ? heartFlora.z : heartTile ? heartTile.worldZ : 50;
+            if (routeX === undefined || routeZ === undefined) {
+              const edges = [
+                { d: z, x, z: 4 },
+                { d: 100 - z, x, z: 96 },
+                { d: x, x: 4, z },
+                { d: 100 - x, x: 96, z },
+              ].sort((a, b) => a.d - b.d);
+              routeX = edges[0].x;
+              routeZ = edges[0].z;
+            }
+            if (!socialState) socialState = 'to-heart';
+            if (socialState === 'resting') {
+              state = 'idle';
+              targetX = x;
+              targetZ = z;
+              socialTimer += dt;
+              if (socialTimer >= 6) {
+                socialTimer = 0;
+                socialState = socialTravel === 1 ? 'to-edge' : 'to-heart';
+              }
+            } else {
+              const tx = socialState === 'to-heart' ? hx : routeX;
+              const tz = socialState === 'to-heart' ? hz : routeZ;
+              state = 'wandering';
+              targetX = tx;
+              targetZ = tz;
+              if (Math.hypot(tx - x, tz - z) <= 2.5) {
+                if (socialState === 'to-heart') {
+                  if ((cargoItems ?? []).length > 0) {
+                    cargoItems = [];
+                    spawnDroppedItem('heart_sap', 1, hx + 1.2, hz + 0.8);
+                    if (distToPlayer < 30) witness('note_heartbearer');
+                  }
+                  socialTravel = 1;
+                } else {
+                  socialTravel = 0;
+                }
+                socialState = 'resting';
+                socialTimer = 0;
+              }
+            }
+          }
+
+          if (!isTamed && !hunterAlert && !staffEngaged && !deerBusy && !bearerBusy) {
             state = 'wandering';
             // Restless wandering: standing at the target re-rolls fast
             // (short pauses, long roams); en route the re-roll stays rare
@@ -1526,7 +1684,9 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           }
 
           // An alert stalker watches the intruder, not its path.
-          if (state === 'alert') {
+          // A stilling Answer Deer does the same, in peace
+          // (slice 48): the mirror holds your gaze.
+          if (state === 'alert' || deerStilling) {
             newRot = Math.atan2(playerX - x, playerZ - z);
           }
 
@@ -1590,6 +1750,10 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             socialState,
             socialTimer,
             socialTravel,
+            calmRegard,
+            cargoItems,
+            routeX,
+            routeZ,
             health: fauna.health - dissolveDamage,
             animTime: fauna.animTime + dt,
           };
@@ -1920,6 +2084,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
     removeStructure,
     tameFauna,
     hearthFeed,
+    loadHeartbearer,
     setFaunaCommand,
     releaseFauna,
     applyDissolve,

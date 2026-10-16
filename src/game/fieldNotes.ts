@@ -115,6 +115,20 @@ export const FIELD_NOTES: FieldNote[] = [
   },
   // -----------------------------------------------------------------
   {
+    id: 'note_answer_deer',
+    species: 'answer_deer',
+    kind: 'fauna',
+    clue: 'It mirrors the visitor it is with — calm for the calm, still for the still, gone for the loud. It cannot be hurried into friendship. Be near it, be slow, and let the calm collect; then offer, at the speed you brought it.',
+    witness: 'Calm, answered — a deer met at its own speed.',
+  },
+  {
+    id: 'note_heartbearer',
+    species: 'heartbearer',
+    kind: 'fauna',
+    clue: 'The broad back walking between a valley\'s edges and its heart is a supply line with legs. Anything edible laid on it is delivered to the heart. Follow one, and the country\'s own road will show you where its heart is.',
+    witness: 'A load delivered to the heart.',
+  },
+  {
     id: 'note_root_otter',
     species: 'root_otter',
     kind: 'fauna',

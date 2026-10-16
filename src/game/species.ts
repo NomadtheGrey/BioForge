@@ -139,6 +139,11 @@ export interface SpeciesFlight {
 export interface SpeciesSwim {
   /** Meters below the water surface the mesh rides. */
   depth: number;
+  /** Night rise (slice 40, 2026-10-16): if set, the ride depth
+   *  eases toward this much shallower value at midnight — the
+   *  diel vertical migration, read off the day/night phase by
+   *  the mesh kit. Absent = the species keeps one depth. */
+  nightRise?: number;
 }
 
 // Dive cycle (slice 38, 2026-10-16): a species with BOTH a

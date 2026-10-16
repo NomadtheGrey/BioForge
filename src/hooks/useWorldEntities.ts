@@ -393,6 +393,7 @@ export interface UseWorldEntitiesResult {
   upsertStructure: (structure: StructureEntity) => void;
   removeStructure: (structureId: string) => void;
   tameFauna: (faunaId: string, customName: string, state: FaunaEntity['state']) => void;
+  hearthFeed: (faunaId: string) => number;
   setFaunaCommand: (faunaId: string, cmd: 'follow' | 'stay' | 'guard') => void;
   releaseFauna: (faunaId: string) => void;
   applyDissolve: (faunaId: string) => void;
@@ -444,6 +445,22 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   useEffect(() => {
     structuresRef.current = structuresList;
   }, [structuresList]);
+
+  // Same mirror trick for fauna (slice 39): the Hearth Dog's
+  // courtship reads the dog synchronously — counting an offering
+  // cannot wait on a state updater's schedule.
+  const faunaRef = useRef<FaunaEntity[]>([]);
+  useEffect(() => {
+    faunaRef.current = faunaList;
+  }, [faunaList]);
+
+  // Hearth Dog arrival bookkeeping (slice 39, 2026-10-16): when
+  // this zone was entered (the dog arrives "one morning", not
+  // the second you cross a border — ten settled seconds first),
+  // when the last dog departed undecided (another may come,
+  // after a while), and when the last arrival spawned (a guard
+  // against re-entry while the state write is still landing).
+  const hearthRef = useRef({ zoneEnteredAt: -1_000_000, lastDepartureAt: -1_000_000, lastArrivalAt: -1_000_000 });
 
   // Culture-vat gestation clock (2026-10-16): progress accrues in
   // the tick every frame, but the structures list is only WRITTEN
@@ -561,6 +578,23 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           : fn
       )
     );
+  }, []);
+
+  // One accepted offering for the Hearth Dog (slice 39): the
+  // count lives on the dog, capped at the decision number, and
+  // the digestion clock restarts — offerings count at most one
+  // a minute. Returns the new count, read synchronously from
+  // the fauna mirror so the lure can announce the decision the
+  // moment the third lands. Any other creature, or a dog that
+  // never arrived, counts nothing.
+  const hearthFeed = useCallback((faunaId: string): number => {
+    const dog = faunaRef.current.find((f) => f.id === faunaId);
+    if (!dog || dog.species !== 'hearth_dog' || dog.isTamed || dog.hearthDecideTimer === undefined) return 0;
+    const count = Math.min(3, (dog.hearthFeedings ?? 0) + 1);
+    setFaunaList((prev) =>
+      prev.map((fn) => (fn.id === faunaId ? { ...fn, hearthFeedings: count, hearthFedTimer: 0 } : fn))
+    );
+    return count;
   }, []);
 
   const upsertFauna = useCallback((fauna: FaunaEntity): void => {
@@ -721,6 +755,10 @@ export function useWorldEntities(): UseWorldEntitiesResult {
 // applying a host's world snapshot (world_sync) as a guest. Every list
 // is swapped at once so the world never appears half-old, half-new.
   const replaceWorld = useCallback((world: WorldSnapshot): void => {
+    // A fresh zone entry restarts the Hearth Dog's "settled"
+    // wait (slice 39): the dog arrives one morning, not the
+    // second a border is crossed.
+    hearthRef.current.zoneEnteredAt = simClockRef.current;
     setFloraList(world.flora);
     setFaunaList(world.fauna);
     setStructuresList(world.structures);
@@ -742,6 +780,59 @@ export function useWorldEntities(): UseWorldEntitiesResult {
       // The projectile ledger runs on this clock (weapons build,
       // 2026-10-16): shots resolve when their travel time elapses.
       simClockRef.current += dt;
+
+      // ---------------------------------------------------------------
+      // THE HEARTH DOG ARRIVES (creature slice 39, 2026-10-16 —
+      // Adam's pin: "just use the spawn tiles"). The design's law:
+      // a hearth dog is not found, caught, or tamed — it ARRIVES.
+      // When the zone the player is standing in holds a heart
+      // tile, the player has been settled a few seconds, no dog
+      // (wild, courting, or decided) is about, and the last
+      // undecided departure is not fresh, the country sends one:
+      // it walks in beside the player, takes up at that doorstep
+      // on a perimeter it invents (the pond-clamp fields —
+      // anchor + radius 7 — reused as a homestead claim), and
+      // its three-day decision clock starts. The courtship
+      // itself (offerings, the bond) lives in the lure's dog
+      // branch; the departure runs in the death sweep below.
+      // ---------------------------------------------------------------
+      if (
+        simulateWorld &&
+        simClockRef.current - hearthRef.current.zoneEnteredAt > 10 &&
+        simClockRef.current - hearthRef.current.lastDepartureAt > 600 &&
+        simClockRef.current - hearthRef.current.lastArrivalAt > 30 &&
+        structuresRef.current.some((s) => s.type === 'heart_tile') &&
+        !faunaRef.current.some((f) => f.species === 'hearth_dog')
+      ) {
+        hearthRef.current.lastArrivalAt = simClockRef.current;
+        const ang = Math.random() * Math.PI * 2;
+        const spawnX = Math.min(98, Math.max(2, playerX + Math.cos(ang) * 3.5));
+        const spawnZ = Math.min(98, Math.max(2, playerZ + Math.sin(ang) * 3.5));
+        const dog: FaunaEntity = {
+          id: `fauna_hearth_dog_${Math.floor(simClockRef.current)}`,
+          species: 'hearth_dog',
+          x: spawnX,
+          z: spawnZ,
+          y: 0,
+          rotation: Math.random() * Math.PI * 2,
+          state: 'wandering',
+          isTamed: false,
+          targetX: spawnX,
+          targetZ: spawnZ,
+          anchorX: spawnX,
+          anchorZ: spawnZ,
+          pondRadius: 7,
+          speed: 1.8,
+          health: 22,
+          maxHealth: 22,
+          byproductTimer: 0,
+          animTime: 0,
+          hearthFeedings: 0,
+          hearthDecideTimer: 1800, // three ten-minute days to decide
+          hearthFedTimer: 999, // the first offering need not wait
+        };
+        setFaunaList((prev) => (prev.some((f) => f.species === 'hearth_dog') ? prev : [...prev, dog]));
+      }
 
       // 1. Fauna Behavioral AI Tick (host authority — guests apply host upserts)
       if (simulateWorld) {
@@ -797,6 +888,15 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           const diveSpec = speciesDef(fauna.species).dive;
           let phaseTimer = fauna.phaseTimer ?? 0;
           if (diveSpec) phaseTimer = (phaseTimer + dt) % diveSpec.cycleSeconds;
+          // Hearth Dog courtship clocks (slice 39): an arrived,
+          // undecided dog counts down its three days of
+          // loaded-zone time, and digests between offerings.
+          let hearthDecideTimer = fauna.hearthDecideTimer;
+          let hearthFedTimer = fauna.hearthFedTimer;
+          if (fauna.species === 'hearth_dog' && !isTamed && hearthDecideTimer !== undefined) {
+            hearthDecideTimer = Math.max(0, hearthDecideTimer - dt);
+            hearthFedTimer = (hearthFedTimer ?? 0) + dt;
+          }
           // A creature won over mid-dissolve is washed clean by
           // the bond — your solvent never harms your own, even
           // retroactively.
@@ -1035,6 +1135,8 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             flinchTimer,
             provokedTimer,
             phaseTimer,
+            hearthDecideTimer,
+            hearthFedTimer,
             health: fauna.health - dissolveDamage,
             animTime: fauna.animTime + dt,
           };
@@ -1064,7 +1166,17 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             }
           }
         }
-        if (defenderDamage.size === 0 && shotDamage.size === 0 && !mappedFauna.some((f) => f.health <= 0)) return mappedFauna;
+        // An undecided Hearth Dog whose three days ran out
+        // departs in this same sweep (slice 39): no remains, no
+        // sample — it was never yours to lose. It leaves the way
+        // it came, and the country may send another, later.
+        const isDeparting = (f: FaunaEntity): boolean =>
+          f.species === 'hearth_dog' &&
+          !f.isTamed &&
+          f.hearthDecideTimer !== undefined &&
+          f.hearthDecideTimer <= 0 &&
+          (f.hearthFeedings ?? 0) < 3;
+        if (defenderDamage.size === 0 && shotDamage.size === 0 && !mappedFauna.some((f) => f.health <= 0) && !mappedFauna.some(isDeparting)) return mappedFauna;
         // Deaths leave remains where they fell — and remains are
         // a SAMPLE, the dead's half of Adam's sample ruling. The
         // killers that reach this sweep: a guardian's bites (the
@@ -1072,6 +1184,10 @@ export function useWorldEntities(): UseWorldEntitiesResult {
         // work (health already subtracted in the map), a striker's
         // close hit (likewise), and a striker's shot on arrival.
         return mappedFauna.flatMap((f) => {
+          if (isDeparting(f)) {
+            hearthRef.current.lastDepartureAt = simClockRef.current;
+            return [];
+          }
           const dmg = (defenderDamage.get(f.id) ?? 0) + (shotDamage.get(f.id) ?? 0);
           const health = f.health - dmg;
           if (health > 0) {
@@ -1222,6 +1338,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
     upsertStructure,
     removeStructure,
     tameFauna,
+    hearthFeed,
     setFaunaCommand,
     releaseFauna,
     applyDissolve,

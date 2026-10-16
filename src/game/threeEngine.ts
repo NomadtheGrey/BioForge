@@ -499,10 +499,6 @@ export class BioForgeThreeEngine {
     nest_cap: { color: 0xa16207, intensity: 0.3, distance: 2, y: 0.3 },
     frost_mold: { color: 0xbae6fd, intensity: 0.3, distance: 2, y: 0.2 },
     steam_cap: { color: 0xf1f5f9, intensity: 0.35, distance: 2, y: 0.3 },
-    // Landscape flora trio (creature slice 31, 2026-10-16).
-    valley_heart: { color: 0x84cc16, intensity: 0.5, distance: 3, y: 0.6 },
-    mother_grove: { color: 0xa16207, intensity: 0.4, distance: 3, y: 0.4 },
-    first_tree: { color: 0x365314, intensity: 0.4, distance: 3, y: 0.6 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },
@@ -516,6 +512,7 @@ export class BioForgeThreeEngine {
     // The storage pod's amber seam breathes a low, warm halo.
     storage_pod: { color: 0xf59e0b, intensity: 0.5, distance: 2.4, y: 0.8 },
     culture_vat: { color: 0x34d399, intensity: 0.65, distance: 3.4, y: 1.0 },
+    biotunnel_mouth: { color: 0x2dd4bf, intensity: 0.6, distance: 3.2, y: 1.2 },
     // The living ladder drinks light all day and gives a little
     // back at dusk — a soft leaf-green halo at climbing height.
     // (This entry was one of the two the pre-2026-10-15 type union
@@ -838,6 +835,7 @@ export class BioForgeThreeEngine {
     this.camera.position.y = this.eyeHeight + this.terrainHeightAt(x, z) + level * STORY_HEIGHT + jumpOffset;
     this.updateIrisDoorsProximity(x, z);
     this.updateVatLife();
+    this.updateTunnelLife();
     this.updateDissolveFizz();
   }
 
@@ -1461,6 +1459,35 @@ export class BioForgeThreeEngine {
       const mat = core.material as THREE.MeshStandardMaterial;
       mat.opacity = 0.25 + 0.65 * f;
       mat.emissiveIntensity = f >= 1 ? 0.7 + 0.3 * Math.sin(this.elapsedTime * 2.2 + phase) : 0.25;
+    });
+  }
+
+  /**
+   * Tunnel life (2026-10-16): a BioTunnel mouth's membrane tells
+   * the pair's state at a glance — while the pair is whole (the
+   * derived flag on the entity record, refreshed by App at sync)
+   * it glows teal and stirs on a slow breath, phased by entity id
+   * like the vats; with an end gone it goes dark and still.
+   * Presentation only: pairing truth lives in game/tunnel.ts.
+   */
+  private updateTunnelLife(): void {
+    this.structureMeshMap.forEach((mesh) => {
+      const entity = mesh.userData.entity as StructureEntity | undefined;
+      if (!entity || entity.type !== 'biotunnel_mouth') return;
+      const membrane = mesh.getObjectByName('tunnelMembrane') as THREE.Mesh | undefined;
+      if (!membrane) return;
+      const mat = membrane.material as THREE.MeshStandardMaterial;
+      const phase = entity.id.length * 1.7;
+      if (entity.tunnel?.paired) {
+        const stir = 1 + 0.035 * Math.sin(this.elapsedTime * 1.6 + phase);
+        membrane.scale.set(stir, stir, 1);
+        mat.emissiveIntensity = 0.55 + 0.3 * Math.sin(this.elapsedTime * 1.6 + phase);
+        mat.opacity = 0.55;
+      } else {
+        membrane.scale.set(1, 1, 1);
+        mat.emissiveIntensity = 0;
+        mat.opacity = 0.92;
+      }
     });
   }
 

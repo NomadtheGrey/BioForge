@@ -318,7 +318,7 @@ import type { PondDef, RiverSeg } from './terrain';
  *     duck's dive, the crab's venting). The quest-log
  *     wiring is the dev chat's lane, specced in the file.
  */
-export const WORLD_GEN_VERSION = 61; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
+export const WORLD_GEN_VERSION = 62; // v62 (2026-10-16): creature slice 47 — the Valley Staff take up their offices (escort engine + the Taster's regard) and the Field Notes witness threading lands (the sim stamps the thirteen sim-side notes); v61 was creature slice 46 (Field Notes data) // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

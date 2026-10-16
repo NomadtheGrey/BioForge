@@ -2203,6 +2203,161 @@ export function buildFloraMesh(
         break;
       }
 
+      case 'drift_mold': {
+        // The Drift's skin (slice 23): a soft gray film patch.
+        const film = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.34, 0.03, 11), new THREE.MeshStandardMaterial({ color: 0xa8a29e, roughness: 1 }));
+        film.position.y = 0.015;
+        group.add(film);
+        break;
+      }
+
+      case 'glass_mold': {
+        // The loop, filming (slice 23): a green-black film on
+        // a glass shard.
+        const shard = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.3, 5), new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.15, metalness: 0.3 }));
+        shard.position.y = 0.15;
+        group.add(shard);
+        const film = new THREE.Mesh(new THREE.SphereGeometry(0.07, 7, 6), new THREE.MeshStandardMaterial({ color: 0x365314, roughness: 0.9 }));
+        film.scale.y = 0.6;
+        film.position.y = 0.2;
+        group.add(film);
+        break;
+      }
+
+      case 'strike_cap': {
+        // The second archive (slice 23): a gritty pale cap.
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.04, 0.13, 6), new THREE.MeshStandardMaterial({ color: 0xe7e5e4, roughness: 0.9 }));
+        stalk.position.y = 0.06;
+        group.add(stalk);
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.085, 9, 6, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 0.85 }));
+        cap.position.y = 0.13;
+        group.add(cap);
+        break;
+      }
+
+      case 'dune_cap': {
+        // Found by following whales (slice 23): a sand-dusted
+        // cap surfacing.
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.09, 9, 6, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.9 }));
+        cap.position.y = 0.05;
+        group.add(cap);
+        const sand = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.17, 0.04, 9), new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 1 }));
+        sand.position.y = 0.02;
+        group.add(sand);
+        break;
+      }
+
+      case 'basin_puff': {
+        // A canteen that grew (slice 23): a swollen pale
+        // puffball, drawn full.
+        const puff = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), new THREE.MeshStandardMaterial({ color: 0xbae6fd, roughness: 0.5, transparent: true, opacity: 0.9 }));
+        puff.scale.y = 1.1;
+        puff.position.y = 0.11;
+        group.add(puff);
+        break;
+      }
+
+      case 'thaw_jelly': {
+        // The picnic beside the calendar (slice 23): melt-
+        // pool jellies.
+        const jellyMat = new THREE.MeshStandardMaterial({ color: 0xa5f3fc, roughness: 0.2, transparent: true, opacity: 0.75 });
+        for (let i = 0; i < 3; i++) {
+          const dome = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), jellyMat);
+          dome.scale.y = 0.6;
+          dome.position.set(-0.1 + i * 0.1, 0.03, (i % 2) * 0.06);
+          group.add(dome);
+        }
+        break;
+      }
+
+      case 'prism_cap': {
+        // A glass book (slice 23): a cap with blade gills
+        // fanned below.
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.04, 0.14, 6), new THREE.MeshStandardMaterial({ color: 0xe0f2fe, roughness: 0.5 }));
+        stalk.position.y = 0.07;
+        group.add(stalk);
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.09, 9, 6, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xe0f2fe, roughness: 0.3 }));
+        cap.position.y = 0.14;
+        group.add(cap);
+        const gillMat = new THREE.MeshStandardMaterial({ color: 0x67e8f9, roughness: 0.15, metalness: 0.3, side: THREE.DoubleSide });
+        for (let i = 0; i < 3; i++) {
+          const gill = new THREE.Mesh(new THREE.PlaneGeometry(0.02, 0.07), gillMat);
+          gill.position.set(-0.04 + i * 0.04, 0.11, 0);
+          group.add(gill);
+        }
+        break;
+      }
+
+      case 'still_cap': {
+        // A dark full stop (slice 23): one unsnowed cap in
+        // open snow.
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.04, 0.16, 6), new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.85 }));
+        stalk.position.y = 0.08;
+        group.add(stalk);
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.08, 9, 6, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.7 }));
+        cap.position.y = 0.16;
+        group.add(cap);
+        break;
+      }
+
+      case 'fang_shelf': {
+        // Storeys of fungus (slice 23): rimed brackets on a
+        // stone tooth.
+        const tooth = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.4, 6), new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.9 }));
+        tooth.position.y = 0.2;
+        group.add(tooth);
+        const shelfMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.7 });
+        for (let i = 0; i < 2; i++) {
+          const shelf = new THREE.Mesh(new THREE.CylinderGeometry(0.09 - i * 0.02, 0.1 - i * 0.02, 0.025, 9, 1, false, 0, Math.PI), shelfMat);
+          shelf.position.set(0, 0.14 + i * 0.14, 0.08);
+          group.add(shelf);
+        }
+        break;
+      }
+
+      case 'song_cap': {
+        // Consulted, not cut (slice 23): a hollow-stemmed cap
+        // drawn at the waterline.
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.035, 0.22, 8, 1, true), new THREE.MeshStandardMaterial({ color: 0xdbeafe, roughness: 0.6, side: THREE.DoubleSide }));
+        stem.position.y = 0.11;
+        group.add(stem);
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.075, 9, 6, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x93c5fd, roughness: 0.6, emissive: 0x1d4ed8, emissiveIntensity: 0.25 }));
+        cap.position.y = 0.22;
+        group.add(cap);
+        break;
+      }
+
+      case 'canopy_cap': {
+        // Priced in altitude (slice 23): a tiny golden cap on
+        // a leaf.
+        const leaf = new THREE.Mesh(new THREE.CircleGeometry(0.14, 8), new THREE.MeshStandardMaterial({ color: 0x3f6212, roughness: 0.9, side: THREE.DoubleSide }));
+        leaf.rotation.x = -Math.PI / 2 + 0.35;
+        leaf.position.y = 0.06;
+        group.add(leaf);
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 5, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.6 }));
+        cap.position.y = 0.1;
+        group.add(cap);
+        break;
+      }
+
+      case 'gloom_cap': {
+        // Lamps upside down (slice 23): a black cap, light
+        // below.
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.04, 0.14, 6), new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.9 }));
+        stalk.position.y = 0.07;
+        group.add(stalk);
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.09, 9, 6, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x0c0a09, roughness: 0.85 }));
+        cap.position.y = 0.14;
+        group.add(cap);
+        const gills = new THREE.Mesh(new THREE.CircleGeometry(0.07, 9), new THREE.MeshStandardMaterial({
+          color: 0x60a5fa, emissive: 0x2563eb, emissiveIntensity: 0.8, roughness: 0.5, side: THREE.DoubleSide,
+        }));
+        gills.rotation.x = Math.PI / 2;
+        gills.position.y = 0.135;
+        group.add(gills);
+        break;
+      }
+
       case 'bell_bloom':
       default: {
         const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.12, 1.6, 8), materials.woodRoot);

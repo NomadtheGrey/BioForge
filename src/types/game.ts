@@ -69,6 +69,12 @@ export type ItemId =
   | 'dust_petal'
   | 'obsidian_petal'
   | 'hedge_hip'
+  | 'scar_mist'
+  | 'bramble_seed'
+  | 'hawk_feather'
+  | 'zot_skin'
+  | 'ironjaw_plate'
+  | 'worn_skull'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -473,7 +479,20 @@ export type FaunaSpecies =
   | 'stillmouth'
   | 'pale_grazer'
   | 'amber_snail'
-  | 'sapwing';
+  | 'sapwing'
+  // Slice 17 (2026-10-16) — fauna wave 4.
+  | 'vent_wisp'
+  | 'brambleback'
+  | 'static_crab'
+  | 'dust_hawk'
+  | 'bonebreaker'
+  | 'zot_serpent'
+  | 'ironjaw'
+  | 'hoar_serpent'
+  | 'tumble_crab'
+  | 'facet_beetle'
+  | 'skull_hermit'
+  | 'row_grazer';
 
 export interface FaunaEntity {
   id: string;

@@ -136,8 +136,12 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     wave 5, the rose bench: twelve table species (a rose for
  *     every country that would have one, plus the sky pond,
  *     the banner, the wrong bloom). Table-only change.
+ * v32: creature build phase, slice 17 (2026-10-16) — fauna
+ *     wave 4: twelve species incl. three bench hunters
+ *     (Bonebreaker, Zot Serpent, Ironjaw) and the Brambleback,
+ *     the Hedge Rose's planter. Table-only change.
  */
-export const WORLD_GEN_VERSION = 31; // v31 (2026-10-16): creature slice 16 — flora wave 5, the rose bench; v30 was creature slice 15 (fauna wave 3)
+export const WORLD_GEN_VERSION = 32; // v32 (2026-10-16): creature slice 17 — fauna wave 4, twelve species; v31 was creature slice 16 (flora wave 5)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

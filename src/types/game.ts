@@ -52,6 +52,21 @@ export type ItemId =
   | 'chitin_housing'
   | 'biolume_power_cell'
   | 'prismatic_field_radar'
+  // Helmet + Quicksteps platforms (published 2026-10-15: the
+  // items and their recipes/quests are live; their worn effects
+  // land with the platform builds)
+  | 'homestead_helm'
+  | 'trail_lens'
+  | 'spore_filter'
+  | 'biolume_visor'
+  | 'shade_visor'
+  | 'identifier_lens'
+  | 'glyph_lens'
+  | 'charge_sight'
+  | 'waders'
+  | 'stillsteps'
+  | 'webfoots'
+  | 'ember_soles'
   // Cultivation Seeds
   | 'seed_lantern_fern'
   | 'seed_sap_weaver'

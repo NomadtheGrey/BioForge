@@ -20,6 +20,7 @@ import {
 import { FirstPersonViewmodel } from './viewmodel';
 import { landformHeightAt } from './terrain';
 import { buildWaterGroup, waterSurfaceFromLists, waterDepthFromLists, type PondLocal, type RiverSegLocal } from './waterField';
+import { SkyRig } from './skyRig';
 import { isFloorType, BUILDING_TYPES, isDoorType } from './placement';
 import { BIOME_TINTS } from './biomes';
 import type { BiomeId } from './biomes';
@@ -226,6 +227,13 @@ export class BioForgeThreeEngine {
   private ruinMode: boolean = false;
   /** Last day/night cycle value seen, so leaving a cave restores it. */
   private lastDayCycle: number = 0.5;
+  /** The sky rig (day/night build, 2026-10-16): binary suns, the
+   *  ringed giant, and the star shell — game/skyRig.ts. Built in
+   *  init once the primary light exists; driven per frame from
+   *  animate with the stored phase. */
+  private sky: SkyRig | null = null;
+  /** Scratch sky color, reused so the palette pass never allocates. */
+  private skyScratch = new THREE.Color();
 
   // Building Preview Ghost
   private ghostGroup: THREE.Group = new THREE.Group();
@@ -734,6 +742,9 @@ export class BioForgeThreeEngine {
     this.buildSporeSystem();
     this.setupGhostHologram();
     this.initLighting();
+    // The heavens (day/night build): built once the primary
+    // light exists — the rig positions it per frame.
+    this.sky = new SkyRig(this.scene, this.dirLight);
 
     // Event listeners
     this.initEventListeners();
@@ -2104,26 +2115,33 @@ export class BioForgeThreeEngine {
     // setCavernMode) owns the lights until the player surfaces.
     // Ruin interiors own their dimmer look the same way.
     if (this.cavernMode || this.ruinMode) return;
-    const isDay = cycle > 0.25 && cycle < 0.75;
-    const sunAngle = cycle * Math.PI * 2;
-    this.dirLight.position.set(
-      Math.cos(sunAngle) * 40,
-      Math.sin(sunAngle) * 45 + 5,
-      Math.sin(sunAngle) * 30
-    );
-
-    if (isDay) {
-      this.dirLight.intensity = 1.3;
-      this.ambientLight.intensity = 0.9;
-      this.scene.background = new THREE.Color(0x0a1428);
-      (this.scene.fog as THREE.FogExp2).color.setHex(0x0e1c38);
-    }
-    if (!isDay) {
-      this.dirLight.intensity = 0.35;
-      this.ambientLight.intensity = 0.45;
-      this.scene.background = new THREE.Color(0x050811);
-      (this.scene.fog as THREE.FogExp2).color.setHex(0x070c18);
-    }
+    // CONTINUOUS ATMOSPHERE (day/night build, Adam, 2026-10-16 —
+    // replaces the binary palette flip, whose 'day' was a dark
+    // navy placeholder): sunSigned is the sun's signed elevation
+    // from the phase convention (+1 noon, -1 midnight, 0 at both
+    // horizons). Dayness smoothsteps across the horizon band, so
+    // dawn and dusk are journeys; the twilight factor peaks AT
+    // the horizons and warms the sky. Body positions and light
+    // directions live in the SkyRig (game/skyRig.ts), driven per
+    // frame from animate — this pass owns only color + strength.
+    const sunSigned = Math.sin((Math.PI * (cycle - 0.25)) / 0.5);
+    const dayness = THREE.MathUtils.smoothstep(sunSigned, -0.12, 0.3);
+    const twilight = THREE.MathUtils.clamp(1 - Math.abs(sunSigned) / 0.4, 0, 1);
+    const sky = this.skyScratch
+      .setHex(0x050811)
+      .lerp(new THREE.Color(0x93c9d4), dayness)
+      .lerp(new THREE.Color(0xff9a5c), twilight * 0.38 * (1 - dayness * 0.5));
+    this.scene.background = sky;
+    (this.scene.fog as THREE.FogExp2).color.copy(sky).multiplyScalar(0.82);
+    // The primary light's color walks sun-warm by day to the
+    // giant's pale planetshine by night (its POSITION walks the
+    // same road in the rig).
+    this.dirLight.color.setHex(0xbdd3ff).lerp(new THREE.Color(0xfff3d6), dayness);
+    this.dirLight.intensity = 0.3 + 1.15 * dayness;
+    if (this.sky) this.sky.sunLightB.intensity = 0.55 * dayness;
+    this.hemiLight.intensity = 0.22 + 0.58 * dayness;
+    this.ambientLight.intensity = 0.45 + 0.45 * dayness;
+    if (this.sky) this.sky.starMaterial.opacity = (1 - dayness) * 0.95;
   }
 
   // --------------------------------------------------------------------------
@@ -2828,6 +2846,10 @@ private initEventListeners() {
         this.transientParticles.splice(i, 1);
       }
     }
+
+    // The sky rides the camera (day/night build): bodies, stars,
+    // and light directions follow the stored phase, per frame.
+    this.sky?.update(this.lastDayCycle, this.camera.position, this.cavernMode || this.ruinMode);
 
     this.renderer.render(this.scene, this.camera);
   };

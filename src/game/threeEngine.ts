@@ -350,6 +350,21 @@ export class BioForgeThreeEngine {
     wind_puff: { color: 0xe7e5e4, intensity: 0.25, distance: 2, y: 0.3 },
     door_cap: { color: 0xa3e635, intensity: 0.3, distance: 2.5, y: 0.5 },
     glyph_cap: { color: 0xa3e635, intensity: 0.35, distance: 2.5, y: 0.4 },
+    // Flora wave 5 (creature slice 16, 2026-10-16): the rose
+    // bench — most keep garden halos; the Amber Bloom glows
+    // through its amber, the Charnel heart smolders gold.
+    canopy_cup: { color: 0x38bdf8, intensity: 0.3, distance: 2.5, y: 0.7 },
+    banner_vine: { color: 0x65a30d, intensity: 0.25, distance: 2, y: 0.6 },
+    charnel_bloom: { color: 0xfbbf24, intensity: 0.4, distance: 2.5, y: 0.3 },
+    wrongbloom: { color: 0xd8b4fe, intensity: 0.4, distance: 2.5, y: 0.3 },
+    tumble_sage: { color: 0xa3a380, intensity: 0.2, distance: 2, y: 0.3 },
+    amber_bloom: { color: 0xf59e0b, intensity: 0.5, distance: 3, y: 0.3 },
+    silt_rose: { color: 0x9f7a5a, intensity: 0.25, distance: 2, y: 0.3 },
+    ghost_orchid: { color: 0xf1f5f9, intensity: 0.35, distance: 2.5, y: 0.5 },
+    thaw_rose: { color: 0xfda4af, intensity: 0.35, distance: 2.5, y: 0.3 },
+    dust_rose: { color: 0xf5f5f4, intensity: 0.25, distance: 2, y: 0.3 },
+    obsidian_rose: { color: 0x57534e, intensity: 0.2, distance: 2, y: 0.3 },
+    hedge_rose: { color: 0xe11d48, intensity: 0.3, distance: 2.5, y: 0.4 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },

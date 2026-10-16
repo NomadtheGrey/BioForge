@@ -127,6 +127,9 @@ export interface UseToolInteractionsParams {
   /** Ask App to confirm a RELEASE (Adam, 2026-10-15): the cycle's
    *  guarded fourth stop — never applied by the click itself. */
   onRequestRelease: (fauna: FaunaEntity) => void;
+  /** Stamp a wild creature with the solvent's emergency dissolve
+   *  (Adam, 2026-10-16); gating lives with the sim (useWorldEntities). */
+  applyDissolve: (faunaId: string) => void;
   setCodexList: React.Dispatch<React.SetStateAction<CodexEntry[]>>;
   postNotification: (
     title: string,
@@ -176,6 +179,7 @@ export function useToolInteractions({
   tameFauna,
   setFaunaCommand,
   onRequestRelease,
+  applyDissolve,
   setCodexList,
   postNotification,
   onOpenBioForgeModal,
@@ -1208,8 +1212,20 @@ export function useToolInteractions({
         handleScanTarget({ type: 'fauna', entity: fauna, name: fauna.species, details: '' });
         return;
       }
+      if (activeTool === 'solvent_sprayer') {
+        // Emergency harm (Adam, 2026-10-16): the solvent that
+        // recycles living composites also dissolves living
+        // creatures — damage over time, and the creature flees
+        // while it works. The sim owns the damage, the flight,
+        // and the gates (companions spared, Peaceful spared);
+        // this click only stamps the dissolve and plays the spray.
+        applyDissolve(fauna.id);
+        soundEngine.playSolventSpray();
+        triggerSolventFx(fauna.x, fauna.z);
+        return;
+      }
     },
-    [activeTool, handleTameFauna, handleScanTarget]
+    [activeTool, handleTameFauna, handleScanTarget, applyDissolve, triggerSolventFx]
   );
 
   // Builder on a CEILING tile with a floor selected: GROW the ceiling

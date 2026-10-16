@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { X, Backpack, Sparkles, Sprout, Hammer, ArrowUpRight } from 'lucide-react';
+import { X, Backpack, Sparkles, Sprout, Hammer, ArrowUpRight, Search } from 'lucide-react';
 import { ItemId, StructureType, ToolType } from '../types/game';
 import { ITEMS, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../game/constants';
 import { isGauntletUpgrade, isGearItem, gearTierOf } from '../game/quests';
+import { BASE_SUPPLY_GROUPS, baseSupplyGroupOf, isBaseSupply } from '../game/baseSupplies';
 import { POUCH_TIER_CAPS, POUCH_TIER_NAMES, pouchTierOf } from '../game/pouch';
 
 interface InventoryModalProps {
@@ -24,7 +25,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
   onSelectFertilizer,
   onSelectTool,
 }) => {
-  const [activeTab, setActiveTab] = useState<'all' | 'raw' | 'seed' | 'fertilizer' | 'structure' | 'gauntlet' | 'helmet' | 'boots'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'raw' | 'seed' | 'fertilizer' | 'structure' | 'gauntlet' | 'helmet' | 'boots' | 'base'>('all');
   const [selectedItemId, setSelectedItemId] = useState<ItemId | null>(null);
   // Every hook lives ABOVE the isOpen early return below: a hook
   // under it changes the hook count when the modal opens, React
@@ -32,6 +33,13 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
   // B-key bug, found 2026-10-16 — this filter's first home was
   // under that return in both tabbed screens).
   const [tierFilter, setTierFilter] = useState<'all' | 'raw' | 1 | 2 | 3>('all');
+  // Search (Adam, 2026-10-16), twin of the forge's: 3+ letters,
+  // a consecutive substring of the item's name, case-blind.
+  // While live it searches the WHOLE pouch — tabs and tier row
+  // stand down until it clears.
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchTerm = searchQuery.trim().toLowerCase();
+  const searchActive = searchTerm.length >= 3;
 
   // The pouch tier derives from the upgrade items in the pouch.
   const pouchTier = pouchTierOf(inventory);
@@ -54,6 +62,10 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
     if (activeTab === 'gauntlet') return isGauntletUpgrade(id);
     if (activeTab === 'helmet') return HELMET_GEAR_ITEM_IDS.includes(id);
     if (activeTab === 'boots') return BOOTS_GEAR_ITEM_IDS.includes(id);
+    // Base Supplies (Adam, 2026-10-16): everything you'd build
+    // the base with, classified in game/baseSupplies — shared
+    // with the forge screen so the shelf never drifts.
+    if (activeTab === 'base') return isBaseSupply(id);
     return item.category === activeTab;
   });
 
@@ -70,7 +82,9 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
     if (tierFilter === 'raw') return itemTierBand(id) === 0;
     return itemTierBand(id) === tierFilter;
   };
-  const visibleItems = filteredItems.filter(tierVisibleItem);
+  const visibleItems = searchActive
+    ? ownedItems.filter((id) => (ITEMS[id]?.name ?? '').toLowerCase().includes(searchTerm))
+    : filteredItems.filter(tierVisibleItem);
   const TYPE_GROUPS: { id: string; label: string }[] = [
     { id: 'equipment', label: 'Equipment' },
     { id: 'structure', label: 'Structures' },
@@ -82,8 +96,17 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
     | { kind: 'heading'; label: string }
     | { kind: 'item'; id: ItemId };
   const gridEntries: GridEntry[] = [];
-  if (tierFilter === 'all') {
+  if (searchActive || (tierFilter === 'all' && activeTab !== 'base')) {
     visibleItems.forEach((id) => gridEntries.push({ kind: 'item', id }));
+  } else if (activeTab === 'base') {
+    // The Base Supplies shelf groups by what a piece is FOR in
+    // the base (game/baseSupplies); the tier row still filters.
+    for (const g of BASE_SUPPLY_GROUPS) {
+      const ids = visibleItems.filter((id) => baseSupplyGroupOf(id) === g.id);
+      if (ids.length === 0) continue;
+      gridEntries.push({ kind: 'heading', label: g.label });
+      ids.forEach((id) => gridEntries.push({ kind: 'item', id }));
+    }
   } else {
     for (const g of TYPE_GROUPS) {
       const ids = visibleItems.filter((id) => ITEMS[id]?.category === g.id);
@@ -93,7 +116,9 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
     }
   }
 
-  const activeItem = selectedItemId ? ITEMS[selectedItemId] : filteredItems.length > 0 ? ITEMS[filteredItems[0]] : null;
+  // The inspector follows what's actually on the grid (the
+  // visible list), not the un-tiered tab list behind it.
+  const activeItem = selectedItemId ? ITEMS[selectedItemId] : visibleItems.length > 0 ? ITEMS[visibleItems[0]] : null;
 
   const handleEquip = () => {
     if (!activeItem) return;
@@ -151,6 +176,35 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
           </button>
         </div>
 
+        {/* Search (Adam, 2026-10-16): near the top, over both
+            tab rows — 3+ letters and the grid becomes every
+            owned item whose name holds those letters in a row. */}
+        <div className="px-6 pt-3 pb-1 flex items-center gap-2">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search the pouch… (3+ letters)"
+              className="w-full bg-slate-900/70 border border-slate-700/70 rounded-xl pl-8 pr-8 py-1.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-200"
+                aria-label="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+          {searchActive && (
+            <span className="text-[11px] text-emerald-300/90 font-tech">
+              {visibleItems.length} match{visibleItems.length === 1 ? '' : 'es'} for “{searchQuery.trim()}” — searching the whole pouch
+            </span>
+          )}
+        </div>
+
         {/* Categories Bar */}
         <div className="px-6 py-3 border-b border-slate-800/70 bg-slate-900/30 flex items-center gap-2 overflow-x-auto">
           {[
@@ -162,6 +216,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
             { id: 'seed', label: 'Flora Seeds' },
             { id: 'fertilizer', label: 'Fertilizers' },
             { id: 'structure', label: 'Bio-Composites' },
+            { id: 'base', label: 'Base Supplies' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -208,7 +263,11 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
             {visibleItems.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-slate-500 text-xs">
                 <Backpack className="w-8 h-8 mb-2 opacity-40" />
-                <span>No bio-specimens stored in this category.</span>
+                <span>
+                  {searchActive
+                    ? `No items match “${searchQuery.trim()}”.`
+                    : 'No bio-specimens stored in this category.'}
+                </span>
               </div>
             ) : (
               <div className="grid grid-cols-4 gap-2.5">

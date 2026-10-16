@@ -678,7 +678,10 @@ export function useGameLoop(deps: GameLoopDeps): void {
           accumulatedDayTime.current = 0;
           if (!multiplayerManager.isConnected || multiplayerManager.isHost) {
             setDayNightCycle((prev) => {
-              const next = (prev + 0.002) % 1.0;
+              // Adam's ten minutes per planet rotation
+              // (day/night build, 2026-10-16): this block ticks
+              // once per second, so +1/600 per tick is the cycle.
+              const next = (prev + 1 / 600) % 1.0;
               multiplayerManager.broadcastDayNight(next);
               return next;
             });

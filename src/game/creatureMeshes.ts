@@ -581,6 +581,206 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'gulp_lily': {
+        // The pad IS the pod (slice 9): a wide lily pad with a
+        // folded seam and a dew-cup heart — still water, with
+        // an author.
+        const padMat = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.55 });
+        const pad = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.5, 0.07, 12), padMat);
+        pad.position.y = 0.06;
+        group.add(pad);
+        const seam = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.03, 1.0), new THREE.MeshStandardMaterial({ color: 0x14532d, roughness: 0.7 }));
+        seam.position.y = 0.1;
+        group.add(seam);
+        const cup = new THREE.Mesh(
+          new THREE.SphereGeometry(0.12, 8, 6),
+          new THREE.MeshStandardMaterial({ color: 0xfda4af, roughness: 0.5, emissive: 0x9d174d, emissiveIntensity: 0.3 })
+        );
+        cup.position.set(0, 0.14, 0.18);
+        group.add(cup);
+        break;
+      }
+
+      case 'waygrass': {
+        // A route, in grass (slice 9): a low tussock of blades
+        // leaning the same way — the direction of travel.
+        const bladeMat = new THREE.MeshStandardMaterial({ color: 0x84cc16, roughness: 0.85, side: THREE.DoubleSide });
+        for (let i = 0; i < 7; i++) {
+          const blade = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.5 + (i % 3) * 0.12, 4), bladeMat);
+          blade.position.set((i % 3 - 1) * 0.12, 0.25, (Math.floor(i / 3) - 1) * 0.12);
+          blade.rotation.x = 0.3;
+          blade.rotation.z = 0.12;
+          group.add(blade);
+        }
+        break;
+      }
+
+      case 'flame_lily': {
+        // Fire's promise, blooming (slice 9): a red lily on a
+        // dark stalk — the Ashen fields, a week after the burn.
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.05, 0.7, 6), new THREE.MeshStandardMaterial({ color: 0x292524, roughness: 0.9 }));
+        stalk.position.y = 0.35;
+        group.add(stalk);
+        const petalMat = new THREE.MeshStandardMaterial({
+          color: 0xef4444, roughness: 0.5, side: THREE.DoubleSide,
+          emissive: 0x991b1b, emissiveIntensity: 0.4,
+        });
+        for (let i = 0; i < 5; i++) {
+          const petal = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.34, 5), petalMat);
+          const a = (i / 5) * Math.PI * 2;
+          petal.position.set(Math.cos(a) * 0.11, 0.78, Math.sin(a) * 0.11);
+          petal.rotation.set(Math.sin(a) * 0.7, 0, -Math.cos(a) * 0.7);
+          group.add(petal);
+        }
+        break;
+      }
+
+      case 'salt_daisy': {
+        // Telling noon (slice 9): white crust-petaled daisy —
+        // a pale star wearing its salt.
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.035, 0.45, 6), new THREE.MeshStandardMaterial({ color: 0x65a30d, roughness: 0.85 }));
+        stem.position.y = 0.22;
+        group.add(stem);
+        const petalMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.35, side: THREE.DoubleSide });
+        for (let i = 0; i < 8; i++) {
+          const petal = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 5), petalMat);
+          petal.scale.set(1.5, 0.2, 0.7);
+          const a = (i / 8) * Math.PI * 2;
+          petal.position.set(Math.cos(a) * 0.12, 0.47, Math.sin(a) * 0.12);
+          petal.rotation.y = -a;
+          group.add(petal);
+        }
+        const heart = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.6 }));
+        heart.position.y = 0.49;
+        group.add(heart);
+        break;
+      }
+
+      case 'compass_cress': {
+        // All pointing one way (slice 9): a low crystalline
+        // rosette whose needle-leaves align to the field — the
+        // whole plant drawn rotated toward +Z of its frame.
+        const leafMat = new THREE.MeshStandardMaterial({
+          color: 0x67e8f9, roughness: 0.3, metalness: 0.3,
+          emissive: 0x155e75, emissiveIntensity: 0.35, side: THREE.DoubleSide,
+        });
+        for (let i = 0; i < 6; i++) {
+          const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.34, 4), leafMat);
+          leaf.position.set((i % 3 - 1) * 0.1, 0.1, 0.06 + Math.floor(i / 3) * 0.08);
+          leaf.rotation.x = -1.1; // laid forward: the alignment reads
+          group.add(leaf);
+        }
+        break;
+      }
+
+      case 'ice_grass': {
+        // A meadow through glass (slice 9): pale ice blades
+        // with one blue bloom suspended among them.
+        const bladeMat = new THREE.MeshStandardMaterial({
+          color: 0xa5f3fc, roughness: 0.25, transparent: true, opacity: 0.85, side: THREE.DoubleSide,
+        });
+        for (let i = 0; i < 6; i++) {
+          const blade = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.45 + (i % 3) * 0.1, 4), bladeMat);
+          blade.position.set((i % 3 - 1) * 0.11, 0.22, (Math.floor(i / 3) - 1) * 0.11);
+          blade.rotation.z = (i % 3 - 1) * 0.15;
+          group.add(blade);
+        }
+        const bloom = new THREE.Mesh(
+          new THREE.SphereGeometry(0.06, 8, 6),
+          new THREE.MeshStandardMaterial({ color: 0x3b82f6, emissive: 0x1d4ed8, emissiveIntensity: 0.6, roughness: 0.4 })
+        );
+        bloom.position.set(0, 0.3, 0);
+        group.add(bloom);
+        break;
+      }
+
+      case 'field_cap': {
+        // Done honestly (slice 9): THE cap-and-stem — a tan
+        // dome on a cream stem, the forager's first lesson.
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.09, 0.3, 8), new THREE.MeshStandardMaterial({ color: 0xf5f0dc, roughness: 0.9 }));
+        stem.position.y = 0.15;
+        group.add(stem);
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xb08968, roughness: 0.85 }));
+        cap.position.y = 0.28;
+        cap.castShadow = true;
+        group.add(cap);
+        break;
+      }
+
+      case 'frostcap': {
+        // Winter, growing upward (slice 9): pale caps stepping
+        // up a stalk, each wearing its rime.
+        const stalkMat = new THREE.MeshStandardMaterial({ color: 0xe0f2fe, roughness: 0.8 });
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.09, 0.9, 8), stalkMat);
+        stalk.position.y = 0.45;
+        group.add(stalk);
+        for (let i = 0; i < 3; i++) {
+          const cap = new THREE.Mesh(new THREE.SphereGeometry(0.16 - i * 0.03, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), stalkMat);
+          cap.position.set((i - 1) * 0.07, 0.45 + i * 0.24, 0);
+          group.add(cap);
+        }
+        break;
+      }
+
+      case 'haycap': {
+        // At ankle height (slice 9): a squat golden cap on a
+        // short stem — the meadow's fertility, fruiting.
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.08, 0.18, 8), new THREE.MeshStandardMaterial({ color: 0xfde68a, roughness: 0.9 }));
+        stem.position.y = 0.09;
+        group.add(stem);
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 7, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xd6c48f, roughness: 0.9 }));
+        cap.scale.y = 0.8;
+        cap.position.y = 0.16;
+        group.add(cap);
+        break;
+      }
+
+      case 'coal_cap': {
+        // After the fire (slice 9): a black cap with an ember
+        // seam — the burn's first cool week, fruiting.
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.09, 0.26, 8), new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 0.95 }));
+        stem.position.y = 0.13;
+        group.add(stem);
+        const capMat = new THREE.MeshStandardMaterial({
+          color: 0x1c1917, roughness: 0.6, emissive: 0xea580c, emissiveIntensity: 0.25,
+        });
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), capMat);
+        cap.position.y = 0.24;
+        group.add(cap);
+        break;
+      }
+
+      case 'snow_morel': {
+        // The melt line, edible (slice 9): a dark honeycomb
+        // cone — pits drawn as a darker tip band and texture
+        // of bumps.
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.95 });
+        const body = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.3, 8), bodyMat);
+        body.position.y = 0.18;
+        group.add(body);
+        const tip = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.12, 8), new THREE.MeshStandardMaterial({ color: 0x292524, roughness: 1 }));
+        tip.position.y = 0.36;
+        group.add(tip);
+        break;
+      }
+
+      case 'ink_cap': {
+        // A library, self-destructing politely (slice 9): a
+        // pale bell cap going black at the rim — the melt,
+        // beginning.
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 0.34, 8), new THREE.MeshStandardMaterial({ color: 0xe7e5e4, roughness: 0.9 }));
+        stem.position.y = 0.17;
+        group.add(stem);
+        const cap = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.3, 10, 1, true), new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 0.7, side: THREE.DoubleSide }));
+        cap.position.y = 0.45;
+        group.add(cap);
+        const rim = new THREE.Mesh(new THREE.TorusGeometry(0.145, 0.018, 6, 12), new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.4 }));
+        rim.rotation.x = Math.PI / 2;
+        rim.position.y = 0.31;
+        group.add(rim);
+        break;
+      }
+
       case 'bell_bloom':
       default: {
         const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.12, 1.6, 8), materials.woodRoot);

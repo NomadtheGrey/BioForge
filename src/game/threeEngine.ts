@@ -18,7 +18,8 @@ import {
   ItemId,
 } from '../types/game';
 import { FirstPersonViewmodel } from './viewmodel';
-import { landformHeightAt, zonePondsAt, type PondDef } from './terrain';
+import { landformHeightAt } from './terrain';
+import { buildWaterGroup, waterSurfaceFromLists, waterDepthFromLists, type PondLocal, type RiverSegLocal } from './waterField';
 import { isFloorType, BUILDING_TYPES, isDoorType } from './placement';
 import { BIOME_TINTS } from './biomes';
 import type { BiomeId } from './biomes';
@@ -898,12 +899,14 @@ export class BioForgeThreeEngine {
     this.rebuildPondMeshes();
   }
 
-  // Ponds (P5 move 2, Adam, 2026-10-16): the current context's pond
-  // list in LOCAL frame (for the depth query), plus their water
-  // discs riding the terrain group (so instances hide them with
-  // the ground). Legacy worlds hold no ponds — the ripple never
-  // pooled. Discs are rebuilt per context, like the displacement.
-  private zonePondsLocal: { x: number; z: number; radius: number; waterY: number }[] = [];
+  // Water (P5 moves 2-3): the current context's pond + river
+  // lists in LOCAL frame, plus their meshes riding the terrain
+  // group (so instances hide them with the ground). Legacy worlds
+  // hold no water — the ripple never pooled. Building and queries
+  // live in waterField.ts (extracted when this file outgrew the
+  // push transport); the engine owns the context and delegates.
+  private zonePondsLocal: PondLocal[] = [];
+  private zoneRiverSegsLocal: RiverSegLocal[] = [];
   private pondGroup: THREE.Group | null = null;
 
   private rebuildPondMeshes(): void {
@@ -912,64 +915,27 @@ export class BioForgeThreeEngine {
       this.pondGroup = null;
     }
     this.zonePondsLocal = [];
+    this.zoneRiverSegsLocal = [];
     if (this.terrainLegacy || this.terrainSeed === null) return;
-    // Gather the 3x3 neighborhood: the ground mesh apron reaches
-    // 10 m into neighbor zones, and a pond near a border belongs
-    // to the view from both sides.
-    const ponds: PondDef[] = [];
-    for (let dz = -1; dz <= 1; dz++) {
-      for (let dx = -1; dx <= 1; dx++) {
-        ponds.push(...zonePondsAt(this.terrainSeed, this.terrainZoneX + dx, this.terrainZoneZ + dz));
-      }
-    }
-    const group = new THREE.Group();
-    group.name = 'ponds';
-    for (const p of ponds) {
-      const lx = p.cx - this.terrainZoneX * 100;
-      const lz = p.cz - this.terrainZoneZ * 100;
-      if (Math.abs(lx) > 62 + p.radius || Math.abs(lz) > 62 + p.radius) continue;
-      this.zonePondsLocal.push({ x: lx, z: lz, radius: p.radius, waterY: p.waterY });
-      const geo = new THREE.CircleGeometry(p.radius, 28);
-      geo.rotateX(-Math.PI / 2);
-      const mat = new THREE.MeshStandardMaterial({
-        color: 0x2e6da4,
-        transparent: true,
-        opacity: 0.78,
-        roughness: 0.15,
-        metalness: 0.05,
-        depthWrite: false,
-      });
-      const disc = new THREE.Mesh(geo, mat);
-      disc.position.set(lx, p.waterY, lz);
-      disc.name = 'pondWater';
-      group.add(disc);
-    }
-    this.pondGroup = group;
-    this.terrainGroup.add(group);
+    const built = buildWaterGroup(this.terrainSeed, this.terrainZoneX, this.terrainZoneZ, (x, z) => this.terrainHeightAt(x, z));
+    this.zonePondsLocal = built.ponds;
+    this.zoneRiverSegsLocal = built.riverSegs;
+    this.pondGroup = built.group;
+    this.terrainGroup.add(built.group);
   }
 
   /** The water surface height at a LOCAL point, or null when the
    *  point is dry land. The creature kit's swim branch reads this
    *  (pond build, 2026-10-16) to ride swimmers at their surface. */
   public waterSurfaceAt(x: number, z: number): number | null {
-    let surface: number | null = null;
-    for (const p of this.zonePondsLocal) {
-      if (Math.hypot(x - p.x, z - p.z) >= p.radius) continue;
-      surface = surface === null ? p.waterY : Math.max(surface, p.waterY);
-    }
-    return surface;
+    return waterSurfaceFromLists(this.zonePondsLocal, this.zoneRiverSegsLocal, x, z);
   }
 
   /** How deep the water is at a LOCAL point (meters; 0 = dry).
-   *  The movement loop's wading drag reads this; the creatures
-   *  sim will read it when swimmers learn their strokes. */
+   *  The movement loop's wading drag reads this; swimmers ride
+   *  the matching surface query above. */
   public waterDepthAt(x: number, z: number): number {
-    let depth = 0;
-    for (const p of this.zonePondsLocal) {
-      if (Math.hypot(x - p.x, z - p.z) >= p.radius) continue;
-      depth = Math.max(depth, p.waterY - this.terrainHeightAt(x, z));
-    }
-    return Math.max(0, depth);
+    return waterDepthFromLists(this.zonePondsLocal, this.zoneRiverSegsLocal, x, z, (lx, lz) => this.terrainHeightAt(lx, lz));
   }
 
   /** Re-run the terrain mesh displacement against the current

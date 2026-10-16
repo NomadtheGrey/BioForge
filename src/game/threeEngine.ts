@@ -291,6 +291,21 @@ export class BioForgeThreeEngine {
     dusk_grass: { color: 0xa855f7, intensity: 0.3, distance: 2.5, y: 0.5 },
     heartbloom: { color: 0xef4444, intensity: 0.65, distance: 4, y: 0.9 },
     precursor_bloom: { color: 0xf5d76e, intensity: 0.45, distance: 3, y: 0.9 },
+    // Flora pipeline wave 1 (creature slice 9, 2026-10-15): ground
+    // flora carry small halos like the other low growers — the
+    // flame lily burns a little brighter, the ink cap barely at all.
+    gulp_lily: { color: 0xfda4af, intensity: 0.35, distance: 2.5, y: 0.3 },
+    waygrass: { color: 0x84cc16, intensity: 0.25, distance: 2, y: 0.4 },
+    flame_lily: { color: 0xef4444, intensity: 0.55, distance: 3.5, y: 0.8 },
+    salt_daisy: { color: 0xf8fafc, intensity: 0.3, distance: 2.5, y: 0.5 },
+    compass_cress: { color: 0x67e8f9, intensity: 0.4, distance: 2.5, y: 0.3 },
+    ice_grass: { color: 0xa5f3fc, intensity: 0.35, distance: 2.5, y: 0.4 },
+    field_cap: { color: 0xd6c48f, intensity: 0.25, distance: 2, y: 0.4 },
+    frostcap: { color: 0xe0f2fe, intensity: 0.4, distance: 3, y: 0.7 },
+    haycap: { color: 0xeab308, intensity: 0.25, distance: 2, y: 0.3 },
+    coal_cap: { color: 0xea580c, intensity: 0.4, distance: 2.5, y: 0.4 },
+    snow_morel: { color: 0x78716c, intensity: 0.2, distance: 2, y: 0.3 },
+    ink_cap: { color: 0x9ca3af, intensity: 0.2, distance: 2, y: 0.5 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },

@@ -321,6 +321,21 @@ export class BioForgeThreeEngine {
     glyph_vine: { color: 0xa3e635, intensity: 0.35, distance: 2.5, y: 0.7 },
     glowcap: { color: 0x4ade80, intensity: 0.85, distance: 4.5, y: 0.4 },
     ash_puff: { color: 0xd6d3d1, intensity: 0.2, distance: 2, y: 0.2 },
+    // Flora wave 3 (creature slice 12, 2026-10-16): the Glass
+    // Fern and Stormcap glow from inside; the ivies smolder and
+    // rime at ground level; the rest keep ground-flora halos.
+    meadow_clover: { color: 0x22c55e, intensity: 0.2, distance: 2, y: 0.2 },
+    vent_rose: { color: 0xf43f5e, intensity: 0.45, distance: 3, y: 0.3 },
+    stormcap: { color: 0xa78bfa, intensity: 0.5, distance: 3, y: 0.5 },
+    anvil_cap: { color: 0x78716c, intensity: 0.2, distance: 2, y: 0.4 },
+    glass_fern: { color: 0x67e8f9, intensity: 0.55, distance: 3.5, y: 0.4 },
+    forge_bloom: { color: 0xfb923c, intensity: 0.5, distance: 3, y: 0.3 },
+    ember_ivy: { color: 0xf97316, intensity: 0.4, distance: 2.5, y: 0.4 },
+    frost_ivy: { color: 0xbae6fd, intensity: 0.35, distance: 2.5, y: 0.4 },
+    mirror_reed: { color: 0x7dd3fc, intensity: 0.4, distance: 2.5, y: 0.9 },
+    rime_grass: { color: 0xe0f2fe, intensity: 0.3, distance: 2, y: 0.3 },
+    fang_fern: { color: 0xa5f3fc, intensity: 0.35, distance: 2.5, y: 0.4 },
+    mirror_cap: { color: 0x94a3b8, intensity: 0.3, distance: 2.5, y: 0.3 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },

@@ -623,7 +623,12 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
     tameChance: 0.45,
     bait: 'nectar',
     petName: 'Gloom Slug',
-    byproduct: null,
+    // The trail, as an economy (slice 42, 2026-10-16): a slug
+    // is a gel it makes, not a gel it is — so it sheds Gloom
+    // Gel where it crawls, wild and tamed alike, on a slow
+    // clock. Collecting the trail never requires harming the
+    // crawler (the house rule for supply chains).
+    byproduct: { item: 'gloom_gel', seconds: 1500, tamedOnly: false },
     bonusSpawn: {
       biomes: ['rootwood'],
       count: 2,

@@ -695,7 +695,7 @@ export class BioForgeThreeEngine {
     // The builders record is a factory over these shared materials
     // (game/structureBuilders.ts) — built once, here, where they exist.
     this.structureBuilders = createStructureBuilders(this.materials);
-    this.creatureKit = createCreatureMeshKit(this.materials, (x, z) => this.terrainHeightAt(x, z));
+    this.creatureKit = createCreatureMeshKit(this.materials, (x, z) => this.terrainHeightAt(x, z), (x, z) => this.waterSurfaceAt(x, z));
     this.landmarkDressing = createLandmarkDressing(this.materials);
 
     // Lights
@@ -943,6 +943,18 @@ export class BioForgeThreeEngine {
     }
     this.pondGroup = group;
     this.terrainGroup.add(group);
+  }
+
+  /** The water surface height at a LOCAL point, or null when the
+   *  point is dry land. The creature kit's swim branch reads this
+   *  (pond build, 2026-10-16) to ride swimmers at their surface. */
+  public waterSurfaceAt(x: number, z: number): number | null {
+    let surface: number | null = null;
+    for (const p of this.zonePondsLocal) {
+      if (Math.hypot(x - p.x, z - p.z) >= p.radius) continue;
+      surface = surface === null ? p.waterY : Math.max(surface, p.waterY);
+    }
+    return surface;
   }
 
   /** How deep the water is at a LOCAL point (meters; 0 = dry).

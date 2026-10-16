@@ -1459,4 +1459,259 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
       health: 12,
     },
   },
+
+  // #171 — THE WATER EPIC: the fourth LANDSCAPE citizen, in
+  // the great ponds of Wetland and under the Singing Ice. It
+  // does not surface; what the world knows is a slow shadow.
+  // Oversize doctrine applies (Adam's pin): abyssally calm
+  // until provoked, geography-grade loot on a kill.
+  lake_leviathan: {
+    id: 'lake_leviathan',
+    name: 'Lake Leviathan',
+    profile: 'grazer',
+    tameChance: null,
+    bait: null,
+    petName: 'Lake Leviathan',
+    byproduct: null,
+    hunt: { aggroRange: 14, damage: 45, biteRange: 3.0, biteCooldownSeconds: 2.0, provokedOnly: true },
+    killLoot: [['leviathan_plate', 3], ['leviathan_hide', 3]],
+    swim: { depth: 1.1 },
+    bonusSpawn: {
+      biomes: ['wetland', 'frost'],
+      pond: true,
+      count: 1,
+      minRadius: 0,
+      spacing: 14,
+      speed: 0.6,
+      speedJitter: 0.05,
+      health: 800,
+    },
+  },
+
+  // #174 — the double-corner citizen: COLLECTIVE and
+  // STATIONARY both — a reef colony on the great ponds'
+  // floors, building the city the Lake Jelly lights. Speed 0
+  // (the Stillmouth precedent); it is a place as much as a
+  // creature.
+  deep_reef: {
+    id: 'deep_reef',
+    name: 'Deep Reef',
+    profile: 'colony',
+    tameChance: null,
+    bait: null,
+    petName: 'Deep Reef',
+    byproduct: null,
+    swim: { depth: 1.25 },
+    bonusSpawn: {
+      biomes: ['wetland'],
+      pond: true,
+      count: 2,
+      minRadius: 0,
+      spacing: 8,
+      speed: 0,
+      speedJitter: 0,
+      health: 80,
+    },
+  },
+
+  // #176 — the temperate ponds' diving beetle: it carries its
+  // air down with it in a bright bubble. Keepable in a jar,
+  // says its entry — 30%.
+  diver_beetle: {
+    id: 'diver_beetle',
+    name: 'Diver Beetle',
+    profile: 'insect',
+    tameChance: 0.3,
+    bait: 'nectar',
+    petName: 'Diver Beetle',
+    byproduct: null,
+    swim: { depth: 0.6 },
+    bonusSpawn: {
+      biomes: ['meadow', 'wetland', 'rootwood', 'fungal'],
+      pond: true,
+      count: 3,
+      minRadius: 0,
+      spacing: 3.5,
+      speed: 1.3,
+      speedJitter: 0.15,
+      health: 10,
+    },
+  },
+
+  // #178 — a small bright blade on wings over the wet range's
+  // pond edges: perch-loyal at 20%, and it molts dart-feathers
+  // at its perches (unlisted — no item).
+  dartfisher: {
+    id: 'dartfisher',
+    name: 'Dartfisher',
+    profile: 'bird',
+    tameChance: 0.2,
+    bait: 'nectar',
+    petName: 'Dartfisher',
+    byproduct: null,
+    flight: { altitude: 2.0, bobHeight: 0.2, bobRate: 2.2, flapRate: 9 },
+    swim: { depth: 0 },
+    bonusSpawn: {
+      biomes: ['meadow', 'wetland', 'rootwood'],
+      pond: true,
+      count: 2,
+      minRadius: 0,
+      spacing: 5,
+      speed: 2.6,
+      speedJitter: 0.15,
+      health: 11,
+    },
+  },
+
+  // #195 — the Deep Carp's garden cousin, in the Drowned
+  // Gardens (Wetland x Precursor margin): glyph-marked, and
+  // the garden still reads on it. 55%.
+  glyph_carp: {
+    id: 'glyph_carp',
+    name: 'Glyph Carp',
+    profile: 'amphibian',
+    tameChance: 0.55,
+    bait: 'nectar',
+    petName: 'Glyph Carp',
+    byproduct: null,
+    swim: { depth: 1.0 },
+    bonusSpawn: {
+      biomes: ['wetland', 'precursor'],
+      hybrid: ['wetland', 'precursor'],
+      pond: true,
+      count: 2,
+      minRadius: 0,
+      spacing: 6,
+      speed: 0.8,
+      speedJitter: 0.1,
+      health: 34,
+    },
+  },
+
+  // #205 — the Pond Skater's plan, richly dressed, on Storm's
+  // silver pond country: where its cousin walks, this one
+  // skims — and it will take gnats from a hand at 40%. (Its
+  // entry's rivers are read as pond reaches in v1, like the
+  // whole silver set: ponds are the standing water there is.)
+  silver_skater: {
+    id: 'silver_skater',
+    name: 'Silver Skater',
+    profile: 'insect',
+    tameChance: 0.4,
+    bait: 'nectar',
+    petName: 'Silver Skater',
+    byproduct: null,
+    swim: { depth: 0 },
+    bonusSpawn: {
+      biomes: ['storm'],
+      pond: true,
+      count: 3,
+      minRadius: 0,
+      spacing: 4,
+      speed: 2.6,
+      speedJitter: 0.15,
+      health: 10,
+    },
+  },
+
+  // #206 — it lives IN the quicksilver of Storm's charged
+  // ponds, immune to coating by being perpetually coated —
+  // and it SHEDS those scales: Silver Scale, the storm
+  // country's contact metal, as a living byproduct (the
+  // Ironworm Plate precedent; no harm in its supply chain).
+  silverfin: {
+    id: 'silverfin',
+    name: 'Silverfin',
+    profile: 'amphibian',
+    tameChance: null,
+    bait: null,
+    petName: 'Silverfin',
+    byproduct: { item: 'silver_scale', seconds: 2100, tamedOnly: false },
+    swim: { depth: 0.5 },
+    bonusSpawn: {
+      biomes: ['storm'],
+      pond: true,
+      count: 3,
+      minRadius: 0,
+      spacing: 4,
+      speed: 1.7,
+      speedJitter: 0.15,
+      health: 14,
+    },
+  },
+
+  // #207 — self-gilt, claw by claw, on the silver country's
+  // banks: it dips ITSELF in the metal water it lives beside.
+  // It respects a kept bank, at 30%.
+  plated_crab: {
+    id: 'plated_crab',
+    name: 'Plated Crab',
+    profile: 'insect',
+    tameChance: 0.3,
+    bait: 'nectar',
+    petName: 'Plated Crab',
+    byproduct: null,
+    swim: { depth: 0.7 },
+    bonusSpawn: {
+      biomes: ['storm'],
+      pond: true,
+      count: 2,
+      minRadius: 0,
+      spacing: 5,
+      speed: 0.9,
+      speedJitter: 0.1,
+      health: 26,
+    },
+  },
+
+  // #208 — the silver banks' small dark bobbing bird: it
+  // nests at a kept bank and will forgive the neighborhood at
+  // 50%. Flies the banks; dips, like its entry says.
+  silver_dipper: {
+    id: 'silver_dipper',
+    name: 'Silver Dipper',
+    profile: 'bird',
+    tameChance: 0.5,
+    bait: 'nectar',
+    petName: 'Silver Dipper',
+    byproduct: null,
+    flight: { altitude: 1.8, bobHeight: 0.22, bobRate: 2.0, flapRate: 8 },
+    swim: { depth: 0 },
+    bonusSpawn: {
+      biomes: ['storm'],
+      pond: true,
+      count: 2,
+      minRadius: 0,
+      spacing: 5,
+      speed: 2.2,
+      speedJitter: 0.15,
+      health: 12,
+    },
+  },
+
+  // #214 — the roster's first heron, on the Mirror Marsh's
+  // pond banks: tall, still, judicial. The pickers' rule at
+  // its strictest — 15%, and its molted feathers are unlisted.
+  mirror_heron: {
+    id: 'mirror_heron',
+    name: 'Mirror Heron',
+    profile: 'bird',
+    tameChance: 0.15,
+    bait: 'nectar',
+    petName: 'Mirror Heron',
+    byproduct: null,
+    flight: { altitude: 2.4, bobHeight: 0.3, bobRate: 1.6, flapRate: 5 },
+    swim: { depth: 0 },
+    bonusSpawn: {
+      biomes: ['wetland'],
+      variant: 'mirror_marsh',
+      pond: true,
+      count: 1,
+      minRadius: 0,
+      spacing: 8,
+      speed: 1.8,
+      speedJitter: 0.1,
+      health: 20,
+    },
+  },
 };

@@ -1496,6 +1496,234 @@ export function buildLateFaunaMesh(
         break;
       }
 
+      case 'lake_leviathan': {
+        // The water epic, drawn to scale (pond build): a slow
+        // shadow with a back that breaks the fog once a season.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.6 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(1.1, 14, 10), hideMat);
+        body.scale.set(1, 0.55, 2.6);
+        body.position.y = -0.35;
+        group.add(body);
+        const back = new THREE.Mesh(new THREE.SphereGeometry(0.7, 10, 8), hideMat);
+        back.scale.set(0.9, 0.4, 1.8);
+        back.position.set(0, 0.05, -0.2);
+        group.add(back);
+        const fin = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.8, 6), hideMat);
+        fin.scale.set(0.25, 1, 1);
+        fin.position.set(0, 0.45, -0.6);
+        group.add(fin);
+        const tail = new THREE.Mesh(new THREE.ConeGeometry(0.7, 1.4, 8), hideMat);
+        tail.rotation.x = -Math.PI / 2;
+        tail.scale.set(1.4, 1, 0.18);
+        tail.position.set(0, -0.3, -3.4);
+        group.add(tail);
+        break;
+      }
+
+      case 'deep_reef': {
+        // A place as much as a creature (pond build): stone
+        // bones and living fans, on the pond's floor.
+        const rockMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 1 });
+        for (let i = 0; i < 4; i++) {
+          const rock = new THREE.Mesh(new THREE.SphereGeometry(0.22 - i * 0.03, 8, 6), rockMat);
+          rock.scale.set(1.2, 0.7, 1);
+          rock.position.set(Math.sin(i * 1.9) * 0.3, -0.15, Math.cos(i * 1.9) * 0.3);
+          group.add(rock);
+        }
+        const fanMat = new THREE.MeshStandardMaterial({ color: 0xf472b6, roughness: 0.7, transparent: true, opacity: 0.85 });
+        for (let i = 0; i < 5; i++) {
+          const fan = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.34, 6), fanMat);
+          fan.position.set(Math.sin(i * 2.5) * 0.26, 0.02, Math.cos(i * 2.5) * 0.26);
+          fan.rotation.x = Math.sin(i) * 0.3;
+          group.add(fan);
+        }
+        break;
+      }
+
+      case 'diver_beetle': {
+        // Its air, worn like a helmet it chose (pond build).
+        const shellMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.35, metalness: 0.3 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), shellMat);
+        body.scale.set(1, 0.75, 1.5);
+        group.add(body);
+        const bubble = new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 6), new THREE.MeshStandardMaterial({
+          color: 0xe0f2fe, roughness: 0.1, transparent: true, opacity: 0.5,
+        }));
+        bubble.position.set(0, -0.05, -0.12);
+        group.add(bubble);
+        const legMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.7 });
+        for (let i = 0; i < 6; i++) {
+          const side = i % 2 === 0 ? 1 : -1;
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.005, 0.14, 4), legMat);
+          leg.position.set(side * 0.11, -0.05, -0.08 + Math.floor(i / 2) * 0.08);
+          leg.rotation.z = side * 0.9;
+          group.add(leg);
+        }
+        break;
+      }
+
+      case 'dartfisher': {
+        // A blade on wings (pond build): bright, sleek, all point.
+        const featherMat = new THREE.MeshStandardMaterial({ color: 0x06b6d4, roughness: 0.6 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), featherMat);
+        body.scale.set(0.8, 0.75, 2);
+        body.position.y = 0.04;
+        group.add(body);
+        const dart = new THREE.Mesh(new THREE.ConeGeometry(0.028, 0.22, 6), new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.5 }));
+        dart.rotation.x = Math.PI / 2;
+        dart.position.set(0, 0.04, 0.28);
+        group.add(dart);
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), featherMat);
+          wing.scale.set(1.7, 0.15, 0.7);
+          wing.position.set(side * 0.16, 0.09, -0.02);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          group.add(wing);
+        }
+        break;
+      }
+
+      case 'glyph_carp': {
+        // An inscription that swims (pond build): carp plan with
+        // pale glyph rings along the flank.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0xa8a29e, roughness: 0.55 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 8), hideMat);
+        body.scale.set(1, 0.9, 1.8);
+        group.add(body);
+        const glyphMat = new THREE.MeshStandardMaterial({ color: 0xfde68a, roughness: 0.4 });
+        for (let i = 0; i < 3; i++) {
+          const ring = new THREE.Mesh(new THREE.TorusGeometry(0.13 - i * 0.02, 0.014, 5, 12), glyphMat);
+          ring.position.set(0, 0.02, 0.25 - i * 0.22);
+          ring.rotation.y = Math.PI / 2;
+          group.add(ring);
+        }
+        const tail = new THREE.Mesh(new THREE.ConeGeometry(0.17, 0.34, 6), hideMat);
+        tail.rotation.x = -Math.PI / 2;
+        tail.scale.set(1, 1, 0.2);
+        tail.position.set(0, 0, -0.55);
+        group.add(tail);
+        break;
+      }
+
+      case 'silver_skater': {
+        // The pond cousin, richly dressed (pond build): mirror
+        // plate over the skater plan, wing shells folded bright.
+        const plateMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.2, metalness: 0.7 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), plateMat);
+        body.scale.set(1, 0.7, 1.8);
+        body.position.y = 0.09;
+        group.add(body);
+        for (const side of [-1, 1]) {
+          const shell = new THREE.Mesh(new THREE.SphereGeometry(0.055, 6, 5), plateMat);
+          shell.scale.set(1.4, 0.3, 0.9);
+          shell.position.set(side * 0.07, 0.13, -0.05);
+          group.add(shell);
+        }
+        for (let i = 0; i < 6; i++) {
+          const side = i % 2 === 0 ? 1 : -1;
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.007, 0.004, 0.34, 4), plateMat);
+          leg.position.set(side * 0.16, 0.04, -0.08 + Math.floor(i / 2) * 0.08);
+          leg.rotation.z = side * 1.15;
+          group.add(leg);
+        }
+        break;
+      }
+
+      case 'silverfin': {
+        // Perpetually coated, perpetually shedding (pond build).
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.15, metalness: 0.8 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), hideMat);
+        body.scale.set(0.8, 0.75, 2.1);
+        group.add(body);
+        const fin = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.16, 5), hideMat);
+        fin.scale.set(0.3, 1, 1);
+        fin.position.set(0, 0.13, -0.05);
+        group.add(fin);
+        const tail = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.18, 5), hideMat);
+        tail.rotation.x = -Math.PI / 2;
+        tail.scale.set(1, 1, 0.25);
+        tail.position.set(0, 0, -0.28);
+        group.add(tail);
+        break;
+      }
+
+      case 'plated_crab': {
+        // Self-gilt, claw by claw (pond build): a wide bright
+        // carapace and two ceremonial claws.
+        const plateMat = new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 0.3, metalness: 0.6 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), plateMat);
+        body.scale.set(1.5, 0.55, 1.1);
+        group.add(body);
+        for (const side of [-1, 1]) {
+          const claw = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), plateMat);
+          claw.scale.set(1, 0.8, 1.3);
+          claw.position.set(side * 0.3, 0.02, 0.22);
+          group.add(claw);
+        }
+        const legMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.6 });
+        for (let i = 0; i < 6; i++) {
+          const side = i % 2 === 0 ? 1 : -1;
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.007, 0.22, 4), legMat);
+          leg.position.set(side * 0.3, -0.06, -0.12 + Math.floor(i / 2) * 0.12);
+          leg.rotation.z = side * 1.1;
+          group.add(leg);
+        }
+        break;
+      }
+
+      case 'silver_dipper': {
+        // Bank-true and bobbing (pond build): dark body, bright
+        // throat, wings named for the flap branch.
+        const featherMat = new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 0.85 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), featherMat);
+        body.scale.set(1, 0.9, 1.5);
+        body.position.y = 0.04;
+        group.add(body);
+        const throat = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.8 }));
+        throat.position.set(0, 0.09, 0.13);
+        group.add(throat);
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), featherMat);
+          wing.scale.set(1.5, 0.16, 0.75);
+          wing.position.set(side * 0.15, 0.09, -0.02);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          group.add(wing);
+        }
+        break;
+      }
+
+      case 'mirror_heron': {
+        // A magistrate of the shallows (pond build): stilts, a
+        // long neck held in judgment, a spear for a bill.
+        const featherMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.85 });
+        const legMat = new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.7 });
+        for (const side of [-1, 1]) {
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.01, 0.55, 5), legMat);
+          leg.position.set(side * 0.06, -0.27, 0);
+          group.add(leg);
+        }
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), featherMat);
+        body.scale.set(1, 0.9, 1.6);
+        body.position.y = 0.08;
+        group.add(body);
+        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.045, 0.42, 6), featherMat);
+        neck.position.set(0, 0.32, 0.18);
+        neck.rotation.x = 0.5;
+        group.add(neck);
+        const bill = new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.3, 6), new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.5 }));
+        bill.rotation.x = Math.PI / 2 - 0.35;
+        bill.position.set(0, 0.48, 0.38);
+        group.add(bill);
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 6), featherMat);
+          wing.scale.set(1.5, 0.15, 0.85);
+          wing.position.set(side * 0.18, 0.14, -0.03);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          group.add(wing);
+        }
+        break;
+      }
+
     default:
       return null;
   }

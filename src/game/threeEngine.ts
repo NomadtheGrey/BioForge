@@ -506,6 +506,7 @@ export class BioForgeThreeEngine {
     chitin_glass_wall: { color: 0x67e8f9, intensity: 0.55, distance: 2.5, y: 1.2 },
     rootweave_wall: { color: 0xa3e635, intensity: 0.35, distance: 2.2, y: 1.2 },
     saltglass_pane: { color: 0xa7f3d0, intensity: 0.3, distance: 2.2, y: 1.2 },
+    hearthpod: { color: 0xf59e0b, intensity: 0.6, distance: 3.0, y: 0.6 },
     pen_fence: { color: 0x84cc16, intensity: 0.3, distance: 2.0, y: 1.0 },
     pen_gate: { color: 0xa3e635, intensity: 0.35, distance: 2.2, y: 1.2 },
     sample_rack: { color: 0x4ade80, intensity: 0.4, distance: 2.4, y: 1.0 },

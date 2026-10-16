@@ -116,8 +116,12 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     fauna wave: twelve species on the proven rails (pack
  *     hunt, hybrid gates, rib-height and canopy draws).
  *     Table-only change.
+ * v27: creature build phase, slice 12 (2026-10-16) — flora
+ *     wave 3: twelve more table species (four hybrid citizens,
+ *     the gardeners' Forged fungus, the marsh's second mirror).
+ *     Table-only change.
  */
-export const WORLD_GEN_VERSION = 26; // v26 (2026-10-16): creature slice 11 — the fauna wave, twelve species; v25 was creature slice 10 (flora wave 2)
+export const WORLD_GEN_VERSION = 27; // v27 (2026-10-16): creature slice 12 — flora wave 3, twelve species; v26 was creature slice 11 (the fauna wave)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

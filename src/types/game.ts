@@ -39,6 +39,14 @@ export type ItemId =
   | 'ash_puff'
   | 'ash_feather'
   | 'rib_silk'
+  | 'vent_petal'
+  | 'stormcap'
+  | 'anvil_bracket'
+  | 'glass_frond'
+  | 'forge_petal'
+  | 'ember_leaf'
+  | 'frost_leaf'
+  | 'mirror_bloom'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -240,7 +248,20 @@ export type FloraSpecies =
   | 'doorstep_rose'
   | 'glyph_vine'
   | 'glowcap'
-  | 'ash_puff';
+  | 'ash_puff'
+  // Flora wave 3 (slice 12, 2026-10-16).
+  | 'meadow_clover'
+  | 'vent_rose'
+  | 'stormcap'
+  | 'anvil_cap'
+  | 'glass_fern'
+  | 'forge_bloom'
+  | 'ember_ivy'
+  | 'frost_ivy'
+  | 'mirror_reed'
+  | 'rime_grass'
+  | 'fang_fern'
+  | 'mirror_cap';
 
 export interface FloraEntity {
   id: string;
@@ -392,10 +413,6 @@ export interface FaunaEntity {
    *  saves; the sim treats absent as 0. Tamed creatures shed on
    *  the kind interval; wild ones leave rarer traces. */
   sampleTimer?: number;
-  /** Solvent dissolve clock (Adam, 2026-10-16): seconds of
-   *  dissolve remaining after an emergency spray; while it runs,
-   *  the creature takes damage over time and flees. */
-  dissolveTimer?: number;
   animTime: number;
   /** Biome TYPE this creature spawned in (world-gen stamp; absent on old saves). */
   biome?: BiomeId;

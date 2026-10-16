@@ -137,6 +137,82 @@ class SoundEngine {
     noise.stop(t + 0.4);
   }
 
+  // Striker swing (weapons build, 2026-10-16): a short whoosh —
+  // band-passed noise sweeping DOWN, the air parting around a
+  // grown edge. Plays on every close strike, hit or whiff.
+  public playStrikeSwing() {
+    if (this.isMuted) return;
+    this.initCtx();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+    const bufferSize = Math.floor(this.ctx.sampleRate * 0.18);
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.sin((i / bufferSize) * Math.PI);
+    }
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(2400, t);
+    filter.frequency.exponentialRampToValueAtTime(500, t + 0.16);
+    filter.Q.setValueAtTime(2, t);
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.10, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.ctx.destination);
+    noise.start(t);
+    noise.stop(t + 0.2);
+  }
+
+  // Striker hit (weapons build): a low woody thock — a short
+  // sine thump with a fast pitch drop, so a landed hit feels
+  // heavier than the swing that carried it.
+  public playStrikeHit() {
+    if (this.isMuted) return;
+    this.initCtx();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(160, t);
+    osc.frequency.exponentialRampToValueAtTime(55, t + 0.12);
+    gain.gain.setValueAtTime(0.22, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.15);
+  }
+
+  // Striker shot (weapons build): the pod's puff — a tiny
+  // pressure pop (short square blip) under a breath of noise, so
+  // loosing a spine or a spore ball reads as GROWN, not gunfire.
+  public playStrikeShot() {
+    if (this.isMuted) return;
+    this.initCtx();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(320, t);
+    osc.frequency.exponentialRampToValueAtTime(90, t + 0.09);
+    gain.gain.setValueAtTime(0.08, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.11);
+  }
+
   // Bio-Structure Placement Click / Snap
   public playBuildPlace() {
     if (this.isMuted) return;

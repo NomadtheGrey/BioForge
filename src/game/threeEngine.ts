@@ -15,6 +15,7 @@ import {
   ToolType,
   StructureType,
   HoverTarget,
+  ItemId,
 } from '../types/game';
 import { FirstPersonViewmodel } from './viewmodel';
 import { BIOME_TINTS } from './biomes';
@@ -717,6 +718,13 @@ export class BioForgeThreeEngine {
 
   public setViewmodelTool(tool: ToolType) {
     this.viewmodel.setTool(tool);
+  }
+
+  /** The striker hand re-grows around the drawn weapon
+   *  (weapons build, 2026-10-16): App calls this whenever the
+   *  slot's draw changes. */
+  public setStrikerWeapon(weaponId: ItemId) {
+    this.viewmodel.setStriker(weaponId);
   }
 
   public setViewmodelBlueprint(blueprint: StructureType) {
@@ -1677,6 +1685,44 @@ export class BioForgeThreeEngine {
       vel: dir.multiplyScalar(5).add(new THREE.Vector3(0, 0.3, 0)),
     });
     void len;
+  }
+
+  /**
+   * The striker's tracer (weapons build, 2026-10-16): a bright
+   * point (a small cluster for a bursting spore ball) that flies
+   * the actual shot line at the shot's actual speed — velocity =
+   * distance / travelSeconds, life = travelSeconds — so what the
+   * player SEES arrive is what the sim resolves. Pale gold for a
+   * spine, spore-green for a burst.
+   */
+  public triggerShotTracer(fromX: number, fromZ: number, toX: number, toZ: number, travelSeconds: number, burst: boolean) {
+    const count = burst ? 7 : 1;
+    const geom = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    const fromY = this.terrainHeightAt(fromX, fromZ) + 1.05;
+    const toY = this.terrainHeightAt(toX, toZ) + 0.8;
+    for (let i = 0; i < count; i++) {
+      pos[i * 3] = fromX + (Math.random() - 0.5) * 0.12;
+      pos[i * 3 + 1] = fromY + (Math.random() - 0.5) * 0.12;
+      pos[i * 3 + 2] = fromZ + (Math.random() - 0.5) * 0.12;
+    }
+    geom.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({
+      color: burst ? 0xa3e635 : 0xfde68a,
+      size: burst ? 0.34 : 0.26,
+      transparent: true,
+      opacity: 0.95,
+      blending: THREE.AdditiveBlending,
+    });
+    const points = new THREE.Points(geom, mat);
+    this.particlesGroup.add(points);
+    const travel = Math.max(0.05, travelSeconds);
+    this.transientParticles.push({
+      mesh: points,
+      life: 0,
+      maxLife: travel,
+      vel: new THREE.Vector3((toX - fromX) / travel, (toY - fromY) / travel, (toZ - fromZ) / travel),
+    });
   }
 
   /**

@@ -532,7 +532,11 @@ export type FloraSpecies =
   | 'ash_mold'
   | 'nest_cap'
   | 'frost_mold'
-  | 'steam_cap';
+  | 'steam_cap'
+  // Landscape flora trio (slice 31, 2026-10-16).
+  | 'valley_heart'
+  | 'mother_grove'
+  | 'first_tree';
 
 export interface FloraEntity {
   id: string;

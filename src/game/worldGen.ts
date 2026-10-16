@@ -201,8 +201,16 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     with the scale calls delegated (one per zone, far,
  *     slow, heavy, untameable). The Lake Leviathan stays
  *     with the pond group. Table-only change.
+ * v46: creature build phase, slice 31 (2026-10-16) — THE
+ *     LANDSCAPE FLORA TRIO: Valley Heart, Mother Grove and
+ *     First Tree — LANDSCAPE presences on the plant side,
+ *     harvest-null, one per zone, at the flora table's
+ *     maximum scale. With this version 338 of the 358
+ *     designed species are in game; only the pond group
+ *     (~20) remains, gated on ponds existing as data.
+ *     Table-only change.
  */
-export const WORLD_GEN_VERSION = 45; // v45 (2026-10-16): creature slice 30 — oversize tier, fauna side; v44 was creature slice 29 (flora wave 14, final)
+export const WORLD_GEN_VERSION = 46; // v46 (2026-10-16): creature slice 31 — landscape flora trio; v45 was creature slice 30 (oversize tier)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

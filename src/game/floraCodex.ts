@@ -1754,7 +1754,7 @@ export const FLORA_CODEX: CodexEntry[] = [
     scannedCount: 0,
     description: 'A tall, white candle-flower of the warm and temperate ranges: its thick petals render a clean-burning wax — the far country\'s candle, grown rather than dipped, blooming at midnight over four families\' worth of dark fields.',
     byproducts: ['Night Wax (rendered from the bloom — a clean-burning wax)'],
-    tamingOrCraftNotes: 'Take the bloom with the glove.',
+    tamingOrCraftNotes: 'Take the bloom with the glove at midnight — by day it is only a promise.',
     biome: 'Wide-range (Warm + Temperate)',
     iconColor: '#fefce8',
   },

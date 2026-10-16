@@ -580,6 +580,44 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
 
       return group;
     },
+    // The BioTunnel mouth (Adam, 2026-10-16): a short ribbed
+    // throat of root and resin standing on a root mound, its
+    // membrane stretched across the front like a drum. The ribs
+    // are full rings so the throat reads from every side; the
+    // membrane is a named child ('tunnelMembrane') whose light
+    // the engine stirs while the pair is whole and lets go dark
+    // when an end is gone (updateTunnelLife in threeEngine).
+    'biotunnel_mouth': () => {
+      const group = new THREE.Group();
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.3, 0.22, 20), materials.woodRoot);
+      base.position.y = 0.11;
+      base.receiveShadow = true;
+      group.add(base);
+      const ribMat = new THREE.MeshStandardMaterial({ color: 0x7c2d12, roughness: 0.85 });
+      const ribGeom = new THREE.TorusGeometry(0.85, 0.09, 10, 24);
+      for (let i = 0; i < 5; i++) {
+        const rib = new THREE.Mesh(ribGeom, ribMat);
+        rib.position.set(0, 1.15, -0.36 + i * 0.18);
+        const s = 1 - Math.abs(i - 2) * 0.05;
+        rib.scale.set(s, s, 1);
+        rib.castShadow = true;
+        group.add(rib);
+      }
+      const membraneMat = new THREE.MeshStandardMaterial({
+        color: 0x134e4a,
+        roughness: 0.35,
+        emissive: 0x14b8a6,
+        emissiveIntensity: 0,
+        transparent: true,
+        opacity: 0.92,
+        side: THREE.DoubleSide,
+      });
+      const membrane = new THREE.Mesh(new THREE.CircleGeometry(0.78, 24), membraneMat);
+      membrane.position.set(0, 1.15, 0);
+      membrane.name = 'tunnelMembrane';
+      group.add(membrane);
+      return group;
+    },
     'culture_vat': () => {
       const group = new THREE.Group();
 

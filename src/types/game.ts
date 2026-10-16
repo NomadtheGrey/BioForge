@@ -159,13 +159,6 @@ export type ItemId =
   | 'sump_cap'
   | 'grave_puff'
   | 'steam_cap'
-  | 'behemoth_glass'
-  | 'mother_wool'
-  // Oversize kill loot (slice 32, 2026-10-16).
-  | 'coat_slab'
-  | 'whale_down'
-  | 'leviathan_plate'
-  | 'leviathan_hide'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -220,6 +213,7 @@ export type ItemId =
   // Bio-Composite Building Seed-Nodes
   | 'root_tile_floor'
   | 'heart_tile'
+  | 'biotunnel_mouth'
   | 'chitin_glass_wall'
   | 'iris_slit_door'
   | 'lantern_fern_post'
@@ -537,11 +531,7 @@ export type FloraSpecies =
   | 'ash_mold'
   | 'nest_cap'
   | 'frost_mold'
-  | 'steam_cap'
-  // Landscape flora trio (slice 31, 2026-10-16).
-  | 'valley_heart'
-  | 'mother_grove'
-  | 'first_tree';
+  | 'steam_cap';
 
 export interface FloraEntity {
   id: string;
@@ -742,19 +732,7 @@ export type FaunaSpecies =
   | 'false_greeter'
   | 'storm_roc'
   | 'feral_warden'
-  | 'heartling'
-  // Slice 30 (2026-10-16) — THE OVERSIZE TIER, fauna side.
-  | 'grass_leviathan'
-  | 'cloud_whale'
-  | 'storm_leviathan'
-  | 'garden_colossus'
-  | 'sleeping_mountain'
-  | 'glass_behemoth'
-  | 'old_marrow'
-  | 'winter_mother'
-  | 'dune_whale'
-  | 'great_hermit'
-  | 'tempest_worm';
+  | 'heartling';
 
 export interface FaunaEntity {
   id: string;
@@ -789,13 +767,6 @@ export interface FaunaEntity {
    *  left after a close-weapon hit. While it runs the creature
    *  neither moves nor bites — the melee's breathing room. */
   flinchTimer?: number;
-  /** Provocation clock (slice 32, 2026-10-16): seconds of
-   *  retaliation left after player-side harm. While it runs, a
-   *  provokedOnly species (the oversize tier) hunts; stamped by
-   *  strikes, landed shots, dissolves and guardian bites, and
-   *  refreshed by further harm. Optional: absent on older saves;
-   *  the sim treats absent as unprovoked. */
-  provokedTimer?: number;
   animTime: number;
   /** Biome TYPE this creature spawned in (world-gen stamp; absent on old saves). */
   biome?: BiomeId;
@@ -810,6 +781,7 @@ export interface FaunaEntity {
 export type StructureType =
   | 'root_tile_floor'
   | 'heart_tile'
+  | 'biotunnel_mouth'
   | 'chitin_glass_wall'
   | 'iris_slit_door'
   | 'lantern_fern_post'
@@ -979,6 +951,14 @@ export interface StructureEntity {
     tier: number;
     gestating?: { species: FaunaSpecies; progress: number; total: number };
   };
+  /**
+   * Present only on biotunnel_mouth structures: the derived
+   * pairing state (see game/tunnel.ts) — refreshed by App at every
+   * structure sync, so the engine can light the membrane when the
+   * pair is whole and let it go dark when an end is gone. Advisory
+   * only: the truth is the count of mouths in the known world.
+   */
+  tunnel?: { paired: boolean };
   /** Present only on ruin_landmark structures: fate/variant/tier record. */
   ruin?: RuinLinkData;
 }

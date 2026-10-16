@@ -63,6 +63,7 @@ export type ItemId =
   | 'identifier_lens'
   | 'glyph_lens'
   | 'charge_sight'
+  | 'quicksteps'
   | 'waders'
   | 'stillsteps'
   | 'webfoots'

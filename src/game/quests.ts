@@ -303,6 +303,19 @@ export const QUESTS: QuestDef[] = [
     completeItem: 'trail_lens',
   },
   {
+    id: 'q_quicksteps',
+    tier: 3,
+    title: 'Take the Step',
+    blurb:
+      'Feet last, and not least: grow the Quicksteps — the living set every impediment growth mounts on. Sure footing first; the marsh, the water, and the fire country after.',
+    gather: [
+      { itemId: 'soft_fiber', count: 3 },
+      { itemId: 'resin_sap', count: 2 },
+      { itemId: 'dew_essence', count: 1 },
+    ],
+    completeItem: 'quicksteps',
+  },
+  {
     id: 'q_waders',
     tier: 3,
     title: 'Dry Feet',

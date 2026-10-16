@@ -484,13 +484,25 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     maxStack: 1,
   },
   // THE QUICKSTEPS LINE (published 2026-10-15 — same note as the
-  // helmet: paper live, powers with the platform build). One
-  // upgrade per IMPEDIMENT, grown not built.
+  // helmet: paper live, powers with the platform build). The
+  // platform doctrine holds here as everywhere (Adam's correction,
+  // 2026-10-16): ONE crafted set, and every impediment answer is
+  // a GROWTH on that set — never a standalone pair.
+  quicksteps: {
+    id: 'quicksteps',
+    name: 'Quicksteps',
+    category: 'equipment',
+    description: 'The base set of the movement platform: living footwear grown to your own feet, sure on plain ground. Every impediment growth — wading, water-walking, swimming, fire-crossing — mounts on this pair.',
+    iconName: 'Footprints',
+    color: '#65a30d',
+    rarity: 'common',
+    maxStack: 1,
+  },
   waders: {
     id: 'waders',
     name: 'Waders',
     category: 'equipment',
-    description: 'Dew-stocked, resin-sealed leg wraps. The Mirror Marsh\'s wading drag, answered — the water still holds you, it just stops arguing.',
+    description: 'Grown onto the Quicksteps: dew-stocked, resin-sealed leg wraps. The Mirror Marsh\'s wading drag, answered — the water still holds you, it just stops arguing.',
     iconName: 'Droplets',
     color: '#38bdf8',
     rarity: 'common',
@@ -500,7 +512,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     id: 'stillsteps',
     name: 'Stillsteps',
     category: 'equipment',
-    description: 'A tension film of dew and resin grown under the sole. Step onto still water and it holds — walk the water.',
+    description: 'Grown onto the Quicksteps: a tension film of dew and resin under the sole. Step onto still water and it holds — walk the water.',
     iconName: 'Footprints',
     color: '#7dd3fc',
     rarity: 'uncommon',
@@ -510,7 +522,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     id: 'webfoots',
     name: 'Webfoots',
     category: 'equipment',
-    description: 'Reed-vane webs woven between the toes, resin-stiffened. In the water the swim becomes a stroke, not a struggle.',
+    description: 'Grown onto the Quicksteps: reed-vane webs between the toes, resin-stiffened. In the water the swim becomes a stroke, not a struggle.',
     iconName: 'Waves',
     color: '#2dd4bf',
     rarity: 'uncommon',
@@ -520,7 +532,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     id: 'ember_soles',
     name: 'Ember Soles',
     category: 'equipment',
-    description: 'Obsidian tread bound in heat-cured resin. Cross the fire country on your own feet — the ground warns you, and the soles answer.',
+    description: 'Grown onto the Quicksteps: obsidian tread bound in heat-cured resin. Cross the fire country on your own feet — the ground warns you, and the soles answer.',
     iconName: 'Flame',
     color: '#f97316',
     rarity: 'uncommon',
@@ -1157,8 +1169,10 @@ export const HELMET_GEAR_ITEM_IDS: ItemId[] = [
  * boots build lands, its item ids join this set one line at a time.
  */
 export const BOOTS_GEAR_ITEM_IDS: ItemId[] = [
-  // The Quicksteps line (published 2026-10-15): one upgrade per
-  // impediment — wade, walk on water, swim, cross the fire.
+  // The Quicksteps line (published 2026-10-15): the crafted set
+  // first, then its growths — one per impediment: wade, walk on
+  // water, swim, cross the fire.
+  'quicksteps',
   'waders',
   'stillsteps',
   'webfoots',
@@ -1774,6 +1788,20 @@ export const RECIPES: CraftingRecipe[] = [
   // impediment. Waders' dew is the mirror lily's own essence —
   // the marsh is its richest source, as the marsh promised.
   // ------------------------------------------------------------------
+  {
+    id: 'craft_quicksteps',
+    outputId: 'quicksteps',
+    outputCount: 1,
+    name: 'Quicksteps',
+    description: 'Grow the base set of the movement platform — living footwear fitted to your own feet. Every impediment growth mounts on this pair.',
+    category: 'composites',
+    ingredients: [
+      { id: 'soft_fiber', count: 3 },
+      { id: 'resin_sap', count: 2 },
+      { id: 'dew_essence', count: 1 },
+    ],
+    craftTimeMs: 2000,
+  },
   {
     id: 'craft_waders',
     outputId: 'waders',

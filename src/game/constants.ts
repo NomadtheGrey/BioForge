@@ -1,5 +1,28 @@
-import { ItemDef, ItemId, CraftingRecipe, CodexEntry } from '../types/game';
+import { ItemDef, ItemId, CraftingRecipe, CodexEntry, FaunaSpecies } from '../types/game';
 import { FLORA_CODEX } from './flora';
+import { SPECIES } from './species';
+
+// Creature Samples (Adam, 2026-10-15): one item per species —
+// something from the original creature, shed by the living or
+// left by the dead, and the heart of every vat recipe. Their
+// definitions are GENERATED from the species table so a species
+// and its sample can never drift apart; the static record below
+// merges them in.
+const SAMPLE_ITEM_DEFS = Object.fromEntries(
+  Object.values(SPECIES).map((def) => [
+    `sample_${def.id}`,
+    {
+      id: `sample_${def.id}` as ItemId,
+      name: `${def.name} Sample`,
+      category: 'raw',
+      description: `Something from a living ${def.name} — a viable cutting, shed and gathered. The Culture Vat can grow the creature from it, once.`,
+      iconName: 'Dna',
+      color: '#84cc16',
+      rarity: 'uncommon',
+      maxStack: 10,
+    } as ItemDef,
+  ]),
+) as Record<`sample_${FaunaSpecies}`, ItemDef>;
 
 export const ITEMS: Record<ItemId, ItemDef> = {
   // Raw Botanical Byproducts
@@ -1121,6 +1144,38 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 1,
   },
+  // ── The Culture Vat + growth kits (Adam, 2026-10-15) ───────
+  culture_vat: {
+    id: 'culture_vat',
+    name: 'Culture Vat',
+    category: 'structure',
+    description: 'A grown vat that can grow a creature from its Sample: a translucent sac in a resin rib-frame, breathing slow. Place it with the Bio-Builder, click it to begin a gestation. Growth kits deepen it for wilder creatures.',
+    iconName: 'FlaskConical',
+    color: '#34d399',
+    rarity: 'uncommon',
+    maxStack: 10,
+  },
+  vat_kit_rich: {
+    id: 'vat_kit_rich',
+    name: 'Rich Culture Kit',
+    category: 'equipment',
+    description: 'A nutrient deepening for a placed Culture Vat: apply it from the vat\'s panel to richen the culture — the vat can then gestate creatures of the wild country, and anything that hunts.',
+    iconName: 'FlaskConical',
+    color: '#10b981',
+    rarity: 'uncommon',
+    maxStack: 1,
+  },
+  vat_kit_deep: {
+    id: 'vat_kit_deep',
+    name: 'Deep Culture Kit',
+    category: 'equipment',
+    description: 'A strange deepening for a richened Culture Vat: apply it from the vat\'s panel and the culture goes deep enough for the far country — Tier 3 homes and the variant-gated rares.',
+    iconName: 'FlaskConical',
+    color: '#8b5cf6',
+    rarity: 'rare',
+    maxStack: 1,
+  },
+  ...SAMPLE_ITEM_DEFS,
 
 };
 
@@ -1855,6 +1910,48 @@ export const RECIPES: CraftingRecipe[] = [
       { id: 'resin_sap', count: 1 },
     ],
     craftTimeMs: 2500,
+  },
+  {
+    id: 'craft_culture_vat',
+    outputId: 'culture_vat',
+    outputCount: 1,
+    name: 'Culture Vat',
+    description: 'Grow a Culture Vat to place with the Bio-Builder: feed it a creature\'s Sample and the right soup, and it grows the creature — imprinted, and following you. Renewal, the BioForge way.',
+    category: 'composites',
+    ingredients: [
+      { id: 'resin_sap', count: 4 },
+      { id: 'soft_fiber', count: 3 },
+      { id: 'basic_compost', count: 2 },
+      { id: 'dew_essence', count: 2 },
+    ],
+    craftTimeMs: 3000,
+  },
+  {
+    id: 'craft_vat_kit_rich',
+    outputId: 'vat_kit_rich',
+    outputCount: 1,
+    name: 'Rich Culture Kit',
+    description: 'Apply to a placed Culture Vat from its panel: richens the culture for wild-country creatures and anything that hunts.',
+    category: 'composites',
+    ingredients: [
+      { id: 'bio_pellet', count: 2 },
+      { id: 'resin_sap', count: 2 },
+    ],
+    craftTimeMs: 2500,
+  },
+  {
+    id: 'craft_vat_kit_deep',
+    outputId: 'vat_kit_deep',
+    outputCount: 1,
+    name: 'Deep Culture Kit',
+    description: 'Apply to a richened Culture Vat from its panel: deepens the culture for the far country — Tier 3 homes and the variant-gated rares.',
+    category: 'composites',
+    ingredients: [
+      { id: 'bio_pellet', count: 2 },
+      { id: 'living_thread', count: 1 },
+      { id: 'prismatic_core', count: 1 },
+    ],
+    craftTimeMs: 3000,
   },
 ];
 

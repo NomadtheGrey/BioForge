@@ -557,6 +557,75 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
 
       return group;
     },
+    'culture_vat': () => {
+      const group = new THREE.Group();
+
+      // The Culture Vat (Adam, 2026-10-15; look spec from the
+      // background chat): a translucent membrane sac cradled in a
+      // resin rib-frame, rooted in a wood collar — grown, never
+      // manufactured. Named parts (vatSac / vatCore) are how the
+      // engine's per-frame vat-life pass breathes the sac and
+      // grows the silhouette inside it; see threeEngine.
+      const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.86, 1.02, 0.2, 14), materials.woodRoot);
+      collar.position.y = 0.1;
+      collar.castShadow = true;
+      group.add(collar);
+
+      // Root feet: three short toes gripping the ground.
+      const footGeom = new THREE.ConeGeometry(0.16, 0.42, 7);
+      for (let i = 0; i < 3; i++) {
+        const a = (i / 3) * Math.PI * 2 + 0.5;
+        const foot = new THREE.Mesh(footGeom, materials.woodRoot);
+        foot.position.set(Math.sin(a) * 0.82, 0.16, Math.cos(a) * 0.82);
+        foot.rotation.set(Math.cos(a) * 0.5, 0, -Math.sin(a) * 0.5);
+        group.add(foot);
+      }
+
+      // The resin ribs: five half-arcs curling up around the sac
+      // like fingers. Resin gets a fresh material per build (the
+      // shared palette has no resin tone).
+      const resinMat = new THREE.MeshStandardMaterial({ color: 0x9a6a33, roughness: 0.55, metalness: 0.05 });
+      const ribGeom = new THREE.TorusGeometry(0.8, 0.065, 8, 20, Math.PI);
+      for (let i = 0; i < 5; i++) {
+        const rib = new THREE.Mesh(ribGeom, resinMat);
+        const a = (i / 5) * Math.PI * 2;
+        rib.position.y = 0.18;
+        rib.rotation.y = a;
+        rib.castShadow = true;
+        group.add(rib);
+      }
+
+      // The membrane sac itself: the shared chitin-glass, tall.
+      const sac = new THREE.Mesh(new THREE.SphereGeometry(0.72, 20, 16), materials.chitinGlass);
+      sac.name = 'vatSac';
+      sac.scale.set(1, 1.12, 1);
+      sac.position.y = 0.98;
+      sac.castShadow = true;
+      group.add(sac);
+
+      // The silhouette inside: a curled, dark form that firms up
+      // as a gestation progresses. Its material is per-build —
+      // the engine's vat-life pass sets its opacity and scale
+      // from the entity's gestation record every frame.
+      const coreMat = new THREE.MeshStandardMaterial({
+        color: 0x2e1065, roughness: 0.4, metalness: 0,
+        emissive: 0x0d9488, emissiveIntensity: 0.25, transparent: true, opacity: 0,
+      });
+      const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.34, 1), coreMat);
+      core.name = 'vatCore';
+      core.scale.setScalar(0.001);
+      core.position.y = 0.92;
+      group.add(core);
+
+      // The crown seam: a biolume iris ring at the sac's top —
+      // what opens when the creature hatches.
+      const iris = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.045, 8, 22), materials.biolumCyan);
+      iris.rotation.x = Math.PI / 2;
+      iris.position.y = 1.72;
+      group.add(iris);
+
+      return group;
+    },
     'tamed_snap_trap_turret': () => {
       const group = new THREE.Group();
       // Pedestal

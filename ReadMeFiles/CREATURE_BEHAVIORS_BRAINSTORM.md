@@ -263,3 +263,60 @@ to FULGURITE SHARDS + dew; solvent returns the shard. Storm's
 creature seats — family signature (a storm-rider; the gliders
 hold census here) and a Magnetic Dunes unique — are EMPTY and
 belong to this chat.
+
+---
+
+Creature Renewal — the Culture Vat (Adam's design, settled in
+the background chat, 2026-10-15; NOT built, no build order yet):
+
+The fact it answers: fauna never respawn. A zone's cast is
+dealt once at generation; every removal (hunted, tamed away,
+dead) persists in the world snapshot forever. Adam's ruling:
+renewal is a PLAYER ACT, not a timer — and the BioForge way is
+to GROW the replacement.
+
+THE CULTURE VAT — a grown structure, crafted at the Bio-Forge
+(Tier 2 craft): 4x resin (the vessel walls) + 3x fiber (the
+living membrane lining) + 2x basic compost (the starter
+culture) + 2x meadow dew (the medium it wakes filled with).
+Born able to grow common creatures; it deepens by growth
+kits rather than replacement (pod precedent): a Rich Culture
+Kit (2x bio-pellets + 2x resin) for wilder creatures, and a
+second kit tier beyond that for the strangest. One gestation
+at a time; parallel vats are how you breed in parallel.
+
+THE CREATURE RECIPE — always ONE SAMPLE plus the soup. The
+sample decides WHAT; the soup decides whether the vat can
+manage it. The soup scales with where the creature is from:
+- Common country (Tier 0-1 homes): 1x basic compost + 2x dew.
+- Wild country (Tier 2 homes — and anything that HUNTS,
+  whatever its home): 1x bio-pellets + 2x dew + 1x resin.
+- Strange country (Tier 3 homes, and the variant-gated
+  rares): 1x bio-pellets + 2x dew + 1x the signature shard
+  of its home family (saltglass shard for saltglass, 
+  fulgurite for storm) + 1x living thread.
+Worked examples: a Soft-Puff is sample + basic compost +
+2 dew, hatched inside half a Sol-cycle. A Prism Frog (Prism
+Beds gated) is sample + bio-pellets + 2 dew + saltglass
+shard + living thread, a full cycle in the deepened vat.
+
+THE SAMPLE — something from the original creature. Adam's
+ruling: samples come from LIVING things (sheds — the shipped
+byproduct system is the natural source) or from DEAD ones
+(remains). The vat CONSUMES the sample: grow a successor and
+the cutting is spent. Keep two cuttings from everything you
+love.
+
+WHAT HATCHES — an imprinted creature that follows. There is
+no player naming in the game; a tame receives its species'
+granted name, so a successor arrives carrying the same
+granted name its predecessor had.
+
+COMPANION COMMAND RULINGS (same thread, Adam): the command
+row is FOLLOW / STAY / GUARD / RELEASE. Release is new: it
+turns the creature wild in the current zone, and it MUST
+carry a confirmation — "Are you sure you want to release
+this?" — because the bond, once spent, is re-won only by
+lure and luck. DEFEND is not a command: it folds into
+FOLLOW — a species that can defend does so automatically
+while following.

@@ -1499,6 +1499,73 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     maxStack: 1,
   },
 
+  // ── The strikers (Adam, 2026-10-16) ───────────────────────────
+  // Six grown weapons for the gauntlet's seventh slot — one close
+  // and one ranged per craft tier; a higher tier is crafted AS an
+  // upgrade, consuming the lower weapon of its kind (see the
+  // recipes and game/weapons.ts for the rules). Grown, never
+  // machined: thorn, chitin, spore and storm-glass.
+  briar_barb: {
+    id: 'briar_barb',
+    name: 'Briar Barb',
+    category: 'equipment',
+    description: 'A resin-hardened thorn grown off the gauntlet knuckle, footed with a shed stalker scale. Your first close striker (slot 7): quick, light, and it makes a hunter flinch.',
+    iconName: 'Sword',
+    color: '#84cc16',
+    rarity: 'common',
+    maxStack: 1,
+  },
+  spit_pod: {
+    id: 'spit_pod',
+    name: 'Spit Pod',
+    category: 'equipment',
+    description: 'A squeezable living pod grown along the gauntlet wrist. Your first ranged striker (slot 7): it puffs a spine at what you aim at — mind that the spine takes a moment to arrive.',
+    iconName: 'Crosshair',
+    color: '#4ade80',
+    rarity: 'common',
+    maxStack: 1,
+  },
+  chitin_fang: {
+    id: 'chitin_fang',
+    name: 'Chitin Fang',
+    category: 'equipment',
+    description: 'The Briar Barb regrown through layered carapace and a cinder scale — a fire-hardened chitin edge. A wild-country close striker: heavier, and its flinch lasts longer.',
+    iconName: 'Sword',
+    color: '#f97316',
+    rarity: 'uncommon',
+    maxStack: 1,
+  },
+  spore_puffer: {
+    id: 'spore_puffer',
+    name: 'Spore Puffer',
+    category: 'equipment',
+    description: 'The Spit Pod regrown around a fungal heart. A wild-country ranged striker: it lobs a spore ball that BURSTS where it lands, catching everything wild nearby.',
+    iconName: 'Wind',
+    color: '#a3e635',
+    rarity: 'uncommon',
+    maxStack: 1,
+  },
+  glass_sting: {
+    id: 'glass_sting',
+    name: 'Glass Sting',
+    category: 'equipment',
+    description: 'The Chitin Fang regrown to a saltglass edge on a living-thread spine. A strange-country close striker: the sharpest thing the gauntlet can grow.',
+    iconName: 'Gem',
+    color: '#67e8f9',
+    rarity: 'rare',
+    maxStack: 1,
+  },
+  storm_lance: {
+    id: 'storm_lance',
+    name: 'Storm Lance',
+    category: 'equipment',
+    description: 'The Spore Puffer regrown around a fulgurite spine and a prismatic heart. A strange-country ranged striker: it throws a charged lance almost too fast to dodge.',
+    iconName: 'Zap',
+    color: '#c084fc',
+    rarity: 'rare',
+    maxStack: 1,
+  },
+
   // ── Pouch upgrades (Adam, 2026-10-15) ─────────────────────────
   // Carrying capacity is a craftable ladder (game/pouch.ts): owning
   // one of these raises EVERY stack's cap to its tier's number.
@@ -1989,6 +2056,97 @@ export const RECIPES: CraftingRecipe[] = [
       { id: 'dew_essence', count: 2 },
     ],
     craftTimeMs: 2000,
+  },
+  // The strikers (Adam, 2026-10-16): one close + one ranged per
+  // tier, grown onto the gauntlet's seventh slot. Each higher tier
+  // is an UPGRADE — its recipe consumes the lower weapon of the
+  // same kind — so the pouch never accumulates retired strikers
+  // and the slot's draw is always just your best pair. Rules
+  // (damage, cooldowns, reach) live in game/weapons.ts.
+  {
+    id: 'craft_briar_barb',
+    outputId: 'briar_barb',
+    outputCount: 1,
+    name: 'Briar Barb',
+    description: 'Grow a resin-hardened thorn striker off the gauntlet knuckle — unlocks the Striker slot (tool 7), close draw.',
+    category: 'composites',
+    ingredients: [
+      { id: 'resin_sap', count: 2 },
+      { id: 'soft_fiber', count: 2 },
+      { id: 'carapace_scale', count: 1 },
+    ],
+    craftTimeMs: 2500,
+  },
+  {
+    id: 'craft_spit_pod',
+    outputId: 'spit_pod',
+    outputCount: 1,
+    name: 'Spit Pod',
+    description: 'Grow a squeezable spine-pod along the gauntlet wrist — unlocks the Striker slot (tool 7), ranged draw.',
+    category: 'composites',
+    ingredients: [
+      { id: 'soft_fiber', count: 2 },
+      { id: 'dew_essence', count: 2 },
+      { id: 'resin_sap', count: 1 },
+    ],
+    craftTimeMs: 2500,
+  },
+  {
+    id: 'craft_chitin_fang',
+    outputId: 'chitin_fang',
+    outputCount: 1,
+    name: 'Chitin Fang',
+    description: 'Regrow the Briar Barb through layered carapace and cinder scale into a fire-hardened fang. Consumes the Barb.',
+    category: 'composites',
+    ingredients: [
+      { id: 'briar_barb', count: 1 },
+      { id: 'carapace_scale', count: 2 },
+      { id: 'cinder_scale', count: 1 },
+    ],
+    craftTimeMs: 3000,
+  },
+  {
+    id: 'craft_spore_puffer',
+    outputId: 'spore_puffer',
+    outputCount: 1,
+    name: 'Spore Puffer',
+    description: 'Regrow the Spit Pod around a fungal heart so its shots burst in spore. Consumes the Pod.',
+    category: 'composites',
+    ingredients: [
+      { id: 'spit_pod', count: 1 },
+      { id: 'bio_pellet', count: 2 },
+      { id: 'glow_spore', count: 2 },
+    ],
+    craftTimeMs: 3000,
+  },
+  {
+    id: 'craft_glass_sting',
+    outputId: 'glass_sting',
+    outputCount: 1,
+    name: 'Glass Sting',
+    description: 'Regrow the Chitin Fang to a saltglass edge on a living-thread spine. Consumes the Fang.',
+    category: 'composites',
+    ingredients: [
+      { id: 'chitin_fang', count: 1 },
+      { id: 'saltglass_shard', count: 2 },
+      { id: 'living_thread', count: 1 },
+    ],
+    craftTimeMs: 4000,
+  },
+  {
+    id: 'craft_storm_lance',
+    outputId: 'storm_lance',
+    outputCount: 1,
+    name: 'Storm Lance',
+    description: 'Regrow the Spore Puffer around a fulgurite spine and a prismatic heart. Consumes the Puffer.',
+    category: 'composites',
+    ingredients: [
+      { id: 'spore_puffer', count: 1 },
+      { id: 'fulgurite_shard', count: 1 },
+      { id: 'prismatic_core', count: 1 },
+      { id: 'living_thread', count: 1 },
+    ],
+    craftTimeMs: 4000,
   },
   // Pouch upgrades + storage (Adam, 2026-10-15): the carrying
   // ladder. The pouch quests in game/quests.ts mirror the tier-1

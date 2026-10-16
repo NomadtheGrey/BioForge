@@ -2184,6 +2184,20 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'common',
     maxStack: 99,
   },
+  // Slice F (Adam, 2026-10-16): the window wall — root-framed, with a
+  // true see-through saltglass inset where the chitin-glass wall is a
+  // full translucent sheet. Also the saltglass shard's first recipe:
+  // the Prism Beds' signature drop finally has somewhere to go.
+  saltglass_pane: {
+    id: 'saltglass_pane',
+    name: 'Saltglass Pane',
+    category: 'structure',
+    description: 'A root-framed window panel: a sheet of saltglass set in a mullioned frame. See through it, shoot light through it — the wall that lets the country watch back.',
+    iconName: 'Square',
+    color: '#a7f3d0',
+    rarity: 'common',
+    maxStack: 99,
+  },
   chitin_glass_wall: {
     id: 'chitin_glass_wall',
     name: 'Chitin-Glass Wall',

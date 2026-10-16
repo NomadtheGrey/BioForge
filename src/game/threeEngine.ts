@@ -417,6 +417,8 @@ export class BioForgeThreeEngine {
   // Entity mesh maps
   private floraMeshMap: Map<string, THREE.Group> = new Map();
   private faunaMeshMap: Map<string, THREE.Group> = new Map();
+  // Last dissolve-fizz emission per fauna id (updateDissolveFizz).
+  private dissolveFizzAt: Map<string, number> = new Map();
   // Idle-life wiggle state lives in the creature mesh kit
   // (game/creatureMeshes.ts); lastFaunaSyncMs times the wiggle's dt.
   private lastFaunaSyncMs = 0;
@@ -668,6 +670,7 @@ export class BioForgeThreeEngine {
     this.camera.position.y = this.eyeHeight + this.terrainHeightAt(x, z) + level * STORY_HEIGHT + jumpOffset;
     this.updateIrisDoorsProximity(x, z);
     this.updateVatLife();
+    this.updateDissolveFizz();
   }
 
   public getForwardVector(out: THREE.Vector3): THREE.Vector3 {
@@ -1199,6 +1202,26 @@ export class BioForgeThreeEngine {
    * while the vat rests empty), and when the fraction completes
    * it bobs, ready, waiting for the player's hatch click.
    */
+  /**
+   * Dissolve fizz (Adam, 2026-10-16): a creature under a solvent
+   * dissolve should be SEEN dissolving — while its dissolveTimer
+   * runs, the engine puffs a small green fizz off it a few times
+   * a second (throttled per creature). Pure presentation: the
+   * damage and the flight live in the sim (useWorldEntities);
+   * this only reads the stamped entity on each fauna mesh, the
+   * same seam the vat-life pass uses for structures.
+   */
+  private updateDissolveFizz(): void {
+    this.faunaMeshMap.forEach((mesh) => {
+      const entity = mesh.userData.entity as FaunaEntity | undefined;
+      if (!entity || !(entity.dissolveTimer && entity.dissolveTimer > 0)) return;
+      const last = this.dissolveFizzAt.get(entity.id) ?? -1;
+      if (this.elapsedTime - last < 0.45) return;
+      this.dissolveFizzAt.set(entity.id, this.elapsedTime);
+      this.triggerDissolveFizz(entity.x, entity.z);
+    });
+  }
+
   private updateVatLife(): void {
     this.structureMeshMap.forEach((mesh) => {
       const entity = mesh.userData.entity as StructureEntity | undefined;
@@ -1586,6 +1609,80 @@ export class BioForgeThreeEngine {
   // --------------------------------------------------------------------------
   // Special Visual FX
   // --------------------------------------------------------------------------
+  /**
+   * The spray itself (Adam, 2026-10-16): a visible jet of solvent
+   * from the player to the creature being sprayed — droplets laid
+   * along the line between the two, the whole cloud thrown
+   * forward, gone in a third of a second. Operating the sprayer
+   * must READ as spraying something, not just clicking it.
+   */
+  public triggerSprayJet(fromX: number, fromZ: number, toX: number, toZ: number) {
+    const count = 42;
+    const geom = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    const fromY = this.terrainHeightAt(fromX, fromZ) + 1.05;
+    const toY = this.terrainHeightAt(toX, toZ) + 0.8;
+    for (let i = 0; i < count; i++) {
+      const t = Math.random();
+      pos[i * 3] = fromX + (toX - fromX) * t + (Math.random() - 0.5) * 0.3;
+      pos[i * 3 + 1] = fromY + (toY - fromY) * t + (Math.random() - 0.5) * 0.25;
+      pos[i * 3 + 2] = fromZ + (toZ - fromZ) * t + (Math.random() - 0.5) * 0.3;
+    }
+    geom.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({
+      color: 0x84cc16,
+      size: 0.3,
+      transparent: true,
+      opacity: 0.95,
+      blending: THREE.AdditiveBlending,
+    });
+    const points = new THREE.Points(geom, mat);
+    this.particlesGroup.add(points);
+    const dir = new THREE.Vector3(toX - fromX, 0, toZ - fromZ);
+    const len = dir.length() || 1;
+    dir.normalize();
+    this.transientParticles.push({
+      mesh: points,
+      life: 0,
+      maxLife: 0.35,
+      vel: dir.multiplyScalar(5).add(new THREE.Vector3(0, 0.3, 0)),
+    });
+    void len;
+  }
+
+  /**
+   * Dissolve fizz: the small green boil-off a dissolving creature
+   * wears (see updateDissolveFizz). Lighter than a spray burst —
+   * it repeats several times a second for the dissolve's life.
+   */
+  public triggerDissolveFizz(x: number, z: number) {
+    const count = 10;
+    const geom = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      pos[i * 3] = (Math.random() - 0.5) * 0.9;
+      pos[i * 3 + 1] = Math.random() * 1.0 + 0.2;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 0.9;
+    }
+    geom.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({
+      color: 0x84cc16,
+      size: 0.22,
+      transparent: true,
+      opacity: 0.9,
+      blending: THREE.AdditiveBlending,
+    });
+    const points = new THREE.Points(geom, mat);
+    points.position.set(x, this.terrainHeightAt(x, z), z);
+    this.particlesGroup.add(points);
+    this.transientParticles.push({
+      mesh: points,
+      life: 0,
+      maxLife: 0.4,
+      vel: new THREE.Vector3(0, 0.8, 0),
+    });
+  }
+
   public triggerSolventSprayEffect(x: number, z: number) {
     const count = 35;
     const geom = new THREE.BufferGeometry();

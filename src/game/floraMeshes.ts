@@ -1610,6 +1610,228 @@ export function buildFloraMesh(
         break;
       }
 
+      case 'raincatcher': {
+        // A citizen of one sky (slice 18): a translucent
+        // gas-bag canopy over a soft heart, drawn low and
+        // rain-bellied.
+        const bag = new THREE.Mesh(new THREE.SphereGeometry(0.42, 12, 10), new THREE.MeshStandardMaterial({
+          color: 0xbae6fd, roughness: 0.3, transparent: true, opacity: 0.55,
+        }));
+        bag.scale.y = 0.8;
+        bag.position.y = 0.55;
+        group.add(bag);
+        const heart = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), new THREE.MeshStandardMaterial({
+          color: 0x7dd3fc, roughness: 0.4, emissive: 0x0369a1, emissiveIntensity: 0.3,
+        }));
+        heart.position.y = 0.3;
+        group.add(heart);
+        break;
+      }
+
+      case 'tending_vine': {
+        // Tool-tipped (slice 18): a patient vine with shaped
+        // ends — a pruner, a probe, a small lamp.
+        const vineMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.5, metalness: 0.4 });
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.05, 0.5, 6), vineMat);
+        stalk.position.y = 0.25;
+        stalk.rotation.z = 0.15;
+        group.add(stalk);
+        const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), new THREE.MeshStandardMaterial({
+          color: 0xfde68a, emissive: 0xf59e0b, emissiveIntensity: 1.0, roughness: 0.3,
+        }));
+        lamp.position.set(0.12, 0.52, 0);
+        group.add(lamp);
+        const pruner = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.12, 4), vineMat);
+        pruner.position.set(-0.08, 0.45, 0.05);
+        pruner.rotation.z = 0.8;
+        group.add(pruner);
+        break;
+      }
+
+      case 'hearthroot': {
+        // The valley's hello (slice 18): reaching roots and a
+        // warm bloom leaning toward the path.
+        const rootMat = new THREE.MeshStandardMaterial({ color: 0x92400e, roughness: 0.9 });
+        for (let i = 0; i < 3; i++) {
+          const a = i * 2.1;
+          const root = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.035, 0.4, 5), rootMat);
+          root.position.set(Math.cos(a) * 0.18, 0.03, Math.sin(a) * 0.18);
+          root.rotation.set(Math.sin(a) * 1.2, 0, -Math.cos(a) * 1.2);
+          group.add(root);
+        }
+        const bloom = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), new THREE.MeshStandardMaterial({
+          color: 0xfb923c, roughness: 0.6, emissive: 0x9a3412, emissiveIntensity: 0.35,
+        }));
+        bloom.position.set(0.06, 0.22, 0);
+        group.add(bloom);
+        break;
+      }
+
+      case 'puffbell': {
+        // The hour, kept (slice 18): a spore-laden bell on a
+        // stalk, drawn mid-swelling.
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.04, 0.3, 6), new THREE.MeshStandardMaterial({ color: 0xe7e5e4, roughness: 0.85 }));
+        stalk.position.y = 0.15;
+        group.add(stalk);
+        const bell = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8, 0, Math.PI * 2, 0, Math.PI / 1.6), new THREE.MeshStandardMaterial({
+          color: 0xd8b4fe, roughness: 0.7, side: THREE.DoubleSide,
+          emissive: 0x7e22ce, emissiveIntensity: 0.25,
+        }));
+        bell.position.y = 0.36;
+        bell.rotation.x = Math.PI;
+        group.add(bell);
+        break;
+      }
+
+      case 'arch_tree': {
+        // A door that grew (slice 18): two trunk halves trained
+        // into an arch, canopy braided overhead.
+        const trunkMat = materials.woodRoot;
+        for (const side of [-1, 1]) {
+          const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.13, 0.9, 7), trunkMat);
+          trunk.position.set(side * 0.32, 0.45, 0);
+          trunk.rotation.z = side * -0.35;
+          group.add(trunk);
+        }
+        const crown = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.07, 6, 12, Math.PI), trunkMat);
+        crown.position.y = 0.88;
+        group.add(crown);
+        const canopy = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), new THREE.MeshStandardMaterial({ color: 0x3f6212, roughness: 0.95 }));
+        canopy.scale.y = 0.6;
+        canopy.position.y = 1.05;
+        group.add(canopy);
+        break;
+      }
+
+      case 'smoke_tree': {
+        // Fire in its joints (slice 18): a dark trunk with
+        // ember seams and a canopy of its own smoke.
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.15, 0.8, 7), new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.95 }));
+        trunk.position.y = 0.4;
+        group.add(trunk);
+        const seam = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.12, 0.3, 7), new THREE.MeshStandardMaterial({
+          color: 0xea580c, emissive: 0xea580c, emissiveIntensity: 0.9, roughness: 0.6,
+        }));
+        seam.position.y = 0.35;
+        group.add(seam);
+        const smoke = new THREE.Mesh(new THREE.SphereGeometry(0.38, 10, 8), new THREE.MeshStandardMaterial({
+          color: 0x57534e, roughness: 1, transparent: true, opacity: 0.5,
+        }));
+        smoke.scale.y = 0.65;
+        smoke.position.y = 0.95;
+        group.add(smoke);
+        break;
+      }
+
+      case 'lightcreep': {
+        // A floor, slowly re-decided (slice 18): a light-clear
+        // sheet with a brighter leading edge.
+        const sheet = new THREE.Mesh(new THREE.CircleGeometry(0.3, 12), new THREE.MeshStandardMaterial({
+          color: 0xa3e635, roughness: 0.3, transparent: true, opacity: 0.55,
+          emissive: 0x3f6212, emissiveIntensity: 0.4,
+        }));
+        sheet.rotation.x = -Math.PI / 2;
+        sheet.position.y = 0.02;
+        sheet.scale.set(1.3, 1, 1);
+        group.add(sheet);
+        const edge = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), new THREE.MeshStandardMaterial({
+          color: 0xd9f99d, emissive: 0x65a30d, emissiveIntensity: 0.7, roughness: 0.4,
+        }));
+        edge.scale.y = 0.4;
+        edge.position.set(0.36, 0.03, 0);
+        group.add(edge);
+        break;
+      }
+
+      case 'zot_star': {
+        // The flats' archive (slice 18): a radial star of
+        // crystal petals around a strike-glass heart.
+        const petalMat = new THREE.MeshStandardMaterial({
+          color: 0xfde047, roughness: 0.2, metalness: 0.3,
+          emissive: 0xa16207, emissiveIntensity: 0.4, side: THREE.DoubleSide,
+        });
+        for (let i = 0; i < 8; i++) {
+          const a = (i / 8) * Math.PI * 2;
+          const petal = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.22, 4), petalMat);
+          petal.position.set(Math.cos(a) * 0.13, 0.05, Math.sin(a) * 0.13);
+          petal.rotation.set(Math.sin(a) * 1.2, 0, -Math.cos(a) * 1.2);
+          group.add(petal);
+        }
+        const heart = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.15, metalness: 0.5 }));
+        heart.position.y = 0.04;
+        group.add(heart);
+        break;
+      }
+
+      case 'grabvine': {
+        // Stillness is the tell (slice 18): tendrils crossed at
+        // ankle height, perfectly, patiently still.
+        const vineMat = new THREE.MeshStandardMaterial({ color: 0x365314, roughness: 0.85 });
+        for (let i = 0; i < 3; i++) {
+          const tendril = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.6, 5), vineMat);
+          tendril.rotation.z = Math.PI / 2;
+          tendril.rotation.y = i * 0.6;
+          tendril.position.y = 0.08 + i * 0.05;
+          group.add(tendril);
+        }
+        const knot = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), vineMat);
+        knot.position.y = 0.1;
+        group.add(knot);
+        break;
+      }
+
+      case 'maw_bloom': {
+        // A smell that doesn't belong is a mouth (slice 18): a
+        // throne-scale snap bloom, drawn shut-ish and wrong.
+        const petalMat = new THREE.MeshStandardMaterial({ color: 0xbe185d, roughness: 0.6, side: THREE.DoubleSide });
+        for (const side of [-1, 1]) {
+          const jaw = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), petalMat);
+          jaw.scale.set(1, 0.5, 1);
+          jaw.position.set(side * 0.08, 0.14, 0);
+          jaw.rotation.z = side * -0.5;
+          group.add(jaw);
+        }
+        const throat = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), new THREE.MeshStandardMaterial({ color: 0x500724, roughness: 0.8 }));
+        throat.position.y = 0.1;
+        group.add(throat);
+        break;
+      }
+
+      case 'quiver_cap': {
+        // Rolling, used without having it (slice 18): a gel
+        // cap that quivers — drawn translucent, mid-drip.
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.05, 0.2, 6), new THREE.MeshStandardMaterial({ color: 0xe0f2fe, roughness: 0.6, transparent: true, opacity: 0.8 }));
+        stalk.position.y = 0.1;
+        group.add(stalk);
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 7, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({
+          color: 0xa5f3fc, roughness: 0.15, transparent: true, opacity: 0.75,
+          emissive: 0x155e75, emissiveIntensity: 0.3,
+        }));
+        cap.position.y = 0.2;
+        group.add(cap);
+        const bead = new THREE.Mesh(new THREE.SphereGeometry(0.035, 7, 6), cap.material as THREE.Material);
+        bead.position.set(0.1, 0.14, 0.05);
+        group.add(bead);
+        break;
+      }
+
+      case 'balloon_vine': {
+        // Two kingdoms, one emigration (slice 18): a vine with
+        // an inflated cradle-pod ready to lift its cutting.
+        const vineMat = new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 0.9 });
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.04, 0.45, 6), vineMat);
+        stalk.position.y = 0.22;
+        stalk.rotation.z = 0.12;
+        group.add(stalk);
+        const pod = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), new THREE.MeshStandardMaterial({
+          color: 0x86efac, roughness: 0.35, transparent: true, opacity: 0.85,
+        }));
+        pod.scale.y = 1.2;
+        pod.position.set(0.1, 0.52, 0);
+        group.add(pod);
+        break;
+      }
+
       case 'bell_bloom':
       default: {
         const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.12, 1.6, 8), materials.woodRoot);

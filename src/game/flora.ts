@@ -1575,6 +1575,241 @@ export const FLORA: Record<string, FloraDef> = {
       scale: 1.2,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Wave 7 (slice 19, 2026-10-16) — the meadow bench and the
+  // roadsides: clock-headed flowers, upholstered meadows, the
+  // bridges' carpet, and the weed that keeps every road in
+  // seven families.
+  // ------------------------------------------------------------------
+
+  // #217 — it opens for ONE HOUR at true noon, daily, in all
+  // weathers, and the meadow keeps the appointment with it.
+  // Its seed is the meadow's provisions with a deadline:
+  // gathered in the hour or not at all. (The hour-window is
+  // behavior; the table deals the flower honestly and lets
+  // the noon discipline live in its texts for now.)
+  noonflower: {
+    id: 'noonflower',
+    name: 'Noonflower',
+    kind: 'flora',
+    harvest: { item: 'noon_seed', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['meadow'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      scale: 1,
+    },
+  },
+
+  // #218 — it grows plush where grazers rest and thin where
+  // they don't, so an old meadow is upholstered in a map of
+  // every nap ever taken in it. Cut wool-fiber is bedding and
+  // bandage grade: the starter economy's soft stuff.
+  lambswool: {
+    id: 'lambswool',
+    name: 'Lambswool',
+    kind: 'flora',
+    harvest: { item: 'lambswool', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['meadow'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      scale: 1,
+    },
+  },
+
+  // #222 — a fern that FARMS: its fronds catch spores on
+  // sticky upper surfaces and cultivate them — each frond a
+  // hanging garden of the country's whole fungus census.
+  // Frond-clippings with their crop are compost's
+  // aristocracy, per the beetles.
+  spore_fern: {
+    id: 'spore_fern',
+    name: 'Spore Fern',
+    kind: 'flora',
+    harvest: { item: 'basic_compost', count: 2, fertilizedCount: 3 },
+    bonusGrow: {
+      biomes: ['fungal'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      scale: 1,
+    },
+  },
+
+  // #223 — a living coalwood is a black pillar with a green
+  // crown: its outer wood chars as it grows, and its
+  // heartwood is PRE-CHARRED. Felled, its timber will not
+  // burn, because it already has — the Ember country's gift
+  // to every hearth that fears fire. One trunk per felling:
+  // timber is slow wealth.
+  coalwood: {
+    id: 'coalwood',
+    name: 'Coalwood',
+    kind: 'flora',
+    harvest: { item: 'coalwood_timber', count: 1, fertilizedCount: 1 },
+    bonusGrow: {
+      biomes: ['ember'],
+      count: 2,
+      minRadius: 11,
+      spacing: 6,
+      scale: 1.8,
+    },
+  },
+
+  // #228 — during the long nights it glows in shifting
+  // aurora colors, brightest when the sky itself is lit: a
+  // vine that answers the sky. Lit tendrils, cut, are Aurora
+  // Cord — glowing faintly for a week: the winter country's
+  // trail-marker and tent-line.
+  aurora_vine: {
+    id: 'aurora_vine',
+    name: 'Aurora Vine',
+    kind: 'flora',
+    harvest: { item: 'aurora_cord', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['frost'],
+      variant: 'frost_fangs',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1.1,
+    },
+  },
+
+  // #229 — the root bridges' CARPET: it makes bark walkable,
+  // cushions the crossing, and knits small cracks in living
+  // wood. NO sanctioned harvest: a crossing stripped of moss
+  // is a crossing condemned, and the table leaves the custom
+  // exactly there.
+  bridge_moss: {
+    id: 'bridge_moss',
+    name: 'Bridge Moss',
+    kind: 'flora',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['rootwood'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      scale: 1.1,
+    },
+  },
+
+  // #230 — the family's second orchid, the Ghost's bright
+  // cousin: an epiphyte of the highest crowns. Its blooms are
+  // gathered FALLEN only, from the bridge moss where they
+  // land — perfume-grade, like the canopy's own correspondence
+  // arriving by post.
+  canopy_orchid: {
+    id: 'canopy_orchid',
+    name: 'Canopy Orchid',
+    kind: 'flora',
+    harvest: { item: 'canopy_bloom', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['rootwood'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #232 — it grows in long lines THROUGH the ribcages,
+  // rooting rib to rib, so the Graveyard's skeletons wear
+  // green stitching. Its seed-heads are Rib Seed: a hard pale
+  // grain, the Bone country's own cereal — marrow-flat bread
+  // starts here.
+  rib_grass: {
+    id: 'rib_grass',
+    name: 'Rib Grass',
+    kind: 'flora',
+    harvest: { item: 'rib_seed', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['bone'],
+      variant: 'leviathan_graveyard',
+      count: 3,
+      minRadius: 9,
+      spacing: 3,
+      scale: 1,
+    },
+  },
+
+  // #234 — its seeds are KITES: broad-winged, front-riding,
+  // traveling between basins on the same weather that brings
+  // the Raincatchers down. Unopened buds are Kite Bud: a
+  // storm-tea, tart and bright, brewed across the family for
+  // the fronts' long evenings.
+  kite_flower: {
+    id: 'kite_flower',
+    name: 'Kite Flower',
+    kind: 'flora',
+    harvest: { item: 'kite_bud', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['storm'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1.1,
+    },
+  },
+
+  // #236 — it OPENS when someone approaches and closes when
+  // the path empties — the Guest Bird's floral pair, the
+  // valley's manners in a flower. No harvest: its yield is
+  // its behavior.
+  guest_flower: {
+    id: 'guest_flower',
+    name: 'Guest Flower',
+    kind: 'flora',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['living'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      scale: 0.9,
+    },
+  },
+
+  // #237 — each bed opens at an exact hour, bred into the
+  // strain: the gardens were planted as CLOCKS. A Clock Petal's
+  // color states its bed's hour: the far country's timepiece,
+  // grown.
+  clock_bloom: {
+    id: 'clock_bloom',
+    name: 'Clock Bloom',
+    kind: 'flora',
+    harvest: { item: 'clock_petal', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['precursor'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #239 — trample-proof, flowering after the boot lifts: the
+  // weed of every path in seven families. Its leaves are a
+  // poultice green, the traveler's salve, free at every
+  // roadside in the Temperate and Open ranges.
+  roadweed: {
+    id: 'roadweed',
+    name: 'Roadweed',
+    kind: 'flora',
+    harvest: { item: 'roadweed_leaf', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['meadow', 'rootwood', 'fungal', 'wetland', 'bone', 'storm', 'saltglass'],
+      count: 3,
+      minRadius: 7,
+      spacing: 3,
+      scale: 0.8,
+    },
+  },
 };
 
 /** Table lookup by species id (the hook + worldGen read here). */
@@ -1586,8 +1821,8 @@ export function floraDef(id: FloraSpecies): FloraDef | undefined {
 export const BONUS_GROW_FLORA: FloraDef[] = Object.values(FLORA).filter((d) => d.bonusGrow !== null);
 
 // ---------------------------------------------------------------------------
-// Codex entries (waves 1–6 — the complete flora roster). They live
-// HERE, with the flora table, rather
+// Codex entries (waves 1–7). They live HERE, with the flora table,
+// rather
 // than in constants.ts: INITIAL_CODEX spreads this array in, and
 // constants.ts has outgrown what a single push can carry — the flora
 // codex travelling with the flora table keeps both files pushable
@@ -2457,5 +2692,149 @@ export const FLORA_CODEX: CodexEntry[] = [
     tamingOrCraftNotes: 'Gather grounded pods with the glove — a grounded pod, kept, roots eagerly: the far country\'s easiest exotic.',
     biome: 'Storm (the Skyfall Basin\'s gardens)',
     iconColor: '#86efac',
+  },
+  {
+    species: 'noonflower',
+    name: 'Noonflower',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'Clock-headed: a broad sunflower-plan head on a gear-stemmed stalk that opens for one hour at true noon, daily, in all weathers — and the meadow keeps the appointment with it. A flower you can set a lunch by, in a family that runs on dew and punctuality.',
+    byproducts: ['Noon Seed (oil-rich — gathered in the hour or not at all)'],
+    tamingOrCraftNotes: 'Gather with the glove at noon. The meadow\'s provisions come with a deadline and keep it.',
+    biome: 'Meadow (family cast)',
+    iconColor: '#facc15',
+  },
+  {
+    species: 'lambswool',
+    name: 'Lambswool',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A ground-cover mat, leaf-wool thick, that grows plush where grazers rest and thin where they don\'t — so an old meadow is upholstered in a map of every nap ever taken in it. The grazers write it; the meadow keeps the diary.',
+    byproducts: ['Lambswool (cut wool-fiber — bedding and bandage grade)'],
+    tamingOrCraftNotes: 'Cut with the glove — the starter economy\'s soft stuff. Rest on it first, by way of thanks; it notices.',
+    biome: 'Meadow (family cast)',
+    iconColor: '#fef9c3',
+  },
+  {
+    species: 'spore_fern',
+    name: 'Spore Fern',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A fern that farms: its fronds catch spores on sticky upper surfaces and cultivate them — each frond a hanging garden of the country\'s whole fungus census, weeded by weather. The Hollow\'s agriculture, practiced by a plant, observed by beetles with opinions.',
+    byproducts: ['Frond-clippings with their crop (compost\'s aristocracy, per the beetles)'],
+    tamingOrCraftNotes: 'Clip with the glove — a frond goes into the compost the way an estate goes into probate: entirely, and to everyone\'s benefit.',
+    biome: 'Fungal (family country)',
+    iconColor: '#4ade80',
+  },
+  {
+    species: 'coalwood',
+    name: 'Coalwood',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A living coalwood is a black pillar with a green crown: its outer wood chars as it grows, so the tree stands pre-burned its whole life and its heartwood comes out of the trunk already charcoal-hearted. The family that lives with fire grows its lumber fireproof.',
+    byproducts: ['Coalwood Timber (felled — building wood that will not burn, because it already has)'],
+    tamingOrCraftNotes: 'Fell with the glove, one trunk at a time — the Ember country\'s gift to every hearth that fears fire. Timber is slow wealth; spend the wait well.',
+    biome: 'Ember (family cast)',
+    iconColor: '#44403c',
+  },
+  {
+    species: 'aurora_vine',
+    name: 'Aurora Vine',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'During the long nights it glows in shifting aurora colors, brightest when the sky itself is lit — a vine that answers the sky, in the cliff country where the sky performs all winter. When the heavens are dark, the vine rests; when they dance, it dances at ground level, politely.',
+    byproducts: ['Aurora Cord (lit tendrils, cut — a cord glowing faintly for a week)'],
+    tamingOrCraftNotes: 'Cut with the glove on a lit night — the winter country\'s trail-marker and tent-line.',
+    biome: 'Frost (the Ice Fangs)',
+    iconColor: '#6ee7b7',
+  },
+  {
+    species: 'bridge_moss',
+    name: 'Bridge Moss',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The root bridges\' carpet: a gripping moss that makes bark walkable, cushions the crossing, and knits small cracks in living wood — infrastructure maintaining infrastructure, in the family that grows both. Every safe crossing in the Rootwood walks on it.',
+    byproducts: ['None sanctioned — a crossing stripped of moss is a crossing condemned'],
+    tamingOrCraftNotes: 'No harvest. The custom is the whole entry: you do not strip a bridge.',
+    biome: 'Rootwood (the bridges)',
+    iconColor: '#84cc16',
+  },
+  {
+    species: 'canopy_orchid',
+    name: 'Canopy Orchid',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The family\'s second orchid, and the Ghost\'s bright cousin: an epiphyte that lives only in the highest crowns, in the high light, where the family keeps its ceremonies. From below it is only ever a rumor of color — its blooms arrive at ground level the way all high news does: fallen, finished, and still fragrant.',
+    byproducts: ['Canopy Bloom (fallen blooms ONLY — perfume-grade)'],
+    tamingOrCraftNotes: 'Gather fallen blooms from the bridge moss with the glove — like the canopy\'s correspondence, arriving by post.',
+    biome: 'Rootwood (the high crowns)',
+    iconColor: '#f0abfc',
+  },
+  {
+    species: 'rib_grass',
+    name: 'Rib Grass',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'It grows in long lines through the ribcages, rooting rib to rib, so the Graveyard\'s skeletons wear green stitching and the great dead are sewn gently into the fields they fell in. The family\'s grief, gardened: nothing in the Graveyard is wasted, including the view.',
+    byproducts: ['Rib Seed (a hard pale grain — the Bone country\'s own cereal)'],
+    tamingOrCraftNotes: 'Gather the seed-heads with the glove — marrow-flat bread starts here.',
+    biome: 'Bone (the Leviathan Graveyard)',
+    iconColor: '#a3a380',
+  },
+  {
+    species: 'kite_flower',
+    name: 'Kite Flower',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A tall basin flower whose seeds are kites: broad-winged, front-riding, traveling between basins on the same weather that brings the Raincatchers down — the Storm family\'s flora emigrate by air as a matter of policy. The flower stays home and sends its children out with the fronts.',
+    byproducts: ['Kite Bud (unopened buds — a storm-tea, tart and bright)'],
+    tamingOrCraftNotes: 'Pick the buds with the glove — brewed across the family for the fronts\' long evenings.',
+    biome: 'Storm (Skyfall Basin)',
+    iconColor: '#7dd3fc',
+  },
+  {
+    species: 'guest_flower',
+    name: 'Guest Flower',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A low, wide bloom that opens when someone approaches and closes when the path empties — the Guest Bird\'s floral pair, the valley\'s manners in a flower. A path lined with guest flowers announces a visitor the way a hall of doors opening in sequence would: courteously, and in advance.',
+    byproducts: ['None — its yield is its behavior'],
+    tamingOrCraftNotes: 'No harvest. Walk the path; the flowers will do the welcoming.',
+    biome: 'The Living (family cast)',
+    iconColor: '#fda4af',
+  },
+  {
+    species: 'clock_bloom',
+    name: 'Clock Bloom',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A bred bed-flower whose strain keeps a timetable: each bed opens at an exact hour, bred into the bloodline — the gardens were planted as clocks, beds for the hours, in a civilization that grew its instruments. A gardener could tell the time by walking the rows; the rows are still walking.',
+    byproducts: ['Clock Petal (a petal whose color states its bed\'s hour)'],
+    tamingOrCraftNotes: 'Pick with the glove — the far country\'s timepiece, grown. Check it against your own clock once; one of you is keeping better time than you think.',
+    biome: 'Precursor (the gardens)',
+    iconColor: '#c4b5fd',
+  },
+  {
+    species: 'roadweed',
+    name: 'Roadweed',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A flat rosette, trample-proof, that flowers AFTER the boot lifts — the weed of every path in seven families, unbothered by traffic, blooming in footprints. Where citizens walk, the roadweed keeps the minutes: a path with no roadweed is a path nobody uses, and the codex trusts that metric completely.',
+    byproducts: ['Roadweed Leaf (a poultice green — the traveler\'s salve)'],
+    tamingOrCraftNotes: 'Gather with the glove — free at every roadside in the Temperate and Open ranges. The road provides.',
+    biome: 'Wide-range (paths of seven families)',
+    iconColor: '#65a30d',
   },
 ];

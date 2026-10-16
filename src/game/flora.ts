@@ -2976,6 +2976,239 @@ export const FLORA: Record<string, FloraDef> = {
       scale: 0.9,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Wave 13 (slice 28, 2026-10-16) — the orchids, reeds and
+  // candles: vent rims, bridge undersides, and the white
+  // country's first green.
+  // ------------------------------------------------------------------
+
+  // #240 — a tall white candle-flower of the warm and
+  // temperate ranges: its thick petals render a clean-burning
+  // wax — the far country's candle, grown. The bloom opens at
+  // midnight (window bespoke, deferred like its kin); v1
+  // deals an honest flower.
+  night_candle: {
+    id: 'night_candle',
+    name: 'Night Candle',
+    kind: 'flora',
+    harvest: { item: 'night_wax', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['ember', 'meadow', 'storm', 'living'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1,
+    },
+  },
+
+  // #241 — a vent-rimmed orchid of the Ember Scar: it grows
+  // on the Scar's vent rims, in the steam's edge. Fallen
+  // blooms are steam-cured, smoke-sweet — the vent country's
+  // small luxury (fallen-only custom).
+  scar_orchid: {
+    id: 'scar_orchid',
+    name: 'Scar Orchid',
+    kind: 'flora',
+    harvest: { item: 'scar_bloom', count: 1, fertilizedCount: 1 },
+    bonusGrow: {
+      biomes: ['ember'],
+      variant: 'ember_scar',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.85,
+    },
+  },
+
+  // #242 — a felt-mat ground cover of the Ashen Drift: gray
+  // sheets over the ash fields, the Drift Mold's partner in
+  // the other kingdom (together they hold the Drift down).
+  // Cut felt is unlisted — insulation and wrapping grade, the
+  // Drift's gray harvest: no item.
+  ashveil: {
+    id: 'ashveil',
+    name: 'Ashveil',
+    kind: 'flora',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['ember'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 1,
+    },
+  },
+
+  // #243 — a charge-tuned reed of the Charged Flats: its
+  // hollow stems ring faintly as charge gathers — the flats'
+  // early warning, in grass form. Cut stems are Chime Straw,
+  // for pipes and calls: the Gale Straw's flats cousin.
+  chime_reed: {
+    id: 'chime_reed',
+    name: 'Chime Reed',
+    kind: 'flora',
+    harvest: { item: 'chime_straw', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['storm'],
+      variant: 'charged_flats',
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 1,
+    },
+  },
+
+  // #245 — an up-rain blooming lily of Skyfall Basin: it
+  // opens its cups to the falling UP-rain and drinks from
+  // below the sky. Cup-water and petals are unlisted — the
+  // Basin's refreshment stand, self-filling: the yield is
+  // standing there thirsty and leaving otherwise.
+  sky_lily: {
+    id: 'sky_lily',
+    name: 'Sky Lily',
+    kind: 'flora',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['storm'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #249 — a giant-fed orchid of the Rootfall: it grows ONLY
+  // on the fallen giant's bark, in the rot-rich shade (the
+  // Fall Shelf brackets the same trunk below it). Fallen
+  // blooms are perfume grade, unlisted — the fallen-only
+  // custom: no item.
+  fall_orchid: {
+    id: 'fall_orchid',
+    name: 'Fall Orchid',
+    kind: 'flora',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['rootwood'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #250 — a small hanging flower of the bridges, underside-
+  // true: it blooms on the bridges' UNDERSIDES, in the shade
+  // over the water. NO harvest — the view from below IS the
+  // yield; its entry protects it in those words.
+  deck_flower: {
+    id: 'deck_flower',
+    name: 'Deck Flower',
+    kind: 'flora',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['rootwood'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 0.8,
+    },
+  },
+
+  // #251 — the rose census's wild entry: a FORGED, garden-
+  // bred rose gone unruled in the Untended. A cutting, if you
+  // can take one — planted at a homestead it reverts, in a
+  // generation, to a garden rose (the cutting ships as an
+  // item; planting is the deferred system, as with the
+  // Bramble Seed).
+  feral_rose: {
+    id: 'feral_rose',
+    name: 'Feral Rose',
+    kind: 'flora',
+    harvest: { item: 'feral_cutting', count: 1, fertilizedCount: 1 },
+    bonusGrow: {
+      biomes: ['precursor'],
+      variant: 'precursor_untended',
+      count: 1,
+      minRadius: 11,
+      spacing: 6,
+      scale: 1,
+    },
+  },
+
+  // #253 — a meal-fed orchid of the Bonefields: it roots in
+  // bone-meal soil and blooms ivory-white at the fields'
+  // heart. Its blooms are carved-looking, scentless — kept
+  // for the far country's white work.
+  bone_orchid: {
+    id: 'bone_orchid',
+    name: 'Bone Orchid',
+    kind: 'flora',
+    harvest: { item: 'bone_bloom', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['bone'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #254 — a pool-keeping reed of the Marrow Flats: it stands
+  // in the Flats' pale pools and filters them opal (the
+  // Marrow Cap eats at the same pools). Its reed-down is
+  // unlisted — the Flats' soft stuff, stuffing grade: no item.
+  marrow_reed: {
+    id: 'marrow_reed',
+    name: 'Marrow Reed',
+    kind: 'flora',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['bone'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 1,
+    },
+  },
+
+  // #255 — a rib-shadowed sedge of the Graveyard: it grows in
+  // the ribs' long shadows and nowhere else in the sun. Its
+  // seeds are unlisted — ant-grade grain, and the ants'
+  // opinion is the entry's only review: no item.
+  pale_sedge: {
+    id: 'pale_sedge',
+    name: 'Pale Sedge',
+    kind: 'flora',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['bone'],
+      variant: 'leviathan_graveyard',
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 0.9,
+    },
+  },
+
+  // #257 — a snow-blooming cress of the Stillwhite: it
+  // flowers THROUGH the snowpack, tiny white bells above the
+  // white — the white country's first green, unlisted
+  // because it is a sign, not a crop: no item.
+  snow_cress: {
+    id: 'snow_cress',
+    name: 'Snow Cress',
+    kind: 'flora',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['frost'],
+      variant: 'frost_stillwhite',
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 0.8,
+    },
+  },
 };
 
 /** Table lookup by species id (the hook + worldGen read here). */

@@ -3209,6 +3209,244 @@ export const FLORA: Record<string, FloraDef> = {
       scale: 0.8,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Wave 14 (slice 29, 2026-10-16) — THE FINAL flora wave: the
+  // roses' last cousins, the molds that inherit countries, and
+  // the clash margin's one address. With this wave the land
+  // roster is complete; what remains is gated (landscape
+  // flora, the pond group, the oversize tier).
+  // ------------------------------------------------------------------
+
+  // #259 — a heat-rooted fern of the Scalding Fens: it grows
+  // in the scalding shallows themselves (the Scald Cap rims
+  // the same pools as fungus; the fens keep both kingdoms in
+  // the water). Its fronds are a poultice that arrives warm:
+  // the Fens' medicine, self-heating.
+  scald_fern: {
+    id: 'scald_fern',
+    name: 'Scald Fern',
+    kind: 'flora',
+    harvest: { item: 'scald_frond', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['wetland', 'ember'],
+      hybrid: ['wetland', 'ember'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 0.9,
+    },
+  },
+
+  // #260 — the rose census's rich entry: a compost-crowned
+  // rose of the Mulchwood, blooming on the beetles' finished
+  // beds (the Compost Cap plates the same work in the other
+  // kingdom). Its petals, dried, are the wood's potpourri
+  // and preservative both.
+  mulch_rose: {
+    id: 'mulch_rose',
+    name: 'Mulch Rose',
+    kind: 'flora',
+    harvest: { item: 'mulch_petal', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['meadow', 'fungal'],
+      hybrid: ['meadow', 'fungal'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1,
+    },
+  },
+
+  // #261 — the rose census's salt entry: a tide-timed rose of
+  // the Brine Shallows — a bloom at low tide is a salt-rose,
+  // the Shallows' seasoning and souvenir in one.
+  brine_rose: {
+    id: 'brine_rose',
+    name: 'Brine Rose',
+    kind: 'flora',
+    harvest: { item: 'brine_bloom', count: 1, fertilizedCount: 1 },
+    bonusGrow: {
+      biomes: ['wetland', 'saltglass'],
+      hybrid: ['wetland', 'saltglass'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1,
+    },
+  },
+
+  // #263 — an ice-cored reed of the Cold Marsh: its stems
+  // grow a core of clear ice through the winter. Spring stems
+  // are unlisted — flute-grade hollow, the cold country's
+  // small music, cousin to the chime straws: no item.
+  frost_reed: {
+    id: 'frost_reed',
+    name: 'Frost Reed',
+    kind: 'flora',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['wetland', 'frost'],
+      hybrid: ['wetland', 'frost'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 1,
+    },
+  },
+
+  // #327 — a bracket of the Frozen Forest's trunks, shelving
+  // under rime (the Rime Owl's hunting perch keeps the same
+  // shelves). Fallen shelves are unlisted — the fallen-only
+  // custom, in its third parish: no item.
+  snow_shelf: {
+    id: 'snow_shelf',
+    name: 'Snow Shelf',
+    kind: 'fungus',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['frost', 'rootwood'],
+      hybrid: ['frost', 'rootwood'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1.1,
+    },
+  },
+
+  // #328 — a glow-gilled cap fruiting on the Poolcap's raft-
+  // edges and the pools' own logs in the sump pools (the
+  // Sumpfish keeps the same water from below — pond-locked,
+  // and the cap keeps its table meanwhile): the pools' fresh
+  // course, gathered by their own light.
+  sump_cap: {
+    id: 'sump_cap',
+    name: 'Sump Cap',
+    kind: 'fungus',
+    harvest: { item: 'sump_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['wetland', 'fungal'],
+      hybrid: ['wetland', 'fungal'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 0.9,
+    },
+  },
+
+  // #329 — a puffball of the charnel groves, gray and
+  // deliberate (the Charnel Bloom impersonates a fungus
+  // uphill; this one is the genuine article, keeping the
+  // groves' provision plain as its name).
+  grave_puff: {
+    id: 'grave_puff',
+    name: 'Grave Puff',
+    kind: 'fungus',
+    harvest: { item: 'grave_puff', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['bone', 'fungal'],
+      hybrid: ['bone', 'fungal'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1,
+    },
+  },
+
+  // #330 — a crystalline-edged mold filming the salt crust
+  // after brine runs (where the Salt Jelly takes the cracks,
+  // the mold takes the surface). NO harvest — it armors the
+  // crust against wind; the flats' skin is not a crop.
+  salt_mold: {
+    id: 'salt_mold',
+    name: 'Salt Mold',
+    kind: 'fungus',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['saltglass', 'meadow', 'storm', 'ember'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 1,
+    },
+  },
+
+  // #331 — the Ember country's general mold: on ash wood, on
+  // old burns, on the Drift's leavings (the Drift Mold is its
+  // specialist cousin, binding one drift; this one succeeds
+  // everywhere warm). NO harvest — its yield is succession
+  // itself.
+  ash_mold: {
+    id: 'ash_mold',
+    name: 'Ash Mold',
+    kind: 'fungus',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['ember', 'meadow', 'storm', 'saltglass'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 1,
+    },
+  },
+
+  // #332 — a broad, flat cap of the crowns, used by canopy
+  // birds as a NEST BASE: they line it, lay in it, and the
+  // cap fruits around the tenancy. NO harvest while nested,
+  // ever; abandoned caps are unlisted, fallen-only, by the
+  // forest's whole custom: no item.
+  nest_cap: {
+    id: 'nest_cap',
+    name: 'Nest Cap',
+    kind: 'fungus',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['rootwood'],
+      variant: 'rootwood_canopy',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1.1,
+    },
+  },
+
+  // #335 — a mold lining the SUBNIVEAN world: the Frost
+  // Vole's tunnels are furred with it — it eats the tunnel
+  // air's damp and returns heat, the vole's furnace, inherited
+  // tunnel by tunnel. NO harvest: a furnace is not gathered.
+  frost_mold: {
+    id: 'frost_mold',
+    name: 'Frost Mold',
+    kind: 'fungus',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['frost', 'rootwood', 'bone', 'wetland'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 1,
+    },
+  },
+
+  // #336 — a cap fruiting on the Steam Eel's channel banks,
+  // in the vapor where ice meets near-boiling water: the
+  // clash margin's table, set in steam. Scalded-clean, eaten
+  // at the bank, in the steam, by travelers who have learned
+  // the margin's one address.
+  steam_cap: {
+    id: 'steam_cap',
+    name: 'Steam Cap',
+    kind: 'fungus',
+    harvest: { item: 'steam_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['ember', 'frost'],
+      hybrid: ['ember', 'frost'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
 };
 
 /** Table lookup by species id (the hook + worldGen read here). */

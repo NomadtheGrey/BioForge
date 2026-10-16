@@ -475,6 +475,8 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   // phase seen (dawn is a crossing, not a state), and the
   // player's last position (stillness is measured, not assumed).
   const hermitRegardRef = useRef<Map<string, number>>(new Map());
+  // Cadence for the wisp/hearthpod assignment pass (slice 43).
+  const wispCheckRef = useRef(0);
   const prevPhaseRef = useRef(0.35);
   const lastPlayerPosRef = useRef<{ x: number; z: number } | null>(null);
 
@@ -826,6 +828,63 @@ export function useWorldEntities(): UseWorldEntitiesResult {
         hermitRegardRef.current.clear();
       }
       prevPhaseRef.current = phaseNow;
+
+      // ---------------------------------------------------------------
+      // THE HEARTH WISP TAKES UP (slice 43, 2026-10-16): the
+      // design's other arrival, now that a kept hearth exists to
+      // arrive AT. A wild wisp in a zone with an unclaimed
+      // hearthpod drifts to it and HOLDS — anchored over the
+      // warmth on a small claim (the pond-clamp fields again),
+      // one wisp per good fire, defended by ignoring rivals
+      // completely. If the pod is removed, the claim lapses and
+      // the wisp resumes its wandering. Checked on a slow
+      // cadence: hearths are not in a hurry, and neither is it.
+      // The certification this creates is spent by the flora
+      // tick below (the Hearth Cap fruits only where it
+      // approves).
+      // ---------------------------------------------------------------
+      wispCheckRef.current += dt;
+      if (simulateWorld && wispCheckRef.current >= 1) {
+        wispCheckRef.current = 0;
+        const pods = structuresRef.current.filter((s) => s.type === 'hearthpod');
+        const wisps = faunaRef.current.filter((f) => f.species === 'hearth_wisp' && !f.isTamed);
+        const claimedPodAt = (wx: number, wz: number, exceptId: string): boolean =>
+          wisps.some((w) => w.id !== exceptId && w.anchorX !== undefined && Math.hypot(w.anchorX - wx, w.anchorZ! - wz) < 1);
+        let changed = false;
+        const nextWisps = new Map<string, Partial<FaunaEntity>>();
+        // Pods claimed during THIS pass (faunaRef lags the
+        // patches being built — two wisps must not both be
+        // promised the same fire).
+        const claimedThisPass: { x: number; z: number }[] = [];
+        for (const w of wisps) {
+          if (w.anchorX !== undefined) {
+            // Holding a claim: it stands while its pod does.
+            if (!pods.some((p) => Math.hypot(p.worldX - w.anchorX!, p.worldZ - w.anchorZ!) < 1)) {
+              nextWisps.set(w.id, { anchorX: undefined, anchorZ: undefined, pondRadius: undefined });
+              changed = true;
+            }
+          } else {
+            const pod = pods.find(
+              (p) =>
+                !claimedPodAt(p.worldX, p.worldZ, w.id) &&
+                !claimedThisPass.some((c) => Math.hypot(c.x - p.worldX, c.z - p.worldZ) < 1)
+            );
+            if (pod) {
+              claimedThisPass.push({ x: pod.worldX, z: pod.worldZ });
+              nextWisps.set(w.id, { anchorX: pod.worldX, anchorZ: pod.worldZ, pondRadius: 2.5, targetX: pod.worldX, targetZ: pod.worldZ });
+              changed = true;
+            }
+          }
+        }
+        if (changed) {
+          setFaunaList((prev) =>
+            prev.map((f) => {
+              const patch = nextWisps.get(f.id);
+              return patch ? { ...f, ...patch } : f;
+            })
+          );
+        }
+      }
 
       // ---------------------------------------------------------------
       // THE HEARTH DOG ARRIVES (creature slice 39, 2026-10-16 —
@@ -1345,6 +1404,22 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           .filter((s) => s.type === 'cultivation_mound')
           .map((s) => `${s.gridX},${s.gridZ}`)
       );
+      // Certified hearths, computed once per tick (slice 43):
+      // a hearthpod a Hearth Wisp currently keeps (anchored
+      // within its claim of the pod). The Hearth Cap fruits
+      // only in such a hearth's ash — the wisp certifies the
+      // fire, the fungus seconds the motion.
+      const certifiedHearths = structuresRef.current
+        .filter((s) => s.type === 'hearthpod')
+        .filter((pod) =>
+          faunaRef.current.some(
+            (f) =>
+              f.species === 'hearth_wisp' &&
+              f.anchorX !== undefined &&
+              Math.hypot(f.anchorX - pod.worldX, f.anchorZ! - pod.worldZ) < 3.5
+          )
+        )
+        .map((pod) => ({ x: pod.worldX, z: pod.worldZ }));
       setFloraList((prevFlora) =>
         prevFlora.map((flora) => {
           if (flora.harvestReady) return flora;
@@ -1360,7 +1435,18 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           const cellZ = Math.round(flora.z / 2);
           if (moundCells.has(`${cellX},${cellZ}`)) growthMult *= MOUND_GROWTH_MULT;
 
-          const newTimer = Math.max(0, flora.harvestTimer - dt * growthMult);
+          let newTimer = Math.max(0, flora.harvestTimer - dt * growthMult);
+          // The certification gate (slice 43): an uncertified
+          // Hearth Cap's countdown holds at the stage-3 line —
+          // the fungus is present, but it will not fruit in an
+          // unreviewed hearth's ash. Near a wisp-kept hearthpod
+          // (within 7 m) the review has happened and growth runs.
+          if (
+            flora.species === 'hearth_cap' &&
+            !certifiedHearths.some((h) => Math.hypot(h.x - flora.x, h.z - flora.z) <= 7)
+          ) {
+            newTimer = Math.max(newTimer, FLORA_MATURE_SECONDS * 0.2 + 0.01);
+          }
           const isNowReady = newTimer === 0;
           // Stage is always read against the BASE mature time, so the
           // readout never jumps when a boost starts or wears off.

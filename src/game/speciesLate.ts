@@ -322,7 +322,10 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
   // small vapor wisp that keeps company with good fires — it
   // CERTIFIES hearths (the Hearth Cap fruits only where it
   // approves). Everywhere, gently. Untameable: it visits; it
-  // does not keep.
+  // does not keep. Slice 43 (2026-10-16): the certification
+  // is LIVE — a wisp drifts to an unclaimed hearthpod and
+  // holds over it, and Hearth Caps near its hearth fruit;
+  // elsewhere they hold at half-growth, unreviewed.
   hearth_wisp: {
     id: 'hearth_wisp',
     name: 'Hearth Wisp',

@@ -109,7 +109,7 @@ export interface GameLoopDeps {
   liveGameRefs: { current: {
     hasItem: (itemId: ItemId, quantity: number) => boolean;
     addInventoryItem: (itemId: ItemId, quantity: number) => void;
-    updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number) => void, attacksArmed?: boolean) => void;
+    updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number) => void, attacksArmed?: boolean, dayPhase?: number) => void;
     postNotification: (title: string, message: string, type?: GameNotification['type'], iconColor?: string) => void;
     getPlacementRotation: () => number;
   } };
@@ -701,7 +701,10 @@ export function useGameLoop(deps: GameLoopDeps): void {
                 onPlayerDeathRef.current?.();
               }
             },
-            deathArmedRef.current
+            deathArmedRef.current,
+            // The clock, for the sim's scheduled lives (slice
+            // 42): the hermit's dawn gift and the moth's road.
+            latestStateRef.current.dayNightCycle
           );
         }
 

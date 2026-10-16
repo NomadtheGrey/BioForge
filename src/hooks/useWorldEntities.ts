@@ -462,6 +462,22 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   // against re-entry while the state write is still landing).
   const hearthRef = useRef({ zoneEnteredAt: -1_000_000, lastDepartureAt: -1_000_000, lastArrivalAt: -1_000_000 });
 
+  // Same mirror trick for flora (slice 42): the Moon Moth's
+  // candle road reads the zone's Night Candles from the tick.
+  const floraRef = useRef<FloraEntity[]>([]);
+  useEffect(() => {
+    floraRef.current = floraList;
+  }, [floraList]);
+
+  // Hollow Hermit encounter bookkeeping (slice 42, 2026-10-16):
+  // seconds of qualifying stillness each hermit has been shown
+  // tonight (accumulated in the tick, spent at dawn), the last
+  // phase seen (dawn is a crossing, not a state), and the
+  // player's last position (stillness is measured, not assumed).
+  const hermitRegardRef = useRef<Map<string, number>>(new Map());
+  const prevPhaseRef = useRef(0.35);
+  const lastPlayerPosRef = useRef<{ x: number; z: number } | null>(null);
+
   // Culture-vat gestation clock (2026-10-16): progress accrues in
   // the tick every frame, but the structures list is only WRITTEN
   // when a whole second has accrued — a per-frame write would
@@ -773,13 +789,43 @@ export function useWorldEntities(): UseWorldEntitiesResult {
       onPickupItem: (item: DroppedItemEntity) => void,
       onCritterExcrete?: (species: string) => void,
       onFaunaAttack?: (species: FaunaSpecies, damage: number) => void,
-      attacksArmed?: boolean
+      attacksArmed?: boolean,
+      dayPhase?: number
     ): void => {
       const simulateWorld = !multiplayerManager.isConnected || multiplayerManager.isHost;
       combatArmedRef.current = !!attacksArmed;
       // The projectile ledger runs on this clock (weapons build,
       // 2026-10-16): shots resolve when their travel time elapses.
       simClockRef.current += dt;
+
+      // The day/night phase, as the loop reports it (slice 42):
+      // the scheduled lives read their hours from here — the
+      // hermit's night, the moth's road, the dawn itself.
+      const phaseNow = dayPhase ?? 0.35;
+      const isNightNow = phaseNow >= 0.75 || phaseNow < 0.25;
+      // The player's speed this tick: the hermit's encounter is
+      // stillness, and stillness must be measured to be meant.
+      const prevPlayerPos = lastPlayerPosRef.current;
+      const playerSpeed =
+        prevPlayerPos && dt > 0 ? Math.hypot(playerX - prevPlayerPos.x, playerZ - prevPlayerPos.z) / dt : 0;
+      lastPlayerPosRef.current = { x: playerX, z: playerZ };
+      // DAWN (slice 42): the phase crossing 0.25 is the
+      // Hollow's pay-hour. A hermit shown ninety seconds of
+      // true stillness in the night band — close enough to
+      // matter, never close enough to touch, and slow — leaves
+      // a Hollow Heart Spore at its base, the colony's trade
+      // on the colony's terms. The regard then clears: the
+      // next gift wants another night, which is what "rarely,
+      // never farmable on a timer you can see" is made of.
+      if (simulateWorld && prevPhaseRef.current < 0.25 && phaseNow >= 0.25) {
+        for (const f of faunaRef.current) {
+          if (f.species === 'hollow_hermit' && !f.isTamed && (hermitRegardRef.current.get(f.id) ?? 0) >= 90) {
+            spawnDroppedItem('hollow_heart_spore', 1, f.x + 1.3, f.z + 0.6);
+          }
+        }
+        hermitRegardRef.current.clear();
+      }
+      prevPhaseRef.current = phaseNow;
 
       // ---------------------------------------------------------------
       // THE HEARTH DOG ARRIVES (creature slice 39, 2026-10-16 —
@@ -896,6 +942,17 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           if (fauna.species === 'hearth_dog' && !isTamed && hearthDecideTimer !== undefined) {
             hearthDecideTimer = Math.max(0, hearthDecideTimer - dt);
             hearthFedTimer = (hearthFedTimer ?? 0) + dt;
+          }
+          // The hermit's regard (slice 42): stillness shown to
+          // a wild Hollow Hermit in the night band accrues —
+          // near (3–8 m: near enough to matter, never close
+          // enough to touch, for it seals at approach) and slow
+          // (under a stroll). Dawn spends it, above.
+          if (fauna.species === 'hollow_hermit' && !isTamed && isNightNow) {
+            const distToPlayer = Math.hypot(fauna.x - playerX, fauna.z - playerZ);
+            if (distToPlayer >= 3 && distToPlayer <= 8 && playerSpeed < 0.6) {
+              hermitRegardRef.current.set(fauna.id, (hermitRegardRef.current.get(fauna.id) ?? 0) + dt);
+            }
           }
           // A creature won over mid-dissolve is washed clean by
           // the bond — your solvent never harms your own, even
@@ -1027,6 +1084,29 @@ export function useWorldEntities(): UseWorldEntitiesResult {
                 x = targetX;
                 z = targetZ;
               }
+              // THE CANDLE ROAD (slice 42, 2026-10-16): the Moon
+              // Moth is the Night Candle's pollinator — the
+              // candle lays a scent-road and the moth flies it
+              // like a river. On night re-rolls, a moth with a
+              // candle in range mostly makes for it instead of
+              // wandering: the flora and the fauna are one
+              // document in the field, as the design insists.
+              if (fauna.species === 'moon_moth' && isNightNow && Math.random() < 0.6) {
+                let candle: FloraEntity | null = null;
+                let candleDist = 35;
+                for (const fl of floraRef.current) {
+                  if (fl.species !== 'night_candle') continue;
+                  const d = Math.hypot(fl.x - x, fl.z - z);
+                  if (d < candleDist) {
+                    candleDist = d;
+                    candle = fl;
+                  }
+                }
+                if (candle) {
+                  targetX = candle.x + (Math.random() - 0.5) * 4;
+                  targetZ = candle.z + (Math.random() - 0.5) * 4;
+                }
+              }
             }
           }
 
@@ -1077,8 +1157,16 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             // A chasing hunter spends its burst (slice 5): the
             // ambusher's whole speed budget, at once, as designed.
             const moveSpeed = state === 'attacking' ? fauna.speed * 1.35 : isTamed ? fauna.speed * 1.2 : fauna.speed;
-            x += ((targetX - x) / distToTarget) * moveSpeed * dt;
-            z += ((targetZ - z) / distToTarget) * moveSpeed * dt;
+            // The Hollow Hermit's schedule (slice 42): by day it
+            // is scenery — a husk that does not walk while the
+            // light is up, exactly as designed. It walks only in
+            // the night band, very slowly, preferably unobserved.
+            const hermitHoldsByDay =
+              fauna.species === 'hollow_hermit' && phaseNow >= 0.25 && phaseNow < 0.75;
+            if (!hermitHoldsByDay) {
+              x += ((targetX - x) / distToTarget) * moveSpeed * dt;
+              z += ((targetZ - z) / distToTarget) * moveSpeed * dt;
+            }
             newRot = Math.atan2(targetX - x, targetZ - z);
           }
 

@@ -141,6 +141,19 @@ export interface SpeciesSwim {
   depth: number;
 }
 
+// Dive cycle (slice 38, 2026-10-16): a species with BOTH a
+// flight and a swim spec cycles between them — airborne for
+// (cycleSeconds - waterSeconds), then on/in the water for
+// waterSeconds, around the sim's phase clock. The Plunge
+// Duck is the charter member: it flies, it plunges, it rides
+// the film, it flies again.
+export interface SpeciesDive {
+  /** Full cycle length, seconds. */
+  cycleSeconds: number;
+  /** Seconds per cycle spent in the water phase (at the end). */
+  waterSeconds: number;
+}
+
 export interface SpeciesBonusSpawn {
   /** Family affinities — the zone's biome OR a hybrid's secondary
    *  family both count, the same admixture rule the census uses.
@@ -218,6 +231,9 @@ export interface SpeciesDef {
   /** The swim spec (pond build, 2026-10-16): present only on
    *  pond species. Draw-only — see SpeciesSwim. */
   swim?: SpeciesSwim;
+  /** The dive cycle (slice 38): present only on species that
+   *  alternate flight and swim. See SpeciesDive. */
+  dive?: SpeciesDive;
   /** Present only for route-3 species (see header). */
   bonusSpawn: SpeciesBonusSpawn | null;
 }

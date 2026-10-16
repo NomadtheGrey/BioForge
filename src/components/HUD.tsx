@@ -341,7 +341,8 @@ export const HUD: React.FC<HUDProps> = ({
   let descriptorExtra: string | null = null;
   if (
     descriptorTool?.id === 'harvest_glove' &&
-    selectedStructureType === 'storage_pod'
+    (selectedStructureType === 'storage_pod' ||
+      selectedStructureType === 'biotunnel_mouth')
   ) {
     // The by-hand pod (Adam, 2026-10-15): with the pod selected,
     // the harvest glove's descriptor teaches the exemption —

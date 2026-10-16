@@ -92,6 +92,7 @@ import { useGameInput, JUMP_GRAVITY, STORY_HEIGHT_METERS } from './hooks/useGame
 import { useGameLoop } from './hooks/useGameLoop';
 import { TouchControls, type TouchMoveInput } from './components/TouchControls';
 import { BioForgeModal } from './components/BioForgeModal';
+import { findTunnelMouths, type TunnelMouthRef } from './game/tunnel';
 import { InventoryModal } from './components/InventoryModal';
 import { StorageModal } from './components/StorageModal';
 import { VatModal } from './components/VatModal';
@@ -504,6 +505,71 @@ export default function App() {
   // the tool hook both read the same ref.
   const valleySatiatedUntilRef = useRef(0);
 
+  // The BioTunnel (Adam, 2026-10-16): pairing is DERIVED from
+  // the known world (game/tunnel.ts) — the live structure list
+  // plus every visited zone's snapshot. Transit rides the zone-
+  // travel machinery: the other mouth's zone loads exactly like a
+  // border crossing (follow pets come through), and the gulp of
+  // darkness is a fade the travel hides inside. Once the fade
+  // closes you are inside the tunnel, and nothing interrupts it.
+  const [tunnelFade, setTunnelFade] = useState(0);
+  const tunnelBusyRef = useRef(false);
+  const tunnelMouthsNow = (): TunnelMouthRef[] =>
+    findTunnelMouths(structuresListRef.current, playerZoneRef.current, visitedZonesRef.current);
+  const getTunnelMouthCount = useCallback((): number => tunnelMouthsNow().length, []);
+  const annotateTunnelPairing = useCallback((structures: StructureEntity[]): void => {
+    const paired = tunnelMouthsNow().length >= 2;
+    structures.forEach((s) => {
+      if (s.type === 'biotunnel_mouth') s.tunnel = { paired };
+    });
+  }, []);
+  const onTunnelTransit = useCallback(
+    (mouth: StructureEntity): void => {
+      if (tunnelBusyRef.current) return;
+      if (instanceRef.current.kind !== 'surface') {
+        postNotification(
+          'No Reach From Down Here',
+          'The tunnel\'s body runs under the surface world — it cannot reach into the deep places.',
+          'alert',
+          '#fbbf24',
+        );
+        return;
+      }
+      const other = tunnelMouthsNow().find((m) => m.structure.id !== mouth.id);
+      if (!other) {
+        postNotification(
+          'A Mouth Without Its Other Half',
+          'This BioTunnel mouth hangs dark and still — its pair is gone. Grow the recipe again and set the other mouth down where the tunnel should lead.',
+          'system',
+          '#2dd4bf',
+        );
+        return;
+      }
+      tunnelBusyRef.current = true;
+      setTunnelFade(1);
+      window.setTimeout(() => {
+        const o = other.structure;
+        const fx = Math.sin(o.rotation ?? 0);
+        const fz = Math.cos(o.rotation ?? 0);
+        completeTravel(other.zone.zx, other.zone.zz, {
+          x: o.worldX + fx * 2,
+          z: o.worldZ + fz * 2,
+        });
+        postNotification(
+          'The Tunnel Delivers You',
+          'Darkness, one long gulp — and the other mouth lets you out. Nothing followed you through.',
+          'system',
+          '#2dd4bf',
+        );
+      }, 650);
+      window.setTimeout(() => {
+        setTunnelFade(0);
+        tunnelBusyRef.current = false;
+      }, 1750);
+    },
+    [completeTravel, postNotification],
+  );
+
   // 4. Encapsulated Tool Interactions
   const {
     handleGroundClick,
@@ -552,6 +618,8 @@ export default function App() {
       setVatTargetId(structure.id);
       setActiveModal('vat');
     },
+    onTunnelTransit,
+    getTunnelMouthCount,
     applyDissolve,
     strikeFauna,
     fireProjectile,
@@ -1198,7 +1266,7 @@ const {
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef, returnPausedRef,
-    structuresListRef, floraListRef,
+    structuresListRef, floraListRef, annotateTunnelPairing,
     activeToolRef, lastBroadcastTime, lastMinimapUpdateTime, latestStateRef, currentZoneId,
     applyPlayerLevel, postNotification, setStamina, setHealth, setMinimapPos,
     setDayNightCycle, setHoverInfo, setIsPointerLocked, onBackgroundReturn,
@@ -1585,6 +1653,13 @@ const {
           onUpgrade={handleStorageUpgrade}
         />
       )}
+      {/* The BioTunnel gulp (Adam, 2026-10-16): while a transit
+          runs, the screen is the inside of the tunnel — darkness
+          that closes, swallows the travel, and lets go. */}
+      <div
+        className="fixed inset-0 z-[80] bg-black pointer-events-none transition-opacity duration-500"
+        style={{ opacity: tunnelFade }}
+      />
       <BioForgeModal
         isOpen={activeModal === 'bioforge'}
         onClose={() => setActiveModal(null)}

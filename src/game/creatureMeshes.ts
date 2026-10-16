@@ -13,6 +13,7 @@ import * as THREE from 'three';
 import type { FloraEntity, FaunaEntity } from '../types/game';
 import { speciesDef } from './species';
 import { buildFloraMesh, updateFloraMeshImpl } from './floraMeshes';
+import { buildLateFaunaMesh } from './creatureMeshesLate';
 import { BrownianWiggle, hashStringToSeed, type WiggleOptions } from './motion';
 import type { StructureMaterials } from './structureBuilders';
 
@@ -56,6 +57,14 @@ export function createCreatureMeshKit(
   }
 
   function createFaunaMesh(fauna: FaunaEntity): THREE.Group {
+    // Late-wave fauna meshes live in creatureMeshesLate.ts
+    // (slice 17 extraction — this file crossed the push cap);
+    // a non-null group there is final.
+    const late = buildLateFaunaMesh(fauna, materials, terrainHeightAt);
+    if (late) {
+      late.userData = { type: 'fauna', entity: fauna };
+      return late;
+    }
     const group = new THREE.Group();
     group.userData = { type: 'fauna', entity: fauna };
 
@@ -2555,88 +2564,6 @@ export function createCreatureMeshKit(
           wing.scale.set(1.2, 0.8, 1);
           wing.position.set(side * 0.28, 0.01, -0.03);
           wing.rotation.x = -Math.PI / 2 + 0.1;
-          group.add(wing);
-        }
-        break;
-      }
-
-      case 'stillmouth': {
-        // A fixture (slice 15): a radial crown of filtering
-        // fans around a central mouth, on a stone collar.
-        const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.36, 0.12, 10), new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.95 }));
-        collar.position.y = 0.06;
-        group.add(collar);
-        const fanMat = new THREE.MeshStandardMaterial({
-          color: 0x2dd4bf, roughness: 0.5, side: THREE.DoubleSide,
-          emissive: 0x0f766e, emissiveIntensity: 0.35,
-        });
-        for (let i = 0; i < 7; i++) {
-          const a = (i / 7) * Math.PI * 2;
-          const fan = new THREE.Mesh(new THREE.CircleGeometry(0.13, 7, 0, Math.PI), fanMat);
-          fan.position.set(Math.cos(a) * 0.16, 0.3, Math.sin(a) * 0.16);
-          fan.rotation.set(0.5, -a + Math.PI / 2, 0);
-          group.add(fan);
-        }
-        const mouth = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), new THREE.MeshStandardMaterial({ color: 0x134e4a, roughness: 0.6 }));
-        mouth.position.y = 0.18;
-        group.add(mouth);
-        break;
-      }
-
-      case 'pale_grazer': {
-        // The color of the country it eats (slice 15): a
-        // bone-pale grazer with shed-ready antler nubs.
-        const hideMat = new THREE.MeshStandardMaterial({ color: 0xf5f5f4, roughness: 0.95 });
-        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.34, 0.7, 8, 12), hideMat);
-        body.rotation.x = Math.PI / 2;
-        body.position.y = 0.78;
-        body.castShadow = true;
-        group.add(body);
-        const head = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), hideMat);
-        head.scale.set(0.85, 0.9, 1.25);
-        head.position.set(0, 0.92, 0.68);
-        group.add(head);
-        const nubMat = new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 0.8 });
-        for (const side of [-1, 1]) {
-          const nub = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.1, 5), nubMat);
-          nub.position.set(side * 0.09, 1.08, 0.6);
-          group.add(nub);
-        }
-        break;
-      }
-
-      case 'amber_snail': {
-        // On display, unbothered (slice 15): a snail inside a
-        // translucent amber shell the river half-claimed.
-        const bodyMat = new THREE.MeshStandardMaterial({ color: 0xa8a29e, roughness: 0.7 });
-        const body = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), bodyMat);
-        body.scale.set(1, 0.6, 1.6);
-        body.position.set(0, 0.05, 0.08);
-        group.add(body);
-        const shell = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 10), new THREE.MeshStandardMaterial({
-          color: 0xf59e0b, roughness: 0.25, transparent: true, opacity: 0.75,
-          emissive: 0x92400e, emissiveIntensity: 0.3,
-        }));
-        shell.position.set(0, 0.13, -0.08);
-        group.add(shell);
-        break;
-      }
-
-      case 'sapwing': {
-        // A living pane (slice 15): translucent gold wings
-        // grown into their span — a glider's draw.
-        const wingMat = new THREE.MeshStandardMaterial({
-          color: 0xfbbf24, roughness: 0.3, transparent: true, opacity: 0.8, side: THREE.DoubleSide,
-          emissive: 0x92400e, emissiveIntensity: 0.3,
-        });
-        const body = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.8 }));
-        body.scale.set(0.85, 0.85, 1.5);
-        group.add(body);
-        for (const side of [-1, 1]) {
-          const wing = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.2), wingMat);
-          wing.name = side < 0 ? 'wingL' : 'wingR';
-          wing.position.set(side * 0.28, 0.02, -0.01);
-          wing.rotation.x = -Math.PI / 2 + 0.05;
           group.add(wing);
         }
         break;

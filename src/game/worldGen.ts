@@ -161,8 +161,14 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     wave 9, the fungus bench II: twelve species (Strike Cap,
  *     Basin Puff, Prism Cap, Song Cap, Gloom Cap and kin).
  *     Table-only change.
+ * v39: creature build phase, slice 24 (2026-10-16) — fauna
+ *     wave 7, the landmark wave: the last land-legal fauna
+ *     (Row Tender — emblems 11/11 — Feral Tender, Feral
+ *     Warden, Storm Roc, Heartling and kin). What remains is
+ *     gated on systems: pond-locked swimmers, oversize tier.
+ *     Table-only change.
  */
-export const WORLD_GEN_VERSION = 38; // v38 (2026-10-16): creature slice 23 — flora wave 9, fungus bench II; v37 was creature slice 22 (fauna wave 6)
+export const WORLD_GEN_VERSION = 39; // v39 (2026-10-16): creature slice 24 — fauna wave 7, landmark wave; v38 was creature slice 23 (flora wave 9)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

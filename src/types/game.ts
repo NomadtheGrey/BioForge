@@ -118,6 +118,7 @@ export type ItemId =
   | 'fang_shelf'
   | 'canopy_cap'
   | 'gloom_cap'
+  | 'roc_feather'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -613,7 +614,18 @@ export type FaunaSpecies =
   | 'storm_thrush'
   | 'blizzard_kite'
   | 'shard_moth'
-  | 'walking_root';
+  | 'walking_root'
+  // Slice 24 (2026-10-16) — fauna wave 7, the landmark wave.
+  | 'scaldback'
+  | 'row_tender'
+  | 'feral_tender'
+  | 'blink_hare'
+  | 'sky_jelly'
+  | 'hearth_dog'
+  | 'false_greeter'
+  | 'storm_roc'
+  | 'feral_warden'
+  | 'heartling';
 
 export interface FaunaEntity {
   id: string;

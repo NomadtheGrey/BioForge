@@ -164,7 +164,12 @@ export type QuestGoal =
   | { kind: 'homeOrganism' }
   | { kind: 'gardenHarvest' }
   | { kind: 'hum' }
-  | { kind: 'walkBack' };
+  | { kind: 'walkBack' }
+  // The social set (2026-10-16): a witnessed MOMENT — the goal
+  // is met when the field-notes book has stamped this note id
+  // (App mirrors the witnessed list into the signals). todo/done
+  // ride the goal because each species' moment reads differently.
+  | { kind: 'witness'; noteId: string; todo: string; done: string };
 
 /** Is this goal state true right now? Signal goals read the
  * QuestSignals record; the itemCount goal reads the pouch
@@ -192,6 +197,7 @@ export function goalMet(
     case 'gardenHarvest': return s.gardenHarvest === true;
     case 'hum': return s.hum === true;
     case 'walkBack': return s.walkBack === true;
+    case 'witness': return (s.witnessed ?? []).includes(goal.noteId);
   }
 }
 
@@ -220,6 +226,7 @@ export function goalProgressText(
     case 'gardenHarvest': return s.gardenHarvest ? 'The old soil has answered' : 'Plant in a Precursor Garden and harvest what grows';
     case 'hum': return s.hum ? 'The homestead hums' : 'Hearth, vat, and stores, all running at once';
     case 'walkBack': return s.walkBack ? 'You stood there again' : 'Return on foot to the place the land took you';
+    case 'witness': return (s.witnessed ?? []).includes(goal.noteId) ? goal.done : goal.todo;
   }
 }
 
@@ -845,6 +852,146 @@ export const ASK_THE_WORLD_QUESTS: QuestDef[] = [
     gather: [],
     completeWhen: { kind: 'itemCount', itemId: 'aw_fragment', count: 5 },
     rewardNote: 'The chapter itself — and a Listening Shell’s promise. (The Shell comes with the artifacts pass.)',
+  },
+  // ------------------------------------------------------------------
+  // THE SOCIAL SET (2026-10-16): quests for the seven social
+  // creatures, authored with the creatures lane's engine slices.
+  // Each completes on a WITNESSED moment — the field-notes book's
+  // stamp for that species' note — so the quest and the note can
+  // never disagree about whether the moment happened.
+  // ------------------------------------------------------------------
+  {
+    // The Gladhand: the Welcoming valley's usher.
+    id: 'q_aw_walked_in',
+    questChapter: 2,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For the animal lovers',
+    title: 'Walked In',
+    blurb:
+      'A Welcoming valley has an usher — a Gladhand, all courtesy and long fingers. Let it take your measure and walk you in properly. Some doors you should not open alone.',
+    gather: [],
+    completeWhen: {
+      kind: 'witness',
+      noteId: 'note_gladhand',
+      todo: 'Be escorted into a Welcoming valley by a Gladhand',
+      done: 'The Gladhand walked you in',
+    },
+    rewardItems: [{ itemId: 'dew_essence', count: 2 }],
+    rewardNote: 'Dew Essence — a welcome, in the valley’s own currency.',
+  },
+  {
+    // The Answer Deer: it mirrors the visitor's temperament.
+    id: 'q_aw_calm_mirror',
+    questChapter: 2,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For the animal lovers',
+    title: 'The Calm Mirror',
+    blurb:
+      'The Answer Deer shows you your own weather: rush it and it is a storm, come quiet and it comes quiet. Earn its regard the slow way — by being someone a wild thing can stand near.',
+    gather: [],
+    completeWhen: {
+      kind: 'witness',
+      noteId: 'note_answer_deer',
+      todo: 'Earn an Answer Deer’s regard, calmly',
+      done: 'The mirror held still — the deer regards you',
+    },
+    rewardItems: [{ itemId: 'living_thread', count: 1 }],
+    rewardNote: 'A Living Thread — trust, spun fine.',
+  },
+  {
+    // The Heartbearer: the feeding chain's strong back.
+    id: 'q_aw_loaded_delivered',
+    questChapter: 2,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For the animal lovers',
+    title: 'Loaded and Delivered',
+    blurb:
+      'A valley is fed at its heart, and the Heartbearer is how food travels: loaded by a friend, delivered on the hoof. Put a meal on its back and let it work — feeding a country is a team sport.',
+    gather: [],
+    completeWhen: {
+      kind: 'witness',
+      noteId: 'note_heartbearer',
+      todo: 'Load a Heartbearer and see the delivery made',
+      done: 'Delivered — the heart has been fed by bearer',
+    },
+    rewardItems: [{ itemId: 'heart_sap', count: 1 }],
+    rewardNote: 'Heart Sap — the valley’s thanks, drawn from its heart.',
+  },
+  {
+    // The Meadowback: a sentinel that answers.
+    id: 'q_aw_sentinel',
+    questChapter: 2,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For the animal lovers',
+    title: 'The Sentinel’s Call',
+    blurb:
+      'Set a Meadowback to watch and it watches with its whole body — and when the land stirs, it calls. Keep one on sentinel until the call comes, and learn what your home sounds like defended.',
+    gather: [],
+    completeWhen: {
+      kind: 'witness',
+      noteId: 'note_meadowback',
+      todo: 'Keep a Meadowback on sentinel until it calls',
+      done: 'The sentinel called — and you heard it',
+    },
+    rewardItems: [{ itemId: 'soft_fiber', count: 3 }],
+    rewardNote: 'Soft Fiber — bedding fit for a guardian.',
+  },
+  {
+    // The Threshold Hound: the Hungry valley's verdict.
+    id: 'q_aw_verdict',
+    questChapter: 3,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For the animal lovers',
+    title: 'The Verdict',
+    blurb:
+      'At a Hungry valley’s edge stands its Threshold Hound, tasting the air, deciding what you are. It will walk you out or it will reach its verdict — either way, be there when the decision lands.',
+    gather: [],
+    completeWhen: {
+      kind: 'witness',
+      noteId: 'note_threshold_hound',
+      todo: 'Stand for the Threshold Hound’s verdict at a Hungry valley',
+      done: 'The verdict was reached — and you were in it',
+    },
+    rewardItems: [{ itemId: 'precursor_shard', count: 1 }],
+    rewardNote: 'A Precursor Shard — passage, paid and receipted.',
+  },
+  {
+    // The Taster: where it lingers, the valley is deciding.
+    id: 'q_aw_tasters_report',
+    questChapter: 3,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For the animal lovers',
+    title: 'The Taster’s Report',
+    blurb:
+      'The Taster samples visitors the way you sample weather — a lick of the truth, then the report. Earn a favorable one, or survive its shadow: both are the valley telling you what it thinks.',
+    gather: [],
+    completeWhen: {
+      kind: 'witness',
+      noteId: 'note_taster',
+      todo: 'Receive the Taster’s report — favorable, or its shadow',
+      done: 'Reported on — the valley has your flavor now',
+    },
+    rewardItems: [{ itemId: 'dew_essence', count: 2 }],
+    rewardNote: 'Dew Essence — a good report, bottled.',
+  },
+  {
+    // The Spiral Moth: the Untended garden's script.
+    id: 'q_aw_reading_untended',
+    questChapter: 3,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For the lore-keepers',
+    title: 'Reading the Untended',
+    blurb:
+      'In a garden nobody tends anymore, the Spiral Moths fly backward — against the sun, against sense — and the pattern is a sentence. Stand in an Untended garden and read what the moths are writing.',
+    gather: [],
+    completeWhen: {
+      kind: 'witness',
+      noteId: 'note_spiral_moth',
+      todo: 'Read the Spiral Moths’ backward tell in an Untended garden',
+      done: 'Read — the moths’ sentence, understood',
+    },
+    rewardItems: [{ itemId: 'precursor_shard', count: 1 }],
+    rewardNote: 'A Precursor Shard — for the one who reads moths.',
   },
 ];
 

@@ -1173,6 +1173,11 @@ export interface QuestSignals {
   fellZone?: string;
   /** V2: the player returned on foot to where they fell. */
   walkBack?: boolean;
+  /** The social set (2026-10-16): note ids from the field-notes
+   *  book's WITNESSED list, mirrored here by an App effect so the
+   *  witness quests read the same signals record as every other
+   *  goal. The book stays the authority; this is its shadow. */
+  witnessed?: string[];
 }
 
 export interface QuestProgressState {

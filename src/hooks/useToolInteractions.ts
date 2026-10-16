@@ -18,6 +18,10 @@ import {
 } from '../types/game';
 import { ITEMS } from '../game/constants';
 import { TUNNEL_MAX_MOUTHS } from '../game/tunnel';
+import {
+  noteById, noteIdsForSpecies, windowNoteIdForSpecies,
+  type FieldNotesState,
+} from '../game/fieldNotesBook';
 import { createSeededRandom, hashStringToSeed } from '../game/motion';
 import { ruinLoreLine } from '../game/ruinInterior';
 import { soundEngine } from '../audio/soundEngine';
@@ -154,6 +158,9 @@ export interface UseToolInteractionsParams {
   /** The landed close hit's burst at the struck creature. */
   triggerStrikeHitFx: (x: number, z: number) => void;
   setCodexList: React.Dispatch<React.SetStateAction<CodexEntry[]>>;
+  fieldNotesState: FieldNotesState;
+  unlockFieldNotes: (noteIds: string[]) => void;
+  recordFieldWitness: (noteId: string) => void;
   postNotification: (
     title: string,
     message: string,
@@ -219,6 +226,9 @@ export function useToolInteractions({
   triggerShotFx,
   triggerStrikeHitFx,
   setCodexList,
+  fieldNotesState,
+  unlockFieldNotes,
+  recordFieldWitness,
   postNotification,
   onOpenBioForgeModal,
   onOpenStorage,
@@ -409,6 +419,13 @@ export function useToolInteractions({
         growthStage: 0,
       });
 
+      // Field Notes (dev wiring, 2026-10-16): discovering a species
+      // — by harvest or by scan — opens its note in the quest log.
+      // The unlock rides the same event as the codex flip below,
+      // so the two records can never disagree.
+      const newFloraNotes = noteIdsForSpecies(flora.species).filter(
+        (id) => !fieldNotesState.unlocked.includes(id)
+      );
       setCodexList((prev) =>
         prev.map((c) =>
           c.species === flora.species
@@ -416,6 +433,20 @@ export function useToolInteractions({
             : c
         )
       );
+      if (newFloraNotes.length) {
+        unlockFieldNotes(newFloraNotes);
+        newFloraNotes.forEach((id) => {
+          const n = noteById(id);
+          if (n) postNotification('Field Note Added', n.clue, 'discover', '#a3e635');
+        });
+      }
+      // Window witness: reaching this line means the phase gate
+      // above did NOT refuse — a window crop taken inside its
+      // hour is witnessed, by construction.
+      if (windowDef) {
+        const windowNote = windowNoteIdForSpecies(flora.species);
+        if (windowNote) recordFieldWitness(windowNote);
+      }
 
       postNotification(
         'Harvest Successful',
@@ -455,6 +486,12 @@ export function useToolInteractions({
         displayName = target.entity.type.replace(/_/g, ' ').toUpperCase();
       }
 
+      // Field Notes: the scan is the game's discovery verb — a
+      // first scan opens the species' note (and any group note it
+      // belongs to) in the quest log.
+      const newFaunaNotes = noteIdsForSpecies(speciesKey).filter(
+        (id) => !fieldNotesState.unlocked.includes(id)
+      );
       setCodexList((prev) =>
         prev.map((entry) =>
           entry.species === speciesKey
@@ -462,6 +499,13 @@ export function useToolInteractions({
             : entry
         )
       );
+      if (newFaunaNotes.length) {
+        unlockFieldNotes(newFaunaNotes);
+        newFaunaNotes.forEach((id) => {
+          const n = noteById(id);
+          if (n) postNotification('Field Note Added', n.clue, 'discover', '#a3e635');
+        });
+      }
 
       postNotification(
         'Bio-Scanner Logged',
@@ -852,6 +896,8 @@ export function useToolInteractions({
           soundEngine.playTameCritter();
           releaseArmedRef.current.delete(fauna.id);
           tameFauna(fauna.id, def.petName, 'following');
+          // Field Notes witness: 'The Dog Has Decided.'
+          recordFieldWitness('note_hearth_dog');
           postNotification(
             'The Dog Has Decided',
             'Three offerings, honestly given — the Hearth Dog has chosen this home. Follow, stay, and guard, all at full fluency: it has been watching how you live, and it has views.',

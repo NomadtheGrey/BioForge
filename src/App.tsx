@@ -72,6 +72,7 @@ import {
   SavedGameRecord,
   WorldSnapshot,
 } from './game/saveSystem';
+import { EMPTY_FIELD_NOTES, type FieldNotesState } from './game/fieldNotesBook';
 
 import { StartScreenModal } from './components/StartScreenModal';
 
@@ -222,6 +223,29 @@ export default function App() {
   // along so the dialog can say its name.
   const [pendingRelease, setPendingRelease] = useState<FaunaEntity | null>(null);
   const [codexList, setCodexList] = useState<CodexEntry[]>(INITIAL_CODEX);
+  // Field Notes (dev wiring, 2026-10-16): the discovery notes the
+  // player has unlocked by scanning and the named moments they
+  // have witnessed. Saved with the world beside the codex; the
+  // shape and the rules live in game/fieldNotesBook.ts.
+  const [fieldNotesState, setFieldNotesState] = useState<FieldNotesState>(EMPTY_FIELD_NOTES);
+  // Append-only unlock — the scanner's door. Deduped, so rescanning
+  // an old friend never grows the book.
+  const unlockFieldNotes = useCallback((noteIds: string[]) => {
+    setFieldNotesState((prev) => {
+      const fresh = noteIds.filter((id) => !prev.unlocked.includes(id));
+      return fresh.length ? { ...prev, unlocked: [...prev.unlocked, ...fresh] } : prev;
+    });
+  }, []);
+  // THE WITNESS SINK: every 'I was there' moment in the game calls
+  // this one door (tool interactions today; sim-side moments ride
+  // in on liveGameRefs). Append-only, deduped, silent — a record,
+  // not an objective: nothing is rewarded for filling it.
+  const recordFieldWitness = useCallback((noteId: string) => {
+    setFieldNotesState((prev) =>
+      prev.witnessed.includes(noteId)
+        ? prev
+        : { ...prev, witnessed: [...prev.witnessed, noteId] });
+  }, []);
   const [dayNightCycle, setDayNightCycle] = useState<number>(0.35);
   const [isMuted, setIsMuted] = useState(false);
   const [isPointerLocked, setIsPointerLocked] = useState(false);
@@ -612,6 +636,9 @@ export default function App() {
     getDayNightCycle: () => latestStateRef.current.dayNightCycle,
     setFaunaCommand,
     setCodexList,
+    fieldNotesState,
+    unlockFieldNotes,
+    recordFieldWitness,
     postNotification,
     onOpenBioForgeModal: openBioForgeModal,
     onOpenStorage: (structure) => {
@@ -645,7 +672,7 @@ export default function App() {
   handleFaunaInteract,
   handleStructureInteract,
 });
-  const liveGameRefs = useRef({ hasItem, addInventoryItem, updateTick, postNotification, getPlacementRotation });
+  const liveGameRefs = useRef({ hasItem, addInventoryItem, updateTick, postNotification, getPlacementRotation, recordFieldWitness });
 
   useEffect(() => {
     toolHandlersRef.current = {
@@ -654,7 +681,7 @@ export default function App() {
       handleFaunaInteract,
       handleStructureInteract,
     };
-  liveGameRefs.current = { hasItem, addInventoryItem, updateTick, postNotification, getPlacementRotation };
+  liveGameRefs.current = { hasItem, addInventoryItem, updateTick, postNotification, getPlacementRotation, recordFieldWitness };
 });
   // Zone identity (name + biome) is computed at render time from the
   // active world's seed — see the zone block just above the JSX return.
@@ -690,10 +717,12 @@ export default function App() {
     inventory,
     playerState,
     codexList,
+    fieldNotesState,
     dayNightCycle,
     restoreInventory,
     restorePlayerState,
     setCodexList,
+    setFieldNotesState,
     setDayNightCycle,
     setQuestProgress,
     replaceWorld,
@@ -1580,6 +1609,8 @@ const {
         views={questViews}
         completedIds={questProgress?.completedIds ?? []}
         trackedId={questProgress?.trackedId ?? null}
+        fieldNotesState={fieldNotesState}
+        codexList={codexList}
         showHud={showQuestHud}
         onToggleShowHud={(show) => updateQuestProgress({ showHud: show })}
         onTrack={(questId) =>

@@ -22,6 +22,7 @@
  */
 
 import { WORLD_GEN_VERSION } from './worldGen';
+import type { FieldNotesState } from './fieldNotesBook';
 import type { ZoneCoords } from './zones';
 import {
   CodexEntry,
@@ -105,6 +106,14 @@ export interface SavedGameRecord extends SaveMetadata {
   playerState: PlayerState;
   dayNightCycle: number;
   codexList: CodexEntry[];
+  /** Field Notes progress (dev wiring, 2026-10-16): the notes the
+   * player has unlocked by scanning and the named moments they
+   * have witnessed (fieldNotesBook.ts). Optional in the type
+   * because records saved before the wiring lack the key —
+   * buildSavedGame always writes it and apply falls back to an
+   * empty book. NO version bump: a bump would orphan every
+   * existing save (the loader rejects version mismatches). */
+  fieldNotes?: FieldNotesState;
   /** Flora the PLAYER planted inside cavern instances, keyed by the
    * cavern's instanceId (Adam, 2026-10-14: planted cave plants persist
    * per-cave). The wild instance flora is NOT stored — instances
@@ -256,7 +265,8 @@ export function buildSavedGame(
   playerState: PlayerState,
   dayNightCycle: number,
   codexList: CodexEntry[],
-  cavePlantings?: Record<string, FloraEntity[]>
+  cavePlantings?: Record<string, FloraEntity[]>,
+  fieldNotes?: FieldNotesState
 ): SavedGameRecord {
   return {
     ...metadata,
@@ -268,5 +278,6 @@ export function buildSavedGame(
     dayNightCycle,
     codexList,
     cavePlantings: cavePlantings ?? {},
+    fieldNotes: fieldNotes ?? { unlocked: [], witnessed: [] },
   };
 }

@@ -343,6 +343,220 @@ export function buildLateFaunaMesh(
         break;
       }
 
+      case 'shardwing': {
+        // The garden's tenant (slice 20): slim crystal-edged
+        // wings over a dark slim body.
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.7 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.09, 9, 7), bodyMat);
+        body.scale.set(0.85, 0.9, 1.5);
+        group.add(body);
+        const wingMat = new THREE.MeshStandardMaterial({
+          color: 0x67e8f9, roughness: 0.2, metalness: 0.3, transparent: true, opacity: 0.75, side: THREE.DoubleSide,
+        });
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.16), wingMat);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          wing.position.set(side * 0.27, 0.03, -0.02);
+          wing.rotation.x = -Math.PI / 2 + 0.08;
+          group.add(wing);
+        }
+        break;
+      }
+
+      case 'ironworm': {
+        // The original armor (slice 20): rust-red rings of
+        // plate over a burrower's chain.
+        const ringMat = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.45, metalness: 0.7 });
+        const fleshMat = new THREE.MeshStandardMaterial({ color: 0x7c2d12, roughness: 0.8 });
+        for (let i = 0; i < 5; i++) {
+          const seg = new THREE.Mesh(new THREE.SphereGeometry(0.11 - i * 0.008, 8, 6), i % 2 === 0 ? ringMat : fleshMat);
+          seg.scale.set(1, 0.85, 1.15);
+          seg.position.set(0, 0.1, -i * 0.16);
+          group.add(seg);
+        }
+        break;
+      }
+
+      case 'driftworm': {
+        // Winter at body depth (slice 20): a white-furred
+        // chain, blind and unbothered.
+        const furMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 1 });
+        for (let i = 0; i < 5; i++) {
+          const seg = new THREE.Mesh(new THREE.SphereGeometry(0.12 - i * 0.008, 8, 6), furMat);
+          seg.scale.set(1, 0.9, 1.15);
+          seg.position.set(0, 0.11, -i * 0.17);
+          group.add(seg);
+        }
+        break;
+      }
+
+      case 'ashswimmer': {
+        // It swims ash (slice 20): a gray chain finned along
+        // the rings.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0xa8a29e, roughness: 0.9 });
+        const finMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.8, side: THREE.DoubleSide });
+        for (let i = 0; i < 5; i++) {
+          const seg = new THREE.Mesh(new THREE.SphereGeometry(0.1 - i * 0.007, 8, 6), hideMat);
+          seg.scale.set(1, 0.8, 1.15);
+          seg.position.set(0, 0.09, -i * 0.15);
+          group.add(seg);
+          const fin = new THREE.Mesh(new THREE.PlaneGeometry(0.12, 0.05), finMat);
+          fin.position.set(0, 0.17, -i * 0.15);
+          fin.rotation.x = -0.5;
+          group.add(fin);
+        }
+        break;
+      }
+
+      case 'glass_snake': {
+        // Honest about lunch (slice 20): a clear chain — with
+        // the last meal's silhouette inside the head segment.
+        const glassMat = new THREE.MeshStandardMaterial({
+          color: 0xa5f3fc, roughness: 0.15, transparent: true, opacity: 0.55,
+        });
+        for (let i = 0; i < 5; i++) {
+          const seg = new THREE.Mesh(new THREE.SphereGeometry(0.1 - i * 0.01, 8, 6), glassMat);
+          seg.scale.set(1, 0.8, 1.2);
+          seg.position.set(0, 0.08, -i * 0.16);
+          group.add(seg);
+        }
+        const meal = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 5), new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 0.9 }));
+        meal.position.set(0, 0.08, -0.02);
+        group.add(meal);
+        break;
+      }
+
+      case 'steam_eel': {
+        // The argument, inhabited (slice 20): a dark chain
+        // wreathed in its own steam.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 0.7 });
+        for (let i = 0; i < 5; i++) {
+          const seg = new THREE.Mesh(new THREE.SphereGeometry(0.09 - i * 0.008, 8, 6), hideMat);
+          seg.scale.set(1, 0.8, 1.25);
+          seg.position.set(0, 0.08, -i * 0.16);
+          group.add(seg);
+        }
+        const steam = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 6), new THREE.MeshStandardMaterial({
+          color: 0xf8fafc, roughness: 1, transparent: true, opacity: 0.35,
+        }));
+        steam.position.set(0, 0.22, -0.2);
+        group.add(steam);
+        break;
+      }
+
+      case 'pan_lizard': {
+        // The sculpture (slice 20): pan-flat, drawn mid-freeze
+        // — which is to say, drawn as itself.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0xd6d3a8, roughness: 0.95 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), hideMat);
+        body.scale.set(1.2, 0.3, 1.4);
+        body.position.y = 0.06;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), hideMat);
+        head.scale.set(1.1, 0.5, 1.2);
+        head.position.set(0, 0.05, 0.19);
+        group.add(head);
+        break;
+      }
+
+      case 'seep_midge': {
+        // A rumor with wings (slice 20): a speck and two
+        // blurs. The colony is the citizen; this is its letter.
+        const speck = new THREE.Mesh(new THREE.SphereGeometry(0.02, 6, 5), new THREE.MeshStandardMaterial({ color: 0xe0f2fe, roughness: 0.8 }));
+        group.add(speck);
+        const wingMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.4, transparent: true, opacity: 0.6, side: THREE.DoubleSide });
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.PlaneGeometry(0.07, 0.03), wingMat);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          wing.position.set(side * 0.04, 0.01, 0);
+          wing.rotation.x = -Math.PI / 2;
+          group.add(wing);
+        }
+        break;
+      }
+
+      case 'spiral_moth': {
+        // Signed by the gardens (slice 20): broad wings with a
+        // spiral boss on each.
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.9 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), bodyMat);
+        body.scale.set(0.9, 0.9, 1.5);
+        group.add(body);
+        const wingMat = new THREE.MeshStandardMaterial({ color: 0xc4b5fd, roughness: 0.85, side: THREE.DoubleSide });
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.CircleGeometry(0.11, 10), wingMat);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          wing.position.set(side * 0.1, 0.01, -0.02);
+          wing.rotation.x = -Math.PI / 2 + 0.1;
+          group.add(wing);
+          const boss = new THREE.Mesh(new THREE.TorusGeometry(0.04, 0.012, 5, 10), bodyMat);
+          boss.position.set(side * 0.1, 0.03, -0.02);
+          boss.rotation.x = Math.PI / 2;
+          group.add(boss);
+        }
+        break;
+      }
+
+      case 'threshold_hound': {
+        // The sentence the codex declines to finish (slice
+        // 20): a hound at a threshold — drawn neutral, tail
+        // mid-gesture, valley's choice.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0xa3a380, roughness: 0.9 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.45, 8, 10), hideMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.42;
+        body.castShadow = true;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 9, 7), hideMat);
+        head.scale.set(0.9, 0.9, 1.2);
+        head.position.set(0, 0.5, 0.42);
+        group.add(head);
+        const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.015, 0.3, 5), hideMat);
+        tail.position.set(0, 0.52, -0.42);
+        tail.rotation.x = -0.7; // mid-gesture: neither wag nor tuck
+        group.add(tail);
+        break;
+      }
+
+      case 'saltpicker': {
+        // A wader's deliberation (slice 20): a white-mottled
+        // picker on long legs, wings folded for work.
+        const featherMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.9 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.1, 9, 7), featherMat);
+        body.scale.set(0.9, 0.95, 1.35);
+        body.position.y = 0.28;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), featherMat);
+        head.position.set(0, 0.36, 0.13);
+        group.add(head);
+        const beak = new THREE.Mesh(new THREE.ConeGeometry(0.02, 0.12, 5), new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 0.6 }));
+        beak.rotation.x = Math.PI / 2 + 0.5;
+        beak.position.set(0, 0.33, 0.22);
+        group.add(beak);
+        const legMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.7 });
+        for (const side of [-1, 1]) {
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.26, 4), legMat);
+          leg.position.set(side * 0.04, 0.13, 0);
+          group.add(leg);
+        }
+        break;
+      }
+
+      case 'marrow_leech': {
+        // The tithe-collector (slice 20): a dark arm of a
+        // leech, pooled at rest.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.6 });
+        const coil = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.045, 7, 12), hideMat);
+        coil.rotation.x = Math.PI / 2;
+        coil.position.y = 0.045;
+        group.add(coil);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.05, 7, 6), hideMat);
+        head.scale.set(1, 0.7, 1.3);
+        head.position.set(0.14, 0.04, 0);
+        group.add(head);
+        break;
+      }
+
     default:
       return null;
   }

@@ -2679,6 +2679,307 @@ export const SPECIES: Record<FaunaSpecies, SpeciesDef> = {
       health: 16,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Slice 15 (2026-10-16) — fauna wave 3: the mid-size casts and
+  // the shape-plan corners (a vapor calf, a colony-weather, the
+  // roster's first stationary fauna, a log that moves).
+  // ------------------------------------------------------------------
+
+  // #18 — it reads the substrate honestly: a bore-headed,
+  // resin-gummed borer whose tunnels are in roots and dead
+  // canopy, not soil — the Rootborers chew the hollows the
+  // Root Serpent travels. Drawn at root height. 20%.
+  rootborer: {
+    id: 'rootborer',
+    name: 'Rootborer',
+    profile: 'insect',
+    tameChance: 0.2,
+    bait: 'nectar',
+    petName: 'Rootborer',
+    byproduct: null,
+    flight: { altitude: 1.6, bobHeight: 0.06, bobRate: 0.9 },
+    bonusSpawn: {
+      biomes: ['rootwood'],
+      variant: 'rootwood_canopy',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      speed: 1.2,
+      speedJitter: 0.1,
+      health: 18,
+    },
+  },
+
+  // #44 — a cloud given a quadruped's ghost of an outline:
+  // it reads as a calf the way a cloud reads as a ship —
+  // completely, from some angles, in the right light. The
+  // marsh's vapor citizen, drifting low. 25%: you may
+  // befriend weather, briefly, if the weather agrees.
+  fog_calf: {
+    id: 'fog_calf',
+    name: 'Fog Calf',
+    profile: 'drifter',
+    tameChance: 0.25,
+    bait: 'nectar',
+    petName: 'Fog Calf',
+    byproduct: null,
+    flight: { altitude: 0.6, bobHeight: 0.12, bobRate: 0.8 },
+    bonusSpawn: {
+      biomes: ['wetland'],
+      count: 2,
+      minRadius: 10,
+      spacing: 6,
+      speed: 1.0, // drift
+      speedJitter: 0.1,
+      health: 30,
+    },
+  },
+
+  // #46 — a weather of individuals: a static-flecked vapor
+  // colony with a collective opinion, drifting the Storm
+  // country as one slow front. Untameable — you cannot
+  // leash a climate. After storms, settled motes dust the
+  // ground where they rested: Mote Dust, storm-sorted.
+  mote_swarm: {
+    id: 'mote_swarm',
+    name: 'Mote Swarm',
+    profile: 'colony',
+    tameChance: null,
+    bait: null,
+    petName: 'Mote Swarm',
+    byproduct: { item: 'mote_dust', seconds: 420, tamedOnly: false },
+    flight: { altitude: 2.0, bobHeight: 0.35, bobRate: 1.1 },
+    bonusSpawn: {
+      biomes: ['storm'],
+      count: 1, // one weather per zone
+      minRadius: 12,
+      spacing: 8,
+      speed: 1.6,
+      speedJitter: 0.2,
+      health: 20,
+    },
+  },
+
+  // #58 — the valley's usher, at garden scale: a
+  // bright-throated bird living at the Living Valley's EDGE,
+  // in the last ordinary trees before the family's ground.
+  // 30%.
+  guest_bird: {
+    id: 'guest_bird',
+    name: 'Guest Bird',
+    profile: 'flyer',
+    tameChance: 0.3,
+    bait: 'nectar',
+    petName: 'Guest Bird',
+    byproduct: null,
+    flight: { altitude: 1.8, bobHeight: 0.2, bobRate: 2.3, flapRate: 6.0 },
+    bonusSpawn: {
+      biomes: ['living'],
+      count: 2,
+      minRadius: 9,
+      spacing: 5,
+      speed: 2.2,
+      speedJitter: 0.2,
+      health: 8,
+    },
+  },
+
+  // #75 — what lives IN the ribs, walking them: a
+  // long-legged, pale, unhurried multiped on the ribcage
+  // itself — staff, like the moth, at the Graveyard's own
+  // pace. Drawn at rib height. 35%.
+  rib_walker: {
+    id: 'rib_walker',
+    name: 'Rib Walker',
+    profile: 'insect',
+    tameChance: 0.35,
+    bait: 'nectar',
+    petName: 'Rib Walker',
+    byproduct: null,
+    flight: { altitude: 1.2, bobHeight: 0.04, bobRate: 0.6 },
+    bonusSpawn: {
+      biomes: ['bone'],
+      variant: 'leviathan_graveyard',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      speed: 1.1, // unhurried
+      speedJitter: 0.05,
+      health: 26,
+    },
+  },
+
+  // #83 — all legs and whistle: a salt-crested piper bird of
+  // the Pan Meadows, walking the pans and pan-meadow grass
+  // with short aerial opinions. 45%.
+  pan_piper: {
+    id: 'pan_piper',
+    name: 'Pan Piper',
+    profile: 'bird',
+    tameChance: 0.45,
+    bait: 'nectar',
+    petName: 'Pan Piper',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['meadow', 'saltglass'],
+      hybrid: ['meadow', 'saltglass'],
+      count: 3,
+      minRadius: 8,
+      spacing: 4,
+      speed: 2.0,
+      speedJitter: 0.2,
+      health: 10,
+    },
+  },
+
+  // #102 — a log, until the log moves: a grand slug-plan
+  // blob with a bark-mimicking back, in the Rotwood where
+  // Fungal meets Rootwood. Its trail, gathered, is premium
+  // compost-grade — honest small change, per house
+  // discipline. 30%.
+  logback: {
+    id: 'logback',
+    name: 'Logback',
+    profile: 'slug',
+    tameChance: 0.3,
+    bait: 'nectar',
+    petName: 'Logback',
+    byproduct: { item: 'basic_compost', seconds: 300, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['fungal', 'rootwood'],
+      hybrid: ['fungal', 'rootwood'],
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 0.5, // the log's pace
+      speedJitter: 0.05,
+      health: 90,
+    },
+  },
+
+  // #122 — vapor-TOUCHED but Ordinary, recorded plainly: a
+  // large pale moth of the Far Range — it is a moth, not a
+  // spirit; its paleness is pigment and its drift is wind.
+  // Untameable (0%).
+  driftmoth: {
+    id: 'driftmoth',
+    name: 'Driftmoth',
+    profile: 'insect',
+    tameChance: null,
+    bait: null,
+    petName: 'Driftmoth',
+    byproduct: null,
+    flight: { altitude: 2.4, bobHeight: 0.3, bobRate: 1.4, flapRate: 3.8 },
+    bonusSpawn: {
+      biomes: ['storm', 'living', 'precursor', 'bone'],
+      count: 2,
+      minRadius: 11,
+      spacing: 6,
+      speed: 1.5,
+      speedJitter: 0.15,
+      health: 8,
+    },
+  },
+
+  // #151 — STATIONARY FAUNA's first surface citizen: a
+  // radial crown of filtering fans around a central mouth,
+  // planted on the lakeshores and pool edges. It does not
+  // wander (speed 0 is its honest locomotion); its
+  // collar-stones outlive it by centuries. Untameable —
+  // one does not tame a fixture.
+  stillmouth: {
+    id: 'stillmouth',
+    name: 'Stillmouth',
+    profile: 'radial',
+    tameChance: null,
+    bait: null,
+    petName: 'Stillmouth',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['wetland', 'rootwood'],
+      count: 2,
+      minRadius: 10,
+      spacing: 6,
+      speed: 0, // stationary, by design
+      speedJitter: 0,
+      health: 40,
+    },
+  },
+
+  // #159 — its coat is the color of the country it eats: a
+  // bone-pale grazer of the Old Fields, where meadow grows
+  // over bone-soil so old the fields are white at the roots.
+  // 40%.
+  pale_grazer: {
+    id: 'pale_grazer',
+    name: 'Pale Grazer',
+    profile: 'grazer',
+    tameChance: 0.4,
+    bait: 'nectar',
+    petName: 'Pale Grazer',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['meadow', 'bone'],
+      hybrid: ['meadow', 'bone'],
+      count: 3, // herds of the white fields
+      minRadius: 10,
+      spacing: 5,
+      speed: 1.6,
+      speedJitter: 0.1,
+      health: 70,
+    },
+  },
+
+  // #209 — self-preserved: it lives IN the amber flow,
+  // traveling at the river's pace inside a shell the river
+  // has half-claimed — the snail inside, alive, on display
+  // and unbothered. Untameable: removing it from the flow
+  // is a museum decision, and the codex files it under
+  // thefts.
+  amber_snail: {
+    id: 'amber_snail',
+    name: 'Amber Snail',
+    profile: 'slug',
+    tameChance: null,
+    bait: null,
+    petName: 'Amber Snail',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['rootwood'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      speed: 0.3, // the river's pace
+      speedJitter: 0.02,
+      health: 14,
+    },
+  },
+
+  // #210 — amber-winged: wings stiffened with the river's
+  // sap, translucent gold, grown into their span — it
+  // cannot fold them fully, so it GLIDES bank to bank (a
+  // slow flap rate on the flight spec reads as soaring).
+  // 45%. Molts Sapwing Film: the wood country's window.
+  sapwing: {
+    id: 'sapwing',
+    name: 'Sapwing',
+    profile: 'flyer',
+    tameChance: 0.45,
+    bait: 'nectar',
+    petName: 'Sapwing',
+    byproduct: { item: 'sapwing_film', seconds: 300, tamedOnly: false },
+    flight: { altitude: 1.7, bobHeight: 0.22, bobRate: 1.5, flapRate: 2.0 },
+    bonusSpawn: {
+      biomes: ['rootwood'],
+      count: 2,
+      minRadius: 9,
+      spacing: 5,
+      speed: 2.0,
+      speedJitter: 0.15,
+      health: 8,
+    },
+  },
 };
 
 /** The one lookup every shared system uses. */

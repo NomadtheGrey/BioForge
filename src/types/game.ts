@@ -91,6 +91,7 @@ export type ItemId =
   // One structure type for all three tiers — the tier lives on the
   // entity's `storage` record, and kits raise it in place.
   | 'storage_pod'
+  | 'culture_vat'
   | 'vine_ladder'
   | 'cave_mouth'
   | 'cave_exit'
@@ -135,7 +136,17 @@ export type ItemId =
   // Storage-pod UPGRADE KITS: consumable crafts applied to a PLACED
   // pod from its storage panel — they raise the pod's tier in place.
   | 'storage_kit_hutch'
-  | 'storage_kit_vault';
+  | 'storage_kit_vault'
+  // The Culture Vat (Adam, 2026-10-15): the vat itself, its two
+  // growth kits, and one SAMPLE item per creature species — the
+  // recipe heart of creature renewal. Sample ids are a template
+  // over the species union so a new species brings its sample
+  // with it; their item definitions are generated from the
+  // species table in constants.ts.
+  | 'culture_vat'
+  | 'vat_kit_rich'
+  | 'vat_kit_deep'
+  | `sample_${FaunaSpecies}`;
 
 export type ToolType =
   | 'harvest_glove'
@@ -338,6 +349,11 @@ export interface FaunaEntity {
    *  system). Optional: absent on saves from before the danger
    *  slice; the sim treats absent as ready. */
   biteTimer?: number;
+  /** Seconds since this creature last shed a SAMPLE of itself
+   *  (creature renewal, 2026-10-16). Optional: absent on older
+   *  saves; the sim treats absent as 0. Tamed creatures shed on
+   *  the kind interval; wild ones leave rarer traces. */
+  sampleTimer?: number;
   animTime: number;
   /** Biome TYPE this creature spawned in (world-gen stamp; absent on old saves). */
   biome?: BiomeId;
@@ -359,6 +375,7 @@ export type StructureType =
   | 'tamed_snap_trap_turret'
   | 'cultivation_mound'
   | 'storage_pod'
+  | 'culture_vat'
   | 'vine_ladder'
   | 'cave_mouth'
   | 'cave_exit'
@@ -506,6 +523,19 @@ export interface StructureEntity {
    * everything else in the structures list.
    */
   storage?: { tier: number; items: Partial<Record<ItemId, number>> };
+  /**
+   * Present only on culture_vat structures (Adam, 2026-10-15):
+   * the vat's tier and its current gestation, if one is running.
+   * progress/total are SECONDS of loaded-zone time (a Sol-cycle
+   * is 500); progress reaching total means ready to hatch, and
+   * the hatch itself is the player's click — a vat never spills
+   * its creature into an empty zone. Rides the world snapshot
+   * inside the structure, like the storage record.
+   */
+  vat?: {
+    tier: number;
+    gestating?: { species: FaunaSpecies; progress: number; total: number };
+  };
   /** Present only on ruin_landmark structures: fate/variant/tier record. */
   ruin?: RuinLinkData;
 }

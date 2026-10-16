@@ -317,6 +317,7 @@ export class BioForgeThreeEngine {
     cultivation_mound: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.6 },
     // The storage pod's amber seam breathes a low, warm halo.
     storage_pod: { color: 0xf59e0b, intensity: 0.5, distance: 2.4, y: 0.8 },
+    culture_vat: { color: 0x34d399, intensity: 0.65, distance: 3.4, y: 1.0 },
     // The living ladder drinks light all day and gives a little
     // back at dusk — a soft leaf-green halo at climbing height.
     // (This entry was one of the two the pre-2026-10-15 type union
@@ -636,6 +637,7 @@ export class BioForgeThreeEngine {
     // model): while airborne the camera rides it, landing returns to 0.
     this.camera.position.y = this.eyeHeight + this.terrainHeightAt(x, z) + level * STORY_HEIGHT + jumpOffset;
     this.updateIrisDoorsProximity(x, z);
+    this.updateVatLife();
   }
 
   public getForwardVector(out: THREE.Vector3): THREE.Vector3 {
@@ -1155,6 +1157,44 @@ export class BioForgeThreeEngine {
     const px = playerX !== undefined ? playerX : this.cachedPlayerX;
     const pz = playerZ !== undefined ? playerZ : this.cachedPlayerZ;
     this.updateIrisDoorsProximity(px, pz);
+  }
+
+  /**
+   * Vat life (2026-10-16): culture vats breathe and gestate in
+   * the render, not the sim. Per frame (from setPlayerPosition,
+   * the iris doors' own cadence): every vat's sac swells on a
+   * slow breath, phased by entity id so a row of vats never
+   * pulses in lockstep; the dark core inside scales and firms
+   * with the gestation fraction on the entity record (invisible
+   * while the vat rests empty), and when the fraction completes
+   * it bobs, ready, waiting for the player's hatch click.
+   */
+  private updateVatLife(): void {
+    this.structureMeshMap.forEach((mesh) => {
+      const entity = mesh.userData.entity as StructureEntity | undefined;
+      if (!entity || entity.type !== 'culture_vat') return;
+      const sac = mesh.getObjectByName('vatSac');
+      const core = mesh.getObjectByName('vatCore') as THREE.Mesh | undefined;
+      const phase = entity.id.length * 1.7;
+      if (sac) {
+        const b = 1 + 0.028 * Math.sin(this.elapsedTime * 1.3 + phase);
+        sac.scale.set(b, 1.12 * b, b);
+      }
+      if (!core) return;
+      const g = entity.vat?.gestating;
+      if (!g) {
+        core.scale.setScalar(0.001);
+        return;
+      }
+      const f = Math.min(1, g.total > 0 ? g.progress / g.total : 0);
+      const s = 0.25 + 0.85 * f;
+      core.scale.set(s, s * 1.08, s);
+      core.rotation.y = this.elapsedTime * 0.25 + phase;
+      core.position.y = 0.92 + (f >= 1 ? 0.05 * Math.sin(this.elapsedTime * 2.2 + phase) : 0);
+      const mat = core.material as THREE.MeshStandardMaterial;
+      mat.opacity = 0.25 + 0.65 * f;
+      mat.emissiveIntensity = f >= 1 ? 0.7 + 0.3 * Math.sin(this.elapsedTime * 2.2 + phase) : 0.25;
+    });
   }
 
   public updateIrisDoorsProximity(playerX: number, playerZ: number) {

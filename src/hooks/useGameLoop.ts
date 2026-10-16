@@ -55,6 +55,13 @@ export interface GameLoopDeps {
    *  App bridges this to the engine's waterDepthAt. Optional —
    *  an absent getter means a dry world. */
   getWaterDepth?: (x: number, z: number) => number;
+  /** Which liquid stands under the player (liquids pass, Adam,
+   *  2026-10-16): bridged to the engine's liquidAt. Optional —
+   *  an absent getter means nothing can burn you. */
+  getLiquidAt?: (x: number, z: number) => { liquid: string; depth: number } | null;
+  /** True while the player owns Ember Soles, the Quicksteps
+   *  growth that answers hot ground: soles make lava a road. */
+  hasEmberSoles?: () => boolean;
   /** True while the player stands in an Ember Scar zone. */
   scarHeatRef: { current: boolean };
   // Storm zots (2026-10-15): the mean seconds between lightning
@@ -147,7 +154,7 @@ export interface GameLoopDeps {
 export function useGameLoop(deps: GameLoopDeps): void {
   const {
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
-    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
+    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, getLiquidAt, hasEmberSoles, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
     sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
@@ -423,6 +430,31 @@ export function useGameLoop(deps: GameLoopDeps): void {
             }
           } else {
             staminaRef.current = Math.min(100, staminaRef.current + 8 * dt);
+          }
+        }
+
+        // ---------------------------------------------------------
+        // LAVA CONTACT (liquids pass, Adam, 2026-10-16). Standing
+        // in lava burns at 12 health/s — no stamina buffer, no
+        // day/night mercy; the liquid itself is the hazard. Ember
+        // Soles (the Quicksteps growth) are the whole answer:
+        // wearing them, lava is just slow ground (the wading drag
+        // above still applies). Death rules mirror scar heat:
+        // Normal/Hostile may reach 0 and respawn; Peaceful floors
+        // at 1. Surface only — instances hold no liquids.
+        if (activeInstance.kind === 'surface' && getLiquidAt) {
+          const standing = getLiquidAt(playerPosRef.current.x, playerPosRef.current.z);
+          if (standing && standing.liquid === 'lava' && standing.depth > 0.05 && !(hasEmberSoles && hasEmberSoles())) {
+            const floor = deathArmedRef.current ? 0 : 1;
+            healthRef.current = Math.max(floor, healthRef.current - 12 * dt);
+            if (performance.now() - lastHealthSync.current > 100) {
+              lastHealthSync.current = performance.now();
+              setHealth(healthRef.current);
+            }
+            if (deathArmedRef.current && healthRef.current <= 0 && !playerDeadRef.current) {
+              playerDeadRef.current = true;
+              onPlayerDeathRef.current?.();
+            }
           }
         }
 

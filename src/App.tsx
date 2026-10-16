@@ -1268,7 +1268,7 @@ const {
   useGameLoop({
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
     jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, lastStaminaSync,
-    sprinting, sporeStaminaRef, marshSluggishRef, getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
+    sprinting, sporeStaminaRef, marshSluggishRef, getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0, getLiquidAt: (x: number, z: number) => engineRef.current?.liquidAt(x, z) ?? null, hasEmberSoles: () => hasItem('ember_soles', 1), scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef, returnPausedRef,

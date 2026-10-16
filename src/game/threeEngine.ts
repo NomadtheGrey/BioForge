@@ -507,6 +507,7 @@ export class BioForgeThreeEngine {
     rootweave_wall: { color: 0xa3e635, intensity: 0.35, distance: 2.2, y: 1.2 },
     pen_fence: { color: 0x84cc16, intensity: 0.3, distance: 2.0, y: 1.0 },
     pen_gate: { color: 0xa3e635, intensity: 0.35, distance: 2.2, y: 1.2 },
+    sample_rack: { color: 0x4ade80, intensity: 0.4, distance: 2.4, y: 1.0 },
     iris_slit_door: { color: 0xf0abfc, intensity: 0.55, distance: 2.5, y: 1.2 },
     spore_canopy: { color: 0xa78bfa, intensity: 0.9, distance: 3.5, y: 2.6 },
     bio_forge_station: { color: 0x22d3ee, intensity: 0.9, distance: 3.5, y: 1.4 },

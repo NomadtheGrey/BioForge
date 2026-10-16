@@ -318,7 +318,7 @@ import type { PondDef, RiverSeg } from './terrain';
  *     duck's dive, the crab's venting). The quest-log
  *     wiring is the dev chat's lane, specced in the file.
  */
-export const WORLD_GEN_VERSION = 63; // v63 (2026-10-16): creature slice 48 — the Mirror and the Road (Answer Deer calm-courtship + Heartbearer supply line); v62 was creature slice 47 (the Valley Staff + witness threading)
+export const WORLD_GEN_VERSION = 64; // v64 (2026-10-16): creature slice 49 — the Small Tells (Spiral Moth backward spirals in Untended gardens, Meadowback sentinel guard); v63 was creature slice 48 (the Mirror and the Road)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -1217,6 +1217,11 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0, opt
           ...(pondAnchor
             ? { anchorX: pondAnchor.x, anchorZ: pondAnchor.z, pondRadius: pondAnchor.radius }
             : {}),
+          // The home variant, stamped when the zone has one
+          // (slice 49): a citizen's keeping is read from where
+          // it was dealt — the Spiral Moth's backward spirals
+          // in Untended country are the first reader.
+          ...(zoneVariant ? { homeVariant: zoneVariant.id } : {}),
           speed: spec.speed + (bonusRng() * 2 - 1) * spec.speedJitter,
           health: spec.health,
           maxHealth: spec.health,

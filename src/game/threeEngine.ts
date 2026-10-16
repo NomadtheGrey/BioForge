@@ -411,6 +411,21 @@ export class BioForgeThreeEngine {
     path_puff: { color: 0xe7e5e4, intensity: 0.2, distance: 2, y: 0.2 },
     dew_mold: { color: 0xe2e8f0, intensity: 0.3, distance: 2, y: 0.2 },
     scar_cap: { color: 0xdc2626, intensity: 0.4, distance: 2.5, y: 0.2 },
+    // Flora wave 9 (creature slice 23, 2026-10-16): fungus
+    // bench II — the Gloom Cap lights from below; the Song
+    // Cap keeps a shore-light.
+    drift_mold: { color: 0xa8a29e, intensity: 0.2, distance: 2, y: 0.2 },
+    glass_mold: { color: 0x365314, intensity: 0.25, distance: 2, y: 0.2 },
+    strike_cap: { color: 0xd6d3d1, intensity: 0.3, distance: 2, y: 0.3 },
+    dune_cap: { color: 0xd97706, intensity: 0.25, distance: 2, y: 0.3 },
+    basin_puff: { color: 0xbae6fd, intensity: 0.3, distance: 2, y: 0.3 },
+    thaw_jelly: { color: 0xa5f3fc, intensity: 0.35, distance: 2, y: 0.2 },
+    prism_cap: { color: 0x67e8f9, intensity: 0.5, distance: 2.5, y: 0.3 },
+    still_cap: { color: 0xe2e8f0, intensity: 0.3, distance: 2, y: 0.3 },
+    fang_shelf: { color: 0xcbd5e1, intensity: 0.25, distance: 2, y: 0.4 },
+    song_cap: { color: 0x93c5fd, intensity: 0.4, distance: 2.5, y: 0.3 },
+    canopy_cap: { color: 0xfbbf24, intensity: 0.35, distance: 2, y: 0.3 },
+    gloom_cap: { color: 0x60a5fa, intensity: 0.5, distance: 2.5, y: 0.2 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },

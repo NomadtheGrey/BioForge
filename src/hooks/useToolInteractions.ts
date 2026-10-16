@@ -145,6 +145,8 @@ export interface UseToolInteractionsParams {
   spendStamina: (amount: number) => boolean;
   /** The visible shot: a tracer from the player to (x, z). */
   triggerShotFx: (x: number, z: number, burst: boolean) => void;
+  /** The landed close hit's burst at the struck creature. */
+  triggerStrikeHitFx: (x: number, z: number) => void;
   setCodexList: React.Dispatch<React.SetStateAction<CodexEntry[]>>;
   postNotification: (
     title: string,
@@ -202,6 +204,7 @@ export function useToolInteractions({
   strikerDrawRef,
   spendStamina,
   triggerShotFx,
+  triggerStrikeHitFx,
   setCodexList,
   postNotification,
   onOpenBioForgeModal,
@@ -1349,6 +1352,7 @@ export function useToolInteractions({
           if (dist <= (weapon.reach ?? 2.4) + 0.6) {
             strikeFauna(fauna.id, weapon.damage, weapon.flinchSeconds ?? 0.35);
             soundEngine.playStrikeHit();
+            triggerStrikeHitFx(fauna.x, fauna.z);
           }
         } else {
           strikerShootAt(weapon, fauna.x, fauna.z, fauna.id);
@@ -1356,7 +1360,7 @@ export function useToolInteractions({
         return;
       }
     },
-    [activeTool, handleTameFauna, handleScanTarget, applyDissolve, triggerSprayJetFx, strikeFauna, fireProjectile, triggerShotFx, spendStamina, inventory, strikerDrawRef, postNotification, getPlayerPosition]
+    [activeTool, handleTameFauna, handleScanTarget, applyDissolve, triggerSprayJetFx, strikeFauna, fireProjectile, triggerShotFx, triggerStrikeHitFx, spendStamina, inventory, strikerDrawRef, postNotification, getPlayerPosition]
   );
 
   // Builder on a CEILING tile with a floor selected: GROW the ceiling

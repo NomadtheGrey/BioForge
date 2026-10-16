@@ -167,8 +167,12 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     Warden, Storm Roc, Heartling and kin). What remains is
  *     gated on systems: pond-locked swimmers, oversize tier.
  *     Table-only change.
+ * v40: creature build phase, slice 25 (2026-10-16) — flora
+ *     wave 10, the cap bench: twelve fungus species (Row Cap,
+ *     Wild Cap, Rib Cap, Iron Cap, Sun Cap and kin).
+ *     Table-only change.
  */
-export const WORLD_GEN_VERSION = 39; // v39 (2026-10-16): creature slice 24 — fauna wave 7, landmark wave; v38 was creature slice 23 (flora wave 9)
+export const WORLD_GEN_VERSION = 40; // v40 (2026-10-16): creature slice 25 — flora wave 10, cap bench; v39 was creature slice 24 (fauna wave 7)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

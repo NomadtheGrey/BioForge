@@ -119,6 +119,17 @@ export type ItemId =
   | 'canopy_cap'
   | 'gloom_cap'
   | 'roc_feather'
+  | 'row_cap'
+  | 'wild_cap'
+  | 'dust_cap'
+  | 'marrow_cap'
+  | 'rib_cap'
+  | 'scald_cap'
+  | 'compost_cap'
+  | 'brine_cap'
+  | 'iron_cap'
+  | 'hedge_cap'
+  | 'sun_cap'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -424,7 +435,20 @@ export type FloraSpecies =
   | 'fang_shelf'
   | 'song_cap'
   | 'canopy_cap'
-  | 'gloom_cap';
+  | 'gloom_cap'
+  // Flora wave 10 (slice 25, 2026-10-16) — the cap bench.
+  | 'fall_shelf'
+  | 'row_cap'
+  | 'wild_cap'
+  | 'dust_cap'
+  | 'marrow_cap'
+  | 'rib_cap'
+  | 'scald_cap'
+  | 'compost_cap'
+  | 'brine_cap'
+  | 'iron_cap'
+  | 'hedge_cap'
+  | 'sun_cap';
 
 export interface FloraEntity {
   id: string;

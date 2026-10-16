@@ -241,9 +241,11 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
   // Living: in a Welcoming valley it is the hound at the
   // threshold that wags; in a Hungry one, the hound at the
   // threshold. Untameable — it belongs to the valley, not to
-  // you. (Its bespoke threshold behavior is deferred with
-  // the valley staff's other behaviors; the table deals the
-  // citizen.)
+  // you. Its threshold office RUNS (creature slice 47): it
+  // reads the valley's face from the staff it finds itself
+  // among — Gladhand about, it escorts you IN to the heart;
+  // a Taster about, it escorts you OUT to the edge, with
+  // perfect courtesy, and does not tire.
   threshold_hound: {
     id: 'threshold_hound',
     name: 'Threshold Hound',

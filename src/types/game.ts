@@ -852,6 +852,15 @@ export interface FaunaEntity {
   // a species' cyclic behavior (the Plunge Duck's dive cycle),
   // ticked by the sim for species whose table entry names one.
   phaseTimer?: number;
+  // Social engines (creature slice 47, 2026-10-16): the valley
+  // staff's transient office state — an escort's purpose or a
+  // taster's deliberation — plus its clock and, for the taster's
+  // sentence, the visitor's accrued travel under its regard.
+  // Session-transient: an office interrupted by a save simply
+  // lapses, and the valley offers it again.
+  socialState?: string;
+  socialTimer?: number;
+  socialTravel?: number;
   // Hearth Dog courtship (slice 39, 2026-10-16): the arrived dog
   // carries the reversed taming on its own back — how many
   // offerings it has accepted, how many seconds of loaded-zone
@@ -1173,11 +1182,6 @@ export interface QuestSignals {
   fellZone?: string;
   /** V2: the player returned on foot to where they fell. */
   walkBack?: boolean;
-  /** The social set (2026-10-16): note ids from the field-notes
-   *  book's WITNESSED list, mirrored here by an App effect so the
-   *  witness quests read the same signals record as every other
-   *  goal. The book stays the authority; this is its shadow. */
-  witnessed?: string[];
 }
 
 export interface QuestProgressState {

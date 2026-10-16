@@ -246,8 +246,16 @@ import type { PondDef } from './terrain';
  *     Leviathan, the water epic) and the Lake Jelly fungus.
  *     With this landing the designed roster is COMPLETE:
  *     every one of the 358 designed species is in the game.
+ * v52: creature build phase, slice 37 (2026-10-16) — the
+ *     one-off ledger, first pass (Adam: "use your best
+ *     judgement"): the Fen Lurker and Pool Snapper come home
+ *     to ponds at last (pond-anchored, swimming); the Sedge
+ *     Hen lays the roster's first egg (Sedge Egg shed); the
+ *     Grave Owl's roost pellets shed Clean Bone — two
+ *     economies the codex has promised since design week.
+ *     Table-only; generation learns nothing new.
  */
-export const WORLD_GEN_VERSION = 51; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
+export const WORLD_GEN_VERSION = 52; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

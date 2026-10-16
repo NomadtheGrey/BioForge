@@ -169,6 +169,8 @@ export type ItemId =
   | 'requisition'
   | 'lake_jelly'
   | 'silver_scale'
+  | 'sedge_egg'
+  | 'clean_bone'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'

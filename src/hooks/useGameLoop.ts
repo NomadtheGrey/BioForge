@@ -51,6 +51,10 @@ export interface GameLoopDeps {
   sporeStaminaRef: { current: boolean };
   /** True while the player wades a sluggish variant (Mirror Marsh). */
   marshSluggishRef: { current: boolean };
+  /** Pond depth under the player (P5 move 2, Adam, 2026-10-16):
+   *  App bridges this to the engine's waterDepthAt. Optional —
+   *  an absent getter means a dry world. */
+  getWaterDepth?: (x: number, z: number) => number;
   /** True while the player stands in an Ember Scar zone. */
   scarHeatRef: { current: boolean };
   // Storm zots (2026-10-15): the mean seconds between lightning
@@ -143,7 +147,7 @@ export interface GameLoopDeps {
 export function useGameLoop(deps: GameLoopDeps): void {
   const {
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
-    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
+    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
     sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
@@ -202,10 +206,20 @@ export function useGameLoop(deps: GameLoopDeps): void {
         // planned answer is a boots module (Waders); until boots
         // exist, the marsh is country you feel in your legs.
         const wading = marshSluggishRef.current && instanceRef.current.kind === 'surface' ? 0.85 : 1;
+        // Pond water (P5 move 2, Adam, 2026-10-16): real depth,
+        // real drag — ankle water slows a stride a little, waist
+        // water a lot, chest water halves you. This is WADING;
+        // floating/swimming arrives with the movement platform.
+        // Waders (the Quicksteps growth) are the marsh's answer
+        // today; pond relief can hang on the same platform later.
+        const waterDepth = instanceRef.current.kind === 'surface' && getWaterDepth
+          ? getWaterDepth(playerPosRef.current.x, playerPosRef.current.z)
+          : 0;
+        const inWater = waterDepth > 1.0 ? 0.5 : waterDepth > 0.35 ? 0.65 : waterDepth > 0.05 ? 0.85 : 1;
         // Rooted by the valley (Living, 2026-10-15): a landed
         // grab holds you at 40% speed while the snare lasts.
         const snared = performance.now() < grabSnareUntilRef.current && instanceRef.current.kind === 'surface' ? 0.4 : 1;
-        movementController.current.sprintMultiplier = (wantSprint ? 1.6 : 1) * wading * snared;
+        movementController.current.sprintMultiplier = (wantSprint ? 1.6 : 1) * wading * snared * inWater;
 
         // Inside an instance, the instance grid itself is the walls
         // (caverns use their grid raw; ruins pass the collision copy).

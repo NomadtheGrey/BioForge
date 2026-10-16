@@ -68,6 +68,10 @@ export interface GameInputDeps {
    *  re-selecting slot 7 (key tap or hotbar click) and by the
    *  mouse wheel while the striker is in hand. */
   onToggleStrikerDraw: () => void;
+  /** Pond depth under the player (P5 move 2, Adam, 2026-10-16):
+   *  App bridges this to the engine's waterDepthAt. Optional —
+   *  an absent getter means a dry world. */
+  getWaterDepth?: (x: number, z: number) => number;
 }
 
 export function useGameInput(deps: GameInputDeps) {
@@ -76,7 +80,7 @@ export function useGameInput(deps: GameInputDeps) {
     activeModal, isPointerLocked, playerState, inventory,
     structuresListRef, floraListRef, bounceGraceUntil, unlockedTools,
     setActiveTool, setSelectedStructureType, setSelectedSeedId, setSelectedFertilizerId,
-    setActiveModal, postNotification, onToggleDebugKit, onToggleStrikerDraw,
+    setActiveModal, postNotification, onToggleDebugKit, onToggleStrikerDraw, getWaterDepth,
   } = deps;
   // The keyboard handler calls the toggle through the lazy dep.
   const toggleDebugKit = onToggleDebugKit;
@@ -279,7 +283,13 @@ export function useGameInput(deps: GameInputDeps) {
       bounceGraceUntil.current = performance.now() + BOUNCE_GRACE_MS;
       soundEngine.playFertilize();
     } else {
-      j.vy = JUMP_VELOCITY;
+      // Deep water steals the hop (P5 move 2, Adam, 2026-10-16):
+      // chest-deep, your jump is a feeble heave — enough to climb
+      // out at a shore, not enough to bunny-cross a pond. The
+      // shroom launch above is exempt: a bounce fires you out of
+      // anything, as it should.
+      const depth = getWaterDepth?.(playerPosRef.current.x, playerPosRef.current.z) ?? 0;
+      j.vy = depth > 0.9 ? JUMP_VELOCITY * 0.45 : JUMP_VELOCITY;
     }
   }, [postNotification]);
 

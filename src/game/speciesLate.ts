@@ -751,10 +751,18 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
 
   // #100 — the ubiquitous layer's fourth designed member:
   // an unremarkable mid-sized dog that appears WHERE A PLAYER
-  // SETTLES. Its arrival behavior (it chooses hearths; it
-  // cannot be summoned) is bespoke work, deferred — v1 deals
-  // it as the layer's citizen, everywhere, at dog pace. It
-  // cannot be lured either: it arrives, or it doesn't.
+  // SETTLES. Slice 39 (2026-10-16) built the arrival its
+  // design always promised: it is NOT dealt wild any more
+  // (bonusSpawn null) — the sim walks it out of the country
+  // when the current zone holds a heart tile (Adam's pin:
+  // "just use the spawn tiles"), it takes up at the doorstep
+  // on a perimeter it invents (the pond-clamp fields, reused),
+  // and the bonding runs REVERSED: three accepted offerings
+  // and the dog decides — a full pet, follow/stay/guard at
+  // full fluency. Undecided after three days, it leaves one
+  // morning as it came. It still cannot be lured in the
+  // ordinary way: tameChance stays null, and the courtship
+  // lives in the sim + the lure's dog branch, not the table.
   hearth_dog: {
     id: 'hearth_dog',
     name: 'Hearth Dog',
@@ -763,15 +771,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     bait: null,
     petName: 'Hearth Dog',
     byproduct: null,
-    bonusSpawn: {
-      biomes: 'all',
-      count: 1,
-      minRadius: 12,
-      spacing: 8,
-      speed: 1.8,
-      speedJitter: 0.15,
-      health: 22,
-    },
+    bonusSpawn: null,
   },
 
   // #110 — the mimic the seat note wondered about, placed

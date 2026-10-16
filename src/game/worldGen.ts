@@ -96,8 +96,11 @@ import { BONUS_SPAWN_SPECIES } from './species';
  * v21: creature build phase, slice 6 (2026-10-15) — five aerial
  *     species join the table (the flight system lives in the
  *     mesh kit, not here). Table-only change again.
+ * v22: creature build phase, slice 7 (2026-10-15) — eleven
+ *     ground-cast species join the table, incl. both Living
+ *     valley-face one-offs riding the variant gate. Table-only.
  */
-export const WORLD_GEN_VERSION = 21; // v21 (2026-10-15): creature slice 6 — five aerial species join the table; v20 was creature slice 5
+export const WORLD_GEN_VERSION = 22; // v22 (2026-10-15): creature slice 7 — eleven ground-cast species join the table; v21 was creature slice 6
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

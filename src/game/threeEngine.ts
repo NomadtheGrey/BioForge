@@ -708,7 +708,7 @@ export class BioForgeThreeEngine {
     // The builders record is a factory over these shared materials
     // (game/structureBuilders.ts) — built once, here, where they exist.
     this.structureBuilders = createStructureBuilders(this.materials);
-    this.creatureKit = createCreatureMeshKit(this.materials, (x, z) => this.terrainHeightAt(x, z), (x, z) => this.waterSurfaceAt(x, z));
+    this.creatureKit = createCreatureMeshKit(this.materials, (x, z) => this.terrainHeightAt(x, z), (x, z) => this.waterSurfaceAt(x, z), () => this.lastDayCycle);
     this.landmarkDressing = createLandmarkDressing(this.materials);
 
     // Lights

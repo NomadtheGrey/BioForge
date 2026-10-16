@@ -146,6 +146,9 @@ export interface UseToolInteractionsParams {
   onGlyphRead?: (glyphStructureId: string) => void;
   /** Ask the World line signals: an artifact heart was opened. */
   onHeartReached?: () => void;
+  /** Ask the World line signals: a flora harvest succeeded (the
+   * yields are already in the pouch when this fires). */
+  onFloraHarvest?: (flora: FloraEntity) => void;
   /** Stamp a wild creature with the solvent's emergency dissolve
    *  (Adam, 2026-10-16); gating lives with the sim (useWorldEntities). */
   applyDissolve: (faunaId: string) => void;
@@ -227,6 +230,7 @@ export function useToolInteractions({
   onRequestRelease,
   onGlyphRead,
   onHeartReached,
+  onFloraHarvest,
   applyDissolve,
   strikeFauna,
   fireProjectile,
@@ -414,6 +418,9 @@ export function useToolInteractions({
       };
       collect(yieldItem, yieldCount);
       extras.forEach(([extraId, extraCount]) => collect(extraId, extraCount));
+      // The Ask the World line hears about a successful harvest
+      // (its garden quest reads the zone from App's side).
+      onFloraHarvest?.(flora);
       // Trimmings: every harvest yields a little compost — the renewable source
       collect('basic_compost', 1);
       // Regrowth runs at the base rate; a fresh fertilizer application
@@ -1977,6 +1984,11 @@ export function useToolInteractions({
         // ruins ever state outright.
         collected.set('precursor_shard', 2);
         collected.set('dew_essence', 2);
+        // Ask the World (Adam, 2026-10-16): every heart also keeps
+        // ONE Fate Fragment — the set piece the chapter is assembled
+        // from. Hearts are one-shot (the structure is consumed
+        // below), so each ruin yields exactly one, ever.
+        collected.set('aw_fragment', 1);
         for (const [item, n] of collected) addInventoryItem(item, n);
         triggerHarvestFx(structure.worldX, structure.worldZ);
         removeStructure(structure.id);

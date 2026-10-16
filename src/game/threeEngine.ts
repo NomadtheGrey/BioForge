@@ -22,7 +22,6 @@ import { landformHeightAt, type PondLiquid } from './terrain';
 import { buildWaterGroup, waterSurfaceFromLists, waterDepthFromLists, liquidFromLists, type PondLocal, type RiverSegLocal } from './waterField';
 import { SkyRig } from './skyRig';
 import { updateHearthTag } from './hearthTag';
-import { FLORA_LIGHT_BASE, STRUCTURE_LIGHT_BASE } from './lightSpecs';
 import { isFloorType, BUILDING_TYPES, isDoorType } from './placement';
 import { BIOME_TINTS } from './biomes';
 import type { BiomeId } from './biomes';
@@ -32,6 +31,7 @@ import { createStructureBuilders, type StructureMaterials } from './structureBui
 import { createCreatureMeshKit, type CreatureMeshKit } from './creatureMeshes';
 import { createLandmarkDressing, type LandmarkDressing } from './landmarkDressing';
 import { FATE_STYLES, type WorldFate } from './ruins';
+import { FLORA_LIGHT_BASE, STRUCTURE_LIGHT_BASE } from './lightSpecs';
 
 const IRIS_DOOR_TRIGGER_RADIUS = 2.5;
 // Structures sit on ROLLING terrain (see terrainHeightAt): floors ride

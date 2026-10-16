@@ -1174,9 +1174,11 @@ export const FLORA: Record<string, FloraDef> = {
   // #93 — the mode's plant citizen: a sage ball of the Wind
   // Plains that, at season's turn, lets go of its root and
   // becomes its own seed-head — ROLLING, wind-driven. (Dealt
-  // rooted, in season, like everything the loop plants; its
-  // travels are its own affair.) A rooted sage yields Sage
-  // Leaf, plains herb, storm-cured.
+  // rooted, in season, like everything the loop plants.)
+  // Slice 45 (2026-10-16): the travels are LIVE — a sage left
+  // ripe and unharvested lets go in the flora tick, rolls,
+  // sheds Sage Leaf as it goes, and re-roots downwind. A
+  // rooted sage yields Sage Leaf, plains herb, storm-cured.
   tumble_sage: {
     id: 'tumble_sage',
     name: 'Tumble Sage',

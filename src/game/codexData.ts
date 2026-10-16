@@ -346,7 +346,7 @@ export const INITIAL_CODEX: CodexEntry[] = [
     discovered: false,
     scannedCount: 0,
     description: 'A dome-backed beetle farming a fungus comb it carries on its back: it harvests trimmings, feeds them to the comb, and eats the comb\'s fruit. The meadow\'s surplus becomes the fungal country\'s food, carried on six legs.',
-    byproducts: [],
+    byproducts: ['Growth Fertilizer (finished compost, left at the burrow mouth — the colony is an engine)'],
     tamingOrCraftNotes: 'Tame with the Taming Lure — 40% per attempt. A beetle that farms understands an offering.',
     biome: 'Meadow x Fungal (the Mulchwood)',
     iconColor: '#65a30d',

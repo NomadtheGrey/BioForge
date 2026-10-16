@@ -575,6 +575,15 @@ export interface FloraEntity {
   fertilizedGrowth: boolean;
   fertilizedYield: boolean;
   fertilizerTimer?: number; // Seconds of growth-boost left (0/absent = none)
+  /** Tumble Sage travel (slice 45): seconds a ripe sage has sat unharvested — at the threshold it lets go of its root. */
+  looseTimer?: number;
+  /** Tumble Sage travel: roll velocity (m/s) while loosed; absent = rooted. */
+  rollVx?: number;
+  rollVz?: number;
+  /** Tumble Sage travel: meters of roll left before it re-roots. */
+  rollLeft?: number;
+  /** Tumble Sage travel: seconds until it sheds the next leaf mid-roll. */
+  rollShedTimer?: number;
   harvestReady: boolean;
   harvestTimer: number;
   isHazardous: boolean;

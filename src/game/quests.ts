@@ -32,6 +32,7 @@
 
 import type { ItemId, ToolType, CraftingRecipe } from '../types/game';
 import { ITEMS, RECIPES, getRecipeTier, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from './constants';
+import { WEAPON_ITEM_IDS, anyWeaponOwned } from './weapons';
 
 /** Every tool the hotbar can hold, in hotbar order. */
 export const ALL_TOOLS: ToolType[] = [
@@ -41,6 +42,9 @@ export const ALL_TOOLS: ToolType[] = [
   'solvent_sprayer',
   'taming_lure',
   'builder',
+  // The seventh slot (Adam, 2026-10-16): the striker, unlocked by
+  // owning any of the six grown weapons (game/weapons.ts).
+  'striker',
 ];
 
 /**
@@ -63,6 +67,7 @@ export const TOOL_NAMES: Record<ToolType, string> = {
   solvent_sprayer: 'Solvent Sprayer',
   taming_lure: 'Taming Lure',
   builder: 'Bio-Builder',
+  striker: 'Striker',
 };
 
 /**
@@ -77,6 +82,9 @@ export function deriveUnlockedTools(
 ): ToolType[] {
   if (grandfathered) return [...ALL_TOOLS];
   return ALL_TOOLS.filter((tool) => {
+    // The striker is not a module: it unlocks when ANY grown
+    // weapon is owned (it has six possible keys, not one).
+    if (tool === 'striker') return anyWeaponOwned(inventory);
     const moduleId = MODULE_FOR_TOOL[tool];
     return moduleId === undefined || (inventory[moduleId] ?? 0) > 0;
   });
@@ -475,6 +483,11 @@ export const GAUNTLET_UPGRADE_ITEM_IDS: ItemId[] = [
   'field_synthesizer_gauntlet',
   ...(Object.values(MODULE_FOR_TOOL) as ItemId[]),
   FIELD_SYNTHESIS_ITEM_ID,
+  // The six strikers (Adam, 2026-10-16): grown one-time weapons —
+  // same one-copy rule as the modules; a higher tier's craft
+  // consumes the lower weapon, so the "already owned" block also
+  // keeps retired tiers from being re-grown by accident.
+  ...WEAPON_ITEM_IDS,
 ];
 
 /** True when `id` is one of the one-time gauntlet upgrades above. */

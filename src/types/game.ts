@@ -188,6 +188,15 @@ export type ItemId =
   | 'culture_vat'
   | 'vat_kit_rich'
   | 'vat_kit_deep'
+  // The strikers (Adam, 2026-10-16): six grown weapons, one close +
+  // one ranged per craft tier, seated in the gauntlet's seventh
+  // slot. Rules live in game/weapons.ts.
+  | 'briar_barb'
+  | 'spit_pod'
+  | 'chitin_fang'
+  | 'spore_puffer'
+  | 'glass_sting'
+  | 'storm_lance'
   | `sample_${FaunaSpecies}`;
 
 export type ToolType =
@@ -196,7 +205,11 @@ export type ToolType =
   | 'planter_trowel'
   | 'solvent_sprayer'
   | 'taming_lure'
-  | 'builder';
+  | 'builder'
+  // The seventh slot (Adam, 2026-10-16): the striker. One slot
+  // draws one owned weapon at a time — close or ranged — toggled
+  // by the 7 key / mouse wheel while the slot is in hand.
+  | 'striker';
 
 export interface ItemDef {
   id: ItemId;
@@ -491,6 +504,10 @@ export interface FaunaEntity {
    *  dissolve remaining after an emergency spray; while it runs,
    *  the creature takes damage over time and flees. */
   dissolveTimer?: number;
+  /** Striker flinch clock (Adam, 2026-10-16): seconds of stagger
+   *  left after a close-weapon hit. While it runs the creature
+   *  neither moves nor bites — the melee's breathing room. */
+  flinchTimer?: number;
   animTime: number;
   /** Biome TYPE this creature spawned in (world-gen stamp; absent on old saves). */
   biome?: BiomeId;

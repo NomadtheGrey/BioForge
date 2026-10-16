@@ -619,7 +619,7 @@ export const FLORA: Record<string, FloraDef> = {
     harvest: { item: 'vent_petal', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['ember'],
-      variant: 'vent_fields',
+      variant: 'ember_scar', // the vent country IS the Scar (gate corrected in slice 14: 'vent_fields' was a typo — no such variant id; the rose never dealt)
       count: 2,
       minRadius: 10,
       spacing: 4,
@@ -797,7 +797,7 @@ export const FLORA: Record<string, FloraDef> = {
     harvest: { item: 'basic_compost', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['frost'],
-      variant: 'ice_fangs',
+      variant: 'frost_fangs', // (gate corrected in slice 14: 'ice_fangs' was a typo — no such variant id; the fern never dealt)
       count: 3,
       minRadius: 8,
       spacing: 3,
@@ -824,6 +824,249 @@ export const FLORA: Record<string, FloraDef> = {
       scale: 0.9,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Wave 4 (slice 14, 2026-10-16) — the fungus bench: the deep
+  // roster of caps, puffs, shelves and rafts, mushroom-fashion
+  // (most of their items carry the species' own name, as the
+  // design writes them). This slice also corrects two wave-3
+  // variant gates that were typo'd and never dealt.
+  // ------------------------------------------------------------------
+
+  // #37 — a clock made of fungus: it fruits in the DARK, a
+  // pale cap by moonlight, sweet-smelling — and by dawn it
+  // has melted to a stain. A cap cut at midnight keeps; the
+  // day shift gets the smell and the lesson.
+  meltcap: {
+    id: 'meltcap',
+    name: 'Meltcap',
+    kind: 'fungus',
+    harvest: { item: 'meltcap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['fungal'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      scale: 0.9,
+    },
+  },
+
+  // #77 — the travelling fungus at the surface: a raft of
+  // small sail-backed caps that rides wind and pool-current
+  // as one slow sailing. Caps pinched from the raft's edge;
+  // the raft sails on, diminished and unbothered. (Dealt at
+  // the marsh's wet ground in v1 — it anchors where pools
+  // gather, like everything in the Mirror country.)
+  poolcap: {
+    id: 'poolcap',
+    name: 'Poolcap',
+    kind: 'fungus',
+    harvest: { item: 'poolcap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['wetland'],
+      count: 3,
+      minRadius: 8,
+      spacing: 4,
+      scale: 1,
+    },
+  },
+
+  // #80 — the material crossover in the kind where it is
+  // strangest: a living fungus heart under a rind of the
+  // family's glass. The rind pays in SALTGLASS SHARD — the
+  // family's one shard, its sixth door, and the first
+  // mushroom that pays in glass; the heart beneath is its
+  // own item.
+  saltcap: {
+    id: 'saltcap',
+    name: 'Saltcap',
+    kind: 'fungus',
+    harvest: {
+      item: 'saltglass_shard', count: 1, fertilizedCount: 2,
+      extras: [['saltcap_heart', 1]],
+    },
+    bonusGrow: {
+      biomes: ['fungal', 'saltglass'],
+      hybrid: ['fungal', 'saltglass'],
+      count: 2,
+      minRadius: 10,
+      spacing: 4,
+      scale: 1,
+    },
+  },
+
+  // #196 — dust-fed: it fruits on STORED ORGANICS and old
+  // wood inside ruins, and what drifts in the cache chambers
+  // is its spore-release — the ruins' dust has an author.
+  // Its caps, dried, dust stores against WORSE tenants.
+  tomb_cap: {
+    id: 'tomb_cap',
+    name: 'Tomb Cap',
+    kind: 'fungus',
+    harvest: { item: 'tomb_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['fungal', 'precursor'],
+      hybrid: ['fungal', 'precursor'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #266 — a FAIRY RING made honest: an expanding
+  // ring-colony whose circle greens the grass along its
+  // front — Meadowbacks graze the ring grass preferentially:
+  // a slow circle of the country's best grazing, drawn by a
+  // fungus at a hand's width a year. The ring is the yield.
+  ring_cap: {
+    id: 'ring_cap',
+    name: 'Ring Cap',
+    kind: 'fungus',
+    harvest: { item: 'glow_spore', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['meadow'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      scale: 0.8,
+    },
+  },
+
+  // #270 — the fungus kingdom's gift to travelers: a veiled
+  // cap whose partial veil is a spore-proof silk membrane —
+  // cut as FILTERS against spore clouds and the deep groves'
+  // worst air. The Hollow's mask and bandage in one.
+  veil_cap: {
+    id: 'veil_cap',
+    name: 'Veil Cap',
+    kind: 'fungus',
+    harvest: { item: 'veil_cloth', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['fungal'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      scale: 0.9,
+    },
+  },
+
+  // #274 — the kingdom's second crystal citizen: a
+  // translucent cap grown through with saltglass, fruiting
+  // among the Prism Moss — the moss sorts the noon, the cap
+  // STORES it. A whole cap is a natural lamp-shade and lens
+  // blank in one careful piece.
+  glass_cap: {
+    id: 'glass_cap',
+    name: 'Glass Cap',
+    kind: 'fungus',
+    harvest: { item: 'glass_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['saltglass'],
+      variant: 'saltglass_prism',
+      count: 2,
+      minRadius: 10,
+      spacing: 4,
+      scale: 1,
+    },
+  },
+
+  // #277 — a staircase the fungus built for the animal that
+  // uses it: great woody brackets at climbing intervals up
+  // the heartroot stands — the Canopy Sloth's resting
+  // platforms. Fallen shelves only, by custom: the shelf
+  // that is cut is the shelf that ends the staircase.
+  heart_shelf: {
+    id: 'heart_shelf',
+    name: 'Heart Shelf',
+    kind: 'fungus',
+    harvest: { item: 'soft_fiber', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['rootwood'],
+      count: 2,
+      minRadius: 12,
+      spacing: 6,
+      scale: 1.4,
+    },
+  },
+
+  // #279 — white on white: a puffball of the Bonefields,
+  // round and pale as the country's own moons — when it
+  // puffs, the fields seem to breathe out, and the Dust Hawk
+  // hunts through the white weather as cover. Young puffs
+  // are the Bone country's provision, mild as the fields
+  // are not.
+  bone_puff: {
+    id: 'bone_puff',
+    name: 'Bone Puff',
+    kind: 'fungus',
+    harvest: { item: 'bone_puff', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['bone'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      scale: 0.9,
+    },
+  },
+
+  // #282 — the broadcaster: a puffball whose puff RIDES THE
+  // FRONT — one fruiting body can seed three zones in one
+  // storm. The kingdom's two storm strategies: the emigrant
+  // (the Stormcap) and the broadcast. Unpuffed, its yield
+  // is its range; spores for the gatherer.
+  wind_puff: {
+    id: 'wind_puff',
+    name: 'Wind Puff',
+    kind: 'fungus',
+    harvest: { item: 'glow_spore', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['storm'],
+      count: 3,
+      minRadius: 8,
+      spacing: 4,
+      scale: 0.9,
+    },
+  },
+
+  // #283 — both kingdoms keep the valley's register: the
+  // Doorstep Rose signs the threshold in flowers; the door
+  // cap signs it in fungus, fruiting on DOORFRAMES. The
+  // outside ones are a mild keeper's mushroom; the inside
+  // ones are left, with the door shut.
+  door_cap: {
+    id: 'door_cap',
+    name: 'Door Cap',
+    kind: 'fungus',
+    harvest: { item: 'door_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['living'],
+      count: 2,
+      minRadius: 9,
+      spacing: 5,
+      scale: 0.8,
+    },
+  },
+
+  // #286 — the made world's third living script, and the
+  // shortest: a cap whose GILLS form glyph-like patterns at
+  // fruiting — the Glyph Vine writes in leaves, the fungus
+  // writes in gills, briefly. The cap is food; the PATTERN,
+  // copied, is the yield — filed under treasures that are
+  // free.
+  glyph_cap: {
+    id: 'glyph_cap',
+    name: 'Glyph Cap',
+    kind: 'fungus',
+    harvest: { item: 'basic_compost', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['precursor'],
+      count: 2,
+      minRadius: 10,
+      spacing: 4,
+      scale: 0.9,
+    },
+  },
 };
 
 /** Table lookup by species id (the hook + worldGen read here). */
@@ -835,7 +1078,7 @@ export function floraDef(id: FloraSpecies): FloraDef | undefined {
 export const BONUS_GROW_FLORA: FloraDef[] = Object.values(FLORA).filter((d) => d.bonusGrow !== null);
 
 // ---------------------------------------------------------------------------
-// Codex entries (waves 1–3). They live HERE, with the flora table, rather
+// Codex entries (waves 1–4). They live HERE, with the flora table, rather
 // than in constants.ts: INITIAL_CODEX spreads this array in, and
 // constants.ts has outgrown what a single push can carry — the flora
 // codex travelling with the flora table keeps both files pushable
@@ -1273,5 +1516,149 @@ export const FLORA_CODEX: CodexEntry[] = [
     tamingOrCraftNotes: 'Gather spores with the glove — and use the cap the way the marsh does: to check what the sky is doing half a second from now.',
     biome: 'Wetland (the Mirror Marsh)',
     iconColor: '#94a3b8',
+  },
+  {
+    species: 'meltcap',
+    name: 'Meltcap',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A clock made of fungus: it fruits in the dark — a pale cap by moonlight, sweet-smelling, standing proud at midnight — and by dawn it has melted to a stain and a smell. The Hollow keeps two shifts, and the meltcap works the night one entirely.',
+    byproducts: ['Meltcap (a cap cut at midnight, exactly)'],
+    tamingOrCraftNotes: 'Harvest with the glove at midnight — cut at dawn it collapses in the pouch, which the codex records as the tuition everyone pays once.',
+    biome: 'Fungal (background cast)',
+    iconColor: '#e9d5ff',
+  },
+  {
+    species: 'poolcap',
+    name: 'Poolcap',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The travelling fungus at the surface: a raft of small sail-backed caps that rides wind and pool-current as one slow sailing — the colony moving house at the speed of weather. Where the raft beaches, the marsh gains a harbor that feeds people.',
+    byproducts: ['Poolcap (caps pinched from the raft\'s edge)'],
+    tamingOrCraftNotes: 'Harvest with the glove from the raft\'s edge — the raft sails on, diminished and unbothered.',
+    biome: 'Wetland (family cast)',
+    iconColor: '#6ee7b7',
+  },
+  {
+    species: 'saltcap',
+    name: 'Saltcap',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The material crossover in the kind where it is strangest: a living fungus heart wearing a rind of the family\'s glass — in the Salt Hollows, where Fungal meets Saltglass, the mushroom learned masonry. The rind is the family\'s glass; the heart is the fungus\'s answer.',
+    byproducts: ['Saltglass Shard (the rind)', 'Saltcap Heart (beneath the rind)'],
+    tamingOrCraftNotes: 'Harvest with the glove — the first mushroom that pays in glass: the shard economy\'s sixth door, and the heart is a keeper\'s item besides.',
+    biome: 'Fungal × Saltglass (the Salt Hollows only)',
+    iconColor: '#a5f3fc',
+  },
+  {
+    species: 'tomb_cap',
+    name: 'Tomb Cap',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'Dust-fed: a squat, pale cap fruiting on stored organics and old wood inside ruins, where Fungal meets the Precursor\'s leavings — and what drifts in the cache chambers is its spore-release. The ruins\' dust has an author, and the author is hiring the air.',
+    byproducts: ['Tomb Cap (its caps, dried)'],
+    tamingOrCraftNotes: 'Harvest with the glove — bitter, preservative: used to dust stores against WORSE tenants. The pantry\'s guard, grown in the pantry\'s ancestors.',
+    biome: 'Fungal × Precursor (the ruins themselves only)',
+    iconColor: '#d6d3d1',
+  },
+  {
+    species: 'ring_cap',
+    name: 'Ring Cap',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A fairy ring made honest: an expanding ring-colony whose circle greens the grass along its front, a hand\'s width a year — Meadowbacks graze the ring grass preferentially, and a ring old enough is a slow circle of the country\'s best grazing, drawn by a fungus that has never once hurried.',
+    byproducts: ['Glow Spore (ring caps, unlisted — the ring is the yield)'],
+    tamingOrCraftNotes: 'Gather spores with the glove, and read the ring: its diameter is its age, and its grass is the meadow\'s recommendation of itself.',
+    biome: 'Meadow (family cast)',
+    iconColor: '#4ade80',
+  },
+  {
+    species: 'veil_cap',
+    name: 'Veil Cap',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The fungus kingdom\'s gift to travelers: a cap whose partial veil is a spore-proof silk membrane, at the Hollow\'s edges where the air turns. Against spore clouds, against the deep groves\' worst air, the veil is the difference between visiting the Hollow and joining it.',
+    byproducts: ['Veil Cloth (veils, carefully cut)'],
+    tamingOrCraftNotes: 'Harvest with the glove — filter-grade: the grove country\'s mask and bandage in one. Cut carefully; a torn veil is a story you tell with a cough.',
+    biome: 'Fungal (the Hollow\'s edges)',
+    iconColor: '#f1f5f9',
+  },
+  {
+    species: 'glass_cap',
+    name: 'Glass Cap',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The kingdom\'s second crystal citizen: a translucent cap grown through with saltglass, fruiting among the Prism Moss — the moss sorts the noon, the cap stores it, and at dusk the Beds give the light back at reading strength. The Prism Beds\' floor has two light-workers now, on two shifts.',
+    byproducts: ['Glass Cap (a whole cap)'],
+    tamingOrCraftNotes: 'Harvest with the glove, whole and careful — a natural lamp-shade and lens blank in one piece.',
+    biome: 'Saltglass (the Prism Beds)',
+    iconColor: '#67e8f9',
+  },
+  {
+    species: 'heart_shelf',
+    name: 'Heart Shelf',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A staircase the fungus built for the animal that uses it: great woody brackets at climbing intervals up the heartroot stands — the Canopy Sloth\'s resting platforms, shelf to shelf, and an old stand is a staircase with a regular. The custom is fallen-only, and the sloths enforce it by simply continuing to climb.',
+    byproducts: ['Soft Fiber (fallen shelves, timber grade)'],
+    tamingOrCraftNotes: 'Gather fallen shelves only — the shelf that is cut is the shelf that ends the staircase.',
+    biome: 'Rootwood (the heartroot stands)',
+    iconColor: '#b45309',
+  },
+  {
+    species: 'bone_puff',
+    name: 'Bone Puff',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'White on white: a puffball of the Bonefields, round and pale as the country\'s own moons. When it puffs, the spore-dust is white on white and the fields seem to breathe out — the Dust Hawk hunts through its puffs, using the white weather as cover, and the fields forgive them both.',
+    byproducts: ['Bone Puff (young puffs)'],
+    tamingOrCraftNotes: 'Gather the young puffs with the glove — the Bone country\'s provision, mild as the fields are not.',
+    biome: 'Bone (the Bonefields)',
+    iconColor: '#f5f5f4',
+  },
+  {
+    species: 'wind_puff',
+    name: 'Wind Puff',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The broadcaster: a puffball whose puff rides the front — a single fruiting body can seed three zones in one storm. The kingdom\'s two storm strategies stand side by side here: the emigrant, which sends a cap, and the broadcast, which sends a weather.',
+    byproducts: ['Glow Spore (unpuffed — its yield is its range)'],
+    tamingOrCraftNotes: 'Gather with the glove before the front arrives. After it, you are not harvesting; you are downstream.',
+    biome: 'Storm (the open country)',
+    iconColor: '#e7e5e4',
+  },
+  {
+    species: 'door_cap',
+    name: 'Door Cap',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'Both kingdoms keep the valley\'s register: the Doorstep Rose signs the threshold in flowers, the door cap signs it in fungus, fruiting on doorframes of the valley\'s homesteads. The outside ones are gathered; the inside ones are left, with the door shut — the same codex the rose keeps, in a quieter hand.',
+    byproducts: ['Door Cap (the outside ones)'],
+    tamingOrCraftNotes: 'Harvest with the glove — a mild keeper\'s mushroom. Take the outside ones only; hospitality has a direction.',
+    biome: 'Living (the valley\'s homesteads)',
+    iconColor: '#a3e635',
+  },
+  {
+    species: 'glyph_cap',
+    name: 'Glyph Cap',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The made world\'s third living script, and the shortest: a cap whose gills form glyph-like patterns at fruiting — the Glyph Vine writes in leaves that keep, the fungus writes in gills that don\'t. Copy the pattern while it fruits; by evening the page is compost and the library has closed itself.',
+    byproducts: ['Basic Compost (the cap is food, unlisted — the pattern, copied, is the yield)'],
+    tamingOrCraftNotes: 'Harvest with the glove, and bring the codex habit: the treasure here is free, and it is perishable in the oldest way.',
+    biome: 'Precursor (the ruins\' edges)',
+    iconColor: '#a3e635',
   },
 ];

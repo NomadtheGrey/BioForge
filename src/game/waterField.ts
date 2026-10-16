@@ -12,7 +12,7 @@
 // shapes. P5 moves 2-3 (Adam, 2026-10-16).
 // ============================================================================
 import * as THREE from 'three';
-import { zonePondsAt, zoneRiversAt, type RiverSeg } from './terrain';
+import { zonePondsAt, zoneRiversAt, type PondLiquid, type RiverSeg } from './terrain';
 
 /** A pond in the engine's LOCAL frame (zone origin subtracted). */
 export interface PondLocal {
@@ -20,6 +20,7 @@ export interface PondLocal {
   z: number;
   radius: number;
   waterY: number;
+  liquid: PondLiquid;
 }
 
 /** A river segment in the engine's LOCAL frame. */
@@ -29,6 +30,7 @@ export interface RiverSegLocal {
   x2: number;
   z2: number;
   waterY: number;
+  liquid: PondLiquid;
 }
 
 /** Distance from a point to a 2D segment (the water queries). */
@@ -43,7 +45,33 @@ export function distToSeg2D(
   return Math.hypot(px - (s.x1 + vx * t), pz - (s.z1 + vz * t));
 }
 
-function waterMaterial(): THREE.MeshStandardMaterial {
+/** One material per liquid (liquids pass, 2026-10-16): water is
+ *  the calm blue the ponds shipped with; brine is a pale milky
+ *  green; lava glows — emissive orange over a dark red body, so
+ *  it reads as dangerous before it ever deals a point of damage. */
+function waterMaterial(liquid: PondLiquid): THREE.MeshStandardMaterial {
+  if (liquid === 'lava') {
+    return new THREE.MeshStandardMaterial({
+      color: 0xd63c08,
+      emissive: 0xff5a00,
+      emissiveIntensity: 1.35,
+      transparent: true,
+      opacity: 0.97,
+      roughness: 0.5,
+      metalness: 0.0,
+      depthWrite: false,
+    });
+  }
+  if (liquid === 'brine') {
+    return new THREE.MeshStandardMaterial({
+      color: 0x9fd4c0,
+      transparent: true,
+      opacity: 0.7,
+      roughness: 0.2,
+      metalness: 0.05,
+      depthWrite: false,
+    });
+  }
   return new THREE.MeshStandardMaterial({
     color: 0x2e6da4,
     transparent: true,
@@ -79,10 +107,10 @@ export function buildWaterGroup(
         const lx = p.cx - zoneX * 100;
         const lz = p.cz - zoneZ * 100;
         if (Math.abs(lx) > 62 + p.radius || Math.abs(lz) > 62 + p.radius) continue;
-        ponds.push({ x: lx, z: lz, radius: p.radius, waterY: p.waterY });
+        ponds.push({ x: lx, z: lz, radius: p.radius, waterY: p.waterY, liquid: p.liquid });
         const geo = new THREE.CircleGeometry(p.radius, 28);
         geo.rotateX(-Math.PI / 2);
-        const disc = new THREE.Mesh(geo, waterMaterial());
+        const disc = new THREE.Mesh(geo, waterMaterial(p.liquid));
         disc.position.set(lx, p.waterY, lz);
         disc.name = 'pondWater';
         group.add(disc);
@@ -98,38 +126,44 @@ export function buildWaterGroup(
     }
   }
   const riverSegs: RiverSegLocal[] = [];
-  const positions: number[] = [];
-  const indices: number[] = [];
+  // Ribbons merge per liquid: one geometry + material each, so a
+  // lava river and a water river can share a zone's view.
+  const ribbonBuckets = new Map<PondLiquid, { positions: number[]; indices: number[] }>();
   for (const s of segs) {
     const x1 = s.x1 - zoneX * 100;
     const z1 = s.z1 - zoneZ * 100;
     const x2 = s.x2 - zoneX * 100;
     const z2 = s.z2 - zoneZ * 100;
     if (Math.max(x1, x2) < -64 || Math.min(x1, x2) > 64 || Math.max(z1, z2) < -64 || Math.min(z1, z2) > 64) continue;
-    riverSegs.push({ x1, z1, x2, z2, waterY: s.waterY });
+    riverSegs.push({ x1, z1, x2, z2, waterY: s.waterY, liquid: s.liquid });
     const mx = (x1 + x2) / 2;
     const mz = (z1 + z2) / 2;
     if (s.waterY <= heightAt(mx, mz) + 0.05) continue; // dry gully
+    let bucket = ribbonBuckets.get(s.liquid);
+    if (!bucket) {
+      bucket = { positions: [], indices: [] };
+      ribbonBuckets.set(s.liquid, bucket);
+    }
     const vx = x2 - x1;
     const vz = z2 - z1;
     const vl = Math.hypot(vx, vz) || 1;
     const px = (-vz / vl) * 2.0;
     const pz = (vx / vl) * 2.0;
-    const base = positions.length / 3;
-    positions.push(
+    const base = bucket.positions.length / 3;
+    bucket.positions.push(
       x1 + px, s.waterY, z1 + pz,
       x1 - px, s.waterY, z1 - pz,
       x2 + px, s.waterY, z2 + pz,
       x2 - px, s.waterY, z2 - pz,
     );
-    indices.push(base, base + 2, base + 1, base + 1, base + 2, base + 3);
+    bucket.indices.push(base, base + 2, base + 1, base + 1, base + 2, base + 3);
   }
-  if (positions.length > 0) {
+  for (const [liquid, bucket] of ribbonBuckets) {
     const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geo.setIndex(indices);
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(bucket.positions, 3));
+    geo.setIndex(bucket.indices);
     geo.computeVertexNormals();
-    const mat = waterMaterial();
+    const mat = waterMaterial(liquid);
     mat.side = THREE.DoubleSide;
     const ribbon = new THREE.Mesh(geo, mat);
     ribbon.name = 'riverWater';
@@ -150,6 +184,31 @@ export function waterSurfaceFromLists(ponds: PondLocal[], riverSegs: RiverSegLoc
     surface = surface === null ? s.waterY : Math.max(surface, s.waterY);
   }
   return surface;
+}
+
+/** Which liquid stands at a LOCAL point, and how deep — the
+ *  deepest body at the point wins when two overlap (a river
+ *  mouth in a pond). Null on dry land. The movement loop reads
+ *  this for lava harm (liquids pass, 2026-10-16). */
+export function liquidFromLists(
+  ponds: PondLocal[],
+  riverSegs: RiverSegLocal[],
+  x: number,
+  z: number,
+  heightAt: (x: number, z: number) => number,
+): { liquid: PondLiquid; depth: number } | null {
+  let best: { liquid: PondLiquid; depth: number } | null = null;
+  for (const p of ponds) {
+    if (Math.hypot(x - p.x, z - p.z) >= p.radius) continue;
+    const depth = p.waterY - heightAt(x, z);
+    if (depth > 0 && (best === null || depth > best.depth)) best = { liquid: p.liquid, depth };
+  }
+  for (const s of riverSegs) {
+    if (distToSeg2D(x, z, s) >= 2.0) continue;
+    const depth = s.waterY - heightAt(x, z);
+    if (depth > 0 && (best === null || depth > best.depth)) best = { liquid: s.liquid, depth };
+  }
+  return best;
 }
 
 /** How deep the water is at a LOCAL point (meters; 0 = dry). */

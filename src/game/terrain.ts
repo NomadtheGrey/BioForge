@@ -227,7 +227,16 @@ function shapedFieldAt(seedStr: string, wx: number, wz: number): number {
 // the data from day one so those slot in without a shape change.
 
 /** Liquids a pond can hold. v1 ships 'water' alone. */
-export type PondLiquid = 'water';
+export type PondLiquid = 'water' | 'lava' | 'brine';
+
+/** Which liquid a family's standing water holds: ember country
+ *  pools lava, the saltglass pans pool brine, everything else
+ *  pools water. (Liquids pass, Adam, 2026-10-16.) */
+function familyLiquid(fam: BiomeId): PondLiquid {
+  if (fam === 'ember') return 'lava';
+  if (fam === 'saltglass') return 'brine';
+  return 'water';
+}
 
 export interface PondDef {
   /** World coords of the pond's center. */
@@ -246,7 +255,7 @@ const POND_APPETITE: Record<BiomeId, { max: number; chance: number }> = {
   meadow: { max: 2, chance: 0.55 },
   wetland: { max: 3, chance: 0.8 },
   fungal: { max: 2, chance: 0.6 },
-  ember: { max: 0, chance: 0 }, // ember's ponds arrive with lava
+  ember: { max: 2, chance: 0.7 }, // lava lakes (liquids pass, 2026-10-16; the ridged rim test rejects most candidates, so the roll runs hot)
   saltglass: { max: 1, chance: 0.4 },
   frost: { max: 1, chance: 0.45 },
   rootwood: { max: 1, chance: 0.5 },
@@ -291,8 +300,10 @@ export function zonePondsAt(seedStr: string, zx: number, zz: number): PondDef[] 
 const pondMemo = new Map<string, Map<string, PondDef[]>>();
 
 function computeZonePonds(seedStr: string, zx: number, zz: number): PondDef[] {
-  const ap = POND_APPETITE[zoneBiomeAt(seedStr, zx, zz)];
+  const fam = zoneBiomeAt(seedStr, zx, zz);
+  const ap = POND_APPETITE[fam];
   if (!ap || ap.max === 0) return [];
+  const liquid = familyLiquid(fam);
   const seedNum = seedNumOf(seedStr);
   const out: PondDef[] = [];
   for (let i = 0; i < ap.max; i++) {
@@ -302,7 +313,10 @@ function computeZonePonds(seedStr: string, zx: number, zz: number): PondDef[] {
     // Nobody spawns underwater: the spawn zone keeps its center dry.
     if (zx === 0 && zz === 0 && Math.hypot(cx, cz) < 16) continue;
     const radius = 4.5 + pondRoll(seedNum, zx, zz, i, 4) * 5;
-    const depth = 1.3 + pondRoll(seedNum, zx, zz, i, 5) * 0.8;
+    // Brine pans are shallow crusts (about half depth); lava lakes
+    // carve at full depth — the ridged ember field needs the whole
+    // dip before its rim can hold a basin.
+    const depth = (1.3 + pondRoll(seedNum, zx, zz, i, 5) * 0.8) * (liquid === 'brine' ? 0.45 : 1);
     const hC = shapedFieldAt(seedStr, cx, cz);
     let rim = Infinity;
     for (const [ox, oz] of [[radius, 0], [-radius, 0], [0, radius], [0, -radius]] as const) {
@@ -313,7 +327,7 @@ function computeZonePonds(seedStr: string, zx: number, zz: number): PondDef[] {
     // at d = radius (dip factor (cos(pi/1.7)+1)/2 ≈ 0.363).
     const surface = Math.min(carvedCenter + depth * 0.62, rim - depth * 0.363 - 0.15);
     if (surface <= carvedCenter + 0.3) continue;
-    out.push({ cx, cz, radius, waterY: surface, liquid: 'water', depth });
+    out.push({ cx, cz, radius, waterY: surface, liquid, depth });
   }
   return out;
 }
@@ -388,7 +402,7 @@ const RIVER_SOURCE_CHANCE: Record<BiomeId, number> = {
   meadow: 0.1,
   wetland: 0.22,
   fungal: 0.16,
-  ember: 0, // ember's rivers arrive with lava
+  ember: 0.06, // lava rivers (liquids pass, 2026-10-16)
   saltglass: 0.03,
   frost: 0.1,
   rootwood: 0.14,
@@ -472,7 +486,13 @@ function riverFromSource(seedStr: string, zx: number, zz: number): RiverPath | n
 }
 
 function walkRiver(seedStr: string, zx: number, zz: number): RiverPath | null {
-  const chance = RIVER_SOURCE_CHANCE[zoneBiomeAt(seedStr, zx, zz)] ?? 0;
+  const srcFam = zoneBiomeAt(seedStr, zx, zz);
+  const chance = RIVER_SOURCE_CHANCE[srcFam] ?? 0;
+  // A river carries its SOURCE family's liquid the whole way —
+  // an ember spring runs lava even where the path crosses into
+  // milder country (it cools nowhere in v1; the drama is the
+  // point), a saltglass spring runs brine.
+  const liquid = familyLiquid(srcFam);
   const seedNum = seedNumOf(seedStr);
   if (chance === 0 || riverRoll(seedNum, zx, zz, 1) > chance) return null;
   let x = zx * ZONE_SIZE + (riverRoll(seedNum, zx, zz, 2) * 64 - 32);
@@ -523,7 +543,7 @@ function walkRiver(seedStr: string, zx: number, zz: number): RiverPath | null {
   // Phase 2: water levels against the path's own carved union.
   const segs: RiverSeg[] = [];
   for (let i = 0; i < pts.length - 1; i++) {
-    segs.push({ x1: pts[i].x, z1: pts[i].z, x2: pts[i + 1].x, z2: pts[i + 1].z, waterY: 0, liquid: 'water' });
+    segs.push({ x1: pts[i].x, z1: pts[i].z, x2: pts[i + 1].x, z2: pts[i + 1].z, waterY: 0, liquid });
   }
   const ownDip = (px: number, pz: number): number => {
     let dip = 0;

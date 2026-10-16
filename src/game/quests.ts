@@ -163,6 +163,22 @@ export const QUESTS: QuestDef[] = [
     completeItem: 'resin_satchel',
   },
   {
+    // Storage moved UP the chain (Adam, 2026-10-15 — "sooner
+    // than later"): it used to wait behind the Builder quest
+    // because a pod is only useful once you can place it.
+    id: 'q_storage',
+    tier: 1,
+    title: 'A Place for Things',
+    blurb:
+      'Grow a Storage Pod at the Bio-Forge and set it down by hand — a grown pod needs no Bio-Builder. Click the pod to open it: a home for the surplus, and growth kits make it a Hutch, then a Vault.',
+    gather: [
+      { itemId: 'resin_sap', count: 4 },
+      { itemId: 'soft_fiber', count: 4 },
+      { itemId: 'carapace_scale', count: 2 },
+    ],
+    completeItem: 'storage_pod',
+  },
+  {
     id: 'q_scanner',
     tier: 1,
     title: 'Eyes Open',
@@ -197,22 +213,6 @@ export const QUESTS: QuestDef[] = [
       { itemId: 'soft_fiber', count: 2 },
     ],
     unlockTool: 'builder',
-  },
-  {
-    // The storage line joins the quests (Adam, 2026-10-15): a home
-    // needs a place for things. Sits after the Builder quest
-    // because a pod is only useful once you can place it.
-    id: 'q_storage',
-    tier: 1,
-    title: 'A Place for Things',
-    blurb:
-      'Grow a Storage Pod at the Bio-Forge and place it with the Bio-Builder: a home for the surplus. Click the pod to open it — growth kits make it a Hutch, then a Vault.',
-    gather: [
-      { itemId: 'resin_sap', count: 4 },
-      { itemId: 'soft_fiber', count: 4 },
-      { itemId: 'carapace_scale', count: 2 },
-    ],
-    completeItem: 'storage_pod',
   },
   {
     id: 'q_solvent',

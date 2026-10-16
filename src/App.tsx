@@ -1169,6 +1169,13 @@ const {
         'craft',
         ITEMS[recipe.outputId]?.color || '#06b6d4'
       );
+      // A freshly grown storage pod selects itself as the blueprint
+      // (Adam, 2026-10-15): it is set down by hand with the harvest
+      // glove, so the player's next ground click should meet the
+      // pod they just made — not whatever blueprint was left over.
+      if (recipe.outputId === 'storage_pod') {
+        setSelectedStructureType('storage_pod');
+      }
     }
   };
 

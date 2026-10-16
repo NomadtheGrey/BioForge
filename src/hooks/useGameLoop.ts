@@ -573,8 +573,14 @@ export function useGameLoop(deps: GameLoopDeps): void {
           });
         }
 
-        // Building Ghost Preview
-        if (activeToolRef.current === 'builder') {
+        // Building Ghost Preview. The storage pod previews by hand
+        // too (Adam, 2026-10-15): grown, not built — with the
+        // harvest glove active and the pod selected, the ghost
+        // shows where the hand will set it down.
+        const podByHand =
+          activeToolRef.current === 'harvest_glove' &&
+          selectedStructureRef.current === 'storage_pod';
+        if (activeToolRef.current === 'builder' || podByHand) {
           const pt = engineRef.current.getAimGroundIntersection();
           if (pt) {
             const type = selectedStructureRef.current;
@@ -595,7 +601,7 @@ export function useGameLoop(deps: GameLoopDeps): void {
             );
           }
         }
-        if (activeToolRef.current !== 'builder') {
+        if (activeToolRef.current !== 'builder' && !podByHand) {
           engineRef.current.setGhostPreview(selectedStructureRef.current, false, 0, 0, 0, true);
         }
 

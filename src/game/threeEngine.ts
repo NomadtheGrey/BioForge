@@ -19,7 +19,7 @@ import {
 } from '../types/game';
 import { FirstPersonViewmodel } from './viewmodel';
 import { landformHeightAt } from './terrain';
-import { isFloorType } from './placement';
+import { isFloorType, BUILDING_TYPES } from './placement';
 import { BIOME_TINTS } from './biomes';
 import type { BiomeId } from './biomes';
 import { cavernCellToWorld, type CavernResult } from './cavern';
@@ -39,23 +39,6 @@ const FLOOR_TERRAIN_LIFT = 0.03;
 // wall anchor sits 1 m from its floor's, and corner-touching tiles
 // meet at ~2.83 m.
 const STRUCTURE_LINK_DISTANCE = 2.85;
-
-/**
- * The grid-built types that share build datums. Standalone objects —
- * the forge, the cultivation mound, cave mouths, ruin landmarks —
- * are NOT builds: they keep their own ground height and never join
- * (or drag) a neighboring build's datum.
- */
-const BUILDING_TYPES: ReadonlySet<string> = new Set([
-  'root_tile_floor',
-  'heart_tile',
-  'chitin_glass_wall',
-  'iris_slit_door',
-  'spore_canopy',
-  'vine_ladder',
-  'tamed_snap_trap_turret',
-  'lantern_fern_post',
-]);
 
 /**
  * One flat DATUM per build (Adam, 2026-10-14: buildings must "line up

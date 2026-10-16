@@ -116,6 +116,85 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       }
       return group;
     },
+    // Briar fence (Adam, 2026-10-16): pen panels of uneven briar
+    // stakes, thorn-tipped and lashed with withies — grown, never
+    // lumber. Heights and leans vary stake to stake on a fixed
+    // pattern so a fence line looks cultivated, not stamped.
+    'pen_fence': () => {
+      const group = new THREE.Group();
+      const stakeMat = new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 0.95 });
+      const thornMat = new THREE.MeshStandardMaterial({ color: 0x365314, roughness: 0.9 });
+      const heights = [1.9, 2.2, 1.7, 2.05, 1.8, 2.15, 1.95];
+      const leans = [0.03, -0.05, 0.06, -0.02, 0.05, -0.04, 0.02];
+      for (let i = 0; i < heights.length; i++) {
+        const h = heights[i];
+        const stake = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.075, h, 6), stakeMat);
+        stake.position.set(-0.9 + i * 0.3, h / 2, (i % 2 === 0 ? 0.02 : -0.02));
+        stake.rotation.z = leans[i];
+        stake.castShadow = true;
+        group.add(stake);
+        const thorn = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.16, 6), thornMat);
+        thorn.position.set(-0.9 + i * 0.3 - Math.sin(leans[i]) * h, h + 0.06, stake.position.z);
+        group.add(thorn);
+      }
+      const lashMat = new THREE.MeshStandardMaterial({ color: 0xa16207, roughness: 0.85 });
+      for (const y of [0.55, 1.35]) {
+        const lash = new THREE.Mesh(new THREE.BoxGeometry(1.86, 0.07, 0.05), lashMat);
+        lash.position.set(0, y, 0.055);
+        group.add(lash);
+        const lashBack = lash.clone();
+        lashBack.position.z = -0.055;
+        group.add(lashBack);
+      }
+      return group;
+    },
+    // Briar gate (Adam, 2026-10-16): a framed briar panel hung on
+    // a resin hinge. The moving part lives in the 'gateSwing'
+    // group, pivoted at the hinge post — the engine's door pass
+    // swings it by doorOpenProgress, the iris mechanism in
+    // briar form. It answers to people (proximity), never to
+    // the penned.
+    'pen_gate': () => {
+      const group = new THREE.Group();
+      const postMat = materials.woodRoot;
+      const postGeom = new THREE.CylinderGeometry(0.1, 0.12, 2.3, 8);
+      const hingePost = new THREE.Mesh(postGeom, postMat);
+      hingePost.position.set(-0.95, 1.15, 0);
+      hingePost.castShadow = true;
+      const latchPost = hingePost.clone();
+      latchPost.position.x = 0.95;
+      group.add(hingePost);
+      group.add(latchPost);
+      const hingeBandMat = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.5, emissive: 0x92400e, emissiveIntensity: 0.25 });
+      for (const y of [0.5, 1.75]) {
+        const band = new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.03, 6, 12), hingeBandMat);
+        band.rotation.x = Math.PI / 2;
+        band.position.set(-0.95, y, 0);
+        group.add(band);
+      }
+      const swing = new THREE.Group();
+      swing.name = 'gateSwing';
+      swing.position.set(-0.95, 0, 0);
+      const stakeMat = new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 0.95 });
+      for (let i = 0; i < 6; i++) {
+        const h = 1.75 + (i % 3) * 0.12;
+        const stake = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.065, h, 6), stakeMat);
+        stake.position.set(0.18 + i * 0.3, h / 2 + 0.08, 0);
+        stake.castShadow = true;
+        swing.add(stake);
+      }
+      const braceMat = new THREE.MeshStandardMaterial({ color: 0xa16207, roughness: 0.85 });
+      for (const y of [0.5, 1.5]) {
+        const brace = new THREE.Mesh(new THREE.BoxGeometry(1.72, 0.08, 0.05), braceMat);
+        brace.position.set(0.93, y, 0.05);
+        swing.add(brace);
+        const braceBack = brace.clone();
+        braceBack.position.z = -0.05;
+        swing.add(braceBack);
+      }
+      group.add(swing);
+      return group;
+    },
     // Vine ladder: two springy rails + rungs, standing in the wall's
     // plane so it reads from either face. One segment spans one story.
     'vine_ladder': () => {

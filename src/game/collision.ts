@@ -5,7 +5,7 @@
  */
 
 import { StructureEntity, FloraEntity } from '../types/game';
-import { isWalkOverType, isPortalType, isEdgePanel } from './placement';
+import { isWalkOverType, isPortalType, isEdgePanel, isDoorType } from './placement';
 
 export interface CollisionObstacle {
   x: number;
@@ -37,8 +37,8 @@ function isCollidingWithStructure(
       return false;
     }
 
-    // Iris doors allow passage when opened (> 65% open)
-    if (s.type === 'iris_slit_door' && s.doorOpenProgress > 0.65) {
+    // Doors allow passage when opened (> 65% open)
+    if (isDoorType(s.type) && s.doorOpenProgress > 0.65) {
       return false;
     }
 
@@ -195,4 +195,45 @@ export function resolveMovementWithCollision(
 
   // Both axes blocked: stay in place
   return { x: currentX, z: currentZ };
+}
+
+/**
+ * Fauna barrier (pens, Adam, 2026-10-16): creatures meet edge
+ * panels the way the player does — the same boxes, the same
+ * open-door rule — resolved as a clamp on the step they just
+ * took: if the landing point sits inside a panel's box, push it
+ * out along the shallower penetration. Fauna steps are small
+ * (well under the thinnest box), so a push-out can never tunnel
+ * or teleport. Ground story only: pens are ground works, and a
+ * second-story panel never bars a creature beneath it. Flight
+ * is the caller's call (species data), not this function's.
+ */
+export function resolveFaunaPanelStep(
+  toX: number,
+  toZ: number,
+  radius: number,
+  structures: StructureEntity[],
+): { x: number; z: number } {
+  let x = toX;
+  let z = toZ;
+  for (const s of structures) {
+    if (!isEdgePanel(s.type)) continue;
+    if ((s.level ?? 0) !== 0) continue;
+    if (isDoorType(s.type) && s.doorOpenProgress > 0.65) continue;
+    const isRotated = Math.abs(Math.sin(s.rotation)) > 0.7;
+    const halfW = isRotated ? 0.35 : 1.05;
+    const halfD = isRotated ? 1.05 : 0.35;
+    const dx = Math.abs(x - s.worldX);
+    const dz = Math.abs(z - s.worldZ);
+    if (dx < halfW + radius && dz < halfD + radius) {
+      const penX = halfW + radius - dx;
+      const penZ = halfD + radius - dz;
+      if (penX < penZ) {
+        x = s.worldX + (x >= s.worldX ? halfW + radius : -(halfW + radius));
+      } else {
+        z = s.worldZ + (z >= s.worldZ ? halfD + radius : -(halfD + radius));
+      }
+    }
+  }
+  return { x, z };
 }

@@ -32,7 +32,7 @@ import type { StructureEntity, StructureType } from '../types/game';
 export const CELL_SIZE = 2;
 
 /** Structural panels that live on cell edges instead of cell centers. */
-export const EDGE_PANEL_TYPES: StructureType[] = ['chitin_glass_wall', 'iris_slit_door', 'rootweave_wall'];
+export const EDGE_PANEL_TYPES: StructureType[] = ['chitin_glass_wall', 'iris_slit_door', 'rootweave_wall', 'pen_fence', 'pen_gate'];
 
 /** Cell pieces that form the ground layer (one per cell). */
 export const GROUND_LAYER_TYPES: StructureType[] = ['root_tile_floor', 'cultivation_mound', 'heart_tile'];
@@ -86,6 +86,22 @@ export function isPortalType(type: StructureType): boolean {
 }
 
 /**
+ * Door kinds (registry step 3, with the pens, 2026-10-16):
+ * panels that open — proximity swings them, and both bodies
+ * (the player's collision, the fauna barrier) pass while they
+ * stand open. The iris door was the only door for a day; the
+ * Briar Gate is the second, and this set is where doors live.
+ */
+export const DOOR_TYPES: ReadonlySet<StructureType> = new Set([
+  'iris_slit_door',
+  'pen_gate',
+]);
+
+export function isDoorType(type: StructureType): boolean {
+  return DOOR_TYPES.has(type);
+}
+
+/**
  * The grid-built types that share build datums (moved here from
  * threeEngine in registry step 2, Adam, 2026-10-16). Standalone
  * objects — the forge, the cultivation mound, cave mouths, ruin
@@ -98,6 +114,8 @@ export const BUILDING_TYPES: ReadonlySet<string> = new Set([
   'chitin_glass_wall',
   'iris_slit_door',
   'rootweave_wall',
+  'pen_fence',
+  'pen_gate',
   'spore_canopy',
   'vine_ladder',
   'tamed_snap_trap_turret',

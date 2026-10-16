@@ -77,7 +77,7 @@ export const CODEX_LATE: CodexEntry[] = [
     scannedCount: 0,
     description: 'The ubiquitous layer\'s fourth designed member: a mid-sized dog, unremarkable in every proportion, that appears where a player settles — trotting out of the treeline of a new homestead like it had been waiting just past the light for exactly that address. It cannot be lured and does not answer calls. It arrives, or it doesn\'t.',
     byproducts: [],
-    tamingOrCraftNotes: 'Untamable — it chooses. Keep a hearth worth choosing.',
+    tamingOrCraftNotes: 'It arrives on its own once a heart tile stands — then the taming runs backwards. Offer it food (the lure, with Sweet Nectar) three times, at its pace, and the dog decides: a decided dog is the most complete pet there is. Leave it unoffered for three days and it leaves one morning, as it came.',
     biome: 'Everywhere a player settles (ubiquitous)',
     iconColor: '#b45309',
   },

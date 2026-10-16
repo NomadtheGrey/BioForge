@@ -924,6 +924,21 @@ export default function App() {
     });
   }, [codexList, hasStarted]);
 
+  // The social set's mirror: the field-notes book's witnessed
+  // list, shadowed into the quest signals so the witness quests
+  // read the same record as every other goal. The book (App
+  // state, saved with the world) stays the authority — this
+  // only copies it when it changes.
+  useEffect(() => {
+    if (!hasStarted) return;
+    const w = fieldNotesState.witnessed;
+    awMergeRef.current((s) => {
+      const prev = s.witnessed ?? [];
+      const same = prev.length === w.length && w.every((id) => prev.includes(id));
+      return same ? s : { ...s, witnessed: [...w] };
+    });
+  }, [fieldNotesState, hasStarted]);
+
   // The homestead composites: home-as-organism (a heart tile
   // set down, a hearthpod grown, a tamed companion in residence
   // near the heart) and the hum (hearth + a gestating vat + a

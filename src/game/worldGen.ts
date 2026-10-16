@@ -254,8 +254,14 @@ import type { PondDef } from './terrain';
  *     Grave Owl's roost pellets shed Clean Bone — two
  *     economies the codex has promised since design week.
  *     Table-only; generation learns nothing new.
+ * v53: creature build phase, slice 38 (2026-10-16) — the
+ *     one-off ledger, second pass: the BLINK HARE blinks
+ *     (most wander re-rolls arrive by vanish, in the sim) and
+ *     the PLUNGE DUCK dives (a table-driven dive cycle —
+ *     flight and swim alternate on the sim's phase clock).
+ *     Behavior-only; generation learns nothing new.
  */
-export const WORLD_GEN_VERSION = 52; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
+export const WORLD_GEN_VERSION = 53; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

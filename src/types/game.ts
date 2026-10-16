@@ -827,6 +827,10 @@ export interface FaunaEntity {
    *  refreshed by further harm. Optional: absent on older saves;
    *  the sim treats absent as unprovoked. */
   provokedTimer?: number;
+  // Behavior phase clock (slice 38, 2026-10-16): seconds into
+  // a species' cyclic behavior (the Plunge Duck's dive cycle),
+  // ticked by the sim for species whose table entry names one.
+  phaseTimer?: number;
   animTime: number;
   /** Biome TYPE this creature spawned in (world-gen stamp; absent on old saves). */
   biome?: BiomeId;

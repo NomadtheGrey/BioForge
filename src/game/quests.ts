@@ -30,7 +30,7 @@
  * to the full tool set (nobody gets demoted; see App).
  */
 
-import type { ItemId, ToolType, CraftingRecipe } from '../types/game';
+import type { ItemId, ToolType, CraftingRecipe, QuestSignals } from '../types/game';
 import { ITEMS, RECIPES, getRecipeTier, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from './constants';
 import { WEAPON_ITEM_IDS, anyWeaponOwned } from './weapons';
 
@@ -116,6 +116,78 @@ export interface QuestDef {
    * pouch upgrade, the storage pod, the Graft). Gather lists still
    * mirror the item's recipe, so the checkmarks lead the way. */
   completeItem?: ItemId;
+  // ------------------------------------------------------------------
+  // ASK THE WORLD line fields (Adam, 2026-10-16 — the named,
+  // swappable quest line; registry: quest-lines.md). The craft
+  // chain above uses none of these; a line quest carries an empty
+  // gather list and completes on a GOAL STATE instead.
+  // ------------------------------------------------------------------
+  /** Which named quest line this quest belongs to. Absent = the
+   * gauntlet craft chain. */
+  line?: string;
+  /** The "For those who wander" wink shown in the line's tab —
+   * flavor, never a lane or a lock. */
+  flavor?: string;
+  /** When set, the quest completes when this goal state holds in
+   * the player's QuestSignals (types/game.ts), evaluated by
+   * goalMet() below. */
+  completeWhen?: QuestGoal;
+  /** Items granted to the pouch the moment the quest latches
+   * complete (via the grant callback useQuests receives). */
+  rewardItems?: { itemId: ItemId; count: number }[];
+  /** One line shown with the completion notice, naming the
+   * reward when the reward is not an item — a bond, a page, a
+   * state of the world. */
+  rewardNote?: string;
+}
+
+/**
+ * Goal states for line quests (Ask the World v1): each kind reads
+ * one field of QuestSignals. New kinds join here as their signal
+ * writers land; the latch machinery in useQuests is generic.
+ */
+export type QuestGoal =
+  | { kind: 'ruinEnter' }
+  | { kind: 'glyphRuins'; count: number }
+  | { kind: 'heart' }
+  | { kind: 'zoneHybrid' }
+  | { kind: 'zoneTier3' }
+  | { kind: 'families'; count: number }
+  | { kind: 'dogBond' }
+  | { kind: 'vatHatch' }
+  | { kind: 'madeMet'; count: number };
+
+/** Is this goal state true in the player's signals right now? */
+export function goalMet(goal: QuestGoal, signals: QuestSignals | undefined): boolean {
+  const s = signals ?? {};
+  switch (goal.kind) {
+    case 'ruinEnter': return (s.ruins?.length ?? 0) >= 1;
+    case 'glyphRuins': return (s.glyphRuins?.length ?? 0) >= goal.count;
+    case 'heart': return s.heart === true;
+    case 'zoneHybrid': return s.hybrid === true;
+    case 'zoneTier3': return s.tier3 === true;
+    case 'families': return (s.families?.length ?? 0) >= goal.count;
+    case 'dogBond': return s.dogBonded === true;
+    case 'vatHatch': return s.hatched === true;
+    case 'madeMet': return (s.madeMet?.length ?? 0) >= goal.count;
+  }
+}
+
+/** The live progress line a goal-state quest shows in place of
+ * gather checkmarks — where you stand, in plain words. */
+export function goalProgressText(goal: QuestGoal, signals: QuestSignals | undefined): string {
+  const s = signals ?? {};
+  switch (goal.kind) {
+    case 'ruinEnter': return (s.ruins?.length ?? 0) >= 1 ? 'You have stood inside a house of the Precursors' : 'Cross the threshold of any ruin';
+    case 'glyphRuins': return `Glyph stones read — ${Math.min(s.glyphRuins?.length ?? 0, goal.count)} of ${goal.count} ruins`;
+    case 'heart': return s.heart ? 'You have stood at a heart' : 'Reach the deepest room of a ruin';
+    case 'zoneHybrid': return s.hybrid ? 'You have stood where two lands meet' : 'Stand in blended country — a hybrid zone';
+    case 'zoneTier3': return s.tier3 ? 'You have stood in the far country' : 'Reach a far family — storm, living, or precursor';
+    case 'families': return `Countries stood in — ${Math.min(s.families?.length ?? 0, goal.count)} of ${goal.count}`;
+    case 'dogBond': return s.dogBonded ? 'The dog has decided' : 'Win the hearth dog’s decision';
+    case 'vatHatch': return s.hatched ? 'Something has woken in the vat' : 'Hatch a creature in the Culture Vat';
+    case 'madeMet': return `Made things met — ${Math.min(s.madeMet?.length ?? 0, goal.count)} of ${goal.count}`;
+  }
 }
 
 /**
@@ -483,6 +555,164 @@ export const QUESTS: QuestDef[] = [
   },
 ];
 
+// ============================================================================
+// ASK THE WORLD — Potential Quest Line 1 (Adam, 2026-10-16)
+// ============================================================================
+// A named, swappable quest line (registry: quest-lines.md in the
+// design docs). These quests are NOT the craft chain: they carry
+// empty gather lists, complete on GOAL STATES (QuestSignals), and
+// live in their own array so the chain's sequencing, the harness
+// parity checks, and any future line never collide with them.
+// Ids carry the line's prefix (q_aw_). Copy source: the developed
+// cards in precursor-quests-developed.md — v1 ships the nine
+// quests whose signals exist today; the Doorstep Stone (needs
+// the spawn remnant) and What Happened Here (needs the fragment
+// items) follow when their content lands.
+// ============================================================================
+
+/** The line's registry name — views and the Quest Log tab key on it. */
+export const ASK_THE_WORLD_LINE = 'ask_the_world';
+
+/** The "made things" for q_aw_made_things: codex species that are
+ * clearly GROWN, not evolved (design-curated; extend as species
+ * are filed under the Forged/cultivated kinds). */
+export const MADE_SPECIES_IDS: string[] = [
+  'feral_warden',
+  'hearth_dog',
+  'lantern_fern',
+  'false_greeter',
+  'second_tenant',
+];
+
+export const ASK_THE_WORLD_QUESTS: QuestDef[] = [
+  {
+    // M1 — the mystery's on-ramp, disguised as a walk.
+    id: 'q_aw_first_door',
+    questChapter: 2,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For those who wander',
+    title: 'First Door',
+    blurb:
+      'The grown husks of the Precursors stand in every country, and every one of them has a door. Nobody is asking you to open one. But you could.',
+    gather: [],
+    completeWhen: { kind: 'ruinEnter' },
+    rewardItems: [{ itemId: 'precursor_shard', count: 1 }],
+    rewardNote: 'A Precursor Shard, from the first room’s dust.',
+  },
+  {
+    // A1 — the dog arrives on its own; the quest is the decision.
+    id: 'q_aw_guest_hearth',
+    questChapter: 1,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For the animal lovers',
+    title: 'A Guest at the Hearth',
+    blurb:
+      'Something has been visiting your hearth. It has not decided about you yet. Feed it when it comes — three kindnesses is what a decision costs.',
+    gather: [],
+    completeWhen: { kind: 'dogBond' },
+    rewardNote: 'The bond itself — and a dog who stays.',
+  },
+  {
+    // E1 — stand where two lands meet.
+    id: 'q_aw_two_lands',
+    questChapter: 2,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For those who wander',
+    title: 'Where Two Lands Meet',
+    blurb:
+      'Far enough out, the countries stop keeping to themselves. Stand where two lands have grown into one another — the Marches, the blended country — and see a place that is two places.',
+    gather: [],
+    completeWhen: { kind: 'zoneHybrid' },
+    rewardItems: [{ itemId: 'living_thread', count: 1 }],
+    rewardNote: 'A Living Thread, found where the lands braid.',
+  },
+  {
+    // X1 — meet the made things.
+    id: 'q_aw_made_things',
+    questChapter: 2,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For the scientists',
+    title: 'The Made Things',
+    blurb:
+      'Some of what lives here evolved. Some of it was composed — the fern that burns without flame, the dog that waits at hearths no one built for it. Meet the made things, and count them.',
+    gather: [],
+    completeWhen: { kind: 'madeMet', count: 5 },
+    rewardNote: 'The hypothesis, written in your codex: these were grown by someone.',
+  },
+  {
+    // A2 — the vat's thesis in one quest.
+    id: 'q_aw_second_chance',
+    questChapter: 2,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For the animal lovers',
+    title: 'Second Chance',
+    blurb:
+      'What the vat grows from a sample wakes up trusting you. Grow one creature back into the world — and then decide whether it stays at your side or goes free. Both are kindnesses.',
+    gather: [],
+    completeWhen: { kind: 'vatHatch' },
+    rewardNote: 'A life, returned to the world by your hand.',
+  },
+  {
+    // M3 — three ruins, one voice.
+    id: 'q_aw_three_stones',
+    questChapter: 3,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For the lore-keepers',
+    title: 'Three Stones, One Voice',
+    blurb:
+      'One ruin mutters. Three ruins, in three countries, are a voice. Read the stones in three different houses of the Precursors and listen for what repeats.',
+    gather: [],
+    completeWhen: { kind: 'glyphRuins', count: 3 },
+    rewardItems: [{ itemId: 'precursor_shard', count: 2 }],
+    rewardNote: 'Two Precursor Shards — and three lines that agree.',
+  },
+  {
+    // M4 — the deepest room.
+    id: 'q_aw_heart_house',
+    questChapter: 3,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For the lore-keepers',
+    title: 'The Heart of the House',
+    blurb:
+      'Every house of the Precursors keeps one room deeper than the rest, and in it, the thing they could not take with them. Go down and be told.',
+    gather: [],
+    completeWhen: { kind: 'heart' },
+    rewardItems: [{ itemId: 'precursor_shard', count: 1 }],
+    rewardNote: 'The heart provides — a Precursor Shard, and its line.',
+  },
+  {
+    // E2 — the far country.
+    id: 'q_aw_rim',
+    questChapter: 3,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For those who wander',
+    title: 'The Rim',
+    blurb:
+      'Past the familiar families the land turns strange: storms that rain upward, valleys that are hungry, gardens no one tends. Go and stand in the far country, once.',
+    gather: [],
+    completeWhen: { kind: 'zoneTier3' },
+    rewardItems: [
+      { itemId: 'living_thread', count: 2 },
+      { itemId: 'prismatic_core', count: 1 },
+    ],
+    rewardNote: 'A Cache of the Rim — Living Thread and a Prismatic Core.',
+  },
+  {
+    // P1 — every country.
+    id: 'q_aw_every_country',
+    questChapter: 3,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For the completionists',
+    title: 'Every Country',
+    blurb:
+      'Eleven families. Eleven weathers of the land. Stand in every one of them — the meadow you know, and the ones you have only heard named.',
+    gather: [],
+    completeWhen: { kind: 'families', count: 11 },
+    rewardItems: [{ itemId: 'prismatic_core', count: 1 }],
+    rewardNote: 'A Prismatic Core, for the one who has stood everywhere.',
+  },
+];
+
 /** Kept for the gen-lab harness's parity checks. */
 export const FIELD_SYNTHESIS_QUEST_ID = 'q_field_synthesis';
 export const FIELD_SYNTHESIS_ITEM_ID: ItemId = 'gauntlet_synthesizer_upgrade';
@@ -587,6 +817,14 @@ export interface QuestProgressView {
    * says what — and whether it's been crafted. Null only for a
    * quest with no craft at its end (none in the chain today). */
   completion: { label: string; done: boolean } | null;
+  /** Line quests only: the live goal-state line (goalProgressText)
+   * the log and tracker show in place of gather checkmarks. */
+  progressText?: string | null;
+  /** Line quests only: chapter-3 line quests stay sealed until
+   * Field Synthesis completes (set by useQuests, which owns the
+   * completed list). Sealed is presentation — the latch still
+   * records a goal met early. */
+  sealed?: boolean;
 }
 
 /** Compute a quest's live view from the pouch + unlocked tools. */
@@ -594,13 +832,17 @@ export function questView(
   def: QuestDef,
   inventory: Record<ItemId, number>,
   unlockedTools: ToolType[],
+  signals?: QuestSignals,
 ): QuestProgressView {
   const gather = def.gather.map((objective) => {
     const have = inventory[objective.itemId] ?? 0;
     return { ...objective, have, done: have >= objective.count };
   });
   let complete: boolean;
-  if (def.unlockTool) {
+  if (def.completeWhen) {
+    // Ask the World line: completion is a goal state, not a craft.
+    complete = goalMet(def.completeWhen, signals);
+  } else if (def.unlockTool) {
     complete = unlockedTools.includes(def.unlockTool);
   } else if (def.completeItem) {
     complete = (inventory[def.completeItem] ?? 0) > 0;
@@ -610,7 +852,11 @@ export function questView(
   // The final checkbox line, worded by what the craft is: a
   // module names the tool it unlocks; an item names itself.
   let completion: QuestProgressView['completion'] = null;
-  if (def.unlockTool) {
+  let progressText: string | null = null;
+  if (def.completeWhen) {
+    progressText = goalProgressText(def.completeWhen, signals);
+    completion = { label: progressText, done: complete };
+  } else if (def.unlockTool) {
     completion = {
       label: `Craft the module — unlock ${TOOL_NAMES[def.unlockTool]}`,
       done: complete,
@@ -621,7 +867,7 @@ export function questView(
       done: complete,
     };
   }
-  return { def, gather, complete, completion };
+  return { def, gather, complete, completion, progressText };
 }
 
 /**

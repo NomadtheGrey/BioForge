@@ -1133,10 +1133,35 @@ export interface BiomeArea {
  * tracked, tracker hidden; the quest list still opens and the show
  * checkbox there can wake the tracker).
  */
+/**
+ * Goal-state signals for the ASK THE WORLD quest line (Adam,
+ * 2026-10-16): the durable record of things the player has DONE
+ * and SEEN — zones stood in, ruins entered, stones read, a heart
+ * reached, a creature hatched or bonded — written by small
+ * observer effects in App and read by the line's quests through
+ * game/quests.ts goalMet(). Everything optional: saves from
+ * before the line simply have no signals yet. Biome ids are
+ * stored as plain strings to keep this file import-light.
+ */
+export interface QuestSignals {
+  families?: string[];
+  hybrid?: boolean;
+  tier3?: boolean;
+  ruins?: string[];
+  glyphRuins?: string[];
+  heart?: boolean;
+  hatched?: boolean;
+  dogBonded?: boolean;
+  madeMet?: string[];
+}
+
 export interface QuestProgressState {
   completedIds: string[];
   trackedId: string | null;
   showHud: boolean;
+  /** Ask the World goal-state signals (above). Optional: older
+   *  saves predate the line. */
+  signals?: QuestSignals;
   /** The quest the player closed with the tracker's X (Adam,
    * 2026-10-15): the tracker rests instead of falling back to it.
    * Not an abandonment — tracking it again from the quest log

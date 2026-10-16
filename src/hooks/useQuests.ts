@@ -23,11 +23,19 @@ import type {
 } from '../types/game';
 import {
   QUESTS,
+  ASK_THE_WORLD_QUESTS,
+  FIELD_SYNTHESIS_QUEST_ID,
   deriveUnlockedTools,
   questView,
   trackedQuest,
   type QuestProgressView,
 } from '../game/quests';
+
+/** Every quest the views serve: the craft chain plus the Ask the
+ * World line. The line lives in its own array in game/quests.ts;
+ * the latch, tracker, and notifications below are shared
+ * infrastructure no line owns (Adam's swap discipline, 2026-10-16). */
+const ALL_QUEST_DEFS = [...QUESTS, ...ASK_THE_WORLD_QUESTS];
 
 export interface UseQuestsArgs {
   inventory: Record<ItemId, number>;
@@ -41,6 +49,11 @@ export interface UseQuestsArgs {
     iconColor: string,
   ) => void;
   hasStarted: boolean;
+  /** Grants a latched line quest's reward items into the pouch
+   * (App wires this to the inventory gain, so pouch caps and the
+   * overflow drop apply exactly as for any other gain). Optional:
+   * without it, item rewards are simply not granted. */
+  grantItems?: (items: { itemId: ItemId; count: number }[]) => void;
 }
 
 export interface UseQuestsResult {
@@ -58,9 +71,22 @@ export function useQuests({
   setQuestProgress,
   postNotification,
   hasStarted,
+  grantItems,
 }: UseQuestsArgs): UseQuestsResult {
   const unlockedTools = deriveUnlockedTools(inventory, grandfathered);
-  const questViews = QUESTS.map((def) => questView(def, inventory, unlockedTools));
+  // Views derive from the pouch AND the goal-state signals; the
+  // Ask the World chapter-3 quests stay SEALED (presentation only)
+  // until Field Synthesis completes — the latch below still
+  // records any goal met early, so a sealed quest completed ahead
+  // of its chapter is simply already done when it opens.
+  const synthesisDone = (questProgress?.completedIds ?? []).includes(FIELD_SYNTHESIS_QUEST_ID);
+  const questViews = ALL_QUEST_DEFS.map((def) => {
+    const view = questView(def, inventory, unlockedTools, questProgress?.signals);
+    if (def.line && def.questChapter === 3 && !synthesisDone) {
+      return { ...view, sealed: true };
+    }
+    return view;
+  });
   const trackedView = trackedQuest(
     questProgress?.completedIds ?? [],
     questProgress?.trackedId ?? null,
@@ -104,11 +130,20 @@ export function useQuests({
       completedIds: [...questProgress.completedIds, ...doneIds],
     });
     doneIds.forEach((id) => {
-      const def = QUESTS.find((q) => q.id === id);
+      const def = ALL_QUEST_DEFS.find((q) => q.id === id);
       if (def) {
+        // Line quests grant their reward at the latch: items into
+        // the pouch (through App's grant callback), and the note
+        // rides the completion notice so the player hears what
+        // the world gave back.
+        if (def.rewardItems && def.rewardItems.length > 0) {
+          grantItems?.(def.rewardItems);
+        }
         postNotification(
-          'Mini-Quest Complete',
-          `${def.title} — nicely done. Press Q for the quest list and what comes next.`,
+          def.line ? 'Invitation Complete' : 'Mini-Quest Complete',
+          def.line
+            ? `${def.title} — ${def.rewardNote ?? 'nicely done.'}`
+            : `${def.title} — nicely done. Press Q for the quest list and what comes next.`,
           'discover',
           '#34d399',
         );

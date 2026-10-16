@@ -980,8 +980,9 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           byproductTimer: 0,
           animTime: 0,
           hearthFeedings: 0,
-          hearthDecideTimer: 1800, // three ten-minute days to decide
+          hearthDecideTimer: 18000, // thirty ten-minute days to decide (Adam, 2026-10-16: '30 days is fair')
           hearthFedTimer: 999, // the first offering need not wait
+          hearthAgeDays: 0, // arrives a pup — growth is the engine's read of this clock
         };
         setFaunaList((prev) => (prev.some((f) => f.species === 'hearth_dog') ? prev : [...prev, dog]));
       }
@@ -1041,13 +1042,22 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           let phaseTimer = fauna.phaseTimer ?? 0;
           if (diveSpec) phaseTimer = (phaseTimer + dt) % diveSpec.cycleSeconds;
           // Hearth Dog courtship clocks (slice 39): an arrived,
-          // undecided dog counts down its three days of
+          // undecided dog counts down its thirty days of
           // loaded-zone time, and digests between offerings.
           let hearthDecideTimer = fauna.hearthDecideTimer;
           let hearthFedTimer = fauna.hearthFedTimer;
           if (fauna.species === 'hearth_dog' && !isTamed && hearthDecideTimer !== undefined) {
             hearthDecideTimer = Math.max(0, hearthDecideTimer - dt);
             hearthFedTimer = (hearthFedTimer ?? 0) + dt;
+          }
+          // Growth (Adam, 2026-10-16): the dog ages in game days
+          // (600 s each — the planet's rotation), courted or bonded
+          // alike: a pup at arrival, full-grown by day ten. A dog
+          // from before this clock existed starts full-grown if he
+          // is already yours, a pup if he is still deciding.
+          let hearthAgeDays = fauna.hearthAgeDays;
+          if (fauna.species === 'hearth_dog') {
+            hearthAgeDays = (hearthAgeDays ?? (isTamed ? 10 : 0)) + dt / 600;
           }
           // The hermit's regard (slice 42): stillness shown to
           // a wild Hollow Hermit in the night band accrues —
@@ -1331,6 +1341,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             phaseTimer,
             hearthDecideTimer,
             hearthFedTimer,
+            hearthAgeDays,
             health: fauna.health - dissolveDamage,
             animTime: fauna.animTime + dt,
           };
@@ -1469,6 +1480,77 @@ export function useWorldEntities(): UseWorldEntitiesResult {
         .map((pod) => ({ x: pod.worldX, z: pod.worldZ }));
       setFloraList((prevFlora) =>
         prevFlora.map((flora) => {
+          // ---------------------------------------------------------------
+          // THE SAGE, LOOSED (slice 45, 2026-10-16): the Tumble
+          // Sage is the rolling mode's plant citizen — at
+          // season's turn the whole plant lets go of its root
+          // and becomes its own seed-head. In sim terms: a sage
+          // left RIPE and unharvested for four minutes lets go —
+          // it rolls downwind (a heading seeded from its own id,
+          // jittered) at a plains trot for ten to eighteen
+          // meters, SHEDDING a Sage Leaf every bounce or so, and
+          // re-roots where it stops, young again (stage 3, its
+          // clock part-run). The scatter is the economy: the
+          // geode roller gathers, the sage scatters, and a
+          // plains company left unharvested migrates — the
+          // Wind Plains' hello, at landscape scale. (Guests in
+          // co-op see the start and the re-rooting via the
+          // stage/ready broadcasts; the roll itself is the
+          // host's view in v1.)
+          // ---------------------------------------------------------------
+          if (flora.species === 'tumble_sage') {
+            if ((flora.rollLeft ?? 0) > 0) {
+              const step = 3.5 * dt;
+              const nx = Math.min(96, Math.max(4, flora.x + (flora.rollVx ?? 0) * dt));
+              const nz = Math.min(96, Math.max(4, flora.z + (flora.rollVz ?? 0) * dt));
+              let shed = (flora.rollShedTimer ?? 0) - dt;
+              if (shed <= 0) {
+                spawnDroppedItem('sage_leaf', 1, flora.x, flora.z);
+                shed = 0.55;
+              }
+              const left = (flora.rollLeft ?? 0) - step;
+              if (left <= 0) {
+                return {
+                  ...flora,
+                  x: nx,
+                  z: nz,
+                  rollVx: undefined,
+                  rollVz: undefined,
+                  rollLeft: 0,
+                  rollShedTimer: undefined,
+                  looseTimer: 0,
+                  harvestReady: false,
+                  growthStage: 3,
+                  harvestTimer: FLORA_MATURE_SECONDS * 0.45,
+                };
+              }
+              return { ...flora, x: nx, z: nz, rollLeft: left, rollShedTimer: shed };
+            }
+            if (flora.harvestReady) {
+              const loose = (flora.looseTimer ?? 0) + dt;
+              if (loose >= 240) {
+                const seedNum = flora.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+                const ang = (seedNum % 628) / 100 + (Math.random() - 0.5) * 0.8;
+                const dist = 10 + (seedNum % 9);
+                const tx = Math.min(94, Math.max(6, flora.x + Math.cos(ang) * dist));
+                const tz = Math.min(94, Math.max(6, flora.z + Math.sin(ang) * dist));
+                const actual = Math.hypot(tx - flora.x, tz - flora.z);
+                if (actual < 3) return { ...flora, looseTimer: 0 }; // boxed in — wait for another season
+                spawnDroppedItem('sage_leaf', 1, flora.x, flora.z);
+                return {
+                  ...flora,
+                  looseTimer: 0,
+                  harvestReady: false,
+                  rollVx: ((tx - flora.x) / actual) * 3.5,
+                  rollVz: ((tz - flora.z) / actual) * 3.5,
+                  rollLeft: actual,
+                  rollShedTimer: 0.55,
+                };
+              }
+              return { ...flora, looseTimer: loose };
+            }
+          }
+
           if (flora.harvestReady) return flora;
 
           // The fertilizer clock runs down in real time; the boost lives

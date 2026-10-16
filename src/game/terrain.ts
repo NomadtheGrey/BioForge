@@ -272,6 +272,25 @@ function pondRoll(seedNum: number, zx: number, zz: number, i: number, salt: numb
  * crush the surface to the floor is rejected outright.
  */
 export function zonePondsAt(seedStr: string, zx: number, zz: number): PondDef[] {
+  // Memoized per (seed, zone): the resolver is pure, and the dip
+  // field + river walks call it constantly. Memo only — the
+  // answer never changes.
+  let bySeed = pondMemo.get(seedStr);
+  if (!bySeed) {
+    bySeed = new Map();
+    pondMemo.set(seedStr, bySeed);
+  }
+  const key = `${zx},${zz}`;
+  const hit = bySeed.get(key);
+  if (hit) return hit;
+  const made = computeZonePonds(seedStr, zx, zz);
+  bySeed.set(key, made);
+  return made;
+}
+
+const pondMemo = new Map<string, Map<string, PondDef[]>>();
+
+function computeZonePonds(seedStr: string, zx: number, zz: number): PondDef[] {
   const ap = POND_APPETITE[zoneBiomeAt(seedStr, zx, zz)];
   if (!ap || ap.max === 0) return [];
   const seedNum = seedNumOf(seedStr);
@@ -321,12 +340,271 @@ function pondDipAt(seedStr: string, wx: number, wz: number): number {
 }
 
 /**
- * The landform height at a WORLD point (meters): the shaped field
- * with ponds carved in. Pure in (seedStr, wx, wz) — same inputs,
+ * The field with ponds carved in, before rivers. River paths walk
+ * THIS surface (a river should find the ponds and end in them),
+ * and the public landformHeightAt subtracts the deeper of the
+ * pond and river dips from the shaped field.
+ */
+function baseFieldAt(seedStr: string, wx: number, wz: number): number {
+  return shapedFieldAt(seedStr, wx, wz) - pondDipAt(seedStr, wx, wz);
+}
+
+// ---- Layer 6: rivers (P5 move 3, Adam, 2026-10-16) --------------------------
+//
+// A river is a seeded SOURCE plus a downhill walk over the
+// pond-carved field: each 7 m step blends the previous heading
+// with the local downhill gradient and a seeded meander wobble.
+// The walk is a pure function of (seed, source zone) — any zone a
+// river crosses can regenerate the identical path, so borders
+// need no negotiation. Channels are carved along the path with
+// the same cosine dip as ponds (MAX-composed), and each segment
+// carries its own flat water level: a stepped surface whose steps
+// read as riffles. Water levels are set in a SECOND phase against
+// the path's own carved union, clamped below the channel wall at
+// the water's edge — a segment that cannot hold water ships dry
+// (a gully), never floating. Paths are memoized per seed and
+// their segments indexed by the zones they cross, so height
+// queries stay cheap; the cache is memo only — the field remains
+// a pure function of (seed, x, z). Lava rivers arrive with the
+// lava pass; v1 flows water only.
+
+/** One river segment: a 7 m run of channel with its water level. */
+export interface RiverSeg {
+  x1: number;
+  z1: number;
+  x2: number;
+  z2: number;
+  /** World height of this segment's water surface (≤ the carved
+   *  floor means the segment runs dry — a gully, no ribbon). */
+  waterY: number;
+  liquid: PondLiquid;
+}
+
+interface RiverPath {
+  segs: RiverSeg[];
+}
+
+const RIVER_SOURCE_CHANCE: Record<BiomeId, number> = {
+  meadow: 0.1,
+  wetland: 0.22,
+  fungal: 0.16,
+  ember: 0, // ember's rivers arrive with lava
+  saltglass: 0.03,
+  frost: 0.1,
+  rootwood: 0.14,
+  precursor: 0.06,
+  bone: 0.06,
+  storm: 0.05,
+  living: 0.16,
+};
+const RIVER_STEP = 7;
+const RIVER_MAX_STEPS = 56; // ~390 m of river, worst case
+const CHANNEL_DEPTH = 0.9;
+const CHANNEL_REACH = 5.2;
+/** Water half-width: the ribbon spans 2 m either side of the path. */
+const CHANNEL_HALF_WIDTH = 2.0;
+
+function riverRoll(seedNum: number, zx: number, zz: number, salt: number): number {
+  let h = (seedNum * 77 + zx * 374761393 + zz * 668265263 + salt * 1442695041) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+}
+
+function distToSeg(px: number, pz: number, s: RiverSeg): number {
+  const vx = s.x2 - s.x1;
+  const vz = s.z2 - s.z1;
+  const t = Math.max(0, Math.min(1, ((px - s.x1) * vx + (pz - s.z1) * vz) / (vx * vx + vz * vz)));
+  return Math.hypot(px - (s.x1 + vx * t), pz - (s.z1 + vz * t));
+}
+
+function gradientAt(seedStr: string, x: number, z: number): { gx: number; gz: number; mag: number } {
+  const e = 3;
+  const gx = (baseFieldAt(seedStr, x + e, z) - baseFieldAt(seedStr, x - e, z)) / (2 * e);
+  const gz = (baseFieldAt(seedStr, x, z + e) - baseFieldAt(seedStr, x, z - e)) / (2 * e);
+  return { gx, gz, mag: Math.hypot(gx, gz) };
+}
+
+// Per-seed river memo: generated paths by source zone, plus a
+// segment index by crossed zone for dip and consumer queries.
+interface RiverMemo {
+  paths: Map<string, RiverPath | null>;
+  segIndex: Map<string, RiverSeg[]>;
+}
+const riverMemos = new Map<string, RiverMemo>();
+function riverMemo(seedStr: string): RiverMemo {
+  let m = riverMemos.get(seedStr);
+  if (!m) {
+    m = { paths: new Map(), segIndex: new Map() };
+    riverMemos.set(seedStr, m);
+  }
+  return m;
+}
+
+function riverFromSource(seedStr: string, zx: number, zz: number): RiverPath | null {
+  const memo = riverMemo(seedStr);
+  const key = `${zx},${zz}`;
+  const hit = memo.paths.get(key);
+  if (hit !== undefined) return hit;
+  const made = walkRiver(seedStr, zx, zz);
+  memo.paths.set(key, made);
+  if (made) {
+    // Index every segment under each zone its carve can touch
+    // (bounding box grown by the carve reach).
+    for (const s of made.segs) {
+      const minZx = zoneOf(Math.min(s.x1, s.x2) - CHANNEL_REACH);
+      const maxZx = zoneOf(Math.max(s.x1, s.x2) + CHANNEL_REACH);
+      const minZz = zoneOf(Math.min(s.z1, s.z2) - CHANNEL_REACH);
+      const maxZz = zoneOf(Math.max(s.z1, s.z2) + CHANNEL_REACH);
+      for (let iz = minZz; iz <= maxZz; iz++) {
+        for (let ix = minZx; ix <= maxZx; ix++) {
+          const k = `${ix},${iz}`;
+          let arr = memo.segIndex.get(k);
+          if (!arr) {
+            arr = [];
+            memo.segIndex.set(k, arr);
+          }
+          arr.push(s);
+        }
+      }
+    }
+  }
+  return made;
+}
+
+function walkRiver(seedStr: string, zx: number, zz: number): RiverPath | null {
+  const chance = RIVER_SOURCE_CHANCE[zoneBiomeAt(seedStr, zx, zz)] ?? 0;
+  const seedNum = seedNumOf(seedStr);
+  if (chance === 0 || riverRoll(seedNum, zx, zz, 1) > chance) return null;
+  let x = zx * ZONE_SIZE + (riverRoll(seedNum, zx, zz, 2) * 64 - 32);
+  let z = zz * ZONE_SIZE + (riverRoll(seedNum, zx, zz, 3) * 64 - 32);
+  // A source needs fall: check the local gradient at the spring.
+  const g0 = gradientAt(seedStr, x, z);
+  if (g0.mag < 0.012) return null;
+  let dx = -g0.gx / g0.mag;
+  let dz = -g0.gz / g0.mag;
+  const phase = riverRoll(seedNum, zx, zz, 4) * Math.PI * 2;
+  // Phase 1: walk the polyline.
+  const pts: { x: number; z: number }[] = [{ x, z }];
+  let flatStreak = 0;
+  for (let s = 0; s < RIVER_MAX_STEPS; s++) {
+    // Reached a pond? Rivers end in ponds when they find one.
+    const pzx = zoneOf(x);
+    const pzz = zoneOf(z);
+    let inPond = false;
+    for (const p of zonePondsAt(seedStr, pzx, pzz)) {
+      if (Math.hypot(x - p.cx, z - p.cz) < p.radius && p.waterY > baseFieldAt(seedStr, x, z) - 0.05) inPond = true;
+    }
+    if (inPond && s > 2) break;
+    const g = gradientAt(seedStr, x, z);
+    if (g.mag < 0.006) {
+      flatStreak++;
+      if (flatStreak >= 8) break; // ran out of fall — the plain takes it
+    } else flatStreak = 0;
+    if (g.mag > 0.004) {
+      dx = dx * 0.55 + (-g.gx / g.mag) * 0.45;
+      dz = dz * 0.55 + (-g.gz / g.mag) * 0.45;
+    }
+    // Meander wobble: a slow seeded sway on the heading.
+    const wob = Math.sin(s * 0.55 + phase) * 0.38;
+    const cos = Math.cos(wob);
+    const sin = Math.sin(wob);
+    const rx = dx * cos - dz * sin;
+    const rz = dx * sin + dz * cos;
+    const rl = Math.hypot(rx, rz) || 1;
+    const nx = x + (rx / rl) * RIVER_STEP;
+    const nz = z + (rz / rl) * RIVER_STEP;
+    pts.push({ x: nx, z: nz });
+    x = nx;
+    z = nz;
+    dx = rx / rl;
+    dz = rz / rl;
+  }
+  if (pts.length - 1 < 4) return null; // a dribble, not a river
+  // Phase 2: water levels against the path's own carved union.
+  const segs: RiverSeg[] = [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    segs.push({ x1: pts[i].x, z1: pts[i].z, x2: pts[i + 1].x, z2: pts[i + 1].z, waterY: 0, liquid: 'water' });
+  }
+  const ownDip = (px: number, pz: number): number => {
+    let dip = 0;
+    for (const s of segs) {
+      const d = distToSeg(px, pz, s);
+      if (d < CHANNEL_REACH) dip = Math.max(dip, (CHANNEL_DEPTH * (Math.cos(Math.PI * (d / CHANNEL_REACH)) + 1)) / 2);
+    }
+    return dip;
+  };
+  for (const seg of segs) {
+    const mx = (seg.x1 + seg.x2) / 2;
+    const mz = (seg.z1 + seg.z2) / 2;
+    const floorMid = baseFieldAt(seedStr, mx, mz) - ownDip(mx, mz);
+    const vx = seg.x2 - seg.x1;
+    const vz = seg.z2 - seg.z1;
+    const vl = Math.hypot(vx, vz) || 1;
+    const px = -vz / vl;
+    const pz = vx / vl;
+    let wall = Infinity;
+    for (const t of [0.15, 0.5, 0.85]) {
+      const cxp = seg.x1 + vx * t;
+      const czp = seg.z1 + vz * t;
+      for (const side of [1, -1]) {
+        const ex = cxp + px * CHANNEL_HALF_WIDTH * side;
+        const ez = czp + pz * CHANNEL_HALF_WIDTH * side;
+        // An edge sample inside ANOTHER segment's channel (bend
+        // unions, self-approaches) is not a wall — skip it.
+        if (segs.some((o) => o !== seg && distToSeg(ex, ez, o) < CHANNEL_HALF_WIDTH)) continue;
+        wall = Math.min(wall, baseFieldAt(seedStr, ex, ez) - ownDip(ex, ez));
+      }
+    }
+    seg.waterY = Math.min(floorMid + 0.5, wall - 0.03);
+  }
+  return { segs };
+}
+
+/** The river channel's carve at a world point. Ensures every
+ *  source within the river-length bound has been generated, then
+ *  tests only the segments indexed under the point's zone. */
+function riverDipAt(seedStr: string, wx: number, wz: number): number {
+  const zx = zoneOf(wx);
+  const zz = zoneOf(wz);
+  // A river can start up to ~4 zones away and still reach here.
+  for (let dz = -4; dz <= 4; dz++) {
+    for (let dx = -4; dx <= 4; dx++) {
+      riverFromSource(seedStr, zx + dx, zz + dz);
+    }
+  }
+  const segs = riverMemo(seedStr).segIndex.get(`${zx},${zz}`);
+  if (!segs) return 0;
+  let dip = 0;
+  for (const s of segs) {
+    const d = distToSeg(wx, wz, s);
+    if (d < CHANNEL_REACH) dip = Math.max(dip, (CHANNEL_DEPTH * (Math.cos(Math.PI * (d / CHANNEL_REACH)) + 1)) / 2);
+  }
+  return dip;
+}
+
+/**
+ * The river segments crossing one zone, as data — for engine
+ * rendering and any future bank-life gates. World coordinates,
+ * deterministic; nothing is stored anywhere.
+ */
+export function zoneRiversAt(seedStr: string, zx: number, zz: number): RiverSeg[] {
+  for (let dz = -4; dz <= 4; dz++) {
+    for (let dx = -4; dx <= 4; dx++) {
+      riverFromSource(seedStr, zx + dx, zz + dz);
+    }
+  }
+  return riverMemo(seedStr).segIndex.get(`${zx},${zz}`) ?? [];
+}
+
+/**
+ * The landform height at a WORLD point (meters): the shaped
+ * field, carved by ponds and river channels (the deeper carve
+ * wins where they meet). Pure in (seedStr, wx, wz) — same inputs,
  * same height, on every client, in every zone, forever: the
  * property zone borders, host authority, and the datum system
- * all silently rely on.
+ * all silently rely on. (River paths are memoized per seed; the
+ * memo changes only how fast the answer comes, never the answer.)
  */
 export function landformHeightAt(seedStr: string, wx: number, wz: number): number {
-  return shapedFieldAt(seedStr, wx, wz) - pondDipAt(seedStr, wx, wz);
+  return shapedFieldAt(seedStr, wx, wz) - Math.max(pondDipAt(seedStr, wx, wz), riverDipAt(seedStr, wx, wz));
 }

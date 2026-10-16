@@ -483,6 +483,9 @@ export class BioForgeThreeEngine {
     nest_cap: { color: 0xa16207, intensity: 0.3, distance: 2, y: 0.3 },
     frost_mold: { color: 0xbae6fd, intensity: 0.3, distance: 2, y: 0.2 },
     steam_cap: { color: 0xf1f5f9, intensity: 0.35, distance: 2, y: 0.3 },
+    // Pond build (2026-10-16): the jelly that lights the reef's
+    // windows — a faint green glow in black water.
+    lake_jelly: { color: 0x4ade80, intensity: 0.55, distance: 2.6, y: 0.3 },
     // Landscape flora trio (creature slice 31, 2026-10-16).
     valley_heart: { color: 0x84cc16, intensity: 0.5, distance: 3, y: 0.6 },
     mother_grove: { color: 0xa16207, intensity: 0.4, distance: 3, y: 0.4 },

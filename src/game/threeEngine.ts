@@ -18,8 +18,8 @@ import {
   ItemId,
 } from '../types/game';
 import { FirstPersonViewmodel } from './viewmodel';
-import { landformHeightAt } from './terrain';
-import { buildWaterGroup, waterSurfaceFromLists, waterDepthFromLists, type PondLocal, type RiverSegLocal } from './waterField';
+import { landformHeightAt, type PondLiquid } from './terrain';
+import { buildWaterGroup, waterSurfaceFromLists, waterDepthFromLists, liquidFromLists, type PondLocal, type RiverSegLocal } from './waterField';
 import { SkyRig } from './skyRig';
 import { isFloorType, BUILDING_TYPES, isDoorType } from './placement';
 import { BIOME_TINTS } from './biomes';
@@ -948,6 +948,14 @@ export class BioForgeThreeEngine {
    *  the matching surface query above. */
   public waterDepthAt(x: number, z: number): number {
     return waterDepthFromLists(this.zonePondsLocal, this.zoneRiverSegsLocal, x, z, (lx, lz) => this.terrainHeightAt(lx, lz));
+  }
+
+  /** Which liquid stands at a LOCAL point, and how deep — null
+   *  on dry land. The loop's lava harm reads this (liquids pass,
+   *  2026-10-16); the depth query above stays liquid-blind
+   *  because wading drag doesn't care, but burning does. */
+  public liquidAt(x: number, z: number): { liquid: PondLiquid; depth: number } | null {
+    return liquidFromLists(this.zonePondsLocal, this.zoneRiverSegsLocal, x, z, (lx, lz) => this.terrainHeightAt(lx, lz));
   }
 
   /** Re-run the terrain mesh displacement against the current

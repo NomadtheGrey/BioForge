@@ -281,6 +281,24 @@ export const QuestLogModal = ({
     const done = isDone(v);
     const sealed = !!v.sealed && !done;
     const tracked = trackedId === v.def.id;
+    // The Field Note cross-link (background lane's join key,
+    // HUD lane's render, 2026-10-16): a witness-goal card, once
+    // complete, names the note its moment wrote. PURITY GUARD
+    // (the creatures lane's rule): the link renders only when
+    // the quest is done AND the note stands witnessed — a
+    // locked note is absent everywhere, including as a teaser
+    // on a quest card. The note's subject resolves exactly as
+    // the Field Notes section resolves it.
+    const witnessNoteName = (() => {
+      const goal = v.def.completeWhen;
+      if (!done || !goal || goal.kind !== 'witness') return null;
+      const note = FIELD_NOTES.find((n) => n.id === goal.noteId);
+      if (!note || !fieldNotesState.witnessed.includes(note.id)) return null;
+      return note.species
+        ? (codexList.find((c) => c.species === note.species)?.name
+          ?? note.species.replace(/_/g, ' '))
+        : 'The Great Ones';
+    })();
     return (
       <div
         key={v.def.id}
@@ -359,6 +377,11 @@ export const QuestLogModal = ({
           <div className="mt-1.5 text-[11px] text-slate-400 leading-snug">
             <span className="text-slate-300 font-semibold">Reward:</span>{' '}
             {v.def.rewardNote}
+          </div>
+        )}
+        {witnessNoteName && (
+          <div className="mt-1.5 text-[11px] text-amber-200/80 leading-snug">
+            📖 Field Note — {witnessNoteName} · witnessed
           </div>
         )}
       </div>

@@ -749,6 +749,25 @@ export function buildLateFloraMesh(
         break;
       }
 
+      case 'lake_jelly': {
+        // The reef's lit windows (pond build): gel domes on a
+        // stone, glowing faintly green in the black water.
+        const stone = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 1 }));
+        stone.scale.set(1.3, 0.5, 1.1);
+        stone.position.y = 0.05;
+        group.add(stone);
+        const gelMat = new THREE.MeshStandardMaterial({
+          color: 0x4ade80, roughness: 0.25, transparent: true, opacity: 0.75,
+          emissive: 0x16a34a, emissiveIntensity: 0.5,
+        });
+        for (let i = 0; i < 4; i++) {
+          const dome = new THREE.Mesh(new THREE.SphereGeometry(0.13 - i * 0.02, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), gelMat);
+          dome.position.set(Math.sin(i * 1.8) * 0.2, 0.16, Math.cos(i * 1.8) * 0.17);
+          group.add(dome);
+        }
+        break;
+      }
+
     default:
       return null;
   }

@@ -937,20 +937,24 @@ export const ASK_THE_WORLD_QUESTS: QuestDef[] = [
     rewardNote: 'Soft Fiber — bedding fit for a guardian.',
   },
   {
-    // The Threshold Hound: the Hungry valley's verdict.
+    // The Threshold Hound: the Hungry valley's escort. (Re-worded
+    // to the creatures lane's beat sheet, 2026-10-16: the stamp
+    // fires on an escort SUSTAINED — in or out, the stamp cannot
+    // tell them apart — so the card honors the office, not a
+    // direction; the game's true verdict beat is the Taster's.)
     id: 'q_aw_verdict',
     questChapter: 3,
     line: ASK_THE_WORLD_LINE,
     flavor: 'For the animal lovers',
-    title: 'The Verdict',
+    title: 'The Hound’s Escort',
     blurb:
-      'At a Hungry valley’s edge stands its Threshold Hound, tasting the air, deciding what you are. It will walk you out or it will reach its verdict — either way, be there when the decision lands.',
+      'At a Hungry valley’s threshold stands its Hound, and the Hound’s office is passage: take its escort — in through the hungry country or back out of it — and walk a good stretch of the way in its keeping.',
     gather: [],
     completeWhen: {
       kind: 'witness',
       noteId: 'note_threshold_hound',
-      todo: 'Stand for the Threshold Hound’s verdict at a Hungry valley',
-      done: 'The verdict was reached — and you were in it',
+      todo: 'Be escorted by a Threshold Hound — in or out of the Hungry country',
+      done: 'Escorted — the Hound walked with you',
     },
     rewardItems: [{ itemId: 'precursor_shard', count: 1 }],
     rewardNote: 'A Precursor Shard — passage, paid and receipted.',

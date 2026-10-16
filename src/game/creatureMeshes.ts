@@ -42,6 +42,7 @@ export interface CreatureMeshKit {
 export function createCreatureMeshKit(
   materials: StructureMaterials,
   terrainHeightAt: (x: number, z: number) => number,
+  waterSurfaceAt?: (x: number, z: number) => number | null,
 ): CreatureMeshKit {
   // Idle-life wiggle state per fauna (render-only; see motion.ts).
   const wiggleMap = new Map<string, { wiggle: BrownianWiggle; species: FaunaEntity['species'] }>();
@@ -2599,6 +2600,20 @@ export function createCreatureMeshKit(
     // bespoke branches below (the glider's glide, the gnat's
     // dart) still draw their own species exactly as shipped,
     // overriding this one's numbers with their identical own.
+    // GENERIC SWIM (pond build, 2026-10-16): a species with a
+    // swim spec rides at its pond's surface less its depth — the
+    // mirror of the flight branch below, and flight wins when a
+    // species carries both (the Plunge Duck flies in v1; its
+    // dives are deferred). Off-pond (no surface under it — a
+    // legacy world, a dry context) the ground line stands.
+    const swim = speciesDef(fauna.species)?.swim;
+    if (swim && !speciesDef(fauna.species)?.flight && waterSurfaceAt) {
+      const surfaceY = waterSurfaceAt(fauna.x, fauna.z);
+      if (surfaceY !== null) {
+        mesh.position.y = surfaceY - swim.depth + Math.sin(fauna.animTime * 1.4) * 0.04;
+      }
+    }
+
     const flight = speciesDef(fauna.species)?.flight;
     if (flight) {
       mesh.position.y = groundY + flight.altitude + Math.sin(fauna.animTime * flight.bobRate) * flight.bobHeight;

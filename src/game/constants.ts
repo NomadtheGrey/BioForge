@@ -2024,6 +2024,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'common',
     maxStack: 99,
   },
+  heart_tile: {
+    id: 'heart_tile',
+    name: 'Heart Tile',
+    category: 'structure',
+    description: 'A root floor grown with a heart of its own, standing at the center of the spawn base. A fallen player wakes on it — the land\'s default answer to death. Grown by the world, not by hand: permanent and undissolvable.',
+    iconName: 'Heart',
+    color: '#fb7185',
+    rarity: 'rare',
+    maxStack: 1,
+  },
   chitin_glass_wall: {
     id: 'chitin_glass_wall',
     name: 'Chitin-Glass Wall',
@@ -2572,7 +2582,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
  * inside an instance. UI lists derived from ITEMS (the builder's
  * blueprint cycle and panel) must filter these out.
  */
-export const NON_BUILDABLE_STRUCTURE_IDS: ItemId[] = ['cave_mouth', 'cave_exit', 'cave_descent', 'vine_shaft', 'ruin_landmark', 'ruin_exit', 'precursor_cache', 'artifact_heart', 'ruin_glyph'];
+export const NON_BUILDABLE_STRUCTURE_IDS: ItemId[] = ['cave_mouth', 'cave_exit', 'cave_descent', 'vine_shaft', 'ruin_landmark', 'ruin_exit', 'precursor_cache', 'artifact_heart', 'ruin_glyph', 'heart_tile'];
 
 /**
  * Helmet-line gear (Adam, 2026-10-15): the BioForge screen's Helmet

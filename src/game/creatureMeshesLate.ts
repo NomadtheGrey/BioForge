@@ -476,23 +476,49 @@ export function buildLateFaunaMesh(
       }
 
       case 'spiral_moth': {
-        // Signed by the gardens (slice 20): broad wings with a
-        // spiral boss on each.
+        // Signed by the gardens (slice 20; the true spiral,
+        // slice 49): broad wings, each carrying an Archimedean
+        // spiral, EXACT — and wound by the garden's keeping.
+        // In an UNTENDED garden (the moth's home variant, dealt
+        // at generation) the spirals run BACKWARD: feral at the
+        // pattern level, legible at thirty paces to a player
+        // who has learned to read moths. The spiral is a thin
+        // tube laid along the curve — a line with body, so the
+        // winding survives at flight distance.
+        const untended = fauna.homeVariant === 'precursor_untended';
+        const wind = untended ? -1 : 1;
         const bodyMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.9 });
         const body = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), bodyMat);
         body.scale.set(0.9, 0.9, 1.5);
         group.add(body);
         const wingMat = new THREE.MeshStandardMaterial({ color: 0xc4b5fd, roughness: 0.85, side: THREE.DoubleSide });
+        const spiralMat = new THREE.MeshStandardMaterial({ color: untended ? 0x78716c : 0x4c1d95, roughness: 0.7 });
         for (const side of [-1, 1]) {
           const wing = new THREE.Mesh(new THREE.CircleGeometry(0.11, 10), wingMat);
           wing.name = side < 0 ? 'wingL' : 'wingR';
           wing.position.set(side * 0.1, 0.01, -0.02);
           wing.rotation.x = -Math.PI / 2 + 0.1;
           group.add(wing);
-          const boss = new THREE.Mesh(new THREE.TorusGeometry(0.04, 0.012, 5, 10), bodyMat);
-          boss.position.set(side * 0.1, 0.03, -0.02);
-          boss.rotation.x = Math.PI / 2;
-          group.add(boss);
+          // The garden's signature, one per wing: radius grows
+          // linearly with angle (Archimedes), a turn and a half,
+          // wound forward in kept country, backward in the
+          // Untended. Mirrored per wing so the pair reads as
+          // one signature, not two accidents.
+          const pts: THREE.Vector3[] = [];
+          const turns = Math.PI * 3;
+          for (let i = 0; i <= 40; i++) {
+            const t = i / 40;
+            const a = wind * side * t * turns;
+            const r = 0.006 + t * 0.042;
+            pts.push(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r));
+          }
+          const spiral = new THREE.Mesh(
+            new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, 0.0055, 5),
+            spiralMat
+          );
+          spiral.name = 'spiralMark';
+          spiral.position.set(side * 0.1, 0.032, -0.02);
+          group.add(spiral);
         }
         break;
       }

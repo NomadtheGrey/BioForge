@@ -132,8 +132,12 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     wave 3: twelve species incl. the first stationary fauna
  *     (Stillmouth, speed 0 by design) and two vapor citizens
  *     (Fog Calf, Mote Swarm). Table-only change.
+ * v31: creature build phase, slice 16 (2026-10-16) — flora
+ *     wave 5, the rose bench: twelve table species (a rose for
+ *     every country that would have one, plus the sky pond,
+ *     the banner, the wrong bloom). Table-only change.
  */
-export const WORLD_GEN_VERSION = 30; // v30 (2026-10-16): creature slice 15 — fauna wave 3, twelve species; v29 was creature slice 14 (flora wave 4)
+export const WORLD_GEN_VERSION = 31; // v31 (2026-10-16): creature slice 16 — flora wave 5, the rose bench; v30 was creature slice 15 (fauna wave 3)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

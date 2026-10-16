@@ -57,6 +57,18 @@ export type ItemId =
   | 'door_cap'
   | 'mote_dust'
   | 'sapwing_film'
+  | 'cup_water'
+  | 'banner_fiber'
+  | 'grave_pollen'
+  | 'wrong_thread'
+  | 'sage_leaf'
+  | 'amber_bloom'
+  | 'silt_petal'
+  | 'ghost_bloom'
+  | 'thaw_bloom'
+  | 'dust_petal'
+  | 'obsidian_petal'
+  | 'hedge_hip'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -284,7 +296,20 @@ export type FloraSpecies =
   | 'bone_puff'
   | 'wind_puff'
   | 'door_cap'
-  | 'glyph_cap';
+  | 'glyph_cap'
+  // Flora wave 5 (slice 16, 2026-10-16) — the rose bench.
+  | 'canopy_cup'
+  | 'banner_vine'
+  | 'charnel_bloom'
+  | 'wrongbloom'
+  | 'tumble_sage'
+  | 'amber_bloom'
+  | 'silt_rose'
+  | 'ghost_orchid'
+  | 'thaw_rose'
+  | 'dust_rose'
+  | 'obsidian_rose'
+  | 'hedge_rose';
 
 export interface FloraEntity {
   id: string;

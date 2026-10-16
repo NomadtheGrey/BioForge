@@ -342,6 +342,16 @@ export default function App() {
   // reads the player's side of a wall, and ladder climbs move the
   // player's story (through the same applyPlayerLevel the loop uses).
   const getPlayerPosition = useCallback((): { x: number; z: number } => playerPosRef.current, []);
+  // The visible spray (Adam, 2026-10-16): a jet from the player's
+  // own position to the sprayed creature — the engine draws the
+  // line, App just supplies where the player stands.
+  const triggerSprayJetFx = useCallback(
+    (x: number, z: number) => {
+      const p = getPlayerPosition();
+      engineRef.current?.triggerSprayJet(p.x, p.z, x, z);
+    },
+    [getPlayerPosition]
+  );
   const getPlayerLevel = useCallback((): number => playerLevelRef.current, []);
 
   // ----------------------------------------------------------------------
@@ -494,6 +504,7 @@ export default function App() {
     spawnDroppedItem,
     triggerHarvestFx,
     triggerSolventFx,
+    triggerSprayJetFx,
 
   });
 

@@ -129,6 +129,18 @@ export interface SpeciesFlight {
   flapRate?: number;
 }
 
+/** Swim spec (pond build, 2026-10-16): how far BELOW the pond's
+ *  surface the body rides when drawn — 0 is the surface film
+ *  itself (the skaters walk it), ~0.5 mid-water, ~1.2 the deep
+ *  band of a 1.3–2.1 m bowl. Mesh-side only, like flight: the
+ *  simulation stays 2D and the pond clamp keeps the citizen in
+ *  its water. Species with BOTH flight and swim (the Plunge
+ *  Duck) draw by flight in v1 — the dive is deferred. */
+export interface SpeciesSwim {
+  /** Meters below the water surface the mesh rides. */
+  depth: number;
+}
+
 export interface SpeciesBonusSpawn {
   /** Family affinities — the zone's biome OR a hybrid's secondary
    *  family both count, the same admixture rule the census uses.
@@ -149,6 +161,13 @@ export interface SpeciesBonusSpawn {
    *  deterministic per zone, so this is an honest placement rule,
    *  not a dice roll) — the weather-locked layer. */
   weather?: WeatherMode;
+  /** Pond gate (pond build, 2026-10-16): when true, the species
+   *  deals ONLY into a pond in the zone (zonePondsAt, water in
+   *  v1), anchored at the pond's center with its wander clamped
+   *  to the disc — and only in landform worlds at all: legacy
+   *  worlds have no ponds, so pond life is never sown on dry
+   *  ripple. The true swimmers live behind this gate. */
+  pond?: boolean;
   /** Individuals dealt per eligible zone. */
   count: number;
   /** Keep this far from the zone center (the radar species use 10). */
@@ -196,6 +215,9 @@ export interface SpeciesDef {
   /** The flight spec (slice 6): present only on airborne
    *  species. Draw-only — see SpeciesFlight. */
   flight?: SpeciesFlight;
+  /** The swim spec (pond build, 2026-10-16): present only on
+   *  pond species. Draw-only — see SpeciesSwim. */
+  swim?: SpeciesSwim;
   /** Present only for route-3 species (see header). */
   bonusSpawn: SpeciesBonusSpawn | null;
 }

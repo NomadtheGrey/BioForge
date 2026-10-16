@@ -43,6 +43,10 @@ export function createCreatureMeshKit(
   materials: StructureMaterials,
   terrainHeightAt: (x: number, z: number) => number,
   waterSurfaceAt?: (x: number, z: number) => number | null,
+  // Day/night phase (slice 40, 2026-10-16): the engine's clock,
+  // read live so night-rising swimmers can ease toward the
+  // surface as midnight nears. Optional: no clock, no rising.
+  dayPhaseAt?: () => number,
 ): CreatureMeshKit {
   // Idle-life wiggle state per fauna (render-only; see motion.ts).
   const wiggleMap = new Map<string, { wiggle: BrownianWiggle; species: FaunaEntity['species'] }>();
@@ -2616,7 +2620,19 @@ export function createCreatureMeshKit(
     if (swim && (!swimDef?.flight || inWaterPhase) && waterSurfaceAt) {
       const surfaceY = waterSurfaceAt(fauna.x, fauna.z);
       if (surfaceY !== null) {
-        mesh.position.y = surfaceY - swim.depth + Math.sin(fauna.animTime * 1.4) * 0.04;
+        // Night rise (slice 40): a species whose swim spec names
+        // a nightRise eases from its day depth up toward it as
+        // midnight approaches — the diel migration, the lakes'
+        // second clock. nightFactor is 1 at phase 0 (midnight)
+        // and 0 across the whole day band (0.25–0.75).
+        let rideDepth = swim.depth;
+        if (swim.nightRise !== undefined && dayPhaseAt) {
+          const phase = dayPhaseAt();
+          const distToMidnight = Math.min(phase, 1 - phase);
+          const nightFactor = Math.max(0, 1 - distToMidnight / 0.25);
+          rideDepth = swim.depth + (swim.nightRise - swim.depth) * nightFactor;
+        }
+        mesh.position.y = surfaceY - rideDepth + Math.sin(fauna.animTime * 1.4) * 0.04;
       }
     }
 

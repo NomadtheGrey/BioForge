@@ -36,7 +36,7 @@
 
 import type { BiomeId } from './biomes';
 import type { WeatherMode } from './zones';
-import type { FloraSpecies, ItemId } from '../types/game';
+import type { CodexEntry, FloraSpecies, ItemId } from '../types/game';
 
 /** What one harvest gives up. The harvest glove leaves the plant
  *  standing to regrow; the solvent dissolves it outright — both read
@@ -341,3 +341,157 @@ export function floraDef(id: FloraSpecies): FloraDef | undefined {
 
 /** Every table species that grows via the generic bonus loop. */
 export const BONUS_GROW_FLORA: FloraDef[] = Object.values(FLORA).filter((d) => d.bonusGrow !== null);
+
+// ---------------------------------------------------------------------------
+// Wave-1 codex entries. They live HERE, with the flora table, rather
+// than in constants.ts: INITIAL_CODEX spreads this array in, and
+// constants.ts has outgrown what a single push can carry — the flora
+// codex travelling with the flora table keeps both files pushable
+// and the kingdoms' text beside the kingdoms' data.
+// ---------------------------------------------------------------------------
+export const FLORA_CODEX: CodexEntry[] = [
+  {
+    species: 'gulp_lily',
+    name: 'Gulp Lily',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The snap trap\'s aquatic rhyme: a lily whose pad is a pod — small fauna stepping to drink find the pad fold: GULP. It owns its pool\'s surface the way the snapper owns its bottom. Approach for the dew in its cup the way the marsh approaches everything: slowly, and from the side the pad isn\'t watching.',
+    byproducts: ['Dew Essence (in the cup)'],
+    tamingOrCraftNotes: 'A hazard, not a crop: harvest leaves it standing, and it does not hold a grudge — it holds whatever steps on it.',
+    biome: 'Wetland (Mirror Marsh first among its pools)',
+    iconColor: '#22c55e',
+  },
+  {
+    species: 'waygrass',
+    name: 'Waygrass',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The route made visible: a grass whose seeds ride feet, so it grows where walking happens — trails, migrations, the Leviathan\'s road, caravan lines. A thickened waygrass line is a route, readable from a ridge: the country\'s memory of every journey, kept in grass.',
+    byproducts: ['Soft Fiber'],
+    tamingOrCraftNotes: 'Cuts to fiber like all honest grass. Follow it and you are walking a road something else surveyed.',
+    biome: 'Open + Temperate (Meadow, Storm, Bone, Saltglass)',
+    iconColor: '#84cc16',
+  },
+  {
+    species: 'flame_lily',
+    name: 'Flame Lily',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'Fire\'s promise: a lily whose seeds germinate only after flame passes, so a flame lily field is a promise written against the next burn — and after a Drift fire, the Ashen fields bloom red in a single week. The Ember country\'s calendar of fire has a beginning, and it is botanical.',
+    byproducts: ['Vibrant Petal', 'Dew Essence'],
+    tamingOrCraftNotes: 'Harvest the bloom; the seed bank in the ash is the country\'s business, and it keeps its appointments.',
+    biome: 'Ember',
+    iconColor: '#ef4444',
+  },
+  {
+    species: 'salt_daisy',
+    name: 'Salt Daisy',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The flats\' noon clock: a daisy whose petals wear a fine salt crust it sheds at noon daily — the flats\' children measure the statue-lizard\'s still hours against the shedding, in a game with no rules written anywhere. Pretty, patient, and keeping time for a whole country.',
+    byproducts: ['Vibrant Petal (crust-petaled)'],
+    tamingOrCraftNotes: 'Pick the petals; come back tomorrow at noon and watch it tell the time.',
+    biome: 'Saltglass (the Flats)',
+    iconColor: '#f8fafc',
+  },
+  {
+    species: 'compass_cress',
+    name: 'Compass Cress',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A compass the size of a field: a low crystalline cress whose needle-leaves align to the magnetic field, all pointing one way. The Dunes are where navigation dies; the cress is the country\'s answer, grown — caravans plant it at evening camps and read it at dawn.',
+    byproducts: ['Lodestone Sand (gathered at its roots)'],
+    tamingOrCraftNotes: 'Harvest the grit at its roots; the leaves keep pointing, free of charge.',
+    biome: 'Storm (the Magnetic Dunes)',
+    iconColor: '#67e8f9',
+  },
+  {
+    species: 'ice_grass',
+    name: 'Ice Grass',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A meadow seen through glass: it grows in the lake ice of the Singing Ice, blooming under the surface in the clear depths — the ice-skating glider passes over a garden, and the great shadow crosses it, and the garden blooms on, in the blue, out of reach of both. What reaches you is the frost-dew beaded on the blades at the ice\'s edge.',
+    byproducts: ['Dew Essence (frost-dew)'],
+    tamingOrCraftNotes: 'Gather the dew; the garden itself is under glass in every sense.',
+    biome: 'Frost (the Singing Ice)',
+    iconColor: '#a5f3fc',
+  },
+  {
+    species: 'field_cap',
+    name: 'Field Cap',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'THE field mushroom: the classic cap-and-stem, done honestly — the baseline against which the kingdom\'s exotic caps are measured. It fruits after rain across four families, unshowy and everywhere the ground is kind. Every forager\'s education starts here.',
+    byproducts: ['Basic Compost', 'Glow Spore'],
+    tamingOrCraftNotes: 'Renders to compost gold, like its visor-faced cousin — the field\'s quiet alchemy.',
+    biome: 'Temperate + Wet (Fungal, Rootwood, Meadow, Wetland)',
+    iconColor: '#d6c48f',
+  },
+  {
+    species: 'frostcap',
+    name: 'Frostcap',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The Cold Groves\' tower: pale caps stepping up a stalk, frost-furred — its caps wear rime like the Frost Stag wears velvet. It fruits through snow, in the still cold, on the frozen forest\'s fungal side: winter, growing upward, one pale step at a time.',
+    byproducts: ['Glow Spore'],
+    tamingOrCraftNotes: 'Pick the caps; the stalk stands the winter and steps again.',
+    biome: 'Fungal × Frost (the Cold Groves only)',
+    iconColor: '#e0f2fe',
+  },
+  {
+    species: 'haycap',
+    name: 'Haycap',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The herds\' recycler: a pasture cap fruiting on hay and herd-leavings — what the herds drop, the haycap renders, and the meadow\'s famous fertility is mostly this small citizen working at ankle height. Gathered whole, cap and all.',
+    byproducts: ['Haycap (itself)'],
+    tamingOrCraftNotes: 'Follow a herd for a day and you will find its whole economy, fruiting behind them.',
+    biome: 'Meadow',
+    iconColor: '#eab308',
+  },
+  {
+    species: 'coal_cap',
+    name: 'Coal Cap',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The Flame Lily\'s other half: a black cap fruiting on charcoal and coal beds — the lily waits for fire; the coal cap arrives after it, fruiting in the burn\'s first cool week. Between them, the Ember country\'s calendar of fire has a beginning and an end, both botanical.',
+    byproducts: ['Basic Compost', 'Glow Spore'],
+    tamingOrCraftNotes: 'Renders the burn to compost — the scar, composted, becomes the next field.',
+    biome: 'Ember (charcoal and coal beds)',
+    iconColor: '#292524',
+  },
+  {
+    species: 'snow_morel',
+    name: 'Snow Morel',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The melt line, edible: a dark honeycomb morel advancing in a front where the snowfields retreat — the Stillwhite\'s spring is edible and brief. Frost Voles cache them, pufflings shelter under them, and the family\'s whole cast times its year by the morel line.',
+    byproducts: ['Snow Morel (itself)'],
+    tamingOrCraftNotes: 'Gather at the melt line, in the brief week — the voles are caching against the same calendar.',
+    biome: 'Frost (the melt lines)',
+    iconColor: '#78716c',
+  },
+  {
+    species: 'ink_cap',
+    name: 'Ink Cap',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The kingdom writes its script, then provides the ink: a ruin cap that melts into black ink at maturity. The chroniclers gather the melt in pots, and the far country\'s one-day sentences are copied across the world in this fungus. A library, at ankle height, self-destructing politely.',
+    byproducts: ['Ink Cap (the gathered melt)'],
+    tamingOrCraftNotes: 'Gather the melt at maturity — tomorrow it is a black puddle and a smell of libraries.',
+    biome: 'Precursor (the ruins)',
+    iconColor: '#1c1917',
+  },
+];

@@ -146,8 +146,11 @@ import { BONUS_SPAWN_SPECIES } from './species';
  * v34: creature build phase, slice 19 (2026-10-16) — flora
  *     wave 7: the meadow bench and the roadsides (Noonflower,
  *     Lambswool, Coalwood, Roadweed and kin). Table-only.
+ * v35: creature build phase, slice 20 (2026-10-16) — fauna
+ *     wave 5: the worms and the margins (Ironworm, Steam Eel,
+ *     Shardwing, Threshold Hound and kin). Table-only change.
  */
-export const WORLD_GEN_VERSION = 34; // v34 (2026-10-16): creature slice 19 — flora wave 7; v33 was creature slice 18 (flora wave 6)
+export const WORLD_GEN_VERSION = 35; // v35 (2026-10-16): creature slice 20 — fauna wave 5; v34 was creature slice 19 (flora wave 7)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

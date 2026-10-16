@@ -92,6 +92,9 @@ export type ItemId =
   | 'kite_bud'
   | 'clock_petal'
   | 'roadweed_leaf'
+  | 'ironworm_plate'
+  | 'glass_shed'
+  | 'picker_down'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -535,7 +538,20 @@ export type FaunaSpecies =
   | 'tumble_crab'
   | 'facet_beetle'
   | 'skull_hermit'
-  | 'row_grazer';
+  | 'row_grazer'
+  // Slice 20 (2026-10-16) — fauna wave 5.
+  | 'shardwing'
+  | 'ironworm'
+  | 'driftworm'
+  | 'ashswimmer'
+  | 'glass_snake'
+  | 'steam_eel'
+  | 'pan_lizard'
+  | 'seep_midge'
+  | 'spiral_moth'
+  | 'threshold_hound'
+  | 'saltpicker'
+  | 'marrow_leech';
 
 export interface FaunaEntity {
   id: string;

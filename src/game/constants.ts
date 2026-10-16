@@ -2094,6 +2094,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 1,
   },
+  biotunnel_mouth: {
+    id: 'biotunnel_mouth',
+    name: 'BioTunnel Mouth',
+    category: 'structure',
+    description: 'One end of a BioTunnel: a ribbed throat of root and resin with a living membrane for a door. A recipe grows both mouths of the pair — set one down here, the other there, and step through. Grown, not built: set it down by hand.',
+    iconName: 'CircleDot',
+    color: '#2dd4bf',
+    rarity: 'rare',
+    maxStack: 2,
+  },
   chitin_glass_wall: {
     id: 'chitin_glass_wall',
     name: 'Chitin-Glass Wall',
@@ -3458,6 +3468,21 @@ export const RECIPES: CraftingRecipe[] = [
       { id: 'resin_sap', count: 1 },
     ],
     craftTimeMs: 2500,
+  },
+  {
+    id: 'craft_biotunnel_mouth',
+    outputId: 'biotunnel_mouth',
+    outputCount: 2,
+    name: 'BioTunnel Mouths',
+    description: 'Grow a BioTunnel: ONE organism with two mouths. The recipe grows the pair — set one mouth down by hand where you stand, carry the other wherever the tunnel should lead, and step through. No fuel, no food: the tunnel simply lives. One pair at a time.',
+    category: 'composites',
+    ingredients: [
+      { id: 'prismatic_core', count: 1 },
+      { id: 'bio_pellet', count: 2 },
+      { id: 'living_thread', count: 2 },
+      { id: 'resin_sap', count: 4 },
+    ],
+    craftTimeMs: 4000,
   },
   {
     id: 'craft_culture_vat',

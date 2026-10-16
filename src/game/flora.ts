@@ -3447,6 +3447,75 @@ export const FLORA: Record<string, FloraDef> = {
       scale: 0.9,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Slice 31 (2026-10-16) — THE LANDSCAPE FLORA TRIO. LANDSCAPE
+  // on the plant side: presences, not crops — harvest null for
+  // all three, one per zone, at the table's maximum scale.
+  // ------------------------------------------------------------------
+
+  // #184 — the Living family's heart, at the word's scale: a
+  // single tree whose canopy is a micro-biome with its own
+  // weather and its own citizens — Guest Birds nest in it
+  // that have never touched the valley's floor. It is where
+  // the Welcoming/Hungry split is DECIDED, season by season —
+  // the family's deepest open hook, recorded here as the
+  // design leaves it: deliberately open, far-future lore.
+  valley_heart: {
+    id: 'valley_heart',
+    name: 'Valley Heart',
+    kind: 'flora',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['living'],
+      count: 1,
+      minRadius: 16,
+      spacing: 12,
+      scale: 3.2,
+    },
+  },
+
+  // #185 — LANDSCAPE by area: not one fruiting body but ONE
+  // ORGANISM — a single mycelium miles across, of which the
+  // groves are fingers. The Spore Stag walks on it; the
+  // Meltcap fields and Puffbell plantings are its local
+  // clocks, synchronized by being, literally, one body. You
+  // do not harvest the organism — its fingers are the rest of
+  // the fungal table. Dealt as one grove-cluster presence.
+  mother_grove: {
+    id: 'mother_grove',
+    name: 'Mother Grove',
+    kind: 'fungus',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['fungal'],
+      count: 1,
+      minRadius: 16,
+      spacing: 12,
+      scale: 3.0,
+    },
+  },
+
+  // #187 — LANDSCAPE, stationary for the family's whole
+  // memory: a single tree whose canopy is a zone's ceiling,
+  // standing while its giant sibling lies fallen beside its
+  // country — the Deck Weavers' bridges are built in the
+  // standing one's foothills, and canopy sloths that never
+  // descend live whole lives in it (the sloth entry's
+  // "never" gets its one exception, here).
+  first_tree: {
+    id: 'first_tree',
+    name: 'First Tree',
+    kind: 'flora',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['rootwood'],
+      count: 1,
+      minRadius: 16,
+      spacing: 12,
+      scale: 3.2,
+    },
+  },
 };
 
 /** Table lookup by species id (the hook + worldGen read here). */

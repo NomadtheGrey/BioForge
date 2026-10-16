@@ -2742,6 +2742,240 @@ export const FLORA: Record<string, FloraDef> = {
       scale: 0.9,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Wave 12 (slice 27, 2026-10-16) — the trees, vines and
+  // mosses: the Speaking Wood, the Ossuary Gardens, and the
+  // Field's own ruler.
+  // ------------------------------------------------------------------
+
+  // #167 — a responsive-leaved tree of the Speaking Wood: its
+  // leaves turn toward speakers and settle into reply-shapes.
+  // Its fallen reply-leaves are unlisted — the yield is the
+  // conversation: no item.
+  answer_tree: {
+    id: 'answer_tree',
+    name: 'Answer Tree',
+    kind: 'flora',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['rootwood', 'living'],
+      hybrid: ['rootwood', 'living'],
+      count: 1,
+      minRadius: 11,
+      spacing: 6,
+      scale: 1.8,
+    },
+  },
+
+  // #168 — the Hungry Groves' cap, mirror-written like its
+  // kin: honestly recorded as VARIABLE — in Welcoming-fed
+  // groves it is a mild, lemony provision (the Hungering
+  // face's reading is the behavior layer's business, as with
+  // the Guest Flower's two harvests).
+  greeting_cap: {
+    id: 'greeting_cap',
+    name: 'Greeting Cap',
+    kind: 'fungus',
+    harvest: { item: 'greeting_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['fungal', 'living'],
+      hybrid: ['fungal', 'living'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #201 — a FORGED tree of the Ossuary Gardens — the
+  // gardeners kept a bone garden; of course they did. Its
+  // fruit is cache-grade treasure that GROWS: sweet, stone-
+  // hard, keeping forever — and the Feral Warden's patrol is
+  // partly an orchard patrol.
+  relic_tree: {
+    id: 'relic_tree',
+    name: 'Relic Tree',
+    kind: 'flora',
+    harvest: { item: 'relic_fruit', count: 1, fertilizedCount: 1 },
+    bonusGrow: {
+      biomes: ['bone', 'precursor'],
+      hybrid: ['bone', 'precursor'],
+      count: 1,
+      minRadius: 11,
+      spacing: 6,
+      scale: 1.7,
+    },
+  },
+
+  // #264 — an iron-hearted tree of the Ashes: dark, dense,
+  // iron-veined wood from the slag soil. Fallen limbs are the
+  // Ashes' beam-stock — what far builders make sills of,
+  // because it neither burns nor rots at polite speeds.
+  ironwood: {
+    id: 'ironwood',
+    name: 'Ironwood',
+    kind: 'flora',
+    harvest: { item: 'ironwood', count: 1, fertilizedCount: 1 },
+    bonusGrow: {
+      biomes: ['ember', 'storm'],
+      hybrid: ['ember', 'storm'],
+      count: 1,
+      minRadius: 11,
+      spacing: 6,
+      scale: 1.7,
+    },
+  },
+
+  // #198 — a glass-leaved vine of the Bright Valley: the
+  // Glass Fern's economy at vine scale — shed glass leaves at
+  // lens grade, unlisted: the valley's floor glitters with
+  // its leavings, and the leavings are not an item.
+  glare_vine: {
+    id: 'glare_vine',
+    name: 'Glare Vine',
+    kind: 'flora',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['saltglass', 'living'],
+      hybrid: ['saltglass', 'living'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1.1,
+    },
+  },
+
+  // #200 — a vine of the Hungry Graveyard, where the
+  // valley's edge grew over the old fields — mirror-written:
+  // in Welcoming years its flowers are pale, honeyed Marrow
+  // Blooms (temperament-year gating is bespoke; v1 deals the
+  // bloom honestly).
+  marrow_vine: {
+    id: 'marrow_vine',
+    name: 'Marrow Vine',
+    kind: 'flora',
+    harvest: { item: 'marrow_bloom', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['bone', 'living'],
+      hybrid: ['bone', 'living'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1.1,
+    },
+  },
+
+  // #252 — the Field's ruler: a spiral-true moss that grows
+  // ONLY along the spiral rows, in the Tender's own measure —
+  // the Row Caps fruit at its spacing because the moss laid
+  // the table. NO harvest: you do not eat the ruler.
+  row_moss: {
+    id: 'row_moss',
+    name: 'Row Moss',
+    kind: 'flora',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['precursor'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 1,
+    },
+  },
+
+  // #246 — a light-sorting moss of the Prism Beds: a living
+  // film that breaks noon into color patches on the ground.
+  // NO harvest — the Beds' color is a citizen, not a crop.
+  prism_moss: {
+    id: 'prism_moss',
+    name: 'Prism Moss',
+    kind: 'flora',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['saltglass'],
+      variant: 'saltglass_prism',
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 1,
+    },
+  },
+
+  // #248 — a gloom-lit fern of the Underroot: it glows a dim
+  // teal in the dark, the understory's own lighting. A frond
+  // is a week's dim light, carried: the Underroot's lantern
+  // for those without one.
+  gloam_fern: {
+    id: 'gloam_fern',
+    name: 'Gloam Fern',
+    kind: 'flora',
+    harvest: { item: 'gloam_frond', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['rootwood'],
+      variant: 'rootwood_underroot',
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 0.9,
+    },
+  },
+
+  // #181 — a two-leaved fern of the Thirsty Marsh's edges:
+  // AIR leaves above (lacy, ordinary) and WATER ribbons below
+  // — cut in flood season, the ribbons are a silky aquatic
+  // fiber: the wet country's weaving starts here.
+  flood_fern: {
+    id: 'flood_fern',
+    name: 'Flood Fern',
+    kind: 'flora',
+    harvest: { item: 'flood_ribbon', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['wetland'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 0.9,
+    },
+  },
+
+  // #204 — a FORGED bloom of the Frozen Gardens, where a
+  // garden country met the steady cold and the cold won
+  // politely: a thaw-year bloom, cut in its brief opening —
+  // a flower that waited a hundred years for one afternoon.
+  ice_bloom: {
+    id: 'ice_bloom',
+    name: 'Ice Bloom',
+    kind: 'flora',
+    harvest: { item: 'ice_bloom', count: 1, fertilizedCount: 1 },
+    bonusGrow: {
+      biomes: ['precursor', 'frost'],
+      hybrid: ['precursor', 'frost'],
+      count: 1,
+      minRadius: 11,
+      spacing: 6,
+      scale: 0.9,
+    },
+  },
+
+  // #216 — a bell-flowered bank plant of the Mirror Rivers,
+  // tripwire-tuned: its bells answer water — a ripple rings
+  // the bank's bells in sequence. Cut bells keep the tuning:
+  // what the far crafters string them for is their business.
+  ripple_bell: {
+    id: 'ripple_bell',
+    name: 'Ripple Bell',
+    kind: 'flora',
+    harvest: { item: 'ripple_bell', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['wetland'],
+      variant: 'mirror_marsh',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
 };
 
 /** Table lookup by species id (the hook + worldGen read here). */

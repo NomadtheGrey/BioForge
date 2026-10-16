@@ -139,6 +139,13 @@ export interface UseToolInteractionsParams {
   /** Ask App to confirm a RELEASE (Adam, 2026-10-15): the cycle's
    *  guarded fourth stop — never applied by the click itself. */
   onRequestRelease: (fauna: FaunaEntity) => void;
+  /** Ask the World line signals (Adam, 2026-10-16): a glyph stone
+   *  was read — the argument is the glyph structure's id, from
+   *  which App derives which ruin it stands in. Optional; absent
+   *  means the line simply never hears about it. */
+  onGlyphRead?: (glyphStructureId: string) => void;
+  /** Ask the World line signals: an artifact heart was opened. */
+  onHeartReached?: () => void;
   /** Stamp a wild creature with the solvent's emergency dissolve
    *  (Adam, 2026-10-16); gating lives with the sim (useWorldEntities). */
   applyDissolve: (faunaId: string) => void;
@@ -218,6 +225,8 @@ export function useToolInteractions({
   getDayNightCycle,
   setFaunaCommand,
   onRequestRelease,
+  onGlyphRead,
+  onHeartReached,
   applyDissolve,
   strikeFauna,
   fireProjectile,
@@ -1972,6 +1981,7 @@ export function useToolInteractions({
         triggerHarvestFx(structure.worldX, structure.worldZ);
         removeStructure(structure.id);
         postNotification('The Heart of the Ruin', `${ruinLoreLine(fate, 'heart')} Taken: ${formatCollected(collected)}.`, 'discover', '#fb7185');
+        onHeartReached?.();
       } else {
         for (const [item, n] of rollRuinCacheLoot(structure.id, band)) {
           addInventoryItem(item, n);
@@ -1997,6 +2007,9 @@ export function useToolInteractions({
       const band = structure.ruinFeature?.band === 'deep' ? 'deep' : 'shallow';
       const fate = structure.ruinFeature?.fate ?? 'gardeners';
       postNotification('What the Stone Remembers', ruinLoreLine(fate, band), 'system', '#a5b4fc');
+      // The Ask the World line counts DISTINCT ruins read (App
+      // derives the ruin from the structure id and dedupes).
+      onGlyphRead?.(structure.id);
       return;
     }
     // Vine ladders: builder grows them (on a wall, or up from a ladder);

@@ -198,6 +198,7 @@ export type ItemId =
   | 'chitin_housing'
   | 'biolume_power_cell'
   | 'prismatic_field_radar'
+  | 'prismatic_lifefinder'
   // Helmet + Quicksteps platforms (published 2026-10-15: the
   // items and their recipes/quests are live; their worn effects
   // land with the platform builds)

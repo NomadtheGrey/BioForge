@@ -260,8 +260,14 @@ import type { PondDef } from './terrain';
  *     the PLUNGE DUCK dives (a table-driven dive cycle —
  *     flight and swim alternate on the sim's phase clock).
  *     Behavior-only; generation learns nothing new.
+ * v54: creature build phase, slice 39 (2026-10-16) — the
+ *     HEARTH DOG arrives: it leaves the wild deal (the sim
+ *     walks it in when a zone holds a heart tile — Adam's
+ *     pin), keeps the doorstep, and bonds reversed (three
+ *     offerings and the dog decides) or leaves undecided.
+ *     Generation only stops dealing it; the rest is sim.
  */
-export const WORLD_GEN_VERSION = 53; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
+export const WORLD_GEN_VERSION = 54; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

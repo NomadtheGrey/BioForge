@@ -832,6 +832,17 @@ export interface FaunaEntity {
   // a species' cyclic behavior (the Plunge Duck's dive cycle),
   // ticked by the sim for species whose table entry names one.
   phaseTimer?: number;
+  // Hearth Dog courtship (slice 39, 2026-10-16): the arrived dog
+  // carries the reversed taming on its own back — how many
+  // offerings it has accepted, how many seconds of loaded-zone
+  // time remain for it to decide (three ten-minute days), and
+  // how long since the last counted offering (a dog decides at
+  // its own pace; offerings count at most one a minute). Absent
+  // on every other creature and on dogs dealt before the
+  // arrival build — those keep their own counsel forever.
+  hearthFeedings?: number;
+  hearthDecideTimer?: number;
+  hearthFedTimer?: number;
   animTime: number;
   /** Biome TYPE this creature spawned in (world-gen stamp; absent on old saves). */
   biome?: BiomeId;

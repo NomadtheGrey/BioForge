@@ -159,6 +159,8 @@ export type ItemId =
   | 'sump_cap'
   | 'grave_puff'
   | 'steam_cap'
+  | 'behemoth_glass'
+  | 'mother_wool'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -731,7 +733,19 @@ export type FaunaSpecies =
   | 'false_greeter'
   | 'storm_roc'
   | 'feral_warden'
-  | 'heartling';
+  | 'heartling'
+  // Slice 30 (2026-10-16) — THE OVERSIZE TIER, fauna side.
+  | 'grass_leviathan'
+  | 'cloud_whale'
+  | 'storm_leviathan'
+  | 'garden_colossus'
+  | 'sleeping_mountain'
+  | 'glass_behemoth'
+  | 'old_marrow'
+  | 'winter_mother'
+  | 'dune_whale'
+  | 'great_hermit'
+  | 'tempest_worm';
 
 export interface FaunaEntity {
   id: string;

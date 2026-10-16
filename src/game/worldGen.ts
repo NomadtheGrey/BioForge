@@ -192,8 +192,17 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     remains is gated on Adam's calls: the landscape flora
  *     trio, Lake Jelly + the pond fauna (pond system), and
  *     the oversize tier. Table-only change.
+ * v45: creature build phase, slice 30 (2026-10-16) — THE
+ *     OVERSIZE TIER, fauna side: eleven landscape and huge
+ *     citizens (Grass Leviathan, Cloud Whale, Storm
+ *     Leviathan, Garden Colossus, Sleeping Mountain, Glass
+ *     Behemoth, Old Marrow, Winter Mother, Dune Whale,
+ *     Great Hermit, Tempest Worm). Opened by Adam's proceed
+ *     with the scale calls delegated (one per zone, far,
+ *     slow, heavy, untameable). The Lake Leviathan stays
+ *     with the pond group. Table-only change.
  */
-export const WORLD_GEN_VERSION = 44; // v44 (2026-10-16): creature slice 29 — flora wave 14, FINAL; land roster complete; v43 was creature slice 28 (flora wave 13)
+export const WORLD_GEN_VERSION = 45; // v45 (2026-10-16): creature slice 30 — oversize tier, fauna side; v44 was creature slice 29 (flora wave 14, final)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

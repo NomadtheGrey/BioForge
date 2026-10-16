@@ -332,6 +332,255 @@ export const FLORA: Record<string, FloraDef> = {
       scale: 1.0,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Wave 2 (slice 10, 2026-10-16) — the pipeline's second growth:
+  // the families wave 1 didn't reach (Bone, Storm, the Living's
+  // own flora), three more hybrid citizens, and the roster's
+  // design-named harvest items, gathered as named.
+  // ------------------------------------------------------------------
+
+  // #38 — a sheet with ambitions: a moss that grows ONLY on
+  // bone — never soil, never stone — softening every skeleton
+  // it takes until a cleaned ribcage looks upholstered. The
+  // Graveyard's ground cover and its upholsterer. Harvested
+  // by handfuls, moss-fashion: the item is its own name.
+  bonemoss: {
+    id: 'bonemoss',
+    name: 'Bonemoss',
+    kind: 'flora',
+    harvest: { item: 'bonemoss', count: 2, fertilizedCount: 3 },
+    bonusGrow: {
+      biomes: ['bone'],
+      count: 4,
+      minRadius: 8,
+      spacing: 3,
+      scale: 1.2,
+    },
+  },
+
+  // #78 — the valley listening back: an ear-fronded fern that
+  // TURNS — a leaf at a time, over minutes — toward sound:
+  // toward the Greeter's rustle, toward birdsong, toward a
+  // player's voice at the valley's edge. Arrive talking and
+  // the ferns will be facing you. Harvested kindly: a frond
+  // that was facing you is a souvenir with a direction.
+  listening_fern: {
+    id: 'listening_fern',
+    name: 'Listening Fern',
+    kind: 'flora',
+    harvest: { item: 'listening_frond', count: 2, fertilizedCount: 3 },
+    bonusGrow: {
+      biomes: ['living'],
+      count: 3,
+      minRadius: 10,
+      spacing: 4,
+      scale: 1.0,
+    },
+  },
+
+  // #86 — grown ice, tuned: a small bell of ice-crystal
+  // petals on a living stalk that RINGS when frost forms
+  // fast — the petals chime as they grow. Its petal is the
+  // roster's first PERISHABLE material: it melts by the next
+  // warm hour unless kept cold. (The perishability clock is
+  // a later economy system; the deadline is in the item's
+  // text from day one, honestly.)
+  snowbell: {
+    id: 'snowbell',
+    name: 'Snowbell',
+    kind: 'flora',
+    harvest: { item: 'ice_petal', count: 2, fertilizedCount: 3 },
+    bonusGrow: {
+      biomes: ['frost'],
+      count: 3,
+      minRadius: 10,
+      spacing: 4,
+      scale: 0.9,
+    },
+  },
+
+  // #108 — flowering from ribs and eye-sockets: a vine that
+  // grows THROUGH the Grave Roots' skeletons, rooting in
+  // root-soil, until a leviathan wears its spine in white
+  // flowers. Dusk-cut flowers are the harvest — a decoration
+  // with a provenance.
+  grave_vine: {
+    id: 'grave_vine',
+    name: 'Grave Vine',
+    kind: 'flora',
+    harvest: { item: 'gravevine_flower', count: 2, fertilizedCount: 3 },
+    bonusGrow: {
+      biomes: ['rootwood', 'bone'],
+      hybrid: ['rootwood', 'bone'],
+      count: 3,
+      minRadius: 10,
+      spacing: 4,
+      scale: 1.1,
+    },
+  },
+
+  // #164 — living conduits of crystal: a Glasswood tree
+  // whose roots grow SALTGLASS as they grow, threading the
+  // soil with glass. An old saltroot's root-plate is a
+  // crystal garden lying in the ground. The harvest is what
+  // falls: naturally tubed root-glass — the far crafters'
+  // piping and lens-blanks. Dealt sparse: trees.
+  saltroot: {
+    id: 'saltroot',
+    name: 'Saltroot',
+    kind: 'flora',
+    harvest: { item: 'saltroot_glass', count: 2, fertilizedCount: 3 },
+    bonusGrow: {
+      biomes: ['saltglass', 'rootwood'],
+      hybrid: ['saltglass', 'rootwood'],
+      count: 2,
+      minRadius: 14,
+      spacing: 8,
+      scale: 1.5,
+    },
+  },
+
+  // #202 — grown for the lightning: a low, spired root-shrub
+  // whose spires are the Loud Valley's own stormcatchers —
+  // the zot strikes them FIRST, and the charge is stored in
+  // root-fruit that glow. Gathered discharged, after the
+  // glow fades: tart, tingling — the loud country's
+  // provisions.
+  stormroot: {
+    id: 'stormroot',
+    name: 'Stormroot',
+    kind: 'flora',
+    harvest: { item: 'storm_fruit', count: 2, fertilizedCount: 3 },
+    bonusGrow: {
+      biomes: ['storm', 'living'],
+      hybrid: ['storm', 'living'],
+      count: 3,
+      minRadius: 10,
+      spacing: 4,
+      scale: 1.0,
+    },
+  },
+
+  // #219 — the water's edge, lit: a sedge crowned with gel
+  // pods of biolume, lit at dusk, dimmed at dawn — the
+  // marsh's own lanterns along the banks. (The Lantern Fern
+  // lights the woods' floors; the bog lantern lights the
+  // WATER's edge.) A whole pod, carefully: the wet country's
+  // lamp oil, grown.
+  bog_lantern: {
+    id: 'bog_lantern',
+    name: 'Bog Lantern',
+    kind: 'flora',
+    harvest: { item: 'bog_light', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['wetland'],
+      count: 3,
+      minRadius: 10,
+      spacing: 4,
+      scale: 1.0,
+    },
+  },
+
+  // #233 — the flats' whole instrument: a grass whose hollow
+  // blades are length-sorted by the wind itself, so a field
+  // SINGS in weather, each stand a chord. Cut blades are the
+  // harvest: straw for pipes, calls, and instruments — the
+  // Storm country's first export of music.
+  gale_grass: {
+    id: 'gale_grass',
+    name: 'Gale Grass',
+    kind: 'flora',
+    harvest: { item: 'gale_straw', count: 2, fertilizedCount: 3 },
+    bonusGrow: {
+      biomes: ['storm'],
+      variant: 'charged_flats',
+      count: 4,
+      minRadius: 8,
+      spacing: 3,
+      scale: 1.1,
+    },
+  },
+
+  // #235 — threshold-true: the valley's rose grows at
+  // DOORWAYS and blooms in proportion to a door's use — a
+  // kept homestead's step flowers; an abandoned one goes
+  // bare within a season. In a Hungry valley, count your
+  // doors by the roses, and be concerned by any door that
+  // blooms which you did not build. Petals: the valley's
+  // small change.
+  doorstep_rose: {
+    id: 'doorstep_rose',
+    name: 'Doorstep Rose',
+    kind: 'flora',
+    harvest: { item: 'vibrant_petal', count: 2, fertilizedCount: 3 },
+    bonusGrow: {
+      biomes: ['living'],
+      count: 3,
+      minRadius: 10,
+      spacing: 4,
+      scale: 0.9,
+    },
+  },
+
+  // #238 — the gardens' handwriting, still writing: a vine
+  // bred to grow GLYPH-SHAPED leaves in sequence along its
+  // stems — what it writes has never repeated in recorded
+  // watching. Fallen letter-leaves are the harvest: kept as
+  // curios, pressed in codexes, traded by chroniclers.
+  glyph_vine: {
+    id: 'glyph_vine',
+    name: 'Glyph Vine',
+    kind: 'flora',
+    harvest: { item: 'glyph_leaf', count: 2, fertilizedCount: 3 },
+    bonusGrow: {
+      biomes: ['precursor'],
+      count: 3,
+      minRadius: 10,
+      spacing: 4,
+      scale: 1.0,
+    },
+  },
+
+  // #269 — THE classic glowing cap, at grove scale: the
+  // mushroom of the family's postcards, gill-lit green, in
+  // rings and drifts under the groves. Never harvested for
+  // the cap — its shed spores are the gathering, the
+  // economy's standing door to Glow Spore.
+  glowcap: {
+    id: 'glowcap',
+    name: 'Glowcap',
+    kind: 'fungus',
+    harvest: { item: 'glow_spore', count: 2, fertilizedCount: 4 },
+    bonusGrow: {
+      biomes: ['fungal'],
+      count: 4,
+      minRadius: 8,
+      spacing: 3,
+      scale: 1.1,
+    },
+  },
+
+  // #272 — a puffball that puffs WARM: stepped on or struck,
+  // it exhales a breath of heated spore-dust, the Drift's
+  // small theater. Gathered unpuffed, it is a hand-warmer
+  // that works once, by being squeezed — the country's
+  // disposable comfort. Ships as a quiet crop in v1; the
+  // warm puff is a later behavior note.
+  ash_puff: {
+    id: 'ash_puff',
+    name: 'Ash Puff',
+    kind: 'fungus',
+    harvest: { item: 'ash_puff', count: 2, fertilizedCount: 3 },
+    bonusGrow: {
+      biomes: ['ember'],
+      variant: 'ashen_drift',
+      count: 3,
+      minRadius: 10,
+      spacing: 4,
+      scale: 0.9,
+    },
+  },
 };
 
 /** Table lookup by species id (the hook + worldGen read here). */
@@ -343,7 +592,7 @@ export function floraDef(id: FloraSpecies): FloraDef | undefined {
 export const BONUS_GROW_FLORA: FloraDef[] = Object.values(FLORA).filter((d) => d.bonusGrow !== null);
 
 // ---------------------------------------------------------------------------
-// Wave-1 codex entries. They live HERE, with the flora table, rather
+// Codex entries (waves 1–2). They live HERE, with the flora table, rather
 // than in constants.ts: INITIAL_CODEX spreads this array in, and
 // constants.ts has outgrown what a single push can carry — the flora
 // codex travelling with the flora table keeps both files pushable
@@ -493,5 +742,149 @@ export const FLORA_CODEX: CodexEntry[] = [
     tamingOrCraftNotes: 'Gather the melt at maturity — tomorrow it is a black puddle and a smell of libraries.',
     biome: 'Precursor (the ruins)',
     iconColor: '#1c1917',
+  },
+  {
+    species: 'bonemoss',
+    name: 'Bonemoss',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A sheet with ambitions: a green so deep it reads black in shade, growing only on bone — never soil, never stone — softening every skeleton it takes, until a cleaned ribcage looks upholstered. The Graveyard\'s ground cover is also its upholsterer, and the treaty\'s quietest signatory.',
+    byproducts: ['Bonemoss (handfuls, moss-fashion)'],
+    tamingOrCraftNotes: 'Gather handfuls; the ribcage will not miss them, and the moss keeps the rest of its appointments.',
+    biome: 'Bone (on bone, only on bone)',
+    iconColor: '#14532d',
+  },
+  {
+    species: 'listening_fern',
+    name: 'Listening Fern',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The valley listening back: an ear-fronded fern that turns — a leaf at a time, over minutes — toward sound: toward birdsong, toward the Greeter\'s rustle, toward a player\'s voice at the valley\'s edge. Arrive talking and the ferns will be facing you. In a Hungry valley, the ferns face the paths, and the paths are where you are.',
+    byproducts: ['Listening Frond (a souvenir with a direction)'],
+    tamingOrCraftNotes: 'Cut fronds kindly. Some items are the world\'s texture; a frond that was facing you is one of them.',
+    biome: 'The Living (family cast)',
+    iconColor: '#4ade80',
+  },
+  {
+    species: 'snowbell',
+    name: 'Snowbell',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'Grown ice, tuned: a small bell of ice-crystal petals on a living stalk. It rings — when frost forms fast, a cold front or a Stillwhite dusk, the petals chime as they grow, and a snowbell slope in a hard frost is an instrument the weather plays once and puts down.',
+    byproducts: ['Ice Petal (perishable — melts by the next warm hour unless kept cold)'],
+    tamingOrCraftNotes: 'Pick the petal and use it quickly, or keep it cold. A crafting ingredient with a deadline: what it makes must be worth hurrying for.',
+    biome: 'Frost (family cast)',
+    iconColor: '#bae6fd',
+  },
+  {
+    species: 'grave_vine',
+    name: 'Grave Vine',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'Flowering from ribs and eye-sockets: a bone-climbing vine of the Grave Roots that roots in root-soil and blooms through the hybrid country\'s skeletons, until a leviathan wears its spine in white flowers by the second spring. Rootwood\'s patience, Bone\'s furniture, one citizen.',
+    byproducts: ['Gravevine Flower (dusk-cut)'],
+    tamingOrCraftNotes: 'Cut the flowers at dusk; pale, cold-scented — a decoration with a provenance, which builders will pay for long before any recipe claims it.',
+    biome: 'Rootwood × Bone (the Grave Roots only)',
+    iconColor: '#f1f5f9',
+  },
+  {
+    species: 'saltroot',
+    name: 'Saltroot',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'Living conduits of crystal: a Glasswood tree whose roots grow saltglass as they grow, threading the soil with glass. An old saltroot\'s root-plate, exposed, is a crystal garden lying in the ground — the flats giving up, and the wood arriving, in the same plant.',
+    byproducts: ['Saltroot Glass (fallen root-glass, gathered)'],
+    tamingOrCraftNotes: 'Gather what falls: naturally tubed crystal, the far crafters\' piping and lens-blanks. The tree keeps growing its half of the bargain.',
+    biome: 'Saltglass × Rootwood (the Glasswood only)',
+    iconColor: '#a5f3fc',
+  },
+  {
+    species: 'stormroot',
+    name: 'Stormroot',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'Grown for the lightning: a low, spired root-shrub whose spires are the Loud Valley\'s own stormcatchers — the zot strikes them first, by design and by appetite, and the charge is stored in root-fruit that glow. The valley outsources its lightning rods to a shrub and eats the batteries.',
+    byproducts: ['Storm Fruit (discharged, gathered after the glow fades)'],
+    tamingOrCraftNotes: 'Tart, tingling — the loud country\'s provisions. Gather after a storm, when the fruit have spent their bright hour.',
+    biome: 'Storm × Living (the Loud Valley only)',
+    iconColor: '#fbbf24',
+  },
+  {
+    species: 'bog_lantern',
+    name: 'Bog Lantern',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The water\'s edge, lit: a sedge crowned with gel pods of biolume, lit at dusk and dimmed at dawn — the marsh\'s own lanterns, uncounted along the banks. The Lantern Fern lights the woods\' floors; the bog lantern lights the water\'s edge, which is a different country with different travelers.',
+    byproducts: ['Bog Light (a whole pod, carefully — a gel lantern that lasts a season)'],
+    tamingOrCraftNotes: 'Take a whole pod, carefully. The wet country\'s lamp oil, grown.',
+    biome: 'Wetland (the banks)',
+    iconColor: '#a3e635',
+  },
+  {
+    species: 'gale_grass',
+    name: 'Gale Grass',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The flats\' whole instrument: a grass whose hollow blades are length-sorted by the wind itself, so a gale grass field sings in weather — each stand a chord, the field a slow music the Charged Flats make by existing. Travelers navigate the flats by ear in a blow: the chords are landmarks.',
+    byproducts: ['Gale Straw (cut blades)'],
+    tamingOrCraftNotes: 'For pipes, calls, and the far craft of instruments — the Storm country\'s first export of music.',
+    biome: 'Storm (the Charged Flats)',
+    iconColor: '#fde68a',
+  },
+  {
+    species: 'doorstep_rose',
+    name: 'Doorstep Rose',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'Threshold-true: the valley\'s rose grows at doorways and blooms in proportion to a door\'s use — a kept homestead\'s step flowers, and an abandoned one goes bare within a season. In a Hungry valley, count your doors by the roses — and be concerned by any door that blooms which you did not build.',
+    byproducts: ['Vibrant Petal (the valley\'s small change)'],
+    tamingOrCraftNotes: 'Pick the petals; the rose keeps its own ledger of your comings and goings, and it has never once been wrong.',
+    biome: 'The Living (at doorways)',
+    iconColor: '#fb7185',
+  },
+  {
+    species: 'glyph_vine',
+    name: 'Glyph Vine',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The gardens\' handwriting, still writing: a vine bred to grow glyph-shaped leaves in sequence along its stems — what it writes has never repeated in recorded watching. The Garden\'s staff tended it as a chronicle; the chronicle continues without them, one letter-leaf at a time.',
+    byproducts: ['Glyph Leaf (fallen letter-leaves)'],
+    tamingOrCraftNotes: 'Kept as curios, pressed in codexes, traded by chroniclers at rates this entry refuses to stabilize.',
+    biome: 'Precursor (the Garden, the ruins\' edges)',
+    iconColor: '#a3e635',
+  },
+  {
+    species: 'glowcap',
+    name: 'Glowcap',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'THE classic glowing cap, at grove scale — the mushroom of the family\'s postcards, gill-lit green, in rings and drifts under the groves. The Glow Grub is an animal that glows; the glowcap is the light the grub evolved inside. The grove\'s ceiling is the ground, lit from below.',
+    byproducts: ['Glow Spore (shed spores — never the cap)'],
+    tamingOrCraftNotes: 'Gather the shed spores at fruiting, from the air of its rings. The cap itself stays, and lights the next gathering.',
+    biome: 'Fungal (the groves)',
+    iconColor: '#4ade80',
+  },
+  {
+    species: 'ash_puff',
+    name: 'Ash Puff',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A puffball that puffs warm: stepped on or struck, it exhales a breath of heated spore-dust — the Drift\'s small theater, dotting the ash like punctuation. Travelers learn its silhouette the way they learn every Ember lesson: once, warmly.',
+    byproducts: ['Ash Puff (unpuffed balls — a hand-warmer that works once, by being squeezed)'],
+    tamingOrCraftNotes: 'Gather them unpuffed and squeeze when the cold gets in. The country\'s disposable comfort.',
+    biome: 'Ember (the Ashen Drift)',
+    iconColor: '#d6d3d1',
   },
 ];

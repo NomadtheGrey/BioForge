@@ -19,6 +19,7 @@ import {
 } from '../types/game';
 import { FirstPersonViewmodel } from './viewmodel';
 import { landformHeightAt } from './terrain';
+import { isFloorType } from './placement';
 import { BIOME_TINTS } from './biomes';
 import type { BiomeId } from './biomes';
 import { cavernCellToWorld, type CavernResult } from './cavern';
@@ -980,7 +981,7 @@ export class BioForgeThreeEngine {
     // Story levels stack on the datum: a level-1 wall stands where a
     // level-0 wall's top ends, whatever the ground does below.
     const groundY = (datum ?? this.terrainHeightAt(worldX, worldZ)) + level * STORY_HEIGHT;
-    const lift = type === 'root_tile_floor' || type === 'heart_tile' ? FLOOR_TERRAIN_LIFT : 0;
+    const lift = isFloorType(type) ? FLOOR_TERRAIN_LIFT : 0;
     mesh.position.set(worldX, groundY + lift, worldZ);
     mesh.rotation.set(0, rotation, 0);
   }

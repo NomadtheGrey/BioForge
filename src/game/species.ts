@@ -2980,6 +2980,319 @@ export const SPECIES: Record<FaunaSpecies, SpeciesDef> = {
       health: 8,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Slice 17 (2026-10-16) — fauna wave 4: the heavy ground and
+  // the danger bench (three new hunters), the hedge's planter,
+  // the Graveyard's middle sky, and vapor's flagship.
+  // ------------------------------------------------------------------
+
+  // #14 — VAPOR'S FLAGSHIP: a wisp of the Scar, ember-lit from
+  // inside when it feeds, only ever fully THERE inside a
+  // steam column. Timid; untameable — you cannot keep steam.
+  // Standing in its column as it feeds sometimes condenses
+  // Scar Mist on your gear: the shed below is that
+  // condensation, arriving as traces where it fed.
+  vent_wisp: {
+    id: 'vent_wisp',
+    name: 'Vent Wisp',
+    profile: 'drifter',
+    tameChance: null,
+    bait: null,
+    petName: 'Vent Wisp',
+    byproduct: { item: 'scar_mist', seconds: 420, tamedOnly: false },
+    flight: { altitude: 0.9, bobHeight: 0.2, bobRate: 1.2 },
+    bonusSpawn: {
+      biomes: ['ember'],
+      variant: 'ember_scar',
+      count: 2,
+      minRadius: 10,
+      spacing: 6,
+      speed: 1.1, // steam's pace
+      speedJitter: 0.15,
+      health: 10,
+    },
+  },
+
+  // #79 — it plants the hedge by walking: a spine-carpeted
+  // quadruped of the Hedgewood, every soft spine carrying
+  // SEEDS — where a brambleback has been, a hedge is coming.
+  // 50%. Shaken spines at season's turn are Bramble Seed:
+  // plantable hedge, the hybrid country in a pouch.
+  brambleback: {
+    id: 'brambleback',
+    name: 'Brambleback',
+    profile: 'grazer',
+    tameChance: 0.5,
+    bait: 'nectar',
+    petName: 'Brambleback',
+    byproduct: { item: 'bramble_seed', seconds: 300, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['meadow', 'rootwood'],
+      hybrid: ['meadow', 'rootwood'],
+      count: 2,
+      minRadius: 10,
+      spacing: 6,
+      speed: 1.3,
+      speedJitter: 0.1,
+      health: 60,
+    },
+  },
+
+  // #81 — the Dunes' charged cousins: a copper-jointed,
+  // bristle-backed crab of the glass-storm margin, walking
+  // sideways as crabs do. 25%. A grounded crab leaves its
+  // spent bristle-charge in the salt — fulgurite shard dust:
+  // the stormcatcher's shard, by a crab's door.
+  static_crab: {
+    id: 'static_crab',
+    name: 'Static Crab',
+    profile: 'insect',
+    tameChance: 0.25,
+    bait: 'nectar',
+    petName: 'Static Crab',
+    byproduct: { item: 'fulgurite_shard', seconds: 360, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['storm', 'saltglass'],
+      hybrid: ['storm', 'saltglass'],
+      count: 2,
+      minRadius: 9,
+      spacing: 5,
+      speed: 1.6, // sideways, briskly
+      speedJitter: 0.15,
+      health: 30,
+    },
+  },
+
+  // #97 — it owns the Graveyard's middle sky: a pale-barred,
+  // long-winged hawk, glider-leaning, picker above all —
+  // Bonepicker above, gliders on census, hawk between. 15%,
+  // the owl rate's daylight cousin. Its molted primaries are
+  // Hawk Feather — DISTINCT from the Bonepicker's Grave
+  // Feather on purpose: same family, different sky.
+  dust_hawk: {
+    id: 'dust_hawk',
+    name: 'Dust Hawk',
+    profile: 'flyer',
+    tameChance: 0.15,
+    bait: 'nectar',
+    petName: 'Dust Hawk',
+    byproduct: { item: 'hawk_feather', seconds: 300, tamedOnly: false },
+    flight: { altitude: 2.6, bobHeight: 0.28, bobRate: 1.8, flapRate: 3.0 },
+    bonusSpawn: {
+      biomes: ['bone'],
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 2.6,
+      speedJitter: 0.15,
+      health: 26,
+    },
+  },
+
+  // #136 — the Graveyard's edges have a foreman: a
+  // shoulder-high, jaw-heavy hyena-plan cracker of the
+  // family's dead, scarred by its own profession. It CRACKS
+  // bone for marrow; a player inside its work gets the
+  // profession's manners — TERRITORIAL, on the bench: the
+  // cracking CRACK, then the head coming up, is the tell.
+  // Untameable (0%).
+  bonebreaker: {
+    id: 'bonebreaker',
+    name: 'Bonebreaker',
+    profile: 'predator',
+    tameChance: null,
+    bait: null,
+    petName: 'Bonebreaker',
+    byproduct: null,
+    hunt: { aggroRange: 9, damage: 11, biteRange: 1.8, biteCooldownSeconds: 1.3 },
+    bonusSpawn: {
+      biomes: ['bone'],
+      count: 1,
+      minRadius: 13,
+      spacing: 8,
+      speed: 2.2,
+      speedJitter: 0.1,
+      health: 85,
+    },
+  },
+
+  // #139 — strike-timed: a static-charged serpent of the
+  // Charged Flats that sheds the zot's weather as fine
+  // crackling along its length — THE TELL is audible: the
+  // crackle rises before the strike. Untameable (0%). Its
+  // shed skin is a conductor, sold dear: Zot Skin.
+  zot_serpent: {
+    id: 'zot_serpent',
+    name: 'Zot Serpent',
+    profile: 'serpent',
+    tameChance: null,
+    bait: null,
+    petName: 'Zot Serpent',
+    byproduct: { item: 'zot_skin', seconds: 300, tamedOnly: false },
+    hunt: { aggroRange: 8, damage: 10, biteRange: 2.0, biteCooldownSeconds: 0.9 },
+    bonusSpawn: {
+      biomes: ['storm'],
+      variant: 'charged_flats',
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 2.4,
+      speedJitter: 0.15,
+      health: 45,
+    },
+  },
+
+  // #145 — a walking anvil of the Iron Ashes: massive, low,
+  // plate-backed — its armor is ironworm plate, harvested
+  // worn: it EATS ironworms and wears the evidence. It hunts
+  // worms, not players — but it is storm-grounded, sheds
+  // charge, and inside its ground its bulk is the law: the
+  // bench reads it as a territorial bruiser. Untameable
+  // (0%). Shed plates are Ironjaw Plate — distinct from
+  // Ironworm Plate as a matter of law.
+  ironjaw: {
+    id: 'ironjaw',
+    name: 'Ironjaw',
+    profile: 'predator',
+    tameChance: null,
+    bait: null,
+    petName: 'Ironjaw',
+    byproduct: { item: 'ironjaw_plate', seconds: 360, tamedOnly: false },
+    hunt: { aggroRange: 7, damage: 13, biteRange: 1.9, biteCooldownSeconds: 1.5 },
+    bonusSpawn: {
+      biomes: ['ember', 'storm'],
+      hybrid: ['ember', 'storm'],
+      count: 1,
+      minRadius: 13,
+      spacing: 8,
+      speed: 1.5,
+      speedJitter: 0.05,
+      health: 160,
+    },
+  },
+
+  // #146 — the Root Serpent's rhyme in the other element: a
+  // snow-bodied serpent of the Frozen Forest, root-scarred,
+  // burrowing the snowpack and slithering the drifts. A
+  // presence, not a bench danger. Untameable (0%).
+  hoar_serpent: {
+    id: 'hoar_serpent',
+    name: 'Hoar Serpent',
+    profile: 'serpent',
+    tameChance: null,
+    bait: null,
+    petName: 'Hoar Serpent',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['frost', 'rootwood'],
+      hybrid: ['frost', 'rootwood'],
+      count: 1,
+      minRadius: 13,
+      spacing: 8,
+      speed: 1.7,
+      speedJitter: 0.05,
+      health: 90,
+    },
+  },
+
+  // #150 — ROLLING's third citizen: a tuck-built crab of the
+  // Magnetic Dunes whose legs fold flush and whose shell is
+  // a true wheel's rim — it commutes by wheel and conducts
+  // business by crab. 45%.
+  tumble_crab: {
+    id: 'tumble_crab',
+    name: 'Tumble Crab',
+    profile: 'insect',
+    tameChance: 0.45,
+    bait: 'nectar',
+    petName: 'Tumble Crab',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['saltglass'],
+      variant: 'magnetic_dunes',
+      count: 2,
+      minRadius: 9,
+      spacing: 5,
+      speed: 2.4, // rolling
+      speedJitter: 0.2,
+      health: 22,
+    },
+  },
+
+  // #154 — GEOMETRIC fauna's second citizen: a beetle whose
+  // shell is a faceted solid, each face a grown plate, in
+  // the flat bright countries. Its shed facets are used by
+  // children of every species as dice — the entry's one
+  // joke, left unguarded (and unlisted: a toy, not a trade
+  // good). 50%.
+  facet_beetle: {
+    id: 'facet_beetle',
+    name: 'Facet Beetle',
+    profile: 'insect',
+    tameChance: 0.5,
+    bait: 'nectar',
+    petName: 'Facet Beetle',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['bone', 'saltglass'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      speed: 1.4,
+      speedJitter: 0.15,
+      health: 12,
+    },
+  },
+
+  // #156 — HUSK's second tenant by the natural road: a
+  // soft-bodied grazer that backs into a discarded skull and
+  // wears it — ant-sized to fox-sized skulls, by growth.
+  // 40%. Abandoned skulls are Worn Skull: a helmet-shaped
+  // truth the builders will find uses for.
+  skull_hermit: {
+    id: 'skull_hermit',
+    name: 'Skull Hermit',
+    profile: 'grazer',
+    tameChance: 0.4,
+    bait: 'nectar',
+    petName: 'Skull Hermit',
+    byproduct: { item: 'worn_skull', seconds: 360, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['bone'],
+      variant: 'leviathan_graveyard',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      speed: 1.0,
+      speedJitter: 0.1,
+      health: 18,
+    },
+  },
+
+  // #160 — it crops grass along the Tending Fields' spiral
+  // logic even in open meadow: generations of grazing beside
+  // the gardens taught the herd geometry, and the Garden
+  // Meadows are mowed in spirals by citizens. 45%.
+  row_grazer: {
+    id: 'row_grazer',
+    name: 'Row Grazer',
+    profile: 'grazer',
+    tameChance: 0.45,
+    bait: 'nectar',
+    petName: 'Row Grazer',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['meadow', 'precursor'],
+      hybrid: ['meadow', 'precursor'],
+      count: 3, // in rows
+      minRadius: 9,
+      spacing: 4,
+      speed: 1.5,
+      speedJitter: 0.1,
+      health: 65,
+    },
+  },
 };
 
 /** The one lookup every shared system uses. */

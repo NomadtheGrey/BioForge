@@ -1632,7 +1632,7 @@ export const FLORA_CODEX: CodexEntry[] = [
     type: 'flora',
     discovered: false,
     scannedCount: 0,
-    description: 'A forged tree of the Ossuary Gardens — the gardeners kept a bone garden; of course they did, and of course they bred its tree to make this: fruit that is cache-grade treasure and grows — sweet, stone-hard, keeping forever. The Feral Warden\'s patrol is, in part, an orchard patrol, and now you know why it takes the orchard seriously.',
+    description: 'A forged tree of the Ossuary Gardens — the gardeners kept a bone garden; of course they did, and of course they bred its tree to make this: fruit that is cache-grade treasure and grows — sweet, stone-hard, keeping forever. The Feral Bailiff\'s patrol is, in part, an orchard patrol, and now you know why it takes the orchard seriously.',
     byproducts: ['Relic Fruit (treasure that grows — sweet, stone-hard, keeping forever)'],
     tamingOrCraftNotes: 'Take fallen fruit with the glove — one is a find; the tree keeps the orchard\'s books.',
     biome: 'Bone × Precursor (the Ossuary Gardens only)',

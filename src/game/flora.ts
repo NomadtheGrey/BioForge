@@ -1317,6 +1317,264 @@ export const FLORA: Record<string, FloraDef> = {
       scale: 1,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Wave 6 (slice 18, 2026-10-16) — the last flora: the design
+  // bench's final twelve. Three are citizens, not crops —
+  // the Raincatcher (keep its pools; be rained on), the Arch
+  // Tree (a colonnade), the Maw Bloom (a hazard) — and carry
+  // harvest: null on purpose.
+  // ------------------------------------------------------------------
+
+  // #21 — VAPOR FLORA, the context-ruled cell: a gas-bag
+  // canopy over a soft heart, rain-bellied, living on the
+  // Skyfall Basin's updrafts and coming down only when heavy
+  // with caught rain. It CANNOT be planted or moved — a
+  // citizen of one sky. What a player does is keep its pools
+  // clean and be rained on gratefully: no harvest, by design.
+  raincatcher: {
+    id: 'raincatcher',
+    name: 'Raincatcher',
+    kind: 'flora',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['storm'],
+      count: 1,
+      minRadius: 14,
+      spacing: 10,
+      scale: 2.2, // large, mostly sky
+    },
+  },
+
+  // #22 — FORGED FLORA: a garden vine whose tendril ends are
+  // SHAPED — pruners, probes, a small lamp — patient,
+  // networked to its garden, tasting soil the way the Warden
+  // reads intruders. It cannot be transplanted, but it prunes
+  // itself of excess and leaves the cuttings stacked neatly
+  // where a gardener would: taking them is permitted.
+  tending_vine: {
+    id: 'tending_vine',
+    name: 'Tending Vine',
+    kind: 'flora',
+    harvest: { item: 'tending_cutting', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['precursor'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1.1,
+    },
+  },
+
+  // #47 — it grows TOWARD dwellings: in a Welcoming valley it
+  // puts roots under your doorstep and blooms along your
+  // path — the valley's hello at flora scale. In a Hungry
+  // valley it is THE SAME PLANT, growing toward dwellings to
+  // get IN. Both temperaments, one species, no variant
+  // gate — the mirror discipline, planted.
+  hearthroot: {
+    id: 'hearthroot',
+    name: 'Hearthroot',
+    kind: 'flora',
+    harvest: { item: 'hearth_bloom', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['living'],
+      count: 3,
+      minRadius: 8,
+      spacing: 4,
+      scale: 1,
+    },
+  },
+
+  // #59 — the family's second clock (the Meltcap keeps the
+  // night; the Puffbell keeps the HOUR): a spore-laden bell
+  // that draws in, swells, and PUFFS a ring of spore-smoke —
+  // and in a grove, the bells synchronize within a day. Its
+  // spores are its cultivation and its harvest both: stand in
+  // a puff, walk to your ground.
+  puffbell: {
+    id: 'puffbell',
+    name: 'Puffbell',
+    kind: 'fungus',
+    harvest: { item: 'puff_spore', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['fungal'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      scale: 1,
+    },
+  },
+
+  // #70 — grown, not built, in BOTH parents' senses: a tree
+  // trained INTO a doorway, trunk split into an arch, canopy
+  // braided overhead, standing in spiral colonnades where
+  // garden met forest. Infrastructure that GREW — and then
+  // grew tenants. A landmark: no harvest, dealt once per
+  // country at colonnade scale.
+  arch_tree: {
+    id: 'arch_tree',
+    name: 'Arch Tree',
+    kind: 'flora',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['precursor', 'rootwood'],
+      hybrid: ['precursor', 'rootwood'],
+      count: 1,
+      minRadius: 16,
+      spacing: 12,
+      scale: 3.0,
+    },
+  },
+
+  // #82 — it SMOLDERS: heartwood at a permanent ember, never
+  // flame, never out, its canopy a low slow smoke the tree
+  // makes of its own leaves and breathes back. The Charwood's
+  // stands stand in their own weather. Its cutting keeps the
+  // ember: Smolder Heart.
+  smoke_tree: {
+    id: 'smoke_tree',
+    name: 'Smoke Tree',
+    kind: 'flora',
+    harvest: { item: 'smoke_heart', count: 1, fertilizedCount: 1 },
+    bonusGrow: {
+      biomes: ['ember', 'rootwood'],
+      hybrid: ['ember', 'rootwood'],
+      count: 2,
+      minRadius: 11,
+      spacing: 6,
+      scale: 1.8,
+    },
+  },
+
+  // #90 — GEL FLORA: a light-clear ground-sheet with a
+  // leading edge that FLOWS, centimeters a day, toward the
+  // Hollow's dim green light (recorded Stationary with the
+  // design's own footnote). It eats by lying on things for a
+  // season; a cut piece carried in a dark pouch starts a new
+  // sheet where it's laid: the sheet IS the harvest.
+  lightcreep: {
+    id: 'lightcreep',
+    name: 'Lightcreep',
+    kind: 'flora',
+    harvest: { item: 'creep_sheet', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['fungal'],
+      count: 2,
+      minRadius: 9,
+      spacing: 5,
+      scale: 1.2,
+    },
+  },
+
+  // #92 — RADIAL flora, the shape plan's first plant: a star
+  // of crystal petals rooted IN strike glass on the Charged
+  // Flats — it grows only where lightning has been, so a map
+  // of zot stars IS the flats' archive of strikes. At the
+  // warning light every star turns its face up at once: the
+  // second banner, closer and quieter.
+  zot_star: {
+    id: 'zot_star',
+    name: 'Zot Star',
+    kind: 'flora',
+    harvest: { item: 'star_glass', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['storm'],
+      variant: 'charged_flats',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #140 — the mirror-law, weaponized: Welcoming vines SWAY
+  // TOWARD a guest; grabvines hold perfectly STILL, and in
+  // the Living Valley stillness is the tell. Its tendrils
+  // cross paths at ankle and wrist height, grown there,
+  // waiting for the tension of a step. HAZARDOUS. Its
+  // tendril cutting is the Hungry valley's dangerous door to
+  // the family's own signature material: Living Thread, at
+  // risk, once — it is never cultivated twice.
+  grabvine: {
+    id: 'grabvine',
+    name: 'Grabvine',
+    kind: 'flora',
+    harvest: { item: 'living_thread', count: 1, fertilizedCount: 1 },
+    hazardous: true,
+    bonusGrow: {
+      biomes: ['living'],
+      variant: 'hungry_valley',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1.1,
+    },
+  },
+
+  // #141 — the Snap Trap's plan at throne scale: a bloom you
+  // could stand in, perfumed WRONG — garden fruit's sweetness
+  // in a country with no gardens. THE TELL is the mismatch:
+  // in a Hungry valley, a smell that doesn't belong is a
+  // mouth. HAZARDOUS. It blooms at the warm hours and is
+  // shut, harmless-looking, at night — the codex notes the
+  // safe window without smiling. No harvest: never.
+  maw_bloom: {
+    id: 'maw_bloom',
+    name: 'Maw Bloom',
+    kind: 'flora',
+    harvest: null,
+    hazardous: true,
+    bonusGrow: {
+      biomes: ['living'],
+      variant: 'hungry_valley',
+      count: 1,
+      minRadius: 14,
+      spacing: 10,
+      scale: 1.6,
+    },
+  },
+
+  // #148 — the second empty cell, filled with gel: an
+  // Underroot-edge fungus whose cap QUIVERS at footsteps,
+  // sweats clear beads, and reproduces by dripping —
+  // spore-beads in gel skins that roll downhill and root
+  // where they stop (Rolling, used without having it). Its
+  // gel is alchemy's pet: Quiver Gel, the Gloom Gel's
+  // cultivated cousin.
+  quiver_cap: {
+    id: 'quiver_cap',
+    name: 'Quiver Cap',
+    kind: 'fungus',
+    harvest: { item: 'quiver_gel', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['fungal'],
+      count: 2,
+      minRadius: 9,
+      spacing: 4,
+      scale: 1,
+    },
+  },
+
+  // #157 — DRIFTING flora's second citizen: a vine whose
+  // seed-pods inflate with warm gas at ripeness and LIFT
+  // their cuttings clear, to drift the Basin and root where
+  // they ground (the Stormcap's mirror across kingdoms). The
+  // vine stays; the generation travels. Its pod-gas bladders
+  // are the harvest.
+  balloon_vine: {
+    id: 'balloon_vine',
+    name: 'Balloon Vine',
+    kind: 'flora',
+    harvest: { item: 'pod_bladder', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['storm'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1.2,
+    },
+  },
 };
 
 /** Table lookup by species id (the hook + worldGen read here). */
@@ -1328,7 +1586,8 @@ export function floraDef(id: FloraSpecies): FloraDef | undefined {
 export const BONUS_GROW_FLORA: FloraDef[] = Object.values(FLORA).filter((d) => d.bonusGrow !== null);
 
 // ---------------------------------------------------------------------------
-// Codex entries (waves 1–5). They live HERE, with the flora table, rather
+// Codex entries (waves 1–6 — the complete flora roster). They live
+// HERE, with the flora table, rather
 // than in constants.ts: INITIAL_CODEX spreads this array in, and
 // constants.ts has outgrown what a single push can carry — the flora
 // codex travelling with the flora table keeps both files pushable
@@ -2054,5 +2313,149 @@ export const FLORA_CODEX: CodexEntry[] = [
     tamingOrCraftNotes: 'Gather the hips with the glove — vitamin-bright, free along every hedge in the wood. Thank the brambleback by leaving the path as you found it.',
     biome: 'Meadow × Rootwood (the Hedgewood only)',
     iconColor: '#e11d48',
+  },
+  {
+    species: 'raincatcher',
+    name: 'Raincatcher',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'Vapor flora, the context-ruled cell: a gas-bag canopy over a soft heart, rain-bellied — it lives on the Skyfall Basin\'s updrafts and comes down only when heavy with caught rain, sinking at night to drink from the pools its own rain made: a closed loop with a pulse. It cannot be planted or moved. A Raincatcher is a citizen of one sky.',
+    byproducts: ['None — what a player can do is keep its pools clean, and be rained on gratefully'],
+    tamingOrCraftNotes: 'No harvest. Keep the basin\'s pools clean; the citizen handles the weather.',
+    biome: 'Storm (the Skyfall Basin)',
+    iconColor: '#bae6fd',
+  },
+  {
+    species: 'tending_vine',
+    name: 'Tending Vine',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'Forged flora: a garden vine whose tendril ends are shaped — pruners, probes, a small lamp — patient, networked to its garden, tasting soil the way the Warden reads intruders. It cannot be transplanted, but it accepts assignments: plant something in its row and it will tend yours alongside its own. Between Vine and Warden, a tolerated player has staff.',
+    byproducts: ['Tending Cutting (its prunings, stacked neatly where a gardener would)'],
+    tamingOrCraftNotes: 'Take the cuttings with the glove — permitted. Taking MORE is noticed.',
+    biome: 'Precursor (the gardens)',
+    iconColor: '#a3e635',
+  },
+  {
+    species: 'hearthroot',
+    name: 'Hearthroot',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A root-flower that grows TOWARD dwellings, fed measurably by being lived near. In a Welcoming valley it puts roots under your doorstep and blooms along your path — the valley\'s hello, at flora scale, arriving slowly. In a Hungry valley it is the same plant, growing toward dwellings to get IN: blooms along the path are a promise, and the promise is the problem.',
+    byproducts: ['Hearth Bloom'],
+    tamingOrCraftNotes: 'Gather with the glove — and know which valley you are standing in before you follow the blooms home.',
+    biome: 'The Living Valley (both temperaments)',
+    iconColor: '#fb923c',
+  },
+  {
+    species: 'puffbell',
+    name: 'Puffbell',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The fungal family\'s second clock — the Meltcap keeps the night, the Puffbell keeps the HOUR: at intervals a mature bell draws in, swells, and puffs a visible ring of spore-smoke with a soft percussive note, felt in the ribs more than heard. In a grove the bells synchronize within a day of arriving; nobody teaches them. The grove is one organism remembering it has a tempo.',
+    byproducts: ['Puff Spore (its spore-smoke, gathered)'],
+    tamingOrCraftNotes: 'Gather with the glove — plantable by spore-smoke: stand in a puff at the hour, walk to your ground, and you have planted a clock.',
+    biome: 'Fungal (family cast)',
+    iconColor: '#d8b4fe',
+  },
+  {
+    species: 'arch_tree',
+    name: 'Arch Tree',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'Grown, not built, in both parents\' senses: Rootwood\'s living wood shaped by the gardeners\' art into architecture — a tree grown into a doorway, trunk split and trained into an arch, canopy braided overhead, standing in the gardens\' spiral order where garden met forest. The roster\'s recurring discovery, planted: infrastructure is a biome that hasn\'t been moved into yet — here the infrastructure grew, and then grew tenants.',
+    byproducts: ['None — it is a colonnade, not a crop'],
+    tamingOrCraftNotes: 'Walk through it slowly. The gardeners planted a door; the forest moved into the house.',
+    biome: 'Precursor × Rootwood (the colonnade country only)',
+    iconColor: '#92400e',
+  },
+  {
+    species: 'smoke_tree',
+    name: 'Smoke Tree',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'It smolders: heartwood at a permanent ember, never flame, never out — and its canopy is a low, slow smoke the tree makes of its own leaves and breathes back. The Charwood\'s stands stand in their own weather, and at night the smolder dims to a coal-glow in the trunk\'s seams: a stand of trees with fire in their joints, breathing slowly.',
+    byproducts: ['Smolder Heart (a cutting that keeps the ember)'],
+    tamingOrCraftNotes: 'Cut with the glove, once — a smoke tree\'s ash feeds smoke trees; take the heart, leave the grove its future.',
+    biome: 'Ember × Rootwood (the Charwood only)',
+    iconColor: '#ea580c',
+  },
+  {
+    species: 'lightcreep',
+    name: 'Lightcreep',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'Gel flora: a light-clear ground-sheet with a leading edge that flows — centimeters a day, toward the Hollow\'s dim green light, so a sheet found in spring is a hand\'s width on by summer. It eats by lying on things for a season; sheets merge on contact into one larger citizen. Recorded stationary, with the design\'s own footnote: if any flora earns a locomotion footnote, it is this one.',
+    byproducts: ['Lightcreep Sheet (a cut piece — carried in a dark pouch, it starts a new sheet where laid)'],
+    tamingOrCraftNotes: 'Cut with the glove. The sheet is the harvest and the planting both.',
+    biome: 'Fungal (the Hollow\'s floors)',
+    iconColor: '#a3e635',
+  },
+  {
+    species: 'zot_star',
+    name: 'Zot Star',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'Radial flora — the shape plan\'s first plant: a star of crystal petals around a heart of sand turned to glass, rooted in strike glass on the Charged Flats. It grows only where lightning has been — no zot, no star — so a map of zot stars IS a map of the strikes: the family\'s archive, flowering. At the warning light every star on the flats turns its face up at once: the second banner, closer and quieter.',
+    byproducts: ['Star Glass (a petal of strike-glass)'],
+    tamingOrCraftNotes: 'Gather with the glove — and read the flats by it: where the stars cluster, the sky has opinions.',
+    biome: 'Storm (the Charged Flats)',
+    iconColor: '#fde047',
+  },
+  {
+    species: 'grabvine',
+    name: 'Grabvine',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The mirror-law, weaponized: Welcoming vines sway toward a guest; grabvines hold perfectly still — and in the Living Valley, stillness is the tell. Its tendrils cross paths at ankle and wrist height, grown there, waiting for the tension of a step. What the path brings, it composts in place: a grabvine thicket is the Hungry valley\'s garden and its larder.',
+    byproducts: ['Living Thread (a tendril cutting — the valley\'s dangerous door to its own signature material)'],
+    tamingOrCraftNotes: 'HAZARDOUS. Harvest with the glove, at arm\'s length, and never twice the same thicket. The hello and the grab begin with the same gesture; this one has practiced leaving the gesture out.',
+    biome: 'The Living (Hungry valleys)',
+    iconColor: '#4d7c0f',
+  },
+  {
+    species: 'maw_bloom',
+    name: 'Maw Bloom',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The snap trap\'s plan at throne scale: a bloom you could stand in, at path-bends and clearings\' hearts, perfumed WRONG — garden fruit\'s sweetness in a country with no gardens. The entry teaches the tell plainly: in a Hungry valley, a smell that doesn\'t belong is a mouth. It blooms at the warm hours, shut and harmless-looking at night; the codex notes the safe window without smiling.',
+    byproducts: ['None — its seeds are carried by what escapes it'],
+    tamingOrCraftNotes: 'HAZARDOUS. Never cultivated. Pass its clearings at night, upwind of the perfume.',
+    biome: 'The Living (Hungry valleys)',
+    iconColor: '#be185d',
+  },
+  {
+    species: 'quiver_cap',
+    name: 'Quiver Cap',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The second empty cell, filled with gel: an Underroot-edge fungus whose cap is gel — it quivers at footsteps, sweats clear beads, and reproduces by dripping: spore-beads roll downhill in gel skins and root where they stop, a fungus that uses Rolling without having it. It fruits in the wet and slumps in the dry: a rain gauge with opinions.',
+    byproducts: ['Quiver Gel (a trembling, spore-live gel — the Gloom Gel\'s cultivated cousin)'],
+    tamingOrCraftNotes: 'Gather with the glove — the easiest fungus on the roster to move: a bead, carried and set on damp rot, roots in a day.',
+    biome: 'Fungal (Underroot edges)',
+    iconColor: '#a5f3fc',
+  },
+  {
+    species: 'balloon_vine',
+    name: 'Balloon Vine',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'Drifting flora\'s second citizen: a vine whose seed-pods inflate with warm gas at ripeness and lift their cuttings clear of the mother, to drift the Basin and root where they ground — the Stormcap\'s flora mirror: the fungus detaches a cap, the vine detaches a cradle; two kingdoms, one emigration. Pods ground on the Raincatchers and ride a while, rent-free.',
+    byproducts: ['Pod Bladder (a cradle-pod\'s gas bladder)'],
+    tamingOrCraftNotes: 'Gather grounded pods with the glove — a grounded pod, kept, roots eagerly: the far country\'s easiest exotic.',
+    biome: 'Storm (the Skyfall Basin\'s gardens)',
+    iconColor: '#86efac',
   },
 ];

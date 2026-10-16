@@ -241,8 +241,13 @@ import type { PondDef } from './terrain';
  *     drawn at its swim depth under the surface. Wave A: the
  *     first eleven pond citizens. The swimmers have waited
  *     for water since the roster was drawn; the water is in.
+ * v51: creature build phase, slice 36 (2026-10-16) — POND
+ *     WAVE B: the last ten pond fauna (incl. the Lake
+ *     Leviathan, the water epic) and the Lake Jelly fungus.
+ *     With this landing the designed roster is COMPLETE:
+ *     every one of the 358 designed species is in the game.
  */
-export const WORLD_GEN_VERSION = 50; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
+export const WORLD_GEN_VERSION = 51; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

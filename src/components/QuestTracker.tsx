@@ -45,12 +45,20 @@ export const QuestTracker = ({ view, onDismiss }: QuestTrackerProps) => {
           CHAPTER {def.questChapter}
         </span>
         <span className="text-[10px] font-black tracking-[0.18em] text-emerald-200/70">
-          MINI-QUEST
+          {def.line ? 'ASK THE WORLD' : 'MINI-QUEST'}
         </span>
       </div>
       <div className="mt-1 text-sm font-bold text-slate-100 leading-tight">
         {def.title}
       </div>
+      {/* A tracked line quest wears its flavor wink (its
+          progress rides the completion row below — for a line
+          quest that row IS the live goal line, not a craft). */}
+      {def.line && def.flavor && (
+        <div className="text-[10px] italic text-amber-200/80 leading-snug">
+          {def.flavor}
+        </div>
+      )}
 
       {/* Gather objectives — the checkmark list */}
       <ul className="mt-2 space-y-1">

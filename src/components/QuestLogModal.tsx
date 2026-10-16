@@ -31,8 +31,20 @@ import { ITEMS } from '../game/constants';
 import { FIELD_NOTES } from '../game/fieldNotes';
 import type { FieldNotesState } from '../game/fieldNotesBook';
 import type { CodexEntry } from '../types/game';
-import type { QuestProgressView } from '../game/quests';
+import { ASK_THE_WORLD_LINE, type QuestProgressView } from '../game/quests';
 import { PLAYSTYLE_TABS, questInStyle, type PlayStyleId } from '../game/questStyles';
+
+/** The tab state: a playstyle lens, or the Ask the World line's
+ *  own tab (a named quest LINE, not a style — it sits apart from
+ *  the style family in the bar, in the precursor amber). */
+type LogTab = PlayStyleId | 'ask-the-world';
+
+const LINE_TAB_META = {
+  label: 'Ask the World',
+  icon: '🗝️',
+  promise:
+    'Invitations from the country itself — go places, witness things, and piece together what the Precursors left behind.',
+};
 
 interface QuestLogModalProps {
   isOpen: boolean;
@@ -61,28 +73,42 @@ export const QuestLogModal = ({
 }: QuestLogModalProps) => {
   // The active playstyle lens. Hooks run before the isOpen guard —
   // App keeps this component mounted and flips the flag.
-  const [activeTab, setActiveTab] = useState<PlayStyleId>('all');
+  const [activeTab, setActiveTab] = useState<LogTab>('all');
 
   if (!isOpen) return null;
 
   const isDone = (v: QuestProgressView) =>
     v.complete || completedIds.includes(v.def.id);
+
+  // The merged view list holds two families (background lane's
+  // Ask the World build, 2026-10-16): the CRAFT CHAIN and the
+  // LINE quests. They are shelved separately — the chain keeps
+  // the chapter sections and the playstyle shelves exactly as
+  // they were, the line gets its own tab — and the chain's
+  // availability math runs on the craft views only, so a line
+  // quest's goal state can never pose as the chain's front.
+  const lineViews = views.filter((v) => v.def.line === ASK_THE_WORLD_LINE);
+  const craftViews = views.filter((v) => !v.def.line);
+
   // Chain order gate: everything before the first incomplete quest
   // is done; that quest (and only it) is "available" next, though
   // any available-or-done quest may be re-tracked for its checks.
-  const firstOpenIdx = views.findIndex((v) => !isDone(v));
+  const firstOpenIdx = craftViews.findIndex((v) => !isDone(v));
 
   const chapters = [1, 2, 3] as const;
 
-  const activeTabMeta = PLAYSTYLE_TABS.find((t) => t.id === activeTab) ?? PLAYSTYLE_TABS[0];
-  const tabViews = (tab: PlayStyleId) => views.filter((v) => questInStyle(v.def.id, tab));
+  const isLineTab = activeTab === 'ask-the-world';
+  const activeTabMeta: { label: string; icon: string; promise: string; comingSoon?: string } = isLineTab
+    ? LINE_TAB_META
+    : (PLAYSTYLE_TABS.find((t) => t.id === activeTab) ?? PLAYSTYLE_TABS[0]);
+  const tabViews = (tab: PlayStyleId) => craftViews.filter((v) => questInStyle(v.def.id, tab));
   const tabDoneCount = (tab: PlayStyleId) => tabViews(tab).filter(isDone).length;
 
   // One quest card, rendered identically in every view — the
   // chain state it shows is global, so a quest's face never
   // changes with the lens you found it through.
   const renderQuestCard = (v: QuestProgressView) => {
-    const idx = views.indexOf(v);
+    const idx = craftViews.indexOf(v);
     const done = isDone(v);
     const available = done || idx === firstOpenIdx;
     const tracked = trackedId === v.def.id;
@@ -121,7 +147,7 @@ export const QuestLogModal = ({
                 predecessor keeps the lens honest. */}
             {!done && !available && idx > 0 && (
               <div className="text-[11px] text-slate-500 leading-snug mt-0.5">
-                Opens after “{views[idx - 1].def.title}”
+                Opens after “{craftViews[idx - 1].def.title}”
               </div>
             )}
           </div>
@@ -185,7 +211,7 @@ export const QuestLogModal = ({
   const renderChapterSections = () => (
     <>
       {chapters.map((chapter) => {
-        const chapterViews = views.filter((v) => v.def.questChapter === chapter);
+        const chapterViews = craftViews.filter((v) => v.def.questChapter === chapter);
         if (chapterViews.length === 0) return null;
         return (
           <div key={chapter}>
@@ -244,7 +270,123 @@ export const QuestLogModal = ({
     );
   };
 
-  const styleViews = activeTab !== 'all' && activeTab !== 'completionists'
+  // An Ask the World card: no gathers to check off — the quest
+  // completes on a goal state, so its face is the invitation
+  // itself (flavor wink + blurb), the live progress line, and
+  // its state: open, SEALED (chapter-3 invitations wait for
+  // Field Synthesis — a seal, not a chain lock, and the latch
+  // still honors a goal met early), or answered, with the
+  // reward note the invitation carried.
+  const renderLineCard = (v: QuestProgressView) => {
+    const done = isDone(v);
+    const sealed = !!v.sealed && !done;
+    const tracked = trackedId === v.def.id;
+    return (
+      <div
+        key={v.def.id}
+        className={`rounded-2xl border px-4 py-3 ${
+          done
+            ? 'border-emerald-500/25 bg-emerald-950/20'
+            : sealed
+              ? 'border-amber-500/20 bg-slate-900/30 opacity-60'
+              : 'border-amber-500/30 bg-amber-950/10'
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <span
+            className={`flex-none w-6 h-6 rounded-lg border flex items-center justify-center text-xs font-black ${
+              done
+                ? 'bg-emerald-500/25 border-emerald-400/50 text-emerald-300'
+                : sealed
+                  ? 'border-amber-400/40 text-amber-300'
+                  : 'border-amber-400/50 text-amber-300'
+            }`}
+          >
+            {done ? '✓' : sealed ? '🔒' : '✦'}
+          </span>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-bold text-slate-100">
+              {v.def.title}
+            </div>
+            {v.def.flavor && (
+              <div className="text-[11px] italic text-amber-200/80 leading-snug">
+                {v.def.flavor}
+              </div>
+            )}
+            <div className="text-[11px] text-slate-400 leading-snug">
+              {v.def.blurb}
+            </div>
+          </div>
+          {!done && !sealed && (
+            <button
+              onClick={() => onTrack(v.def.id)}
+              className={`flex-none text-[11px] font-bold px-3 py-1.5 rounded-xl border ${
+                tracked
+                  ? 'border-emerald-400/60 bg-emerald-500/20 text-emerald-200'
+                  : 'border-slate-600 bg-slate-800/70 text-slate-200 hover:border-amber-400/50'
+              }`}
+            >
+              {tracked ? 'TRACKING' : 'TRACK'}
+            </button>
+          )}
+          {done && (
+            <span className="flex-none text-[11px] font-black tracking-wider text-emerald-300">
+              DONE
+            </span>
+          )}
+        </div>
+        {sealed ? (
+          <div className="mt-2 text-[11px] text-amber-200/70 leading-snug">
+            Sealed — this invitation opens once Field Synthesis is complete.
+          </div>
+        ) : (
+          v.completion && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <span
+                className={`text-[11px] px-2 py-0.5 rounded-lg border font-semibold ${
+                  done
+                    ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-200'
+                    : 'border-amber-400/40 bg-amber-500/10 text-amber-200'
+                }`}
+              >
+                {done && '✓ '}
+                {v.completion.label}
+              </span>
+            </div>
+          )
+        )}
+        {done && v.def.rewardNote && (
+          <div className="mt-1.5 text-[11px] text-slate-400 leading-snug">
+            <span className="text-slate-300 font-semibold">Reward:</span>{' '}
+            {v.def.rewardNote}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // The line's shelf: its invitations grouped by chapter, same
+  // rhythm as the craft ledger, in the line's amber.
+  const renderLineSections = () => (
+    <>
+      {chapters.map((chapter) => {
+        const chapterLineViews = lineViews.filter((v) => v.def.questChapter === chapter);
+        if (chapterLineViews.length === 0) return null;
+        return (
+          <div key={chapter}>
+            <div className="text-[10px] font-black tracking-[0.22em] text-amber-300/80 mb-2">
+              CHAPTER {chapter} — INVITATIONS
+            </div>
+            <div className="space-y-2">
+              {chapterLineViews.map(renderLineCard)}
+            </div>
+          </div>
+        );
+      })}
+    </>
+  );
+
+  const styleViews = !isLineTab && activeTab !== 'all' && activeTab !== 'completionists'
     ? tabViews(activeTab)
     : [];
 
@@ -322,20 +464,47 @@ export const QuestLogModal = ({
                 </button>
               );
             })}
+            {/* The Ask the World line's own tab — set apart from
+                the style family in the precursor amber: a named
+                line, not a playstyle. */}
+            <button
+              onClick={() => setActiveTab('ask-the-world')}
+              className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-bold transition-colors ${
+                isLineTab
+                  ? 'border-amber-400/60 bg-amber-500/20 text-amber-100'
+                  : 'border-amber-500/30 bg-amber-950/20 text-amber-200/80 hover:border-amber-400/50 hover:text-amber-100'
+              }`}
+            >
+              <span>🗝️</span>
+              <span>Ask the World</span>
+              <span className={`font-mono text-[10px] ${isLineTab ? 'text-amber-300' : 'text-amber-200/50'}`}>
+                {lineViews.filter(isDone).length}/{lineViews.length}
+              </span>
+            </button>
           </div>
           <p className="mt-2 text-[11px] text-slate-400 leading-snug">
             <span className="text-slate-200 font-semibold">{activeTabMeta.label}.</span>{' '}
             {activeTabMeta.promise}
-            <span className="text-slate-500">
-              {' '}No style is chosen — every quest can be run from any tab it appears in.
-            </span>
+            {isLineTab ? (
+              lineViews.some((v) => v.sealed && !isDone(v)) && (
+                <span className="text-amber-200/70">
+                  {' '}Some invitations are sealed until Field Synthesis is complete.
+                </span>
+              )
+            ) : (
+              <span className="text-slate-500">
+                {' '}No style is chosen — every quest can be run from any tab it appears in.
+              </span>
+            )}
           </p>
         </div>
 
         {/* Content — the chapter ledger for All / Completionists,
             or the active style's shelf in chain order. */}
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
-          {activeTab === 'all' || activeTab === 'completionists' ? (
+          {isLineTab ? (
+            renderLineSections()
+          ) : activeTab === 'all' || activeTab === 'completionists' ? (
             <>
               {renderChapterSections()}
               {renderFieldNotes()}

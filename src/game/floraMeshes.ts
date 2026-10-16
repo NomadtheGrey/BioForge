@@ -1685,7 +1685,19 @@ export function buildFloraMesh(
         }));
         bell.position.y = 0.36;
         bell.rotation.x = Math.PI;
+        bell.name = 'puffBell';
         group.add(bell);
+        // The puff, as a prop (slice 42): a flat spore ring the
+        // update pass breathes outward on the hour — invisible
+        // at rest (opacity 0), unmistakable mid-puff.
+        const ring = new THREE.Mesh(
+          new THREE.TorusGeometry(0.15, 0.02, 6, 20),
+          new THREE.MeshBasicMaterial({ color: 0xe9d5ff, transparent: true, opacity: 0 })
+        );
+        ring.name = 'puffRing';
+        ring.position.y = 0.36;
+        ring.rotation.x = Math.PI / 2;
+        group.add(ring);
         break;
       }
 
@@ -2536,7 +2548,7 @@ export function buildFloraMesh(
     return group;
   }
 
-export function updateFloraMeshImpl(mesh: THREE.Group, flora: FloraEntity): void {
+export function updateFloraMeshImpl(mesh: THREE.Group, flora: FloraEntity, dayPhase?: number): void {
     mesh.position.set(flora.x, 0, flora.z);
     mesh.userData.entity = flora;
     const baseScale = flora.scale * (0.45 + flora.growthStage * 0.14);
@@ -2545,5 +2557,36 @@ export function updateFloraMeshImpl(mesh: THREE.Group, flora: FloraEntity): void
     const petalHub = mesh.getObjectByName('petalHub');
     if (petalHub) {
       petalHub.rotation.y += 0.03;
+    }
+
+    // THE HOUR, KEPT — AND KEPT TOGETHER (slice 42, 2026-10-16):
+    // the puffbell is the fungal family's second clock: it draws
+    // in and swells through the last quarter of each hour, then
+    // PUFFS a ring of spore-smoke on the hour itself. The cycle
+    // reads the shared day/night phase (twenty-four hours to a
+    // rotation), so every bell in a grove breathes on the same
+    // tempo — the grove is one organism remembering it has one,
+    // exactly as designed; synchronization is not taught, it is
+    // shared time. Only mature bells puff (growth stage 4+).
+    if (flora.species === 'puffbell' && dayPhase !== undefined && flora.growthStage >= 4) {
+      const hourCycle = (dayPhase * 24) % 1;
+      const bell = mesh.getObjectByName('puffBell');
+      if (bell) {
+        const swell = hourCycle > 0.75 ? (hourCycle - 0.75) / 0.25 : 0;
+        const s = 1 + swell * 0.3;
+        bell.scale.set(s, s, s);
+      }
+      const ring = mesh.getObjectByName('puffRing') as THREE.Mesh | undefined;
+      if (ring) {
+        const mat = ring.material as THREE.MeshBasicMaterial;
+        if (hourCycle < 0.15) {
+          const p = hourCycle / 0.15;
+          const rs = 1 + p * 2.4;
+          ring.scale.set(rs, rs, rs);
+          mat.opacity = 0.5 * (1 - p);
+        } else {
+          mat.opacity = 0;
+        }
+      }
     }
   }

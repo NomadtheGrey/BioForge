@@ -1378,6 +1378,238 @@ export function buildFloraMesh(
         break;
       }
 
+      case 'canopy_cup': {
+        // A pond in the sky (slice 16): a branch and a broad
+        // living bowl, drawn full.
+        const branch = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 0.8, 6), materials.woodRoot);
+        branch.rotation.z = Math.PI / 2 - 0.25;
+        branch.position.y = 0.35;
+        group.add(branch);
+        const bowl = new THREE.Mesh(new THREE.SphereGeometry(0.34, 12, 8, 0, Math.PI * 2, Math.PI / 2.4, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 0.8, side: THREE.DoubleSide }));
+        bowl.position.y = 0.62;
+        group.add(bowl);
+        const water = new THREE.Mesh(new THREE.CircleGeometry(0.27, 12), new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.1, transparent: true, opacity: 0.85 }));
+        water.rotation.x = -Math.PI / 2;
+        water.position.y = 0.64;
+        group.add(water);
+        break;
+      }
+
+      case 'banner_vine': {
+        // The country's flag, grown (slice 16): a hard anchor
+        // and a long streamer given to the wind.
+        const anchor = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.05, 0.7, 6), new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.9 }));
+        anchor.position.y = 0.35;
+        group.add(anchor);
+        const streamer = new THREE.Mesh(new THREE.PlaneGeometry(0.85, 0.14), new THREE.MeshStandardMaterial({ color: 0x65a30d, roughness: 0.85, side: THREE.DoubleSide }));
+        streamer.position.set(0.42, 0.62, 0);
+        streamer.rotation.z = 0.12; // streaming horizontal
+        group.add(streamer);
+        break;
+      }
+
+      case 'charnel_bloom': {
+        // A flower's whole performance (slice 16): corpse-pale
+        // petals around a marrow-gold heart.
+        const petalMat = new THREE.MeshStandardMaterial({ color: 0xe7e5e4, roughness: 0.85, side: THREE.DoubleSide });
+        for (let i = 0; i < 6; i++) {
+          const petal = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.2, 4), petalMat);
+          const a = (i / 6) * Math.PI * 2;
+          petal.position.set(Math.cos(a) * 0.1, 0.16, Math.sin(a) * 0.1);
+          petal.rotation.set(Math.sin(a) * 0.55, 0, -Math.cos(a) * 0.55);
+          group.add(petal);
+        }
+        const heart = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), new THREE.MeshStandardMaterial({
+          color: 0xfbbf24, emissive: 0xb45309, emissiveIntensity: 0.5, roughness: 0.5,
+        }));
+        heart.position.y = 0.14;
+        group.add(heart);
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.04, 0.14, 6), petalMat);
+        stalk.position.y = 0.07;
+        group.add(stalk);
+        break;
+      }
+
+      case 'wrongbloom': {
+        // Wound the other way (slice 16): eight geometric
+        // petals, their spiral read in the arrangement.
+        const petalMat = new THREE.MeshStandardMaterial({ color: 0xd8b4fe, roughness: 0.5, side: THREE.DoubleSide });
+        for (let i = 0; i < 8; i++) {
+          const a = (i / 8) * Math.PI * 2;
+          const petal = new THREE.Mesh(new THREE.PlaneGeometry(0.09, 0.2), petalMat);
+          petal.position.set(Math.cos(a) * 0.12, 0.14, Math.sin(a) * 0.12);
+          petal.rotation.set(0.6, -a, 0.5); // the reversed tilt
+          group.add(petal);
+        }
+        const core = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), new THREE.MeshStandardMaterial({
+          color: 0xfbbf24, emissive: 0xd97706, emissiveIntensity: 0.6, roughness: 0.4,
+        }));
+        core.position.y = 0.12;
+        group.add(core);
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.04, 0.12, 6), new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.6, metalness: 0.3 }));
+        stalk.position.y = 0.06;
+        group.add(stalk);
+        break;
+      }
+
+      case 'tumble_sage': {
+        // Rooted, in season (slice 16): a sage ball — a wiry
+        // sphere of gray-green twigs.
+        const twigMat = new THREE.MeshStandardMaterial({ color: 0xa3a380, roughness: 1 });
+        const ball = new THREE.Mesh(new THREE.SphereGeometry(0.26, 10, 8), twigMat);
+        ball.position.y = 0.26;
+        group.add(ball);
+        const leafMat = new THREE.MeshStandardMaterial({ color: 0x84cc16, roughness: 0.9 });
+        for (let i = 0; i < 5; i++) {
+          const a = i * 2.2;
+          const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 5), leafMat);
+          leaf.position.set(Math.cos(a) * 0.24, 0.3 + (i % 3) * 0.06, Math.sin(a) * 0.24);
+          group.add(leaf);
+        }
+        break;
+      }
+
+      case 'amber_bloom': {
+        // Forever at the moment of opening (slice 16): a
+        // perfect flower suspended in a translucent amber
+        // teardrop.
+        const amber = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), new THREE.MeshStandardMaterial({
+          color: 0xf59e0b, roughness: 0.2, transparent: true, opacity: 0.6,
+          emissive: 0x92400e, emissiveIntensity: 0.3,
+        }));
+        amber.scale.y = 1.25;
+        amber.position.y = 0.28;
+        group.add(amber);
+        const bloom = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), new THREE.MeshStandardMaterial({ color: 0xfb7185, roughness: 0.6 }));
+        bloom.position.y = 0.28;
+        group.add(bloom);
+        break;
+      }
+
+      case 'silt_rose': {
+        // The marsh's waterworks (slice 16): a mud-rooted rose
+        // with a clear ring drawn at its base.
+        const bushMat = new THREE.MeshStandardMaterial({ color: 0x3f6212, roughness: 0.95 });
+        const bush = new THREE.Mesh(new THREE.SphereGeometry(0.24, 10, 8), bushMat);
+        bush.scale.y = 0.75;
+        bush.position.y = 0.2;
+        group.add(bush);
+        const roseMat = new THREE.MeshStandardMaterial({ color: 0x9f7a5a, roughness: 0.7 });
+        for (let i = 0; i < 3; i++) {
+          const rose = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), roseMat);
+          const a = i * 2.1;
+          rose.position.set(Math.cos(a) * 0.18, 0.32, Math.sin(a) * 0.18);
+          group.add(rose);
+        }
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.015, 5, 18), new THREE.MeshStandardMaterial({
+          color: 0x7dd3fc, roughness: 0.2, transparent: true, opacity: 0.6,
+        }));
+        ring.rotation.x = Math.PI / 2;
+        ring.position.y = 0.03;
+        group.add(ring);
+        break;
+      }
+
+      case 'ghost_orchid': {
+        // No green in it at all (slice 16): a pale leafless
+        // stem and ghost-white blooms.
+        const stemMat = new THREE.MeshStandardMaterial({ color: 0xe7e5e4, roughness: 0.9 });
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.025, 0.5, 5), stemMat);
+        stem.position.y = 0.25;
+        stem.rotation.z = 0.1;
+        group.add(stem);
+        const bloomMat = new THREE.MeshStandardMaterial({
+          color: 0xf8fafc, roughness: 0.5, emissive: 0x94a3b8, emissiveIntensity: 0.3, side: THREE.DoubleSide,
+        });
+        for (let i = 0; i < 3; i++) {
+          const bloom = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.12, 5, 1, true), bloomMat);
+          bloom.position.set(0.05 - (i % 2) * 0.09, 0.34 + i * 0.1, 0);
+          bloom.rotation.x = Math.PI;
+          group.add(bloom);
+        }
+        break;
+      }
+
+      case 'thaw_rose': {
+        // The calendar, flowering (slice 16): a rose with
+        // crystal-rimmed ice petals over meltwater blue.
+        const bushMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9 });
+        const bush = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), bushMat);
+        bush.scale.y = 0.75;
+        bush.position.y = 0.16;
+        group.add(bush);
+        const petalMat = new THREE.MeshStandardMaterial({
+          color: 0xfda4af, roughness: 0.3, transparent: true, opacity: 0.9,
+          emissive: 0xbe185d, emissiveIntensity: 0.25,
+        });
+        for (let i = 0; i < 3; i++) {
+          const rose = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), petalMat);
+          const a = i * 2.1 + 0.5;
+          rose.position.set(Math.cos(a) * 0.14, 0.3, Math.sin(a) * 0.14);
+          group.add(rose);
+        }
+        break;
+      }
+
+      case 'dust_rose': {
+        // The Graveyard, sweetened (slice 16): a bone-white
+        // rose bush in bone-dust soil.
+        const bushMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.95 });
+        const bush = new THREE.Mesh(new THREE.SphereGeometry(0.24, 10, 8), bushMat);
+        bush.scale.y = 0.75;
+        bush.position.y = 0.2;
+        group.add(bush);
+        const roseMat = new THREE.MeshStandardMaterial({ color: 0xf5f0e6, roughness: 0.75 });
+        for (let i = 0; i < 4; i++) {
+          const rose = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), roseMat);
+          const a = i * 1.7;
+          rose.position.set(Math.cos(a) * 0.17, 0.32 + (i % 2) * 0.06, Math.sin(a) * 0.17);
+          group.add(rose);
+        }
+        break;
+      }
+
+      case 'obsidian_rose': {
+        // The dark entry (slice 16): black, glossy, sharp —
+        // petals as glass blades.
+        const bushMat = new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.9 });
+        const bush = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), bushMat);
+        bush.scale.y = 0.75;
+        bush.position.y = 0.18;
+        group.add(bush);
+        const petalMat = new THREE.MeshStandardMaterial({ color: 0x0c0a09, roughness: 0.1, metalness: 0.4, side: THREE.DoubleSide });
+        for (let i = 0; i < 5; i++) {
+          const petal = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.14, 3), petalMat);
+          const a = (i / 5) * Math.PI * 2;
+          petal.position.set(Math.cos(a) * 0.13, 0.3, Math.sin(a) * 0.13);
+          petal.rotation.set(Math.sin(a) * 0.5, 0, -Math.cos(a) * 0.5);
+          group.add(petal);
+        }
+        break;
+      }
+
+      case 'hedge_rose': {
+        // Planted by walking (slice 16): a hedge-built rose
+        // bush with bright hips.
+        const bushMat = new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.95 });
+        const bush = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), bushMat);
+        bush.scale.set(1.2, 0.8, 1);
+        bush.position.y = 0.26;
+        group.add(bush);
+        const roseMat = new THREE.MeshStandardMaterial({ color: 0xfb7185, roughness: 0.65 });
+        const hipMat = new THREE.MeshStandardMaterial({ color: 0xe11d48, roughness: 0.5 });
+        for (let i = 0; i < 3; i++) {
+          const rose = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), roseMat);
+          const a = i * 2.1;
+          rose.position.set(Math.cos(a) * 0.24, 0.36, Math.sin(a) * 0.2);
+          group.add(rose);
+          const hip = new THREE.Mesh(new THREE.SphereGeometry(0.04, 7, 6), hipMat);
+          hip.position.set(Math.cos(a + 1) * 0.26, 0.24, Math.sin(a + 1) * 0.2);
+          group.add(hip);
+        }
+        break;
+      }
+
       case 'bell_bloom':
       default: {
         const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.12, 1.6, 8), materials.woodRoot);

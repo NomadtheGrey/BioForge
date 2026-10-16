@@ -223,15 +223,18 @@ export const HUD: React.FC<HUDProps> = ({
   // the HudOptionsPanel that restores anything hidden from here.
   const hudLayout = useHudLayout();
   const [showHudOptions, setShowHudOptions] = useState<boolean>(false);
-  // The Prismatic Radar is a UNIT, not a birthright (Adam,
-  // 2026-10-16): the radar/minimap panel exists only while the
-  // player HAS the Prismatic Field Radar — carried in the pouch or
-  // held in the Left Hand. No unit, no panel; the session bar's Map
-  // switch and the HUD Options toggle still apply on top of this
-  // presence gate.
+  // The Prismatic Radar lives IN THE HELMET (Adam, 2026-10-16,
+  // correcting a pouch/held reading): it is not a held item. The
+  // radar/minimap panel exists only while the radar is INSTALLED —
+  // the player has the Homestead Helm (the platform whose band
+  // carries it) and the Prismatic Field Radar mounted on it. In
+  // this game's ownership-derived gear model, having the crafted
+  // item IS having it installed (both are maxStack-1 equipment).
+  // No helm + radar, no panel; the session bar's Map switch and
+  // the HUD Options toggle still apply on top of this gate.
   const hasRadarUnit =
-    (inventory['prismatic_field_radar'] ?? 0) > 0 ||
-    playerState.heldItemId === 'prismatic_field_radar';
+    (inventory['homestead_helm'] ?? 0) > 0 &&
+    (inventory['prismatic_field_radar'] ?? 0) > 0;
   // HudPanel's ✕ delivers just the panel id; hiding is always "true".
   const hideHudPanel = (panelId: HudPanelId) => hudLayout.setHidden(panelId, true);
   const isDay = dayNightCycle > 0.25 && dayNightCycle < 0.75;
@@ -497,9 +500,10 @@ export const HUD: React.FC<HUDProps> = ({
               card in the row layout above instead of disappearing.
               Two gates now: the HUD-layout choice (the session
               bar's Map button and Pause → Options switch the same
-              'radar' panel) AND the unit's presence (Adam,
-              2026-10-16 — no Prismatic Field Radar carried or held,
-              no radar panel). */}
+              'radar' panel) AND the installation gate (Adam,
+              2026-10-16 — the Prismatic Field Radar must be
+              installed in the helmet the player has; see
+              hasRadarUnit above). */}
           {!hudLayout.isHidden('radar') && hasRadarUnit && (
             <HudPanel
               id="radar"
@@ -886,6 +890,23 @@ export const HUD: React.FC<HUDProps> = ({
           >
             <Compass className="w-4 h-4 text-cyan-400 animate-pulse" />
             <span>CLICK SCREEN TO LOOK & EXPLORE (ESC TO RELEASE)</span>
+          </button>
+        )}
+
+        {/* HUD Options, reachable AT WILL (Adam, 2026-10-16): the
+            pause overlay's OPTIONS button is only around at start
+            or after an alt-tab pause, so a second door lives here,
+            under the click-to-look invitation — any time the mouse
+            is free, the Options screen is one click away. Touch has
+            no pointer lock to escape, so it gets the button too. */}
+        {!isPointerLocked && (
+          <button
+            onClick={() => setShowHudOptions(true)}
+            title="HUD Options — show, hide, and arrange the HUD panels"
+            className="pointer-events-auto glass-panel px-4 py-1.5 rounded-2xl flex items-center gap-2 text-[11px] font-tech font-bold text-slate-200 hover:text-white hover:bg-slate-800/70 active:scale-95 transition-all shadow-lg cursor-pointer"
+          >
+            <Settings2 className="w-3.5 h-3.5 text-cyan-300" />
+            <span>OPTIONS</span>
           </button>
         )}
 

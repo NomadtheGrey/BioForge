@@ -2282,6 +2282,234 @@ export const FLORA: Record<string, FloraDef> = {
       scale: 0.9,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Wave 10 (slice 25, 2026-10-16) — the cap bench: the fungus
+  // kingdom's kitchens, family by family and margin by margin.
+  // ------------------------------------------------------------------
+
+  // #302 — a great bracket of the fallen giant's trunk at the
+  // Rootfall (the Fall Orchid perfumes the bear's den from
+  // above; the shelf feeds it from the side). Fallen shelves
+  // only, unlisted — the fallen-only custom: no item.
+  fall_shelf: {
+    id: 'fall_shelf',
+    name: 'Fall Shelf',
+    kind: 'fungus',
+    harvest: null,
+    bonusGrow: {
+      biomes: ['rootwood'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1.2,
+    },
+  },
+
+  // #303 — a cap fruiting ALONG the spiral rows at the Row
+  // Moss's spacing: the moss is the Field's ruler, the cap
+  // its kitchen — row-abiding, mild, self-organized.
+  row_cap: {
+    id: 'row_cap',
+    name: 'Row Cap',
+    kind: 'fungus',
+    harvest: { item: 'row_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['precursor'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 0.9,
+    },
+  },
+
+  // #304 — the Bed Cap GONE WILD: descended from the gardens'
+  // kitchen rows, fruiting now in Untended thickets, doubled
+  // in size and halved in manners. The remembered ones are
+  // gathered — with the codex's caution on the basket.
+  wild_cap: {
+    id: 'wild_cap',
+    name: 'Wild Cap',
+    kind: 'fungus',
+    harvest: { item: 'wild_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['precursor'],
+      variant: 'precursor_untended',
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 1.1,
+    },
+  },
+
+  // #305 — a cap fruiting in bone dust at the fields' heart:
+  // pale, floury — the Bonefields' flour-and-meal in one
+  // organism.
+  dust_cap: {
+    id: 'dust_cap',
+    name: 'Dust Cap',
+    kind: 'fungus',
+    harvest: { item: 'dust_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['bone'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 0.9,
+    },
+  },
+
+  // #306 — a cap fruiting at the pale pools' rims in marrow
+  // silt (the Marrow Reed keeps the pools opal; the cap
+  // keeps their travelers fed): the Flats' fresh course,
+  // eaten at the pools.
+  marrow_cap: {
+    id: 'marrow_cap',
+    name: 'Marrow Cap',
+    kind: 'fungus',
+    harvest: { item: 'marrow_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['bone'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #307 — a cap fruiting INSIDE the ribcages, on the shaded
+  // bone (the Marrow Mold works the marrow dark; the cap
+  // works the shade): the Graveyard's provision, gathered
+  // rib by rib, in the spider's off hours, per the ants'
+  // advice.
+  rib_cap: {
+    id: 'rib_cap',
+    name: 'Rib Cap',
+    kind: 'fungus',
+    harvest: { item: 'rib_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['bone'],
+      variant: 'leviathan_graveyard',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #308 — a cap fruiting at the scalding pools' rims, in
+  // the steam's cool edge (the Scald Fern roots the same
+  // rims as flora; the fens keep both kingdoms at table).
+  // Eaten hot, by country custom, straight from the rim.
+  scald_cap: {
+    id: 'scald_cap',
+    name: 'Scald Cap',
+    kind: 'fungus',
+    harvest: { item: 'scald_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['wetland', 'ember'],
+      hybrid: ['wetland', 'ember'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #309 — a cap fruiting on the Mulch Beetles' FINISHED
+  // compost (the Mulch Rose blooms from the same beds as
+  // flora): the Mulchwood's rich course, dark and earthy —
+  // the beetles' work, plated.
+  compost_cap: {
+    id: 'compost_cap',
+    name: 'Compost Cap',
+    kind: 'fungus',
+    harvest: { item: 'compost_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['meadow', 'fungal'],
+      hybrid: ['meadow', 'fungal'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 0.9,
+    },
+  },
+
+  // #310 — a cap fruiting at the brine pools' rims, salt-
+  // rinded: pre-salted by its own life — the Brine Shallows'
+  // provision, ready as grown.
+  brine_cap: {
+    id: 'brine_cap',
+    name: 'Brine Cap',
+    kind: 'fungus',
+    harvest: { item: 'brine_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['wetland', 'saltglass'],
+      hybrid: ['wetland', 'saltglass'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #311 — a cap with a metallic sheen, fruiting on slag:
+  // it eats the Ashes' waste the way the Ironjaw eats its
+  // ore — the Ashes' strong course, with the codex's portion
+  // note attached.
+  iron_cap: {
+    id: 'iron_cap',
+    name: 'Iron Cap',
+    kind: 'fungus',
+    harvest: { item: 'iron_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['ember', 'storm'],
+      hybrid: ['ember', 'storm'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
+
+  // #312 — a cap fruiting at the Hedge Roses' roots, in the
+  // hedges' shade: the rose walls have a ground floor, and
+  // this is its course — gathered where the hips are
+  // gathered, in the same basket.
+  hedge_cap: {
+    id: 'hedge_cap',
+    name: 'Hedge Cap',
+    kind: 'fungus',
+    harvest: { item: 'hedge_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['meadow', 'rootwood'],
+      hybrid: ['meadow', 'rootwood'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      scale: 0.9,
+    },
+  },
+
+  // #334 — a cap that opens at NOON and closes by two (the
+  // Noonflower keeps the meadow's hour in the other kingdom):
+  // the pans' brief course, gathered at a run. Its noon
+  // window is bespoke behavior (deferred, like Meltcap's
+  // midnight) — v1 deals it as an honest cap.
+  sun_cap: {
+    id: 'sun_cap',
+    name: 'Sun Cap',
+    kind: 'fungus',
+    harvest: { item: 'sun_cap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['meadow', 'saltglass'],
+      hybrid: ['meadow', 'saltglass'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 0.9,
+    },
+  },
 };
 
 /** Table lookup by species id (the hook + worldGen read here). */

@@ -133,6 +133,7 @@ export default function App() {
     deductInventoryItem,
     hasItem,
     craftRecipe,
+    growPrerequisites,
     restoreInventory,
     setOverflowHandler,
   } = useInventory();
@@ -1656,6 +1657,53 @@ const {
     }
   };
 
+  // Grow Prerequisites (Adam, 2026-10-16): the Bio-Forge reagent
+  // rows offer to grow a short ingredient's whole chain in one
+  // pass (useInventory.growPrerequisites does the atomic work).
+  // Access gates on the PARENT recipe — the same tether that
+  // will govern crafting it — and one summary notification
+  // reports the haul instead of a toast per sub-craft.
+  const handleGrowPrerequisites = (parent: CraftingRecipe, ingredientId: ItemId) => {
+    const ing = parent.ingredients.find((i) => i.id === ingredientId);
+    if (!ing) return;
+    const access = checkCraftAccess();
+    const forgeOnly = accessTierOf(parent) >= 3;
+    if (!access.nearForge && (forgeOnly || !access.hasSynthesizer)) {
+      postNotification(
+        'Synthesis Blocked',
+        forgeOnly
+          ? 'Advanced synthesis requires a bio-forge station.'
+          : 'Too far from a bio-forge station — the Field Synthesizer lets you craft in the field.',
+        'craft',
+        '#f59e0b'
+      );
+      return;
+    }
+    const grown = growPrerequisites(ingredientId, ing.count);
+    const targetName = ITEMS[ingredientId]?.name || ingredientId;
+    if (grown.length === 0) {
+      postNotification(
+        'Nothing to Grow',
+        `No path to more ${targetName} — a raw ingredient is missing, or the pouch is full of it.`,
+        'alert',
+        '#f59e0b'
+      );
+      return;
+    }
+    const summary = grown
+      .map((g) => `${g.times * g.recipe.outputCount}× ${ITEMS[g.recipe.outputId]?.name || g.recipe.outputId}`)
+      .join(', ');
+    const nowHave = (inventory[ingredientId] || 0) + grown
+      .filter((g) => g.recipe.outputId === ingredientId)
+      .reduce((sum, g) => sum + g.times * g.recipe.outputCount, 0);
+    postNotification(
+      'Prerequisites Grown',
+      `Grew ${summary}. ${targetName}: ${Math.min(nowHave, ing.count)}/${ing.count} for ${parent.name}.`,
+      'craft',
+      '#34d399'
+    );
+  };
+
   const craftAccess = checkCraftAccess();
 
   // Trowel hover hint: tell the player when a plant can (or can't) be fertilized
@@ -1959,6 +2007,7 @@ const {
         nearForge={craftAccess.nearForge}
         hasSynthesizer={craftAccess.hasSynthesizer}
         onCraftRecipe={handleCraftRecipe}
+        onGrowPrerequisites={handleGrowPrerequisites}
         onSelectStructureBlueprint={(type) => {
           setSelectedStructureType(type);
           setActiveTool('builder');

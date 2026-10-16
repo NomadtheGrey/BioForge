@@ -393,6 +393,10 @@ export interface UseWorldEntitiesResult {
   setFaunaCommand: (faunaId: string, cmd: 'follow' | 'stay' | 'guard') => void;
   releaseFauna: (faunaId: string) => void;
   applyDissolve: (faunaId: string) => void;
+  /** One close-striker hit: damage + flinch, sim-gated (weapons). */
+  strikeFauna: (faunaId: string, damage: number, flinchSeconds: number) => void;
+  /** One ranged shot: resolves on the sim clock after its travel. */
+  fireProjectile: (shot: { targetId: string; aimX: number; aimZ: number; damage: number; burstRadius?: number; travelSeconds: number }) => void;
   upsertFauna: (fauna: FaunaEntity) => void;
   removeFauna: (faunaId: string) => void;
   spawnDroppedItem: (itemId: DroppedItemEntity['itemId'], count: number, x: number, z: number) => void;
@@ -447,12 +451,14 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   // Solvent dissolve (Adam, 2026-10-16): the sprayer's emergency
   // harm, as damage over time — a spray buys DISSOLVE_SECONDS of
   // flight and DISSOLVE_DAMAGE_PER_SECOND of hurt, refreshed (not
-  // stacked) by re-spraying. Armed only where attacks are armed
-  // (updateTick's attacksArmed, mirrored here each tick): on
-  // Peaceful the land is safe in both directions.
+  // stacked) by re-spraying. The strikers (the weapons build, same
+  // day) share the arming signal: renamed combatArmedRef, it is
+  // harm's master switch — mirrored from updateTick's attacksArmed
+  // each tick, so on Peaceful the land is safe in both directions
+  // and NO player-side harm (dissolve, strike, or shot) can land.
   const DISSOLVE_SECONDS = 4;
   const DISSOLVE_DAMAGE_PER_SECOND = 8;
-  const dissolveArmedRef = useRef(false);
+  const combatArmedRef = useRef(false);
 
   const addFlora = useCallback((flora: FloraEntity): void => {
     setFloraList((prev) => [...prev, flora]);
@@ -562,16 +568,75 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   // Emergency solvent (Adam, 2026-10-16): stamp a wild creature
   // with a dissolve. Companions are keyed out — your own solvent
   // never harms your own — and on Peaceful nothing is stamped at
-  // all (see dissolveArmedRef). The damage and the flight happen
+  // all (see combatArmedRef). The damage and the flight happen
   // in the tick, below.
   const applyDissolve = useCallback((faunaId: string): void => {
-    if (!dissolveArmedRef.current) return;
+    if (!combatArmedRef.current) return;
     setFaunaList((prev) =>
       prev.map((fn) =>
         fn.id === faunaId && !fn.isTamed ? { ...fn, dissolveTimer: DISSOLVE_SECONDS } : fn
       )
     );
   }, []);
+
+  /**
+   * STRIKE (Adam, 2026-10-16, the weapons build): one close-weapon
+   * hit, applied immediately by useToolInteractions after its own
+   * reach check. Stamps damage plus the flinch: while flinchTimer
+   * runs the creature neither moves nor bites (the decrement and
+   * the gates live in the tick below). Same harm gates as the
+   * solvent — combat must be armed by the difficulty, and a tamed
+   * creature is NEVER struck: your weapons, like your solvent,
+   * cannot hurt your own. Deaths land in the shared sweep, so a
+   * strike kill drops the creature's sample like any other kill.
+   */
+  const strikeFauna = useCallback((faunaId: string, damage: number, flinchSeconds: number): void => {
+    if (!combatArmedRef.current) return;
+    setFaunaList((prev) =>
+      prev.map((fn) =>
+        fn.id === faunaId && !fn.isTamed
+          ? { ...fn, health: fn.health - damage, flinchTimer: Math.max(fn.flinchTimer ?? 0, flinchSeconds) }
+          : fn
+      )
+    );
+  }, []);
+
+  /**
+   * PROJECTILES (Adam, 2026-10-16): a ranged striker's shot is
+   * aimed at where the target STOOD when fired. The shot ledger
+   * below is processed on the sim clock inside the tick: when a
+   * shot's travel time elapses it resolves against the world as it
+   * is THEN — a single-target shot strikes only if its target is
+   * still within 2m of the aim point (it moved, you miss), while a
+   * burst shot (the Spore Puffer) strikes every wild creature
+   * within its radius of the aim point, target or not. Tamed
+   * creatures are spared in both modes. Shots fired while combat
+   * is not armed never enter the ledger.
+   */
+  interface PendingShot {
+    targetId: string;
+    aimX: number;
+    aimZ: number;
+    damage: number;
+    burstRadius?: number;
+    arriveAt: number;
+  }
+  const pendingShotsRef = useRef<PendingShot[]>([]);
+  const simClockRef = useRef(0);
+  const fireProjectile = useCallback(
+    (shot: { targetId: string; aimX: number; aimZ: number; damage: number; burstRadius?: number; travelSeconds: number }): void => {
+      if (!combatArmedRef.current) return;
+      pendingShotsRef.current.push({
+        targetId: shot.targetId,
+        aimX: shot.aimX,
+        aimZ: shot.aimZ,
+        damage: shot.damage,
+        burstRadius: shot.burstRadius,
+        arriveAt: simClockRef.current + Math.max(0.05, shot.travelSeconds),
+      });
+    },
+    []
+  );
 
   const releaseFauna = useCallback((faunaId: string): void => {
     setFaunaList((prev) =>
@@ -654,7 +719,10 @@ export function useWorldEntities(): UseWorldEntitiesResult {
       attacksArmed?: boolean
     ): void => {
       const simulateWorld = !multiplayerManager.isConnected || multiplayerManager.isHost;
-      dissolveArmedRef.current = !!attacksArmed;
+      combatArmedRef.current = !!attacksArmed;
+      // The projectile ledger runs on this clock (weapons build,
+      // 2026-10-16): shots resolve when their travel time elapses.
+      simClockRef.current += dt;
 
       // 1. Fauna Behavioral AI Tick (host authority — guests apply host upserts)
       if (simulateWorld) {
@@ -694,6 +762,11 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // rate times however much of the dissolve elapsed.
           let dissolveTimer = fauna.dissolveTimer ?? 0;
           let dissolveDamage = 0;
+          // Striker flinch (Adam, 2026-10-16): the stagger clock
+          // runs down here; while it is above zero the creature's
+          // bites are gated off below and its movement target is
+          // pinned to where it stands.
+          let flinchTimer = Math.max(0, (fauna.flinchTimer ?? 0) - dt);
           // A creature won over mid-dissolve is washed clean by
           // the bond — your solvent never harms your own, even
           // retroactively.
@@ -788,7 +861,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
               state = 'attacking';
               targetX = playerX;
               targetZ = playerZ;
-              if (distToPlayer <= hunt.biteRange && biteTimer <= 0) {
+              if (distToPlayer <= hunt.biteRange && biteTimer <= 0 && flinchTimer <= 0) {
                 onFaunaAttack?.(fauna.species, hunt.damage);
                 biteTimer = hunt.biteCooldownSeconds;
               }
@@ -830,6 +903,12 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             targetZ = playerZ + Math.cos(fauna.id.length) * FOLLOW_OFFSET;
           }
 
+          // Flinch hold: a staggered creature stays where it
+          // stands — its movement target becomes its own feet.
+          if (flinchTimer > 0) {
+            targetX = x;
+            targetZ = z;
+          }
           const distToTarget = Math.hypot(targetX - x, targetZ - z);
           let newRot = fauna.rotation;
           if (distToTarget > 0.4) {
@@ -891,20 +970,45 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             biteTimer,
             sampleTimer,
             dissolveTimer,
+            flinchTimer,
             health: fauna.health - dissolveDamage,
             animTime: fauna.animTime + dt,
           };
           if (syncFaunaNow) multiplayerManager.broadcastEntityUpsert('fauna', nextFauna);
           return nextFauna;
         });
-        if (defenderDamage.size === 0 && !mappedFauna.some((f) => f.health <= 0)) return mappedFauna;
+        // Projectile arrivals (weapons build, 2026-10-16): shots
+        // whose travel time elapsed this tick resolve against the
+        // mapped positions — a single-target shot strikes only if
+        // its target is still within 2m of the aim point (it
+        // moved, the shot misses); a burst shot strikes every wild
+        // creature within its radius of the aim point. Tamed
+        // creatures are spared. Damage folds into the death sweep
+        // below with the guardians' ledger.
+        const shotDamage = new Map<string, number>();
+        if (pendingShotsRef.current.length > 0) {
+          const due = pendingShotsRef.current.filter((s) => simClockRef.current >= s.arriveAt);
+          if (due.length > 0) {
+            pendingShotsRef.current = pendingShotsRef.current.filter((s) => simClockRef.current < s.arriveAt);
+            for (const f of mappedFauna) {
+              if (f.isTamed) continue;
+              for (const s of due) {
+                const dAim = Math.hypot(f.x - s.aimX, f.z - s.aimZ);
+                const struck = s.burstRadius !== undefined ? dAim <= s.burstRadius : f.id === s.targetId && dAim <= 2.0;
+                if (struck) shotDamage.set(f.id, (shotDamage.get(f.id) ?? 0) + s.damage);
+              }
+            }
+          }
+        }
+        if (defenderDamage.size === 0 && shotDamage.size === 0 && !mappedFauna.some((f) => f.health <= 0)) return mappedFauna;
         // Deaths leave remains where they fell — and remains are
-        // a SAMPLE, the dead's half of Adam's sample ruling. Two
-        // killers reach this sweep: a guardian's bites (the
-        // ledger above) and a solvent dissolve that finished its
-        // work (health already subtracted in the map).
+        // a SAMPLE, the dead's half of Adam's sample ruling. The
+        // killers that reach this sweep: a guardian's bites (the
+        // ledger above), a solvent dissolve that finished its
+        // work (health already subtracted in the map), a striker's
+        // close hit (likewise), and a striker's shot on arrival.
         return mappedFauna.flatMap((f) => {
-          const dmg = defenderDamage.get(f.id) ?? 0;
+          const dmg = (defenderDamage.get(f.id) ?? 0) + (shotDamage.get(f.id) ?? 0);
           const health = f.health - dmg;
           if (health > 0) return [dmg ? { ...f, health } : f];
           spawnDroppedItem(sampleItemId(f.species), 1, f.x, f.z);
@@ -1041,6 +1145,8 @@ export function useWorldEntities(): UseWorldEntitiesResult {
     setFaunaCommand,
     releaseFauna,
     applyDissolve,
+    strikeFauna,
+    fireProjectile,
     upsertFauna,
     removeFauna,
     spawnDroppedItem,

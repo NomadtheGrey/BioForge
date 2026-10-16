@@ -26,6 +26,12 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'all' | 'raw' | 'seed' | 'fertilizer' | 'structure' | 'gauntlet' | 'helmet' | 'boots'>('all');
   const [selectedItemId, setSelectedItemId] = useState<ItemId | null>(null);
+  // Every hook lives ABOVE the isOpen early return below: a hook
+  // under it changes the hook count when the modal opens, React
+  // throws, and the whole app unmounts to a black screen (the
+  // B-key bug, found 2026-10-16 — this filter's first home was
+  // under that return in both tabbed screens).
+  const [tierFilter, setTierFilter] = useState<'all' | 'raw' | 1 | 2 | 3>('all');
 
   // The pouch tier derives from the upgrade items in the pouch.
   const pouchTier = pouchTierOf(inventory);
@@ -58,7 +64,6 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
   // is everything never crafted: the drops and gatherables. In a
   // tier view the grid groups by item type, with full-width
   // heading cells between the groups.
-  const [tierFilter, setTierFilter] = useState<'all' | 'raw' | 1 | 2 | 3>('all');
   const itemTierBand = (id: ItemId): number => gearTierOf(id) ?? 0;
   const tierVisibleItem = (id: ItemId): boolean => {
     if (tierFilter === 'all') return true;

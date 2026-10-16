@@ -29,6 +29,12 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   const [selectedRecipe, setSelectedRecipe] = useState<CraftingRecipe>(RECIPES[0]);
   const [isCrafting, setIsCrafting] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'tree'>('list');
+  // Every hook lives ABOVE the isOpen early return below: a hook
+  // under it changes the hook count when the modal opens, React
+  // throws, and the whole app unmounts to a black screen (the
+  // B-key bug, found 2026-10-16 — this filter's first home was
+  // under that return in both tabbed screens).
+  const [tierFilter, setTierFilter] = useState<'all' | 'raw' | 1 | 2 | 3>('all');
 
   if (!isOpen) return null;
 
@@ -54,7 +60,6 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   // goods like compost and subassemblies — since a recipe itself
   // is never uncrafted. In a tier view the list groups by item
   // type (the output's category), per Adam's shape.
-  const [tierFilter, setTierFilter] = useState<'all' | 'raw' | 1 | 2 | 3>('all');
   const tierVisible = (r: CraftingRecipe): boolean => {
     if (tierFilter === 'all') return true;
     if (tierFilter === 'raw') return ITEMS[r.outputId]?.category === 'raw';

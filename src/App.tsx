@@ -1272,6 +1272,15 @@ const {
         onToolLocked={handleSelectTool}
         onOpenQuests={() => setActiveModal('quests')}
         questView={trackedView}
+        onDismissQuest={
+          trackedView
+            ? () =>
+                updateQuestProgress({
+                  trackedId: null,
+                  dismissedId: trackedView.def.id,
+                })
+            : undefined
+        }
         showQuestHud={showQuestHud}
         onCycleSeed={cycleSelectedSeed}
         onCycleFertilizer={cycleLoadedFertilizer}
@@ -1340,7 +1349,16 @@ const {
         trackedId={questProgress?.trackedId ?? null}
         showHud={showQuestHud}
         onToggleShowHud={(show) => updateQuestProgress({ showHud: show })}
-        onTrack={(questId) => updateQuestProgress({ trackedId: questId })}
+        onTrack={(questId) =>
+          updateQuestProgress({
+            trackedId: questId,
+            // Re-tracking a dismissed quest clears its dismissal —
+            // the X rests a quest, the log brings it back.
+            ...(questProgress?.dismissedId === questId
+              ? { dismissedId: null }
+              : {}),
+          })
+        }
       />
       {/* The open storage pod (entity re-read live from the list). */}
       {activeModal === 'storage' && storagePod && (

@@ -2548,8 +2548,15 @@ export function buildFloraMesh(
     return group;
   }
 
-export function updateFloraMeshImpl(mesh: THREE.Group, flora: FloraEntity, dayPhase?: number): void {
-    mesh.position.set(flora.x, 0, flora.z);
+export function updateFloraMeshImpl(mesh: THREE.Group, flora: FloraEntity, dayPhase?: number, groundY = 0): void {
+    // Seat ON the terrain (Adam, 2026-10-16): the build grounds the
+    // group at creation, so every update must re-seat it at the
+    // same height — this line used to hardcode y=0, which sank
+    // every plant to sea level the frame after it spawned wherever
+    // the landform field rises or dips. The kit passes
+    // terrainHeightAt at the plant's own position; inside
+    // instances that height is 0, which is the instance floor.
+    mesh.position.set(flora.x, groundY, flora.z);
     mesh.userData.entity = flora;
     const baseScale = flora.scale * (0.45 + flora.growthStage * 0.14);
     mesh.scale.set(baseScale, baseScale, baseScale);

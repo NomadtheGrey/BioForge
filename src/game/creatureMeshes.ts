@@ -59,8 +59,12 @@ export function createCreatureMeshKit(
 
   function updateFloraMesh(mesh: THREE.Group, flora: FloraEntity): void {
     // The phase rides along (slice 42): the puffbell keeps the
-    // hour by it, and synchronizes by sharing it.
-    updateFloraMeshImpl(mesh, flora, dayPhaseAt?.());
+    // hour by it, and synchronizes by sharing it. The ground
+    // height rides along too (2026-10-16): the impl re-seats the
+    // mesh on every update, so it needs the terrain height at the
+    // plant's own position — the same getter the fauna update
+    // grounds its walkers with.
+    updateFloraMeshImpl(mesh, flora, dayPhaseAt?.(), terrainHeightAt(flora.x, flora.z));
   }
 
   function createFaunaMesh(fauna: FaunaEntity): THREE.Group {

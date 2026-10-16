@@ -131,7 +131,7 @@ export const QUEST_STYLE: Record<string, { primary: PlayStyleId; also?: PlayStyl
   q_pouch: { primary: 'explorers' },
   q_satchel: { primary: 'explorers' },
   q_storage: { primary: 'builders' },
-  q_scanner: { primary: 'explorers' },
+  q_scanner: { primary: 'explorers', also: ['green-thumb'] },
   q_planter: { primary: 'green-thumb' },
   q_builder: { primary: 'builders' },
   q_solvent: { primary: 'green-thumb' },

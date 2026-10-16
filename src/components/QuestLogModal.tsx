@@ -114,6 +114,16 @@ export const QuestLogModal = ({
             <div className="text-[11px] text-slate-400 leading-snug">
               {v.def.blurb}
             </div>
+            {/* What a locked quest waits on (dev-lane note,
+                2026-10-16): in a style tab the predecessor may
+                live on another shelf, and an unexplained lock
+                reads as the TAB gating — naming the chain
+                predecessor keeps the lens honest. */}
+            {!done && !available && idx > 0 && (
+              <div className="text-[11px] text-slate-500 leading-snug mt-0.5">
+                Opens after “{views[idx - 1].def.title}”
+              </div>
+            )}
           </div>
           {!done && available && (
             <button

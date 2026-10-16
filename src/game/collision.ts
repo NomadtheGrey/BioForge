@@ -77,6 +77,8 @@ function isCollidingWithStructure(
     // piece; a stool is a small one.
     if (s.type === 'root_bed') obstacleRadius = 0.85;
     if (s.type === 'root_stool') obstacleRadius = 0.3;
+    // The hearthpod is a squat pod: warm to stand NEAR, solid to touch.
+    if (s.type === 'hearthpod') obstacleRadius = 0.55;
     // A cave mouth is a rock mass: you walk up TO the opening (the
     // portal radius is 1.4 m) but not into the stone.
     if (s.type === 'cave_mouth') obstacleRadius = 1.3;

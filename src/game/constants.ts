@@ -2218,6 +2218,18 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'common',
     maxStack: 99,
   },
+  // The Hearthpod (Adam, 2026-10-16): the grown fireplace. Its own
+  // description carries the law of the thing — warmth without flame.
+  hearthpod: {
+    id: 'hearthpod',
+    name: 'Hearthpod',
+    category: 'structure',
+    description: 'A grown hearth-organ on the Titan-arum principle: it makes its own warmth and glows a dull amber, and it cannot burn anything — no flame, no spark, nothing to catch. A base with a hearthpod kept is a warm base.',
+    iconName: 'Flame',
+    color: '#f59e0b',
+    rarity: 'common',
+    maxStack: 10,
+  },
   chitin_glass_wall: {
     id: 'chitin_glass_wall',
     name: 'Chitin-Glass Wall',

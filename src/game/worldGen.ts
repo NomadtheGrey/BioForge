@@ -209,8 +209,15 @@ import { BONUS_SPAWN_SPECIES } from './species';
  *     designed species are in game; only the pond group
  *     (~20) remains, gated on ponds existing as data.
  *     Table-only change.
+ * v47: creature build phase, slice 32 (2026-10-16) — THE
+ *     OVERSIZE PIN (Adam): the oversize tier is chill until
+ *     the player messes with them — provokedOnly hunts,
+ *     stamped by player-side harm — and if killed they
+ *     provide good loot: a table-driven killLoot field
+ *     resolved in the shared death sweep beside the sample.
+ *     Behavior + table change; generation itself unchanged.
  */
-export const WORLD_GEN_VERSION = 46; // v46 (2026-10-16): creature slice 31 — landscape flora trio; v45 was creature slice 30 (oversize tier)
+export const WORLD_GEN_VERSION = 47; // v47 (2026-10-16): creature slice 32 — oversize pin (provoked hunts + kill loot); v46 was creature slice 31 (landscape flora trio)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

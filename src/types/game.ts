@@ -161,6 +161,11 @@ export type ItemId =
   | 'steam_cap'
   | 'behemoth_glass'
   | 'mother_wool'
+  // Oversize kill loot (slice 32, 2026-10-16).
+  | 'coat_slab'
+  | 'whale_down'
+  | 'leviathan_plate'
+  | 'leviathan_hide'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -784,6 +789,13 @@ export interface FaunaEntity {
    *  left after a close-weapon hit. While it runs the creature
    *  neither moves nor bites — the melee's breathing room. */
   flinchTimer?: number;
+  /** Provocation clock (slice 32, 2026-10-16): seconds of
+   *  retaliation left after player-side harm. While it runs, a
+   *  provokedOnly species (the oversize tier) hunts; stamped by
+   *  strikes, landed shots, dissolves and guardian bites, and
+   *  refreshed by further harm. Optional: absent on older saves;
+   *  the sim treats absent as unprovoked. */
+  provokedTimer?: number;
   animTime: number;
   /** Biome TYPE this creature spawned in (world-gen stamp; absent on old saves). */
   biome?: BiomeId;

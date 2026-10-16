@@ -700,7 +700,8 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
 
   // #88 — PHASING's first citizen: a vapor hare of the far
   // country whose outline thins at the edges, present in
-  // pieces. Its blink locomotion is bespoke work (deferred);
+  // pieces. Its blink locomotion is LIVE since slice 38
+  // (2026-10-16): most wander re-rolls arrive by vanish.
   // v1 deals it as what it also honestly is — the fastest
   // ground citizen on the table. Its shed edge-fur blinks
   // away after collection: no byproduct can survive it. 10%.
@@ -1410,9 +1411,9 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
   },
 
   // #175 — the wet country's diving duck: flies, swims, and
-  // plunges whole-body after pond fish. It carries BOTH specs;
-  // the draw takes flight in v1 and the dive is deferred —
-  // the swim spec records the intent.
+  // plunges whole-body after pond fish. It carries BOTH specs
+  // and the dive cycle (slice 38, 2026-10-16): ten seconds on
+  // the wing, six on the water, around the sim's phase clock.
   plunge_duck: {
     id: 'plunge_duck',
     name: 'Plunge Duck',
@@ -1423,6 +1424,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     byproduct: null,
     flight: { altitude: 2.0, bobHeight: 0.25, bobRate: 1.9, flapRate: 7 },
     swim: { depth: 0 },
+    dive: { cycleSeconds: 16, waterSeconds: 6 },
     bonusSpawn: {
       biomes: ['wetland', 'meadow'],
       pond: true,

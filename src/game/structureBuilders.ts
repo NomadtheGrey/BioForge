@@ -249,6 +249,136 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       }
       return group;
     },
+    // Furniture (slice E, 2026-10-16): the base becomes a home.
+    // Root table: four root legs and a slab with a resin inlay.
+    'root_table': () => {
+      const group = new THREE.Group();
+      const legGeom = new THREE.CylinderGeometry(0.06, 0.08, 0.75, 7);
+      for (const sx of [-0.7, 0.7]) {
+        for (const sz of [-0.4, 0.4]) {
+          const leg = new THREE.Mesh(legGeom, materials.woodRoot);
+          leg.position.set(sx, 0.375, sz);
+          leg.castShadow = true;
+          group.add(leg);
+        }
+      }
+      const top = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.09, 1.1), (new THREE.MeshStandardMaterial({ color: 0x5b3a1e, roughness: 0.9 })));
+      top.position.y = 0.79;
+      top.castShadow = true;
+      group.add(top);
+      const inlay = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.22, 0.22, 0.02, 16),
+        new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.35, emissive: 0x92400e, emissiveIntensity: 0.3 }),
+      );
+      inlay.position.y = 0.845;
+      group.add(inlay);
+      return group;
+    },
+    // Root stool: three legs and a polished round seat.
+    'root_stool': () => {
+      const group = new THREE.Group();
+      for (let i = 0; i < 3; i++) {
+        const a = (i / 3) * Math.PI * 2;
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.45, 6), materials.woodRoot);
+        leg.position.set(Math.cos(a) * 0.2, 0.225, Math.sin(a) * 0.2);
+        leg.rotation.z = Math.cos(a) * 0.18;
+        leg.rotation.x = -Math.sin(a) * 0.18;
+        group.add(leg);
+      }
+      const seat = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.3, 0.07, 14), (new THREE.MeshStandardMaterial({ color: 0x5b3a1e, roughness: 0.9 })));
+      seat.position.y = 0.48;
+      seat.castShadow = true;
+      group.add(seat);
+      return group;
+    },
+    // Woven rug: a thick flat weave with a border and fringe.
+    // It lies at the floor's own height; the placement datum
+    // puts it on whatever surface carries the cell.
+    'woven_rug': () => {
+      const group = new THREE.Group();
+      const body = new THREE.Mesh(
+        new THREE.BoxGeometry(1.8, 0.035, 1.8),
+        new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 1 }),
+      );
+      body.position.y = 0.02;
+      group.add(body);
+      const borderMat = new THREE.MeshStandardMaterial({ color: 0xa16207, roughness: 1 });
+      for (const sz of [-0.82, 0.82]) {
+        const strip = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.04, 0.12), borderMat);
+        strip.position.set(0, 0.022, sz);
+        group.add(strip);
+      }
+      for (const sx of [-0.82, 0.82]) {
+        const strip = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.04, 1.44), borderMat);
+        strip.position.set(sx, 0.022, 0);
+        group.add(strip);
+      }
+      const fringeMat = new THREE.MeshStandardMaterial({ color: 0xd9f99d, roughness: 1 });
+      for (let i = 0; i < 7; i++) {
+        for (const sz of [-0.95, 0.95]) {
+          const f = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.015, 0.12), fringeMat);
+          f.position.set(-0.75 + i * 0.25, 0.012, sz);
+          group.add(f);
+        }
+      }
+      return group;
+    },
+    // Root shelf: a standing frame with three boards and the
+    // small silhouettes of kept things.
+    'root_shelf': () => {
+      const group = new THREE.Group();
+      const sideGeom = new THREE.BoxGeometry(0.08, 1.8, 0.5);
+      for (const sx of [-0.75, 0.75]) {
+        const side = new THREE.Mesh(sideGeom, materials.woodRoot);
+        side.position.set(sx, 0.9, 0);
+        side.castShadow = true;
+        group.add(side);
+      }
+      const boardMat = (new THREE.MeshStandardMaterial({ color: 0x5b3a1e, roughness: 0.9 }));
+      const potMat = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.7 });
+      const jarMat = new THREE.MeshStandardMaterial({ color: 0x67e8f9, roughness: 0.3, emissive: 0x155e75, emissiveIntensity: 0.4 });
+      for (let i = 0; i < 3; i++) {
+        const y = 0.25 + i * 0.6;
+        const board = new THREE.Mesh(new THREE.BoxGeometry(1.58, 0.06, 0.5), boardMat);
+        board.position.y = y;
+        group.add(board);
+        const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.07, 0.16, 8), i % 2 === 0 ? potMat : jarMat);
+        pot.position.set(-0.45 + i * 0.4, y + 0.11, 0);
+        group.add(pot);
+      }
+      return group;
+    },
+    // Root bed: a root frame, a petal-soft mattress, a pillow.
+    // Furniture only (Adam): the Heart Tile owns respawning.
+    'root_bed': () => {
+      const group = new THREE.Group();
+      const frame = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.22, 2.0), materials.woodRoot);
+      frame.position.y = 0.18;
+      frame.castShadow = true;
+      group.add(frame);
+      const mattress = new THREE.Mesh(
+        new THREE.BoxGeometry(0.95, 0.14, 1.9),
+        new THREE.MeshStandardMaterial({ color: 0xfbcfe8, roughness: 0.95 }),
+      );
+      mattress.position.y = 0.36;
+      group.add(mattress);
+      const pillow = new THREE.Mesh(
+        new THREE.BoxGeometry(0.6, 0.1, 0.35),
+        new THREE.MeshStandardMaterial({ color: 0xfdf4ff, roughness: 1 }),
+      );
+      pillow.position.set(0, 0.44, -0.7);
+      group.add(pillow);
+      const postGeom = new THREE.CylinderGeometry(0.05, 0.06, 0.7, 7);
+      for (const sx of [-0.48, 0.48]) {
+        const post = new THREE.Mesh(postGeom, materials.woodRoot);
+        post.position.set(sx, 0.45, -0.95);
+        group.add(post);
+      }
+      const headSlat = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.09, 0.05), (new THREE.MeshStandardMaterial({ color: 0x5b3a1e, roughness: 0.9 })));
+      headSlat.position.set(0, 0.72, -0.95);
+      group.add(headSlat);
+      return group;
+    },
     // Vine ladder: two springy rails + rungs, standing in the wall's
     // plane so it reads from either face. One segment spans one story.
     'vine_ladder': () => {

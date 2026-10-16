@@ -488,6 +488,13 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   // vents on a seven-second cycle (mesh-side), so seven
   // seconds near one is a witnessed venting.
   const crabDwellRef = useRef<Map<string, number>>(new Map());
+  // Meadowback sentinel bookkeeping (slice 49): each sentinel's
+  // last bell (sim seconds — the cooldown is the sentinel's own
+  // patience) and whether a hunter stood in its regard last tick
+  // (the Peaceful visitor-bell is an ARRIVAL, edge-triggered,
+  // not a state).
+  const sentinelBellRef = useRef<Map<string, number>>(new Map());
+  const sentinelWatchRef = useRef<Map<string, boolean>>(new Map());
   // The last puff-hour seen (slice 47): Puffbells puff as the
   // shared phase crosses each hour mark; the flora tick below
   // compares hour indices to catch the turn.
@@ -821,7 +828,8 @@ export function useWorldEntities(): UseWorldEntitiesResult {
       onFaunaAttack?: (species: FaunaSpecies, damage: number) => void,
       attacksArmed?: boolean,
       dayPhase?: number,
-      onFieldWitness?: (noteId: string) => void
+      onFieldWitness?: (noteId: string) => void,
+      onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void
     ): void => {
       const simulateWorld = !multiplayerManager.isConnected || multiplayerManager.isHost;
       combatArmedRef.current = !!attacksArmed;
@@ -1059,6 +1067,8 @@ export function useWorldEntities(): UseWorldEntitiesResult {
         const mappedFauna = prevFauna.map((fauna) => {
           let { x, z, state, isTamed, targetX, targetZ, byproductTimer, command } = fauna;
           // Hunter bite cooldown (slice 5); absent on older saves.
+          let sentinelFacing = false;
+          let meadowBusy = false;
           let biteTimer = fauna.biteTimer ?? 0;
           let sampleTimer = fauna.sampleTimer ?? 0;
           // Solvent dissolve (Adam, 2026-10-16): fractional
@@ -1159,10 +1169,53 @@ export function useWorldEntities(): UseWorldEntitiesResult {
               targetZ = anchorZ + Math.cos(angle) * PATROL_RADIUS;
             }
           }
+          // Guard, the Meadowback (slice 49): SENTINEL — the
+          // design's new guard flavor. It does not fetch and it
+          // does not fight: it takes its post at the anchor and
+          // WATCHES (the rotation below keeps its head turning
+          // toward whatever it is watching), and its low
+          // bell-note is the report. Armed worlds: a THREAT bell
+          // when a wild hunter nearby is actively hunting,
+          // re-rung while the danger persists. Peaceful: a
+          // VISITOR bell, once, when a hunter enters its regard —
+          // announced, not feared. The bell's patience is 45 s:
+          // a bell that rings constantly warns about nothing.
+          if (isTamed && command === 'guard' && fauna.species === 'meadowback') {
+            const postX = fauna.anchorX ?? x;
+            const postZ = fauna.anchorZ ?? z;
+            if (Math.hypot(postX - x, postZ - z) > 3) {
+              targetX = postX;
+              targetZ = postZ;
+              state = 'patrolling';
+            } else {
+              targetX = x;
+              targetZ = z;
+              state = 'patrolling';
+              sentinelFacing = true;
+              const hunterInRegard = prevFauna.some(
+                (o) => !o.isTamed && speciesDef(o.species).hunt && Math.hypot(o.x - x, o.z - z) <= 30
+              );
+              const huntingNow = prevFauna.some(
+                (o) => !o.isTamed && o.state === 'attacking' && speciesDef(o.species).hunt && Math.hypot(o.x - x, o.z - z) <= 30
+              );
+              const bellReady = simClockRef.current - (sentinelBellRef.current.get(fauna.id) ?? -1_000_000) > 45;
+              const dPlayer = Math.hypot(playerX - x, playerZ - z);
+              if (bellReady && attacksArmed && huntingNow) {
+                onSentinelBell?.('meadowback', 'threat');
+                sentinelBellRef.current.set(fauna.id, simClockRef.current);
+                if (dPlayer < 40) witness('note_meadowback');
+              } else if (bellReady && !attacksArmed && hunterInRegard && !sentinelWatchRef.current.get(fauna.id)) {
+                onSentinelBell?.('meadowback', 'visitor');
+                sentinelBellRef.current.set(fauna.id, simClockRef.current);
+                if (dPlayer < 40) witness('note_meadowback');
+              }
+              sentinelWatchRef.current.set(fauna.id, hunterInRegard);
+            }
+          }
           // Guard, everyone else (soft-puffs, burrow mice): sanitation
           // duty — fetch the nearest loose drop back to the pouch. With
           // nothing to fetch, return to the anchor post and wait.
-          if (isTamed && command === 'guard' && !speciesDef(fauna.species).hunt) {
+          if (isTamed && command === 'guard' && fauna.species !== 'meadowback' && !speciesDef(fauna.species).hunt) {
             const drop = nearestDrop(x, z);
             if (drop) {
               targetX = drop.x;
@@ -1235,6 +1288,11 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             // to the surface on the swim table's nightRise — to
             // be near one in the dark is to see the rise.
             if (fauna.species === 'drift_krill' && isNightNow && distToPlayer < 16) witness('note_drift_krill');
+            // The backward spirals, read: an Untended garden's
+            // moth, close enough to see the winding run wrong.
+            if (fauna.species === 'spiral_moth' && fauna.homeVariant === 'precursor_untended' && distToPlayer < 18) {
+              witness('note_spiral_moth');
+            }
             // The Boiler Crab's venting: the steam is mesh-side
             // on a seven-second cycle, so seven seconds in its
             // close company is a guaranteed witnessed vent.
@@ -1565,7 +1623,27 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             }
           }
 
-          if (!isTamed && !hunterAlert && !staffEngaged && !deerBusy && !bearerBusy) {
+          // THE SENTINEL ROTATION (slice 49): a wild meadowback
+          // herd keeps one head up. The rotation is the herd's
+          // own clock — four minutes a watch, members in id
+          // order — and the sentinel stands its watch where it
+          // stands (the rotation below turns its head on a slow
+          // scan). The others graze. It has never once hurried,
+          // and neither has its relief.
+          if (fauna.species === 'meadowback' && !isTamed) {
+            const herd = faunaRef.current
+              .filter((f) => f.species === 'meadowback' && !f.isTamed)
+              .sort((a, b) => a.id.localeCompare(b.id));
+            if (herd.length > 1 && herd[Math.floor(simClockRef.current / 240) % herd.length].id === fauna.id) {
+              meadowBusy = true;
+              sentinelFacing = true;
+              state = 'idle';
+              targetX = x;
+              targetZ = z;
+            }
+          }
+
+          if (!isTamed && !hunterAlert && !staffEngaged && !deerBusy && !bearerBusy && !meadowBusy) {
             state = 'wandering';
             // Restless wandering: standing at the target re-rolls fast
             // (short pauses, long roams); en route the re-roll stays rare
@@ -1688,6 +1766,19 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // (slice 48): the mirror holds your gaze.
           if (state === 'alert' || deerStilling) {
             newRot = Math.atan2(playerX - x, playerZ - z);
+          }
+          // A sentinel's head (slice 49): face the nearest wild
+          // hunter in regard; with nothing to watch, sweep —
+          // slowly, the way a hill turns.
+          if (sentinelFacing) {
+            const watched = prevFauna
+              .filter((o) => o.id !== fauna.id && !o.isTamed && speciesDef(o.species).hunt)
+              .sort((a, b) => Math.hypot(a.x - x, a.z - z) - Math.hypot(b.x - x, b.z - z))[0];
+            if (watched && Math.hypot(watched.x - x, watched.z - z) <= 40) {
+              newRot = Math.atan2(watched.x - x, watched.z - z);
+            } else {
+              newRot = (fauna.animTime * 0.25) % (Math.PI * 2);
+            }
           }
 
           byproductTimer += dt;

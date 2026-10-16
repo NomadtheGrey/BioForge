@@ -28,6 +28,7 @@
 // ============================================================================
 
 import type { BiomeId } from './biomes';
+import type { WeatherMode } from './zones';
 import type { FaunaSpecies, ItemId } from '../types/game';
 
 /**
@@ -125,6 +126,17 @@ export interface SpeciesBonusSpawn {
    *  zones of this variant — the biome-unique layer, one creature
    *  per specific place, found nowhere else. */
   variant?: string;
+  /** Hybrid gate (slice 8): when set, the species deals ONLY in a
+   *  hybrid zone of this exact family pair (either order) — the
+   *  true hybrid citizens, at home in the margin country and in
+   *  NEITHER parent's pure ground. `biomes` still lists both
+   *  families (it is what admits the zone at all). */
+  hybrid?: readonly [BiomeId, BiomeId];
+  /** Weather gate (slice 8): when set, the species deals only
+   *  where the zone's own weather mode matches (zoneWeatherAt is
+   *  deterministic per zone, so this is an honest placement rule,
+   *  not a dice roll) — the weather-locked layer. */
+  weather?: WeatherMode;
   /** Individuals dealt per eligible zone. */
   count: number;
   /** Keep this far from the zone center (the radar species use 10). */
@@ -1780,6 +1792,295 @@ export const SPECIES: Record<FaunaSpecies, SpeciesDef> = {
       spacing: 3,
       speed: 2.6, // quick
       speedJitter: 0.25,
+      health: 6,
+    },
+  },
+
+  // ------------------------------------------------------------------
+  // Slice 8 (2026-10-15) — two new gates (hybrid, weather) and the
+  // citizens who needed them, plus the far-range stragglers.
+  // ------------------------------------------------------------------
+
+  // #43 — the roster's first WEATHER-LOCKED species: a Gel
+  // puddle with opinions that exists above ground only in the
+  // wet hours — it eats the rain itself. The weather gate
+  // deals it only into zones whose own sky is rain: it makes
+  // RAIN a cast member. Untameable — it is a weather with a
+  // metabolism.
+  rainback: {
+    id: 'rainback',
+    name: 'Rainback',
+    profile: 'drifter',
+    tameChance: null,
+    bait: null,
+    petName: 'Rainback',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['meadow', 'wetland'],
+      weather: 'rain',
+      count: 2, // singly, in companies after storms
+      minRadius: 8,
+      spacing: 4,
+      speed: 0.5, // slowest — it pulses
+      speedJitter: 0.05,
+      health: 12,
+    },
+  },
+
+  // #51 — the hybrid's proof of concept: neither Frost's
+  // open-sky hunter nor Rootwood's canopy life, but the
+  // thing the two make together — a frost-rimed owl hunting
+  // the frozen forest by the sounds things make freezing.
+  // 15% — owls do not negotiate much, and a frost one less.
+  rime_owl: {
+    id: 'rime_owl',
+    name: 'Rime Owl',
+    profile: 'flyer',
+    tameChance: 0.15,
+    bait: 'nectar',
+    petName: 'Rime Owl',
+    byproduct: null,
+    flight: { altitude: 2.6, bobHeight: 0.25, bobRate: 1.6, flapRate: 4.5 },
+    bonusSpawn: {
+      biomes: ['frost', 'rootwood'],
+      hybrid: ['frost', 'rootwood'],
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 2.2, // still, then vertical
+      speedJitter: 0.1,
+      health: 26,
+    },
+  },
+
+  // #67 — the hybrid country's cleanup and its gossip: a
+  // loud, storm-feathered crow that rides the gusts between
+  // trees and flies HARDER in bad weather. Curiosity TOTAL.
+  // 30%, earned in installments — crows remember.
+  storm_crow: {
+    id: 'storm_crow',
+    name: 'Storm Crow',
+    profile: 'flyer',
+    tameChance: 0.3,
+    bait: 'nectar',
+    petName: 'Storm Crow',
+    byproduct: null,
+    flight: { altitude: 2.6, bobHeight: 0.3, bobRate: 2.6, flapRate: 5.5 },
+    bonusSpawn: {
+      biomes: ['storm', 'rootwood'],
+      hybrid: ['storm', 'rootwood'],
+      count: 3, // social mobs, with politics
+      minRadius: 10,
+      spacing: 4,
+      speed: 2.9, // fast
+      speedJitter: 0.2,
+      health: 18,
+    },
+  },
+
+  // #69 — the Wetland's own storm warning: a biped runner
+  // that spends the flood the way other birds spend a
+  // meadow, running the debris mats too light and too fast
+  // to sink. The hybrid cast's speed record. Storm-locked
+  // by element; dealt in the Storm margin of the marsh.
+  // 20% — you do not tame a runner.
+  surge_runner: {
+    id: 'surge_runner',
+    name: 'Surge Runner',
+    profile: 'bird',
+    tameChance: 0.2,
+    bait: 'nectar',
+    petName: 'Surge Runner',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['wetland', 'storm'],
+      hybrid: ['wetland', 'storm'],
+      count: 3, // loose storm companies
+      minRadius: 10,
+      spacing: 4,
+      speed: 3.4, // FAST
+      speedJitter: 0.3,
+      health: 22,
+    },
+  },
+
+  // #95 — the margin's thermometer and its music: an ash-
+  // flecked finch whose colonies announce the Warm Meadows
+  // in song an hour before the ground feels different.
+  // Untameable (smallness); its chosen stands are
+  // measurably warmer, and the codex declines to say why.
+  hayfinch: {
+    id: 'hayfinch',
+    name: 'Hayfinch',
+    profile: 'flyer',
+    tameChance: null,
+    bait: null,
+    petName: 'Hayfinch',
+    byproduct: null,
+    flight: { altitude: 1.3, bobHeight: 0.2, bobRate: 3.4, flapRate: 8.0 },
+    bonusSpawn: {
+      biomes: ['meadow', 'ember'],
+      hybrid: ['meadow', 'ember'],
+      count: 4, // loose warm-grass companies
+      minRadius: 8,
+      spacing: 3,
+      speed: 2.8, // dart-class
+      speedJitter: 0.3,
+      health: 4,
+    },
+  },
+
+  // #101 — the Drowned Roots' citizen: a sleek otter that
+  // treats flooded root country as one continuous medium
+  // and STEALS small bright things into root-caches (the
+  // crow's barter economy has a wet branch). 40% — by
+  // playing along, over days. Drawn on the ground in v1:
+  // its water is the pond system's future, its roots are
+  // here now.
+  root_otter: {
+    id: 'root_otter',
+    name: 'Root Otter',
+    profile: 'amphibian',
+    tameChance: 0.4,
+    bait: 'nectar',
+    petName: 'Root Otter',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['wetland', 'rootwood'],
+      hybrid: ['wetland', 'rootwood'],
+      count: 2, // small family rafts
+      minRadius: 10,
+      spacing: 5,
+      speed: 2.3, // quick
+      speedJitter: 0.2,
+      health: 30,
+    },
+  },
+
+  // #143 — the Scalding Fens' plumbing: a kettle-built crab
+  // whose back is a lid, territorial about its pool's
+  // temperature, which it REGULATES by venting — a shadow
+  // held too long over its lid reads as a blockage to be
+  // cleared in steam. THE TELL: the hissing rises and the
+  // steam thickens, seconds before. Untameable (0%).
+  boiler_crab: {
+    id: 'boiler_crab',
+    name: 'Boiler Crab',
+    profile: 'territorial',
+    tameChance: null,
+    bait: null,
+    petName: 'Boiler Crab',
+    byproduct: null,
+    hunt: { aggroRange: 4.5, damage: 8, biteRange: 1.6, biteCooldownSeconds: 1.6 },
+    bonusSpawn: {
+      biomes: ['wetland', 'ember'],
+      hybrid: ['wetland', 'ember'],
+      count: 2, // each crab one pool
+      minRadius: 10,
+      spacing: 6,
+      speed: 1.9, // a burst of scuttle, then the vent
+      speedJitter: 0.1,
+      health: 40,
+    },
+  },
+
+  // #337 — the far country's swallow: a serene bat that
+  // roosts in ruins and high eaves across the far families
+  // and eats Mote Swarms on the wing. 30% — roost-loyal:
+  // keep the eave, keep the bat. (Its roost guano — compost's
+  // far grade — is a place-drop for a later economy slice.)
+  far_bat: {
+    id: 'far_bat',
+    name: 'Far Bat',
+    profile: 'flyer',
+    tameChance: 0.3,
+    bait: 'nectar',
+    petName: 'Far Bat',
+    byproduct: null,
+    flight: { altitude: 1.9, bobHeight: 0.25, bobRate: 2.4, flapRate: 6.0 },
+    bonusSpawn: {
+      biomes: ['storm', 'precursor', 'living', 'fungal'],
+      count: 2,
+      minRadius: 12,
+      spacing: 5,
+      speed: 2.7, // quick
+      speedJitter: 0.2,
+      health: 8,
+    },
+  },
+
+  // #339 — the founding law of the wide-range layer, in
+  // creature form: mice don't live in the arctic — but a
+  // mouse lives at the arctic's DOOR. Melt-timed kin of the
+  // Burrow Mouse, ranging the thaw's edge (Saltglass's
+  // thaw, Frost's margins, the early Meadow) and nowhere
+  // colder. 50%.
+  thaw_mouse: {
+    id: 'thaw_mouse',
+    name: 'Thaw Mouse',
+    profile: 'rodent',
+    tameChance: 0.5,
+    bait: 'nectar',
+    petName: 'Thaw Mouse',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['saltglass', 'frost', 'meadow'],
+      count: 3, // thaw companies
+      minRadius: 8,
+      spacing: 3,
+      speed: 2.0, // quick
+      speedJitter: 0.25,
+      health: 5,
+    },
+  },
+
+  // #354 — the valley's room service: a dust-laden moth
+  // that carries COMPOST DUST from the rot-rich edges to
+  // the Heartbloom, dusting the bloom at dusk — you do not
+  // feed the valley; you stock the moth's pantry, and the
+  // moth does the diplomacy. Untameable (0%): its route is
+  // its answer.
+  meal_moth: {
+    id: 'meal_moth',
+    name: 'Meal Moth',
+    profile: 'glider',
+    tameChance: null,
+    bait: null,
+    petName: 'Meal Moth',
+    byproduct: null,
+    flight: { altitude: 1.2, bobHeight: 0.2, bobRate: 1.8, flapRate: 3.5 },
+    bonusSpawn: {
+      biomes: ['living'],
+      count: 2, // dusk companies
+      minRadius: 8,
+      spacing: 4,
+      speed: 1.4, // drifting
+      speedJitter: 0.15,
+      health: 5,
+    },
+  },
+
+  // #355 — the heart's pulse, outsourced to legs: a sap-
+  // glossed beetle that drinks Heart Sap at the bloom's
+  // base, eats its pests, trims its dead petals — its
+  // clusters are the heart's HEALTH READOUT: a ring of
+  // glossy beetles means a thriving heart. Not tameable;
+  // you keep a heart beetle by keeping a heart.
+  heart_beetle: {
+    id: 'heart_beetle',
+    name: 'Heart Beetle',
+    profile: 'insect',
+    tameChance: null,
+    bait: null,
+    petName: 'Heart Beetle',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['living'],
+      count: 3, // heart colonies
+      minRadius: 8,
+      spacing: 3,
+      speed: 1.8, // quick
+      speedJitter: 0.2,
       health: 6,
     },
   },

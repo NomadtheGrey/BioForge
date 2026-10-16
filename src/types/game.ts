@@ -271,7 +271,20 @@ export type FaunaSpecies =
   | 'heartbearer'
   | 'dusk_grazer'
   | 'answer_deer'
-  | 'edge_wren';
+  | 'edge_wren'
+  // Slice 8 (2026-10-15) — hybrid citizens, the weather-locked
+  // Rainback, and the far-range stragglers.
+  | 'rainback'
+  | 'rime_owl'
+  | 'storm_crow'
+  | 'surge_runner'
+  | 'hayfinch'
+  | 'root_otter'
+  | 'boiler_crab'
+  | 'far_bat'
+  | 'thaw_mouse'
+  | 'meal_moth'
+  | 'heart_beetle';
 
 export interface FaunaEntity {
   id: string;

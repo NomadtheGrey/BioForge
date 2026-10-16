@@ -146,6 +146,23 @@ export const QUESTS: QuestDef[] = [
     completeItem: 'woven_pouch',
   },
   {
+    // The ladder's second rung gets its quest (Adam, 2026-10-15:
+    // the pouch upgrades should come sooner than later — the
+    // satchel's goods are all early-country, so its quest stands
+    // right behind the pouch's). Gather list mirrors the recipe.
+    id: 'q_satchel',
+    tier: 1,
+    title: 'Bound for More',
+    blurb:
+      'The Woven Pouch helped. It was not enough. Stiffen a Resin-Bound Satchel with wetland reeds — every stack you carry grows to 50.',
+    gather: [
+      { itemId: 'resin_sap', count: 4 },
+      { itemId: 'resonant_reed', count: 4 },
+      { itemId: 'soft_fiber', count: 2 },
+    ],
+    completeItem: 'resin_satchel',
+  },
+  {
     id: 'q_scanner',
     tier: 1,
     title: 'Eyes Open',
@@ -234,6 +251,23 @@ export const QUESTS: QuestDef[] = [
     ],
     // Not a tool unlock — completes when the GRAFT item is owned.
     completeItem: 'gauntlet_synthesizer_upgrade',
+  },
+  {
+    // The ladder's top rung (Adam, 2026-10-15): it waits at the
+    // chain's end because its heart is a prismatic core — cave
+    // and ruin goods — but it HAS a quest now, so the ladder's
+    // top is visible from the climb. Gather list mirrors it.
+    id: 'q_rucksack',
+    tier: 2,
+    title: 'The Pack That Breathes',
+    blurb:
+      'Grow a symbiote pack around a prismatic heart — a Living Rucksack. Every stack you carry grows to 100, and the pack carries a little of itself.',
+    gather: [
+      { itemId: 'carapace_scale', count: 4 },
+      { itemId: 'prismatic_core', count: 1 },
+      { itemId: 'soft_fiber', count: 4 },
+    ],
+    completeItem: 'living_rucksack',
   },
 ];
 

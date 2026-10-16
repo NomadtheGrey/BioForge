@@ -650,7 +650,7 @@ export const FLORA_CODEX: CodexEntry[] = [
     scannedCount: 0,
     description: 'The rolling mode\'s plant citizen: a sage ball of the Wind Plains that, at season\'s turn, lets go of its root and becomes its own seed-head — the whole plant, traveling as luggage and luggage as plant. Rooted, in season, it is a plains herb of the first respect.',
     byproducts: ['Sage Leaf (a rooted sage, storm-cured)'],
-    tamingOrCraftNotes: 'Harvest with the glove while it is rooted. Chasing it across the Wind Plains is exercise the codex declines to prescribe.',
+    tamingOrCraftNotes: 'Harvest with the glove while it is rooted — a sage left ripe too long lets go and rolls, shedding leaf at every bounce, and re-roots downwind. Chasing it across the Wind Plains is exercise the codex declines to prescribe.',
     biome: 'Meadow × Storm (the Wind Plains only)',
     iconColor: '#a3a380',
   },

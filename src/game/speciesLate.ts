@@ -901,6 +901,9 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     bait: null,
     petName: 'Grass Leviathan',
     byproduct: null,
+    // Provoked hunt + kill loot (slice 32, 2026-10-16 — Adam's oversize pin).
+    hunt: { aggroRange: 16, damage: 30, biteRange: 2.6, biteCooldownSeconds: 1.6, provokedOnly: true },
+    killLoot: [['coat_slab', 4], ['soft_fiber', 4]],
     bonusSpawn: {
       biomes: ['meadow', 'storm'],
       count: 1,
@@ -926,6 +929,9 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     petName: 'Cloud Whale',
     byproduct: null,
     flight: { altitude: 9, bobHeight: 0.5, bobRate: 0.8 },
+    // Provoked hunt + kill loot (slice 32, 2026-10-16 — Adam's oversize pin).
+    hunt: { aggroRange: 18, damage: 25, biteRange: 3.2, biteCooldownSeconds: 1.8, provokedOnly: true },
+    killLoot: [['whale_down', 3], ['dew_essence', 4]],
     bonusSpawn: {
       biomes: ['storm'],
       count: 1,
@@ -948,6 +954,9 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     bait: null,
     petName: 'Storm Leviathan',
     byproduct: null,
+    // Provoked hunt + kill loot (slice 32, 2026-10-16 — Adam's oversize pin).
+    hunt: { aggroRange: 17, damage: 40, biteRange: 2.8, biteCooldownSeconds: 1.8, provokedOnly: true },
+    killLoot: [['leviathan_plate', 4], ['bone_fragment', 4]],
     bonusSpawn: {
       biomes: ['bone', 'storm'],
       hybrid: ['bone', 'storm'],
@@ -972,6 +981,9 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     bait: null,
     petName: 'Garden Colossus',
     byproduct: null,
+    // Provoked hunt + kill loot (slice 32, 2026-10-16 — Adam's oversize pin).
+    hunt: { aggroRange: 16, damage: 45, biteRange: 3.0, biteCooldownSeconds: 2.0, provokedOnly: true },
+    killLoot: [['prismatic_core', 2]],
     bonusSpawn: {
       biomes: ['precursor'],
       count: 1,
@@ -995,6 +1007,9 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     bait: null,
     petName: 'Sleeping Mountain',
     byproduct: null,
+    // Provoked hunt + kill loot (slice 32, 2026-10-16 — Adam's oversize pin).
+    hunt: { aggroRange: 12, damage: 55, biteRange: 3.4, biteCooldownSeconds: 2.2, provokedOnly: true },
+    killLoot: [['cinder_scale', 3], ['bone_fragment', 3]],
     bonusSpawn: {
       biomes: ['ember'],
       count: 1,
@@ -1019,6 +1034,9 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     bait: null,
     petName: 'Glass Behemoth',
     byproduct: { item: 'behemoth_glass', seconds: 600, tamedOnly: false },
+    // Provoked hunt + kill loot (slice 32, 2026-10-16 — Adam's oversize pin).
+    hunt: { aggroRange: 16, damage: 35, biteRange: 2.6, biteCooldownSeconds: 1.6, provokedOnly: true },
+    killLoot: [['behemoth_glass', 4], ['saltglass_shard', 4]],
     bonusSpawn: {
       biomes: ['saltglass'],
       count: 1,
@@ -1042,6 +1060,9 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     bait: null,
     petName: 'Old Marrow',
     byproduct: null,
+    // Provoked hunt + kill loot (slice 32, 2026-10-16 — Adam's oversize pin).
+    hunt: { aggroRange: 14, damage: 30, biteRange: 2.4, biteCooldownSeconds: 1.8, provokedOnly: true },
+    killLoot: [['bonemoss', 4], ['bone_fragment', 3]],
     bonusSpawn: {
       biomes: ['bone'],
       count: 1,
@@ -1066,6 +1087,9 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     bait: null,
     petName: 'Winter Mother',
     byproduct: { item: 'mother_wool', seconds: 480, tamedOnly: false },
+    // Provoked hunt + kill loot (slice 32, 2026-10-16 — Adam's oversize pin).
+    hunt: { aggroRange: 16, damage: 38, biteRange: 2.6, biteCooldownSeconds: 1.6, provokedOnly: true },
+    killLoot: [['mother_wool', 5], ['coat_slab', 2]],
     bonusSpawn: {
       biomes: ['frost'],
       variant: 'frost_stillwhite',
@@ -1090,6 +1114,9 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     bait: null,
     petName: 'Dune Whale',
     byproduct: null,
+    // Provoked hunt + kill loot (slice 32, 2026-10-16 — Adam's oversize pin).
+    hunt: { aggroRange: 16, damage: 35, biteRange: 2.8, biteCooldownSeconds: 1.7, provokedOnly: true },
+    killLoot: [['leviathan_hide', 3], ['lodestone_sand', 4]],
     bonusSpawn: {
       biomes: ['saltglass', 'storm'],
       hybrid: ['saltglass', 'storm'],
@@ -1114,6 +1141,9 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     bait: null,
     petName: 'Great Hermit',
     byproduct: null,
+    // Provoked hunt + kill loot (slice 32, 2026-10-16 — Adam's oversize pin).
+    hunt: { aggroRange: 14, damage: 28, biteRange: 2.4, biteCooldownSeconds: 1.8, provokedOnly: true },
+    killLoot: [['tender_husk', 3], ['glow_spore', 4]],
     bonusSpawn: {
       biomes: ['fungal'],
       count: 1,
@@ -1139,6 +1169,9 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     bait: null,
     petName: 'Tempest Worm',
     byproduct: null,
+    // Provoked hunt + kill loot (slice 32, 2026-10-16 — Adam's oversize pin).
+    hunt: { aggroRange: 17, damage: 42, biteRange: 3.0, biteCooldownSeconds: 1.6, provokedOnly: true },
+    killLoot: [['fulgurite_shard', 6], ['carapace_scale', 3]],
     bonusSpawn: {
       biomes: ['storm'],
       variant: 'charged_flats',

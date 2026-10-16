@@ -145,6 +145,8 @@ export interface UseToolInteractionsParams {
   spawnDroppedItem: (itemId: ItemId, count: number, x: number, z: number) => void;
   triggerHarvestFx: (x: number, z: number) => void;
   triggerSolventFx: (x: number, z: number) => void;
+  /** The visible solvent jet, player -> target (Adam, 2026-10-16). */
+  triggerSprayJetFx: (x: number, z: number) => void;
 }
 
 export function useToolInteractions({
@@ -188,6 +190,7 @@ export function useToolInteractions({
   spawnDroppedItem,
   triggerHarvestFx,
   triggerSolventFx,
+  triggerSprayJetFx,
 }: UseToolInteractionsParams) {
   // What a harvest-ready plant gives up, per species — ONE table shared by
   // the harvest glove (which leaves the plant standing to regrow) and the
@@ -1221,11 +1224,11 @@ export function useToolInteractions({
         // this click only stamps the dissolve and plays the spray.
         applyDissolve(fauna.id);
         soundEngine.playSolventSpray();
-        triggerSolventFx(fauna.x, fauna.z);
+        triggerSprayJetFx(fauna.x, fauna.z);
         return;
       }
     },
-    [activeTool, handleTameFauna, handleScanTarget, applyDissolve, triggerSolventFx]
+    [activeTool, handleTameFauna, handleScanTarget, applyDissolve, triggerSprayJetFx]
   );
 
   // Builder on a CEILING tile with a floor selected: GROW the ceiling

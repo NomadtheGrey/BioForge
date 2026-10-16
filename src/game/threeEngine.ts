@@ -426,6 +426,20 @@ export class BioForgeThreeEngine {
     song_cap: { color: 0x93c5fd, intensity: 0.4, distance: 2.5, y: 0.3 },
     canopy_cap: { color: 0xfbbf24, intensity: 0.35, distance: 2, y: 0.3 },
     gloom_cap: { color: 0x60a5fa, intensity: 0.5, distance: 2.5, y: 0.2 },
+    // Flora wave 10 (creature slice 25, 2026-10-16): the cap
+    // bench — kitchens keep low, warm lights.
+    fall_shelf: { color: 0xa16207, intensity: 0.25, distance: 2, y: 0.4 },
+    row_cap: { color: 0xa3e635, intensity: 0.3, distance: 2, y: 0.3 },
+    wild_cap: { color: 0x65a30d, intensity: 0.3, distance: 2, y: 0.3 },
+    dust_cap: { color: 0xe7e5e4, intensity: 0.25, distance: 2, y: 0.3 },
+    marrow_cap: { color: 0xfef3c7, intensity: 0.3, distance: 2, y: 0.3 },
+    rib_cap: { color: 0xfde68a, intensity: 0.3, distance: 2, y: 0.3 },
+    scald_cap: { color: 0xfb923c, intensity: 0.4, distance: 2, y: 0.3 },
+    compost_cap: { color: 0x57534e, intensity: 0.2, distance: 2, y: 0.3 },
+    brine_cap: { color: 0xa5f3fc, intensity: 0.35, distance: 2, y: 0.3 },
+    iron_cap: { color: 0x78716c, intensity: 0.3, distance: 2, y: 0.3 },
+    hedge_cap: { color: 0x4d7c0f, intensity: 0.25, distance: 2, y: 0.3 },
+    sun_cap: { color: 0xfde047, intensity: 0.45, distance: 2.5, y: 0.3 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },

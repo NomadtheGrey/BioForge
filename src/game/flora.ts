@@ -3520,6 +3520,27 @@ export const FLORA: Record<string, FloraDef> = {
       scale: 3.2,
     },
   },
+  // Lake Jelly (pond build, 2026-10-16) — the kingdom's
+  // second gel citizen: a gel FUNGUS fruiting on the Deep
+  // Reef's structures in the great ponds' black water (the
+  // reef builds the city; the jelly lights its windows —
+  // faintly, greenly). Harvest: Lake Jelly, the deep's own
+  // gel, the Gloom Gel's abyssal grade. POND-gated, like the
+  // citizens it lights for.
+  lake_jelly: {
+    id: 'lake_jelly',
+    name: 'Lake Jelly',
+    kind: 'fungus',
+    harvest: { item: 'lake_jelly', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['wetland', 'frost'],
+      pond: true,
+      count: 2,
+      minRadius: 0,
+      spacing: 6,
+      scale: 1.2,
+    },
+  },
 };
 
 /** Table lookup by species id (the hook + worldGen read here). */

@@ -18,7 +18,7 @@ import {
   ItemId,
 } from '../types/game';
 import { FirstPersonViewmodel } from './viewmodel';
-import { landformHeightAt } from './terrain';
+import { landformHeightAt, zonePondsAt, type PondDef } from './terrain';
 import { isFloorType, BUILDING_TYPES } from './placement';
 import { BIOME_TINTS } from './biomes';
 import type { BiomeId } from './biomes';
@@ -890,6 +890,69 @@ export class BioForgeThreeEngine {
     // The ground mesh was displaced once at build; a new context
     // means new country under it — re-displace in place.
     this.displaceTerrain();
+    this.rebuildPondMeshes();
+  }
+
+  // Ponds (P5 move 2, Adam, 2026-10-16): the current context's pond
+  // list in LOCAL frame (for the depth query), plus their water
+  // discs riding the terrain group (so instances hide them with
+  // the ground). Legacy worlds hold no ponds — the ripple never
+  // pooled. Discs are rebuilt per context, like the displacement.
+  private zonePondsLocal: { x: number; z: number; radius: number; waterY: number }[] = [];
+  private pondGroup: THREE.Group | null = null;
+
+  private rebuildPondMeshes(): void {
+    if (this.pondGroup) {
+      this.terrainGroup.remove(this.pondGroup);
+      this.pondGroup = null;
+    }
+    this.zonePondsLocal = [];
+    if (this.terrainLegacy || this.terrainSeed === null) return;
+    // Gather the 3x3 neighborhood: the ground mesh apron reaches
+    // 10 m into neighbor zones, and a pond near a border belongs
+    // to the view from both sides.
+    const ponds: PondDef[] = [];
+    for (let dz = -1; dz <= 1; dz++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        ponds.push(...zonePondsAt(this.terrainSeed, this.terrainZoneX + dx, this.terrainZoneZ + dz));
+      }
+    }
+    const group = new THREE.Group();
+    group.name = 'ponds';
+    for (const p of ponds) {
+      const lx = p.cx - this.terrainZoneX * 100;
+      const lz = p.cz - this.terrainZoneZ * 100;
+      if (Math.abs(lx) > 62 + p.radius || Math.abs(lz) > 62 + p.radius) continue;
+      this.zonePondsLocal.push({ x: lx, z: lz, radius: p.radius, waterY: p.waterY });
+      const geo = new THREE.CircleGeometry(p.radius, 28);
+      geo.rotateX(-Math.PI / 2);
+      const mat = new THREE.MeshStandardMaterial({
+        color: 0x2e6da4,
+        transparent: true,
+        opacity: 0.78,
+        roughness: 0.15,
+        metalness: 0.05,
+        depthWrite: false,
+      });
+      const disc = new THREE.Mesh(geo, mat);
+      disc.position.set(lx, p.waterY, lz);
+      disc.name = 'pondWater';
+      group.add(disc);
+    }
+    this.pondGroup = group;
+    this.terrainGroup.add(group);
+  }
+
+  /** How deep the water is at a LOCAL point (meters; 0 = dry).
+   *  The movement loop's wading drag reads this; the creatures
+   *  sim will read it when swimmers learn their strokes. */
+  public waterDepthAt(x: number, z: number): number {
+    let depth = 0;
+    for (const p of this.zonePondsLocal) {
+      if (Math.hypot(x - p.x, z - p.z) >= p.radius) continue;
+      depth = Math.max(depth, p.waterY - this.terrainHeightAt(x, z));
+    }
+    return Math.max(0, depth);
   }
 
   /** Re-run the terrain mesh displacement against the current

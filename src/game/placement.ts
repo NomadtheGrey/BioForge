@@ -54,6 +54,59 @@ export function isFloorType(type: StructureType): boolean {
   return FLOOR_TYPES.has(type);
 }
 
+/**
+ * Walk-over kinds (Adam, 2026-10-16, registry step 2): the
+ * non-floor pieces a player crosses freely — collision asks
+ * isWalkOverType, which is floors plus these.
+ */
+export const WALK_OVER_TYPES: ReadonlySet<StructureType> = new Set([
+  'cultivation_mound',
+  'spore_canopy',
+  'vine_ladder',
+]);
+
+export function isWalkOverType(type: StructureType): boolean {
+  return isFloorType(type) || WALK_OVER_TYPES.has(type);
+}
+
+/**
+ * Portal kinds: doorways a player stands IN to use — the cave
+ * exit's ring, the descent's throat, the ruin threshold. They
+ * never push back in collision.
+ */
+export const PORTAL_TYPES: ReadonlySet<StructureType> = new Set([
+  'cave_exit',
+  'cave_descent',
+  'vine_shaft',
+  'ruin_exit',
+]);
+
+export function isPortalType(type: StructureType): boolean {
+  return PORTAL_TYPES.has(type);
+}
+
+/**
+ * The grid-built types that share build datums (moved here from
+ * threeEngine in registry step 2, Adam, 2026-10-16). Standalone
+ * objects — the forge, the cultivation mound, cave mouths, ruin
+ * landmarks — are NOT builds: they keep their own ground height
+ * and never join (or drag) a neighboring build's datum.
+ */
+export const BUILDING_TYPES: ReadonlySet<string> = new Set([
+  'root_tile_floor',
+  'heart_tile',
+  'chitin_glass_wall',
+  'iris_slit_door',
+  'spore_canopy',
+  'vine_ladder',
+  'tamed_snap_trap_turret',
+  'lantern_fern_post',
+]);
+
+export function isBuildingType(type: StructureType): boolean {
+  return BUILDING_TYPES.has(type);
+}
+
 export function isEdgePanel(type: StructureType): boolean {
   return EDGE_PANEL_TYPES.includes(type);
 }

@@ -5,7 +5,7 @@
  */
 
 import { StructureEntity, FloraEntity } from '../types/game';
-import { isFloorType } from './placement';
+import { isWalkOverType, isPortalType, isEdgePanel } from './placement';
 
 export interface CollisionObstacle {
   x: number;
@@ -43,7 +43,7 @@ function isCollidingWithStructure(
     }
 
     // Floors, cultivation mounds and vine ladders can be walked over freely
-    if (isFloorType(s.type) || s.type === 'cultivation_mound' || s.type === 'spore_canopy' || s.type === 'vine_ladder') {
+    if (isWalkOverType(s.type)) {
       return false;
     }
 
@@ -52,12 +52,12 @@ function isCollidingWithStructure(
     // so it must never push back. The descent shaft is the same kind
     // of doorway — the player stands at its throat to use it. The
     // ruin threshold is the third sibling: the ruin spawn is its cell.
-    if (s.type === 'cave_exit' || s.type === 'cave_descent' || s.type === 'vine_shaft' || s.type === 'ruin_exit') {
+    if (isPortalType(s.type)) {
       return false;
     }
 
-    // Wall and closed door box collision
-    if (s.type === 'chitin_glass_wall' || s.type === 'iris_slit_door') {
+    // Wall and closed door box collision (the edge panels)
+    if (isEdgePanel(s.type)) {
       const isRotated = Math.abs(Math.sin(s.rotation)) > 0.7;
       const halfW = isRotated ? 0.35 : 1.05;
       const halfD = isRotated ? 1.05 : 0.35;

@@ -759,7 +759,18 @@ export type FaunaSpecies =
   | 'winter_mother'
   | 'dune_whale'
   | 'great_hermit'
-  | 'tempest_worm';
+  | 'tempest_worm'
+  | 'mirror_jelly'
+  | 'pond_skater'
+  | 'brine_jelly'
+  | 'sumpfish'
+  | 'brook_minnow'
+  | 'ice_maw'
+  | 'drift_krill'
+  | 'deep_carp'
+  | 'pale_eel'
+  | 'plunge_duck'
+  | 'mirror_fish';
 
 export interface FaunaEntity {
   id: string;
@@ -809,6 +820,11 @@ export interface FaunaEntity {
   command?: 'follow' | 'stay' | 'guard';
   anchorX?: number; // Guard post: where 'guard' was ordered — patrols loop
   anchorZ?: number; // around it and collectors return to it.
+  // Pond stamp (pond build, 2026-10-16): pond-spawned fauna carry
+  // their pond's radius here (the center rides anchorX/anchorZ);
+  // the sim clamps every wild target to that disc, so a pond
+  // citizen's world stays its pond.
+  pondRadius?: number;
 
 }
 

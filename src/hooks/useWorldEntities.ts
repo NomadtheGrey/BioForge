@@ -14,7 +14,6 @@ import {
 } from '../types/game';
 import { multiplayerManager } from '../game/multiplayer';
 import { speciesDef } from '../game/species';
-import { resolveFaunaPanelStep } from '../game/collision';
 import { sampleItemId, SAMPLE_SHED_SECONDS_TAMED, SAMPLE_SHED_SECONDS_WILD } from '../game/vat';
 import type { WorldSnapshot } from '../game/saveSystem';
 
@@ -942,6 +941,22 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             targetX = x;
             targetZ = z;
           }
+
+          // Pond bounds (pond build, 2026-10-16): a pond species'
+          // world IS its pond — wander, dissolve-flight and chase
+          // targets all clamp to the disc it spawned in (anchor +
+          // radius stamped at generation). A pond hunter at the
+          // disc's edge can still bite whatever wades in after it.
+          if (!isTamed && fauna.anchorX !== undefined && fauna.anchorZ !== undefined && fauna.pondRadius) {
+            const pdx = targetX - fauna.anchorX;
+            const pdz = targetZ - fauna.anchorZ;
+            const pd = Math.hypot(pdx, pdz);
+            const maxD = fauna.pondRadius * 0.95;
+            if (pd > maxD && pd > 0) {
+              targetX = fauna.anchorX + (pdx / pd) * maxD;
+              targetZ = fauna.anchorZ + (pdz / pd) * maxD;
+            }
+          }
           const distToTarget = Math.hypot(targetX - x, targetZ - z);
           let newRot = fauna.rotation;
           if (distToTarget > 0.4) {
@@ -951,18 +966,6 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             x += ((targetX - x) / distToTarget) * moveSpeed * dt;
             z += ((targetZ - z) / distToTarget) * moveSpeed * dt;
             newRot = Math.atan2(targetX - x, targetZ - z);
-          }
-
-          // Pens (Adam, 2026-10-16): a ground creature's step
-          // meets edge panels — fences, walls, gates — and stops
-          // at them, the player's own boxes read by the fauna
-          // barrier (game/collision.ts). Airborne species cross
-          // freely: a fence was never going to hold wings, and
-          // the design says so out loud.
-          if (!speciesDef(fauna.species).flight) {
-            const stepped = resolveFaunaPanelStep(x, z, 0.4, structuresRef.current);
-            x = stepped.x;
-            z = stepped.z;
           }
 
           // An alert stalker watches the intruder, not its path.

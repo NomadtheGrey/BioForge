@@ -1486,6 +1486,303 @@ export const SPECIES: Record<FaunaSpecies, SpeciesDef> = {
       health: 4,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Slice 7 (2026-10-15) — the remaining ground casts: Rootwood,
+  // Precursor, the Living, and two lessons in being watched.
+  // (The water slice was investigated first: the game has no
+  // water bodies as data yet, so the true swimmers wait for a
+  // pond system rather than being faked onto dry land.)
+  // ------------------------------------------------------------------
+
+  // #125 — the Mud Turtle's nightmare cousin: same ponds,
+  // opposite covenant. An algae-crowned ambusher that accepts
+  // offerings AT DISTANCE (an occupied snapper is a safe
+  // snapper — a legitimate Wetland strategy, blessed by its
+  // entry). Untameable; hunts on the marsh's ground in v1 like
+  // the Fen Lurker — its pool is the pond system's future.
+  pool_snapper: {
+    id: 'pool_snapper',
+    name: 'Pool Snapper',
+    profile: 'turtle',
+    tameChance: null,
+    bait: null,
+    petName: 'Pool Snapper',
+    byproduct: null,
+    hunt: { aggroRange: 5, damage: 12, biteRange: 1.8, biteCooldownSeconds: 1.4 },
+    bonusSpawn: {
+      biomes: ['wetland'],
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 1.4, // a lunge, otherwise stone
+      speedJitter: 0.1,
+      health: 85,
+    },
+  },
+
+  // #123 — the Meadow's ONE danger, by judgment: an old bull
+  // put out of the herds, wearing his exile in his temper.
+  // The doctrine's type specimen — it warns in three full
+  // acts (the stare, the pawing, the snort-and-lower) before
+  // any charge, and the alert IS those acts in v1: a player
+  // who reads them and steps off the pasture is never
+  // charged, in any difficulty. Untameable — the herd's own
+  // verdict, seconded.
+  meadow_bull: {
+    id: 'meadow_bull',
+    name: 'Meadow Bull',
+    profile: 'territorial',
+    tameChance: null,
+    bait: null,
+    petName: 'Meadow Bull',
+    byproduct: null,
+    hunt: { aggroRange: 8, damage: 12, biteRange: 2.2, biteCooldownSeconds: 2.0 },
+    bonusSpawn: {
+      biomes: ['meadow'],
+      count: 1,
+      minRadius: 14,
+      spacing: 8,
+      speed: 1.3, // slow, until it isn't
+      speedJitter: 0.05,
+      health: 150,
+    },
+  },
+
+  // #8 — the Rootwood emblem: vertical country's anchor, a
+  // moss-furred sloth that carries a garden slowly (canopy
+  // moss grows in its fur — it is visibly a place). The
+  // roster's speed floor: it makes the Meadowback look
+  // hurried. 45% — calm is approachable; the obstacle is not
+  // trust but TEMPO. Drawn at canopy height via the flight
+  // spec (no wings, no flap — it hangs in its tree, one
+  // storey up, exactly where it lives). Sheds Canopy Moss.
+  canopy_sloth: {
+    id: 'canopy_sloth',
+    name: 'Canopy Sloth',
+    profile: 'grazer',
+    tameChance: 0.45,
+    bait: 'nectar',
+    petName: 'Canopy Sloth',
+    byproduct: { item: 'canopy_moss', seconds: 240, tamedOnly: false },
+    flight: { altitude: 2.3, bobHeight: 0.05, bobRate: 0.5 },
+    bonusSpawn: {
+      biomes: ['rootwood'],
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 0.3, // the floor; the slug sends its regards
+      speedJitter: 0.02,
+      health: 40,
+    },
+  },
+
+  // #134 — the reason for the canopy's famous caution: a
+  // moss-still drop-hunter that owns the crowns from above.
+  // 15%, earned the Bonepicker way — provision over days, at
+  // ITS tree. Drawn at canopy height like the sloth it
+  // hunts: the heights are a country, and both its citizens
+  // are drawn in it.
+  crown_cat: {
+    id: 'crown_cat',
+    name: 'Crown Cat',
+    profile: 'predator',
+    tameChance: 0.15,
+    bait: 'nectar',
+    petName: 'Crown Cat',
+    byproduct: null,
+    hunt: { aggroRange: 8, damage: 10, biteRange: 1.8, biteCooldownSeconds: 1.3 },
+    flight: { altitude: 2.3, bobHeight: 0.1, bobRate: 0.8 },
+    bonusSpawn: {
+      biomes: ['rootwood'],
+      variant: 'rootwood_canopy',
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 2.4, // gravity-fast
+      speedJitter: 0.15,
+      health: 45,
+    },
+  },
+
+  // #158 — the Forged kingdom's smallest citizen: a palm-
+  // sized beetle whose feet are brooms and whose remaining
+  // function is SWEEPING — it walks the gardens' spiral
+  // paths and keeps them clean, in rows, forever. UNTAMABLE
+  // and UNNEEDING; the smallest staff never stopped.
+  path_beetle: {
+    id: 'path_beetle',
+    name: 'Path Beetle',
+    profile: 'insect',
+    tameChance: null,
+    bait: null,
+    petName: 'Path Beetle',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['precursor'],
+      count: 3, // staff, in rows
+      minRadius: 8,
+      spacing: 3,
+      speed: 1.0, // methodical
+      speedJitter: 0.05,
+      health: 6,
+    },
+  },
+
+  // #349 — the Welcoming Valley's usher: a many-handed,
+  // plantiform greeter-kin that meets visitors at the
+  // valley's edge and walks them by the pleasant route to
+  // the Heartbloom. It is not tamed; it is MET. Its absence
+  // at a valley's edge is itself data — it exists ONLY where
+  // the valley is glad to see you (variant gate).
+  gladhand: {
+    id: 'gladhand',
+    name: 'Gladhand',
+    profile: 'grazer',
+    tameChance: null,
+    bait: null,
+    petName: 'Gladhand',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['living'],
+      variant: 'welcoming_valley',
+      count: 1, // one per approach-path
+      minRadius: 10,
+      spacing: 6,
+      speed: 1.1, // unhurried
+      speedJitter: 0.05,
+      health: 45,
+    },
+  },
+
+  // #350 — the Hungry Valley's tongue: a low, long taster on
+  // many small legs that TASTES THE AIR toward visitors,
+  // sampling guests for the valley. Where a taster LINGERS,
+  // the valley is deciding. Untameable — it is staff, and
+  // its menace is the valley's, not its own: it carries no
+  // hunt. A taster that turns away has filed a favorable
+  // report.
+  taster: {
+    id: 'taster',
+    name: 'Taster',
+    profile: 'serpent',
+    tameChance: null,
+    bait: null,
+    petName: 'Taster',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['living'],
+      variant: 'hungry_valley',
+      count: 1,
+      minRadius: 10,
+      spacing: 6,
+      speed: 0.9, // slow, deliberate
+      speedJitter: 0.05,
+      health: 40,
+    },
+  },
+
+  // #351 — a supply line with legs: a broad-backed porter
+  // that carries food from the valley's edges to the heart
+  // point, in all weathers, on paths it keeps — the whole
+  // valley reads its heart-scent as SAFE CONDUCT. Not
+  // tameable; its load-delivery office (anything edible
+  // placed on its back is DELIVERED to the Heartbloom) is a
+  // later behavior slice.
+  heartbearer: {
+    id: 'heartbearer',
+    name: 'Heartbearer',
+    profile: 'grazer',
+    tameChance: null,
+    bait: null,
+    petName: 'Heartbearer',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['living'],
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 1.2, // steady
+      speedJitter: 0.05,
+      health: 110,
+    },
+  },
+
+  // #352 — the valley's stomach at animal scale: a low
+  // grazer that eats DUSKGRASS entirely, coat gone black-
+  // violet with the diet. 50% — the valley's Meadowback.
+  // Sheds Dusk Wool in season: black-violet, light-
+  // drinking, the family's textile.
+  dusk_grazer: {
+    id: 'dusk_grazer',
+    name: 'Dusk Grazer',
+    profile: 'grazer',
+    tameChance: 0.5,
+    bait: 'nectar',
+    petName: 'Dusk Grazer',
+    byproduct: { item: 'dusk_wool', seconds: 300, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['living'],
+      count: 2, // loose valley herds
+      minRadius: 10,
+      spacing: 5,
+      speed: 1.0,
+      speedJitter: 0.05,
+      health: 55,
+    },
+  },
+
+  // #356 — the mirror, at the scale of a conversation: a
+  // deer that mirrors the visitor it is with (calm for the
+  // calm, skittish for the loud). 55% — by BEING calm, over
+  // days: the roster's only tame whose method is the
+  // tamer's own state. In a Hungry valley, a herd that
+  // mirrors NOTHING is the early warning with hooves.
+  answer_deer: {
+    id: 'answer_deer',
+    name: 'Answer Deer',
+    profile: 'grazer',
+    tameChance: 0.55,
+    bait: 'nectar',
+    petName: 'Answer Deer',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['living'],
+      count: 2,
+      minRadius: 12,
+      spacing: 5,
+      speed: 1.9, // graceful
+      speedJitter: 0.15,
+      health: 50,
+    },
+  },
+
+  // #353 — the valley read before it is entered: a wren
+  // whose whole range is the border line. At a Welcoming
+  // edge it sings visitors across; at a Hungry edge it is
+  // silent, present at a distance, and leaves as you
+  // approach — the silence is the reading, and it is never
+  // wrong. 45% at a border homestead, the only taming
+  // address it recognizes.
+  edge_wren: {
+    id: 'edge_wren',
+    name: 'Edge Wren',
+    profile: 'flyer',
+    tameChance: 0.45,
+    bait: 'nectar',
+    petName: 'Edge Wren',
+    byproduct: null,
+    flight: { altitude: 1.4, bobHeight: 0.2, bobRate: 3.0, flapRate: 7.0 },
+    bonusSpawn: {
+      biomes: ['living'],
+      count: 3, // edge companies
+      minRadius: 8,
+      spacing: 3,
+      speed: 2.6, // quick
+      speedJitter: 0.25,
+      health: 6,
+    },
+  },
 };
 
 /** The one lookup every shared system uses. */

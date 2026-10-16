@@ -22,6 +22,8 @@ export type ItemId =
   | 'grave_feather'
   | 'kite_ribbon'
   | 'spire_down'
+  | 'canopy_moss'
+  | 'dusk_wool'
   | 'dew_essence'
   | 'bio_pellet'
   | 'carapace_scale'
@@ -257,7 +259,19 @@ export type FaunaSpecies =
   | 'storm_kite'
   | 'vent_drake'
   | 'spire_bat'
-  | 'dust_moth';
+  | 'dust_moth'
+  // Slice 7 (2026-10-15) — the remaining ground casts.
+  | 'pool_snapper'
+  | 'meadow_bull'
+  | 'canopy_sloth'
+  | 'crown_cat'
+  | 'path_beetle'
+  | 'gladhand'
+  | 'taster'
+  | 'heartbearer'
+  | 'dusk_grazer'
+  | 'answer_deer'
+  | 'edge_wren';
 
 export interface FaunaEntity {
   id: string;

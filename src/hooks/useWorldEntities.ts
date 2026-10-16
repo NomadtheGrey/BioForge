@@ -392,6 +392,7 @@ export interface UseWorldEntitiesResult {
   tameFauna: (faunaId: string, customName: string, state: FaunaEntity['state']) => void;
   setFaunaCommand: (faunaId: string, cmd: 'follow' | 'stay' | 'guard') => void;
   releaseFauna: (faunaId: string) => void;
+  applyDissolve: (faunaId: string) => void;
   upsertFauna: (fauna: FaunaEntity) => void;
   removeFauna: (faunaId: string) => void;
   spawnDroppedItem: (itemId: DroppedItemEntity['itemId'], count: number, x: number, z: number) => void;
@@ -442,6 +443,16 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   // when a whole second has accrued — a per-frame write would
   // re-render the app at sim rate for the sake of a patience bar.
   const vatClockRef = useRef(0);
+
+  // Solvent dissolve (Adam, 2026-10-16): the sprayer's emergency
+  // harm, as damage over time — a spray buys DISSOLVE_SECONDS of
+  // flight and DISSOLVE_DAMAGE_PER_SECOND of hurt, refreshed (not
+  // stacked) by re-spraying. Armed only where attacks are armed
+  // (updateTick's attacksArmed, mirrored here each tick): on
+  // Peaceful the land is safe in both directions.
+  const DISSOLVE_SECONDS = 4;
+  const DISSOLVE_DAMAGE_PER_SECOND = 8;
+  const dissolveArmedRef = useRef(false);
 
   const addFlora = useCallback((flora: FloraEntity): void => {
     setFloraList((prev) => [...prev, flora]);
@@ -548,6 +559,20 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   // is wild again, here, in this zone, keeping the name it was
   // granted (a released creature is a known animal, not a
   // stranger). Reached only through the confirm in the tame flow.
+  // Emergency solvent (Adam, 2026-10-16): stamp a wild creature
+  // with a dissolve. Companions are keyed out — your own solvent
+  // never harms your own — and on Peaceful nothing is stamped at
+  // all (see dissolveArmedRef). The damage and the flight happen
+  // in the tick, below.
+  const applyDissolve = useCallback((faunaId: string): void => {
+    if (!dissolveArmedRef.current) return;
+    setFaunaList((prev) =>
+      prev.map((fn) =>
+        fn.id === faunaId && !fn.isTamed ? { ...fn, dissolveTimer: DISSOLVE_SECONDS } : fn
+      )
+    );
+  }, []);
+
   const releaseFauna = useCallback((faunaId: string): void => {
     setFaunaList((prev) =>
       prev.map((fn) =>
@@ -629,6 +654,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
       attacksArmed?: boolean
     ): void => {
       const simulateWorld = !multiplayerManager.isConnected || multiplayerManager.isHost;
+      dissolveArmedRef.current = !!attacksArmed;
 
       // 1. Fauna Behavioral AI Tick (host authority — guests apply host upserts)
       if (simulateWorld) {
@@ -663,6 +689,20 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // Hunter bite cooldown (slice 5); absent on older saves.
           let biteTimer = fauna.biteTimer ?? 0;
           let sampleTimer = fauna.sampleTimer ?? 0;
+          // Solvent dissolve (Adam, 2026-10-16): fractional
+          // damage accrues with the timer, so the total is the
+          // rate times however much of the dissolve elapsed.
+          let dissolveTimer = fauna.dissolveTimer ?? 0;
+          let dissolveDamage = 0;
+          // A creature won over mid-dissolve is washed clean by
+          // the bond — your solvent never harms your own, even
+          // retroactively.
+          if (isTamed) dissolveTimer = 0;
+          if (dissolveTimer > 0) {
+            const elapsed = Math.min(dt, dissolveTimer);
+            dissolveTimer -= elapsed;
+            dissolveDamage = DISSOLVE_DAMAGE_PER_SECOND * elapsed;
+          }
 
           // --- Companion orders (tamed, with a command set) ---
           if (isTamed && command === 'follow') {
@@ -771,6 +811,19 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             }
           }
 
+          // Dissolve flight (Adam, 2026-10-16): a wild creature
+          // under a dissolve breaks off and RUNS — the target is
+          // set away from the player, overriding hunt and wander
+          // alike while the dissolve lasts. That flight is the
+          // emergency the sprayer buys: seconds, not safety.
+          // When the timer dies, so does the flight.
+          if (!isTamed && dissolveTimer > 0) {
+            const away = Math.atan2(x - playerX, z - playerZ);
+            targetX = x + Math.sin(away) * 14;
+            targetZ = z + Math.cos(away) * 14;
+            state = 'wandering';
+          }
+
           // --- Legacy companions (tamed before commands existed) ---
           if (isTamed && !command && state === 'following') {
             targetX = playerX + Math.sin(fauna.id.length) * FOLLOW_OFFSET;
@@ -837,20 +890,23 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             byproductTimer,
             biteTimer,
             sampleTimer,
+            dissolveTimer,
+            health: fauna.health - dissolveDamage,
             animTime: fauna.animTime + dt,
           };
           if (syncFaunaNow) multiplayerManager.broadcastEntityUpsert('fauna', nextFauna);
           return nextFauna;
         });
-        if (defenderDamage.size === 0) return mappedFauna;
-        // A wild hunter brought down by a guardian leaves its
-        // remains where it fell — and remains are a SAMPLE, the
-        // dead's half of Adam's sample ruling.
+        if (defenderDamage.size === 0 && !mappedFauna.some((f) => f.health <= 0)) return mappedFauna;
+        // Deaths leave remains where they fell — and remains are
+        // a SAMPLE, the dead's half of Adam's sample ruling. Two
+        // killers reach this sweep: a guardian's bites (the
+        // ledger above) and a solvent dissolve that finished its
+        // work (health already subtracted in the map).
         return mappedFauna.flatMap((f) => {
-          const dmg = defenderDamage.get(f.id);
-          if (!dmg) return [f];
+          const dmg = defenderDamage.get(f.id) ?? 0;
           const health = f.health - dmg;
-          if (health > 0) return [{ ...f, health }];
+          if (health > 0) return [dmg ? { ...f, health } : f];
           spawnDroppedItem(sampleItemId(f.species), 1, f.x, f.z);
           return [];
         });
@@ -984,6 +1040,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
     tameFauna,
     setFaunaCommand,
     releaseFauna,
+    applyDissolve,
     upsertFauna,
     removeFauna,
     spawnDroppedItem,

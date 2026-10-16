@@ -223,6 +223,15 @@ export const HUD: React.FC<HUDProps> = ({
   // the HudOptionsPanel that restores anything hidden from here.
   const hudLayout = useHudLayout();
   const [showHudOptions, setShowHudOptions] = useState<boolean>(false);
+  // The Prismatic Radar is a UNIT, not a birthright (Adam,
+  // 2026-10-16): the radar/minimap panel exists only while the
+  // player HAS the Prismatic Field Radar — carried in the pouch or
+  // held in the Left Hand. No unit, no panel; the session bar's Map
+  // switch and the HUD Options toggle still apply on top of this
+  // presence gate.
+  const hasRadarUnit =
+    (inventory['prismatic_field_radar'] ?? 0) > 0 ||
+    playerState.heldItemId === 'prismatic_field_radar';
   // HudPanel's ✕ delivers just the panel id; hiding is always "true".
   const hideHudPanel = (panelId: HudPanelId) => hudLayout.setHidden(panelId, true);
   const isDay = dayNightCycle > 0.25 && dayNightCycle < 0.75;
@@ -392,7 +401,25 @@ export const HUD: React.FC<HUDProps> = ({
             thumbstick's field (Adam's landscape playtest,
             2026-10-14: hiding it sideways took his navigation
             away). */}
-        <div className="flex min-w-0 flex-col gap-2.5">
+        {/* POSITIONING FIX (Adam's playtest, 2026-10-16): the
+            column is ABSOLUTELY positioned, out of the top bar's
+            flow. In the first HUD pass the stack lived inside the
+            top-bar flex row, so the row grew as tall as the whole
+            stack (~770px) and the root's justify-between pushed
+            the BOTTOM bar — quick nav, hotbar, Left Hand — off the
+            bottom edge of shorter windows: the "lost" Gauntlet
+            HUD. Out of flow, the column can be any height without
+            moving anything else; the max-height + scroll guard
+            keeps its own tail reachable on short screens. The
+            p-2 / -m-2 pair leaves room for the panels' corner
+            badges, which overhang by 8px. */}
+        <div
+          className={`absolute z-20 flex min-w-0 flex-col gap-2.5 overflow-y-auto p-2 -m-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+            touchMode
+              ? 'left-2 top-2 max-h-[calc(100dvh-1rem)]'
+              : 'left-4 top-4 max-h-[calc(100dvh-2rem)]'
+          }`}
+        >
           <div
             className={`flex min-w-0 gap-2.5 ${
               touchMode
@@ -466,13 +493,14 @@ export const HUD: React.FC<HUDProps> = ({
             </HudPanel>
           )}
 
-          {/* Minimap Widget. Always visible in play (Adam,
-              2026-10-14): sideways it rides beside the vitals card
-              in the row layout above instead of disappearing. Its
-              visibility is a HUD-layout choice now (the session
-              bar's Map button and Pause → Options both switch the
-              same 'radar' panel). */}
-          {!hudLayout.isHidden('radar') && (
+          {/* Minimap Widget. Sideways it rides beside the vitals
+              card in the row layout above instead of disappearing.
+              Two gates now: the HUD-layout choice (the session
+              bar's Map button and Pause → Options switch the same
+              'radar' panel) AND the unit's presence (Adam,
+              2026-10-16 — no Prismatic Field Radar carried or held,
+              no radar panel). */}
+          {!hudLayout.isHidden('radar') && hasRadarUnit && (
             <HudPanel
               id="radar"
               label="Radar / Minimap"
@@ -535,49 +563,52 @@ export const HUD: React.FC<HUDProps> = ({
               onClose={hideHudPanel}
               className="hidden md:block"
             >
-              <div className="glass-panel px-3 py-2.5 rounded-2xl border border-slate-700/50 shadow-lg">
-                <div className="text-[9px] font-tech font-bold tracking-widest text-slate-400 uppercase mb-1.5">
+              {/* A smidge wider + roomier (Adam, 2026-10-16):
+                  fixed w-[26rem], wider key column, looser rows —
+                  comfortable to read at a glance. */}
+              <div className="glass-panel w-[26rem] px-4 py-3 rounded-2xl border border-slate-700/50 shadow-lg">
+                <div className="text-[9px] font-tech font-bold tracking-widest text-slate-400 uppercase mb-2">
                   Controls
                 </div>
-                <div className="space-y-1 text-[10px] font-mono leading-none">
+                <div className="space-y-1.5 text-[10px] font-mono leading-none">
                   <div className="flex items-center gap-2">
-                    <span className="text-cyan-300 font-bold w-20">W A S D</span>
+                    <span className="text-cyan-300 font-bold w-28">W A S D</span>
                     <span className="text-slate-300">Move · W×2 sprint</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-cyan-300 font-bold w-20">Mouse</span>
+                    <span className="text-cyan-300 font-bold w-28">Mouse</span>
                     <span className="text-slate-300">Look · Click uses tool</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-cyan-300 font-bold w-20">Space</span>
-                    <span className="text-slate-300">Jump · on a Bounce-Shroom: bounce a story up, steer mid-air</span>
+                    <span className="text-cyan-300 font-bold w-28">Space</span>
+                    <span className="text-slate-300">Jump · Bounce-Shroom: bounce a story up</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-cyan-300 font-bold w-20">1 – 7</span>
+                    <span className="text-cyan-300 font-bold w-28">1 – 7</span>
                     <span className="text-slate-300">Select tool · 7 = Striker</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-cyan-300 font-bold w-20">7 again · Wheel</span>
+                    <span className="text-cyan-300 font-bold w-28">7 again · Wheel</span>
                     <span className="text-slate-300">Striker in hand: swap close ↔ ranged draw</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-cyan-300 font-bold w-20">Wheel</span>
+                    <span className="text-cyan-300 font-bold w-28">Wheel</span>
                     <span className="text-slate-300">Cycle seed (trowel) / blueprint (builder)</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-cyan-300 font-bold w-20">↑ ↓</span>
+                    <span className="text-cyan-300 font-bold w-28">↑ ↓</span>
                     <span className="text-slate-300">Cycle fertilizer (trowel) / blueprint (builder)</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-cyan-300 font-bold w-20">B · I · C · M · Q</span>
+                    <span className="text-cyan-300 font-bold w-28">B · I · C · M · Q</span>
                     <span className="text-slate-300">Forge · Pouch · Codex · Co-op · Quests</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-cyan-300 font-bold w-20">Esc</span>
+                    <span className="text-cyan-300 font-bold w-28">Esc</span>
                     <span className="text-slate-300">Release mouse · close window</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-cyan-300 font-bold w-20">?</span>
+                    <span className="text-cyan-300 font-bold w-28">?</span>
                     <span className="text-slate-300">Full controls guide</span>
                   </div>
                 </div>
@@ -589,10 +620,13 @@ export const HUD: React.FC<HUDProps> = ({
         {/* Center Top: Biome & Day/Night — one grouped bar. Touch
             keeps it only once the screen is wide enough to carry
             all three top groups without squeezing the world out.
-            Scootched RIGHT (Adam, 2026-10-16): it used to float at
-            center and overlap the Bio-Suit Integrity card on
-            narrower windows; ml-auto now parks it against the
-            session bar, clear of the vitals. */}
+            NARROWER + TALLER (Adam, 2026-10-16, round 2): the wide
+            single row became a w-52 column of rows — zone name,
+            biome/coords, then the day/night toggle on its own row —
+            centered (mx-auto) in the space between the Bio-Suit
+            column on the left and the SESSION bar on the right, so
+            it clears both. (Round 1 parked it right against the
+            session bar; between is where Adam wants it.) */}
         {!hudLayout.isHidden('zone') && (
           <HudPanel
             id="zone"
@@ -600,14 +634,14 @@ export const HUD: React.FC<HUDProps> = ({
             offset={hudLayout.offsetOf('zone')}
             onMove={hudLayout.setOffset}
             onClose={hideHudPanel}
-            className={`ml-auto shrink-0 ${touchMode ? 'hidden min-[760px]:block' : ''}`}
+            className={`mx-auto shrink-0 ${touchMode ? 'hidden min-[760px]:block' : ''}`}
           >
-        <div className="glass-panel px-2 py-1.5 rounded-2xl flex items-center gap-1 shadow-lg">
-          <div className="px-2.5 py-1 flex items-center gap-2.5">
-            <Compass className="w-4 h-4 text-cyan-400" />
-            <div className="flex flex-col">
+        <div className="glass-panel w-52 px-3 py-2.5 rounded-2xl flex flex-col gap-1.5 shadow-lg">
+          <div className="flex items-start gap-2">
+            <Compass className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
+            <div className="flex flex-col min-w-0">
               <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono">Current Zone</span>
-              <span className="text-sm font-tech font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-pink-400">
+              <span className="text-sm font-tech font-bold leading-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-pink-400">
                 {currentBiomeName}
               </span>
               {currentBiomeType && (
@@ -623,13 +657,14 @@ export const HUD: React.FC<HUDProps> = ({
             </div>
           </div>
 
-          <div className="w-px h-6 bg-slate-700/60" />
+          <div className="h-px w-full bg-slate-700/60" />
 
-          {/* Day/Night Toggle & Bioluminescence button */}
+          {/* Day/Night Toggle & Bioluminescence button — its own
+              row in the taller arrangement. */}
           <button
             onClick={onToggleDayNight}
             title="Toggle Day / Night Bioluminescence"
-            className="hover:bg-slate-800/80 transition-colors p-2 rounded-xl flex items-center gap-2 text-xs font-medium text-slate-200"
+            className="hover:bg-slate-800/80 transition-colors px-2 py-1.5 rounded-xl flex items-center gap-2 text-xs font-medium text-slate-200 w-full"
           >
             {isDay ? (
               <>
@@ -663,6 +698,11 @@ export const HUD: React.FC<HUDProps> = ({
             className="shrink-0"
           >
         <div className="glass-panel p-1.5 rounded-2xl flex flex-col gap-1 shadow-lg">
+          {/* The bar's TITLE (Adam, 2026-10-16): every other panel
+              says what it is at a glance — this one now does too. */}
+          <div className="px-1.5 pt-1 pb-0.5 text-[9px] font-tech font-bold tracking-widest text-slate-400 uppercase">
+            Session
+          </div>
           <div className="flex items-center gap-1">
           {/* Save World (manual save — autosave also runs every 30s) */}
           {onSave && (

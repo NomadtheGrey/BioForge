@@ -381,6 +381,21 @@ export class BioForgeThreeEngine {
     maw_bloom: { color: 0xbe185d, intensity: 0.4, distance: 3, y: 0.3 },
     quiver_cap: { color: 0xa5f3fc, intensity: 0.4, distance: 2.5, y: 0.3 },
     balloon_vine: { color: 0x86efac, intensity: 0.3, distance: 2.5, y: 0.5 },
+    // Flora wave 7 (creature slice 19, 2026-10-16): the
+    // Aurora Vine glows like its namesake; the Coalwood keeps
+    // a dark halo over a green crown.
+    noonflower: { color: 0xfacc15, intensity: 0.35, distance: 2.5, y: 0.5 },
+    lambswool: { color: 0xfef9c3, intensity: 0.2, distance: 2, y: 0.2 },
+    spore_fern: { color: 0x4ade80, intensity: 0.3, distance: 2.5, y: 0.3 },
+    coalwood: { color: 0x44403c, intensity: 0.25, distance: 3, y: 0.8 },
+    aurora_vine: { color: 0x6ee7b7, intensity: 0.55, distance: 3, y: 0.4 },
+    bridge_moss: { color: 0x84cc16, intensity: 0.2, distance: 2, y: 0.2 },
+    canopy_orchid: { color: 0xf0abfc, intensity: 0.4, distance: 2.5, y: 0.5 },
+    rib_grass: { color: 0xa3a380, intensity: 0.2, distance: 2, y: 0.3 },
+    kite_flower: { color: 0x7dd3fc, intensity: 0.3, distance: 2.5, y: 0.6 },
+    guest_flower: { color: 0xfda4af, intensity: 0.3, distance: 2, y: 0.2 },
+    clock_bloom: { color: 0xc4b5fd, intensity: 0.35, distance: 2.5, y: 0.4 },
+    roadweed: { color: 0x65a30d, intensity: 0.2, distance: 2, y: 0.2 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },

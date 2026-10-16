@@ -1039,6 +1039,266 @@ export function buildLateFaunaMesh(
         break;
       }
 
+      case 'grass_leviathan': {
+        // A route with a heartbeat (slice 30, oversize tier):
+        // a hill-backed grazer at ~6x citizen scale, grass
+        // growing on the citizen.
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.95 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.85, 12, 9), bodyMat);
+        body.scale.set(0.95, 0.9, 1.5);
+        body.position.y = 0.85;
+        group.add(body);
+        const back = new THREE.Mesh(new THREE.SphereGeometry(0.7, 11, 8), new THREE.MeshStandardMaterial({ color: 0x65a30d, roughness: 1 }));
+        back.scale.set(0.9, 0.55, 1.35);
+        back.position.y = 1.35;
+        group.add(back);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.34, 9, 7), bodyMat);
+        head.position.set(0, 0.95, 1.3);
+        group.add(head);
+        const legMat = new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.95 });
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.09, 0.7, 6), legMat);
+          leg.position.set(sx * 0.45, 0.35, sz * 0.65);
+          group.add(leg);
+        }
+        break;
+      }
+
+      case 'cloud_whale': {
+        // Drawn in vapor (slice 30): a whale plan at altitude,
+        // translucent, unhurried.
+        const vaporMat = new THREE.MeshStandardMaterial({ color: 0xe0f2fe, roughness: 1, transparent: true, opacity: 0.55 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.9, 12, 9), vaporMat);
+        body.scale.set(0.8, 0.75, 1.9);
+        group.add(body);
+        const tail = new THREE.Mesh(new THREE.ConeGeometry(0.4, 0.8, 7), vaporMat);
+        tail.position.set(0, 0.1, -1.9);
+        tail.rotation.x = -Math.PI / 2.3;
+        group.add(tail);
+        for (const side of [-1, 1]) {
+          const fin = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.7, 5), vaporMat);
+          fin.position.set(side * 0.75, -0.25, 0.5);
+          fin.rotation.z = side * 1.9;
+          group.add(fin);
+        }
+        break;
+      }
+
+      case 'storm_leviathan': {
+        // The argument, ambulant (slice 30): a bone-plated
+        // giant at ~7x scale.
+        const plateMat = new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 0.9 });
+        const darkMat = new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 0.95 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.95, 12, 9), darkMat);
+        body.scale.set(0.95, 0.95, 1.55);
+        body.position.y = 1.0;
+        group.add(body);
+        for (let i = 0; i < 4; i++) {
+          const plate = new THREE.Mesh(new THREE.SphereGeometry(0.42 - i * 0.05, 8, 6), plateMat);
+          plate.scale.set(1, 0.5, 1);
+          plate.position.set(0, 1.75 - i * 0.08, 0.8 - i * 0.5);
+          group.add(plate);
+        }
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.38, 9, 7), darkMat);
+        head.position.set(0, 1.05, 1.5);
+        group.add(head);
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.1, 0.85, 6), darkMat);
+          leg.position.set(sx * 0.5, 0.42, sz * 0.75);
+          group.add(leg);
+        }
+        break;
+      }
+
+      case 'garden_colossus': {
+        // Fidelity at hill scale (slice 30): a forged biped
+        // gardener, ~4m of citizen.
+        const plateMat = new THREE.MeshStandardMaterial({ color: 0xa8a29e, roughness: 0.55, metalness: 0.5 });
+        const mossMat = new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 1 });
+        const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.7, 1.5, 9), plateMat);
+        torso.position.y = 2.1;
+        group.add(torso);
+        const shoulders = new THREE.Mesh(new THREE.SphereGeometry(0.62, 9, 7), mossMat);
+        shoulders.scale.set(1.3, 0.6, 1);
+        shoulders.position.y = 2.9;
+        group.add(shoulders);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.34, 9, 7), plateMat);
+        head.position.y = 3.35;
+        group.add(head);
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.09, 7, 6), new THREE.MeshStandardMaterial({ color: 0xa3e635, emissive: 0x4d7c0f, emissiveIntensity: 0.8, roughness: 0.3 }));
+        eye.position.set(0, 3.4, 0.3);
+        group.add(eye);
+        for (const side of [-1, 1]) {
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.13, 1.35, 6), plateMat);
+          leg.position.set(side * 0.3, 0.67, 0);
+          group.add(leg);
+          const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.09, 1.5, 6), plateMat);
+          arm.position.set(side * 0.85, 2.1, 0);
+          arm.rotation.z = side * 0.25;
+          group.add(arm);
+        }
+        break;
+      }
+
+      case 'sleeping_mountain': {
+        // Filed as geography (slice 30): an ash-mantled hill
+        // that breathes — drawn as a hill, honestly.
+        const hillMat = new THREE.MeshStandardMaterial({ color: 0xa8a29e, roughness: 1 });
+        const hill = new THREE.Mesh(new THREE.SphereGeometry(1.6, 13, 9), hillMat);
+        hill.scale.set(1.1, 0.55, 1.5);
+        hill.position.y = 0.25;
+        group.add(hill);
+        const ashCap = new THREE.Mesh(new THREE.SphereGeometry(1.3, 11, 8), new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 1 }));
+        ashCap.scale.set(1, 0.45, 1.35);
+        ashCap.position.y = 0.55;
+        group.add(ashCap);
+        // One ear, and a closed eye-line: the footnote that
+        // says the hill is a citizen.
+        const ear = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.3, 6), hillMat);
+        ear.position.set(0.5, 0.95, 1.9);
+        group.add(ear);
+        break;
+      }
+
+      case 'glass_behemoth': {
+        // Seen across, end to end (slice 30): a crystalline
+        // walker at ~5x scale, plates grown.
+        const glassMat = new THREE.MeshStandardMaterial({ color: 0xa5f3fc, roughness: 0.15, metalness: 0.25, transparent: true, opacity: 0.8 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.8, 12, 9), glassMat);
+        body.scale.set(0.9, 0.95, 1.5);
+        body.position.y = 0.95;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.32, 9, 7), glassMat);
+        head.position.set(0, 1.05, 1.25);
+        group.add(head);
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.08, 0.8, 6), glassMat);
+          leg.position.set(sx * 0.42, 0.4, sz * 0.6);
+          group.add(leg);
+        }
+        const plate = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), new THREE.MeshStandardMaterial({ color: 0xe0f2fe, roughness: 0.1, metalness: 0.3, transparent: true, opacity: 0.9 }));
+        plate.scale.set(1, 0.4, 1.2);
+        plate.position.set(0.3, 1.6, -0.3);
+        group.add(plate);
+        break;
+      }
+
+      case 'old_marrow': {
+        // The grandmother (slice 30): a forest-shelled
+        // tortoise at ~5x scale.
+        const shellMat = new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 0.9 });
+        const shell = new THREE.Mesh(new THREE.SphereGeometry(0.85, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), shellMat);
+        shell.scale.set(1, 0.85, 1.25);
+        shell.position.y = 0.35;
+        group.add(shell);
+        const moss = new THREE.Mesh(new THREE.SphereGeometry(0.6, 10, 7), new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 1 }));
+        moss.scale.set(1, 0.5, 1.1);
+        moss.position.y = 0.95;
+        group.add(moss);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 7), new THREE.MeshStandardMaterial({ color: 0xa8a29e, roughness: 0.9 }));
+        head.position.set(0, 0.4, 1.05);
+        group.add(head);
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.08, 0.3, 6), shellMat);
+          leg.position.set(sx * 0.5, 0.15, sz * 0.55);
+          group.add(leg);
+        }
+        break;
+      }
+
+      case 'winter_mother': {
+        // At the word's full weight (slice 30): a mammoth
+        // with tusks and a winter coat.
+        const coatMat = new THREE.MeshStandardMaterial({ color: 0x92400e, roughness: 1 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.8, 12, 9), coatMat);
+        body.scale.set(0.95, 1, 1.4);
+        body.position.y = 0.95;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.36, 9, 7), coatMat);
+        head.position.set(0, 1.0, 1.2);
+        group.add(head);
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.045, 0.6, 6), coatMat);
+        trunk.position.set(0, 0.65, 1.45);
+        trunk.rotation.x = 0.35;
+        group.add(trunk);
+        const tuskMat = new THREE.MeshStandardMaterial({ color: 0xfef3c7, roughness: 0.5 });
+        for (const side of [-1, 1]) {
+          const tusk = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.55, 6), tuskMat);
+          tusk.position.set(side * 0.2, 0.75, 1.42);
+          tusk.rotation.x = 2.2;
+          group.add(tusk);
+        }
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.09, 0.75, 6), coatMat);
+          leg.position.set(sx * 0.45, 0.37, sz * 0.6);
+          group.add(leg);
+        }
+        break;
+      }
+
+      case 'dune_whale': {
+        // Breaching the crest (slice 30): a finned whale
+        // drawn mid-surface in sand.
+        const skinMat = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.85 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.85, 12, 9), skinMat);
+        body.scale.set(0.8, 0.7, 1.9);
+        body.position.y = 0.35;
+        group.add(body);
+        const dorsal = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.5, 6), skinMat);
+        dorsal.position.set(0, 0.85, -0.2);
+        group.add(dorsal);
+        for (const side of [-1, 1]) {
+          const fin = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.65, 5), skinMat);
+          fin.position.set(side * 0.7, 0.15, 0.6);
+          fin.rotation.z = side * 1.9;
+          group.add(fin);
+        }
+        const sand = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.3, 0.18, 12), new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 1 }));
+        sand.position.y = 0.02;
+        group.add(sand);
+        break;
+      }
+
+      case 'great_hermit': {
+        // A tenancy agreement with legs (slice 30): a house-
+        // sized husk, colonied.
+        const huskMat = new THREE.MeshStandardMaterial({ color: 0xa16207, roughness: 0.95 });
+        const husk = new THREE.Mesh(new THREE.SphereGeometry(0.75, 11, 8), huskMat);
+        husk.scale.set(1, 0.9, 1.2);
+        husk.position.y = 0.75;
+        group.add(husk);
+        const spiral = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.09, 6, 12), new THREE.MeshStandardMaterial({ color: 0x713f12, roughness: 0.95 }));
+        spiral.position.set(0, 0.85, 0.55);
+        spiral.rotation.x = 0.4;
+        group.add(spiral);
+        const legMat = new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.9 });
+        for (let i = 0; i < 3; i++) {
+          for (const side of [-1, 1]) {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.035, 0.55, 5), legMat);
+            leg.position.set(side * 0.55, 0.27, 0.4 - i * 0.4);
+            leg.rotation.z = side * 0.5;
+            group.add(leg);
+          }
+        }
+        break;
+      }
+
+      case 'tempest_worm': {
+        // The previous tenant (slice 30): fulgurite-lined
+        // segments at failing-word scale, drawn surfaced.
+        const segMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.7, metalness: 0.3 });
+        const lineMat = new THREE.MeshStandardMaterial({ color: 0xfde68a, roughness: 0.3, metalness: 0.4, emissive: 0xa16207, emissiveIntensity: 0.3 });
+        for (let i = 0; i < 5; i++) {
+          const seg = new THREE.Mesh(new THREE.SphereGeometry(0.55 - i * 0.06, 10, 8), segMat);
+          seg.position.set(0, 0.35, 1.2 - i * 0.75);
+          group.add(seg);
+          const line = new THREE.Mesh(new THREE.TorusGeometry(0.52 - i * 0.06, 0.03, 5, 12), lineMat);
+          line.position.set(0, 0.35, 1.2 - i * 0.75);
+          group.add(line);
+        }
+        break;
+      }
+
     default:
       return null;
   }

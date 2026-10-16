@@ -1882,6 +1882,285 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'long_grazer': {
+        // The plains' second scale (slice 11): a sauropod-plan
+        // grazer drawn HUGE — barrel body, a neck that takes
+        // its time arriving, a tail that takes longer leaving.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0xa3a380, roughness: 0.95 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.85, 1.6, 8, 14), hideMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 1.7;
+        body.castShadow = true;
+        group.add(body);
+        const neck = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 1.3, 6, 10), hideMat);
+        neck.position.set(0, 2.45, 1.35);
+        neck.rotation.x = 0.7;
+        group.add(neck);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 10, 8), hideMat);
+        head.scale.set(0.85, 0.8, 1.25);
+        head.position.set(0, 3.05, 1.95);
+        group.add(head);
+        const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.14, 1.5, 6, 8), hideMat);
+        tail.position.set(0, 1.55, -1.75);
+        tail.rotation.x = Math.PI / 2 - 0.35;
+        group.add(tail);
+        break;
+      }
+
+      case 'harvest_shrew': {
+        // A heartbeat with a hunting license (slice 11):
+        // nose-first — a small rust body behind a long snout.
+        const furMat = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.95 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), furMat);
+        body.scale.set(0.9, 0.8, 1.4);
+        body.position.y = 0.08;
+        group.add(body);
+        const snout = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.14, 6), furMat);
+        snout.rotation.x = Math.PI / 2;
+        snout.position.set(0, 0.07, 0.17);
+        group.add(snout);
+        const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.012, 0.12, 3, 5), furMat);
+        tail.rotation.x = Math.PI / 2 - 0.3;
+        tail.position.set(0, 0.06, -0.15);
+        group.add(tail);
+        break;
+      }
+
+      case 'plain_vole': {
+        // A philosopher (slice 11): a small round vole, ears
+        // up — sky-watched is a posture.
+        const furMat = new THREE.MeshStandardMaterial({ color: 0xa8a29e, roughness: 0.95 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), furMat);
+        body.scale.set(1, 0.85, 1.2);
+        body.position.y = 0.09;
+        group.add(body);
+        for (const side of [-1, 1]) {
+          const ear = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 5), furMat);
+          ear.scale.set(1, 1, 0.4);
+          ear.position.set(side * 0.05, 0.18, 0.03);
+          group.add(ear);
+        }
+        break;
+      }
+
+      case 'plainswift': {
+        // The sky's fastest citizen (slice 11): a crescent —
+        // long swept wings, a body that is mostly an excuse
+        // for them.
+        const featherMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.8 });
+        const wingMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.75, side: THREE.DoubleSide });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), featherMat);
+        body.scale.set(0.8, 0.8, 1.5);
+        group.add(body);
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.13), wingMat);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          wing.position.set(side * 0.3, 0.02, -0.03);
+          wing.rotation.x = -Math.PI / 2 + 0.06;
+          wing.rotation.y = side * -0.35; // swept back: the crescent
+          group.add(wing);
+        }
+        break;
+      }
+
+      case 'spore_wolf': {
+        // The pack announces in spores (slice 11): a wolf
+        // wearing its mulchwood coat — green spore-clumps in
+        // the fur that burst when it shakes.
+        const furMat = new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.95 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.26, 0.55, 8, 12), furMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.62;
+        body.castShadow = true;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.19, 10, 8), furMat);
+        head.scale.set(0.85, 0.85, 1.25);
+        head.position.set(0, 0.72, 0.6);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const ear = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.12, 4), furMat);
+          ear.position.set(side * 0.09, 0.92, 0.55);
+          group.add(ear);
+        }
+        const sporeMat = new THREE.MeshStandardMaterial({
+          color: 0x65a30d, roughness: 0.9, emissive: 0x365314, emissiveIntensity: 0.5,
+        });
+        for (let i = 0; i < 4; i++) {
+          const clump = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 5), sporeMat);
+          clump.position.set((i % 2 - 0.5) * 0.25, 0.85, 0.25 - Math.floor(i / 2) * 0.35);
+          group.add(clump);
+        }
+        const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.35, 4, 6), furMat);
+        tail.rotation.x = Math.PI / 2 - 0.5;
+        tail.position.set(0, 0.6, -0.6);
+        group.add(tail);
+        break;
+      }
+
+      case 'rib_spider': {
+        // The Graveyard's rigger (slice 11): a small body on
+        // eight long legs — drawn at rib height by its flight
+        // spec, so the legs reach for ribs that aren't drawn.
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0xe7e5e4, roughness: 0.6 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), bodyMat);
+        body.scale.set(1, 0.8, 1.3);
+        group.add(body);
+        const legMat = new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 0.7 });
+        for (let i = 0; i < 4; i++) {
+          for (const side of [-1, 1]) {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.008, 0.55, 4), legMat);
+            leg.position.set(side * 0.18, -0.18, 0.12 - i * 0.08);
+            leg.rotation.z = side * 0.8;
+            leg.rotation.x = (i - 1.5) * 0.2;
+            group.add(leg);
+          }
+        }
+        break;
+      }
+
+      case 'root_serpent': {
+        // The country, moving (slice 11): a chain of great
+        // segments, bark-dark — the Underroot's weather.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0x3f6212, roughness: 0.9 });
+        for (let i = 0; i < 6; i++) {
+          const seg = new THREE.Mesh(new THREE.SphereGeometry(0.34 - i * 0.03, 10, 8), hideMat);
+          seg.scale.set(1, 0.9, 1.15);
+          seg.position.set(0, 0.3, -i * 0.55);
+          if (i === 0) seg.castShadow = true;
+          group.add(seg);
+        }
+        const eyeMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xa16207, emissiveIntensity: 0.7 });
+        for (const side of [-1, 1]) {
+          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 5), eyeMat);
+          eye.position.set(side * 0.14, 0.42, 0.24);
+          group.add(eye);
+        }
+        break;
+      }
+
+      case 'second_tenant': {
+        // Wearing a dead tender (slice 11): a dome-and-ribcage
+        // frame on many legs — the husk above, the collective
+        // below.
+        const huskMat = new THREE.MeshStandardMaterial({ color: 0xd6d3a8, roughness: 0.7, metalness: 0.25 });
+        const dome = new THREE.Mesh(new THREE.SphereGeometry(0.4, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), huskMat);
+        dome.position.y = 0.75;
+        dome.castShadow = true;
+        group.add(dome);
+        for (let i = 0; i < 3; i++) {
+          const rib = new THREE.Mesh(new THREE.TorusGeometry(0.34 - i * 0.05, 0.03, 6, 12, Math.PI), huskMat);
+          rib.position.set(0, 0.72, 0.15 - i * 0.16);
+          rib.rotation.y = Math.PI / 2;
+          group.add(rib);
+        }
+        const legMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.6, metalness: 0.4 });
+        for (let i = 0; i < 4; i++) {
+          for (const side of [-1, 1]) {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.02, 0.75, 5), legMat);
+            leg.position.set(side * 0.3, 0.36, 0.3 - i * 0.2);
+            leg.rotation.z = side * 0.25;
+            group.add(leg);
+          }
+        }
+        break;
+      }
+
+      case 'sap_turtle': {
+        // An archive with a head (slice 11): a turtle whose
+        // shell is amber sap in layers — centuries, readable.
+        const shellMat = new THREE.MeshStandardMaterial({
+          color: 0xd97706, roughness: 0.35, transparent: true, opacity: 0.92,
+          emissive: 0x92400e, emissiveIntensity: 0.25,
+        });
+        const skinMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.9 });
+        const shell = new THREE.Mesh(new THREE.SphereGeometry(0.44, 14, 10), shellMat);
+        shell.scale.set(1, 0.55, 1.15);
+        shell.position.y = 0.3;
+        shell.castShadow = true;
+        group.add(shell);
+        const keepsake = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 5), new THREE.MeshStandardMaterial({ color: 0x365314, roughness: 0.8 }));
+        keepsake.position.set(0.12, 0.42, -0.1); // something green, held in the amber
+        group.add(keepsake);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 8), skinMat);
+        head.scale.set(0.9, 0.8, 1.1);
+        head.position.set(0, 0.22, 0.55);
+        group.add(head);
+        break;
+      }
+
+      case 'ashpicker': {
+        // The cleanup crew (slice 11): an ash-gray picker
+        // bird with ember eyes, working the cold burns.
+        const featherMat = new THREE.MeshStandardMaterial({ color: 0xa8a29e, roughness: 0.85 });
+        const wingMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.85, side: THREE.DoubleSide });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), featherMat);
+        body.scale.set(0.9, 0.9, 1.3);
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 6), featherMat);
+        head.position.set(0, 0.05, 0.14);
+        group.add(head);
+        const eyeMat = new THREE.MeshStandardMaterial({ color: 0xf97316, emissive: 0xea580c, emissiveIntensity: 0.9 });
+        for (const side of [-1, 1]) {
+          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.015, 6, 5), eyeMat);
+          eye.position.set(side * 0.04, 0.07, 0.19);
+          group.add(eye);
+          const wing = new THREE.Mesh(new THREE.PlaneGeometry(0.45, 0.2), wingMat);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          wing.position.set(side * 0.27, 0.03, -0.01);
+          wing.rotation.x = -Math.PI / 2 + 0.08;
+          group.add(wing);
+        }
+        break;
+      }
+
+      case 'grave_owl': {
+        // Whitened by its fields (slice 11): a broad silent
+        // owl in bone-dust white — the White Graveyard's own.
+        const featherMat = new THREE.MeshStandardMaterial({ color: 0xf5f5f4, roughness: 0.9 });
+        const wingMat = new THREE.MeshStandardMaterial({ color: 0xe7e5e4, roughness: 0.9, side: THREE.DoubleSide });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), featherMat);
+        body.scale.set(0.95, 1.05, 0.95);
+        group.add(body);
+        const face = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 }));
+        face.scale.set(1, 1, 0.55);
+        face.position.set(0, 0.05, 0.1);
+        group.add(face);
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.PlaneGeometry(0.66, 0.28), wingMat);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          wing.position.set(side * 0.38, 0.05, -0.02);
+          wing.rotation.x = -Math.PI / 2 + 0.08;
+          group.add(wing);
+        }
+        break;
+      }
+
+      case 'zot_hopper': {
+        // Briefly, brightly (slice 11): a many-legged hopper
+        // with a copper crest-fan it raises at the banner.
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.7, metalness: 0.3 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), bodyMat);
+        body.scale.set(0.9, 0.85, 1.3);
+        body.position.y = 0.16;
+        group.add(body);
+        const crestMat = new THREE.MeshStandardMaterial({
+          color: 0xd97706, roughness: 0.35, metalness: 0.7, side: THREE.DoubleSide,
+          emissive: 0x92400e, emissiveIntensity: 0.4,
+        });
+        const crest = new THREE.Mesh(new THREE.CircleGeometry(0.11, 8, 0, Math.PI), crestMat);
+        crest.position.set(0, 0.26, 0.02);
+        group.add(crest);
+        for (let i = 0; i < 3; i++) {
+          for (const side of [-1, 1]) {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.008, 0.22, 4), bodyMat);
+            leg.position.set(side * 0.1, 0.07, 0.08 - i * 0.08);
+            leg.rotation.z = side * 0.7;
+            group.add(leg);
+          }
+        }
+        break;
+      }
+
       default: {
         const body = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 12), materials.biolumAmber);
         body.position.y = 0.3;

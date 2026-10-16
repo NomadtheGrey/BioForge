@@ -99,7 +99,11 @@ export function useQuests({
     questViews,
     questProgress?.dismissedId ?? null,
   );
-  const showQuestHud = questProgress?.showHud ?? false;
+  // The tracker shows at first (Adam, via the HUD lane, 2026-10-16):
+  // a new player's quest tracker is visible until they turn it off
+  // in the quest log — the default lives here and in the adoption
+  // seed below, nowhere else.
+  const showQuestHud = questProgress?.showHud ?? true;
 
   // Quest-progress writes, with silent adoption for veterans: the
   // first time a pre-quest save touches the system, everything its
@@ -113,7 +117,7 @@ export function useQuests({
     setQuestProgress({
       completedIds: questViews.filter((v) => v.complete).map((v) => v.def.id),
       trackedId: null,
-      showHud: false,
+      showHud: true,
       ...patch,
     });
   };

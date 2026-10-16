@@ -463,6 +463,15 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   const DISSOLVE_DAMAGE_PER_SECOND = 8;
   const combatArmedRef = useRef(false);
 
+  // Provocation (slice 32, 2026-10-16 — Adam's oversize pin:
+  // "they can be chill until the player messes with them"):
+  // player-side harm stamps a wild creature's provokedTimer
+  // with this many seconds of retaliation; further harm
+  // refreshes it. Only species whose hunt spec is provokedOnly
+  // (the oversize tier) read the clock — ordinary hunters keep
+  // their proximity doctrine untouched.
+  const PROVOKED_SECONDS = 30;
+
   const addFlora = useCallback((flora: FloraEntity): void => {
     setFloraList((prev) => [...prev, flora]);
   }, []);
@@ -577,7 +586,9 @@ export function useWorldEntities(): UseWorldEntitiesResult {
     if (!combatArmedRef.current) return;
     setFaunaList((prev) =>
       prev.map((fn) =>
-        fn.id === faunaId && !fn.isTamed ? { ...fn, dissolveTimer: DISSOLVE_SECONDS } : fn
+        fn.id === faunaId && !fn.isTamed
+          ? { ...fn, dissolveTimer: DISSOLVE_SECONDS, provokedTimer: PROVOKED_SECONDS }
+          : fn
       )
     );
   }, []);
@@ -598,7 +609,12 @@ export function useWorldEntities(): UseWorldEntitiesResult {
     setFaunaList((prev) =>
       prev.map((fn) =>
         fn.id === faunaId && !fn.isTamed
-          ? { ...fn, health: fn.health - damage, flinchTimer: Math.max(fn.flinchTimer ?? 0, flinchSeconds) }
+          ? {
+              ...fn,
+              health: fn.health - damage,
+              flinchTimer: Math.max(fn.flinchTimer ?? 0, flinchSeconds),
+              provokedTimer: PROVOKED_SECONDS,
+            }
           : fn
       )
     );
@@ -770,6 +786,12 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // bites are gated off below and its movement target is
           // pinned to where it stands.
           let flinchTimer = Math.max(0, (fauna.flinchTimer ?? 0) - dt);
+          // Provocation clock (slice 32): runs down here; being
+          // dissolved is being messed with, so an active dissolve
+          // holds the clock at full — a provokedOnly creature
+          // flees while the dissolve runs (the flight block below
+          // overrides its hunt) and answers when it ends.
+          let provokedTimer = Math.max(0, (fauna.provokedTimer ?? 0) - dt);
           // A creature won over mid-dissolve is washed clean by
           // the bond — your solvent never harms your own, even
           // retroactively.
@@ -779,6 +801,9 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             dissolveTimer -= elapsed;
             dissolveDamage = DISSOLVE_DAMAGE_PER_SECOND * elapsed;
           }
+          // Being dissolved is being messed with (slice 32): an
+          // active dissolve holds the provocation clock at full.
+          if (dissolveDamage > 0) provokedTimer = PROVOKED_SECONDS;
 
           // --- Companion orders (tamed, with a command set) ---
           if (isTamed && command === 'follow') {
@@ -857,7 +882,11 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // it chases, and inside bite range it bites on its table
           // cooldown. Tamed hunters never hunt the player.
           const hunt = isTamed ? undefined : speciesDef(fauna.species).hunt;
-          const hunterAlert = !!hunt && distToPlayer <= hunt.aggroRange;
+          // Provoked-only hunts (slice 32 — the oversize tier):
+          // proximity never alerts them; the provocation clock
+          // does. An unprovoked giant is scenery with a pulse.
+          const provoked = !hunt?.provokedOnly || provokedTimer > 0;
+          const hunterAlert = !!hunt && provoked && distToPlayer <= hunt.aggroRange;
           biteTimer = Math.max(0, biteTimer - dt);
           if (hunterAlert && hunt) {
             if (attacksArmed) {
@@ -974,6 +1003,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             sampleTimer,
             dissolveTimer,
             flinchTimer,
+            provokedTimer,
             health: fauna.health - dissolveDamage,
             animTime: fauna.animTime + dt,
           };
@@ -1013,8 +1043,24 @@ export function useWorldEntities(): UseWorldEntitiesResult {
         return mappedFauna.flatMap((f) => {
           const dmg = (defenderDamage.get(f.id) ?? 0) + (shotDamage.get(f.id) ?? 0);
           const health = f.health - dmg;
-          if (health > 0) return [dmg ? { ...f, health } : f];
+          if (health > 0) {
+            // Harmed and standing (slice 32): the blow is
+            // remembered — a guardian's bite or a landed shot
+            // provokes exactly like a strike does.
+            return [dmg ? { ...f, health, provokedTimer: PROVOKED_SECONDS } : f];
+          }
           spawnDroppedItem(sampleItemId(f.species), 1, f.x, f.z);
+          // Kill loot (slice 32 — Adam's oversize pin: "if
+          // killed, they should provide good loot"): the
+          // species table's killLoot drops where the creature
+          // fell, beside the sample, fanned so a pile of giant
+          // spoils doesn't stack into a single tile.
+          const killLoot = speciesDef(f.species).killLoot;
+          if (killLoot) {
+            killLoot.forEach(([item, count], i) => {
+              spawnDroppedItem(item, count, f.x + ((i % 3) - 1) * 0.7, f.z + (Math.floor(i / 3) - 0.5) * 0.7);
+            });
+          }
           return [];
         });
       });

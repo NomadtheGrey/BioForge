@@ -482,6 +482,15 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   // otter last banked a cache. Per-otter, unhurried, unseen —
   // dividends are not announced.
   const otterCacheRef = useRef<Map<string, number>>(new Map());
+  // Boiler Crab vent-witness dwell (slice 47): seconds each
+  // crab has spent in a player's close company — its steam
+  // vents on a seven-second cycle (mesh-side), so seven
+  // seconds near one is a witnessed venting.
+  const crabDwellRef = useRef<Map<string, number>>(new Map());
+  // The last puff-hour seen (slice 47): Puffbells puff as the
+  // shared phase crosses each hour mark; the flora tick below
+  // compares hour indices to catch the turn.
+  const puffHourRef = useRef(-1);
   const prevPhaseRef = useRef(0.35);
   const lastPlayerPosRef = useRef<{ x: number; z: number } | null>(null);
 
@@ -797,10 +806,19 @@ export function useWorldEntities(): UseWorldEntitiesResult {
       onCritterExcrete?: (species: string) => void,
       onFaunaAttack?: (species: FaunaSpecies, damage: number) => void,
       attacksArmed?: boolean,
-      dayPhase?: number
+      dayPhase?: number,
+      onFieldWitness?: (noteId: string) => void
     ): void => {
       const simulateWorld = !multiplayerManager.isConnected || multiplayerManager.isHost;
       combatArmedRef.current = !!attacksArmed;
+      // Field Notes witness stamps (creature slice 47,
+      // 2026-10-16): App's sink is append-only and deduped, so
+      // the sim fires at the witnessed moment and keeps no
+      // ledger of its own — every stamp below is a condition,
+      // not a bookkeeping exercise.
+      const witness = (noteId: string): void => {
+        onFieldWitness?.(noteId);
+      };
       // The projectile ledger runs on this clock (weapons build,
       // 2026-10-16): shots resolve when their travel time elapses.
       simClockRef.current += dt;
@@ -828,6 +846,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
         for (const f of faunaRef.current) {
           if (f.species === 'hollow_hermit' && !f.isTamed && (hermitRegardRef.current.get(f.id) ?? 0) >= 90) {
             spawnDroppedItem('hollow_heart_spore', 1, f.x + 1.3, f.z + 0.6);
+            witness('note_hollow_hermit'); // the gift, seen left (slice 47)
           }
         }
         hermitRegardRef.current.clear();
@@ -870,6 +889,11 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             const ang = Math.random() * Math.PI * 2;
             const dist = 3 + Math.random() * 4;
             spawnDroppedItem(treasure[0], treasure[1], f.x + Math.cos(ang) * dist, f.z + Math.sin(ang) * dist);
+            // The bank, witnessed (slice 47): a cache appearing
+            // in the player's sight is the otter's named moment
+            // (pickup-side can't tell a cache's drops from any
+            // other — the seeing is the stamp).
+            if (Math.hypot(f.x - playerX, f.z - playerZ) < 30) witness('note_root_otter');
           } else {
             otterCacheRef.current.set(f.id, banked);
           }
@@ -918,6 +942,9 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             );
             if (pod) {
               claimedThisPass.push({ x: pod.worldX, z: pod.worldZ });
+              // The taking-up, witnessed (slice 47): a wisp
+              // settling over a hearth in the player's sight.
+              if (Math.hypot(playerX - pod.worldX, playerZ - pod.worldZ) < 30) witness('note_hearth_wisp');
               nextWisps.set(w.id, { anchorX: pod.worldX, anchorZ: pod.worldZ, pondRadius: 2.5, targetX: pod.worldX, targetZ: pod.worldZ });
               changed = true;
             }
@@ -1040,7 +1067,20 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // whose table entry names one (the dive cycle today).
           const diveSpec = speciesDef(fauna.species).dive;
           let phaseTimer = fauna.phaseTimer ?? 0;
-          if (diveSpec) phaseTimer = (phaseTimer + dt) % diveSpec.cycleSeconds;
+          if (diveSpec) {
+            const prevPhaseTimer = phaseTimer;
+            phaseTimer = (phaseTimer + dt) % diveSpec.cycleSeconds;
+            // The dive, completed (slice 47 witness): the cycle
+            // crossing from underwater time back into air is a
+            // finished dive, witnessed by anyone standing near.
+            if (
+              prevPhaseTimer < diveSpec.waterSeconds &&
+              phaseTimer >= diveSpec.waterSeconds &&
+              Math.hypot(fauna.x - playerX, fauna.z - playerZ) < 25
+            ) {
+              witness('note_plunge_duck');
+            }
+          }
           // Hearth Dog courtship clocks (slice 39): an arrived,
           // undecided dog counts down its thirty days of
           // loaded-zone time, and digests between offerings.
@@ -1166,6 +1206,42 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           const provoked = !hunt?.provokedOnly || provokedTimer > 0;
           const hunterAlert = !!hunt && provoked && distToPlayer <= hunt.aggroRange;
           biteTimer = Math.max(0, biteTimer - dt);
+          // FIELD NOTES WITNESS LEDGER (slice 47): the moments
+          // this pass can see, stamped as they happen (the sink
+          // dedups; the sim keeps no ledger of its own).
+          {
+            // The bear's tenancy: the taming bargain lives in
+            // another hook, but a standing tamed bear at the
+            // player's side is the same fact, a breath later.
+            if (fauna.species === 'rootfall_bear' && isTamed && distToPlayer < 20) witness('note_rootfall_bear');
+            // Drift Krill, risen: at night the mesh lifts them
+            // to the surface on the swim table's nightRise — to
+            // be near one in the dark is to see the rise.
+            if (fauna.species === 'drift_krill' && isNightNow && distToPlayer < 16) witness('note_drift_krill');
+            // The Boiler Crab's venting: the steam is mesh-side
+            // on a seven-second cycle, so seven seconds in its
+            // close company is a guaranteed witnessed vent.
+            if (fauna.species === 'boiler_crab' && distToPlayer < 11) {
+              const dwell = (crabDwellRef.current.get(fauna.id) ?? 0) + dt;
+              if (dwell >= 7) {
+                witness('note_boiler_crab');
+                crabDwellRef.current.set(fauna.id, -3600);
+              } else {
+                crabDwellRef.current.set(fauna.id, dwell);
+              }
+            }
+            // A great one, provoked: the provocation clock's
+            // first tick on a kill-loot giant. (The bear shares
+            // the provoked-only flag but not the tier — it
+            // carries no killLoot, and has its own note.)
+            if (hunt?.provokedOnly && speciesDef(fauna.species).killLoot && provokedTimer > 0 && (fauna.provokedTimer ?? 0) <= 0) {
+              witness('note_oversize_tier');
+            }
+            // The pond ambush, sprung: for the two patient
+            // hunters, the alert commit IS the ambush.
+            if (hunterAlert && fauna.species === 'fen_lurker') witness('note_fen_lurker');
+            if (hunterAlert && fauna.species === 'pool_snapper') witness('note_pool_snapper');
+          }
           if (hunterAlert && hunt) {
             if (attacksArmed) {
               state = 'attacking';
@@ -1181,7 +1257,157 @@ export function useWorldEntities(): UseWorldEntitiesResult {
               targetZ = z;
             }
           }
-          if (!isTamed && !hunterAlert) {
+          // -------------------------------------------------------
+          // THE VALLEY STAFF (creature slice 47, 2026-10-16 —
+          // Adam: "wire the creatures up"): the Living family's
+          // social engine, first offices. A valley's FACE is read
+          // from its staff, because the deal already wrote it
+          // there: a Gladhand is dealt only into Welcoming
+          // country, a Taster only into Hungry — their presence
+          // in this zone's company IS the variant, at animal
+          // scale, and the Threshold Hound reads the same page.
+          //
+          // The offices are pure courtesy: no force is ever
+          // applied to the player. The OUT escort is a guide
+          // walking a route at your heel — that you could refuse
+          // it is the design. The courtesy is the warning; the
+          // walking is the sentence, carried out politely.
+          // -------------------------------------------------------
+          let staffEngaged = false;
+          let socialState = fauna.socialState;
+          let socialTimer = fauna.socialTimer ?? 0;
+          let socialTravel = fauna.socialTravel ?? 0;
+          const isStaffMember =
+            !isTamed &&
+            (fauna.species === 'gladhand' || fauna.species === 'threshold_hound' || fauna.species === 'taster');
+          if (isStaffMember && distToPlayer <= 30) {
+            if (fauna.species === 'taster') {
+              // THE TASTING: the taster approaches to tasting
+              // distance and HOLDS while the valley decides;
+              // then the verdict — turn away (filed kindly) or
+              // keep the visitor's pace at tasting distance for
+              // a hundred paces (the whole sentence). The
+              // verdict is hash-seeded per taster: the same
+              // valley reads the same way all visit.
+              if (!socialState) {
+                socialState = 'tasting';
+                socialTimer = 0;
+                socialTravel = 0;
+              }
+              if (socialState === 'tasting') {
+                staffEngaged = true;
+                state = 'following';
+                const awayA = Math.atan2(x - playerX, z - playerZ);
+                targetX = playerX + Math.sin(awayA) * 3.5;
+                targetZ = playerZ + Math.cos(awayA) * 3.5;
+                if (distToPlayer <= 5.5) socialTimer += dt;
+                const deliberation = 18 + ((fauna.id.charCodeAt(fauna.id.length - 1) * 29) % 14);
+                if (socialTimer >= deliberation) {
+                  witness('note_taster'); // the verdict, filed in the player's sight
+                  const idHash = fauna.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+                  socialState = idHash % 2 === 0 ? 'withdrawing' : 'shadowing';
+                  socialTimer = 0;
+                  socialTravel = 0;
+                }
+              } else if (socialState === 'shadowing') {
+                staffEngaged = true;
+                state = 'following';
+                const awayA = Math.atan2(x - playerX, z - playerZ);
+                targetX = playerX + Math.sin(awayA) * 4.5;
+                targetZ = playerZ + Math.cos(awayA) * 4.5;
+                socialTravel += playerSpeed * dt;
+                if (socialTravel >= 100) {
+                  socialState = 'withdrawing';
+                  socialTimer = 0;
+                }
+              } else if (socialState === 'withdrawing') {
+                staffEngaged = true;
+                state = 'wandering';
+                const awayA = Math.atan2(x - playerX, z - playerZ);
+                targetX = x + Math.sin(awayA) * 10;
+                targetZ = z + Math.cos(awayA) * 10;
+                socialTimer += dt;
+                if (socialTimer > 4 || distToPlayer > 24) {
+                  socialState = undefined;
+                  socialTimer = 0;
+                }
+              }
+            } else {
+              // THE ESCORTS: the Gladhand walks you IN (it
+              // exists only where the valley is glad); the
+              // Threshold Hound walks you IN or OUT by the
+              // staff it finds itself among. A guide walks the
+              // route AHEAD of its visitor — showing the paths
+              // by taking them — and comes back to heel when it
+              // falls behind, because an escort that loses its
+              // visitor is just a dog on a walk.
+              const gladStaff = faunaRef.current.some((f) => f.species === 'gladhand');
+              const tasterStaff = faunaRef.current.some((f) => f.species === 'taster');
+              const escortOut = fauna.species === 'threshold_hound' && tasterStaff && !gladStaff;
+              // The heart point of this valley, local frame:
+              // the Valley Heart / Heartbloom flora if the
+              // country grew one, else a heart tile, else the
+              // zone's middle.
+              const heartFlora = floraRef.current.find((fl) => fl.species === 'valley_heart' || fl.species === 'heartbloom');
+              const heartTile = structuresRef.current.find((st) => st.type === 'heart_tile');
+              let destX = heartFlora ? heartFlora.x : heartTile ? heartTile.worldX : 50;
+              let destZ = heartFlora ? heartFlora.z : heartTile ? heartTile.worldZ : 50;
+              if (escortOut) {
+                // OUT's destination: the valley's edge nearest
+                // the visitor — the threshold they are being
+                // walked to, with perfect courtesy.
+                const edges = [
+                  { d: playerZ, x: playerX, z: 3 },
+                  { d: 100 - playerZ, x: playerX, z: 97 },
+                  { d: playerX, x: 3, z: playerZ },
+                  { d: 100 - playerX, x: 97, z: playerZ },
+                ].sort((a, b) => a.d - b.d);
+                destX = edges[0].x;
+                destZ = edges[0].z;
+              }
+              if (!socialState) {
+                socialState = escortOut ? 'escort-out' : 'escort-in';
+                socialTimer = 0;
+              }
+              socialTimer += dt;
+              const destDist = Math.hypot(playerX - destX, playerZ - destZ);
+              if (destDist <= (escortOut ? 5 : 6.5) && socialTimer >= 5) {
+                // The office completes: delivered in, or walked
+                // to the threshold out. The staffer settles; the
+                // escort, performed in full, is witnessed.
+                witness(fauna.species === 'gladhand' ? 'note_gladhand' : 'note_threshold_hound');
+                socialState = undefined;
+                socialTimer = 0;
+                staffEngaged = true;
+                state = 'wandering';
+                targetX = x;
+                targetZ = z;
+              } else {
+                staffEngaged = true;
+                state = 'following';
+                // An escort sustained is also witnessed — a
+                // visitor who dawdles still saw the office.
+                if (socialTimer >= 3) witness(fauna.species === 'gladhand' ? 'note_gladhand' : 'note_threshold_hound');
+                if (distToPlayer > 16) {
+                  targetX = playerX;
+                  targetZ = playerZ;
+                } else {
+                  const dirA = Math.atan2(destX - playerX, destZ - playerZ);
+                  const lead = Math.min(7, Math.max(0, destDist - 2));
+                  targetX = playerX + Math.sin(dirA) * lead;
+                  targetZ = playerZ + Math.cos(dirA) * lead;
+                }
+              }
+            }
+          } else if (isStaffMember && socialState) {
+            // The visitor walked away: the office lapses, and
+            // the valley will offer it again to whoever returns.
+            socialState = undefined;
+            socialTimer = 0;
+            socialTravel = 0;
+          }
+
+          if (!isTamed && !hunterAlert && !staffEngaged) {
             state = 'wandering';
             // Restless wandering: standing at the target re-rolls fast
             // (short pauses, long roams); en route the re-roll stays rare
@@ -1199,6 +1425,8 @@ export function useWorldEntities(): UseWorldEntitiesResult {
               if (fauna.species === 'blink_hare' && Math.random() < 0.65) {
                 x = targetX;
                 z = targetZ;
+                // The vanish, witnessed (slice 47).
+                if (Math.hypot(playerX - x, playerZ - z) < 30) witness('note_blink_hare');
               }
               // THE CANDLE ROAD (slice 42, 2026-10-16): the Moon
               // Moth is the Night Candle's pollinator — the
@@ -1221,6 +1449,10 @@ export function useWorldEntities(): UseWorldEntitiesResult {
                 if (candle) {
                   targetX = candle.x + (Math.random() - 0.5) * 4;
                   targetZ = candle.z + (Math.random() - 0.5) * 4;
+                  // The course change, witnessed (slice 47): a
+                  // moth turning for a candle, in the dark, near
+                  // enough to see the road being flown.
+                  if (distToPlayer < 30) witness('note_moon_moth');
                 }
               }
             }
@@ -1272,7 +1504,14 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           if (distToTarget > 0.4) {
             // A chasing hunter spends its burst (slice 5): the
             // ambusher's whole speed budget, at once, as designed.
-            const moveSpeed = state === 'attacking' ? fauna.speed * 1.35 : isTamed ? fauna.speed * 1.2 : fauna.speed;
+            const moveSpeed =
+              state === 'attacking'
+                ? fauna.speed * 1.35
+                : isTamed
+                  ? fauna.speed * 1.2
+                  : staffEngaged && distToPlayer > 10
+                    ? fauna.speed * 1.7 // staff hurry back to heel — the hound does not tire, the usher does not lose you
+                    : fauna.speed;
             // The Hollow Hermit's schedule (slice 42): by day it
             // is scenery — a husk that does not walk while the
             // light is up, exactly as designed. It walks only in
@@ -1322,6 +1561,12 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             byproductTimer = 0;
             spawnDroppedItem(shed.item, 1, x, z);
             onCritterExcrete?.(fauna.species);
+            // The compost, witnessed (slice 47): the beetle's
+            // finished work appearing at the burrow mouth in
+            // the player's sight (pickup-side, fertilizer is
+            // fertilizer from anywhere — the making is the
+            // moment this note names).
+            if (fauna.species === 'mulch_beetle' && distToPlayer < 25) witness('note_mulch_beetle');
           }
 
           const nextFauna = {
@@ -1342,6 +1587,9 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             hearthDecideTimer,
             hearthFedTimer,
             hearthAgeDays,
+            socialState,
+            socialTimer,
+            socialTravel,
             health: fauna.health - dissolveDamage,
             animTime: fauna.animTime + dt,
           };
@@ -1478,6 +1726,21 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           )
         )
         .map((pod) => ({ x: pod.worldX, z: pod.worldZ }));
+      // The Puffbell's hour, witnessed (slice 47): the bells
+      // puff as the shared phase crosses each hour mark (the
+      // mesh swells and puffs on that same clock); when the
+      // hour turns with a ripe bell in the player's sight, the
+      // synchronization has been seen to happen.
+      {
+        const hourIdx = Math.floor(phaseNow * 24);
+        if (hourIdx !== puffHourRef.current) {
+          puffHourRef.current = hourIdx;
+          const bell = floraRef.current.find(
+            (fl) => fl.species === 'puffbell' && fl.growthStage >= 4 && Math.hypot(fl.x - playerX, fl.z - playerZ) < 22
+          );
+          if (bell) witness('note_puffbell');
+        }
+      }
       setFloraList((prevFlora) =>
         prevFlora.map((flora) => {
           // ---------------------------------------------------------------
@@ -1500,6 +1763,8 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // ---------------------------------------------------------------
           if (flora.species === 'tumble_sage') {
             if ((flora.rollLeft ?? 0) > 0) {
+              // The rolling, witnessed (slice 47).
+              if (Math.hypot(flora.x - playerX, flora.z - playerZ) < 22) witness('note_tumble_sage');
               const step = 3.5 * dt;
               const nx = Math.min(96, Math.max(4, flora.x + (flora.rollVx ?? 0) * dt));
               const nz = Math.min(96, Math.max(4, flora.z + (flora.rollVz ?? 0) * dt));
@@ -1577,6 +1842,19 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             newTimer = Math.max(newTimer, FLORA_MATURE_SECONDS * 0.2 + 0.01);
           }
           const isNowReady = newTimer === 0;
+          // The fruiting, witnessed (slice 47): a Hearth Cap
+          // crossing into readiness did so at a certified
+          // hearth — the gate above guarantees it — and if the
+          // player is standing in that hearth's light, the
+          // certification has been seen to bear fruit.
+          if (
+            isNowReady &&
+            !flora.harvestReady &&
+            flora.species === 'hearth_cap' &&
+            Math.hypot(flora.x - playerX, flora.z - playerZ) < 25
+          ) {
+            witness('note_hearth_cap');
+          }
           // Stage is always read against the BASE mature time, so the
           // readout never jumps when a boost starts or wears off.
           const newStage = isNowReady ? 5 : Math.min(4, Math.floor((1 - newTimer / FLORA_MATURE_SECONDS) * 5));

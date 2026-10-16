@@ -92,6 +92,27 @@ export const FIELD_NOTES: FieldNote[] = [
 
   // -----------------------------------------------------------------
   // The half-hidden — findable, but only if you know to look.
+  {
+    id: 'note_gladhand',
+    species: 'gladhand',
+    kind: 'fauna',
+    clue: 'In a glad valley, something many-handed meets you at the edge and takes your gauntlet gently, to walk you the pleasant way in. Where no usher waits at a valley\'s edge, ask what the valley is instead.',
+    witness: 'Walked in by the usher, the pleasant way.',
+  },
+  {
+    id: 'note_threshold_hound',
+    species: 'threshold_hound',
+    kind: 'fauna',
+    clue: 'At a valley\'s edge a long hound falls in at your heel. Where the valley is glad, it walks you in. Where the valley is hungry, it walks you out — unhurried, tireless, and the courtesy is the warning.',
+    witness: 'Escorted by the hound, the valley\'s way.',
+  },
+  {
+    id: 'note_taster',
+    species: 'taster',
+    kind: 'fauna',
+    clue: 'A low taster on many legs samples the air of guests for a hungry valley, and where it lingers, the valley is deciding. If it turns away, you were filed kindly. If it keeps your pace at tasting distance, be somewhere else.',
+    witness: 'Stood for the tasting, and read the verdict.',
+  },
   // -----------------------------------------------------------------
   {
     id: 'note_root_otter',

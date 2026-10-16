@@ -1183,4 +1183,280 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
       health: 520,
     },
   },
+
+  // #13 — the Mirror Marsh's gel flagship: a clear bell whose
+  // top is a still mirror. Timeless, trance-calm, untameable —
+  // the marsh looking at itself. POND (pond build, 2026-10-16):
+  // it deals only into a Mirror Marsh pond, drifting just
+  // under the film.
+  mirror_jelly: {
+    id: 'mirror_jelly',
+    name: 'Mirror Jelly',
+    profile: 'drifter',
+    tameChance: null,
+    bait: null,
+    petName: 'Mirror Jelly',
+    byproduct: null,
+    swim: { depth: 0.15 },
+    bonusSpawn: {
+      biomes: ['wetland'],
+      variant: 'mirror_marsh',
+      pond: true,
+      count: 2,
+      minRadius: 0,
+      spacing: 6,
+      speed: 0.5,
+      speedJitter: 0.1,
+      health: 20,
+    },
+  },
+
+  // #41 — Wetland's surface walker: long-legged, mirror-footed,
+  // skating the film the Lake Glider's kinship promised.
+  // Presence only — nothing to take, nothing to tame.
+  pond_skater: {
+    id: 'pond_skater',
+    name: 'Pond Skater',
+    profile: 'insect',
+    tameChance: null,
+    bait: null,
+    petName: 'Pond Skater',
+    byproduct: null,
+    swim: { depth: 0 },
+    bonusSpawn: {
+      biomes: ['wetland'],
+      pond: true,
+      count: 3,
+      minRadius: 0,
+      spacing: 4,
+      speed: 2.2,
+      speedJitter: 0.15,
+      health: 10,
+    },
+  },
+
+  // #49 — the Brine Shallows' gel (Wetland x Saltglass margin):
+  // salt-crusted at the rim, clear at the heart. Scooping one
+  // gets you the shallows, briefly — the codex says put the
+  // country back. No drop, by design.
+  brine_jelly: {
+    id: 'brine_jelly',
+    name: 'Brine Jelly',
+    profile: 'drifter',
+    tameChance: null,
+    bait: null,
+    petName: 'Brine Jelly',
+    byproduct: null,
+    swim: { depth: 0.15 },
+    bonusSpawn: {
+      biomes: ['wetland', 'saltglass'],
+      hybrid: ['wetland', 'saltglass'],
+      pond: true,
+      count: 2,
+      minRadius: 0,
+      spacing: 6,
+      speed: 0.5,
+      speedJitter: 0.1,
+      health: 22,
+    },
+  },
+
+  // #65 — the sump pools' fish (Wetland x Fungal margin):
+  // stagnant-water patience, tameable at the patient rate.
+  sumpfish: {
+    id: 'sumpfish',
+    name: 'Sumpfish',
+    profile: 'amphibian',
+    tameChance: 0.25,
+    bait: 'nectar',
+    petName: 'Sumpfish',
+    byproduct: null,
+    swim: { depth: 0.9 },
+    bonusSpawn: {
+      biomes: ['wetland', 'fungal'],
+      hybrid: ['wetland', 'fungal'],
+      pond: true,
+      count: 3,
+      minRadius: 0,
+      spacing: 4,
+      speed: 1.1,
+      speedJitter: 0.1,
+      health: 18,
+    },
+  },
+
+  // #112 — schooling ribbons in every clear pond of the
+  // temperate wet country. A caught handful is food and bait,
+  // unlisted — the school remains, so no item and no tame:
+  // you do not adopt a river's small change.
+  brook_minnow: {
+    id: 'brook_minnow',
+    name: 'Brook Minnow',
+    profile: 'colony',
+    tameChance: null,
+    bait: null,
+    petName: 'Brook Minnow',
+    byproduct: null,
+    swim: { depth: 0.4 },
+    bonusSpawn: {
+      biomes: ['wetland', 'meadow', 'rootwood'],
+      pond: true,
+      count: 5,
+      minRadius: 0,
+      spacing: 2.5,
+      speed: 1.8,
+      speedJitter: 0.2,
+      health: 6,
+    },
+  },
+
+  // #133 — Frost's under-ice ambusher: it hunts the band
+  // beneath the ice it cannot always break. A HUNTER (0%):
+  // warnings as theater on Peaceful, teeth on Normal up.
+  ice_maw: {
+    id: 'ice_maw',
+    name: 'Ice Maw',
+    profile: 'predator',
+    tameChance: null,
+    bait: null,
+    petName: 'Ice Maw',
+    byproduct: null,
+    hunt: { aggroRange: 7, damage: 14, biteRange: 1.8, biteCooldownSeconds: 1.5 },
+    swim: { depth: 0.8 },
+    bonusSpawn: {
+      biomes: ['frost'],
+      pond: true,
+      count: 1,
+      minRadius: 0,
+      spacing: 10,
+      speed: 1.6,
+      speedJitter: 0.1,
+      health: 60,
+    },
+  },
+
+  // #152 — the collective citizen of the great pond country:
+  // the cloud is the creature. Untameable, unharvestable at
+  // scale. Its night rise to the surface (the lakes' second
+  // clock) is flavor in v1 — it rides mid-water.
+  drift_krill: {
+    id: 'drift_krill',
+    name: 'Drift Krill',
+    profile: 'colony',
+    tameChance: null,
+    bait: null,
+    petName: 'Drift Krill',
+    byproduct: null,
+    swim: { depth: 0.5 },
+    bonusSpawn: {
+      biomes: ['wetland', 'frost'],
+      pond: true,
+      count: 5,
+      minRadius: 0,
+      spacing: 3,
+      speed: 0.9,
+      speedJitter: 0.15,
+      health: 8,
+    },
+  },
+
+  // #172 — the deep ponds' placid bottom-grazer of the wet
+  // temperate country: huge, unhurried, uninterested. No tame
+  // (its entry is explicit) and nothing drops but the sample.
+  deep_carp: {
+    id: 'deep_carp',
+    name: 'Deep Carp',
+    profile: 'grazer',
+    tameChance: null,
+    bait: null,
+    petName: 'Deep Carp',
+    byproduct: null,
+    swim: { depth: 1.2 },
+    bonusSpawn: {
+      biomes: ['wetland', 'rootwood', 'living'],
+      pond: true,
+      count: 2,
+      minRadius: 0,
+      spacing: 6,
+      speed: 0.7,
+      speedJitter: 0.1,
+      health: 55,
+    },
+  },
+
+  // #173 — the maw's understudy in small: eyeless, hunting by
+  // vibration in water that has never had light. A modest
+  // HUNTER of the deep band (0%, by its entry).
+  pale_eel: {
+    id: 'pale_eel',
+    name: 'Pale Eel',
+    profile: 'serpent',
+    tameChance: null,
+    bait: null,
+    petName: 'Pale Eel',
+    byproduct: null,
+    hunt: { aggroRange: 6, damage: 9, biteRange: 1.5, biteCooldownSeconds: 1.6 },
+    swim: { depth: 1.1 },
+    bonusSpawn: {
+      biomes: ['frost', 'wetland'],
+      pond: true,
+      count: 2,
+      minRadius: 0,
+      spacing: 6,
+      speed: 1.4,
+      speedJitter: 0.1,
+      health: 30,
+    },
+  },
+
+  // #175 — the wet country's diving duck: flies, swims, and
+  // plunges whole-body after pond fish. It carries BOTH specs;
+  // the draw takes flight in v1 and the dive is deferred —
+  // the swim spec records the intent.
+  plunge_duck: {
+    id: 'plunge_duck',
+    name: 'Plunge Duck',
+    profile: 'bird',
+    tameChance: 0.55,
+    bait: 'nectar',
+    petName: 'Plunge Duck',
+    byproduct: null,
+    flight: { altitude: 2.0, bobHeight: 0.25, bobRate: 1.9, flapRate: 7 },
+    swim: { depth: 0 },
+    bonusSpawn: {
+      biomes: ['wetland', 'meadow'],
+      pond: true,
+      count: 2,
+      minRadius: 0,
+      spacing: 6,
+      speed: 2.4,
+      speedJitter: 0.15,
+      health: 16,
+    },
+  },
+
+  // #213 — the Mirror Marsh's surface-locked, inverted fish:
+  // it swims the film from beneath, studying the sky's copy.
+  // The mirror country's citizens run contemplative: 20%.
+  mirror_fish: {
+    id: 'mirror_fish',
+    name: 'Mirror Fish',
+    profile: 'amphibian',
+    tameChance: 0.2,
+    bait: 'nectar',
+    petName: 'Mirror Fish',
+    byproduct: null,
+    swim: { depth: 0.05 },
+    bonusSpawn: {
+      biomes: ['wetland'],
+      variant: 'mirror_marsh',
+      pond: true,
+      count: 3,
+      minRadius: 0,
+      spacing: 4,
+      speed: 1.0,
+      speedJitter: 0.1,
+      health: 12,
+    },
+  },
 };

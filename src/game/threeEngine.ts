@@ -499,6 +499,10 @@ export class BioForgeThreeEngine {
     nest_cap: { color: 0xa16207, intensity: 0.3, distance: 2, y: 0.3 },
     frost_mold: { color: 0xbae6fd, intensity: 0.3, distance: 2, y: 0.2 },
     steam_cap: { color: 0xf1f5f9, intensity: 0.35, distance: 2, y: 0.3 },
+    // Landscape flora trio (creature slice 31, 2026-10-16).
+    valley_heart: { color: 0x84cc16, intensity: 0.5, distance: 3, y: 0.6 },
+    mother_grove: { color: 0xa16207, intensity: 0.4, distance: 3, y: 0.4 },
+    first_tree: { color: 0x365314, intensity: 0.4, distance: 3, y: 0.6 },
   };
   private structureLightBase: Record<Exclude<StructureType, 'lantern_fern_post'>, LightBase> = {
     root_tile_floor: { color: 0x4ade80, intensity: 0.45, distance: 2.2, y: 0.5 },

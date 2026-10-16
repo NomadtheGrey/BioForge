@@ -18,6 +18,7 @@ import {
   ItemId,
 } from '../types/game';
 import { FirstPersonViewmodel } from './viewmodel';
+import { landformHeightAt } from './terrain';
 import { BIOME_TINTS } from './biomes';
 import type { BiomeId } from './biomes';
 import { cavernCellToWorld, type CavernResult } from './cavern';
@@ -847,16 +848,58 @@ export class BioForgeThreeEngine {
    * of assuming y=0: at y=0 a 12 cm floor slab is swallowed whole
    * wherever a rise exceeds it (Adam's invisible-floors bug, 2026-10-14).
    */
+  // The landform context (P5 terrain move 1, Adam, 2026-10-16):
+  // which world, which zone, and whether this world predates the
+  // shaped land. Set by App (setTerrainContext) whenever a world
+  // opens or the zone changes. Legacy worlds — every save from
+  // before the landform epoch — keep the original ripple below,
+  // forever: their ground is part of their history.
+  private terrainSeed: string | null = null;
+  private terrainZoneX = 0;
+  private terrainZoneZ = 0;
+  private terrainLegacy = true;
+
+  public setTerrainContext(seed: string | null, zx: number, zz: number, legacy: boolean): void {
+    if (this.terrainSeed === seed && this.terrainZoneX === zx && this.terrainZoneZ === zz && this.terrainLegacy === legacy) return;
+    this.terrainSeed = seed;
+    this.terrainZoneX = zx;
+    this.terrainZoneZ = zz;
+    this.terrainLegacy = legacy;
+    // The ground mesh was displaced once at build; a new context
+    // means new country under it — re-displace in place.
+    this.displaceTerrain();
+  }
+
+  /** Re-run the terrain mesh displacement against the current
+   *  height function (zone/world changes). ~6.5k vertices: cheap
+   *  enough to do on every zone crossing. */
+  private displaceTerrain(): void {
+    if (!this.terrainGeometry) return;
+    const positions = this.terrainGeometry.attributes.position;
+    for (let i = 0; i < positions.count; i++) {
+      positions.setY(i, this.terrainHeightAt(positions.getX(i), positions.getZ(i)));
+    }
+    positions.needsUpdate = true;
+    this.terrainGeometry.computeVertexNormals();
+  }
+
   private terrainHeightAt(x: number, z: number): number {
     // Inside an instanced cavern the floor is FLAT: the surface's
     // rolling field belongs to a world that isn't rendered here, and
     // sampling it would bob the camera over invisible hills.
     // Ruin interiors are flat-floored instances for the same reason.
     if (this.cavernMode || this.ruinMode) return 0;
-    return (
-      Math.sin(x * 0.08) * Math.cos(z * 0.08) * 0.45 +
-      Math.sin(x * 0.18 + z * 0.12) * 0.25
-    );
+    // Legacy worlds (and the pre-world menu backdrop) keep the
+    // original ripple, byte for byte.
+    if (this.terrainLegacy || this.terrainSeed === null) {
+      return (
+        Math.sin(x * 0.08) * Math.cos(z * 0.08) * 0.45 +
+        Math.sin(x * 0.18 + z * 0.12) * 0.25
+      );
+    }
+    // The shaped land: a pure function of the WORLD point (zone
+    // origin + local), so zone borders agree from both sides.
+    return landformHeightAt(this.terrainSeed, this.terrainZoneX * 100 + x, this.terrainZoneZ * 100 + z);
   }
 
   // The current build datums (see computeStructureDatums): recomputed
@@ -911,17 +954,14 @@ export class BioForgeThreeEngine {
     const geometry = new THREE.PlaneGeometry(size, size, segments, segments);
     geometry.rotateX(-Math.PI / 2);
 
-    const positions = geometry.attributes.position;
-
-    for (let i = 0; i < positions.count; i++) {
-      positions.setY(i, this.terrainHeightAt(positions.getX(i), positions.getZ(i)));
-    }
+    // Displacement lives in displaceTerrain so a zone/world change
+    // can re-shape the same mesh in place (P5 terrain, 2026-10-16).
+    this.terrainGeometry = geometry;
+    this.displaceTerrain();
 
     // Colors live in paintTerrainColors so the ground can be repainted
     // when a zone (and its biome) arrives — see setZoneBiome.
-    this.terrainGeometry = geometry;
     this.paintTerrainColors();
-    geometry.computeVertexNormals();
 
     const terrainMaterial = new THREE.MeshStandardMaterial({
       vertexColors: true,

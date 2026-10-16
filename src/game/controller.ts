@@ -60,7 +60,7 @@ export class FirstPersonMovementController {
     let onFloor = false;
     for (let i = 0; i < structures.length; i++) {
       const s = structures[i];
-      if (s.type !== 'root_tile_floor') {
+      if (s.type !== 'root_tile_floor' && s.type !== 'heart_tile') {
         continue;
       }
       if ((s.level ?? 0) !== playerLevel) {

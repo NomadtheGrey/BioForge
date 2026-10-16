@@ -358,7 +358,7 @@ export function useGameLoop(deps: GameLoopDeps): void {
           let landing = 0;
           let supported = false;
           for (const s of structuresListRef.current) {
-            if (s.type !== 'root_tile_floor' || s.gridX !== cellX || s.gridZ !== cellZ) continue;
+            if ((s.type !== 'root_tile_floor' && s.type !== 'heart_tile') || s.gridX !== cellX || s.gridZ !== cellZ) continue;
             const l = s.level ?? 0;
             if (l === playerLevelRef.current) supported = true;
             if (l < playerLevelRef.current && l > landing) landing = l;

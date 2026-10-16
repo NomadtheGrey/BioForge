@@ -598,6 +598,18 @@ export function useToolInteractions({
   // 4. Solvent Sprayer (100% Recycler)
   const handleSolventSprayer = useCallback(
     (structure: StructureEntity): void => {
+      // The Heart Tile does not dissolve (Adam, 2026-10-16): it is
+      // the land's own respawn point, grown by the world, not by
+      // hand — the enzyme washes over it and it stays.
+      if (structure.type === 'heart_tile') {
+        postNotification(
+          'The Land Keeps Its Heart',
+          'The heart tile does not dissolve. It is where the land wakes you.',
+          'system',
+          '#fb7185',
+        );
+        return;
+      }
       soundEngine.playSolventSpray();
       triggerSolventFx(structure.worldX, structure.worldZ);
 

@@ -2190,6 +2190,255 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'rainback': {
+        // A puddle, with opinions (slice 8): a flat Gel dome
+        // spread thin on the wet ground, one opinionated bulge
+        // for a head end. Translucent — it IS rain, briefly.
+        const gelMat = new THREE.MeshStandardMaterial({
+          color: 0x2dd4bf, roughness: 0.15, transparent: true, opacity: 0.75,
+          emissive: 0x0f766e, emissiveIntensity: 0.35,
+        });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 8), gelMat);
+        body.scale.set(1.15, 0.35, 1.3);
+        body.position.y = 0.1;
+        group.add(body);
+        const bulge = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 6), gelMat);
+        bulge.scale.set(1, 0.7, 1);
+        bulge.position.set(0, 0.16, 0.22);
+        group.add(bulge);
+        break;
+      }
+
+      case 'rime_owl': {
+        // Falling politely (slice 8): a frost-rimed owl — white
+        // face disc, snow-dusted wings named for the flap.
+        const featherMat = new THREE.MeshStandardMaterial({ color: 0xe0f2fe, roughness: 0.9 });
+        const wingMat = new THREE.MeshStandardMaterial({ color: 0xbae6fd, roughness: 0.85, side: THREE.DoubleSide });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), featherMat);
+        body.scale.set(0.9, 1.05, 0.95);
+        group.add(body);
+        const face = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 }));
+        face.scale.set(1, 1, 0.55);
+        face.position.set(0, 0.05, 0.1);
+        group.add(face);
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.26), wingMat);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          wing.position.set(side * 0.36, 0.05, -0.02);
+          wing.rotation.x = -Math.PI / 2 + 0.08;
+          group.add(wing);
+          const tuft = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.09, 4), featherMat);
+          tuft.position.set(side * 0.07, 0.19, 0.08);
+          group.add(tuft);
+        }
+        break;
+      }
+
+      case 'storm_crow': {
+        // The margin's gossip (slice 8): an ink-black crow,
+        // broad wings, beak built for commentary.
+        const featherMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.75 });
+        const wingMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8, side: THREE.DoubleSide });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 8), featherMat);
+        body.scale.set(0.9, 0.9, 1.3);
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), featherMat);
+        head.position.set(0, 0.05, 0.17);
+        group.add(head);
+        const beak = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.12, 5), new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.5 }));
+        beak.rotation.x = Math.PI / 2;
+        beak.position.set(0, 0.04, 0.28);
+        group.add(beak);
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.24), wingMat);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          wing.position.set(side * 0.32, 0.04, -0.01);
+          wing.rotation.x = -Math.PI / 2 + 0.08;
+          group.add(wing);
+        }
+        break;
+      }
+
+      case 'surge_runner': {
+        // Too light and too fast to sink (slice 8): a runner
+        // bird — all legs and balance, body high on stilts.
+        const featherMat = new THREE.MeshStandardMaterial({ color: 0x7dd3fc, roughness: 0.8 });
+        const legMat = new THREE.MeshStandardMaterial({ color: 0x0c4a6e, roughness: 0.7 });
+        for (const side of [-1, 1]) {
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.015, 0.55, 5), legMat);
+          leg.position.set(side * 0.09, 0.28, 0);
+          group.add(leg);
+        }
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.19, 10, 8), featherMat);
+        body.scale.set(0.85, 0.9, 1.3);
+        body.position.y = 0.62;
+        body.castShadow = true;
+        group.add(body);
+        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.05, 0.3, 6), featherMat);
+        neck.position.set(0, 0.82, 0.2);
+        neck.rotation.x = 0.5;
+        group.add(neck);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), featherMat);
+        head.position.set(0, 0.95, 0.3);
+        group.add(head);
+        const tail = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.3, 5), featherMat);
+        tail.rotation.x = -Math.PI / 2 - 0.5;
+        tail.position.set(0, 0.68, -0.28);
+        group.add(tail);
+        break;
+      }
+
+      case 'hayfinch': {
+        // The margin's music (slice 8): a tiny ash-flecked
+        // finch, warm gold under the grey.
+        const featherMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.85 });
+        const wingMat = new THREE.MeshStandardMaterial({ color: 0xa8a29e, roughness: 0.85, side: THREE.DoubleSide });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), featherMat);
+        body.scale.set(0.9, 0.9, 1.25);
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 6), featherMat);
+        head.position.set(0, 0.04, 0.07);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.PlaneGeometry(0.22, 0.1), wingMat);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          wing.position.set(side * 0.12, 0.03, -0.01);
+          wing.rotation.x = -Math.PI / 2 + 0.1;
+          group.add(wing);
+        }
+        break;
+      }
+
+      case 'root_otter': {
+        // One continuous medium (slice 8): a sleek, long
+        // otter — low body, rudder tail, unbothered.
+        const furMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.6 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.16, 0.5, 6, 10), furMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 0.24;
+        body.castShadow = true;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), furMat);
+        head.scale.set(0.95, 0.85, 1.05);
+        head.position.set(0, 0.3, 0.48);
+        group.add(head);
+        const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.4, 4, 6), furMat);
+        tail.rotation.x = Math.PI / 2 - 0.25;
+        tail.position.set(0, 0.16, -0.55);
+        group.add(tail);
+        break;
+      }
+
+      case 'boiler_crab': {
+        // A blockage to be cleared in steam (slice 8): a
+        // kettle dome with a lid, vent nub, and scuttle legs.
+        const shellMat = new THREE.MeshStandardMaterial({
+          color: 0x991b1b, roughness: 0.4, metalness: 0.35,
+        });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 8), shellMat);
+        body.scale.set(1.15, 0.65, 1);
+        body.position.y = 0.24;
+        body.castShadow = true;
+        group.add(body);
+        const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.19, 0.07, 10), shellMat);
+        lid.position.y = 0.44;
+        group.add(lid);
+        const vent = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.05, 0.12, 6), shellMat);
+        vent.position.y = 0.53;
+        group.add(vent);
+        for (let i = 0; i < 3; i++) {
+          for (const side of [-1, 1]) {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.012, 0.3, 4), shellMat);
+            leg.position.set(side * 0.33, 0.1, 0.16 - i * 0.16);
+            leg.rotation.z = side * 0.9;
+            group.add(leg);
+          }
+        }
+        break;
+      }
+
+      case 'far_bat': {
+        // The far country's swallow (slice 8): a serene bat —
+        // small body, honest ears, wide dark wings.
+        const furMat = new THREE.MeshStandardMaterial({ color: 0x4c1d95, roughness: 0.9 });
+        const wingMat = new THREE.MeshStandardMaterial({ color: 0x2e1065, roughness: 0.85, side: THREE.DoubleSide });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), furMat);
+        body.scale.set(0.9, 1, 1.1);
+        group.add(body);
+        for (const side of [-1, 1]) {
+          const ear = new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.09, 4), furMat);
+          ear.position.set(side * 0.045, 0.1, 0.01);
+          group.add(ear);
+          const wing = new THREE.Mesh(new THREE.PlaneGeometry(0.44, 0.18), wingMat);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          wing.position.set(side * 0.26, 0.02, -0.01);
+          wing.rotation.x = -Math.PI / 2 + 0.08;
+          group.add(wing);
+        }
+        break;
+      }
+
+      case 'thaw_mouse': {
+        // At the arctic's door (slice 8): a small mouse in
+        // melt-season grey-brown, ears up, tail long.
+        const furMat = new THREE.MeshStandardMaterial({ color: 0xa8a29e, roughness: 0.95 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), furMat);
+        body.scale.set(0.9, 0.8, 1.3);
+        body.position.y = 0.08;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), furMat);
+        head.position.set(0, 0.1, 0.11);
+        group.add(head);
+        for (const side of [-1, 1]) {
+          const ear = new THREE.Mesh(new THREE.SphereGeometry(0.03, 6, 5), furMat);
+          ear.scale.set(1, 1, 0.4);
+          ear.position.set(side * 0.04, 0.16, 0.08);
+          group.add(ear);
+        }
+        const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.012, 0.18, 3, 5), furMat);
+        tail.rotation.x = Math.PI / 2 - 0.35;
+        tail.position.set(0, 0.05, -0.18);
+        group.add(tail);
+        break;
+      }
+
+      case 'meal_moth': {
+        // Room service, at dusk (slice 8): a pale dust-laden
+        // moth — the wings carry the valley's dinner.
+        const dustMat = new THREE.MeshStandardMaterial({
+          color: 0xd6d3a8, roughness: 0.9, emissive: 0x713f12, emissiveIntensity: 0.25,
+        });
+        const wingMat = new THREE.MeshStandardMaterial({ color: 0xe7e5c8, roughness: 0.9, side: THREE.DoubleSide });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.035, 0.1, 4, 6), dustMat);
+        body.rotation.x = Math.PI / 2;
+        group.add(body);
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.PlaneGeometry(0.26, 0.16), wingMat);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          wing.position.set(side * 0.15, 0.02, -0.01);
+          wing.rotation.x = -Math.PI / 2 + 0.1;
+          group.add(wing);
+        }
+        break;
+      }
+
+      case 'heart_beetle': {
+        // The heart's pulse (slice 8): a small beetle wearing
+        // the bloom's shine — sap-gloss red over black.
+        const shellMat = new THREE.MeshStandardMaterial({
+          color: 0xbe123c, roughness: 0.25, metalness: 0.2,
+          emissive: 0x881337, emissiveIntensity: 0.35,
+        });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), shellMat);
+        body.scale.set(1, 0.7, 1.35);
+        body.position.y = 0.07;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), shellMat);
+        head.position.set(0, 0.06, 0.12);
+        group.add(head);
+        break;
+      }
+
       default: {
         const body = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 12), materials.biolumAmber);
         body.position.y = 0.3;

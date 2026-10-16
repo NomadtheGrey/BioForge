@@ -80,6 +80,7 @@ import { QuestLogModal } from './components/QuestLogModal';
 import { TOOL_NAMES, accessTierOf } from './game/quests';
 import { useQuests } from './hooks/useQuests';
 import { useStorage } from './hooks/useStorage';
+import { useVat } from './hooks/useVat';
 import { useDebugKit } from './hooks/useDebugKit';
 import { useZoneTravel, ZONE_ID_INSTALLED, WORLD_EDGE_COORD, ZONE_PUSH_SECONDS, ZONE_PUSH_MIN_COMPONENT } from './hooks/useZoneTravel';
 import { useInstances } from './hooks/useInstances';
@@ -91,6 +92,7 @@ import { TouchControls, type TouchMoveInput } from './components/TouchControls';
 import { BioForgeModal } from './components/BioForgeModal';
 import { InventoryModal } from './components/InventoryModal';
 import { StorageModal } from './components/StorageModal';
+import { VatModal } from './components/VatModal';
 import { POUCH_TIER_CAPS, pouchTierOf } from './game/pouch';
 import { CodexModal } from './components/CodexModal';
 import { MultiplayerModal } from './components/MultiplayerModal';
@@ -156,6 +158,7 @@ export default function App() {
     removeStructure,
     tameFauna,
     setFaunaCommand,
+    releaseFauna,
     upsertFauna,
     removeFauna,
     updateTick,
@@ -167,11 +170,17 @@ export default function App() {
 
   // 2. Modals & UI States
   const [activeModal, setActiveModal] = useState<
-    'bioforge' | 'inventory' | 'codex' | 'multiplayer' | 'controls' | 'devtools' | 'quests' | 'storage' | null
+    'bioforge' | 'inventory' | 'codex' | 'multiplayer' | 'controls' | 'devtools' | 'quests' | 'storage' | 'vat' | null
   >(null);
 
   // Which storage pod the StorageModal shows (id; entity re-read live).
   const [storageTargetId, setStorageTargetId] = useState<string | null>(null);
+  // Which culture vat the VatModal shows (id; entity re-read live).
+  const [vatTargetId, setVatTargetId] = useState<string | null>(null);
+  // The companion whose RELEASE is being confirmed (Adam,
+  // 2026-10-15: release always asks first). The fauna rides
+  // along so the dialog can say its name.
+  const [pendingRelease, setPendingRelease] = useState<FaunaEntity | null>(null);
   const [codexList, setCodexList] = useState<CodexEntry[]>(INITIAL_CODEX);
   const [dayNightCycle, setDayNightCycle] = useState<number>(0.35);
   const [isMuted, setIsMuted] = useState(false);
@@ -475,6 +484,11 @@ export default function App() {
       setStorageTargetId(structure.id);
       setActiveModal('storage');
     },
+    onOpenVat: (structure) => {
+      setVatTargetId(structure.id);
+      setActiveModal('vat');
+    },
+    onRequestRelease: (fauna) => setPendingRelease(fauna),
     spawnDroppedItem,
     triggerHarvestFx,
     triggerSolventFx,
@@ -615,6 +629,19 @@ const { handleStorageDeposit, handleStorageWithdraw, handleStorageUpgrade } =
     setOverflowHandler,
     postNotification,
   });
+
+// Culture-vat behaviors: hooks/useVat.
+const { handleVatStart, handleVatUpgrade, handleVatHatch } = useVat({
+  getInventory: () => latestStateRef.current.inventory,
+  deductInventoryItem,
+  upsertStructure,
+  upsertFauna,
+  getCurrentBiome: () => {
+    const [zx, zz] = currentZoneId().split(',').map(Number);
+    return zoneBiomeAt(worldSeedRef.current, zx || 0, zz || 0);
+  },
+  postNotification,
+});
 const pouchTierNow = pouchTierOf(inventory);
 
 // The zone-travel hook saves through this ref after a crossing
@@ -1223,6 +1250,12 @@ const {
       ? structuresList.find((s) => s.id === storageTargetId && s.type === 'storage_pod')
       : undefined;
 
+  // The culture vat the panel is showing, if it still stands.
+  const vatStructure =
+    activeModal === 'vat' && vatTargetId
+      ? structuresList.find((s) => s.id === vatTargetId && s.type === 'culture_vat')
+      : undefined;
+
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-slate-950 font-sans select-none">
       {/* 3D WebGL Canvas Viewport */}
@@ -1367,6 +1400,63 @@ const {
           })
         }
       />
+      {/* Release confirmation (Adam, 2026-10-15): letting a
+          companion go is the one command that always asks. */}
+      {pendingRelease && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
+          <div className="glass-panel-biolum w-full max-w-sm rounded-3xl border border-amber-500/40 px-6 py-5 shadow-2xl">
+            <div className="font-tech text-sm font-bold tracking-widest text-amber-200">RELEASE</div>
+            <p className="mt-2 text-sm leading-relaxed text-slate-200">
+              Are you sure you want to release{' '}
+              <span className="font-bold text-white">{pendingRelease.customName || pendingRelease.species.replace('_', ' ')}</span>?
+              It will live wild in this country from now on — the bond is spent, and winning it again means a lure and luck, like any stranger.
+            </p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setPendingRelease(null)}
+                className="rounded-xl border border-slate-500/50 px-4 py-2 text-xs font-tech font-bold text-slate-300 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+              >
+                KEEP
+              </button>
+              <button
+                onClick={() => {
+                  releaseFauna(pendingRelease.id);
+                  multiplayerManager.broadcastEntityUpsert('fauna', {
+                    ...pendingRelease,
+                    isTamed: false,
+                    command: undefined,
+                    state: 'wandering',
+                  });
+                  postNotification(
+                    'Released',
+                    `${pendingRelease.customName || pendingRelease.species.replace('_', ' ')} turns back to the wild. It keeps its name — a known animal, not a stranger.`,
+                    'tame',
+                    '#f59e0b',
+                  );
+                  setPendingRelease(null);
+                }}
+                className="rounded-xl border border-amber-400/70 bg-amber-500/20 px-4 py-2 text-xs font-tech font-bold text-amber-200 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+              >
+                RELEASE
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* The open culture vat (entity re-read live from the list). */}
+      {activeModal === 'vat' && vatStructure && (
+        <VatModal
+          structure={vatStructure}
+          inventory={inventory}
+          onClose={() => {
+            setActiveModal(null);
+            setVatTargetId(null);
+          }}
+          onStart={handleVatStart}
+          onHatch={handleVatHatch}
+          onUpgrade={handleVatUpgrade}
+        />
+      )}
       {/* The open storage pod (entity re-read live from the list). */}
       {activeModal === 'storage' && storagePod && (
         <StorageModal

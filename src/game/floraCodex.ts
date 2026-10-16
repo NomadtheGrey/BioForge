@@ -2070,4 +2070,16 @@ export const FLORA_CODEX: CodexEntry[] = [
     biome: 'Rootwood (the family\'s heart country)',
     iconColor: '#365314',
   },
+  {
+    species: 'lake_jelly',
+    name: 'Lake Jelly',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A gel fungus fruiting on the Deep Reef\'s structures in the great ponds\' black water — the reef builds the city; the jelly lights its windows, faintly and greenly, at depths where the Pale Eel hunts by a light it didn\'t make. Carried up in sealed jars, its gel is the deep\'s own: the Gloom Gel\'s abyssal grade.',
+    byproducts: ['Lake Jelly (harvest)'],
+    tamingOrCraftNotes: 'Harvest from the reef country of the great ponds (Wetland / Frost).',
+    biome: 'Wetland / Frost (the great ponds\' deeps)',
+    iconColor: '#4ade80',
+  },
 ];

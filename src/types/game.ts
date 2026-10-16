@@ -861,6 +861,18 @@ export interface FaunaEntity {
   socialState?: string;
   socialTimer?: number;
   socialTravel?: number;
+  // The Answer Deer's courtship (slice 48): seconds of calm
+  // company this deer has been shown, accrued by the sim and
+  // READ by the lure — the roster's only tame whose method is
+  // the tamer's own state. Persists with the fauna: calm is
+  // collected over days, not in one held breath.
+  calmRegard?: number;
+  // The Heartbearer's load (slice 48): edibles placed on its
+  // back, delivered to the valley's heart on its route. The
+  // route's outer post is remembered beside them.
+  cargoItems?: ItemId[];
+  routeX?: number;
+  routeZ?: number;
   // Hearth Dog courtship (slice 39, 2026-10-16): the arrived dog
   // carries the reversed taming on its own back — how many
   // offerings it has accepted, how many seconds of loaded-zone

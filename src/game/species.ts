@@ -3596,6 +3596,309 @@ export const SPECIES: Record<FaunaSpecies, SpeciesDef> = {
       health: 35,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Slice 22 (2026-10-16) — fauna wave 6: the winged ranges
+  // and the wisps (the ubiquitous layer's third citizen, the
+  // bridges' weaver, the ice's glider and fisher).
+  // ------------------------------------------------------------------
+
+  // #62 — the ubiquitous layer's third designed member: a
+  // small vapor wisp that keeps company with good fires — it
+  // CERTIFIES hearths (the Hearth Cap fruits only where it
+  // approves). Everywhere, gently. Untameable: it visits; it
+  // does not keep.
+  hearth_wisp: {
+    id: 'hearth_wisp',
+    name: 'Hearth Wisp',
+    profile: 'drifter',
+    tameChance: null,
+    bait: null,
+    petName: 'Hearth Wisp',
+    byproduct: null,
+    flight: { altitude: 0.8, bobHeight: 0.18, bobRate: 1.4 },
+    bonusSpawn: {
+      biomes: 'all',
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 1.2,
+      speedJitter: 0.15,
+      health: 6,
+    },
+  },
+
+  // #105 — a precursor-made wisp, STILL RUNNING ITS ROUTE on
+  // the Precursor × Storm far margin: node-lit, brightening
+  // at its turning points, centuries into a delivery schedule
+  // nobody alive remembers assigning. Untameable — it has a
+  // job.
+  relay_wisp: {
+    id: 'relay_wisp',
+    name: 'Relay Wisp',
+    profile: 'drifter',
+    tameChance: null,
+    bait: null,
+    petName: 'Relay Wisp',
+    byproduct: null,
+    flight: { altitude: 1.2, bobHeight: 0.2, bobRate: 1.6 },
+    bonusSpawn: {
+      biomes: ['precursor', 'storm'],
+      hybrid: ['precursor', 'storm'],
+      count: 1,
+      minRadius: 13,
+      spacing: 8,
+      speed: 1.7, // route pace, kept for centuries
+      speedJitter: 0.05,
+      health: 8,
+    },
+  },
+
+  // #149 — PHASING's second citizen: a ruin-dusted vapor moth
+  // of the far margins whose phasing is by after-image — it
+  // is briefly where it was, and then it isn't. Untameable
+  // (0%): you cannot lure a rumor of a moth.
+  gap_moth: {
+    id: 'gap_moth',
+    name: 'Gap Moth',
+    profile: 'flyer',
+    tameChance: null,
+    bait: null,
+    petName: 'Gap Moth',
+    byproduct: null,
+    flight: { altitude: 1.7, bobHeight: 0.25, bobRate: 1.6, flapRate: 3.2 },
+    bonusSpawn: {
+      biomes: ['precursor', 'storm'],
+      count: 1,
+      minRadius: 13,
+      spacing: 8,
+      speed: 2.0,
+      speedJitter: 0.15,
+      health: 8,
+    },
+  },
+
+  // #36 — the biome program's flora note asked outright that
+  // something live ON the bridges eventually: a long-limbed
+  // weaver that keeps the root bridges' rigging, re-rigging
+  // anchor-lines as the wood grows. It sheds silk anchor-lines
+  // when it re-rigs: Deck Silk, bridge-grade fiber. 35%.
+  deck_weaver: {
+    id: 'deck_weaver',
+    name: 'Deck Weaver',
+    profile: 'insect',
+    tameChance: 0.35,
+    bait: 'nectar',
+    petName: 'Deck Weaver',
+    byproduct: { item: 'deck_silk', seconds: 300, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['rootwood'],
+      count: 2,
+      minRadius: 10,
+      spacing: 6,
+      speed: 1.5,
+      speedJitter: 0.15,
+      health: 14,
+    },
+  },
+
+  // #31 — surface gliding on ice: a long-legged, mirror-footed,
+  // crystal-padded skater of the Singing Ice. It renews its
+  // foot-pads on shore — and the entry is explicit, and this
+  // table repeats it as law: NEVERMELT ICE STAYS SINGLE-SOURCE
+  // (the Rime Spires). The pads are leavings, not a door:
+  // no byproduct. 25%.
+  lake_glider: {
+    id: 'lake_glider',
+    name: 'Lake Glider',
+    profile: 'insect',
+    tameChance: 0.25,
+    bait: 'nectar',
+    petName: 'Lake Glider',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['frost'],
+      variant: 'frost_singing',
+      count: 2,
+      minRadius: 11,
+      spacing: 6,
+      speed: 2.6, // gliding
+      speedJitter: 0.15,
+      health: 18,
+    },
+  },
+
+  // #98 — the Winged + Swimming ruling cashed in: a winged
+  // fisher whose wings are FLIPPERS (penguin logic, exact),
+  // working the Singing Ice and the Stillwhite's coasts from
+  // the air side of the ruling. It molts flightless feathers
+  // at the edge: Fisher Down, insulation's fourth door in
+  // this family. 30%.
+  frost_fisher: {
+    id: 'frost_fisher',
+    name: 'Frost Fisher',
+    profile: 'flyer',
+    tameChance: 0.3,
+    bait: 'nectar',
+    petName: 'Frost Fisher',
+    byproduct: { item: 'fisher_down', seconds: 360, tamedOnly: false },
+    flight: { altitude: 1.8, bobHeight: 0.25, bobRate: 1.8, flapRate: 4.5 },
+    bonusSpawn: {
+      biomes: ['frost'],
+      count: 2,
+      minRadius: 11,
+      spacing: 6,
+      speed: 2.2,
+      speedJitter: 0.15,
+      health: 20,
+    },
+  },
+
+  // #115 — the Warm Range's lark: it dust-bathes in ash,
+  // storm-dust, and salt indifferently — the range's whole
+  // palette is its bath. 40%.
+  ash_lark: {
+    id: 'ash_lark',
+    name: 'Ash Lark',
+    profile: 'flyer',
+    tameChance: 0.4,
+    bait: 'nectar',
+    petName: 'Ash Lark',
+    byproduct: null,
+    flight: { altitude: 1.7, bobHeight: 0.25, bobRate: 2.0, flapRate: 5.0 },
+    bonusSpawn: {
+      biomes: ['ember', 'meadow', 'storm', 'saltglass'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      speed: 2.3,
+      speedJitter: 0.15,
+      health: 10,
+    },
+  },
+
+  // #117 — the Wet Range's woven citizen: it nests INTO reed
+  // stands, climbing in the reeds as much as flying between
+  // them. Old nests salvage as thatch, unlisted. 25%.
+  reedbird: {
+    id: 'reedbird',
+    name: 'Reedbird',
+    profile: 'flyer',
+    tameChance: 0.25,
+    bait: 'nectar',
+    petName: 'Reedbird',
+    byproduct: null,
+    flight: { altitude: 1.5, bobHeight: 0.22, bobRate: 2.0, flapRate: 4.6 },
+    bonusSpawn: {
+      biomes: ['wetland', 'rootwood', 'fungal', 'meadow'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      speed: 2.1,
+      speedJitter: 0.15,
+      health: 10,
+    },
+  },
+
+  // #342 — it sings BEFORE fronts, in the pressure-drop
+  // stillness: the Temperate and Storm ranges' living
+  // barometer. A thrush that tells weather by singing at it
+  // first. 40%.
+  storm_thrush: {
+    id: 'storm_thrush',
+    name: 'Storm Thrush',
+    profile: 'flyer',
+    tameChance: 0.4,
+    bait: 'nectar',
+    petName: 'Storm Thrush',
+    byproduct: null,
+    flight: { altitude: 1.6, bobHeight: 0.25, bobRate: 2.0, flapRate: 5.2 },
+    bonusSpawn: {
+      biomes: ['meadow', 'fungal', 'rootwood', 'storm'],
+      count: 3,
+      minRadius: 9,
+      spacing: 4,
+      speed: 2.2,
+      speedJitter: 0.15,
+      health: 9,
+    },
+  },
+
+  // #166 — the Storm Kite's plan, winter-built: a pennant-
+  // tailed flier of the White Storm whose ribbon tail freezes
+  // in flight into streamers. Shed pennants are the byproduct:
+  // Kite Pennants, frozen mid-ripple. 25%.
+  blizzard_kite: {
+    id: 'blizzard_kite',
+    name: 'Blizzard Kite',
+    profile: 'flyer',
+    tameChance: 0.25,
+    bait: 'nectar',
+    petName: 'Blizzard Kite',
+    byproduct: { item: 'kite_pennant', seconds: 300, tamedOnly: false },
+    flight: { altitude: 2.4, bobHeight: 0.3, bobRate: 1.8, flapRate: 3.6 },
+    bonusSpawn: {
+      biomes: ['storm', 'frost'],
+      hybrid: ['storm', 'frost'],
+      count: 2,
+      minRadius: 11,
+      spacing: 6,
+      speed: 2.5,
+      speedJitter: 0.15,
+      health: 15,
+    },
+  },
+
+  // #199 — glass-winged: thin saltglass membranes on a moth's
+  // frame, in the Bright Ruins. Untameable (0%). A whole fallen
+  // wing, found intact perhaps once a player-lifetime, is a
+  // natural lens: the shed below runs at lifetime odds (900 s —
+  // the table's slowest cadence class).
+  shard_moth: {
+    id: 'shard_moth',
+    name: 'Shard Moth',
+    profile: 'flyer',
+    tameChance: null,
+    bait: null,
+    petName: 'Shard Moth',
+    byproduct: { item: 'shard_wing', seconds: 900, tamedOnly: false },
+    flight: { altitude: 1.8, bobHeight: 0.25, bobRate: 1.7, flapRate: 3.8 },
+    bonusSpawn: {
+      biomes: ['saltglass', 'precursor'],
+      hybrid: ['saltglass', 'precursor'],
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 1.9,
+      speedJitter: 0.1,
+      health: 9,
+    },
+  },
+
+  // #357 — the family's founding sentence as a citizen: "does
+  // the flora almost behave like fauna?" — a root cluster that
+  // WALKS, plantiform and multiped, in both the valley's
+  // faces. Its rooted seasons leave a root-crown behind: a
+  // living stool of heartwood-grade root. Untameable — it is
+  // the valley, ambulant; not a pet.
+  walking_root: {
+    id: 'walking_root',
+    name: 'Walking Root',
+    profile: 'grazer',
+    tameChance: null,
+    bait: null,
+    petName: 'Walking Root',
+    byproduct: { item: 'root_crown', seconds: 420, tamedOnly: false },
+    bonusSpawn: {
+      biomes: ['living'],
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 0.7, // roots walk at root pace
+      speedJitter: 0.05,
+      health: 45,
+    },
+  },
 };
 
 /** The one lookup every shared system uses. */

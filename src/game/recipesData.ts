@@ -202,6 +202,19 @@ export const RECIPES: CraftingRecipe[] = [
     craftTimeMs: 1200,
   },
   {
+    // Slice F: the goodies draft, verbatim — two shards grow one pane.
+    id: 'craft_saltglass_pane',
+    outputId: 'saltglass_pane',
+    outputCount: 1,
+    name: 'Saltglass Pane',
+    description: 'Set a sheet of saltglass in a root frame with a mullion cross — a window that asks only for what the Prism Beds shed.',
+    category: 'composites',
+    ingredients: [
+      { id: 'saltglass_shard', count: 2 },
+    ],
+    craftTimeMs: 1500,
+  },
+  {
     id: 'craft_chitin_wall',
     outputId: 'chitin_glass_wall',
     outputCount: 2,

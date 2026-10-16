@@ -83,6 +83,45 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       group.add(pane);
       return group;
     },
+    // Saltglass pane (Adam, 2026-10-16): the window wall. A root frame
+    // (posts, sill, header, and the mullion cross) around a TRUE
+    // see-through saltglass sheet — pale milky green, the brine-pan
+    // glass of the Saltglass Flats. The pane itself casts no shadow:
+    // a window that darkens a room would be a wall with pretensions.
+    'saltglass_pane': () => {
+      const group = new THREE.Group();
+      const postGeom = new THREE.CylinderGeometry(0.1, 0.12, 2.4, 8);
+      const leftPost = new THREE.Mesh(postGeom, materials.woodRoot);
+      leftPost.position.set(-0.95, 1.2, 0);
+      leftPost.castShadow = true;
+      const rightPost = leftPost.clone();
+      rightPost.position.x = 0.95;
+      group.add(leftPost);
+      group.add(rightPost);
+      const railMat = materials.woodRoot;
+      const sill = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.16, 0.12), railMat);
+      sill.position.set(0, 0.12, 0);
+      sill.castShadow = true;
+      group.add(sill);
+      const header = sill.clone();
+      header.position.y = 2.3;
+      group.add(header);
+      const mullionV = new THREE.Mesh(new THREE.BoxGeometry(0.07, 2.06, 0.07), railMat);
+      mullionV.position.set(0, 1.21, 0);
+      group.add(mullionV);
+      const mullionH = new THREE.Mesh(new THREE.BoxGeometry(1.76, 0.07, 0.07), railMat);
+      mullionH.position.set(0, 1.21, 0);
+      group.add(mullionH);
+      const glassMat = new THREE.MeshStandardMaterial({
+        color: 0xcff5e1, roughness: 0.12, metalness: 0.0,
+        transparent: true, opacity: 0.42,
+        emissive: 0x9fd8bb, emissiveIntensity: 0.12,
+      });
+      const pane = new THREE.Mesh(new THREE.BoxGeometry(1.76, 2.06, 0.04), glassMat);
+      pane.position.set(0, 1.21, 0);
+      group.add(pane);
+      return group;
+    },
     // Rootweave wall (Adam, 2026-10-16): the cheap opaque panel —
     // root slats laced over-and-under with fiber withies between
     // two root posts. The slats nearly touch, so the silhouette

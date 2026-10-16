@@ -1971,7 +1971,9 @@ export const FLORA: Record<string, FloraDef> = {
   // #284 — a cap fruiting in hearth ash, ONLY over good fires
   // (the Hearth Wisp certifies the fire; the fungus seconds
   // the motion). Smoky and sustaining: the roster's most
-  // domestic mushroom, the homestead fungus.
+  // domestic mushroom, the homestead fungus. The gate is
+  // LIVE (slice 43): the growth tick holds it at stage 3
+  // until a wisp-kept hearthpod stands within 7 m.
   hearth_cap: {
     id: 'hearth_cap',
     name: 'Hearth Cap',

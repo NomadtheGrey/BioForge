@@ -426,6 +426,10 @@ export interface FaunaEntity {
    *  saves; the sim treats absent as 0. Tamed creatures shed on
    *  the kind interval; wild ones leave rarer traces. */
   sampleTimer?: number;
+  /** Solvent dissolve clock (Adam, 2026-10-16): seconds of
+   *  dissolve remaining after an emergency spray; while it runs,
+   *  the creature takes damage over time and flees. */
+  dissolveTimer?: number;
   animTime: number;
   /** Biome TYPE this creature spawned in (world-gen stamp; absent on old saves). */
   biome?: BiomeId;

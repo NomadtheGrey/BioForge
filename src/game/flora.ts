@@ -581,6 +581,249 @@ export const FLORA: Record<string, FloraDef> = {
       scale: 0.9,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Wave 3 (slice 12, 2026-10-16) — more family casts and margin
+  // citizens: clover's quiet signal, the vent's shuttered rose,
+  // a travelling fungus, the gardeners' tool-cap, two sisters of
+  // ivy in the two clash valleys, and the marsh's second mirror.
+  // ------------------------------------------------------------------
+
+  // #71 — the humblest entry on the roster, and load-bearing:
+  // clover marks RICH SOIL the way the Driftworm's ridges
+  // mark the Stillwhite — a player who can read clover knows
+  // where the meadow is keeping its strength. Its harvest is
+  // its message: pinched handfuls, feed and compost grade.
+  meadow_clover: {
+    id: 'meadow_clover',
+    name: 'Meadow Clover',
+    kind: 'flora',
+    harvest: { item: 'basic_compost', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['meadow'],
+      count: 5, // ground cover, in sheets
+      minRadius: 6,
+      spacing: 2,
+      scale: 0.6,
+    },
+  },
+
+  // #73 — a flower with a shutter: rim-rooted at the vents,
+  // it OPENS with the heat pulses and closes against the
+  // worst of them. Petals cut at the open moment hold heat —
+  // the scar's soft material.
+  vent_rose: {
+    id: 'vent_rose',
+    name: 'Vent Rose',
+    kind: 'flora',
+    harvest: { item: 'vent_petal', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['ember'],
+      variant: 'vent_fields',
+      count: 2,
+      minRadius: 10,
+      spacing: 4,
+      scale: 1,
+    },
+  },
+
+  // #104 — the travelling kingdom at full strangeness: a
+  // gas-bellied cap whose fruiting bodies DRIFT on the storm
+  // until they root — the Spore Storm country where Storm
+  // air carries Fungal seed. Grounded caps, gathered before
+  // they root, are spiced, storm-cured provisions.
+  stormcap: {
+    id: 'stormcap',
+    name: 'Stormcap',
+    kind: 'fungus',
+    harvest: { item: 'stormcap', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['storm', 'fungal'],
+      hybrid: ['storm', 'fungal'],
+      count: 3,
+      minRadius: 8,
+      spacing: 4,
+      scale: 1,
+    },
+  },
+
+  // #147 — the gardeners grew a fungus as a TOOL: brackets
+  // flat, dense, tool-hard, that served as anvils, shelves
+  // and worktops — the empty Forged cell, filled first. Its
+  // bracket is a shelf that is also a seed: the roster's
+  // slowest joke, kept.
+  anvil_cap: {
+    id: 'anvil_cap',
+    name: 'Anvil Cap',
+    kind: 'fungus',
+    harvest: { item: 'anvil_bracket', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['precursor'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1.1,
+    },
+  },
+
+  // #153 — a fern in grown glass: its fronds are lenses in
+  // series, light piped crown-to-root, so a glass fern stand
+  // glows at ground level in sorted colors. A cut frond is a
+  // lens that was grown, not ground — the far crafters'
+  // optics begin here.
+  glass_fern: {
+    id: 'glass_fern',
+    name: 'Glass Fern',
+    kind: 'flora',
+    harvest: { item: 'glass_frond', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['saltglass'],
+      variant: 'obsidian_garden',
+      count: 2,
+      minRadius: 10,
+      spacing: 4,
+      scale: 1,
+    },
+  },
+
+  // #169 — the Kiln Gardens' flower: a spiral ember bloom
+  // whose petals HOLD HEAT — picked at dusk, hand-warm till
+  // dawn. The gardeners bred a flower as a hand-warmer; it
+  // has bloomed unattended ever since, in the Ember ×
+  // Precursor margin where their kilns stood.
+  forge_bloom: {
+    id: 'forge_bloom',
+    name: 'Forge Bloom',
+    kind: 'flora',
+    harvest: { item: 'forge_petal', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['ember', 'precursor'],
+      hybrid: ['ember', 'precursor'],
+      count: 2,
+      minRadius: 10,
+      spacing: 4,
+      scale: 1,
+    },
+  },
+
+  // #197 — a wall of coals, breathing: ember-veined ivy
+  // whose stems carry a slow smolder that never quite
+  // flames, in the Burned Valley the fire visited and the
+  // family kept. Its leaf holds a coal's warmth for an
+  // hour — the traveler's hand-warmer.
+  ember_ivy: {
+    id: 'ember_ivy',
+    name: 'Ember Ivy',
+    kind: 'flora',
+    harvest: { item: 'ember_leaf', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['ember', 'living'],
+      hybrid: ['ember', 'living'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      scale: 1,
+    },
+  },
+
+  // #203 — the Ember Ivy's deliberate sister, in the other
+  // clash country: frost-keeping ivy that PRESERVES what it
+  // touches under a rime skin — a frost-ivy wall is a
+  // gallery of held things. Wrap a provision in its leaf
+  // and the provision keeps: the cold graph's refrigerator.
+  frost_ivy: {
+    id: 'frost_ivy',
+    name: 'Frost Ivy',
+    kind: 'flora',
+    harvest: { item: 'frost_leaf', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['living', 'frost'],
+      hybrid: ['living', 'frost'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      scale: 1,
+    },
+  },
+
+  // #215 — the river grows its plants twice: a reed grown in
+  // both directions from the waterline, its submerged blooms
+  // gathered by the lag-taught — a flower that grew in a
+  // reflection, kept for the helmet's sake.
+  mirror_reed: {
+    id: 'mirror_reed',
+    name: 'Mirror Reed',
+    kind: 'flora',
+    harvest: { item: 'mirror_bloom', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['wetland'],
+      variant: 'mirror_marsh',
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      scale: 1,
+    },
+  },
+
+  // #227 — a down bed that stands up: rime-feathered grass
+  // whose blades shimmer in the still cold — the Stillwhite's
+  // famous silence is partly this grass not rustling. Its
+  // real yield is the field itself; the blades are thatch of
+  // the first quality, fiber grade.
+  rime_grass: {
+    id: 'rime_grass',
+    name: 'Rime Grass',
+    kind: 'flora',
+    harvest: { item: 'soft_fiber', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['frost'],
+      count: 4,
+      minRadius: 8,
+      spacing: 3,
+      scale: 1,
+    },
+  },
+
+  // #247 — keeping the geysers' schedule in vegetable form:
+  // fronds that freeze into serrated ice teeth each night
+  // and thaw supple by day, under the Ice Fangs — Spire Bats
+  // roost out of its reach, and so should gloves. Shed teeth
+  // are the winter country's green ivory; dead matter to the
+  // compost grade.
+  fang_fern: {
+    id: 'fang_fern',
+    name: 'Fang Fern',
+    kind: 'flora',
+    harvest: { item: 'basic_compost', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['frost'],
+      variant: 'ice_fangs',
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      scale: 1,
+    },
+  },
+
+  // #333 — the marsh's fungal citizen: a cap whose upper
+  // surface is a MIRROR — still, dark, reflective, showing a
+  // sky a half-second late, in keeping with the country's
+  // terms. The cap is bitter; its yield is the reflection,
+  // and the directions. Spores, for the gatherer.
+  mirror_cap: {
+    id: 'mirror_cap',
+    name: 'Mirror Cap',
+    kind: 'fungus',
+    harvest: { item: 'glow_spore', count: 1, fertilizedCount: 2 },
+    bonusGrow: {
+      biomes: ['wetland'],
+      variant: 'mirror_marsh',
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      scale: 0.9,
+    },
+  },
 };
 
 /** Table lookup by species id (the hook + worldGen read here). */
@@ -592,7 +835,7 @@ export function floraDef(id: FloraSpecies): FloraDef | undefined {
 export const BONUS_GROW_FLORA: FloraDef[] = Object.values(FLORA).filter((d) => d.bonusGrow !== null);
 
 // ---------------------------------------------------------------------------
-// Codex entries (waves 1–2). They live HERE, with the flora table, rather
+// Codex entries (waves 1–3). They live HERE, with the flora table, rather
 // than in constants.ts: INITIAL_CODEX spreads this array in, and
 // constants.ts has outgrown what a single push can carry — the flora
 // codex travelling with the flora table keeps both files pushable
@@ -886,5 +1129,149 @@ export const FLORA_CODEX: CodexEntry[] = [
     tamingOrCraftNotes: 'Gather them unpuffed and squeeze when the cold gets in. The country\'s disposable comfort.',
     biome: 'Ember (the Ashen Drift)',
     iconColor: '#d6d3d1',
+  },
+  {
+    species: 'meadow_clover',
+    name: 'Meadow Clover',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The humblest entry on the roster, and load-bearing: clover marks RICH SOIL the way the Driftworm\'s ridges mark the Stillwhite — a player who can read clover knows where the meadow is keeping its strength, and plans the garden accordingly. Its harvest is its message: pinched handfuls, feed and compost grade, and the field left richer for being read.',
+    byproducts: ['Basic Compost (pinched handfuls)'],
+    tamingOrCraftNotes: 'Gather handfuls for feed and compost — and read the sheet first: where clover spreads thick, the soil is telling you something.',
+    biome: 'Meadow (family cast)',
+    iconColor: '#22c55e',
+  },
+  {
+    species: 'vent_rose',
+    name: 'Vent Rose',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A flower with a shutter: rim-rooted at the vents, it opens with the heat pulses and closes against the worst of them, petal-scaled and pulse-timed — the scar\'s metronome, blooming on the vent\'s breathing. Cut at the open moment, its petals hold the heat they opened to.',
+    byproducts: ['Vent Petal (cut at the open moment)'],
+    tamingOrCraftNotes: 'Harvest with the glove for heat-holding petal-scale. Timing is the whole craft: an open rose gives, a closed one waits.',
+    biome: 'Ember (the Vent Fields)',
+    iconColor: '#f43f5e',
+  },
+  {
+    species: 'stormcap',
+    name: 'Stormcap',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The travelling kingdom at full strangeness: a gas-bellied cap on a stalk, stationary as a mycelium — and drifting as a fruiting body, until it lands and roots wherever the storm sets it down. In the Spore Storm country, where Storm air carries Fungal seed, a stormcap on the wind is the margin country\'s mail.',
+    byproducts: ['Stormcap (grounded caps, gathered before they root)'],
+    tamingOrCraftNotes: 'Gather the grounded caps — spiced, storm-cured, the far country\'s provisions. A rooted one has already arrived; leave it to its address.',
+    biome: 'Storm × Fungal (the Spore Storm country only)',
+    iconColor: '#a78bfa',
+  },
+  {
+    species: 'anvil_cap',
+    name: 'Anvil Cap',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The gardeners grew a fungus as a TOOL: fruiting brackets — flat, dense, tool-hard — that served the gardens as anvils, shelves, and worktops, social in rows where a row of work was wanted. The Tenders\' furniture, still fruiting in their fields: the empty Forged cell of the living graph, filled first, as the pass\'s thesis.',
+    byproducts: ['Anvil Bracket'],
+    tamingOrCraftNotes: 'Harvest with the glove. A bracket is a shelf that is also a seed: mounted and given years and damp, it may fruit — the roster\'s slowest joke, kept.',
+    biome: 'Precursor (the gardeners\' country)',
+    iconColor: '#78716c',
+  },
+  {
+    species: 'glass_fern',
+    name: 'Glass Fern',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A fern in grown glass: fronds that are lenses in series, piping light from crown to root, so a glass fern stand glows at ground level in sorted colors — the Obsidian Garden lit from inside its own plants. Where the Saltglass country grows its garden, the garden does the lighting.',
+    byproducts: ['Glass Frond (a cut frond)'],
+    tamingOrCraftNotes: 'Harvest with the glove — a lens that was grown, not ground. The far crafters\' optics begin here.',
+    biome: 'Saltglass (the Obsidian Garden)',
+    iconColor: '#67e8f9',
+  },
+  {
+    species: 'forge_bloom',
+    name: 'Forge Bloom',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The Kiln Gardens\' flower: a spiral-bedded ember bloom whose warm petals HOLD HEAT — picked at dusk, hand-warm till dawn. The gardeners bred a flower as a hand-warmer, and it has bloomed unattended ever since in the margin where their kilns stood, keeping the shift they left.',
+    byproducts: ['Forge Petal'],
+    tamingOrCraftNotes: 'Harvest with the glove at dusk for a petal that keeps warmth — pockets, gloves, and winter camps across the cold graph will pay for this flower.',
+    biome: 'Ember × Precursor (the Kiln Gardens only)',
+    iconColor: '#fb923c',
+  },
+  {
+    species: 'ember_ivy',
+    name: 'Ember Ivy',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A wall of coals, breathing: ember-veined ivy whose stems carry a slow smolder that never quite flames, climbing the Burned Valley the fire visited and the family kept. At night a wall of it is the valley remembering, politely, at vegetable speed.',
+    byproducts: ['Ember Leaf'],
+    tamingOrCraftNotes: 'Harvest with the glove — a leaf that holds a coal\'s warmth for an hour: the traveler\'s hand-warmer, sibling to the Ash Puff.',
+    biome: 'Ember × Living (the Burned Valley only)',
+    iconColor: '#f97316',
+  },
+  {
+    species: 'frost_ivy',
+    name: 'Frost Ivy',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The Ember Ivy\'s deliberate sister, in the other clash country: frost-keeping ivy that preserves what it touches under a rime skin — a frost-ivy wall is a gallery of held things, flowers and insects and one famous glove, kept at the moment the cold took them. The Cold Valley\'s archive, climbing.',
+    byproducts: ['Frost Leaf'],
+    tamingOrCraftNotes: 'Harvest with the glove — wrap a provision in a frost leaf and the provision keeps: the cold graph\'s refrigerator, grown.',
+    biome: 'Living × Frost (the Cold Valley only)',
+    iconColor: '#bae6fd',
+  },
+  {
+    species: 'mirror_reed',
+    name: 'Mirror Reed',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The river grows its plants twice: a reed grown in both directions from the waterline — a reed above, and in the stillwater a second reed, rooted — the reflection is not a reflection. Its submerged blooms are gathered by the lag-taught: a flower that grew in a reflection, in the country where reflections keep their own hours.',
+    byproducts: ['Mirror Bloom (the submerged blooms)'],
+    tamingOrCraftNotes: 'Harvest with the glove — kept for the helmet\'s sake; worn, it is said to steady the wearer in the lag country. Grown in both directions; useful in both.',
+    biome: 'Wetland (the Mirror Marsh)',
+    iconColor: '#7dd3fc',
+  },
+  {
+    species: 'rime_grass',
+    name: 'Rime Grass',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A down bed that stands up: grass that grows rime feathers on its blades in the still cold, so a field of it shimmers like bedding — the Driftworm travels under it, the Frost Vole caches in its root-mat, and the Stillwhite\'s famous silence is partly this grass not rustling. A homestead that keeps rime grass at its walls stands measurably warmer.',
+    byproducts: ['Soft Fiber (spring blades, thatch of the first quality)'],
+    tamingOrCraftNotes: 'Harvest with the glove for fiber — but leave the walls their blanket: the field itself is the yield.',
+    biome: 'Frost (family cast)',
+    iconColor: '#e0f2fe',
+  },
+  {
+    species: 'fang_fern',
+    name: 'Fang Fern',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'Keeping the geysers\' schedule in vegetable form: a fern whose fronds freeze into serrated ice teeth each night and thaw supple by day, under the Ice Fangs. Spire Bats roost out of its reach, and the entry notes the fact without further advice. Its shed teeth are the winter country\'s green ivory, carving grade — gathered dead, as everything honest in the cold country is.',
+    byproducts: ['Basic Compost (shed teeth-fronds)'],
+    tamingOrCraftNotes: 'Harvest with the glove at midday, when the teeth are supple. The fern keeps the geysers\' hours; learn them or wear the lesson.',
+    biome: 'Frost (the Ice Fangs)',
+    iconColor: '#a5f3fc',
+  },
+  {
+    species: 'mirror_cap',
+    name: 'Mirror Cap',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'The marsh\'s fungal citizen: a cap whose upper surface is a mirror — still, dark, reflective, showing a sky a half-second late, in keeping with the country\'s terms. Pools of fungus along the marsh paths. The cap is bitter and nobody eats it; its yield is the reflection, and the directions the reflection gives.',
+    byproducts: ['Glow Spore'],
+    tamingOrCraftNotes: 'Gather spores with the glove — and use the cap the way the marsh does: to check what the sky is doing half a second from now.',
+    biome: 'Wetland (the Mirror Marsh)',
+    iconColor: '#94a3b8',
   },
 ];

@@ -51,7 +51,7 @@
 import { createNoise2D, createSeededRandom, hashStringToSeed } from './motion';
 import { biomeDensityFactor, biomeWeightFactor } from './biomes';
 import type { BiomeId } from './biomes';
-import { zoneBiomeAt, zoneVariantAt, zoneHybridAt, livingHeartAt } from './zones';
+import { zoneBiomeAt, zoneVariantAt, zoneHybridAt, zoneWeatherAt, livingHeartAt } from './zones';
 import type { FaunaEntity, FaunaSpecies, FloraEntity, FloraSpecies, StructureEntity } from '../types/game';
 import { generateCaveSurface, HOMESTEAD_BLOCKERS } from './caveSurface';
 import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
@@ -99,8 +99,13 @@ import { BONUS_SPAWN_SPECIES } from './species';
  * v22: creature build phase, slice 7 (2026-10-15) — eleven
  *     ground-cast species join the table, incl. both Living
  *     valley-face one-offs riding the variant gate. Table-only.
+ * v23: creature build phase, slice 8 (2026-10-15) — the bonus
+ *     loop learns two gates (hybrid pair, zone weather) and
+ *     eleven species join the table through them and the far
+ *     ranges. The gates are generic: future hybrid and
+ *     weather-locked species are table entries, not new code.
  */
-export const WORLD_GEN_VERSION = 22; // v22 (2026-10-15): creature slice 7 — eleven ground-cast species join the table; v21 was creature slice 6
+export const WORLD_GEN_VERSION = 23; // v23 (2026-10-15): creature slice 8 — hybrid + weather gates in the bonus loop, eleven species; v22 was creature slice 7
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -880,6 +885,21 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0): Ge
       // Variant gate (slice 3): a variant-locked species deals only
       // in its named place — the biome-unique layer.
       if (spec.variant && zoneVariant?.id !== spec.variant) continue;
+      // Hybrid gate (slice 8): a hybrid citizen deals ONLY in a
+      // hybrid zone of its named family pair — the pure country of
+      // either parent is not its home. (zoneHybrid is already
+      // computed above; a hybrid zone carries no variant, so the
+      // two gates can never both apply to one zone.)
+      if (spec.hybrid) {
+        if (!zoneHybrid) continue;
+        const pairHere: BiomeId[] = [zoneHybrid.primary, zoneHybrid.secondary];
+        if (!pairHere.includes(spec.hybrid[0]) || !pairHere.includes(spec.hybrid[1])) continue;
+      }
+      // Weather gate (slice 8): a weather-locked species deals
+      // only where the zone's own sky agrees. zoneWeatherAt is
+      // deterministic per zone (seed + coordinates), so this is
+      // a placement rule, never a dice roll.
+      if (spec.weather && zoneWeatherAt(seedStr, zoneZx, zoneZz).mode !== spec.weather) continue;
       const bonusRng = createSeededRandom(stream(`fauna:bonus:${def.id}`));
       let placed = 0;
       for (let attempt = 0; attempt < 40 && placed < spec.count; attempt++) {

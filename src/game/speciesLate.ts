@@ -830,10 +830,9 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
   // holding the Untended by requisition and habit. A HUNTER
   // of the bench: it warns (Peaceful theater), chases and
   // strikes on Normal/Hostile. Its Requisition receipts drop
-  // only when it is finally destroyed — a kill-drop, and the
-  // sim's kill path drops samples only: the item is deferred
-  // with the kill-drop system, recorded here so the debt is
-  // visible. Untameable.
+  // when it is finally destroyed: the kill-drop DEBT recorded
+  // here at slice 24 was PAID at slice 33 (2026-10-16, Adam's
+  // word) on the killLoot rail slice 32 built. Untameable.
   feral_warden: {
     id: 'feral_warden',
     name: 'Feral Warden',
@@ -843,6 +842,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     petName: 'Feral Warden',
     byproduct: null,
     hunt: { aggroRange: 8, damage: 11, biteRange: 1.3, biteCooldownSeconds: 1.4 },
+    killLoot: [['requisition', 1]],
     bonusSpawn: {
       biomes: ['precursor'],
       variant: 'precursor_untended',

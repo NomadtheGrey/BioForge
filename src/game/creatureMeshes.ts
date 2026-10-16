@@ -2606,8 +2606,14 @@ export function createCreatureMeshKit(
     // species carries both (the Plunge Duck flies in v1; its
     // dives are deferred). Off-pond (no surface under it — a
     // legacy world, a dry context) the ground line stands.
-    const swim = speciesDef(fauna.species)?.swim;
-    if (swim && !speciesDef(fauna.species)?.flight && waterSurfaceAt) {
+    const swimDef = speciesDef(fauna.species);
+    // The dive cycle (slice 38): in its water phase, a diving
+    // species draws by its swim spec even though it owns wings.
+    const diveSpec = swimDef?.dive;
+    const inWaterPhase =
+      !!diveSpec && (fauna.phaseTimer ?? 0) >= diveSpec.cycleSeconds - diveSpec.waterSeconds;
+    const swim = swimDef?.swim;
+    if (swim && (!swimDef?.flight || inWaterPhase) && waterSurfaceAt) {
       const surfaceY = waterSurfaceAt(fauna.x, fauna.z);
       if (surfaceY !== null) {
         mesh.position.y = surfaceY - swim.depth + Math.sin(fauna.animTime * 1.4) * 0.04;
@@ -2615,7 +2621,7 @@ export function createCreatureMeshKit(
     }
 
     const flight = speciesDef(fauna.species)?.flight;
-    if (flight) {
+    if (flight && !inWaterPhase) {
       mesh.position.y = groundY + flight.altitude + Math.sin(fauna.animTime * flight.bobRate) * flight.bobHeight;
       if (flight.flapRate !== undefined) {
         const flap = Math.sin(fauna.animTime * flight.flapRate) * 0.3;

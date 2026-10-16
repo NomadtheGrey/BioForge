@@ -2084,6 +2084,311 @@ export const SPECIES: Record<FaunaSpecies, SpeciesDef> = {
       health: 6,
     },
   },
+
+  // ------------------------------------------------------------------
+  // Slice 11 (2026-10-16) — the fauna wave: the casts the first
+  // passes left standing (deep plains, open range, mulchwood,
+  // the graveyard's ribs, the underroot, the tending field).
+  // ------------------------------------------------------------------
+
+  // #192 — the plains' second scale: a HUGE sauropod-plan
+  // grazer, placid, at herd scale — where the Grass Leviathan
+  // is singular, long grazers are a POPULATION, the epic
+  // tier's only gregarious citizens. 15%: you do not so much
+  // tame one as come to an arrangement with a landscape.
+  long_grazer: {
+    id: 'long_grazer',
+    name: 'Long Grazer',
+    profile: 'grazer',
+    tameChance: 0.15,
+    bait: 'nectar',
+    petName: 'Long Grazer',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['meadow'],
+      count: 2, // a population, in loose herds
+      minRadius: 16,
+      spacing: 10,
+      speed: 1.1, // geological, with legs
+      speedJitter: 0.05,
+      health: 220,
+    },
+  },
+
+  // #84 — a heartbeat with a hunting license: a harvest-rust
+  // shrew, frantic, solo and rude about it, ground-hugging
+  // with burrow darts. Untameable (n/a — it has never once
+  // slowed down long enough to be asked).
+  harvest_shrew: {
+    id: 'harvest_shrew',
+    name: 'Harvest Shrew',
+    profile: 'rodent',
+    tameChance: null,
+    bait: null,
+    petName: 'Harvest Shrew',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['meadow'],
+      count: 2,
+      minRadius: 8,
+      spacing: 5,
+      speed: 2.8, // FAST
+      speedJitter: 0.3,
+      health: 6,
+    },
+  },
+
+  // #344 — a philosopher of the open range: a sky-watched
+  // vole that lives its whole life under open sky and reads
+  // it professionally — a lifetime of plainswifts and dust
+  // hawks makes a philosopher. 35%.
+  plain_vole: {
+    id: 'plain_vole',
+    name: 'Plain Vole',
+    profile: 'rodent',
+    tameChance: 0.35,
+    bait: 'nectar',
+    petName: 'Plain Vole',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['meadow', 'bone', 'saltglass', 'storm'],
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      speed: 1.9,
+      speedJitter: 0.2,
+      health: 8,
+    },
+  },
+
+  // #119 — the spectrum's swift anchor: an OBLIGATE flyer of
+  // the open range that lands only to nest in flats' cracks
+  // and eats entirely on the wing — a gnat bloom over the
+  // plains summons swifts from three zones away. Untameable:
+  // it never lands long enough to negotiate.
+  plainswift: {
+    id: 'plainswift',
+    name: 'Plainswift',
+    profile: 'flyer',
+    tameChance: null,
+    bait: null,
+    petName: 'Plainswift',
+    byproduct: null,
+    flight: { altitude: 2.8, bobHeight: 0.3, bobRate: 2.0, flapRate: 7.5 },
+    bonusSpawn: {
+      biomes: ['meadow', 'saltglass', 'bone', 'storm'],
+      count: 3,
+      minRadius: 10,
+      spacing: 4,
+      speed: 3.6, // the sky's fastest citizen
+      speedJitter: 0.3,
+      health: 6,
+    },
+  },
+
+  // #144 — the Fangwolf's pack doctrine with a fungal
+  // accent: a Mulchwood wolf whose spore-laden fur BURSTS
+  // when it shakes — which it does before a hunt, marking
+  // the air itself. THE TELL is that shake: the pack
+  // announces in spores (the alert carries it in v1). 10%.
+  spore_wolf: {
+    id: 'spore_wolf',
+    name: 'Spore Wolf',
+    profile: 'predator',
+    tameChance: 0.1,
+    bait: 'nectar',
+    petName: 'Spore Wolf',
+    byproduct: null,
+    hunt: { aggroRange: 9, damage: 8, biteRange: 1.7, biteCooldownSeconds: 1.2 },
+    bonusSpawn: {
+      biomes: ['meadow', 'fungal'],
+      hybrid: ['meadow', 'fungal'],
+      count: 3, // the pack
+      minRadius: 12,
+      spacing: 4,
+      speed: 2.7,
+      speedJitter: 0.15,
+      health: 55,
+    },
+  },
+
+  // #137 — the Graveyard's rigger: a long-legged,
+  // dew-jeweled spider living INSIDE the ribs, whose
+  // trip-lines catch the dawn damp and briefly shine.
+  // Untameable (0%). Its line, cut, is Rib Silk — bone-pale,
+  // absurdly strong. Drawn at rib height via the flight
+  // spec: its country is the ribcage, one storey up.
+  rib_spider: {
+    id: 'rib_spider',
+    name: 'Rib Spider',
+    profile: 'insect',
+    tameChance: null,
+    bait: null,
+    petName: 'Rib Spider',
+    byproduct: { item: 'rib_silk', seconds: 300, tamedOnly: false },
+    flight: { altitude: 1.0, bobHeight: 0.05, bobRate: 0.7 },
+    bonusSpawn: {
+      biomes: ['bone'],
+      variant: 'leviathan_graveyard',
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      speed: 1.7,
+      speedJitter: 0.15,
+      health: 20,
+    },
+  },
+
+  // #135 — at country scale: the largest of the graph's
+  // serpents, living INSIDE the root systems, traveling the
+  // hollows the borers chew. A presence, not a bench
+  // danger — the Underroot's weather. Untameable (0%).
+  root_serpent: {
+    id: 'root_serpent',
+    name: 'Root Serpent',
+    profile: 'serpent',
+    tameChance: null,
+    bait: null,
+    petName: 'Root Serpent',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['rootwood'],
+      variant: 'rootwood_underroot',
+      count: 1,
+      minRadius: 14,
+      spacing: 8,
+      speed: 1.6, // the country, moving
+      speedJitter: 0.05,
+      health: 130,
+    },
+  },
+
+  // #87 — the Tending Field's second occupant: a dead
+  // tender's ribcage-and-dome frame, worn by collective
+  // machinery of legs underneath — the Forged kingdom
+  // outliving its makers by wearing one. Untameable: it is
+  // staff the way the Path Beetle is staff, at the other
+  // end of the size chart.
+  second_tenant: {
+    id: 'second_tenant',
+    name: 'Second Tenant',
+    profile: 'colony',
+    tameChance: null,
+    bait: null,
+    petName: 'Second Tenant',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['precursor'],
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 1.1,
+      speedJitter: 0.05,
+      health: 60,
+    },
+  },
+
+  // #212 — an archive with a head: a turtle of the Sap
+  // Rivers whose shell holds centuries of bank-life in its
+  // sap-layers — leaves, insects, a gardener's dropped
+  // glyph-stone, once — readable like rings. 40%: it has
+  // time; the question is whether you do.
+  sap_turtle: {
+    id: 'sap_turtle',
+    name: 'Sap Turtle',
+    profile: 'turtle',
+    tameChance: 0.4,
+    bait: 'nectar',
+    petName: 'Sap Turtle',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['rootwood'],
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 0.7,
+      speedJitter: 0.05,
+      health: 80,
+    },
+  },
+
+  // #109 — the Ashen Fields' picker: an ash-gray,
+  // ember-eyed bird working the cold burns in loose
+  // companies. 20%. Molts Ash Feathers at its roosts —
+  // kept DISTINCT from Grave Feather and Roc/Hawk
+  // feathers as a matter of house law: three skies, three
+  // feathers.
+  ashpicker: {
+    id: 'ashpicker',
+    name: 'Ashpicker',
+    profile: 'flyer',
+    tameChance: 0.2,
+    bait: 'nectar',
+    petName: 'Ashpicker',
+    byproduct: { item: 'ash_feather', seconds: 300, tamedOnly: false },
+    flight: { altitude: 2.0, bobHeight: 0.25, bobRate: 2.2, flapRate: 5.0 },
+    bonusSpawn: {
+      biomes: ['ember', 'bone'],
+      hybrid: ['ember', 'bone'],
+      count: 3, // loose ash companies
+      minRadius: 10,
+      spacing: 4,
+      speed: 2.2,
+      speedJitter: 0.2,
+      health: 14,
+    },
+  },
+
+  // #165 — the White Graveyard's hunter: a broad, silent
+  // owl whitened permanently by the fields it hunts. 15%,
+  // the owl rate. (Its roost pellets, full of clean bone,
+  // are the economy's strangest door — a place-drop for a
+  // later slice.)
+  grave_owl: {
+    id: 'grave_owl',
+    name: 'Grave Owl',
+    profile: 'flyer',
+    tameChance: 0.15,
+    bait: 'nectar',
+    petName: 'Grave Owl',
+    byproduct: null,
+    flight: { altitude: 2.7, bobHeight: 0.25, bobRate: 1.7, flapRate: 4.2 },
+    bonusSpawn: {
+      biomes: ['bone', 'frost'],
+      hybrid: ['bone', 'frost'],
+      count: 1,
+      minRadius: 12,
+      spacing: 8,
+      speed: 2.3,
+      speedJitter: 0.1,
+      health: 24,
+    },
+  },
+
+  // #76 — the flats' quick citizen: a copper-crested
+  // multiped hopper whose fan rises at the banner — the
+  // Storm family's law read fluently at ankle height: it
+  // hops the charged ground the way its country asks.
+  // 30%.
+  zot_hopper: {
+    id: 'zot_hopper',
+    name: 'Zot Hopper',
+    profile: 'insect',
+    tameChance: 0.3,
+    bait: 'nectar',
+    petName: 'Zot Hopper',
+    byproduct: null,
+    bonusSpawn: {
+      biomes: ['storm'],
+      variant: 'charged_flats',
+      count: 3,
+      minRadius: 8,
+      spacing: 3,
+      speed: 2.6, // bouncing
+      speedJitter: 0.25,
+      health: 14,
+    },
+  },
 };
 
 /** The one lookup every shared system uses. */

@@ -222,7 +222,7 @@ export function useGameInput(deps: GameInputDeps) {
     const structs = structuresListRef.current;
     const floorAt = (gx: number, gz: number, level: number): boolean =>
       structs.some(
-        (s) => s.type === 'root_tile_floor' && (s.level ?? 0) === level && s.gridX === gx && s.gridZ === gz
+        (s) => (s.type === 'root_tile_floor' || s.type === 'heart_tile') && (s.level ?? 0) === level && s.gridX === gx && s.gridZ === gz
       );
 
     if (floorAt(cellGX, cellGZ, 1)) return { near: true, blocked: 'opening' };

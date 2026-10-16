@@ -299,7 +299,13 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
   const respawnAtSpawn = (): void => {
     if (instanceRef.current.kind !== 'surface') return;
     if (!worldSeedRef.current) return;
-    const entry = { x: 0, z: 0 };
+    // The wake point is the Heart Tile (Adam, 2026-10-16): the
+    // spawn base's default respawn point, standing at its heart.
+    // The tile's own position rules when it can be read from the
+    // spawn snapshot; the heart coordinates are its home either way.
+    const spawnSnap = visitedZonesRef.current.get(zoneKey(SPAWN_ZONE.zx, SPAWN_ZONE.zz));
+    const heartTile = spawnSnap?.structures.find((s) => s.type === 'heart_tile');
+    const entry = heartTile ? { x: heartTile.worldX, z: heartTile.worldZ } : { x: 0, z: 0 };
     if (multiplayerManager.isConnected && !multiplayerManager.isHost) {
       if (pendingTravelRef.current) return; // a crossing is already waiting
       const pending: PendingTravel = { dir: 'N', nx: SPAWN_ZONE.zx, nz: SPAWN_ZONE.zz, entryX: entry.x, entryZ: entry.z, slowTimer: 0, failTimer: 0 };

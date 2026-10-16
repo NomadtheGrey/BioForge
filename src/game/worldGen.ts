@@ -302,8 +302,15 @@ import type { PondDef, RiverSeg } from './terrain';
  *     swimming its circuit, caching bright treasure in the
  *     roots on a long clock). The otter's deal narrows to
  *     ponded Drowned Roots zones — its country, honestly.
+ * v60: creature build phase, slice 45 (2026-10-16) — the
+ *     MULCH BEETLE's compost engine turns over (finished
+ *     compost at the burrow mouth: growth fertilizer, shed
+ *     wild and tamed), and the TUMBLE SAGE travels: a ripe
+ *     sage left unharvested lets go, rolls downwind shedding
+ *     leaf, and re-roots — the Wind Plains' migration at
+ *     garden scale. Behavior-only; generation unchanged.
  */
-export const WORLD_GEN_VERSION = 59; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
+export const WORLD_GEN_VERSION = 60; // v49 (2026-10-16): creature slice 34 — Feral Warden renamed Feral Bailiff (display only); v48 was creature slice 33 (the Warden's Requisition)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

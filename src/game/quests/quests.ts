@@ -214,7 +214,7 @@ export function goalProgressText(
     case 'glyphRuins': return `Glyph stones read — ${Math.min(s.glyphRuins?.length ?? 0, goal.count)} of ${goal.count} ruins`;
     case 'heart': return s.heart ? 'You have stood at a heart' : 'Reach the deepest room of a ruin';
     case 'zoneHybrid': return s.hybrid ? 'You have stood where two lands meet' : 'Stand in blended country — a hybrid zone';
-    case 'zoneTier3': return s.tier3 ? 'You have stood in the far country' : 'Reach a far family — storm, living, or precursor';
+    case 'zoneTier3': return s.tier3 ? 'You have stood in the deep country' : 'Reach a deep-country family — storm, living, or precursor';
     case 'families': return `Countries stood in — ${Math.min(s.families?.length ?? 0, goal.count)} of ${goal.count}`;
     case 'dogBond': return s.dogBonded ? 'The dog has decided' : 'Win the hearth dog’s decision';
     case 'vatHatch': return s.hatched ? 'Something has woken in the vat' : 'Hatch a creature in the Culture Vat';
@@ -721,14 +721,14 @@ export const ASK_THE_WORLD_QUESTS: QuestDef[] = [
     rewardNote: 'The heart provides — a Precursor Shard, and its line.',
   },
   {
-    // E2 — the far country.
+    // E2 — the deep country.
     id: 'q_aw_rim',
     questChapter: 3,
     line: ASK_THE_WORLD_LINE,
     flavor: 'For those who wander',
     title: 'The Rim',
     blurb:
-      'Past the familiar families the land turns strange: storms that rain upward, valleys that are hungry, gardens no one tends. Go and stand in the far country, once.',
+      'Past the familiar families the land turns strange: storms that rain upward, valleys that are hungry, gardens no one tends. Go and stand in the deep country, once.',
     gather: [],
     completeWhen: { kind: 'zoneTier3' },
     rewardItems: [
@@ -767,7 +767,7 @@ export const ASK_THE_WORLD_QUESTS: QuestDef[] = [
     gather: [],
     completeWhen: { kind: 'tunnel' },
     rewardItems: [{ itemId: 'living_thread', count: 1 }],
-    rewardNote: 'A Living Thread — and a far country that knows your name.',
+    rewardNote: 'A Living Thread — and a deep country that knows your name.',
   },
   {
     // S1 — home as an organism.

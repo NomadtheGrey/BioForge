@@ -80,6 +80,19 @@ import {
   type AsksBackState, type AsksEventInput,
 } from './game/asksBackState';
 import { runDirector } from './game/asksBack/director';
+// THE WORLD ASKS BACK, S3 (dev lane, 2026-10-17): the step
+// evaluator (latch.ts) makes sagas playable — App triggers it on
+// ledger/day/zone changes and applies its grants/notifications;
+// accept/choice/track are the log's three doors into the record.
+import {
+  evaluateAsks,
+  acceptAsksOffer,
+  trackAsksSaga as trackAsksSagaInRecord,
+  canAcceptSaga,
+  goalProgressText,
+} from './game/asksBack/latch';
+import { recordAsksChoice } from './game/asksBackState';
+import type { SagaTrackView } from './components/QuestTracker';
 
 import { StartScreenModal } from './components/StartScreenModal';
 
@@ -251,6 +264,17 @@ export default function App() {
   // event (the same mirror pattern as liveGameRefs).
   const asksBackStateRef = useRef(asksBackState);
   asksBackStateRef.current = asksBackState;
+  // S3: offer ids already announced (a new offer fires one
+  // notification, the first tick after the Director files it).
+  const asksNotifiedRef = useRef<Set<string>>(new Set());
+  // S3: the step evaluator's change signature — it runs only when
+  // the space, the zone, the game day, or the record itself moved.
+  const asksLatchSigRef = useRef<{
+    space: string | null;
+    zkey: string | null;
+    day: number;
+    state: AsksBackState | null;
+  }>({ space: null, zkey: null, day: -1, state: null });
   // THE EVENT SINK: the one door every asks event walks through.
   // Call sites hand raw inputs (kind + ids); day and owner are
   // stamped here from the record's own clock. Batch-friendly —
@@ -602,6 +626,75 @@ export default function App() {
     setAsksBackState((prev) => runDirector({ worldSeed: seed, zx, zz, state: prev }));
   }, []);
 
+  // THE WORLD ASKS BACK, S3: the step evaluator. Pure on the
+  // record's latest ref — App applies the outcome: grants ride the
+  // ordinary addInventoryItem gain (pouch caps + overflow drops, as
+  // anywhere else), and the player hears about turns, answers,
+  // and absences. Runs from the 1s observer only when the
+  // signature moved (space/zone/day/record), never per frame.
+  const evaluateAndApplyAsks = useCallback(() => {
+    const seed = worldSeedRef.current;
+    if (!seed) return;
+    const prev = asksBackStateRef.current;
+    const { zx, zz } = playerZoneRef.current;
+    const res = evaluateAsks(prev, {
+      worldSeed: seed,
+      zoneKey: `${zx},${zz}`,
+      signals: questProgressRef.current?.signals,
+      inventory: latestStateRef.current.inventory,
+      itemName: (id: string) => ITEMS[id as ItemId]?.name ?? id,
+    });
+    if (res.state === prev) return; // idempotent: nothing owed
+    setAsksBackState(res.state);
+    for (const g of res.grants) addInventoryItem(g.itemId as ItemId, g.count);
+    for (const a of res.advanced)
+      postNotification('The saga turns', `${a.title} — ${a.stepTitle}`, 'system', '#a78bfa');
+    for (const c of res.completed)
+      postNotification(
+        'The world answers back',
+        `${c.title} — its reward is in your pouch`,
+        'discover',
+        '#a78bfa',
+      );
+    for (const d of res.deadAnchors)
+      postNotification(
+        'An absence',
+        `The ${d.name} in ${d.zoneName} is dead. The saga failed into memory.`,
+        'alert',
+        '#f87171',
+      );
+  }, [addInventoryItem, postNotification]);
+
+  // The log's three doors into the asks record (S3):
+  const acceptAsksSaga = useCallback(
+    (offerId: string) => {
+      const prev = asksBackStateRef.current;
+      if (!canAcceptSaga(prev)) {
+        postNotification(
+          'The world asks patience',
+          'Three sagas is the most the world asks at once — answer or release one first.',
+          'system',
+          '#a78bfa',
+        );
+        return;
+      }
+      const next = acceptAsksOffer(prev, offerId);
+      if (next === prev) return; // the offer faded already
+      setAsksBackState(next);
+      const inst = next.active.find((a) => a.id === offerId);
+      if (inst) postNotification('Saga taken up', inst.title, 'discover', '#a78bfa');
+    },
+    [postNotification],
+  );
+  const chooseAsksBranch = useCallback((sagaId: string, option: string) => {
+    // The choice records; the evaluator advances the choice step
+    // on the next tick — the click and the latch never race.
+    setAsksBackState((prev) => recordAsksChoice(prev, sagaId, option));
+  }, []);
+  const trackAsksSaga = useCallback((sagaId: string | null) => {
+    setAsksBackState((prev) => trackAsksSagaInRecord(prev, sagaId));
+  }, []);
+
   const asksSpaceRef = useRef<string | null>(null);
   const asksDirZoneRef = useRef<string | null>(null);
   const asksDirDayRef = useRef<number>(-1);
@@ -632,9 +725,41 @@ export default function App() {
         asksDirDayRef.current = day;
         runAsksDirector();
       }
+      // — S3: new-offer notifications. The Director may have filed
+      //   this tick; the ref carries the last render, so a fresh
+      //   offer announces on the next tick at the latest — one
+      //   notification per offer, ever (the set is the dedupe).
+      for (const o of asksBackStateRef.current.offers) {
+        if (!asksNotifiedRef.current.has(o.id)) {
+          asksNotifiedRef.current.add(o.id);
+          postNotification(
+            'The world asks',
+            `${o.title} — ${o.zoneName}`,
+            'discover',
+            '#a78bfa',
+          );
+        }
+      }
+      // — S3: step evaluation. Gated on the change signature
+      //   (space / zone / day / the record itself moved) so a quiet
+      //   tick costs one comparison, never a latch pass.
+      const sig = asksLatchSigRef.current;
+      const rec = asksBackStateRef.current;
+      if (
+        space !== sig.space ||
+        zkey !== sig.zkey ||
+        day !== sig.day ||
+        rec !== sig.state
+      ) {
+        sig.space = space;
+        sig.zkey = zkey;
+        sig.day = day;
+        sig.state = rec;
+        evaluateAndApplyAsks();
+      }
     }, 1000);
     return () => clearInterval(id);
-  }, [currentZoneId, recordAsksEvent, runAsksDirector]);
+  }, [currentZoneId, recordAsksEvent, runAsksDirector, postNotification, evaluateAndApplyAsks]);
 
   // The tool hook's instance guard: building and planting belong to
   // the surface world; inside an instance the hook refuses them (the
@@ -936,6 +1061,35 @@ export default function App() {
       createdAt < LANDFORM_EPOCH_MS,
     );
   }, [playerZone, hasStarted]);
+  // THE WORLD ASKS BACK, S3: the pinned saga's tracker face.
+  // The progress line runs the same latch math as the log card
+  // (latch.ts is the single source), so the two never disagree.
+  const trackedSagaInst = asksBackState.tracked
+    ? asksBackState.active.find(
+        (a) => a.id === asksBackState.tracked && a.status === 'active',
+      )
+    : undefined;
+  const sagaView: SagaTrackView | null = (() => {
+    if (!trackedSagaInst) return null;
+    const step = trackedSagaInst.steps[trackedSagaInst.currentStep];
+    if (!step) return null;
+    return {
+      title: trackedSagaInst.title,
+      zoneName: trackedSagaInst.zoneName,
+      stepN: Math.min(trackedSagaInst.currentStep + 1, trackedSagaInst.steps.length),
+      stepTotal: trackedSagaInst.steps.length,
+      stepTitle: step.title,
+      stepText: step.text,
+      progress: goalProgressText(step, trackedSagaInst, asksBackState, {
+        worldSeed: '',
+        zoneKey: `${playerZone.zx},${playerZone.zz}`,
+        signals: questProgress?.signals,
+        inventory,
+        itemName: (id: string) => ITEMS[id as ItemId]?.name ?? id,
+      }),
+    };
+  })();
+
   const { unlockedTools, questViews, trackedView, showQuestHud, updateQuestProgress } =
     useQuests({
       inventory,
@@ -1974,6 +2128,14 @@ const {
                 })
             : undefined
         }
+        // THE WORLD ASKS BACK (S3): the pinned saga's tracker face.
+        // While a saga is pinned it takes the tracker's slot; the
+        // authored tracked quest rests in the log and returns when
+        // the saga unpins.
+        sagaView={sagaView}
+        onDismissSaga={
+          sagaView ? () => trackAsksSaga(null) : undefined
+        }
         showQuestHud={showQuestHud}
         onCycleSeed={cycleSelectedSeed}
         onCycleFertilizer={cycleLoadedFertilizer}
@@ -2055,6 +2217,17 @@ const {
               : {}),
           })
         }
+        // THE WORLD ASKS BACK (S3): the saga section's record and
+        // its three doors (accept / choose / track).
+        asksBackState={asksBackState}
+        onAcceptSaga={acceptAsksSaga}
+        onChooseBranch={chooseAsksBranch}
+        onTrackSaga={trackAsksSaga}
+        sagaLatch={{
+          signals: questProgress?.signals,
+          inventory,
+          zoneKey: `${playerZone.zx},${playerZone.zz}`,
+        }}
       />
       {/* The Ask the World chapter (Adam, 2026-10-16): opens once,
           at the moment the fragment set completes. */}

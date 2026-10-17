@@ -2289,11 +2289,11 @@ const {
     // ingredients on a tier already carried.
     if (
       POUCH_UPGRADE_ITEMS.includes(recipe.outputId) &&
-      (latestStateRef.current.inventory?.[recipe.outputId] ?? 0) > 0
+      pouchTierOf(latestStateRef.current.inventory ?? {}) >= POUCH_UPGRADE_ITEMS.indexOf(recipe.outputId) + 1
     ) {
       postNotification(
         'Already Crafted',
-        `${ITEMS[recipe.outputId]?.name || 'That pouch upgrade'} already carries for you — one pouch tier is enough.`,
+        `${ITEMS[recipe.outputId]?.name || 'That pouch upgrade'} is beneath the tier already carrying for you.`,
         'craft',
       );
       return;

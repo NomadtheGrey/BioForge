@@ -10,7 +10,7 @@ import { RecipeFlowchart } from './RecipeFlowchart';
 // a recipe that grows a striker or shield says its kind beside
 // its tier, in the family's rose.
 import { FAMILY_KIND_LABEL, familyEntryOf } from '../game/items/weaponsFamily';
-import { POUCH_UPGRADE_ITEMS } from '../game/items/pouch';
+import { POUCH_UPGRADE_ITEMS, pouchTierOf } from '../game/items/pouch';
 // The Shield tab's membership is the shield rules table's own
 // list — crafts and graft recipes alike output a shield item.
 // The graft-slot lock (HUD audit, 2026-10-17) reads the same
@@ -156,8 +156,12 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     // The pouch-tier lock (Adam's play pass, 2026-10-17): the
     // carrying ladder's upgrades are one-time and maxStack 1 —
     // owning one IS the tier, so a re-craft would only burn
-    // ingredients on a duplicate that cannot stack.
-    if (POUCH_UPGRADE_ITEMS.includes(recipe.outputId) && (inventory[recipe.outputId] || 0) > 0) return false;
+    // ingredients on a duplicate that cannot stack. Tier-aware
+    // (dev lane's boundary nuance): the tiers never consume,
+    // so crafting a tier BENEATH the one you carry is the same
+    // paid no-op one rung down — the lock keys on the carried
+    // tier, not the item.
+    if (POUCH_UPGRADE_ITEMS.includes(recipe.outputId) && pouchTierOf(inventory) >= POUCH_UPGRADE_ITEMS.indexOf(recipe.outputId) + 1) return false;
     if (!hasIngredients(recipe)) return false;
     if (nearForge) return true;
     if (accessTierOf(recipe) >= 3) return false;
@@ -176,9 +180,10 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
       if (worn) return `Already grafted — ${SHIELD_GRAFTS[worn].name}`;
     }
     // The carried pouch tier speaks in the same family: an
-    // owned upgrade is already the player's carrying tier.
-    if (POUCH_UPGRADE_ITEMS.includes(recipe.outputId) && (inventory[recipe.outputId] || 0) > 0)
-      return 'Already crafted — you already carry this tier';
+    // owned upgrade is already the player's carrying tier —
+    // and a surpassed tier reads the same, by the same rule.
+    if (POUCH_UPGRADE_ITEMS.includes(recipe.outputId) && pouchTierOf(inventory) >= POUCH_UPGRADE_ITEMS.indexOf(recipe.outputId) + 1)
+      return 'Already crafted — you already carry this tier or better';
     if (!hasIngredients(recipe)) return 'Missing ingredients';
     if (nearForge) return null;
     if (accessTierOf(recipe) >= 3) return 'Advanced synthesis requires a bio-forge station';

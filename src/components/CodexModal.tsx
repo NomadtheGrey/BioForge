@@ -28,6 +28,9 @@ interface CodexModalProps {
   // The Spike Graft record (PlayerState.shieldGrowth), when
   // passed: shield dossiers mark GRAFTED on the entry itself.
   shieldGrowth?: ShieldGrowthMap;
+  // What the Left Hand wears, when passed: a held piece is
+  // out of the pouch, so arsenal ownership counts the hand.
+  heldItemId?: ItemId | null;
 }
 
 export const CodexModal: React.FC<CodexModalProps> = ({
@@ -36,6 +39,7 @@ export const CodexModal: React.FC<CodexModalProps> = ({
   codexList,
   inventory,
   shieldGrowth,
+  heldItemId,
 }) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'flora' | 'fauna' | 'composite' | 'arsenal'>('all');
   const [selectedEntry, setSelectedEntry] = useState<CodexEntry>(codexList[0]);
@@ -63,7 +67,7 @@ export const CodexModal: React.FC<CodexModalProps> = ({
   // is per-item. Weapons are forge knowledge, not scanned
   // discoveries, so entries read openly; the pouch (when passed)
   // only marks what stands GROWN.
-  const owns = (id: ItemId) => (inventory?.[id] ?? 0) > 0;
+  const owns = (id: ItemId) => (inventory?.[id] ?? 0) > 0 || heldItemId === id;
   const selWeapon: FamilyEntry | undefined = familyEntryOf(selectedWeaponId);
   const selItem = selWeapon ? ITEMS[selWeapon.itemId] : undefined;
 
@@ -412,7 +416,7 @@ const renderArsenalRow = (e: FamilyEntry) => {
                       {ITEMS[ing.id]?.name ?? ing.id} ×{ing.count}
                       {inventory && (
                         <span className={`${KIND_ACCENT[selWeapon.kind].recipeHave} font-mono text-[10px]`}>
-                          (have {inventory[ing.id] ?? 0})
+                          (have {(inventory[ing.id] ?? 0) + (heldItemId === ing.id ? 1 : 0)})
                         </span>
                       )}
                     </span>

@@ -1528,7 +1528,9 @@ export const HUD: React.FC<HUDProps> = ({
                 joined it in 2026-10-17. The hand now cycles —
                 click, Alt+wheel, or Alt+↑ — through what the
                 player owns: lantern ↔ Scute Shield ↔ Lantern
-                Shield ↔ Fenback Shield ↔ empty. The tile wears
+                Shield ↔ Fenback Shield, wrapping among what's
+                owned — the hand fills itself and stands empty
+                only when nothing is owned. The tile wears
                 the held thing's face: lantern light (cyan), a
                 shield's ward (rose, BRACED while raised), or
                 the empty hand. */}

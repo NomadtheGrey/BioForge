@@ -30,6 +30,10 @@ interface InventoryModalProps {
   // The Spike Graft record (PlayerState.shieldGrowth), when
   // passed: a shield's inspector marks GRAFTED on the item.
   shieldGrowth?: ShieldGrowthMap;
+  // What the Left Hand wears, when the host passes it: a held
+  // piece is OUT of the pouch (the hand's transfer model), so
+  // the shield card counts it as owned-and-worn from here.
+  heldItemId?: ItemId | null;
 }
 
 export const InventoryModal: React.FC<InventoryModalProps> = ({
@@ -41,6 +45,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
   onSelectFertilizer,
   onSelectTool,
   shieldGrowth,
+  heldItemId,
 }) => {
   const [activeTab, setActiveTab] = useState<'all' | 'raw' | 'seed' | 'fertilizer' | 'structure' | 'gauntlet' | 'helmet' | 'boots' | 'shield' | 'base'>('all');
   const [selectedItemId, setSelectedItemId] = useState<ItemId | null>(null);
@@ -287,7 +292,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                 Quicksteps' growths — with live state from the
                 pouch. Search stands them down like the tabs. */}
             {!searchActive && activeTab === 'shield' && (
-              <ShieldUpgradesCard inventory={inventory} shieldGrowth={shieldGrowth} />
+              <ShieldUpgradesCard inventory={inventory} shieldGrowth={shieldGrowth} heldItemId={heldItemId} />
             )}
             {!searchActive && activeTab === 'boots' && (
               <QuickstepsUpgradesCard inventory={inventory} />

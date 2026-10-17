@@ -45,11 +45,17 @@ const owns = (inventory: Record<ItemId, number>, id: ItemId) => (inventory[id] ?
 // player grew it, and the ward they wear is its continuation.
 export const ShieldUpgradesCard: React.FC<CardProps & {
   shieldGrowth?: ShieldGrowthMap;
-}> = ({ inventory, shieldGrowth }) => {
+  heldItemId?: ItemId | null;
+}> = ({ inventory, shieldGrowth, heldItemId }) => {
+  // A held shield is OUT of the pouch (raising deducts — the
+  // hand's transfer model), and with the hand filling itself
+  // the worn rung is nearly always the held one. Ownership
+  // here counts the hand: the rung in it is WORN, full stop.
+  const ownsShield = (id: ItemId) => owns(inventory, id) || heldItemId === id;
   const entries = familyByKind().find((sh) => sh.kind === 'defensive')?.entries ?? [];
   const topTier = Math.max(
     0,
-    ...entries.filter((e) => owns(inventory, e.itemId)).map((e) => e.tier),
+    ...entries.filter((e) => ownsShield(e.itemId)).map((e) => e.tier),
   );
   const graftedNames = SHIELD_ITEM_IDS
     .filter((id) => graftOf(shieldGrowth, id) !== null)
@@ -94,7 +100,7 @@ export const ShieldUpgradesCard: React.FC<CardProps & {
       </div>
       <div className="space-y-1.5">
         {entries.map((e) => {
-          const owned = owns(inventory, e.itemId);
+          const owned = ownsShield(e.itemId);
           const state = owned ? 'WORN' : e.tier < topTier ? 'GREW ONWARD' : 'NOT GROWN';
           return (
             <div key={e.itemId} className="flex items-start justify-between gap-3 text-[11px] leading-snug">

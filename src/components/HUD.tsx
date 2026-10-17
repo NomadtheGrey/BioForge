@@ -676,12 +676,25 @@ export const HUD: React.FC<HUDProps> = ({
             bottom edge instead, which Adam accepted — every
             panel is draggable and hideable. */}
         <div
-          className={`absolute z-20 flex min-w-0 flex-col gap-2.5 p-2 -m-2 ${
+          className={`absolute z-20 flex min-w-0 flex-col items-start gap-2.5 p-2 -m-2 ${
             touchMode ? 'left-2 top-2' : 'left-4 top-4'
           }`}
         >
+          {/* items-start on BOTH stack containers (Adam's
+              playtest, 2026-10-17): a flex column STRETCHES its
+              children by default, so every panel's HudPanel
+              wrapper — its clickable / drag surface — ran as
+              wide as the widest sibling (the Controls card at
+              26rem), while the Bio-Suit card inside is 18rem.
+              The invisible extra strip caught clicks and drags
+              meant for whatever sat beneath it. Shrink-wrapped,
+              each panel's clickable area IS its card. Every
+              panel child here is intrinsically sized (vitals
+              w-72/w-52, the Minimap canvas, the tracker, the
+              Controls card), so nothing depended on the
+              stretch. */}
           <div
-            className={`flex min-w-0 gap-2.5 ${
+            className={`flex min-w-0 items-start gap-2.5 ${
               touchMode
                 ? 'flex-col [@media(max-height:540px)]:flex-row [@media(max-height:540px)]:items-start'
                 : 'flex-col'

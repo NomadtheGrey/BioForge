@@ -23,6 +23,8 @@ import type { FirstPersonMovementController, ControllerInputState } from '../gam
 import * as THREE from 'three';
 import { occupancyConflict, placementFor, isFloorType } from '../game/placement';
 import { noteIdForPickupItem } from '../game/fieldNotesBook';
+import { isSampleItem } from '../game/vat';
+import type { AsksEventInput } from '../game/asksBackState';
 import { multiplayerManager } from '../game/multiplayer';
 import { soundEngine } from '../audio/soundEngine';
 import { ITEMS } from '../game/constants';
@@ -110,12 +112,15 @@ export interface GameLoopDeps {
   liveGameRefs: { current: {
     hasItem: (itemId: ItemId, quantity: number) => boolean;
     addInventoryItem: (itemId: ItemId, quantity: number) => void;
-    updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number) => void, attacksArmed?: boolean, dayPhase?: number, onFieldWitness?: (noteId: string) => void, onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void) => void;
+    updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number) => void, attacksArmed?: boolean, dayPhase?: number, onFieldWitness?: (noteId: string) => void, onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void, onAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void) => void;
     postNotification: (title: string, message: string, type?: GameNotification['type'], iconColor?: string) => void;
     // The Field Notes witness sink (App's recordFieldWitness,
     // fieldNotesBook.ts) — optional so the loop never hard-depends
     // on the book; sim-side witnesses ride in through here too.
     recordFieldWitness?: (noteId: string) => void;
+    /** The World Asks Back (2026-10-16): the saga event sink —
+     *  sample pickups and sim-side culls stamp through here. */
+    recordAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void;
     getPlacementRotation: () => number;
   } };
   accumulatedTickTime: { current: number };
@@ -676,6 +681,16 @@ export function useGameLoop(deps: GameLoopDeps): void {
               // the note's named moment.
               const pickupWitness = noteIdForPickupItem(pickedItem.itemId);
               if (pickupWitness) liveGameRefs.current.recordFieldWitness?.(pickupWitness);
+              // The World Asks Back (2026-10-16): a sample vial
+              // picked up is the sample event for saga latching —
+              // the id strips to the species the saga text names.
+              if (isSampleItem(pickedItem.itemId)) {
+                liveGameRefs.current.recordAsksEvent?.({
+                  kind: 'sample',
+                  species: pickedItem.itemId.slice('sample_'.length),
+                  count: pickedItem.count,
+                });
+              }
               soundEngine.playHarvest();
               liveGameRefs.current.postNotification(
                 'Item Collected',
@@ -733,7 +748,10 @@ export function useGameLoop(deps: GameLoopDeps): void {
                 'system',
                 '#a3a380'
               );
-            }
+            },
+            // The World Asks Back (2026-10-16): the saga event
+            // sink — culls stamp through here into App's ledger.
+            (input) => liveGameRefs.current.recordAsksEvent?.(input)
           );
         }
 

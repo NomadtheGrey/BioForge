@@ -56,9 +56,9 @@ export function isShieldItem(itemId: ItemId | null | undefined): boolean {
 // game's damage scale — wild bites run 8-18, the player carries 100 hp).
 // ---------------------------------------------------------------------------
 
-/** Frontal arc, in degrees, that a carried or braced shield covers. */
+/** Frontal arc, in degrees, that a worn or braced shield covers. */
 export const SHIELD_FRONTAL_ARC_DEG = 120;
-/** Passive (carried, not raised) blunts strikes to this fraction. */
+/** Passive (worn, not raised) blunts strikes to this fraction. */
 export const SHIELD_PASSIVE_BLUNT = 0.5;
 /** Stamina paid per braced block. */
 export const SHIELD_STAMINA_PER_BLOCK = 8;
@@ -71,7 +71,7 @@ export const SHIELD_BRACED_SLOW = 0.55;
 /** Stagger dealt to an attacker whose strike meets the braced wall
  *  (the strikers' flinch language: no movement, no bites). */
 export const SHIELD_BRACED_STAGGER_SECONDS = 0.4;
-/** Thorn-spike reflect: minor carried, more braced (pinned:
+/** Thorn-spike reflect: minor worn, more braced (pinned:
  *  braced > passive > none). */
 export const GRAFT_REFLECT_PASSIVE = 4;
 export const GRAFT_REFLECT_BRACED = 10;
@@ -157,7 +157,7 @@ export interface ShieldGraftDef {
   id: ShieldGraftId;
   /** Player-facing name, for the graft notification. */
   name: string;
-  /** Reflect on a strike the shield met, carried / braced. */
+  /** Reflect on a strike the shield met, worn / braced. */
   reflectPassive: number;
   reflectBraced: number;
 }
@@ -183,19 +183,19 @@ export const LEE_HALF_ANGLE_DEG = 40;
 // The Lodestone Bulwark's pull (Ingredient Sinks, 2026-10-17):
 // the drop pass in useWorldEntities already vacuums drops
 // toward the player inside a small radius. A held Bulwark
-// widens the lodestone's reach — carried, the pull starts
+// widens the lodestone's reach — worn, the pull starts
 // farther out; braced, farther still and quicker. Pickup
 // itself (2 m) never changes: the Bulwark gathers, it does
 // not teleport.
 // ---------------------------------------------------------------------------
-/** The drop pass's standing numbers (no lodestone in hand). */
+/** The drop pass's standing numbers (no lodestone worn). */
 export const DROP_MAGNET_BASE = { radius: 5.0, speed: 3.5 };
-/** Lodestone carried: drops drift from this far, at this pace. */
+/** Lodestone worn: drops drift from this far, at this pace. */
 export const DROP_MAGNET_CARRIED = { radius: 9.0, speed: 4.5 };
 /** Lodestone braced: the pull at full stretch. */
 export const DROP_MAGNET_BRACED = { radius: 13.0, speed: 5.5 };
 
-/** The drop-magnet spec for the shield in hand right now: the
+/** The drop-magnet spec for the shield worn right now: the
  *  pull belongs to whichever shield wears the lodestone slot
  *  (the slot ruling, 2026-10-17 — it was a whole shield, the
  *  Bulwark, until Adam made it a slot like the spikes). */

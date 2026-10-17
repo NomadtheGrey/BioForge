@@ -160,7 +160,7 @@ export function useShieldWield(deps: ShieldWieldDeps): ShieldWieldApi {
       setShieldGrowth(next);
       postNotification(
         'Lodestone Set',
-        `The lodestone takes hold in the ${ITEMS[itemId]?.name ?? 'shield'} — dropped things will drift to you while it is in hand.`,
+        `The lodestone takes hold in the ${ITEMS[itemId]?.name ?? 'shield'} — dropped things will drift to you while it is worn.`,
         'craft',
         '#7c6f9e'
       );

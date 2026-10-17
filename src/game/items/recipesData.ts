@@ -1108,7 +1108,7 @@ export const RECIPES: CraftingRecipe[] = [
     outputId: 'scute_shield',
     outputCount: 1,
     name: 'Set Lodestone — Scute Shield',
-    description: 'Set lodestone plates into the Scute Shield: the shield gains the pull — carried, drops drift to you from nine meters; braced, from thirteen.',
+    description: 'Set lodestone plates into the Scute Shield: the shield gains the pull — worn, drops drift to you from nine meters; braced, from thirteen.',
     category: 'defenses',
     ingredients: [
       { id: 'scute_shield', count: 1 },
@@ -1124,7 +1124,7 @@ export const RECIPES: CraftingRecipe[] = [
     outputId: 'lantern_shield',
     outputCount: 1,
     name: 'Set Lodestone — Lantern Shield',
-    description: 'Set lodestone plates into the Lantern Shield: the shield gains the pull — carried, drops drift to you from nine meters; braced, from thirteen.',
+    description: 'Set lodestone plates into the Lantern Shield: the shield gains the pull — worn, drops drift to you from nine meters; braced, from thirteen.',
     category: 'defenses',
     ingredients: [
       { id: 'lantern_shield', count: 1 },
@@ -1140,7 +1140,7 @@ export const RECIPES: CraftingRecipe[] = [
     outputId: 'fenback_shield',
     outputCount: 1,
     name: 'Set Lodestone — Fenback Shield',
-    description: 'Set lodestone plates into the Fenback Shield: the shield gains the pull — carried, drops drift to you from nine meters; braced, from thirteen.',
+    description: 'Set lodestone plates into the Fenback Shield: the shield gains the pull — worn, drops drift to you from nine meters; braced, from thirteen.',
     category: 'defenses',
     ingredients: [
       { id: 'fenback_shield', count: 1 },

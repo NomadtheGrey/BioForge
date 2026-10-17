@@ -91,7 +91,7 @@ export const DEFENSIVES: FamilyEntry[] = [
     tier: 2,
     signatures: [
       'The Tier 2 branch, not a ladder: it blocks exactly as the Scute Shield — the tier buys the light.',
-      'A Hand Lantern-Fern grown into the shield\'s face; the light holds while held, and throws forward while braced.',
+      'A Hand Lantern-Fern grown into the shield\'s face; the light holds while worn, and throws forward while braced.',
       'Grown by combination: its recipe consumes the lantern and the Scute Shield.',
     ],
   },

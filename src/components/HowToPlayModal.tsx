@@ -213,31 +213,17 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({
             </p>
           </Section>
 
-          <Section title="Quests — the game teaches in quests">
+          <Section title="Why Quests?">
             <p>
-              Press <span className="text-slate-100 font-medium">Q</span> (or the Quests button)
-              for the Quest Log. Three kinds live there:
-            </p>
-            <p>
-              <span className="font-semibold text-slate-100">Mini-quests</span>
-              <span className="text-slate-400">
-                {' '}— the crafting chain. Each one names what to gather and what it grows into:
-                a pouch, a scanner, a trowel. Following them IS the tutorial the world gives
-                you; the tracker card on your HUD follows the one you've pinned.
-              </span>
-            </p>
-            <p>
-              <span className="font-semibold text-slate-100">Ask the World</span>
-              <span className="text-slate-400">
-                {' '}— questions the land answers as you explore: ruins, glyphs, strange
-                meetings. No fetch lists; go and see.
-              </span>
-            </p>
-            <p>
-              <span className="font-semibold text-slate-100">The World Asks Back</span>
-              <span className="text-slate-400">
-                {' '}— in time, the country starts asking things of YOU. Watch the tracker.
-              </span>
+              Quests are how this world talks to you — and how you talk back. Some are a
+              path laid out for you: follow them and they will teach you the game's crafts,
+              one platform at a time. Some the world asks of YOU: a place changes, a
+              creature settles somewhere strange, and the world waits to see what you do
+              about it. And some are questions you ask the world — the ones shelved under
+              ASK THE WORLD in your Quest Log. Who grew all this? Where did they go?
+              Their ruins still stand, their stones still speak, and every answer is
+              earned by going and looking. Press Q any time. Chase whichever one is
+              calling.
             </p>
           </Section>
 
@@ -316,7 +302,9 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({
               <span className="text-slate-100 font-medium">B</span> opens the Bio-Forge — it
               grows everything you will ever wear.{' '}
               <span className="text-slate-100 font-medium">Q</span> opens the Quest Log — the
-              mini-quests are the crafting chain, and following them teaches the game. Your
+              authored quests are the crafting chain, and following them teaches the game.
+              Beyond them, the world files asks of its own as you play, and the oldest
+              trail of all runs through the Precursors' ruins. Your
               gear is three platforms and a shield: the Gauntlet DOES, the Helmet KNOWS, the
               Quicksteps GO. Owning an upgrade is wearing it.
             </p>

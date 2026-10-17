@@ -20,8 +20,13 @@
  *    pointer is locked and the mouse is the camera.
  *  - Targets resolve by DOM id: HUD panels carry their
  *    HUD_PANELS id on their root element (HudPanel), and the
- *    fixed help cluster's buttons carry their own ids
+ *    help doors in the session bar carry their own ids
  *    ('quests-btn' / 'howto-btn').
+ *  - THE ARROW (Adam, 2026-10-17): the ring alone was too
+ *    polite. A big bouncing arrow now parks on whichever
+ *    side of the target has the most room and points AT it.
+ *    Obnoxious is the brief — a twelve-year-old mid-game
+ *    should not have to hunt for what the ring means.
  *
  * Keys: → or N = Next · ← = Skip step · X = End tutorial.
  * (Letters were chosen to dodge the game's own bindings:
@@ -30,7 +35,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { X, ChevronRight, ChevronsRight, Flag } from 'lucide-react';
+import { X, ChevronRight, ChevronsRight, Flag, ArrowDown } from 'lucide-react';
 import type { UseTutorialResult } from '../hooks/useTutorial';
 
 interface Rect {
@@ -116,6 +121,53 @@ export const TutorialChrome: React.FC<{ tutorial: UseTutorialResult }> = ({ tuto
           }}
         />
       )}
+
+      {/* The arrow: parked outside the ring on the roomiest
+          side, aimed at the target's middle. One glyph does
+          every direction — ArrowDown inside a rotated wrapper;
+          the bounce runs in the wrapper's frame, so it always
+          bounces ALONG the pointing axis, nagging toward the
+          target. 56px, emerald, glowing: deliberately too big
+          to miss. Skipped when no side has room for it (a
+          target that fills the screen needs no directions). */}
+      {rect && (() => {
+        const ARROW = 56;
+        const GAP = 10;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const room = {
+          left: rect.x,
+          right: vw - (rect.x + rect.w),
+          top: rect.y,
+          bottom: vh - (rect.y + rect.h),
+        };
+        const side = (Object.keys(room) as Array<keyof typeof room>)
+          .sort((a, b) => room[b] - room[a])[0];
+        if (room[side] < ARROW + GAP + 6) return null;
+        const cx = rect.x + rect.w / 2;
+        const cy = rect.y + rect.h / 2;
+        let posLeft = cx - ARROW / 2;
+        let posTop = rect.y - 6 - GAP - ARROW;
+        if (side === 'bottom') posTop = rect.y + rect.h + 6 + GAP;
+        if (side === 'left') { posLeft = rect.x - 6 - GAP - ARROW; posTop = cy - ARROW / 2; }
+        if (side === 'right') { posLeft = rect.x + rect.w + 6 + GAP; posTop = cy - ARROW / 2; }
+        const pos = { left: posLeft, top: posTop };
+        const rotation = { top: 0, right: 90, bottom: 180, left: 270 }[side];
+        return (
+          <div
+            aria-hidden
+            className="fixed z-30 pointer-events-none"
+            style={{ left: pos.left, top: pos.top, width: ARROW, height: ARROW }}
+          >
+            <div style={{ transform: `rotate(${rotation}deg)` }} className="w-full h-full">
+              <ArrowDown
+                className="w-full h-full text-emerald-300 animate-bounce drop-shadow-[0_0_14px_rgba(52,211,153,0.95)]"
+                strokeWidth={3.5}
+              />
+            </div>
+          </div>
+        );
+      })()}
 
       {/* The step card: bottom-center, parked ABOVE the
           hotbar so the tools it talks about stay visible.

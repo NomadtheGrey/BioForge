@@ -29,6 +29,7 @@ import {
   nightSkyAt,
   cometStatesAt,
   readSkyClock,
+  showerCallSerialNow,
   MOON_DRIFT_PER_DAY,
   type MeteorSpec,
 } from './skyCalendar';
@@ -470,6 +471,10 @@ export class SkyRig {
   private meteorNight: { at: number; spec: MeteorSpec }[] = [];
   private meteorFired: Set<number> = new Set();
   private meteorLatched = false;
+  /** The called-shower serial this rig last honored
+   *  (Playtest Kit): a fresh call re-opens the latch so
+   *  tonight's list is re-read from the calendar. */
+  private seenShowerCall = 0;
   private prevCycle = -1;
   /** Aurora (Shelf 1): curtain planes hung across the sky,
    *  shown when the calendar's night carries an aurora AND
@@ -1096,6 +1101,14 @@ export class SkyRig {
     }
     const now = Date.now();
     const sky = skyRosterNow(now);
+    // A called shower (Playtest Kit) re-opens the latch:
+    // tonight's list is re-dealt from the calendar, which
+    // now includes the block's own shower on this night.
+    const callSerial = showerCallSerialNow();
+    if (callSerial !== this.seenShowerCall) {
+      this.seenShowerCall = callSerial;
+      this.meteorLatched = false;
+    }
     if (sky && !this.meteorLatched) {
       const night = nightSkyAt(sky.roster, Math.floor(sky.tDays));
       this.meteorNight = [...night.baseline, ...(night.shower ? night.shower.meteors : [])]

@@ -95,6 +95,10 @@ interface HUDProps {
   // 2026-10-17): optional so the HUD renders its button only
   // once App wires the opener.
   onOpenAbout?: () => void;
+  // The How to Play opener (Adam's program, 2026-10-17):
+  // optional in the same pattern — the fixed cluster renders
+  // its button only once App wires the modal.
+  onOpenHowToPlay?: () => void;
   onOpenDevTools?: () => void;
   onSave?: () => void;
   currentBiomeName: string;
@@ -294,6 +298,7 @@ export const HUD: React.FC<HUDProps> = ({
   onOpenMultiplayer,
   onOpenControls,
   onOpenAbout,
+  onOpenHowToPlay,
   onOpenDevTools,
   onSave,
   currentBiomeName,
@@ -346,6 +351,36 @@ export const HUD: React.FC<HUDProps> = ({
   // the HudOptionsPanel that restores anything hidden from here.
   const hudLayout = useHudLayout();
   const [showHudOptions, setShowHudOptions] = useState<boolean>(false);
+
+  // The How to Play pulse (Adam's program, 2026-10-17): the
+  // button pulses until the modal has been opened ONCE, then
+  // keeps a quiet glow. The memory is per-device, in the
+  // tutorial's own localStorage record (design doc §5:
+  // 'bioforge.tutorial.v1' = { modalSeen, stepIndex,
+  // completed, skipped }) — the HUD only ever reads/writes
+  // modalSeen here, merging so the tutorial engine's fields
+  // are never clobbered; Slice B's useTutorial owns the rest.
+  const [howToSeen, setHowToSeen] = useState<boolean>(() => {
+    try {
+      const raw = localStorage.getItem('bioforge.tutorial.v1');
+      return raw ? JSON.parse(raw)?.modalSeen === true : false;
+    } catch {
+      return false;
+    }
+  });
+  const markHowToSeen = () => {
+    setHowToSeen(true);
+    try {
+      const raw = localStorage.getItem('bioforge.tutorial.v1');
+      const prev = raw ? JSON.parse(raw) : {};
+      localStorage.setItem(
+        'bioforge.tutorial.v1',
+        JSON.stringify({ ...prev, modalSeen: true }),
+      );
+    } catch {
+      /* per-device memory is a nicety, never a crash */
+    }
+  };
   // Escape closes the Options panel too (Adam, 2026-10-16): it
   // is HUD-internal state rather than an App modal, so the
   // input hook's Esc-to-close never sees it — this listener is
@@ -865,6 +900,49 @@ export const HUD: React.FC<HUDProps> = ({
           </HudPanel>
         )}
 
+        {/* THE HELP CLUSTER (Adam's How to Play program,
+            2026-10-17): HOW TO PLAY + QUESTS, fixed and labeled
+            at the top-right — NOT a HudPanel, deliberately. A
+            first-time player's lifeline can't be dragged away,
+            ✕-hidden, or Options-toggled; it renders outside the
+            panel system entirely and only its PULSE is stateful
+            (it quiets once the modal has been opened once, per
+            the tutorial memory below). Quests MOVED here from
+            the session bar in the same pass — the two doors a
+            lost player needs, in one glanceable corner. The ids
+            are stable anchors for the tutorial's highlight ring
+            (Slice B resolves step targets by panel id OR by
+            element id). */}
+        <div id="howto-cluster" className="flex items-start gap-1.5 shrink-0">
+          {onOpenHowToPlay && (
+            <button
+              id="howto-btn"
+              onClick={() => {
+                markHowToSeen();
+                onOpenHowToPlay();
+              }}
+              title="How to Play BioForge"
+              className={`px-3 py-2 rounded-2xl border font-tech font-bold text-[11px] tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
+                howToSeen
+                  ? 'text-emerald-200 border-emerald-500/50 bg-emerald-950/40 shadow-[0_0_14px_rgba(52,211,153,0.35)] hover:bg-emerald-900/50'
+                  : 'text-emerald-950 bg-emerald-400 border-emerald-300 shadow-[0_0_22px_rgba(52,211,153,0.75)] animate-pulse hover:bg-emerald-300'
+              }`}
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>HOW TO PLAY</span>
+            </button>
+          )}
+          <button
+            id="quests-btn"
+            onClick={onOpenQuests}
+            title="Quest Log [Q]"
+            className="px-3 py-2 rounded-2xl border border-slate-500/60 bg-slate-900/70 font-tech font-bold text-[11px] tracking-wider text-slate-100 flex items-center gap-1.5 hover:bg-slate-800/80 transition-all cursor-pointer"
+          >
+            <ScrollText className="w-4 h-4 text-emerald-300" />
+            <span>QUESTS</span>
+          </button>
+        </div>
+
         {/* Right Top: the session bar — save, session, and system
             buttons in ONE panel instead of floating as separate
             pills. Two rows now (Adam, 2026-10-16): the old single
@@ -991,17 +1069,10 @@ export const HUD: React.FC<HUDProps> = ({
             </button>
           )}
 
-          {/* Mini-Quest List: opens the quest panel (the Q hotkey
-              does the same). The panel owns the tracker HUD's
-              visibility checkbox and the tracking pick. */}
-          <button
-            onClick={onOpenQuests}
-            title="Mini-Quests [Q]"
-            className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/70 transition-colors flex items-center gap-1.5"
-          >
-            <ScrollText className="w-4 h-4 text-emerald-400" />
-            <span className="text-[11px] font-mono font-medium hidden md:inline">Quests</span>
-          </button>
+          {/* The Quests button that lived here moved UP into
+              the fixed help cluster beside HOW TO PLAY (Adam's
+              program, 2026-10-17) — one door, always visible,
+              never duplicated. */}
 
           {/* Controls Guide */}
           <button

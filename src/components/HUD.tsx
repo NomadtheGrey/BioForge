@@ -961,48 +961,17 @@ export const HUD: React.FC<HUDProps> = ({
           </HudPanel>
         )}
 
-        {/* THE HELP CLUSTER (Adam's How to Play program,
-            2026-10-17): HOW TO PLAY + QUESTS, fixed and labeled
-            at the top-right — NOT a HudPanel, deliberately. A
-            first-time player's lifeline can't be dragged away,
-            ✕-hidden, or Options-toggled; it renders outside the
-            panel system entirely and only its PULSE is stateful
-            (it quiets once the modal has been opened once, per
-            the tutorial memory below). Quests MOVED here from
-            the session bar in the same pass — the two doors a
-            lost player needs, in one glanceable corner. The ids
-            are stable anchors for the tutorial's highlight ring
-            (Slice B resolves step targets by panel id OR by
-            element id). */}
-        <div id="howto-cluster" className="flex items-start gap-1.5 shrink-0">
-          {onOpenHowToPlay && (
-            <button
-              id="howto-btn"
-              onClick={() => {
-                markHowToSeen();
-                onOpenHowToPlay();
-              }}
-              title="How to Play BioForge"
-              className={`px-3 py-2 rounded-2xl border font-tech font-bold text-[11px] tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
-                howToSeen
-                  ? 'text-emerald-200 border-emerald-500/50 bg-emerald-950/40 shadow-[0_0_14px_rgba(52,211,153,0.35)] hover:bg-emerald-900/50'
-                  : 'text-emerald-950 bg-emerald-400 border-emerald-300 shadow-[0_0_22px_rgba(52,211,153,0.75)] animate-pulse hover:bg-emerald-300'
-              }`}
-            >
-              <BookOpen className="w-4 h-4" />
-              <span>HOW TO PLAY</span>
-            </button>
-          )}
-          <button
-            id="quests-btn"
-            onClick={onOpenQuests}
-            title="Quest Log [Q]"
-            className="px-3 py-2 rounded-2xl border border-slate-500/60 bg-slate-900/70 font-tech font-bold text-[11px] tracking-wider text-slate-100 flex items-center gap-1.5 hover:bg-slate-800/80 transition-all cursor-pointer"
-          >
-            <ScrollText className="w-4 h-4 text-emerald-300" />
-            <span>QUESTS</span>
-          </button>
-        </div>
+        {/* The HOW TO PLAY + QUESTS doors used to float here as a
+            fixed cluster (2026-10-17) — and were DEAD: the HUD
+            root is pointer-events-none, panels opt back in via
+            HudPanel, and the cluster never did, so its buttons
+            inherited 'none' and no click ever landed (Adam's
+            playtest catch). The doors now live in the SESSION
+            bar below, inside HudPanel's pointer-events-auto —
+            see the second row there. Their DOM ids moved with
+            them, so the tutorial's highlight ring still finds
+            howto-btn / quests-btn. */}
+
 
         {/* Right Top: the session bar — save, session, and system
             buttons in ONE panel instead of floating as separate
@@ -1130,10 +1099,43 @@ export const HUD: React.FC<HUDProps> = ({
             </button>
           )}
 
-          {/* The Quests button that lived here moved UP into
-              the fixed help cluster beside HOW TO PLAY (Adam's
-              program, 2026-10-17) — one door, always visible,
-              never duplicated. */}
+          {/* HOW TO PLAY + QUESTS (Adam, 2026-10-17): the two
+              doors a lost player needs, moved INTO the Session
+              bar from the dead floating cluster (see the note in
+              the top bar). Inside HudPanel they inherit
+              pointer-events-auto and actually click. HOW TO PLAY
+              keeps its tutorial pulse — solid and pulsing until
+              the guide has been opened once (localStorage
+              memory), then a quiet emerald tint. The ids are
+              the tutorial highlight ring's anchors. */}
+          {onOpenHowToPlay && (
+            <button
+              id="howto-btn"
+              onClick={() => {
+                markHowToSeen();
+                onOpenHowToPlay();
+              }}
+              title="How to Play BioForge"
+              className={`p-2 rounded-xl flex items-center gap-1.5 transition-all ${
+                howToSeen
+                  ? 'text-emerald-200 bg-emerald-950/50 hover:bg-emerald-900/50'
+                  : 'text-emerald-950 bg-emerald-400 hover:bg-emerald-300 animate-pulse shadow-[0_0_14px_rgba(52,211,153,0.6)]'
+              }`}
+            >
+              <BookOpen className="w-4 h-4" />
+              <span className="text-[11px] font-mono font-bold hidden md:inline">How to Play</span>
+            </button>
+          )}
+
+          <button
+            id="quests-btn"
+            onClick={onOpenQuests}
+            title="Quest Log [Q]"
+            className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/70 transition-colors flex items-center gap-1.5"
+          >
+            <ScrollText className="w-4 h-4 text-emerald-300" />
+            <span className="text-[11px] font-mono font-medium hidden md:inline">Quests</span>
+          </button>
 
           {/* Controls Guide */}
           <button

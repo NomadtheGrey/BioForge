@@ -92,6 +92,10 @@ import {
   goalProgressText,
 } from './game/asksBack/latch';
 import { recordAsksChoice } from './game/asksBackState';
+// THE WORLD ASKS BACK, S4: a release settles the creature in the
+// zone's consequence record — the Director reads it as an anchor
+// and the zone loader materializes it by name.
+import { addSettled, settleIndividual, zoneConsequences } from './game/asksBack/zoneState';
 import type { SagaTrackView } from './components/QuestTracker';
 
 import { StartScreenModal } from './components/StartScreenModal';
@@ -568,6 +572,10 @@ export default function App() {
     // these for echo timing and revisit goals.
     onZoneEnter: (zoneKeyVisited: string) =>
       recordAsksEvent({ kind: 'zoneVisit', zoneKey: zoneKeyVisited }),
+    // THE WORLD ASKS BACK, S4: the consequence record. The travel
+    // hook applies its zone state on every crossing — but only for
+    // the world author (solo/host); guests carry the host's truth.
+    asksBackState,
   });
 
   // The descent stack: one frame per level ABOVE the current one,
@@ -2252,9 +2260,32 @@ const {
               </button>
               <button
                 onClick={() => {
-                  releaseFauna(pendingRelease.id);
+                  // THE WORLD ASKS BACK, S4: a release settles the
+                  // creature in this zone's consequence record — the
+                  // source of truth the Director anchors on by name
+                  // and the zone loader materializes on entry. The
+                  // record keeps the name the creature keeps, so the
+                  // two can never disagree; a nameless release takes
+                  // the record's deterministic name, stamped onto the
+                  // live creature too.
+                  const seed = worldSeedRef.current;
+                  const relDay = asksGameDay(asksBackStateRef.current);
+                  const settledName =
+                    pendingRelease.customName ||
+                    settleIndividual(seed, playerZone.zx, playerZone.zz, pendingRelease.species, relDay).name;
+                  releaseFauna(pendingRelease.id, pendingRelease.customName ? undefined : settledName);
+                  setAsksBackState((prev) => {
+                    const key = `${playerZone.zx},${playerZone.zz}`;
+                    const indiv = settleIndividual(seed, playerZone.zx, playerZone.zz, pendingRelease.species, asksGameDay(prev));
+                    const named = { ...indiv, name: settledName };
+                    return {
+                      ...prev,
+                      zoneState: { ...prev.zoneState, [key]: addSettled(zoneConsequences(prev, key), named) },
+                    };
+                  });
                   multiplayerManager.broadcastEntityUpsert('fauna', {
                     ...pendingRelease,
+                    customName: settledName,
                     isTamed: false,
                     command: undefined,
                     state: 'wandering',

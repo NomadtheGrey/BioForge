@@ -57,6 +57,7 @@ import {
   type ZoneCoords,
 } from './game/world/zones';
 import { LANDFORM_EPOCH_MS } from './game/world/terrain';
+import { setSkyZone } from './game/world/skyCalendar';
 import { routeForZoneTag, storeEntityEvent, snapshotOf, buildZoneSyncTravel as buildZoneSyncTravelPayload, type ZoneStores } from './game/zoneSync';
 import { occupancyConflict, placementFor } from './game/structures/placement';
 import { useToolInteractions } from './hooks/useToolInteractions';
@@ -1405,6 +1406,9 @@ export default function App() {
     if (!hasStarted || !worldSeedRef.current) return;
     const info = zoneInfo(worldSeedRef.current, playerZone.zx, playerZone.zz);
     const tier = BIOMES.find((b) => b.id === info.biome)?.tier ?? 0;
+    // Shelf 1: the sky clock's zone context rides this same
+    // visit (the aurora gate reads it in the rig).
+    setSkyZone(info.biome, tier, info.hops);
     awMergeRef.current((s) => {
       const families = s.families ?? [];
       const next: QuestSignals = { ...s };

@@ -25,6 +25,7 @@ import { SPAWN_ZONE, zoneBiomeAt, zoneVariantAt, zoneFaceAt, zoneKey, type ZoneC
 import type { WorldSnapshot } from '../game/saveSystem';
 import type { BioForgeThreeEngine } from '../game/engine/threeEngine';
 import type { PendingTravel } from './useZoneTravel';
+import { setSkyWorld } from '../game/world/skyCalendar';
 import type {
   DroppedItemEntity, FaunaEntity, FloraEntity, GameNotification, MultiplayerPeer, StructureEntity, ToolType,
 } from '../types/game';
@@ -48,7 +49,7 @@ export interface MultiplayerSyncDeps {
   worldSeedRef: { current: string };
   setSessionSeed: (seed: string) => void;
   zoneStores: () => ZoneStores;
-  buildZoneSyncTravel: () => { zone: string; zones: Record<string, WorldSnapshot>; worldSeed: string };
+  buildZoneSyncTravel: () => { zone: string; zones: Record<string, WorldSnapshot>; worldSeed: string; worldCreatedAt?: number };
   completeTravel: (nx: number, nz: number, entry: { x: number; z: number }, hostSnapshot?: WorldSnapshot) => void;
   cancelPendingTravel: () => void;
   pendingTravelRef: { current: PendingTravel | null };
@@ -387,6 +388,12 @@ export function useMultiplayerSync(deps: MultiplayerSyncDeps): UseMultiplayerSyn
           engineRef.current?.setZoneBiome(zoneBiomeAt(worldSeedRef.current, hostZone.zx, hostZone.zz), zoneFaceAt(worldSeedRef.current, hostZone.zx, hostZone.zz)?.tint ?? null, zoneFaceAt(worldSeedRef.current, hostZone.zx, hostZone.zz) ? { distanceMult: zoneFaceAt(worldSeedRef.current, hostZone.zx, hostZone.zz)!.lightDistanceMult, intensityMult: zoneFaceAt(worldSeedRef.current, hostZone.zx, hostZone.zz)!.lightIntensityMult } : null);
         }
         setDayNightCycle(data.dayNightCycle);
+        // Shelf 1: the guest's sky clock adopts the host's
+        // world (seed + creation time), so both screens
+        // watch the same comets, showers, and aurora nights.
+        if (data.worldSeed && data.worldCreatedAt) {
+          setSkyWorld(data.worldSeed, data.worldCreatedAt);
+        }
       },
     });
   }, [peers, addStructure, removeStructure, resetFloraHarvest, tameFauna, postNotification, upsertFlora, removeFlora, upsertFauna, removeFauna, upsertStructure, upsertDroppedItem, removeDroppedItem, replaceWorld]);

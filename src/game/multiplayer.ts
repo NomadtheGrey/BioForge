@@ -54,7 +54,7 @@ export interface MultiplayerCallbacks {
   onBuildRemoved?: (structureId: string) => void;
   onFloraHarvested?: (floraId: string) => void;
   onFaunaTamed?: (faunaId: string, tamedBy: string) => void;
-  onWorldSync?: (data: { structures: StructureEntity[]; flora: FloraEntity[]; fauna: FaunaEntity[]; drops: DroppedItemEntity[]; dayNightCycle: number; zone?: string; zones?: Record<string, WorldSnapshot>; worldSeed?: string }) => void;
+  onWorldSync?: (data: { structures: StructureEntity[]; flora: FloraEntity[]; fauna: FaunaEntity[]; drops: DroppedItemEntity[]; dayNightCycle: number; zone?: string; zones?: Record<string, WorldSnapshot>; worldSeed?: string; worldCreatedAt?: number }) => void;
   onChatMessage?: (senderName: string, text: string, color: string) => void;
   // Entity events carry the SENDER's zone tag (zone travel,
   // 2026-10-15): with players wandering different zones of the same
@@ -405,6 +405,7 @@ export class MultiplayerManager {
               zone?: string;
               zones?: Record<string, WorldSnapshot>;
               worldSeed?: string;
+              worldCreatedAt?: number;
             }
           );
         }
@@ -515,7 +516,7 @@ export class MultiplayerManager {
   public broadcastWorldSync(
     world: WorldSnapshot,
     dayNightCycle: number,
-    travel?: { zone: string; zones: Record<string, WorldSnapshot>; worldSeed: string }
+    travel?: { zone: string; zones: Record<string, WorldSnapshot>; worldSeed: string; worldCreatedAt?: number }
   ) {
     this.broadcastMessage('world_sync', {
       structures: world.structures,
@@ -523,7 +524,7 @@ export class MultiplayerManager {
       fauna: world.fauna,
       drops: world.drops,
       dayNightCycle,
-      ...(travel ? { zone: travel.zone, zones: travel.zones, worldSeed: travel.worldSeed } : {}),
+      ...(travel ? { zone: travel.zone, zones: travel.zones, worldSeed: travel.worldSeed, worldCreatedAt: travel.worldCreatedAt } : {}),
     });
   }
 

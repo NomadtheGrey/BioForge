@@ -129,11 +129,15 @@ export function buildZoneSyncTravel(
   visited: Map<string, WorldSnapshot>,
   curKey: string,
   current: WorldSnapshot,
-  worldSeed: string
-): { zone: string; zones: Record<string, WorldSnapshot>; worldSeed: string } {
+  worldSeed: string,
+  worldCreatedAt?: number
+): { zone: string; zones: Record<string, WorldSnapshot>; worldSeed: string; worldCreatedAt?: number } {
   return {
     zone: curKey,
     zones: { ...Object.fromEntries(visited), [curKey]: current },
     worldSeed,
+    // Shelf 1: the host's world-creation time rides along so
+    // a guest's sky calendar shares the host's day count.
+    ...(worldCreatedAt ? { worldCreatedAt } : {}),
   };
 }

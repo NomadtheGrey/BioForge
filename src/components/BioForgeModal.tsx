@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Sparkles, Check, AlertCircle, ArrowRight, Search, Sprout } from 'lucide-react';
+import { X, Sparkles, Check, AlertCircle, ArrowRight, Search, Sprout, HelpCircle } from 'lucide-react';
 import { CraftingRecipe, ItemId, StructureType } from '../types/game';
 import { ITEMS, RECIPES, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../game/items/constants'
 import { isGauntletUpgrade, isGearItem, gearTierOf, accessTierOf } from '../game/quests/quests';
@@ -18,6 +18,12 @@ import { POUCH_UPGRADE_ITEMS, pouchTierOf } from '../game/items/pouch';
 // must not stay READY — crafting it would burn the materials
 // on a no-op.
 import { isShieldItem, graftOf, SHIELD_GRAFTS, type ShieldGrowthMap } from '../game/creatures/shields';
+// The ingredient "?" (Adam, 2026-10-17): hover a row for what
+// is still missing and where it lives; click the "?" for the
+// full crafting tree. The math + sources are pure and
+// lab-checked (game/items/craftingTree.ts).
+import { buildCraftPlan, itemSources } from '../game/items/craftingTree';
+import { CraftTreeModal } from './CraftTreeModal';
 
 interface BioForgeModalProps {
   isOpen: boolean;
@@ -48,6 +54,10 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
 }) => {
   const [activeCategory, setActiveCategory] = useState<'all' | 'seeds' | 'fertilizers' | 'composites' | 'defenses' | 'gauntlet' | 'helmet' | 'boots' | 'shield' | 'base'>('all');
   const [selectedRecipe, setSelectedRecipe] = useState<CraftingRecipe>(RECIPES[0]);
+  // The ingredient inspector: which row is hovered (its card
+  // shows below the row), and which item's tree is open.
+  const [hoverIng, setHoverIng] = useState<ItemId | null>(null);
+  const [treeTarget, setTreeTarget] = useState<{ id: ItemId; need: number } | null>(null);
   const [isCrafting, setIsCrafting] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'tree'>('list');
   // Every hook lives ABOVE the isOpen early return below: a hook
@@ -524,8 +534,10 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                     const hasEnough = currentAmount >= ing.count;
 
                     return (
+                      <React.Fragment key={ing.id}>
                       <div
-                        key={ing.id}
+                        onMouseEnter={() => setHoverIng(ing.id)}
+                        onMouseLeave={() => setHoverIng((h) => (h === ing.id ? null : h))}
                         className={`p-3 rounded-xl border flex items-center justify-between text-xs transition-colors ${
                           hasEnough
                             ? 'bg-slate-800/40 border-slate-700/60 text-slate-200'
@@ -564,8 +576,64 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                           ) : (
                             <AlertCircle className="w-3.5 h-3.5 text-red-400 ml-1" />
                           )}
+                          {/* The "?" (Adam, 2026-10-17): hover the
+                              row for the missing pieces and where
+                              they live; click for the full tree. */}
+                          <button
+                            onClick={() => setTreeTarget({ id: ing.id, need: ing.count })}
+                            title={`What it takes to have ${ingItem.name} — the full crafting tree`}
+                            className="ml-1 p-1 rounded-full border border-slate-500/50 text-slate-300 hover:text-cyan-200 hover:border-cyan-400/60 hover:bg-cyan-950/40 transition-colors"
+                            aria-label={`Crafting tree for ${ingItem.name}`}
+                          >
+                            <HelpCircle className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       </div>
+                      {hoverIng === ing.id && (() => {
+                        // The hover card: this ingredient's own
+                        // plan, one level deep — what its growth
+                        // still lacks, and where the raw pieces
+                        // live. Numbers come from the same
+                        // netted walk the tree modal shows.
+                        const plan = buildCraftPlan(ing.id, ing.count, inventory);
+                        const root = plan.root;
+                        return (
+                          <div className="mx-1 mb-1 p-3 rounded-xl border border-cyan-800/40 bg-slate-900/80 text-[11px] leading-snug">
+                            {root.shortfall <= 0 ? (
+                              <p className="text-emerald-300 font-medium">You hold what this needs.</p>
+                            ) : root.recipe ? (
+                              <>
+                                <p className="text-slate-300 font-medium mb-1">
+                                  To grow {ingItem.name} × {ing.count}:
+                                </p>
+                                <ul className="space-y-0.5">
+                                  {root.children.map((child) => (
+                                    <li key={child.itemId} className="flex items-baseline gap-1.5">
+                                      <span className={child.shortfall > 0 ? 'text-red-300' : 'text-slate-300'}>
+                                        {ITEMS[child.itemId]?.name ?? child.itemId} — have {child.fromPouch} of {child.need}
+                                      </span>
+                                      {child.shortfall > 0 && !child.recipe && (
+                                        <span className="text-slate-400">· {itemSources(child.itemId)[0] ?? ''}</span>
+                                      )}
+                                      {child.shortfall > 0 && child.recipe && (
+                                        <span className="text-slate-400">· grown at the Forge</span>
+                                      )}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </>
+                            ) : (
+                              <ul className="space-y-0.5">
+                                {itemSources(ing.id).map((line) => (
+                                  <li key={line} className="text-slate-300">{line}</li>
+                                ))}
+                              </ul>
+                            )}
+                            <p className="text-slate-500 mt-1.5">Click the ? for the full crafting tree.</p>
+                          </div>
+                        );
+                      })()}
+                      </React.Fragment>
                     );
                   })}
                 </div>
@@ -605,6 +673,12 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
           </div>
         </div>
       </div>
+      <CraftTreeModal
+        itemId={treeTarget?.id ?? null}
+        need={treeTarget?.need ?? 1}
+        inventory={inventory}
+        onClose={() => setTreeTarget(null)}
+      />
     </div>
   );
 };

@@ -87,7 +87,7 @@ export const PLAYSTYLE_TABS: PlayStyleTab[] = [
     id: 'explorers',
     label: 'Explorers',
     icon: '🧭',
-    promise: 'Seeing the world — eyes, feet, and the deep country.',
+    promise: 'Seeing the world — eyes, feet, and the wild country.',
   },
   {
     id: 'hunters',

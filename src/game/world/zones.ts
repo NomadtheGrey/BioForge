@@ -154,7 +154,7 @@ export const ZONE_NAME_PARTS: Record<BiomeId, { first: string[]; second: string[
     second: ['Rest', 'Fields', 'Graveyard', 'Reach', 'Flats'],
   },
   storm: {
-    first: ['Charged', 'Humming', 'Restless', 'Bright', 'Deep'],
+    first: ['Charged', 'Humming', 'Restless', 'Bright', 'Wild'],
     second: ['Reach', 'Flats', 'Fields', 'Sands', 'Country'],
   },
   living: {

@@ -155,7 +155,7 @@ export const RUIN_TRACES_CHANCE_SPAWN = 0.55;
 export const RUIN_PRESENCE_CHANCE = 0.62;
 // The GRADIENT STEP (2026-10-15, Adam's directive: distance drives
 // ruin presence as it already drives ruin size): presence and the
-// second-site chance RISE with hops — deep country is older, more
+// second-site chance RISE with hops — wild country is older, more
 // built-on, more lost. Near home the constants above hold.
 export function ruinPresenceForHops(hops: number): number {
   return Math.min(0.88, RUIN_PRESENCE_CHANCE + hops * 0.03);

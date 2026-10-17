@@ -92,7 +92,7 @@ function anchorTag(o: AsksOffer): string {
  * The player's questing profile. gearTier is EXPLORATION-gated, not
  * gear-gated: how far the player's zone visits have reached (0 while
  * in the hearthlands, 1 at 3+ hops out, 2 at 6+, 3 at 9+). It answers
- * the arcs' minGearTier honestly — "deep country" sagas wait until
+ * the arcs' minGearTier honestly — "wild country" sagas wait until
  * the player has actually walked far.
  */
 export function profileForState(state: AsksBackState): GameProfile {

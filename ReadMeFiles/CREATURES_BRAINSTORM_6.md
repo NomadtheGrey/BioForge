@@ -1,4 +1,4 @@
-# BioForge Creatures — Part 6: Deep Country Teeth
+# BioForge Creatures — Part 6: Wild Country Teeth
 
 *Pinned by Adam, 2026-10-17 (creatures chat). The question that opened it:
 "Do we have enough truly dangerous creatures out far away to challenge the
@@ -15,7 +15,7 @@ ring of variants gated at 4+ hops: Magnetic Dunes, Skyfall Basin,
 Twominded Valley, Frost Fangs, the Leviathan Graveyard, the Ember Scar,
 and kin. Division of labor:
 
-- **The gradient** (existing creatures) covers ALL deep country in tiers
+- **The gradient** (existing creatures) covers ALL wild country in tiers
   2–3 and keeps rising with distance — under a hard cap.
 - **Three new predators** anchor the three far places that most deserve
   a name to fear.
@@ -40,7 +40,7 @@ everything (the shared combatArmed gate); every tell stays as readable
 as it is today. WORLD_GEN_VERSION bumps; new species and scaled hunters
 appear only in newly generated zones, per the standing rule.
 
-## Half 2 — THE THREE DEEP PREDATORS (slice 51)
+## Half 2 — THE THREE WILD PREDATORS (slice 51)
 
 All variant-locked bonus spawns (the pond/river gate pattern), so each
 exists ONLY in its named country in newly generated zones. Calibration

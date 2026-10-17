@@ -81,8 +81,11 @@ because nothing is ever taken apart.
   attempt gets a soft "hands full" response. HUD shows the carried state.
   This total disarmament is the design's answer to portable storage.
 - **Put down:** left-click places at the ghost (validity = placement
-  rules; red ghost refuses silently, as placement does today). `R` rotates
-  (existing placement rotation input). Right-click / Esc CANCELS — the
+  rules; red ghost refuses silently, as placement does today). Rotation is
+  CAMERA-FACING-derived, like all placement in the game (pinned by Adam
+  2026-10-17: no R-rotate input exists in the game, and none is added for
+  the carry — you face the direction you want the vault to face).
+  Right-click / Esc CANCELS — the
   entity restores to its origin (the live list if the player is back in
   that zone, else written into that zone's parked visited snapshot).
   Touch: tap ground to set down; the placement cancel button backs out

@@ -83,8 +83,12 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({
                 <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold">Mouse Wheel · ↑ ↓</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex justify-between items-center">
-                <span className="text-slate-300">Left-Hand Instrument — hold the Hand Lantern-Fern (a light that follows you), or stow it. (The Prismatic Field Radar is helmet gear, not a held item.)</span>
-                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold">Click the Left Hand slot</span>
+                <span className="text-slate-300">Cycle the Left Hand — lantern ↔ Scute Shield ↔ Lantern Shield ↔ Fenback Shield ↔ empty, as owned. Alt is the left-hand modifier: it never touches the gauntlet's wheel. (The Prismatic Field Radar is helmet gear, not a held item.)</span>
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold">Alt + Wheel · Alt + ↑ · Click the slot</span>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex justify-between items-center">
+                <span className="text-slate-300">Raise the Shield — hold to brace: frontal strikes are walled off at stamina's price. Lowered, a held shield still blunts frontal strikes for free. (On touch, hold the RAISE button.)</span>
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold">Hold Right-Mouse</span>
               </div>
             </div>
           </div>

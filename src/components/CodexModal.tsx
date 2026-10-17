@@ -12,6 +12,9 @@ import {
   type FamilyEntry,
 } from '../game/items/weaponsFamily';
 import { itemIcon } from './itemIcon';
+// The graft's reflect numbers ride the shield rules table —
+// the dossier quotes them from the source, never from copy.
+import { GRAFT_REFLECT_BRACED, GRAFT_REFLECT_PASSIVE } from '../game/creatures/shields';
 
 interface CodexModalProps {
   isOpen: boolean;
@@ -21,6 +24,9 @@ interface CodexModalProps {
   // entries GROWN / NOT GROWN and shows ingredient counts from
   // it. Optional so the section renders fully without it.
   inventory?: Record<ItemId, number>;
+  // The Spike Graft record (PlayerState.shieldGrafts), when
+  // passed: shield dossiers mark GRAFTED on the entry itself.
+  shieldGrafts?: Partial<Record<ItemId, boolean>>;
 }
 
 export const CodexModal: React.FC<CodexModalProps> = ({
@@ -28,6 +34,7 @@ export const CodexModal: React.FC<CodexModalProps> = ({
   onClose,
   codexList,
   inventory,
+  shieldGrafts,
 }) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'flora' | 'fauna' | 'composite' | 'arsenal'>('all');
   const [selectedEntry, setSelectedEntry] = useState<CodexEntry>(codexList[0]);
@@ -205,23 +212,42 @@ export const CodexModal: React.FC<CodexModalProps> = ({
               </div>
             )}
 
-            {/* Defensive entries speak in two states (pinned:
-                carried blunts for free; braced is the wall). */}
-            {selWeapon.kind === 'defensive' && (
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-slate-800/30 p-3.5 rounded-2xl border border-slate-800">
-                  <h4 className="text-[11px] font-tech font-semibold uppercase text-slate-300 mb-1">Carried</h4>
-                  <p className="text-[11px] text-slate-400 leading-relaxed">
-                    On the arm, lowered. Frontal strikes are blunted — no stamina,
-                    no stagger, no slowing you down. A shield carried is never luggage.
-                  </p>
-                </div>
-                <div className="bg-slate-800/30 p-3.5 rounded-2xl border border-slate-800">
-                  <h4 className="text-[11px] font-tech font-semibold uppercase text-slate-300 mb-1">Braced</h4>
-                  <p className="text-[11px] text-slate-400 leading-relaxed">
-                    Raised and held. Frontal strikes are blocked outright and stagger
-                    their attacker; stamina pays per block and drains while held.
-                    Empty stamina breaks the guard. Sprays are weather — no shield stops those.
+            {/* Defensive entries speak through their SIGNATURE
+                LINES — carried in the registry as data (shield
+                slice, 2026-10-17), rendered verbatim, never
+                hardcoded here: the two states for the Scute, the
+                light-branch for the Lantern, the Fenback's four. */}
+            {selWeapon.kind === 'defensive' && selWeapon.signatures && (
+              <div className="bg-slate-800/30 p-4 rounded-2xl border border-slate-800">
+                <h4 className="text-xs font-tech font-semibold uppercase text-slate-400 mb-2">
+                  How It Wards
+                </h4>
+                <ul className="space-y-1.5">
+                  {selWeapon.signatures.map((line, i) => (
+                    <li key={i} className="text-xs text-slate-300 leading-relaxed flex gap-2">
+                      <span className="text-rose-300/70 shrink-0">◈</span>
+                      <span>{line}</span>
+                    </li>
+                  ))}
+                </ul>
+                {/* The Spike Graft: a modifier ON the entry,
+                    never a shelf item (pinned) — its numbers
+                    ride the rules table; its state, when the
+                    host passes the graft record, marks here. */}
+                <div className="mt-3 pt-3 border-t border-slate-700/60 flex items-start gap-2">
+                  <span className="text-rose-300/70 shrink-0 mt-0.5">◈</span>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    <strong className="text-slate-200">Spike Graft</strong> — thorn spikes
+                    grown onto the face (a Tier 2 addition): strikes landing on the shield
+                    answer {GRAFT_REFLECT_PASSIVE} damage carried, {GRAFT_REFLECT_BRACED} braced.
+                    {selWeapon.tier >= 2 && ' The graft survives this shield’s grows — combination and consume-and-keep alike.'}
+                    {shieldGrafts && (
+                      <span className={`block mt-1 font-tech text-[10px] uppercase tracking-wide ${shieldGrafts[selWeapon.itemId] ? 'text-emerald-300' : 'text-slate-500'}`}>
+                        {shieldGrafts[selWeapon.itemId]
+                          ? 'Grafted — this shield wears its spikes'
+                          : 'Not grafted'}
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>

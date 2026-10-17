@@ -13,6 +13,7 @@ import {
   consumedRung,
   familyEntryOf,
 } from '../game/items/weaponsFamily';
+import { GRAFT_REFLECT_BRACED, GRAFT_REFLECT_PASSIVE } from '../game/creatures/shields';
 
 interface InventoryModalProps {
   isOpen: boolean;
@@ -22,6 +23,9 @@ interface InventoryModalProps {
   onSelectSeed: (seedId: ItemId) => void;
   onSelectFertilizer: (fertilizerId: ItemId) => void;
   onSelectTool: (tool: ToolType) => void;
+  // The Spike Graft record (PlayerState.shieldGrafts), when
+  // passed: a shield's inspector marks GRAFTED on the item.
+  shieldGrafts?: Partial<Record<ItemId, boolean>>;
 }
 
 export const InventoryModal: React.FC<InventoryModalProps> = ({
@@ -32,6 +36,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
   onSelectSeed,
   onSelectFertilizer,
   onSelectTool,
+  shieldGrafts,
 }) => {
   const [activeTab, setActiveTab] = useState<'all' | 'raw' | 'seed' | 'fertilizer' | 'structure' | 'gauntlet' | 'helmet' | 'boots' | 'base'>('all');
   const [selectedItemId, setSelectedItemId] = useState<ItemId | null>(null);
@@ -323,6 +328,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                       {tileFamily && (
                         <span className="font-tech text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/40">
                           {FAMILY_KIND_LABEL[tileFamily.kind].toUpperCase()} · T{tileFamily.tier}
+                          {tileFamily.kind === 'defensive' && shieldGrafts?.[id] ? ' · GRAFTED' : ''}
                         </span>
                       )}
                       {/* One-time gauntlet upgrades are worn, not
@@ -430,9 +436,32 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                             </span>
                           </div>
                         )}
+                        {familyEntryOf(activeItem.id)!.kind === 'defensive' && shieldGrafts && (
+                          <div className="flex justify-between py-1.5 border-b border-slate-800 text-slate-400">
+                            <span>Spike Graft</span>
+                            <span className={`font-tech uppercase ${shieldGrafts[activeItem.id] ? 'text-emerald-300' : 'text-slate-500'}`}>
+                              {shieldGrafts[activeItem.id]
+                                ? `Grafted — answers ${GRAFT_REFLECT_PASSIVE} / ${GRAFT_REFLECT_BRACED} braced`
+                                : 'Not grafted'}
+                            </span>
+                          </div>
+                        )}
                       </>
                     )}
                   </div>
+                  {/* A shield's ward, in its registry lines —
+                      the same signatures the codex dossier
+                      renders (data, not surface copy). */}
+                  {familyEntryOf(activeItem.id)?.kind === 'defensive' && familyEntryOf(activeItem.id)!.signatures && (
+                    <ul className="space-y-1.5 mt-3">
+                      {familyEntryOf(activeItem.id)!.signatures!.map((line, i) => (
+                        <li key={i} className="text-[11px] text-slate-400 leading-relaxed flex gap-2">
+                          <span className="text-rose-300/70 shrink-0">◈</span>
+                          <span>{line}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                   {/* The family's rules, where the item sits: the
                       strikers' ladder consumes its lower rung;
                       the shield line branches instead. */}

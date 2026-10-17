@@ -439,7 +439,7 @@ export const FLORA: Record<string, FloraDef> = {
   // whose roots grow SALTGLASS as they grow, threading the
   // soil with glass. An old saltroot's root-plate is a
   // crystal garden lying in the ground. The harvest is what
-  // falls: naturally tubed root-glass — the deep crafters'
+  // falls: naturally tubed root-glass — the wild crafters'
   // piping and lens-blanks. Dealt sparse: trees.
   saltroot: {
     id: 'saltroot',
@@ -684,7 +684,7 @@ export const FLORA: Record<string, FloraDef> = {
   // #153 — a fern in grown glass: its fronds are lenses in
   // series, light piped crown-to-root, so a glass fern stand
   // glows at ground level in sorted colors. A cut frond is a
-  // lens that was grown, not ground — the deep crafters'
+  // lens that was grown, not ground — the wild crafters'
   // optics begin here.
   glass_fern: {
     id: 'glass_fern',
@@ -1796,7 +1796,7 @@ export const FLORA: Record<string, FloraDef> = {
 
   // #237 — each bed opens at an exact hour, bred into the
   // strain: the gardens were planted as CLOCKS. A Clock Petal's
-  // color states its bed's hour: the deep country's timepiece,
+  // color states its bed's hour: the wild country's timepiece,
   // grown.
   clock_bloom: {
     id: 'clock_bloom',
@@ -2191,7 +2191,7 @@ export const FLORA: Record<string, FloraDef> = {
   // #296 — the kingdom's third crystal citizen: a cap whose
   // GILLS are grown saltglass blades. One gill-blade, taken
   // singly, is a Prism Gill: a razor lens of grown glass —
-  // the deep opticians' stock, harvested one lens at a time.
+  // the wild opticians' stock, harvested one lens at a time.
   prism_cap: {
     id: 'prism_cap',
     name: 'Prism Cap',
@@ -2728,7 +2728,7 @@ export const FLORA: Record<string, FloraDef> = {
     },
   },
 
-  // #324 — a puffball at SHEEP SIZE: the deep plains' white
+  // #324 — a puffball at SHEEP SIZE: the wild plains' white
   // dome that the Long Grazers step around. Young ones are a
   // feast fungus, cut in steaks: the plains' celebration
   // course.
@@ -2832,7 +2832,7 @@ export const FLORA: Record<string, FloraDef> = {
 
   // #264 — an iron-hearted tree of the Ashes: dark, dense,
   // iron-veined wood from the slag soil. Fallen limbs are the
-  // Ashes' beam-stock — what deep builders make sills of,
+  // Ashes' beam-stock — what wild builders make sills of,
   // because it neither burns nor rots at polite speeds.
   ironwood: {
     id: 'ironwood',
@@ -2983,7 +2983,7 @@ export const FLORA: Record<string, FloraDef> = {
   // #216 — a bell-flowered bank plant of the Mirror Rivers,
   // tripwire-tuned: its bells answer water — a ripple rings
   // the bank's bells in sequence. Cut bells keep the tuning:
-  // what the deep crafters string them for is their business.
+  // what the wild crafters string them for is their business.
   ripple_bell: {
     id: 'ripple_bell',
     name: 'Ripple Bell',
@@ -3007,7 +3007,7 @@ export const FLORA: Record<string, FloraDef> = {
 
   // #240 — a tall white candle-flower of the warm and
   // temperate ranges: its thick petals render a clean-burning
-  // wax — the deep country's candle, grown. The bloom opens at
+  // wax — the wild country's candle, grown. The bloom opens at
   // midnight (window LIVE, slice 40, like its kin); the
   // glove refuses outside it.
   night_candle: {
@@ -3162,7 +3162,7 @@ export const FLORA: Record<string, FloraDef> = {
   // #253 — a meal-fed orchid of the Bonefields: it roots in
   // bone-meal soil and blooms ivory-white at the fields'
   // heart. Its blooms are carved-looking, scentless — kept
-  // for the deep country's white work.
+  // for the wild country's white work.
   bone_orchid: {
     id: 'bone_orchid',
     name: 'Bone Orchid',

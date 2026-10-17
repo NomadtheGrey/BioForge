@@ -1317,8 +1317,8 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // proximity never alerts them; the provocation clock
           // does. An unprovoked giant is scenery with a pulse.
           const provoked = !hunt?.provokedOnly || provokedTimer > 0;
-          // THE DISTANCE GRADIENT (slice 50): deep-country hunters
-          // carry spawn stamps (deepAggro / deepDmg on the entity;
+          // THE DISTANCE GRADIENT (slice 50): wild-country hunters
+          // carry spawn stamps (wildAggro / wildDmg on the entity;
           // absent = 1 = the table's word, which is also every
           // near-country hunter and the whole provoked tier). The
           // aggro bubble grows — and once a stamped hunter has
@@ -1326,10 +1326,10 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // the leash grows by the same stamp, so out far things
           // don't just hit harder, they don't quit. A hunter at
           // stamp 1 deaggros exactly where it always has.
-          const deepAggro = fauna.deepAggro ?? 1;
-          const aggroEff = hunt ? hunt.aggroRange * deepAggro : 0;
+          const wildAggro = fauna.wildAggro ?? 1;
+          const aggroEff = hunt ? hunt.aggroRange * wildAggro : 0;
           const latched =
-            fauna.state === 'attacking' && deepAggro > 1 && distToPlayer <= aggroEff * deepAggro;
+            fauna.state === 'attacking' && wildAggro > 1 && distToPlayer <= aggroEff * wildAggro;
           // THE LONG PURSUIT (slice 51 — the Hush Hound): its
           // leash is the valley itself. Once committed it holds
           // the hunt at any range — and the heart clearing is
@@ -1446,7 +1446,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
                 // The gradient's damage axis (slice 50): the
                 // stamp scales the bite; unstamped hunters bite
                 // for exactly their table damage.
-                onFaunaAttack?.(fauna.species, Math.round(hunt.damage * (fauna.deepDmg ?? 1)), { faunaId: fauna.id, x, z });
+                onFaunaAttack?.(fauna.species, Math.round(hunt.damage * (fauna.wildDmg ?? 1)), { faunaId: fauna.id, x, z });
                 biteTimer = hunt.biteCooldownSeconds;
               }
             } else {

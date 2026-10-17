@@ -988,7 +988,7 @@ export const RECIPES: CraftingRecipe[] = [
     outputId: 'vat_kit_deep',
     outputCount: 1,
     name: 'Deep Culture Kit',
-    description: 'Apply to a richened Culture Vat from its panel: deepens the culture for the deep country — Tier 3 homes and the variant-gated rares.',
+    description: 'Apply to a richened Culture Vat from its panel: ripens the culture for the wild country — Tier 3 homes and the variant-gated rares.',
     category: 'composites',
     ingredients: [
       { id: 'bio_pellet', count: 2 },

@@ -349,7 +349,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
   },
 
   // #105 — a precursor-made wisp, STILL RUNNING ITS ROUTE on
-  // the Precursor × Storm deep margin: node-lit, brightening
+  // the Precursor × Storm wild margin: node-lit, brightening
   // at its turning points, centuries into a delivery schedule
   // nobody alive remembers assigning. Untameable — it has a
   // job.
@@ -375,7 +375,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
   },
 
   // #149 — PHASING's second citizen: a ruin-dusted vapor moth
-  // of the deep margins whose phasing is by after-image — it
+  // of the wild margins whose phasing is by after-image — it
   // is briefly where it was, and then it isn't. Untameable
   // (0%): you cannot lure a rumor of a moth.
   gap_moth: {
@@ -785,7 +785,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
 
   // #110 — the mimic the seat note wondered about, placed
   // where it belongs: not in either family's emblem seat but
-  // at the deep margin of the two strangest families — a
+  // at the wild margin of the two strangest families — a
   // greeter-shaped courtesy with the wrong number of
   // implications, in Living × Precursor country. Untameable:
   // it wants to greet you first, and to keep greeting you.
@@ -899,7 +899,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
   // lake creature and waits with the pond group.
   // ------------------------------------------------------------------
 
-  // #99 — a hill-backed quadruped of the deep plains: its back
+  // #99 — a hill-backed quadruped of the wild plains: its back
   // grows grass, its migration writes the Trail Caps' road,
   // and its shed winter coat-slabs are meadow in brick form —
   // left as scenery by the codex, and by this table.
@@ -954,7 +954,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
   },
 
   // #170 — the roster's third LANDSCAPE-scale citizen: the
-  // deep flats where the Graveyard's weather is made, walking
+  // wild flats where the Graveyard's weather is made, walking
   // in Bone × Storm country at geology's pace. Nothing taken.
   storm_leviathan: {
     id: 'storm_leviathan',
@@ -981,7 +981,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
 
   // #183 — LANDSCAPE, the word's fifth use: a biped at hill
   // scale — the Garden Keeper's plan written in mountains,
-  // still gardening the deep garden country at a pace of
+  // still gardening the wild garden country at a pace of
   // seasons per gesture.
   garden_colossus: {
     id: 'garden_colossus',
@@ -1085,7 +1085,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
   },
 
   // #190 — HUGE: a mammoth at the word's full weight, herd-
-  // mother of the Stillwhite's deep reaches. She sheds winter
+  // mother of the Stillwhite's wild reaches. She sheds winter
   // wool at her rubbing stones: Mother Wool, the cold graph's
   // heaviest insulation. Untameable (0%) — a mother is not a
   // mount.
@@ -1167,7 +1167,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
 
   // #194 — HUGE: a segmented worm at the scale the word
   // starts to fail, fulgurite-lined, burrowing the Charged
-  // Flats' deep country. Its abandoned tunnels are the flats'
+  // Flats' wild country. Its abandoned tunnels are the flats'
   // mines — fulgurite by the cartload through the economy's
   // EXISTING door, at geology's rates: no byproduct here.
   // Untameable (0%).
@@ -1735,8 +1735,8 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
   },
 
   // =====================================================================
-  // SLICE 51 (2026-10-17) — THE THREE DEEP PREDATORS (Part 6:
-  // Deep Country Teeth, pinned by Adam). Variant-locked hunters of the
+  // SLICE 51 (2026-10-17) — THE THREE WILD PREDATORS (Part 6:
+  // Wild Country Teeth, pinned by Adam). Variant-locked hunters of the
   // deepest country (the 4+ hop variants), each with ONE signature
   // twist on the hunt engine, each inside the danger doctrine:
   // unprovoked, never untelegraphed. Calibration bench: the

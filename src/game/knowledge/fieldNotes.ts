@@ -299,7 +299,7 @@ export const FIELD_NOTES: FieldNote[] = [
     clue: 'They are chill until messed with, every one of them — and they mean it when they stop being chill. What they carry is worth a fortune. What they cost is the fight.',
     witness: 'One of the great ones, provoked.',
   },
-  // The three deep predators (slice 51, 2026-10-17): the deep
+  // The three wild predators (slice 51, 2026-10-17): the deep
   // variants' hunters — the notes carry their tells, because
   // out there the tell is the whole survival budget.
   {

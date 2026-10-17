@@ -1831,7 +1831,7 @@ export function createCreatureMeshKit(
       }
 
       case 'far_bat': {
-        // The deep country's swallow (slice 8): a serene bat —
+        // The wild country's swallow (slice 8): a serene bat —
         // small body, honest ears, wide dark wings.
         const furMat = new THREE.MeshStandardMaterial({ color: 0x4c1d95, roughness: 0.9 });
         const wingMat = new THREE.MeshStandardMaterial({ color: 0x2e1065, roughness: 0.85, side: THREE.DoubleSide });

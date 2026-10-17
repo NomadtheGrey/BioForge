@@ -357,7 +357,7 @@ export function buildLateFloraMesh(
       }
 
       case 'night_candle': {
-        // The deep country's candle (slice 28): a tall white
+        // The wild country's candle (slice 28): a tall white
         // bloom, waxy and upright.
         const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.03, 0.4, 6), new THREE.MeshStandardMaterial({ color: 0x3f6212, roughness: 0.9 }));
         stalk.position.y = 0.2;

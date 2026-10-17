@@ -318,7 +318,7 @@ import type { PondDef, RiverSeg } from './terrain';
  *     duck's dive, the crab's venting). The quest-log
  *     wiring is the dev chat's lane, specced in the file.
  */
-export const WORLD_GEN_VERSION = 66; // v66 (2026-10-17): creature slice 51 — the Three Deep Predators (Lodestone Hound of the Magnetic Dunes, Fall Hawk of Skyfall Basin, Hush Hound of the Twominded Valley; variant-locked unprovoked hunters); v65 was creature slice 50 (the Distance Gradient)
+export const WORLD_GEN_VERSION = 66; // v66 (2026-10-17): creature slice 51 — the Three Wild Predators (Lodestone Hound of the Magnetic Dunes, Fall Hawk of Skyfall Basin, Hush Hound of the Twominded Valley; variant-locked unprovoked hunters); v65 was creature slice 50 (the Distance Gradient)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -556,7 +556,7 @@ function distanceWeight(def: { baseWeight: number; near: number; far: number }, 
 }
 
 /**
- * Deal species onto points. Deep-specialists pick FIRST (their good
+ * Deal species onto points. Wild-specialists pick FIRST (their good
  * points are the scarce ones), each taking a weighted-random point from
  * those remaining, weight = distance affinity. Every point is used at
  * most once; every census slot is filled.
@@ -647,23 +647,23 @@ export interface GeneratedWorld {
  */
 /**
  * THE DISTANCE GRADIENT (creature slice 50, 2026-10-17): how much
- * harder the deep country hunts, by the zone's tier and its hops
+ * harder the wild country hunts, by the zone's tier and its hops
  * from spawn. Every axis is CAPPED (Adam: "not absolutely — at
  * some point they'll be ridiculous"): damage tops out at +60%,
  * aggro and the leash at +50%, density at double. Tier 0–1
  * country inside 5 hops returns all 1s — home ground is exactly
  * as gentle as the species tables have always said.
  */
-/** The deep predators (slice 51) — exempt from the gradient (see the bonus loop). */
-export const DEEP_APEX_IDS: string[] = ['lodestone_hound', 'fall_hawk', 'hush_hound'];
+/** The wild predators (slice 51) — exempt from the gradient (see the bonus loop). */
+export const WILD_APEX_IDS: string[] = ['lodestone_hound', 'fall_hawk', 'hush_hound'];
 
-export function deepPressureFor(tier: number, hops: number): { dmg: number; aggro: number; density: number } {
+export function wildPressureFor(tier: number, hops: number): { dmg: number; aggro: number; density: number } {
   const tierSteps = Math.max(0, tier - 1);
-  const deepSteps = Math.max(0, hops - 5);
+  const wildSteps = Math.max(0, hops - 5);
   return {
-    dmg: Math.min(1.6, 1 + 0.12 * tierSteps + 0.04 * deepSteps),
-    aggro: Math.min(1.5, 1 + 0.1 * tierSteps + 0.03 * deepSteps),
-    density: Math.min(2, (tier >= 3 ? 1.5 : tier === 2 ? 1.25 : 1) * (1 + 0.1 * deepSteps)),
+    dmg: Math.min(1.6, 1 + 0.12 * tierSteps + 0.04 * wildSteps),
+    aggro: Math.min(1.5, 1 + 0.1 * tierSteps + 0.03 * wildSteps),
+    density: Math.min(2, (tier >= 3 ? 1.5 : tier === 2 ? 1.25 : 1) * (1 + 0.1 * wildSteps)),
   };
 }
 
@@ -1142,17 +1142,17 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0, opt
   // THE DISTANCE GRADIENT (creature slice 50, 2026-10-17 — Adam:
   // "increase monster challenge with distance. Not absolutely —
   // at some point they'll be ridiculous"): unprovoked hunters
-  // dealt into deep country hunt harder than their table row. The
+  // dealt into wild country hunt harder than their table row. The
   // axes grow with the zone's TIER and keep growing with HOPS
   // past 5, under HARD CAPS — the caps are the design, not an
   // afterthought. Damage and aggro are stamped on the entity
-  // (deepDmg / deepAggro) and read by the sim's hunt branch;
+  // (wildDmg / wildAggro) and read by the sim's hunt branch;
   // density swells hunter counts in the bonus loop below. The
   // provoked oversize tier is EXEMPT: the giants stay table-true
   // everywhere — slice 32's bargain (you can always run from
   // your mistake) does not scale.
   // ---------------------------------------------------------------------
-  const deepPressure = deepPressureFor(biomeTier(zoneBiome), zoneHops(zoneZx, zoneZz));
+  const wildPressure = wildPressureFor(biomeTier(zoneBiome), zoneHops(zoneZx, zoneZz));
 
   // ---------------------------------------------------------------------
   // Designed species (creature build phase, slice 1, 2026-10-15) —
@@ -1204,17 +1204,17 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0, opt
       if (spec.river && riverSegs.length === 0 && (ponds.length === 0 || !spec.pond)) continue;
       const bonusRng = createSeededRandom(stream(`fauna:bonus:${def.id}`));
       // The gradient's density axis (slice 50): unprovoked hunters
-      // swell in deep country — stochastic rounding on the species'
+      // swell in wild country — stochastic rounding on the species'
       // own stream keeps the expectation honest (a ×1.5 country
       // deals a second hunter half the time, not a fractional one).
-      // The three deep predators (slice 51) are EXEMPT from both
+      // The three wild predators (slice 51) are EXEMPT from both
       // axes: their table rows were written already-scaled for
       // their named country (a 22 bite is the design, not a base
       // the gradient multiplies), and each is a seated individual
       // — its zone holds ONE, never a swelled pair.
-      const huntsUnprovoked = !!def.hunt && !def.hunt.provokedOnly && !DEEP_APEX_IDS.includes(def.id);
+      const huntsUnprovoked = !!def.hunt && !def.hunt.provokedOnly && !WILD_APEX_IDS.includes(def.id);
       const wantCount = huntsUnprovoked
-        ? spec.count + Math.floor(spec.count * (deepPressure.density - 1) + bonusRng())
+        ? spec.count + Math.floor(spec.count * (wildPressure.density - 1) + bonusRng())
         : spec.count;
       let placed = 0;
       for (let attempt = 0; attempt < 40 + (wantCount - spec.count) * 20 && placed < wantCount; attempt++) {
@@ -1278,8 +1278,8 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0, opt
           // country actually presses (multiplier above 1) —
           // everywhere else the entity stays stamp-free and the
           // sim reads the table's word.
-          ...(huntsUnprovoked && (deepPressure.dmg > 1 || deepPressure.aggro > 1)
-            ? { deepDmg: deepPressure.dmg, deepAggro: deepPressure.aggro }
+          ...(huntsUnprovoked && (wildPressure.dmg > 1 || wildPressure.aggro > 1)
+            ? { wildDmg: wildPressure.dmg, wildAggro: wildPressure.aggro }
             : {}),
           speed: spec.speed + (bonusRng() * 2 - 1) * spec.speedJitter,
           health: spec.health,

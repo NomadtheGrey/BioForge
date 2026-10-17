@@ -42,7 +42,7 @@ export interface BiomeDef {
    * biomes are TIERED by nature: four shells of rising danger,
    * exoticness, and rarity around the spawn zone — tiers 0-3, to
    * match the crafting tiers (Adam, 2026-10-15): 0 Hearthlands,
-   * 1 The Wilds, 2 Strange Country, 3 The Deep Weird. The
+   * 1 The Wilds, 2 Strange Country, 3 The Grotesque. The
    * tier is the coarse dial — other systems (cave size, ruin
    * size, clue and artifact density) will read a zone's tier to
    * scale themselves — while MINIMUM DISTANCE (in zone hops) is
@@ -65,7 +65,7 @@ export const BIOMES: BiomeDef[] = [
   { id: 'fungal', floraDensity: 1.0, faunaDensity: 0.8, tier: 1, minHops: 2, rarity: 'common' }, // sparser life in the dark
   { id: 'ember', floraDensity: 0.8, faunaDensity: 0.9, tier: 2, minHops: 3, rarity: 'uncommon' }, // harsher ground, thinner cover
   { id: 'saltglass', floraDensity: 0.75, faunaDensity: 0.7, tier: 2, minHops: 3, rarity: 'uncommon' }, // the 5th family (2026-10-15): salt, crystal, glare — the sparsest country yet
-  { id: 'frost', floraDensity: 0.7, faunaDensity: 0.75, tier: 2, minHops: 3, rarity: 'uncommon' }, // the 6th family built (11th on the roster): the steady state — it never thaws. Family gates cap at 3 hops (Adam, 2026-10-15); rarity does the deep-country work.
+  { id: 'frost', floraDensity: 0.7, faunaDensity: 0.75, tier: 2, minHops: 3, rarity: 'uncommon' }, // the 6th family built (11th on the roster): the steady state — it never thaws. Family gates cap at 3 hops (Adam, 2026-10-15); rarity does the wild-country work.
   { id: 'rootwood', floraDensity: 1.3, faunaDensity: 1.0, tier: 1, minHops: 2, rarity: 'common' }, // the 7th family built: the wooded one — giant living roots as architecture; the lushest country in the game
   { id: 'precursor', floraDensity: 1.1, faunaDensity: 0.8, tier: 2, minHops: 3, rarity: 'uncommon' }, // the 8th family built: gardens of the vanished — nature growing through engineered geometry
   { id: 'bone', floraDensity: 0.9, faunaDensity: 0.9, tier: 2, minHops: 3, rarity: 'uncommon' }, // the 9th family built: graveyard country — death-fertile, scavenger land

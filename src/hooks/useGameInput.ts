@@ -72,6 +72,10 @@ export interface GameInputDeps {
    *  App bridges this to the engine's waterDepthAt. Optional —
    *  an absent getter means a dry world. */
   getWaterDepth?: (x: number, z: number) => number;
+  /** LAZY: the Left Hand cycle (the shield slice, Adam, 2026-10-17):
+   *  Alt+wheel / Alt+↑↓ walk the owned left-hand instruments.
+   *  Ref-driven — App's cycle lives below the input call site. */
+  onCycleLeftHand: (dir: 1 | -1) => void;
 }
 
 export function useGameInput(deps: GameInputDeps) {
@@ -81,6 +85,7 @@ export function useGameInput(deps: GameInputDeps) {
     structuresListRef, floraListRef, bounceGraceUntil, unlockedTools,
     setActiveTool, setSelectedStructureType, setSelectedSeedId, setSelectedFertilizerId,
     setActiveModal, postNotification, onToggleDebugKit, onToggleStrikerDraw, getWaterDepth,
+    onCycleLeftHand,
   } = deps;
   // The keyboard handler calls the toggle through the lazy dep.
   const toggleDebugKit = onToggleDebugKit;
@@ -414,6 +419,17 @@ export function useGameInput(deps: GameInputDeps) {
 
       const key = e.key.toLowerCase();
 
+      // LEFT HAND (the shield slice, Adam, 2026-10-17): Alt is the
+      // left-hand modifier — Alt+↑/↓ walks the owned left-hand
+      // instruments (lantern, shields) INSTEAD of every plain-arrow
+      // behavior, and the arrows never register as movement keys
+      // while Alt is held. Checked FIRST, before the tool arrows.
+      if (e.altKey && (key === 'arrowup' || key === 'arrowdown')) {
+        e.preventDefault();
+        onCycleLeftHand(key === 'arrowdown' ? 1 : -1);
+        return;
+      }
+
       // Loaded-fertilizer cycling: with the planter trowel equipped, ↑/↓
       // switch which fertilizer is loaded INSTEAD of walking — WASD still
       // moves. (The arrows keep their movement role with every other tool,
@@ -439,7 +455,9 @@ export function useGameInput(deps: GameInputDeps) {
       }
 
       // Register standard continuous WASD / Arrow movement keys
-      if (['w', 'a', 's', 'd', 'arrowup', 'arrowleft', 'arrowdown', 'arrowright'].includes(key)) {
+      // (skipped while Alt is held — Alt+arrows is the Left Hand
+      // cycle, never movement).
+      if (!e.altKey && ['w', 'a', 's', 'd', 'arrowup', 'arrowleft', 'arrowdown', 'arrowright'].includes(key)) {
         keysPressed.current[key] = true;
       }
 
@@ -487,7 +505,7 @@ export function useGameInput(deps: GameInputDeps) {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [activeModal, isPointerLocked, setActiveTool, playerState.activeTool, cycleLoadedFertilizer, cycleSelectedStructure, attemptJump]);
+  }, [activeModal, isPointerLocked, setActiveTool, playerState.activeTool, cycleLoadedFertilizer, cycleSelectedStructure, attemptJump, onCycleLeftHand]);
 
   // Mouse wheel cycles the equipped tool's primary selection: SEEDS on
   // the trowel, BLUEPRINTS on the builder. (The trowel's fertilizer
@@ -500,6 +518,18 @@ export function useGameInput(deps: GameInputDeps) {
     const handleWheel = (e: WheelEvent) => {
       if (activeModal !== null) return;
       if (e.deltaY === 0) return;
+      // LEFT HAND (the shield slice, Adam, 2026-10-17): Alt is the
+      // left-hand modifier — Alt+wheel walks the owned left-hand
+      // instruments, and the plain wheel behavior (gauntlet side:
+      // seeds / blueprints / striker draw) does NOT fire while
+      // Alt is held.
+      if (e.altKey) {
+        const now = performance.now();
+        if (now - lastWheelCycleRef.current < 150) return;
+        lastWheelCycleRef.current = now;
+        onCycleLeftHand(e.deltaY > 0 ? 1 : -1);
+        return;
+      }
       const tool = playerState.activeTool;
       if (tool !== 'planter_trowel' && tool !== 'builder' && tool !== 'striker') return;
       const now = performance.now();
@@ -521,7 +551,7 @@ export function useGameInput(deps: GameInputDeps) {
     return () => {
       window.removeEventListener('wheel', handleWheel);
     };
-  }, [activeModal, playerState.activeTool, cycleSelectedSeed, cycleSelectedStructure, toggleStrikerDraw]);
+  }, [activeModal, playerState.activeTool, cycleSelectedSeed, cycleSelectedStructure, toggleStrikerDraw, onCycleLeftHand]);
 
   return {
     keysPressed, lastWTap, sprinting, touchInputRef, staminaRef, lastStaminaSync,

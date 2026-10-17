@@ -997,4 +997,102 @@ export const RECIPES: CraftingRecipe[] = [
     ],
     craftTimeMs: 3000,
   },
+  // THE SHIELD LINE (Adam, 2026-10-17): the Left Hand's ward.
+  // Tiers are pinned in GEAR_DISPLAY_TIER (quests.ts), so the
+  // Fenback stays forge-only by the access-tier rule. The Lantern
+  // Shield is a combination (it CONSUMES the lantern and the Scute
+  // Shield); the Fenback is consume-and-keep (it eats the Lantern
+  // Shield and keeps the lamp — and any graft, via inheritance in
+  // the craft flow). The graft recipes grow thorn spikes ONTO an
+  // owned shield — the shield is the workbench (kept, not consumed);
+  // the graftShield field stamps the graft onto PlayerState.
+  {
+    id: 'craft_scute_shield',
+    outputId: 'scute_shield',
+    outputCount: 1,
+    name: 'Scute Shield',
+    description: 'Grow overlapping Boneback scutes onto a root-and-resin frame, worn on the forearm. Tier 1 of the shield line — the Left Hand\'s wall.',
+    category: 'defenses',
+    ingredients: [
+      { id: 'field_scute', count: 3 },
+      { id: 'resin_sap', count: 2 },
+      { id: 'soft_fiber', count: 2 },
+    ],
+    craftTimeMs: 3000,
+  },
+  {
+    id: 'craft_lantern_shield',
+    outputId: 'lantern_shield',
+    outputCount: 1,
+    name: 'Lantern Shield',
+    description: 'Grow a Hand Lantern-Fern into the face of a Scute Shield. Tier 2: the wall is unchanged — the tier buys the light. Consumes the lantern and the shield.',
+    category: 'defenses',
+    ingredients: [
+      { id: 'hand_lantern_fern', count: 1 },
+      { id: 'scute_shield', count: 1 },
+      { id: 'resin_sap', count: 4 },
+      { id: 'glow_spore', count: 3 },
+    ],
+    craftTimeMs: 4000,
+  },
+  {
+    id: 'craft_fenback_shield',
+    outputId: 'fenback_shield',
+    outputCount: 1,
+    name: 'Fenback Shield',
+    description: 'Grow Scaldback fen-scutes around a Lantern Shield until the ward wraps the bearer. Tier 3, consume-and-keep: the lamp and any spike graft survive the grow.',
+    category: 'defenses',
+    ingredients: [
+      { id: 'lantern_shield', count: 1 },
+      { id: 'fen_scute', count: 4 },
+      { id: 'saltglass_shard', count: 2 },
+      { id: 'living_thread', count: 2 },
+    ],
+    craftTimeMs: 5000,
+  },
+  {
+    id: 'graft_spikes_scute',
+    outputId: 'scute_shield',
+    outputCount: 1,
+    name: 'Spike Graft — Scute Shield',
+    description: 'Graft organic thorn spikes across the Scute Shield\'s face. A Tier 2 addition: strikes landing on the shield answer with thorn damage — minor carried, more braced. The shield stays; the graft is what grows.',
+    category: 'defenses',
+    ingredients: [
+      { id: 'scute_shield', count: 1 },
+      { id: 'carapace_scale', count: 3 },
+      { id: 'resin_sap', count: 2 },
+    ],
+    craftTimeMs: 2500,
+    graftShield: 'scute_shield',
+  },
+  {
+    id: 'graft_spikes_lantern',
+    outputId: 'lantern_shield',
+    outputCount: 1,
+    name: 'Spike Graft — Lantern Shield',
+    description: 'Graft organic thorn spikes across the Lantern Shield\'s face — the lamp keeps its seat between the spikes. A Tier 2 addition; the graft survives the shield\'s later consume-upgrades.',
+    category: 'defenses',
+    ingredients: [
+      { id: 'lantern_shield', count: 1 },
+      { id: 'carapace_scale', count: 3 },
+      { id: 'resin_sap', count: 2 },
+    ],
+    craftTimeMs: 2500,
+    graftShield: 'lantern_shield',
+  },
+  {
+    id: 'graft_spikes_fenback',
+    outputId: 'fenback_shield',
+    outputCount: 1,
+    name: 'Spike Graft — Fenback Shield',
+    description: 'Graft organic thorn spikes across the Fenback\'s wider plates. A Tier 2 addition; spore bursts shed by a braced, grafted Fenback carry thorn-pricks.',
+    category: 'defenses',
+    ingredients: [
+      { id: 'fenback_shield', count: 1 },
+      { id: 'carapace_scale', count: 3 },
+      { id: 'resin_sap', count: 2 },
+    ],
+    craftTimeMs: 2500,
+    graftShield: 'fenback_shield',
+  },
 ];

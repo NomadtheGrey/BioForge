@@ -30,6 +30,18 @@ import { soundEngine } from '../audio/soundEngine';
 import { ITEMS } from '../game/items/constants';
 import { WORLD_EDGE_COORD, ZONE_PUSH_SECONDS, ZONE_PUSH_MIN_COMPONENT } from './useZoneTravel';
 import { JUMP_GRAVITY, STORY_HEIGHT_METERS } from './useGameInput';
+// THE SHIELD (Adam, 2026-10-17): braced stamina drain, braced
+// move slow, the held lamp-shields' light, and the per-tick
+// combat input for the bite site.
+import {
+  SHIELD_BRACED_SLOW,
+  SHIELD_RAISED_DRAIN_PER_SEC,
+  resolveShieldStrike,
+  shieldOf,
+  type ShieldCombatInput,
+  type ShieldSideEffect,
+  type StrikeCtx,
+} from '../game/creatures/shields';
 import type { WorldSnapshot } from '../game/saveSystem';
 import type { InstanceState } from './useInstances';
 import type { PendingTravel } from './useZoneTravel';
@@ -114,7 +126,7 @@ export interface GameLoopDeps {
   liveGameRefs: { current: {
     hasItem: (itemId: ItemId, quantity: number) => boolean;
     addInventoryItem: (itemId: ItemId, quantity: number) => void;
-    updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number) => void, attacksArmed?: boolean, dayPhase?: number, onFieldWitness?: (noteId: string) => void, onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void, onAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void) => void;
+    updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number, ctx?: StrikeCtx) => void, attacksArmed?: boolean, dayPhase?: number, onFieldWitness?: (noteId: string) => void, onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void, onAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void) => void;
     postNotification: (title: string, message: string, type?: GameNotification['type'], iconColor?: string) => void;
     // The Field Notes witness sink (App's recordFieldWitness,
     // fieldNotesBook.ts) — optional so the loop never hard-depends
@@ -124,6 +136,20 @@ export interface GameLoopDeps {
      *  sample pickups and sim-side culls stamp through here. */
     recordAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void;
     getPlacementRotation: () => number;
+    /** THE SHIELD (Adam, 2026-10-17): the wield hook's live refs —
+     *  optional so the loop never hard-depends on the shield slice;
+     *  App's liveGameRefs effect sets them once the hook composes. */
+    shield?: {
+      buildCombatInput: (getPlayerFacing: () => number, payStamina: (n: number) => boolean) => import('../game/creatures/shields').ShieldCombatInput | undefined;
+      onStaminaEmpty: () => void;
+      tickClock: (dt: number) => void;
+      raisedRef: { current: boolean };
+      graftsRef: { current: Partial<Record<import('../types/game').ItemId, boolean>> };
+      /** THE SHIELD (2026-10-17): the strike side-effect sink —
+       *  the shared consumer queues reflects, staggers, and spore
+       *  bursts here; the sim's post-map sweep drains them. */
+      queueShieldSideEffect: (fx: ShieldSideEffect) => void;
+    };
   } };
   accumulatedTickTime: { current: number };
   accumulatedDayTime: { current: number };
@@ -244,7 +270,10 @@ export function useGameLoop(deps: GameLoopDeps): void {
         // Rooted by the valley (Living, 2026-10-15): a landed
         // grab holds you at 40% speed while the snare lasts.
         const snared = performance.now() < grabSnareUntilRef.current && instanceRef.current.kind === 'surface' ? 0.4 : 1;
-        movementController.current.sprintMultiplier = (wantSprint ? 1.6 : 1) * wading * snared * inWater;
+        // THE SHIELD (2026-10-17): braced walking is a wall's
+        // walk — slow, deliberate, roots tearing and re-setting.
+        const bracedSlow = liveGameRefs.current.shield?.raisedRef.current ? SHIELD_BRACED_SLOW : 1;
+        movementController.current.sprintMultiplier = (wantSprint ? 1.6 : 1) * wading * snared * inWater * bracedSlow;
 
         // Inside an instance, the instance grid itself is the walls
         // (caverns use their grid raw; ruins pass the collision copy).
@@ -422,8 +451,17 @@ export function useGameLoop(deps: GameLoopDeps): void {
         // exists, the hollow is a place you cross, not linger in.
         // Surface only — underground is cave air, not hollow air.
         const sporeTax = sporeStaminaRef.current && activeInstance.kind === 'surface' ? 8 * dt : 0;
-        const staminaDelta = (isSprintingNow ? -18 * dt : (moveResult.isMoving ? 8 : 14) * dt) - sporeTax;
+        // THE SHIELD (2026-10-17): a raised shield is effort —
+        // bracing suppresses stamina recovery and drinks it slowly
+        // (the braced tax). At empty the guard breaks: the shield
+        // drops and a brief vulnerable beat runs. Blocks pay per
+        // hit at the bite site (useWorldEntities).
+        const shieldRaised = liveGameRefs.current.shield?.raisedRef.current ?? false;
+        const staminaDelta = (isSprintingNow ? -18 * dt : (shieldRaised ? 0 : (moveResult.isMoving ? 8 : 14) * dt)) - sporeTax - (shieldRaised ? SHIELD_RAISED_DRAIN_PER_SEC * dt : 0);
         staminaRef.current = Math.max(0, Math.min(100, staminaRef.current + staminaDelta));
+        if (shieldRaised && staminaRef.current <= 0) {
+          liveGameRefs.current.shield?.onStaminaEmpty();
+        }
 
         // Variant effect (Adam, 2026-10-15): EMBER SCAR HEAT. By
         // day (Sol-cycle 0.25-0.75, the engine's own day band) the
@@ -630,6 +668,31 @@ export function useGameLoop(deps: GameLoopDeps): void {
         engineRef.current.setPlayerPosition(moveResult.x, moveResult.z, playerLevelRef.current, jump.y);
         engineRef.current.updateViewmodelDynamics(dt, moveResult.isMoving);
 
+        // THE SHIELD (2026-10-17): the shield's per-frame drive —
+        // its clock (guard-break windows, spore cooldowns), the
+        // left-hand viewmodel (rebuild only on item/graft change;
+        // the raise lerps), and the Fenback's ward arc behind a
+        // braced bearer.
+        const shieldCtl = liveGameRefs.current.shield;
+        if (shieldCtl) {
+          shieldCtl.tickClock(dt);
+          const heldShield = shieldOf(playerState.heldItemId ?? null) ?? null;
+          const grafted = !!(heldShield && shieldCtl.graftsRef.current?.[heldShield.itemId]);
+          engineRef.current.setShieldViewmodel(heldShield, grafted, shieldCtl.raisedRef.current, dt);
+          const camDir = new THREE.Vector3();
+          engineRef.current.camera.getWorldDirection(camDir);
+          const facing = Math.atan2(camDir.x, camDir.z);
+          const wardActive = shieldCtl.raisedRef.current && heldShield?.tier === 3;
+          engineRef.current.setWardArc(wardActive, moveResult.x, moveResult.z, facing);
+          // The held light follows the Left Hand per frame (a braced
+          // lamp-shield throws its light forward — see the engine).
+          const heldShieldLamp = heldShield?.hasLamp ?? false;
+          engineRef.current.setHeldLight(
+            playerState.heldItemId === 'hand_lantern_fern' || heldShieldLamp,
+            shieldCtl.raisedRef.current && heldShieldLamp
+          );
+        }
+
         // Smooth Minimap Pos update (every 50ms)
         const frameNow = performance.now();
         if (frameNow - lastMinimapUpdateTime.current > 50) {
@@ -705,6 +768,36 @@ export function useGameLoop(deps: GameLoopDeps): void {
         if (accumulatedTickTime.current >= 0.1) {
           const simDt = accumulatedTickTime.current;
           accumulatedTickTime.current = 0;
+          // THE SHIELD (2026-10-17): the per-tick combat input for
+          // the shared strike consumer below — facing from the
+          // camera (computed once, shared by the input and the
+          // consumer), stamina from the loop's own ref (App's
+          // spendStamina logic, inline), the spore presentation
+          // from the engine. Undefined when the Left Hand holds no
+          // shield: strikes resolve exactly as before.
+          let shieldCombat: ShieldCombatInput | undefined;
+          let tickFacing = 0;
+          const shieldCtl = liveGameRefs.current.shield;
+          if (shieldCtl) {
+            const d = new THREE.Vector3();
+            engineRef.current?.camera.getWorldDirection(d);
+            tickFacing = Math.atan2(d.x, d.z);
+            const input = shieldCtl.buildCombatInput(
+              () => tickFacing,
+              (n) => {
+                if (staminaRef.current < n) return false;
+                staminaRef.current = Math.max(0, staminaRef.current - n);
+                setStamina(staminaRef.current);
+                return true;
+              }
+            );
+            if (input) {
+              shieldCombat = {
+                ...input,
+                triggerSporeFx: (x, z) => engineRef.current?.triggerSporeBurst(x, z),
+              };
+            }
+          }
           liveGameRefs.current.updateTick(
             simDt,
             moveResult.x,
@@ -752,9 +845,32 @@ export function useGameLoop(deps: GameLoopDeps): void {
             // reaches this handler. In co-op the fauna sim runs
             // on the host, so bites land on the host's player —
             // the same accepted v1 simplification as pickups.
-            (_attackedBy, damage) => {
+            // THE SHIELD (2026-10-17): the SHARED strike consumer.
+            // The main bite line and the Fall Hawk's stoop both
+            // feed this callback, so block resolution lives HERE —
+            // never at a call site — and both feeders block
+            // identically. The damage arriving is final (the bite
+            // line's scaled expression); the strike context says
+            // where the teeth came from. Side effects queue back
+            // into the sim's post-map sweep.
+            (_attackedBy, damage, ctx) => {
+              let finalDamage = damage;
+              if (shieldCombat && ctx && shieldCtl) {
+                finalDamage = resolveShieldStrike(
+                  shieldCombat,
+                  damage,
+                  ctx,
+                  moveResult.x,
+                  moveResult.z,
+                  tickFacing,
+                  (targetId, hitDamage, flinch) =>
+                    shieldCtl.queueShieldSideEffect({ kind: 'hit', targetId, damage: hitDamage, flinch }),
+                  (x, z, grafted) =>
+                    shieldCtl.queueShieldSideEffect({ kind: 'burst', x, z, grafted })
+                ).finalDamage;
+              }
               const floor = deathArmedRef.current ? 0 : 1;
-              healthRef.current = Math.max(floor, healthRef.current - damage);
+              healthRef.current = Math.max(floor, healthRef.current - finalDamage);
               setHealth(healthRef.current);
               if (deathArmedRef.current && healthRef.current <= 0 && !playerDeadRef.current) {
                 playerDeadRef.current = true;
@@ -864,10 +980,6 @@ export function useGameLoop(deps: GameLoopDeps): void {
   }, [playerState.selectedStructureType]);
 
 
-  // The held lantern light follows the Left Hand (see App's
-  // handleToggleHeldItem): the engine light is on while the
-  // Lantern-Fern is the held instrument.
-  useEffect(() => {
-    engineRef.current?.setHeldLight(playerState.heldItemId === 'hand_lantern_fern');
-  }, [playerState.heldItemId]);
+  // The held light is driven per frame in the shield block above
+  // (a braced lamp-shield throws it forward); no effect needed.
 }

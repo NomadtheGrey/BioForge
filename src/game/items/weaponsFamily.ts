@@ -55,6 +55,16 @@ export interface FamilyEntry {
   flinchSeconds?: number;
   projectileSpeed?: number;
   burstRadius?: number;
+  /**
+   * SIGNATURE LINES, AS DATA (shield slice, 2026-10-17): the
+   * defensive entries' distinguishing copy lives in the registry,
+   * never hardcoded in a surface. The HUD lane renders these
+   * verbatim in the dossiers — rear-passive with its
+   * braced-stays-frontal rider, the Spore Answer with its graft
+   * rider, Rooted with its own-walk rider, Shared Cover with its
+   * lee + bearer-pays rider.
+   */
+  signatures?: string[];
 }
 
 /** The family entry for an item, or undefined when the item is
@@ -62,9 +72,37 @@ export interface FamilyEntry {
  *  defensive entry appears when the shield data lands with
  *  its family record in DEFENSIVES below. */
 export const DEFENSIVES: FamilyEntry[] = [
-  // The shield slice lands the items; their entries register
-  // here (kind 'defensive', tiers 1 and 2) in the same pass
-  // that verifies the data — never hardcoded ahead of it.
+  {
+    itemId: 'scute_shield',
+    kind: 'defensive',
+    tier: 1,
+    signatures: [
+      'Carried, it blunts frontal strikes for free — no stamina, no stagger, no slow.',
+      'Braced (hold right-mouse), it is a wall: frontal strikes negated, the attacker staggered, at stamina\'s price.',
+    ],
+  },
+  {
+    itemId: 'lantern_shield',
+    kind: 'defensive',
+    tier: 2,
+    signatures: [
+      'The Tier 2 branch, not a ladder: it blocks exactly as the Scute Shield — the tier buys the light.',
+      'A Hand Lantern-Fern grown into the shield\'s face; the light holds while held, and throws forward while braced.',
+      'Grown by combination: its recipe consumes the lantern and the Scute Shield.',
+    ],
+  },
+  {
+    itemId: 'fenback_shield',
+    kind: 'defensive',
+    tier: 3,
+    signatures: [
+      'Consume-and-keep: grown from a Lantern Shield, it keeps the lamp and any spike graft — nothing the shield ate is lost.',
+      'Rear passive coverage: the passive blunt wraps around the back. The BRACED wall stays frontal — facing still matters when raised.',
+      'The Spore Answer: a braced block sheds a stagger-and-knockback spore burst around the bearer (grafted shields add thorn-pricks to the burst).',
+      'Rooted Stance: while braced, no hit moves the bearer — charges slide off. The bearer\'s own braced walk tears and re-sets the roots.',
+      'Shared Cover: while braced, an ally in the lee behind the bearer stands under the wall — blocked-for at braced grade, from the bearer\'s stamina.',
+    ],
+  },
 ];
 
 export const familyEntryOf = (itemId: ItemId): FamilyEntry | undefined => {

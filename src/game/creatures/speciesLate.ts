@@ -639,7 +639,11 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     tameChance: 0.25,
     bait: 'nectar',
     petName: 'Scaldback',
-    byproduct: null,
+    // The creatures lane's fen-scute door (2026-10-17): the fen
+    // family's plate sheds on the Scaldback's wild circuit,
+    // symmetric with the Boneback's Field Scute — a shed, never a
+    // kill-drop, so no supply chain requires harming or taming it.
+    byproduct: { item: 'fen_scute', seconds: 300, tamedOnly: false },
     bonusSpawn: {
       biomes: ['wetland', 'ember'],
       hybrid: ['wetland', 'ember'],

@@ -18,6 +18,7 @@ import {
   ItemId,
 } from '../../types/game';
 import { FirstPersonViewmodel } from './viewmodel';
+import type { ShieldDef } from '../creatures/shields';
 import { landformHeightAt, type PondLiquid } from '../world/terrain';
 import { buildWaterGroup, waterSurfaceFromLists, waterDepthFromLists, liquidFromLists, type PondLocal, type RiverSegLocal } from '../world/waterField';
 import { SkyRig } from '../world/skyRig';
@@ -268,9 +269,16 @@ export class BioForgeThreeEngine {
 
   /** App drives this from PlayerState.heldItemId: a lantern in the
    * left hand lights the way like a torch, surface or cave. */
-  public setHeldLight(active: boolean): void {
+  public setHeldLight(active: boolean, braced = false): void {
     this.heldLightActive = active;
+    this.heldLightBraced = braced;
   }
+
+  /**
+   * THE SHIELD (Adam, 2026-10-17): a braced lamp-shield throws its
+   * light forward — the bearer sees what the wall faces.
+   */
+  private heldLightBraced: boolean = false;
   private cachedPlayerZ: number = 0;
 
   // Spore particles
@@ -582,6 +590,88 @@ export class BioForgeThreeEngine {
 
   public setViewmodelBlueprint(blueprint: StructureType) {
     this.viewmodel.setBlueprint(blueprint);
+  }
+
+  /**
+   * THE SHIELD (Adam, 2026-10-17): the left-hand shield in the
+   * viewmodel. Called per frame by the game loop; the viewmodel
+   * rebuilds only when the item or graft changes, and lerps the
+   * raise every frame.
+   */
+  public setShieldViewmodel(shield: ShieldDef | null, grafted: boolean, raised: boolean, delta: number) {
+    this.viewmodel.setLeftHandShield(shield, grafted);
+    this.viewmodel.updateShieldRaise(delta, raised);
+  }
+
+  /**
+   * THE SHIELD (Adam, 2026-10-17): the Spore Answer — a visible
+   * spore puff at the braced block, fen-green, drifting up and
+   * out. The damage/knockback live in the sim's post-map sweep;
+   * this is the presentation.
+   */
+  public triggerSporeBurst(x: number, z: number) {
+    const count = 26;
+    const geom = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = Math.random() * 1.2;
+      pos[i * 3] = Math.cos(a) * r;
+      pos[i * 3 + 1] = Math.random() * 1.4 + 0.2;
+      pos[i * 3 + 2] = Math.sin(a) * r;
+    }
+    geom.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({
+      color: 0xbef264,
+      size: 0.3,
+      transparent: true,
+      opacity: 0.9,
+      blending: THREE.AdditiveBlending,
+    });
+    const points = new THREE.Points(geom, mat);
+    points.position.set(x, this.terrainHeightAt(x, z) + 0.4, z);
+    this.particlesGroup.add(points);
+    this.transientParticles.push({
+      mesh: points,
+      life: 0,
+      maxLife: 0.9,
+      vel: new THREE.Vector3(0, 1.1, 0),
+    });
+  }
+
+  // THE SHIELD (Adam, 2026-10-17): the shared-cover ward arc — a
+  // faint curved shell marking the lee behind a braced Fenback.
+  // One persistent mesh, stirred per frame; HUD refines the look
+  // later.
+  private wardArcMesh: THREE.Mesh | null = null;
+
+  /**
+   * Position the ward arc behind the bearer (or hide it). The arc
+   * is built from the shield mesh builder's ward part so the
+   * language matches the viewmodel.
+   */
+  public setWardArc(active: boolean, x: number, z: number, facing: number) {
+    if (!active) {
+      if (this.wardArcMesh) this.wardArcMesh.visible = false;
+      return;
+    }
+    if (!this.wardArcMesh) {
+      const arcGeom = new THREE.CylinderGeometry(2.2, 2.2, 1.6, 24, 1, true, Math.PI * 0.72, Math.PI * 0.56);
+      const arcMat = new THREE.MeshBasicMaterial({
+        color: 0xbef264,
+        transparent: true,
+        opacity: 0.22,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      });
+      this.wardArcMesh = new THREE.Mesh(arcGeom, arcMat);
+      this.scene.add(this.wardArcMesh);
+    }
+    this.wardArcMesh.visible = true;
+    this.wardArcMesh.position.set(x, this.terrainHeightAt(x, z) + 0.8, z);
+    // The arc's opening faces away from the bearer's facing — the
+    // shell sits BEHIND them (the lee).
+    this.wardArcMesh.rotation.y = -facing + Math.PI;
   }
 
   public triggerToolAnimation() {
@@ -1473,14 +1563,27 @@ export class BioForgeThreeEngine {
     // It merges and culls like any other source, and sitting at
     // distance ~0 from the player it always claims a pool light.
     if (this.heldLightActive) {
+      // THE SHIELD (2026-10-17): a braced lamp-shield throws the
+      // light forward of the bearer — same pool, longer reach.
+      let sx = this.cachedPlayerX;
+      let sz = this.cachedPlayerZ;
+      let distance = 16;
+      if (this.heldLightBraced && this.camera) {
+        const dir = new THREE.Vector3();
+        this.camera.getWorldDirection(dir);
+        const len = Math.hypot(dir.x, dir.z) || 1;
+        sx += (dir.x / len) * 2.5;
+        sz += (dir.z / len) * 2.5;
+        distance = 22;
+      }
       sources.push({
         id: 'held:lantern',
-        x: this.cachedPlayerX,
+        x: sx,
         y: 1.6,
-        z: this.cachedPlayerZ,
+        z: sz,
         color: 0x67e8f9,
         intensity: 2.6,
-        distance: 16,
+        distance,
       });
     }
 

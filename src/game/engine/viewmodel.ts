@@ -6,6 +6,8 @@
 
 import * as THREE from 'three';
 import { ToolType, StructureType, ItemId } from '../../types/game';
+import { buildShieldMesh, setShieldPartVisible, SHIELD_PARTS } from '../creatures/shieldMeshes';
+import type { ShieldDef } from '../creatures/shields';
 
 export class FirstPersonViewmodel {
   public root: THREE.Group = new THREE.Group();
@@ -19,6 +21,15 @@ export class FirstPersonViewmodel {
   private hologramMesh: THREE.Mesh | null = null;
   /** The striker slot's swappable group (weapons build). */
   private strikerGroup: THREE.Group | null = null;
+
+  // THE SHIELD (Adam, 2026-10-17): the LEFT hand's ward. A small
+  // off-hand arm carries the grown shield mesh; raising lerps the
+  // arm from carry to the braced wall.
+  private leftArmGroup: THREE.Group = new THREE.Group();
+  private shieldMeshGroup: THREE.Group | null = null;
+  private shieldKey: string | null = null;
+  private shieldRaiseT: number = 0;
+  private shieldBracedTier: 0 | 1 | 2 | 3 = 0;
 
   // Animation States
   private idleTime: number = 0;
@@ -35,6 +46,11 @@ export class FirstPersonViewmodel {
     this.setupTools();
     this.root.add(this.armGroup);
     this.root.add(this.toolHolder);
+    // The left hand rides lower and left, out of the tool's way;
+    // its position is driven per-frame by updateShieldRaise.
+    this.leftArmGroup.position.set(-0.38, -0.3, -0.5);
+    this.leftArmGroup.visible = false;
+    this.root.add(this.leftArmGroup);
 
     // Initial position in front of camera
     this.root.position.set(0.3, -0.28, -0.58);
@@ -250,6 +266,55 @@ export class FirstPersonViewmodel {
     });
 
     this.setTool('harvest_glove');
+  }
+
+  /**
+   * THE SHIELD (Adam, 2026-10-17): grow (or clear) the left-hand
+   * shield. Rebuilds only when the item or graft changes — the
+   * raise itself is a per-frame lerp, not a rebuild. The tendrils
+   * part is stirred by updateShieldRaise; everything else is
+   * static geometry.
+   */
+  public setLeftHandShield(shield: ShieldDef | null, grafted: boolean): void {
+    const key = shield ? `${shield.itemId}:${grafted ? 'g' : 'u'}` : 'none';
+    if (key === this.shieldKey) return;
+    this.shieldKey = key;
+    if (this.shieldMeshGroup) {
+      this.leftArmGroup.remove(this.shieldMeshGroup);
+      this.shieldMeshGroup = null;
+    }
+    this.shieldBracedTier = shield ? shield.tier : 0;
+    if (!shield) return;
+    const mesh = buildShieldMesh(shield.tier, { grafted });
+    mesh.scale.setScalar(0.5);
+    mesh.position.set(0, -0.02, -0.1);
+    this.shieldMeshGroup = mesh;
+    this.leftArmGroup.add(mesh);
+  }
+
+  /**
+   * Per-frame: lerp the raise toward the braced wall (or back to
+   * carry), and stir the Fenback's root tendrils while braced.
+   * Called from the engine's viewmodel dynamics tick.
+   */
+  public updateShieldRaise(delta: number, raised: boolean): void {
+    const target = raised ? 1 : 0;
+    const speed = 8; // snappy but readable — a wall, not a teleport
+    this.shieldRaiseT += Math.sign(target - this.shieldRaiseT) * Math.min(Math.abs(target - this.shieldRaiseT), delta * speed);
+    const t = this.shieldRaiseT;
+    // Carry: low at the left hip, tilted. Braced: centered, face
+    // forward, a wall across the chest.
+    const x = -0.38 + t * 0.14;
+    const y = -0.3 + t * 0.1;
+    const z = -0.5 - t * 0.12;
+    this.leftArmGroup.position.set(x, y, z);
+    this.leftArmGroup.rotation.set(-0.35 + t * 0.35, 0.5 - t * 0.5, 0.12);
+    this.leftArmGroup.visible = this.shieldMeshGroup !== null;
+    // Rooted Stance presentation: the Fenback's tendrils take
+    // hold while braced (stirred, never rebuilt).
+    if (this.shieldMeshGroup && this.shieldBracedTier === 3) {
+      setShieldPartVisible(this.shieldMeshGroup, SHIELD_PARTS.tendrils, raised);
+    }
   }
 
   public setTool(tool: ToolType) {

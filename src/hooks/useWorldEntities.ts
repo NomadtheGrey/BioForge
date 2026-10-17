@@ -14,6 +14,21 @@ import {
 } from '../types/game';
 import { multiplayerManager } from '../game/multiplayer';
 import { speciesDef } from '../game/creatures/species';
+// THE SHIELD (Adam, 2026-10-17): the strike side-effect queue
+// drained in the post-map sweep — thorn-spike reflects, braced
+// staggers, and the Fenback's Spore Answer. Block RESOLUTION
+// lives at the shared onFaunaAttack consumer (the game loop's
+// damage application), so the main bite and the Fall Hawk's
+// stoop block identically; this file only carries the side
+// effects back into the sim.
+import {
+  GRAFT_REFLECT_PASSIVE,
+  SPORE_KNOCKBACK_METERS,
+  SPORE_RADIUS,
+  SPORE_STAGGER_SECONDS,
+  type ShieldSideEffect,
+  type StrikeCtx,
+} from '../game/creatures/shields';
 import { sampleItemId, SAMPLE_SHED_SECONDS_TAMED, SAMPLE_SHED_SECONDS_WILD } from '../game/structures/vat';
 import type { ItemId } from '../types/game';
 import type { WorldSnapshot } from '../game/saveSystem';
@@ -420,11 +435,16 @@ export interface UseWorldEntitiesResult {
     /** Danger system (slice 5): fired when a wild hunter's bite
      *  lands. The caller (the game loop) owns player health and
      *  applies the house damage pattern. */
-    onFaunaAttack?: (species: FaunaSpecies, damage: number) => void,
+    onFaunaAttack?: (species: FaunaSpecies, damage: number, ctx?: StrikeCtx) => void,
     /** True on Normal/Hostile worlds: hunters chase and bite.
      *  False (Peaceful): the alert theater only, no teeth. */
     attacksArmed?: boolean
   ) => void;
+  /** THE SHIELD (Adam, 2026-10-17): the strike side-effect sink —
+   *  the shared onFaunaAttack consumer queues reflects, braced
+   *  staggers, and spore bursts here; the post-map sweep drains
+   *  them into the sim. */
+  queueShieldSideEffect: (fx: ShieldSideEffect) => void;
 }
 
 export function useWorldEntities(): UseWorldEntitiesResult {
@@ -498,6 +518,16 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   // seconds a committed hound has held its hunt — the Field
   // Note witnesses the pursuit, not the meeting.
   const hushPursuitRef = useRef<Map<string, number>>(new Map());
+  // THE SHIELD (Adam, 2026-10-17): the strike side-effect queue.
+  // The shared onFaunaAttack consumer (game loop) resolves a
+  // strike and queues its sim-side effects here — thorn-spike
+  // reflects, braced staggers, spore bursts — because the
+  // consumer fires during the map phase and can't touch the
+  // fauna list. The post-map sweep drains it in the same tick.
+  const shieldSideEffectsRef = useRef<ShieldSideEffect[]>([]);
+  const queueShieldSideEffect = (fx: ShieldSideEffect): void => {
+    shieldSideEffectsRef.current.push(fx);
+  };
   // Meadowback sentinel bookkeeping (slice 49): each sentinel's
   // last bell (sim seconds — the cooldown is the sentinel's own
   // patience) and whether a hunter stood in its regard last tick
@@ -838,7 +868,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
       playerZ: number,
       onPickupItem: (item: DroppedItemEntity) => void,
       onCritterExcrete?: (species: string) => void,
-      onFaunaAttack?: (species: FaunaSpecies, damage: number) => void,
+      onFaunaAttack?: (species: FaunaSpecies, damage: number, ctx?: StrikeCtx) => void,
       attacksArmed?: boolean,
       dayPhase?: number,
       onFieldWitness?: (noteId: string) => void,
@@ -1416,7 +1446,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
                 // The gradient's damage axis (slice 50): the
                 // stamp scales the bite; unstamped hunters bite
                 // for exactly their table damage.
-                onFaunaAttack?.(fauna.species, Math.round(hunt.damage * (fauna.deepDmg ?? 1)));
+                onFaunaAttack?.(fauna.species, Math.round(hunt.damage * (fauna.deepDmg ?? 1)), { faunaId: fauna.id, x, z });
                 biteTimer = hunt.biteCooldownSeconds;
               }
             } else {
@@ -1800,7 +1830,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
                 socialState = 'climbing';
                 socialTimer = 0;
               } else if (distToPlayer <= 2.6) {
-                if (attacksArmed) onFaunaAttack?.(fauna.species, 26);
+                if (attacksArmed) onFaunaAttack?.(fauna.species, 26, { faunaId: fauna.id, x, z });
                 socialState = 'climbing';
                 socialTimer = 0;
               }
@@ -2062,7 +2092,14 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           f.hearthDecideTimer !== undefined &&
           f.hearthDecideTimer <= 0 &&
           (f.hearthFeedings ?? 0) < 3;
-        if (defenderDamage.size === 0 && shotDamage.size === 0 && !mappedFauna.some((f) => f.health <= 0) && !mappedFauna.some(isDeparting)) return mappedFauna;
+        // THE SHIELD (2026-10-17): drain this tick's queued strike
+        // side-effects — the shared onFaunaAttack consumer fires
+        // during the map phase above and queues here, because it
+        // can't touch the fauna list. Drained once per tick, in
+        // the same updater the consumer ran in.
+        const shieldFx = shieldSideEffectsRef.current;
+        shieldSideEffectsRef.current = [];
+        if (defenderDamage.size === 0 && shotDamage.size === 0 && shieldFx.length === 0 && !mappedFauna.some((f) => f.health <= 0) && !mappedFauna.some(isDeparting)) return mappedFauna;
         // Deaths leave remains where they fell — and remains are
         // a SAMPLE, the dead's half of Adam's sample ruling. The
         // killers that reach this sweep: a guardian's bites (the
@@ -2075,12 +2112,52 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             return [];
           }
           const dmg = (defenderDamage.get(f.id) ?? 0) + (shotDamage.get(f.id) ?? 0);
-          const health = f.health - dmg;
+          // THE SHIELD (2026-10-17): the queued strike side-effects
+          // — thorn-spike reflects and braced-wall staggers aimed
+          // at one attacker, plus the Fenback's Spore Answer, a
+          // stagger-and-knockback pulse around the bearer (grafted:
+          // the pulse carries thorn-pricks). Wild fauna only — the
+          // game's own rule holds in reverse: a shield never
+          // answers a companion or a Peaceful.
+          let shieldDmg = 0;
+          let shieldFlinch = 0;
+          let knockX = 0;
+          let knockZ = 0;
+          for (const fx of shieldFx) {
+            if (fx.kind === 'hit') {
+              if (fx.targetId !== f.id) continue;
+              shieldDmg += fx.damage;
+              shieldFlinch = Math.max(shieldFlinch, fx.flinch);
+            } else {
+              if (f.isTamed) continue;
+              const dx = f.x - fx.x;
+              const dz = f.z - fx.z;
+              const dist = Math.hypot(dx, dz);
+              if (dist > SPORE_RADIUS || dist < 0.01) continue;
+              shieldFlinch = Math.max(shieldFlinch, SPORE_STAGGER_SECONDS);
+              knockX += (dx / dist) * SPORE_KNOCKBACK_METERS;
+              knockZ += (dz / dist) * SPORE_KNOCKBACK_METERS;
+              if (fx.grafted) shieldDmg += GRAFT_REFLECT_PASSIVE;
+            }
+          }
+          const health = f.health - dmg - shieldDmg;
           if (health > 0) {
             // Harmed and standing (slice 32): the blow is
             // remembered — a guardian's bite or a landed shot
             // provokes exactly like a strike does.
-            return [dmg ? { ...f, health, provokedTimer: PROVOKED_SECONDS } : f];
+            const stirred = dmg + shieldDmg > 0 || shieldFlinch > 0 || knockX !== 0;
+            return [
+              stirred
+                ? {
+                    ...f,
+                    health,
+                    provokedTimer: PROVOKED_SECONDS,
+                    flinchTimer: Math.max(f.flinchTimer ?? 0, shieldFlinch),
+                    x: f.x + knockX,
+                    z: f.z + knockZ,
+                  }
+                : f,
+            ];
           }
           spawnDroppedItem(sampleItemId(f.species), 1, f.x, f.z);
           // The World Asks Back (2026-10-16): the cull event for
@@ -2370,5 +2447,8 @@ export function useWorldEntities(): UseWorldEntitiesResult {
     removeDroppedItem,
     replaceWorld,
     updateTick,
+    // THE SHIELD (2026-10-17): the strike side-effect sink — App
+    // bridges it to the game loop's shared onFaunaAttack consumer.
+    queueShieldSideEffect,
   };
 }

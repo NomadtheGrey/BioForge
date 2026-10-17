@@ -19,6 +19,10 @@ export type ItemId =
   | 'prism_hair'
   | 'lodestone_sand'
   | 'field_scute'
+  | 'fen_scute'
+  | 'scute_shield'
+  | 'lantern_shield'
+  | 'fenback_shield'
   | 'grave_feather'
   | 'kite_ribbon'
   | 'spire_down'
@@ -1145,7 +1149,15 @@ export interface CraftingRecipe {
 
   ingredients: { id: ItemId; count: number }[];
   craftTimeMs: number;
-
+  /**
+   * SHIELD GRAFT (2026-10-17): when set, crafting this recipe does not
+   * just output an item — it grafts thorn spikes onto the shield named
+   * here (outputId is the same shield, consumed and re-output). The
+   * graft state lives on PlayerState.shieldGrafts and survives the
+   * shield's later consume-upgrades (Lantern ← Scute, Fenback ←
+   * Lantern) via inheritance in the craft flow.
+   */
+  graftShield?: ItemId;
 }
 
 export interface CodexEntry {
@@ -1260,6 +1272,13 @@ export interface PlayerState {
    * the save verbatim with the rest of PlayerState; absent (undefined)
    * on saves from before the slot existed — treat as empty. */
   heldItemId?: ItemId | null;
+  /**
+   * SHIELD GRAFTS (2026-10-17): which shields carry grafted thorn
+   * spikes, by item id. Optional for save compatibility — old saves
+   * load it as {} (no shield was ever grafted). Written by the
+   * graft recipes and inherited through the shield consume-upgrades.
+   */
+  shieldGrafts?: Partial<Record<ItemId, boolean>>;
   /** Mini-quest progress — see QuestProgressState. Optional for
    * save compatibility; new worlds start it fresh in
    * handleCreateSave. */

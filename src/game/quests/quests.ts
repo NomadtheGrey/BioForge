@@ -1057,6 +1057,12 @@ export function isGearItem(id: ItemId): boolean {
  */
 const GEAR_DISPLAY_TIER: Partial<Record<ItemId, number>> = {
   prismatic_field_radar: 2,
+  // The shield line (Adam, 2026-10-17): Tier 1 is the plain wall,
+  // Tier 2 buys the light, Tier 3 is the Fenback — pinned so the
+  // Fenback's recipe is forge-only by the access-tier rule.
+  scute_shield: 1,
+  lantern_shield: 2,
+  fenback_shield: 3,
 };
 
 /**

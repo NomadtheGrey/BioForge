@@ -209,6 +209,10 @@ export interface UseToolInteractionsParams {
   carryRef: { current: CarryState | null };
   /** S6: set the carried vault down at a ground spot (false = the spot refused, carry continues). */
   putDownCarryAt: (worldX: number, worldZ: number) => boolean;
+  /** THE SHIELD (Adam, 2026-10-17): no striking while the shield
+   *  is raised — a wall does not lash out. App bridges the wield
+   *  hook's raisedRef here. */
+  shieldRaisedRef?: { current: boolean };
 }
 
 export function useToolInteractions({
@@ -273,6 +277,7 @@ export function useToolInteractions({
   triggerSprayJetFx,
   carryRef,
   putDownCarryAt,
+  shieldRaisedRef,
 }: UseToolInteractionsParams) {
   // What a harvest-ready plant gives up, per species — ONE table shared by
   // the harvest glove (which leaves the plant standing to regrow) and the
@@ -1668,6 +1673,12 @@ export function useToolInteractions({
       // solvent while the carry rides. Set the vault down first.
       if (carryRef.current) {
         postNotification('Hands Full', 'Set the carried vault down before using your tools — you are defenseless for the haul.', 'alert', '#fbbf24');
+        return;
+      }
+      // THE SHIELD (Adam, 2026-10-17): a raised shield is a wall,
+      // not a weapon — lower it before striking.
+      if (shieldRaisedRef?.current) {
+        postNotification('Shield Raised', 'Your left hand holds a wall — lower the shield before you strike.', 'alert', '#a3e635');
         return;
       }
       if (activeTool === 'taming_lure') {

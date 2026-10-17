@@ -110,6 +110,17 @@ import { AW_CHAPTERS, type AwChapter } from './game/quests/awChapters';
 import { ChapterModal } from './components/ChapterModal';
 import { bestWeapon } from './game/creatures/weapons';
 import type { WeaponDef } from './game/creatures/weapons';
+// The Shield Family (Adam, 2026-10-17): rules, the wield hook, and
+// the Left Hand cycle grammar.
+import {
+  cycleLeftHand as cycleLeftHandNext,
+  graftInheritanceOnCraft,
+  leftHandOrder,
+  shieldOf,
+  type ShieldCombatInput,
+  type ShieldSideEffect,
+} from './game/creatures/shields';
+import { useShieldWield } from './hooks/useShieldWield';
 import { useQuests } from './hooks/useQuests';
 import { useStorage } from './hooks/useStorage';
 import { useVat } from './hooks/useVat';
@@ -172,12 +183,14 @@ export default function App() {
 
   const {
     playerState,
+    shieldGrafts,
     setActiveTool,
     setSelectedStructureType,
     setSelectedSeedId,
     setSelectedFertilizerId,
     setHeldItemId,
     setQuestProgress,
+    setShieldGrafts,
     setPlayerTransform,
     setStamina,
     setHealth,
@@ -214,6 +227,7 @@ export default function App() {
     removeDroppedItem,
     spawnDroppedItem,
     replaceWorld,
+    queueShieldSideEffect,
   } = useWorldEntities();
 
   // 2. Modals & UI States
@@ -839,6 +853,24 @@ export default function App() {
     },
   });
 
+  // ------------------------------------------------------------------------
+  // THE SHIELD (Adam, 2026-10-17): the wield hook — raised state,
+  // guard break, spore cooldown, the graft record. Composed here,
+  // BEFORE useToolInteractions (the no-strike-while-raised gate
+  // reads raisedRef) — the same early-composition pattern as the
+  // S6 carry. The mass lives in the hook + game/creatures/
+  // shields.ts — App only wires it (APP RULE).
+  // ------------------------------------------------------------------------
+  const shieldGraftsRef = useRef(shieldGrafts);
+  shieldGraftsRef.current = shieldGrafts;
+  const shieldWield = useShieldWield({
+    heldItemId: playerState.heldItemId,
+    shieldGrafts,
+    setShieldGrafts,
+    carryRef,
+    postNotification,
+  });
+
   // The BioTunnel (Adam, 2026-10-16): pairing is DERIVED from
   // the known world (game/world/tunnel.ts) — the live structure list
   // plus every visited zone's snapshot. Transit rides the zone-
@@ -1152,6 +1184,9 @@ export default function App() {
     // S6 Movable Vaults: the inert-kit gate reads the live carry.
     carryRef,
     putDownCarryAt,
+    // THE SHIELD (2026-10-17): no striking while the shield is
+    // raised — the wield hook's raisedRef.
+    shieldRaisedRef: shieldWield.raisedRef,
 
   });
 
@@ -1161,7 +1196,31 @@ export default function App() {
   handleFaunaInteract,
   handleStructureInteract,
 });
-  const liveGameRefs = useRef({ hasItem, addInventoryItem, updateTick, postNotification, getPlacementRotation, recordFieldWitness, recordAsksEvent });
+  const liveGameRefs = useRef<{
+    hasItem: typeof hasItem;
+    addInventoryItem: typeof addInventoryItem;
+    updateTick: typeof updateTick;
+    postNotification: typeof postNotification;
+    getPlacementRotation: typeof getPlacementRotation;
+    recordFieldWitness: typeof recordFieldWitness;
+    recordAsksEvent: typeof recordAsksEvent;
+    /** THE SHIELD (2026-10-17): set by the effect below once the
+     *  wield hook composes — the game loop's whole shield read. */
+    shield?: {
+      buildCombatInput: (getPlayerFacing: () => number, payStamina: (n: number) => boolean) => ShieldCombatInput | undefined;
+      onStaminaEmpty: () => void;
+      tickClock: (dt: number) => void;
+      raisedRef: { current: boolean };
+      graftsRef: { current: Partial<Record<ItemId, boolean>> };
+      /** THE SHIELD (2026-10-17): the strike side-effect sink —
+       *  the shared consumer queues reflects, staggers, and spore
+       *  bursts here; the sim's post-map sweep drains them. */
+      queueShieldSideEffect: (fx: ShieldSideEffect) => void;
+    };
+  }>({ hasItem, addInventoryItem, updateTick, postNotification, getPlacementRotation, recordFieldWitness, recordAsksEvent });
+  // LAZY: the Left Hand cycle lives below the input call site (the
+  // shield slice, 2026-10-17) — Alt+wheel / Alt+↑↓ ride this ref.
+  const cycleLeftHandRef = useRef((dir: 1 | -1): void => { /* assigned below */ });
 
   useEffect(() => {
     toolHandlersRef.current = {
@@ -1471,6 +1530,9 @@ export default function App() {
     // Pond depth for the hop gate (P5 move 2): the engine owns the
     // current zone's pond list; input just asks.
     getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0,
+    // The Left Hand cycle (the shield slice): Alt+wheel / Alt+↑↓
+    // walk the owned left-hand instruments through this ref.
+    onCycleLeftHand: (dir) => cycleLeftHandRef.current(dir),
   });
 
 // The striker draw swap (weapons build, Adam, 2026-10-16): flip
@@ -2047,39 +2109,69 @@ const {
   });
 
   // ------------------------------------------------------------------------
-  // Left Hand (Adam, 2026-10-14): the off-hand slot for INSTRUMENTS —
-  // the Hand Lantern-Fern (a living torch) and the Prismatic Field
-  // Radar (minimap pings). Taking one INTO the hand spends the pouch
-  // item; stowing returns it. The engine light follows
-  // PlayerState.heldItemId via an engine-wiring effect in the
-  // game-loop hook, so saves, loads, and co-op world swaps all keep
-  // the hand honest.
+  // Left Hand (Adam, 2026-10-14; hand grammar, 2026-10-17): the
+  // off-hand slot for INSTRUMENTS. The cycle walks owned
+  // instruments only — the lantern and every shield the player
+  // has grown — and stows past the last. Taking one INTO the hand
+  // spends the pouch item; stowing returns it. The engine light
+  // follows PlayerState.heldItemId via an engine-wiring effect in
+  // the game-loop hook, so saves, loads, and co-op world swaps
+  // all keep the hand honest.
   // ------------------------------------------------------------------------
-  const handleToggleHeldItem = useCallback((): void => {
-    // The Left Hand holds the LANTERN — the slot raises the one
-    // instrument kept for it, a second click stows it (Adam,
-    // 2026-10-14). The Prismatic Field Radar used to share this
-    // slot; it is a HELMET upgrade now (Adam, 2026-10-16) and
-    // lives in the helm's radar track, installed by ownership.
-    const HOLDABLES: ItemId[] = ['hand_lantern_fern'];
+  const cycleLeftHand = useCallback((direction: 1 | -1): void => {
+    // The Prismatic Field Radar used to share this slot; it is a
+    // HELMET upgrade now (Adam, 2026-10-16) and lives in the
+    // helm's radar track, installed by ownership.
     const held = playerState.heldItemId;
-    const owned = HOLDABLES.filter((id) => id === held || hasItem(id, 1));
+    const owned = leftHandOrder(held, (id) => hasItem(id, 1));
     if (owned.length === 0) {
-      postNotification('Empty Left Hand', 'Craft a Hand Lantern-Fern at the Bio-Forge [B] to hold it here.', 'alert', '#fbbf24');
+      postNotification('Empty Left Hand', 'Craft a Hand Lantern-Fern at the Bio-Forge [B] to hold something here.', 'alert', '#fbbf24');
       return;
     }
-    const idx = held ? owned.indexOf(held) : -1;
-    const next = owned[idx + 1] ?? null;
+    const next = cycleLeftHandNext(held, (id) => hasItem(id, 1), direction);
     if (held) addInventoryItem(held, 1);
     if (next) {
       deductInventoryItem(next, 1);
       setHeldItemId(next);
-      postNotification('Lantern Raised', 'The Hand Lantern-Fern takes your left hand — its light goes where you go.', 'craft', '#22d3ee');
+      const label = next === 'hand_lantern_fern' ? 'Lantern Raised' : `${ITEMS[next]?.name ?? next} Raised`;
+      const blurb = next === 'hand_lantern_fern'
+        ? 'The Hand Lantern-Fern takes your left hand — its light goes where you go.'
+        : `The ${ITEMS[next]?.name ?? next} takes your left hand — strikes from its front will break on it.`;
+      postNotification(label, blurb, 'craft', '#22d3ee');
     } else {
       setHeldItemId(null);
       postNotification('Left Hand Free', `${ITEMS[held as ItemId]?.name ?? 'Item'} stowed back in your pouch.`, 'craft', '#94a3b8');
     }
   }, [playerState.heldItemId, addInventoryItem, deductInventoryItem, hasItem, setHeldItemId, postNotification]);
+
+  // The HUD's Left Hand tile taps the cycle forward (Adam's hand
+  // grammar: Alt+wheel / Alt+arrow also walk it, wired in
+  // useGameInput).
+  const handleToggleHeldItem = useCallback((): void => {
+    cycleLeftHand(1);
+  }, [cycleLeftHand]);
+
+  // THE SHIELD (Adam, 2026-10-17): the game loop reads the wield
+  // hook's refs each frame — raised for the stamina drain and
+  // braced slow, the combat input at the 10 Hz tick for the bite
+  // site, the clock for guard-break and spore cooldowns.
+  useEffect(() => {
+    liveGameRefs.current.shield = {
+      buildCombatInput: shieldWield.buildCombatInput,
+      onStaminaEmpty: shieldWield.onStaminaEmpty,
+      tickClock: shieldWield.tickClock,
+      raisedRef: shieldWield.raisedRef,
+      graftsRef: shieldGraftsRef,
+      queueShieldSideEffect,
+    };
+  }, [shieldWield, queueShieldSideEffect]);
+
+  // THE SHIELD (Adam, 2026-10-17): the wield hook — raised state,
+  // guard break, spore cooldown, the graft record. Composed here,
+  // wired through liveGameRefs; the sim reads it at the bite site.
+  // The input hook's Alt+wheel / Alt+arrow Left Hand cycle (the
+  // shield slice) — assigned where the cycle itself is defined.
+  cycleLeftHandRef.current = cycleLeftHand;
 
   // Radar migration (Adam, 2026-10-16): a save from before the
   // conversion can come back holding the radar in the Left Hand —
@@ -2150,8 +2242,26 @@ const {
       );
       return;
     }
+    // The shield slice: a held ingredient is invisible to the
+    // pouch check — but a shield consumed by its upgrade (or a
+    // lantern eaten by the Lantern Shield) can be in the Left
+    // Hand. Stow the hand FIRST so the craft reads the whole
+    // pouch and the hand is never left holding what it ate.
+    if (playerState.heldItemId && recipe.ingredients.some((ing) => ing.id === playerState.heldItemId)) {
+      addInventoryItem(playerState.heldItemId, 1);
+      setHeldItemId(null);
+    }
     const success = craftRecipe(recipe);
     if (success) {
+      // Graft recipes stamp the spikes onto the shield they grew
+      // on; consume-upgrades (T1->T2, T2->T3) inherit the
+      // parent's graft onto the new tier.
+      if (recipe.graftShield) {
+        shieldWield.graftShield(recipe.graftShield);
+      } else {
+        const inherited = graftInheritanceOnCraft(recipe, shieldGraftsRef.current);
+        if (inherited) shieldWield.graftShield(inherited);
+      }
       postNotification(
         'Synthesis Complete',
         `Synthesized ${recipe.outputCount}x ${ITEMS[recipe.outputId]?.name || recipe.outputId} in Bio-Forge.`,

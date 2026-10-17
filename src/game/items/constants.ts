@@ -1730,6 +1730,22 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'uncommon',
     maxStack: 99,
   },
+  fen_scute: {
+    id: 'fen_scute',
+    name: 'Fen Scute',
+    category: 'raw',
+    // The door is a SHED, symmetric with the Boneback's Field Scute
+    // (Adam, 2026-10-17, creatures-lane-vetted): the Scaldback sheds
+    // these on its wetland circuit — wild shedding, so the supply
+    // chain never requires harming or taming it. The house rule is
+    // that no supply chain requires harm; the fen is not the one
+    // scute taken by force.
+    description: 'A dark, wet-curved scute shed by a Scaldback on its circuit of the marsh seeps — the fen family\'s plate, where the Boneback\'s is the bonefields\'. Shed, never taken.',
+    iconName: 'Shield',
+    color: '#4d7c0f',
+    rarity: 'uncommon',
+    maxStack: 99,
+  },
   carapace_scale: {
     id: 'carapace_scale',
     name: 'Carapace Scale',
@@ -2734,6 +2750,41 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     description: 'The Spore Puffer regrown around a fulgurite spine and a prismatic heart. A strange-country ranged striker: it throws a charged lance almost too fast to dodge.',
     iconName: 'Zap',
     color: '#c084fc',
+    rarity: 'rare',
+    maxStack: 1,
+  },
+  // THE SHIELD FAMILY (Adam, 2026-10-17): the Left Hand's ward —
+  // ownership-derived equipment like the strikers (grow it once and
+  // it is yours), seated in the left hand with the lantern. Rules
+  // live in creatures/shields.ts; the family registry that presents
+  // them is items/weaponsFamily.ts (DEFENSIVES).
+  scute_shield: {
+    id: 'scute_shield',
+    name: 'Scute Shield',
+    category: 'equipment',
+    description: 'Overlapping Boneback scutes grown onto a root-and-resin frame, worn on the forearm. Tier 1 of the shield line: carried, it blunts frontal strikes for free; braced (hold right-mouse), it is a wall that stamina pays for.',
+    iconName: 'Shield',
+    color: '#a8a29e',
+    rarity: 'uncommon',
+    maxStack: 1,
+  },
+  lantern_shield: {
+    id: 'lantern_shield',
+    name: 'Lantern Shield',
+    category: 'equipment',
+    description: 'A Scute Shield with a Hand Lantern-Fern grown into its face. Tier 2: the wall is unchanged — the tier buys the light. A combination, not a ladder: the recipe consumes the lantern and the shield.',
+    iconName: 'Shield',
+    color: '#67e8f9',
+    rarity: 'rare',
+    maxStack: 1,
+  },
+  fenback_shield: {
+    id: 'fenback_shield',
+    name: 'Fenback Shield',
+    category: 'equipment',
+    description: 'Scaldback fen-scutes grown around a Lantern Shield until the ward wraps the bearer like a shell. Tier 3, consume-and-keep: rear strikes blunt passively, a braced block sheds a spore answer, bracing roots you, and an ally in your lee stands under your wall.',
+    iconName: 'Shield',
+    color: '#65a30d',
     rarity: 'rare',
     maxStack: 1,
   },

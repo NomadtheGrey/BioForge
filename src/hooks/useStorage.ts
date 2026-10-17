@@ -20,9 +20,11 @@ import { useCallback, useEffect } from 'react';
 import type { GameNotification, ItemId, StructureEntity } from '../types/game';
 import { ITEMS } from '../game/items/constants';
 import {
+  mergedStorageItems,
   pouchTierOf,
   stackCapFor,
   storageCapsFor,
+  storageClusterOf,
   storageKitFor,
   storageRoomFor,
   type StorageContents,
@@ -32,6 +34,9 @@ import { isSlottedUpgrade } from '../game/items/slottedUpgrades';
 
 interface UseStorageParams {
   getInventory: () => Record<ItemId, number>;
+  /** The live structures list (for storage clusters: adjacent
+   *  pods behave as one unit — pouch.ts has the grouping). */
+  getStructures: () => StructureEntity[];
   getPlayerPosition: () => { x: number; z: number };
   addInventoryItem: (itemId: ItemId, count?: number) => void;
   deductInventoryItem: (itemId: ItemId, count?: number) => boolean;
@@ -49,6 +54,7 @@ export interface UseStorageResult {
 
 export function useStorage({
   getInventory,
+  getStructures,
   getPlayerPosition,
   addInventoryItem,
   deductInventoryItem,
@@ -112,7 +118,6 @@ export function useStorage({
   }, [setOverflowHandler, spawnDroppedItem, postNotification, getPlayerPosition, getInventory]);
 
   const handleStorageDeposit = useCallback((structure: StructureEntity, itemId: ItemId): void => {
-    const contents: StorageContents = structure.storage ?? { tier: 1, items: {} };
     // The Sample Rack's law (slice D, 2026-10-16): samples only —
     // its shelves are vial-shaped, and everything else refuses.
     // Slotted upgrades refuse (Adam, 2026-10-17): gauntlet
@@ -130,24 +135,48 @@ export function useStorage({
       return;
     }
     const held = getInventory()[itemId] ?? 0;
-    const move = Math.min(held, storageRoomFor(contents, itemId, storageCapsFor(structure.type, contents.tier)));
-    if (move <= 0) {
-      postNotification('Pod Is Full', 'No room in this pod for that — upgrade it or stash something else.', 'alert', '#f59e0b');
+    // STORAGE CLUSTERS (Adam, 2026-10-17): a pod standing with
+    // adjacent pods is one unit — the deposit fills the pod
+    // you touched first, then its neighbors in order, each up
+    // to its own caps. Deliberately dumb: no sorting, no
+    // repacking, nothing already stored ever moves.
+    const members = storageClusterOf(getStructures(), structure) as StructureEntity[];
+    let remaining = held;
+    let moved = 0;
+    const writes: { member: StructureEntity; contents: StorageContents; take: number }[] = [];
+    for (const member of members) {
+      if (remaining <= 0) break;
+      const memberContents: StorageContents = member.storage ?? { tier: 1, items: {} };
+      const room = storageRoomFor(memberContents, itemId, storageCapsFor(member.type, memberContents.tier));
+      const take = Math.min(remaining, room);
+      if (take > 0) {
+        writes.push({ member, contents: memberContents, take });
+        remaining -= take;
+        moved += take;
+      }
+    }
+    if (moved <= 0) {
+      postNotification('Storage Is Full', 'No room in this storage for that — grow it, or set another pod beside it.', 'alert', '#f59e0b');
       return;
     }
-    deductInventoryItem(itemId, move);
-    upsertStructure({
-      ...structure,
-      storage: {
-        tier: contents.tier,
-        items: { ...contents.items, [itemId]: (contents.items[itemId] ?? 0) + move },
-      },
-    });
-  }, [getInventory, deductInventoryItem, upsertStructure, postNotification]);
+    deductInventoryItem(itemId, moved);
+    for (const { member, contents: memberContents, take } of writes) {
+      upsertStructure({
+        ...member,
+        storage: {
+          tier: memberContents.tier,
+          items: { ...memberContents.items, [itemId]: (memberContents.items[itemId] ?? 0) + take },
+        },
+      });
+    }
+  }, [getInventory, getStructures, deductInventoryItem, upsertStructure, postNotification]);
 
   const handleStorageWithdraw = useCallback((structure: StructureEntity, itemId: ItemId): void => {
-    const contents: StorageContents = structure.storage ?? { tier: 1, items: {} };
-    const stored = contents.items[itemId] ?? 0;
+    // Clusters (2026-10-17): the take draws from the touched
+    // pod first, then its neighbors — the pooled store the
+    // panel shows. Nothing is repacked afterwards.
+    const members = storageClusterOf(getStructures(), structure) as StructureEntity[];
+    const stored = (mergedStorageItems(members)[itemId] ?? 0);
     const inventoryNow = getInventory();
     const cap = stackCapFor(itemId, pouchTierOf(inventoryNow));
     const move = Math.min(stored, Math.max(0, cap - (inventoryNow[itemId] ?? 0)));
@@ -156,16 +185,26 @@ export function useStorage({
       return;
     }
     // addInventoryItem clamps too, but `move` is pre-fitted, so no
-    // overflow can fire — the remainder simply stays in the pod.
+    // overflow can fire — the remainder simply stays stored.
     addInventoryItem(itemId, move);
-    upsertStructure({
-      ...structure,
-      storage: {
-        tier: contents.tier,
-        items: { ...contents.items, [itemId]: stored - move },
-      },
-    });
-  }, [getInventory, addInventoryItem, upsertStructure, postNotification]);
+    let remaining = move;
+    for (const member of members) {
+      if (remaining <= 0) break;
+      const memberContents: StorageContents = member.storage ?? { tier: 1, items: {} };
+      const here = memberContents.items[itemId] ?? 0;
+      const take = Math.min(here, remaining);
+      if (take > 0) {
+        remaining -= take;
+        upsertStructure({
+          ...member,
+          storage: {
+            tier: memberContents.tier,
+            items: { ...memberContents.items, [itemId]: here - take },
+          },
+        });
+      }
+    }
+  }, [getInventory, getStructures, addInventoryItem, upsertStructure, postNotification]);
 
   const handleStorageUpgrade = useCallback((structure: StructureEntity): void => {
     // Racks never deepen (slice D): their shelves are grown to

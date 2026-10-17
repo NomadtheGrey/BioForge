@@ -17,13 +17,17 @@ import React from 'react';
 import { X, Package, ArrowDownToLine, ArrowUpFromLine, Sprout, Move } from 'lucide-react';
 import type { ItemId, StructureEntity } from '../types/game';
 import { ITEMS } from '../game/items/constants';
-import { STORAGE_TIERS, storageCapsFor, storageKitFor, storageSlotsUsed, type StorageContents } from '../game/items/pouch';
+import { STORAGE_TIERS, mergedStorageItems, pooledStorageCaps, storageCapsFor, storageKitFor, storageSlotsUsed, type StorageContents } from '../game/items/pouch';
 import { isSampleItem } from '../game/structures/vat';
 import { isSlottedUpgrade } from '../game/items/slottedUpgrades';
 
 interface StorageModalProps {
   /** The pod being viewed (live entity from the structures list). */
   structure: StructureEntity;
+  /** STORAGE CLUSTERS (2026-10-17): the pod's adjacent group,
+   *  itself first. Longer than one = the panel shows the
+   *  pooled store. Optional; absent means the pod alone. */
+  clusterMembers?: StructureEntity[];
   inventory: Record<ItemId, number>;
   /** The player's pouch stack cap today (for "what fits" notes). */
   pouchCap: number;
@@ -41,6 +45,7 @@ interface StorageModalProps {
 
 export const StorageModal: React.FC<StorageModalProps> = ({
   structure,
+  clusterMembers,
   inventory,
   pouchCap,
   onClose,
@@ -59,7 +64,19 @@ export const StorageModal: React.FC<StorageModalProps> = ({
   const kitId = structure.type === 'storage_pod' ? storageKitFor(tier) : null;
   const hasKit = kitId ? (inventory[kitId] ?? 0) > 0 : false;
 
-  const storedEntries = (Object.entries(contents.items) as [ItemId, number][])
+  // STORAGE CLUSTERS (Adam, 2026-10-17): when this pod stands
+  // with adjacent pods, the panel shows the POOLED store —
+  // contents summed, kind slots summed. Deliberately plain:
+  // no sorting of the store itself, no repacking; the rows
+  // below merely list what the group holds.
+  const members = clusterMembers && clusterMembers.length > 0 ? clusterMembers : [structure];
+  const clustered = members.length > 1;
+  const pooled = pooledStorageCaps(members);
+  const displayItems = clustered ? mergedStorageItems(members) : contents.items;
+  const displaySlotsUsed = Object.values(displayItems).filter((n) => (n ?? 0) > 0).length;
+  const displaySlots = clustered ? pooled.slots : caps.slots;
+
+  const storedEntries = (Object.entries(displayItems) as [ItemId, number][])
     .filter(([, count]) => count > 0)
     .sort(([a], [b]) => (ITEMS[a]?.name ?? a).localeCompare(ITEMS[b]?.name ?? b));
   // Slotted upgrades (gauntlet modules, helmet lenses,
@@ -85,7 +102,9 @@ export const StorageModal: React.FC<StorageModalProps> = ({
     const roomNote =
       action === 'withdraw'
         ? `pouch holds ${pouchCap}`
-        : `pod takes ${caps.perStack}/stack`;
+        : clustered
+          ? `storage takes ${pooled.perStack}/stack`
+          : `pod takes ${caps.perStack}/stack`;
     return (
       <button
         key={`${action}-${itemId}`}
@@ -125,7 +144,9 @@ export const StorageModal: React.FC<StorageModalProps> = ({
             <div>
               <h2 className="text-lg font-tech font-bold text-white tracking-wide">{caps.name.toUpperCase()}</h2>
               <p className="text-xs text-slate-400">
-                {storageSlotsUsed(contents)} of {caps.slots} kinds stored · up to {caps.perStack} each
+                {clustered
+                  ? `${members.length} pods growing together · ${displaySlotsUsed} of ${displaySlots} kinds stored · up to ${pooled.perStack} each`
+                  : `${storageSlotsUsed(contents)} of ${caps.slots} kinds stored · up to ${caps.perStack} each`}
               </p>
             </div>
           </div>

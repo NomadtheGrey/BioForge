@@ -170,6 +170,13 @@ export type ItemId =
   | 'lake_jelly'
   | 'silver_scale'
   | 'gloom_gel'
+  // Far-country predator materials (slice 51, 2026-10-17):
+  // premium drops of the three deep-variant hunters — each
+  // deliberately gates nothing critical (the no-harm supply
+  // rule: a predator's material is a prize, never a toll).
+  | 'lodestone_plate'
+  | 'fall_plume'
+  | 'hush_gel'
   | 'hollow_heart_spore'
   | 'sedge_egg'
   | 'clean_bone'
@@ -806,7 +813,11 @@ export type FaunaSpecies =
   | 'silverfin'
   | 'plated_crab'
   | 'silver_dipper'
-  | 'mirror_heron';
+  | 'mirror_heron'
+  // The three far predators (slice 51, 2026-10-17).
+  | 'lodestone_hound'
+  | 'fall_hawk'
+  | 'hush_hound';
 
 export interface FaunaEntity {
   id: string;
@@ -871,6 +882,14 @@ export interface FaunaEntity {
   // variant. The Spiral Moth reads its keeping from it: in
   // an Untended garden, the signed spirals run backward.
   homeVariant?: string;
+  // The distance gradient (creature slice 50, 2026-10-17):
+  // spawn-stamped hunt multipliers for UNPROVOKED hunters,
+  // dealt by farPressureFor in worldGen and read by the sim's
+  // hunt branch. Absent = 1 — near country, older saves, and
+  // the provoked oversize tier (the giants stay table-true
+  // everywhere; their bargain does not scale).
+  farDmg?: number;
+  farAggro?: number;
   calmRegard?: number;
   // The Heartbearer's load (slice 48): edibles placed on its
   // back, delivered to the valley's heart on its route. The

@@ -489,6 +489,15 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   // vents on a seven-second cycle (mesh-side), so seven
   // seconds near one is a witnessed venting.
   const crabDwellRef = useRef<Map<string, number>>(new Map());
+  // The Lodestone Hound's stare (slice 51): per-hound encounter
+  // records — stare seconds accrued, and whether the stare has
+  // completed (the charge earned). Session-transient like the
+  // crab's dwell map: an interrupted encounter simply re-stares.
+  const stareRef = useRef<Map<string, { t: number; committed: boolean }>>(new Map());
+  // The Hush Hound's pursuit clock (slice 51): continuous
+  // seconds a committed hound has held its hunt — the Field
+  // Note witnesses the pursuit, not the meeting.
+  const hushPursuitRef = useRef<Map<string, number>>(new Map());
   // Meadowback sentinel bookkeeping (slice 49): each sentinel's
   // last bell (sim seconds — the cooldown is the sentinel's own
   // patience) and whether a hunter stood in its regard last tick
@@ -1278,7 +1287,39 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // proximity never alerts them; the provocation clock
           // does. An unprovoked giant is scenery with a pulse.
           const provoked = !hunt?.provokedOnly || provokedTimer > 0;
-          const hunterAlert = !!hunt && provoked && distToPlayer <= hunt.aggroRange;
+          // THE DISTANCE GRADIENT (slice 50): far-country hunters
+          // carry spawn stamps (farAggro / farDmg on the entity;
+          // absent = 1 = the table's word, which is also every
+          // near-country hunter and the whole provoked tier). The
+          // aggro bubble grows — and once a stamped hunter has
+          // COMMITTED, it holds the hunt beyond the bubble's edge:
+          // the leash grows by the same stamp, so out far things
+          // don't just hit harder, they don't quit. A hunter at
+          // stamp 1 deaggros exactly where it always has.
+          const farAggro = fauna.farAggro ?? 1;
+          const aggroEff = hunt ? hunt.aggroRange * farAggro : 0;
+          const latched =
+            fauna.state === 'attacking' && farAggro > 1 && distToPlayer <= aggroEff * farAggro;
+          // THE LONG PURSUIT (slice 51 — the Hush Hound): its
+          // leash is the valley itself. Once committed it holds
+          // the hunt at any range — and the heart clearing is
+          // the one sanctuary: a player standing in it is simply
+          // not hunted (no commit, no latch), and the hound
+          // circles outside. (The heart is read exactly where
+          // the valley staff reads it: the heart flora, else
+          // the heart tile.)
+          const heartClear =
+            fauna.species === 'hush_hound' &&
+            (() => {
+              const heart = floraRef.current.find((fl) => fl.species === 'valley_heart' || fl.species === 'heartbloom');
+              const tile = heart ? undefined : structuresRef.current.find((st) => st.type === 'heart_tile');
+              const hx = heart ? heart.x : tile ? tile.worldX : undefined;
+              const hz = heart ? heart.z : tile ? tile.worldZ : undefined;
+              return hx !== undefined && Math.hypot(hx - playerX, hz! - playerZ) <= 12;
+            })();
+          const hushLatched = fauna.species === 'hush_hound' && fauna.state === 'attacking' && !heartClear;
+          const hunterAlert =
+            !!hunt && provoked && !heartClear && (distToPlayer <= aggroEff || latched || hushLatched);
           biteTimer = Math.max(0, biteTimer - dt);
           // FIELD NOTES WITNESS LEDGER (slice 47): the moments
           // this pass can see, stamped as they happen (the sink
@@ -1323,14 +1364,59 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             // hunters, the alert commit IS the ambush.
             if (hunterAlert && fauna.species === 'fen_lurker') witness('note_fen_lurker');
             if (hunterAlert && fauna.species === 'pool_snapper') witness('note_pool_snapper');
+            // The long pursuit, witnessed (slice 51): twelve
+            // continuous seconds of a Hush Hound's committed
+            // hunt, in the player's company — the note is about
+            // the pursuit, not the meeting. Crab-style lockout
+            // after the stamp.
+            if (fauna.species === 'hush_hound' && fauna.state === 'attacking' && distToPlayer < 40) {
+              const pursuit = (hushPursuitRef.current.get(fauna.id) ?? 0) + dt;
+              if (pursuit >= 12) {
+                witness('note_hush_hound');
+                hushPursuitRef.current.set(fauna.id, -3600);
+              } else {
+                hushPursuitRef.current.set(fauna.id, pursuit);
+              }
+            } else if (fauna.species === 'hush_hound' && fauna.state !== 'attacking') {
+              hushPursuitRef.current.set(fauna.id, 0);
+            }
           }
-          if (hunterAlert && hunt) {
+          // THE STARE (slice 51 — the Lodestone Hound): before
+          // its first charge of an encounter, the hound stops
+          // and STARES for two full seconds — feet still, head
+          // locked. Break away (beyond 2.2× its aggro) and the
+          // encounter resets unwitnessed; sit out the stare and
+          // the charge is earned for the rest of the encounter.
+          // The ringing feet announce it; the looking IS the
+          // warning the danger doctrine promises.
+          let stareGate = false;
+          if (fauna.species === 'lodestone_hound' && hunt) {
+            const rec = stareRef.current.get(fauna.id) ?? { t: 0, committed: false };
+            if (!hunterAlert && distToPlayer > aggroEff * 2.2) {
+              rec.t = 0;
+              rec.committed = false; // encounter over — the next meeting stares again
+            }
+            if (hunterAlert && !rec.committed) {
+              stareGate = true;
+              rec.t += dt;
+              if (rec.t >= 2) {
+                rec.committed = true;
+                stareGate = false;
+                if (distToPlayer < 30) witness('note_lodestone_hound'); // the charge, earned in the player's sight
+              }
+            }
+            stareRef.current.set(fauna.id, rec);
+          }
+          if (hunterAlert && hunt && !stareGate) {
             if (attacksArmed) {
               state = 'attacking';
               targetX = playerX;
               targetZ = playerZ;
               if (distToPlayer <= hunt.biteRange && biteTimer <= 0 && flinchTimer <= 0) {
-                onFaunaAttack?.(fauna.species, hunt.damage);
+                // The gradient's damage axis (slice 50): the
+                // stamp scales the bite; unstamped hunters bite
+                // for exactly their table damage.
+                onFaunaAttack?.(fauna.species, Math.round(hunt.damage * (fauna.farDmg ?? 1)));
                 biteTimer = hunt.biteCooldownSeconds;
               }
             } else {
@@ -1338,6 +1424,13 @@ export function useWorldEntities(): UseWorldEntitiesResult {
               targetX = x;
               targetZ = z;
             }
+          } else if (stareGate && hunt) {
+            // Mid-stare, the hound does the Peaceful move at
+            // every difficulty: it stops and faces you. The
+            // stillness is the loudest part.
+            state = 'alert';
+            targetX = x;
+            targetZ = z;
           }
           // -------------------------------------------------------
           // THE VALLEY STAFF (creature slice 47, 2026-10-16 —
@@ -1581,6 +1674,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           let routeZ = fauna.routeZ;
           let cargoItems = fauna.cargoItems;
           let bearerBusy = false;
+          let hawkBusy = false;
           if (fauna.species === 'heartbearer' && !isTamed) {
             bearerBusy = true;
             const heartFlora = floraRef.current.find((fl) => fl.species === 'valley_heart' || fl.species === 'heartbloom');
@@ -1650,7 +1744,82 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             }
           }
 
-          if (!isTamed && !hunterAlert && !staffEngaged && !deerBusy && !bearerBusy && !meadowBusy) {
+          // -------------------------------------------------------
+          // THE FALL HAWK (creature slice 51, 2026-10-17): the
+          // Skyfall Basin's aerial hunt — the roster's first
+          // predator whose whole hunt is bespoke (its table row
+          // carries NO hunt block; the generic engine never sees
+          // it). Three movements, run on the social-state slots:
+          // CIRCLE over its anchor (routeX/routeZ remember the
+          // post; the flight row draws the altitude), STOOP on a
+          // player caught in the open, CLIMB a full eight
+          // seconds before it may stoop again. The tells are the
+          // shadow and the whistle; the counter is COVER —
+          // canopy-scale flora or any structure within reach
+          // breaks the stoop mid-fall, because a hawk that
+          // cannot see a clean fall aborts it. On Peaceful the
+          // stoop still comes (theater, per the doctrine) but
+          // the talons never land (the shared armed gate).
+          // -------------------------------------------------------
+          if (fauna.species === 'fall_hawk' && !isTamed) {
+            hawkBusy = true;
+            if (routeX === undefined || routeZ === undefined) {
+              routeX = x;
+              routeZ = z;
+            }
+            const underCover =
+              structuresRef.current.some((st) => Math.hypot(st.worldX - playerX, st.worldZ - playerZ) <= 4.5) ||
+              floraRef.current.some((fl) => fl.scale >= 1.5 && Math.hypot(fl.x - playerX, fl.z - playerZ) <= 4);
+            if (!socialState) {
+              socialState = 'circling';
+              socialTimer = 0;
+            }
+            if (socialState === 'circling') {
+              // A slow wheel over the post: the target walks a
+              // 10 m circle on the social clock, advanced by the
+              // id hash so no two hawks wheel in step.
+              const idPhase = fauna.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 6;
+              const ang = socialTimer * 0.45 + idPhase;
+              state = 'wandering';
+              targetX = routeX + Math.cos(ang) * 10;
+              targetZ = routeZ + Math.sin(ang) * 10;
+              socialTimer += dt;
+              if (distToPlayer <= 16 && !underCover) {
+                socialState = 'stooping';
+                socialTimer = 0;
+                if (distToPlayer < 30) witness('note_fall_hawk'); // the stoop, committed in the player's sight
+              }
+            } else if (socialState === 'stooping') {
+              state = 'attacking';
+              targetX = playerX;
+              targetZ = playerZ;
+              socialTimer += dt;
+              if (underCover || socialTimer > 3.5) {
+                // Aborted by cover, or the fall went long and
+                // missed its moment: climb out either way.
+                socialState = 'climbing';
+                socialTimer = 0;
+              } else if (distToPlayer <= 2.6) {
+                if (attacksArmed) onFaunaAttack?.(fauna.species, 26);
+                socialState = 'climbing';
+                socialTimer = 0;
+              }
+            } else if (socialState === 'climbing') {
+              // Eight seconds of climbing, away from the player
+              // — the safe window the design promises.
+              state = 'wandering';
+              const awayA = Math.atan2(x - playerX, z - playerZ);
+              targetX = x + Math.sin(awayA) * 12;
+              targetZ = z + Math.cos(awayA) * 12;
+              socialTimer += dt;
+              if (socialTimer >= 8) {
+                socialState = 'circling';
+                socialTimer = 0;
+              }
+            }
+          }
+
+          if (!isTamed && !hunterAlert && !staffEngaged && !deerBusy && !bearerBusy && !meadowBusy && !hawkBusy) {
             state = 'wandering';
             // Restless wandering: standing at the target re-rolls fast
             // (short pauses, long roams); en route the re-roll stays rare
@@ -1748,9 +1917,11 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             // A chasing hunter spends its burst (slice 5): the
             // ambusher's whole speed budget, at once, as designed.
             const moveSpeed =
-              state === 'attacking'
-                ? fauna.speed * 1.35
-                : isTamed
+              state === 'attacking' && fauna.species === 'fall_hawk'
+                ? fauna.speed * 2.6 // THE STOOP (slice 51): a fall, aimed — the hawk's whole speed budget in one dive
+                : state === 'attacking'
+                  ? fauna.speed * 1.35
+                  : isTamed
                   ? fauna.speed * 1.2
                   : staffEngaged && distToPlayer > 10
                     ? fauna.speed * 1.7 // staff hurry back to heel — the hound does not tire, the usher does not lose you

@@ -1656,6 +1656,40 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'uncommon',
     maxStack: 99,
   },
+  // Far-country predator materials (creature slice 51, 2026-10-17):
+  // the three deep-variant hunters' signature drops. Premium
+  // materials all — prizes for going far and coming back, never
+  // a toll on any critical path (the no-harm supply rule).
+  lodestone_plate: {
+    id: 'lodestone_plate',
+    name: 'Lodestone Plate',
+    category: 'raw',
+    description: 'A plate of grown iron from a Lodestone Hound\'s back, still faintly magnetic — dropped tools lean toward it on the workbench. The hound grew it out of the dunes; the dunes want it back.',
+    iconName: 'Shield',
+    color: '#57534e',
+    rarity: 'rare',
+    maxStack: 99,
+  },
+  fall_plume: {
+    id: 'fall_plume',
+    name: 'Fall Plume',
+    category: 'raw',
+    description: 'A long steering feather from a Fall Hawk\'s tail — the rudder of the stoop. Pilots of nothing, in a country with no sky ships, and still the finest fletching material the far country grows.',
+    iconName: 'Feather',
+    color: '#0369a1',
+    rarity: 'rare',
+    maxStack: 99,
+  },
+  hush_gel: {
+    id: 'hush_gel',
+    name: 'Hush Gel',
+    category: 'raw',
+    description: 'A slab of the Hush Hound, which was a slab of the valley. It does not glow, hum, or drip. It sits the way the valley sits when something is walking in it — quietly, and entirely on purpose.',
+    iconName: 'Droplets',
+    color: '#365314',
+    rarity: 'rare',
+    maxStack: 99,
+  },
   hollow_heart_spore: {
     id: 'hollow_heart_spore',
     name: 'Hollow Heart Spore',

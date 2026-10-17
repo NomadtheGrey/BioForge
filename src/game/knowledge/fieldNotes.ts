@@ -299,6 +299,30 @@ export const FIELD_NOTES: FieldNote[] = [
     clue: 'They are chill until messed with, every one of them — and they mean it when they stop being chill. What they carry is worth a fortune. What they cost is the fight.',
     witness: 'One of the great ones, provoked.',
   },
+  // The three far predators (slice 51, 2026-10-17): the deep
+  // variants' hunters — the notes carry their tells, because
+  // out there the tell is the whole survival budget.
+  {
+    id: 'note_lodestone_hound',
+    species: 'lodestone_hound',
+    kind: 'fauna',
+    clue: 'It rings when it walks on the iron sand, and it looks at you a long time before it decides. Use the looking.',
+    witness: 'The stare, sat out — and the charge that followed.',
+  },
+  {
+    id: 'note_fall_hawk',
+    species: 'fall_hawk',
+    kind: 'fauna',
+    clue: 'In the basin, watch the ground for a shadow that is not yours. The whistle means it has already decided; the trees and the roofs are the argument that changes its mind.',
+    witness: 'A stoop, committed overhead.',
+  },
+  {
+    id: 'note_hush_hound',
+    species: 'hush_hound',
+    kind: 'fauna',
+    clue: 'When the valley stops making noise, something of the valley is walking. Do not wait to see it. The heart clearing is the one ground it will not take — get there, and let it circle.',
+    witness: 'Twelve seconds of being followed, and still followed.',
+  },
 ];
 
 // =====================================================================

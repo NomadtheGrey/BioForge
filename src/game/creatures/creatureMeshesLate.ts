@@ -1750,6 +1750,115 @@ export function buildLateFaunaMesh(
         break;
       }
 
+      case 'lodestone_hound': {
+        // The Dunes' iron hound (slice 51): a low coursing
+        // frame under a ridge of grown iron plates — the plates
+        // are the silhouette, dark metal over dune-tan hide.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0xa88f6a, roughness: 0.9 });
+        const ironMat = new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 0.45, metalness: 0.7 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.24, 10, 8), hideMat);
+        body.scale.set(0.9, 0.85, 1.7);
+        body.position.y = 0.42;
+        group.add(body);
+        for (let i = 0; i < 5; i++) {
+          const plate = new THREE.Mesh(new THREE.BoxGeometry(0.3 - i * 0.02, 0.05, 0.16), ironMat);
+          plate.position.set(0, 0.62 - Math.abs(i - 2) * 0.02, 0.24 - i * 0.13);
+          plate.rotation.x = (i - 2) * 0.12;
+          group.add(plate);
+        }
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 9, 7), hideMat);
+        head.scale.set(0.85, 0.8, 1.3);
+        head.position.set(0, 0.5, 0.48);
+        group.add(head);
+        const muzzlePlate = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.05, 0.2), ironMat);
+        muzzlePlate.position.set(0, 0.56, 0.55);
+        group.add(muzzlePlate);
+        for (const sx of [-1, 1]) {
+          for (const sz of [-1, 1]) {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.028, 0.42, 5), hideMat);
+            leg.position.set(sx * 0.13, 0.21, sz * 0.26);
+            group.add(leg);
+            const foot = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 5), ironMat);
+            foot.position.set(sx * 0.13, 0.03, sz * 0.26);
+            group.add(foot);
+          }
+          const ear = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.14, 5), ironMat);
+          ear.position.set(sx * 0.08, 0.66, 0.42);
+          group.add(ear);
+        }
+        const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.012, 0.4, 5), hideMat);
+        tail.position.set(0, 0.48, -0.48);
+        tail.rotation.x = 0.9;
+        group.add(tail);
+        break;
+      }
+
+      case 'fall_hawk': {
+        // The Basin's stooping hawk (slice 51): long steering
+        // tail, broad wings named wingL/wingR so the flight
+        // system folds and spreads them like its kite cousin's.
+        const featherMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.85 });
+        const darkMat = new THREE.MeshStandardMaterial({ color: 0x292524, roughness: 0.8 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), featherMat);
+        body.scale.set(0.9, 0.85, 1.8);
+        body.position.y = 0.1;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 7), darkMat);
+        head.position.set(0, 0.16, 0.3);
+        group.add(head);
+        const beak = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.12, 6), new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.5 }));
+        beak.rotation.x = Math.PI / 2;
+        beak.position.set(0, 0.14, 0.42);
+        group.add(beak);
+        for (const side of [-1, 1]) {
+          const wing = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 6), featherMat);
+          wing.scale.set(2.4, 0.12, 0.9);
+          wing.position.set(side * 0.42, 0.16, 0.02);
+          wing.name = side < 0 ? 'wingL' : 'wingR';
+          group.add(wing);
+        }
+        const tail = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.02, 0.34), darkMat);
+        tail.position.set(0, 0.1, -0.42);
+        group.add(tail);
+        break;
+      }
+
+      case 'hush_hound': {
+        // The valley's walked-loose piece (slice 51): a long,
+        // low hound of translucent gel — the green of the
+        // valley, darkened. Nothing about it hurries; the mesh
+        // shouldn't either.
+        const gelMat = new THREE.MeshStandardMaterial({ color: 0x3f6212, roughness: 0.35, transparent: true, opacity: 0.82 });
+        const deepMat = new THREE.MeshStandardMaterial({ color: 0x1a2e05, roughness: 0.5, transparent: true, opacity: 0.9 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.26, 10, 8), gelMat);
+        body.scale.set(0.95, 0.8, 1.9);
+        body.position.y = 0.4;
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 9, 7), gelMat);
+        head.scale.set(0.85, 0.75, 1.4);
+        head.position.set(0, 0.44, 0.52);
+        group.add(head);
+        for (const sx of [-1, 1]) {
+          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.028, 6, 5), deepMat);
+          eye.position.set(sx * 0.07, 0.5, 0.66);
+          group.add(eye);
+          for (const sz of [-1, 1]) {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.035, 0.4, 5), gelMat);
+            leg.position.set(sx * 0.14, 0.2, sz * 0.3);
+            group.add(leg);
+          }
+          const ear = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 5), deepMat);
+          ear.scale.set(1, 1.5, 0.5);
+          ear.position.set(sx * 0.09, 0.6, 0.44);
+          group.add(ear);
+        }
+        const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.015, 0.5, 5), gelMat);
+        tail.position.set(0, 0.42, -0.55);
+        tail.rotation.x = 1.1;
+        group.add(tail);
+        break;
+      }
+
     default:
       return null;
   }

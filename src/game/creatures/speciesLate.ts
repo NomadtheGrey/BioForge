@@ -1729,4 +1729,95 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
       health: 20,
     },
   },
+
+  // =====================================================================
+  // SLICE 51 (2026-10-17) — THE THREE FAR PREDATORS (Part 6: Far
+  // Country Teeth, pinned by Adam). Variant-locked hunters of the
+  // deepest country (the 4+ hop variants), each with ONE signature
+  // twist on the hunt engine, each inside the danger doctrine:
+  // unprovoked, never untelegraphed. Calibration bench: the
+  // roster's unprovoked hunters top out at 18 damage / 10 m aggro;
+  // the provoked giants run 25–55. These sit between. Peaceful
+  // spares them like everything else (the shared armed gate).
+  // =====================================================================
+
+  // The Magnetic Dunes' coursing hound — Fauna × Forged. Its
+  // twist is THE STARE (useWorldEntities): before its first
+  // charge of an encounter it stops and stares for two full
+  // seconds; break away during the stare and the hunt resets.
+  lodestone_hound: {
+    id: 'lodestone_hound',
+    name: 'Lodestone Hound',
+    profile: 'predator',
+    tameChance: 0.08,
+    bait: 'nectar',
+    petName: 'Lodestone Hound',
+    byproduct: null,
+    hunt: { aggroRange: 14, damage: 22, biteRange: 2.2, biteCooldownSeconds: 1.8 },
+    killLoot: [['lodestone_plate', 2]],
+    bonusSpawn: {
+      biomes: ['storm'],
+      variant: 'magnetic_dunes',
+      count: 1,
+      minRadius: 10,
+      spacing: 10,
+      speed: 3.1, // attacking ×1.35 ≈ 4.2 — a real chase, still under a sprint
+      speedJitter: 0.1,
+      health: 90,
+    },
+  },
+
+  // Skyfall Basin's stooping hawk — Fauna × Ordinary. NO hunt
+  // block: its whole hunt is the bespoke aerial engine in
+  // useWorldEntities (circle → stoop → climb), riding the
+  // glider profile + flight row like its peaceful cousin the
+  // Storm Kite. Cover breaks the stoop; the climb is safe time.
+  fall_hawk: {
+    id: 'fall_hawk',
+    name: 'Fall Hawk',
+    profile: 'glider',
+    tameChance: 0.05,
+    bait: 'nectar',
+    petName: 'Fall Hawk',
+    byproduct: null,
+    flight: { altitude: 6.0, bobHeight: 0.5, bobRate: 0.9, flapRate: 2.2 },
+    killLoot: [['fall_plume', 2]],
+    bonusSpawn: {
+      biomes: ['storm'],
+      variant: 'skyfall_basin',
+      count: 1,
+      minRadius: 10,
+      spacing: 10,
+      speed: 3.2,
+      speedJitter: 0.1,
+      health: 55,
+    },
+  },
+
+  // The Twominded Valley's other dog — Fauna × Gel, a piece of
+  // the valley walked loose. Its twist is THE LONG PURSUIT
+  // (useWorldEntities): once committed it holds the hunt across
+  // the whole zone — the valley-heart clearing is the one
+  // sanctuary it will circle but never enter.
+  hush_hound: {
+    id: 'hush_hound',
+    name: 'Hush Hound',
+    profile: 'predator',
+    tameChance: 0.05,
+    bait: 'nectar',
+    petName: 'Hush Hound',
+    byproduct: null,
+    hunt: { aggroRange: 12, damage: 20, biteRange: 2.0, biteCooldownSeconds: 1.6 },
+    killLoot: [['hush_gel', 2]],
+    bonusSpawn: {
+      biomes: ['living'],
+      variant: 'twominded_valley',
+      count: 1,
+      minRadius: 10,
+      spacing: 10,
+      speed: 3.4, // attacking ×1.35 ≈ 4.6 — above a walk, below a sprint; the leash is the weapon
+      speedJitter: 0.1,
+      health: 120,
+    },
+  },
 };

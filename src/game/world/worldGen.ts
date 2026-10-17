@@ -49,9 +49,9 @@
 // ============================================================================
 
 import { createNoise2D, createSeededRandom, hashStringToSeed } from '../engine/motion';
-import { biomeDensityFactor, biomeWeightFactor } from './biomes';
+import { biomeDensityFactor, biomeWeightFactor, biomeTier } from './biomes';
 import type { BiomeId } from './biomes';
-import { zoneBiomeAt, zoneVariantAt, zoneHybridAt, zoneWeatherAt, livingHeartAt } from './zones';
+import { zoneBiomeAt, zoneVariantAt, zoneHybridAt, zoneWeatherAt, livingHeartAt, zoneHops } from './zones';
 import { BONUS_GROW_FLORA } from '../flora/flora';
 import type { FaunaEntity, FaunaSpecies, FloraEntity, FloraSpecies, StructureEntity } from '../../types/game';
 import { generateCaveSurface, HOMESTEAD_BLOCKERS } from './caveSurface';
@@ -318,7 +318,7 @@ import type { PondDef, RiverSeg } from './terrain';
  *     duck's dive, the crab's venting). The quest-log
  *     wiring is the dev chat's lane, specced in the file.
  */
-export const WORLD_GEN_VERSION = 64; // v64 (2026-10-16): creature slice 49 — the Small Tells (Spiral Moth backward spirals in Untended gardens, Meadowback sentinel guard); v63 was creature slice 48 (the Mirror and the Road)
+export const WORLD_GEN_VERSION = 66; // v66 (2026-10-17): creature slice 51 — the Three Far Predators (Lodestone Hound of the Magnetic Dunes, Fall Hawk of Skyfall Basin, Hush Hound of the Twominded Valley; variant-locked unprovoked hunters); v65 was creature slice 50 (the Distance Gradient)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -645,6 +645,28 @@ export interface GeneratedWorld {
  * saved as concrete entities. The zone coordinates decide the zone's
  * biome (zones.ts) — the spawn zone is always a meadow.
  */
+/**
+ * THE DISTANCE GRADIENT (creature slice 50, 2026-10-17): how much
+ * harder the far country hunts, by the zone's tier and its hops
+ * from spawn. Every axis is CAPPED (Adam: "not absolutely — at
+ * some point they'll be ridiculous"): damage tops out at +60%,
+ * aggro and the leash at +50%, density at double. Tier 0–1
+ * country inside 5 hops returns all 1s — home ground is exactly
+ * as gentle as the species tables have always said.
+ */
+/** The far predators (slice 51) — exempt from the gradient (see the bonus loop). */
+export const FAR_APEX_IDS: string[] = ['lodestone_hound', 'fall_hawk', 'hush_hound'];
+
+export function farPressureFor(tier: number, hops: number): { dmg: number; aggro: number; density: number } {
+  const tierSteps = Math.max(0, tier - 1);
+  const farSteps = Math.max(0, hops - 5);
+  return {
+    dmg: Math.min(1.6, 1 + 0.12 * tierSteps + 0.04 * farSteps),
+    aggro: Math.min(1.5, 1 + 0.1 * tierSteps + 0.03 * farSteps),
+    density: Math.min(2, (tier >= 3 ? 1.5 : tier === 2 ? 1.25 : 1) * (1 + 0.1 * farSteps)),
+  };
+}
+
 export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0, opts?: { landform?: boolean }): GeneratedWorld {
   // Pond life gate (P5 move 2, Adam, 2026-10-16): pond-gated
   // species may only be sown where ponds can honestly exist —
@@ -1117,6 +1139,22 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0, opt
   }
 
   // ---------------------------------------------------------------------
+  // THE DISTANCE GRADIENT (creature slice 50, 2026-10-17 — Adam:
+  // "increase monster challenge with distance. Not absolutely —
+  // at some point they'll be ridiculous"): unprovoked hunters
+  // dealt into far country hunt harder than their table row. The
+  // axes grow with the zone's TIER and keep growing with HOPS
+  // past 5, under HARD CAPS — the caps are the design, not an
+  // afterthought. Damage and aggro are stamped on the entity
+  // (farDmg / farAggro) and read by the sim's hunt branch;
+  // density swells hunter counts in the bonus loop below. The
+  // provoked oversize tier is EXEMPT: the giants stay table-true
+  // everywhere — slice 32's bargain (you can always run from
+  // your mistake) does not scale.
+  // ---------------------------------------------------------------------
+  const farPressure = farPressureFor(biomeTier(zoneBiome), zoneHops(zoneZx, zoneZz));
+
+  // ---------------------------------------------------------------------
   // Designed species (creature build phase, slice 1, 2026-10-15) —
   // GENERIC bonus spawns from the species table (species.ts). This is
   // the radar-species pattern generalized: biome-gated BONUS life dealt
@@ -1165,8 +1203,21 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0, opt
       if (spec.pond && !spec.river && ponds.length === 0) continue;
       if (spec.river && riverSegs.length === 0 && (ponds.length === 0 || !spec.pond)) continue;
       const bonusRng = createSeededRandom(stream(`fauna:bonus:${def.id}`));
+      // The gradient's density axis (slice 50): unprovoked hunters
+      // swell in far country — stochastic rounding on the species'
+      // own stream keeps the expectation honest (a ×1.5 country
+      // deals a second hunter half the time, not a fractional one).
+      // The three far predators (slice 51) are EXEMPT from both
+      // axes: their table rows were written already-scaled for
+      // their named country (a 22 bite is the design, not a base
+      // the gradient multiplies), and each is a seated individual
+      // — its zone holds ONE, never a swelled pair.
+      const huntsUnprovoked = !!def.hunt && !def.hunt.provokedOnly && !FAR_APEX_IDS.includes(def.id);
+      const wantCount = huntsUnprovoked
+        ? spec.count + Math.floor(spec.count * (farPressure.density - 1) + bonusRng())
+        : spec.count;
       let placed = 0;
-      for (let attempt = 0; attempt < 40 && placed < spec.count; attempt++) {
+      for (let attempt = 0; attempt < 40 + (wantCount - spec.count) * 20 && placed < wantCount; attempt++) {
         let x = (bonusRng() * 2 - 1) * 44;
         let z = (bonusRng() * 2 - 1) * 44;
         let pondAnchor: { x: number; z: number; radius: number } | undefined;
@@ -1222,6 +1273,14 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0, opt
           // it was dealt — the Spiral Moth's backward spirals
           // in Untended country are the first reader.
           ...(zoneVariant ? { homeVariant: zoneVariant.id } : {}),
+          // The distance gradient's stamps (slice 50): only
+          // unprovoked hunters carry them, and only where the
+          // country actually presses (multiplier above 1) —
+          // everywhere else the entity stays stamp-free and the
+          // sim reads the table's word.
+          ...(huntsUnprovoked && (farPressure.dmg > 1 || farPressure.aggro > 1)
+            ? { farDmg: farPressure.dmg, farAggro: farPressure.aggro }
+            : {}),
           speed: spec.speed + (bonusRng() * 2 - 1) * spec.speedJitter,
           health: spec.health,
           maxHealth: spec.health,

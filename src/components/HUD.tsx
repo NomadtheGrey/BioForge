@@ -22,6 +22,7 @@ import {
   ChevronRight,
   ScrollText,
   Settings2,
+  Sprout,
 } from 'lucide-react';
 import {
   ToolType,
@@ -85,6 +86,10 @@ interface HUDProps {
   onOpenCodex: () => void;
   onOpenMultiplayer: () => void;
   onOpenControls: () => void;
+  // The About screen's pause door (info screen work order,
+  // 2026-10-17): optional so the HUD renders its button only
+  // once App wires the opener.
+  onOpenAbout?: () => void;
   onOpenDevTools?: () => void;
   onSave?: () => void;
   currentBiomeName: string;
@@ -267,6 +272,7 @@ export const HUD: React.FC<HUDProps> = ({
   onOpenCodex,
   onOpenMultiplayer,
   onOpenControls,
+  onOpenAbout,
   onOpenDevTools,
   onSave,
   currentBiomeName,
@@ -1007,6 +1013,18 @@ export const HUD: React.FC<HUDProps> = ({
               >
                 <Settings2 className="w-3.5 h-3.5" /> OPTIONS
               </button>
+              {/* The About screen's re-read door (info screen
+                  work order, 2026-10-17): the primer's opening,
+                  re-readable any time — it lives beside OPTIONS
+                  on the overlay that can never be hidden. */}
+              {onOpenAbout && (
+                <button
+                  onClick={onOpenAbout}
+                  className="px-5 py-2 rounded-2xl text-xs font-tech font-bold text-emerald-200 border border-emerald-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  <Sprout className="w-3.5 h-3.5" /> ABOUT
+                </button>
+              )}
             </div>
           </div>
         </div>

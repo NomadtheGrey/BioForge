@@ -213,40 +213,17 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({
             </p>
           </Section>
 
-          <Section title="Quests — three kinds of call">
+          <Section title="Why Quests?">
             <p>
-              Press <span className="text-slate-100 font-medium">Q</span> (or the Quests button)
-              for the Quest Log. Three kinds of call live there — chase whichever ones
-              pull at you:
-            </p>
-            <p>
-              <span className="font-semibold text-slate-100">The authored quests</span>
-              <span className="text-slate-400">
-                {' '}— a story told in tasks. The early ones are a crafting chain — a pouch,
-                a scanner, a trowel — and following them teaches you the game; later
-                chapters take you further out and further in. Pin one and the tracker
-                card on your HUD walks with it.
-              </span>
-            </p>
-            <p>
-              <span className="font-semibold text-slate-100">The world asks back</span>
-              <span className="text-slate-400">
-                {' '}— the random-ish ones. As you play, the country notices what you do —
-                what you gather, tame, build, and witness — and starts asking things of
-                you in return. No two worlds ask alike, and an ask is never a leash:
-                take the ones that call to you and let the rest lie.
-              </span>
-            </p>
-            <p>
-              <span className="font-semibold text-slate-100">The Precursors</span>
-              <span className="text-slate-400">
-                {' '}— someone lived here before you, and they are gone. Their ruins,
-                glyphs, and heart-rooms lie scattered across the country, each keeping
-                a piece of what happened. The Ask the World quests walk that trail:
-                gather the pieces, and in time the codex can assemble the story whole.
-                It is the deepest question the game asks, and it waits as long as you
-                need it to.
-              </span>
+              Quests are how this world talks to you — and how you talk back. Some are a
+              path laid out for you: follow them and they will teach you the game's crafts,
+              one platform at a time. Some the world asks of YOU: a place changes, a
+              creature settles somewhere strange, and the world waits to see what you do
+              about it. And some are questions you ask the world — the ones shelved under
+              ASK THE WORLD in your Quest Log. Who grew all this? Where did they go?
+              Their ruins still stand, their stones still speak, and every answer is
+              earned by going and looking. Press Q any time. Chase whichever one is
+              calling.
             </p>
           </Section>
 

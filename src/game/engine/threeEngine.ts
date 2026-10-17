@@ -155,6 +155,35 @@ function makeStreakTexture(): THREE.Texture {
   return new THREE.CanvasTexture(c);
 }
 
+// A floating name tag (Adam, 2026-10-17): canvas text on a dark
+// pill, drawn once per label. Used first for the cavern Heart —
+// a destination should announce itself.
+function makeLabelSprite(text: string, accent = '#f9a8d4'): THREE.Sprite {
+  const c = document.createElement('canvas');
+  c.width = 512;
+  c.height = 128;
+  const ctx = c.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = 'rgba(10, 8, 14, 0.72)';
+    ctx.beginPath();
+    ctx.roundRect(56, 28, 400, 72, 36);
+    ctx.fill();
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = '#fdf2f8';
+    ctx.font = '600 40px Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 256, 66);
+  }
+  const tex = new THREE.CanvasTexture(c);
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(3.4, 0.85, 1);
+  return sprite;
+}
+
 // Shared radial-gradient texture for glow sprites (one texture, many sprites).
 function makeGlowTexture(): THREE.Texture {
   const c = document.createElement('canvas');
@@ -2087,6 +2116,11 @@ export class BioForgeThreeEngine {
       const heartLight = new THREE.PointLight(0xec4899, 9, 11, 1.5);
       heartLight.position.set(w.x, 1.4, w.z);
       this.cavernGroup.add(heartLight);
+      // Its name tag, floating above the crystal (Adam,
+      // 2026-10-17): the deepest chamber's prize should say so.
+      const heartTag = makeLabelSprite('Heart of the Cavern');
+      heartTag.position.set(w.x, 2.9, w.z);
+      this.cavernGroup.add(heartTag);
     }
 
     // Entrance marker: a cyan ring flat on the floor — "home is here",

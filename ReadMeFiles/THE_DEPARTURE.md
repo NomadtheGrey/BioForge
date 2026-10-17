@@ -77,29 +77,30 @@ for another hour. This note designs the door, not the room
 behind it. Nothing in the build should be shaped by guesses
 about the other side until that conversation happens.
 
-## 6. Open questions (for the pin, not for now)
+## 6. Rulings (Adam, 2026-10-17 — the same morning)
 
-1. **What — and who — crosses over?** Gear is easy.
-   Companions are the question: does the hearth dog walk
-   through beside you, or does the vat's logic govern even
-   this — samples carried, the loved ones regrown on the far
-   side, same names, new world? Both are defensible. They are
-   very different goodbyes, and the game should know which one
-   it believes.
-2. **One-way, or an atlas?** A burned bridge gives the choice
-   finality and keeps the engineering simple. An atlas of
-   worlds — the old home visitable, beloved, aging without
-   you — is warmer and far more expensive: worlds become a
-   collection the save system carries forever.
-3. **Co-op departure:** if a family grew a world together,
-   who decides to leave it, and does the party cross as one?
-   (Sits under the QUESTS_MULTIPLAYER umbrella; asked here so
-   it isn't lost.)
-4. **The reveal's timing:** the chapter names the fate at five
-   fragments. Should the finale's approach (follow / uplift /
-   confront / honor) be visible from that moment as the last
-   quest in the log — the destination hanging over the whole
-   late game — or dealt only when the player is otherwise
-   "done"? (The dev lane leans visible: a destination known
-   early makes every earlier quest feel like it's on the road
-   somewhere.)
+The questions this note shelved were answered within the hour:
+
+1. **Companions stay on their home world.** The hearth dog,
+   the vat-born, the settled friends — they belong to their
+   world and do not cross. "We'll find more." Bonds are
+   per-world and complete in themselves; leaving is a real
+   goodbye, and the new world's creatures carry the heart's
+   next chapter. (No companion migration, ever — the sample
+   route was not taken either.)
+2. **The atlas stands.** Worlds are a collection the grower
+   keeps; the old home remains visitable. The save system
+   carries the atlas — the warmer, more expensive option,
+   chosen knowingly.
+3. **Co-op movement is per-player and free.** Either player
+   can leave, stay, or return as they see fit — no party
+   vote, no joint departure. Each grower travels their own
+   atlas; a shared world is a place you can come back to.
+4. **The destination shows as undiscovered.** The finale's
+   destination entry exists before the crossing — as a
+   question mark, "undiscovered," a named unknown — until it
+   is traversed. The road has a visible end; what the end
+   *is* stays behind the door (section 5).
+
+Still open for the pin: the fate-family sort (section 3),
+the vessel's ingredient list, and everything in section 5.

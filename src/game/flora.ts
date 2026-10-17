@@ -3560,6 +3560,206 @@ export const FLORA: Record<string, FloraDef> = {
       scale: 1.2,
     },
   },
+
+  // ------------------------------------------------------------------
+  // THE DEALT-ELSEWHERE TWENTY-FIVE (gap fix, 2026-10-16)
+  // ------------------------------------------------------------------
+  // These species reach the world by their OWN routes — the
+  // starter census, worldGen's hand-placed variant dressing, and
+  // the cave interiors — and for years they were the only dealt
+  // flora with NO row in this table: anything that names flora
+  // from the table fell back to the raw id and printed things
+  // like "Lantern_fern" (the gap the dynamic-quest lab tripped
+  // over). The rows below close the class: name + harvest live
+  // here like every other species. Harvest values mirror the
+  // tool hook's legacy switch VERBATIM (computeHarvestYields
+  // reads the table first; the switch remains only as the
+  // default fallback), and bonusGrow is null BY DESIGN — these
+  // are dealt by their routes and must never be double-dealt by
+  // the generic bonus loop (which skips null specs outright).
+  // ------------------------------------------------------------------
+
+  // The starter census five (worldGen FLORA_CENSUS).
+  lantern_fern: {
+    id: 'lantern_fern',
+    name: 'Lantern Fern',
+    kind: 'flora',
+    harvest: { item: 'soft_fiber', count: 2, fertilizedCount: 5, extras: [['dew_essence', 1]] },
+    bonusGrow: null,
+  },
+  bell_bloom: {
+    id: 'bell_bloom',
+    name: 'Bell-Bloom',
+    kind: 'flora',
+    harvest: { item: 'dew_essence', count: 2, fertilizedCount: 4, extras: [['soft_fiber', 1]] },
+    bonusGrow: null,
+  },
+  petal_mill: {
+    id: 'petal_mill',
+    name: 'Petal-Mill',
+    kind: 'flora',
+    harvest: { item: 'vibrant_petal', count: 3, fertilizedCount: 6, extras: [['sweet_nectar', 2]] },
+    bonusGrow: null,
+  },
+  sap_weaver: {
+    id: 'sap_weaver',
+    name: 'Sap-Weaver',
+    kind: 'flora',
+    harvest: { item: 'resin_sap', count: 3, fertilizedCount: 6 },
+    bonusGrow: null,
+  },
+  snap_trap: {
+    id: 'snap_trap',
+    name: 'Chittering Snap-Trap',
+    kind: 'flora',
+    harvest: { item: 'carapace_scale', count: 1, fertilizedCount: 1 },
+    hazardous: true,
+    bonusGrow: null,
+  },
+
+  // The variant-dressing set (worldGen's hand-placed blocks).
+  antenna_shroom: {
+    id: 'antenna_shroom',
+    name: 'Antenna Shroom',
+    kind: 'fungus',
+    harvest: { item: 'glow_spore', count: 2, fertilizedCount: 4, extras: [['dew_essence', 1]] },
+    bonusGrow: null,
+  },
+  visor_shroom: {
+    id: 'visor_shroom',
+    name: 'Visor Shroom',
+    kind: 'fungus',
+    harvest: { item: 'basic_compost', count: 2, fertilizedCount: 3, extras: [['glow_spore', 1]] },
+    bonusGrow: null,
+  },
+  shelf_shroom: {
+    id: 'shelf_shroom',
+    name: 'Shelf Shroom',
+    kind: 'fungus',
+    harvest: { item: 'soft_fiber', count: 2, fertilizedCount: 4, extras: [['basic_compost', 1]] },
+    bonusGrow: null,
+  },
+  glow_fungus: {
+    id: 'glow_fungus',
+    name: 'Glow Fungus',
+    kind: 'fungus',
+    harvest: { item: 'glow_spore', count: 2, fertilizedCount: 4, extras: [['dew_essence', 1]] },
+    bonusGrow: null,
+  },
+  glow_spore_cluster: {
+    id: 'glow_spore_cluster',
+    name: 'Glow Spore Cluster',
+    kind: 'fungus',
+    harvest: { item: 'glow_spore', count: 2, fertilizedCount: 4, extras: [['dew_essence', 1]] },
+    bonusGrow: null,
+  },
+  echo_reed: {
+    id: 'echo_reed',
+    name: 'Echo Reed',
+    kind: 'flora',
+    harvest: { item: 'resonant_reed', count: 2, fertilizedCount: 4, extras: [['dew_essence', 1]] },
+    bonusGrow: null,
+  },
+  cinder_bloom: {
+    id: 'cinder_bloom',
+    name: 'Cinder Bloom',
+    kind: 'flora',
+    harvest: { item: 'resin_sap', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
+    bonusGrow: null,
+  },
+  obsidian_bloom: {
+    id: 'obsidian_bloom',
+    name: 'Obsidian Bloom',
+    kind: 'flora',
+    harvest: { item: 'obsidian_shard', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
+    bonusGrow: null,
+  },
+  prism_reed: {
+    id: 'prism_reed',
+    name: 'Prism Reed',
+    kind: 'flora',
+    harvest: { item: 'saltglass_shard', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
+    bonusGrow: null,
+  },
+  rime_spire: {
+    id: 'rime_spire',
+    name: 'Rime Spire',
+    kind: 'flora',
+    harvest: { item: 'nevermelt_ice', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
+    bonusGrow: null,
+  },
+  heartroot: {
+    id: 'heartroot',
+    name: 'Heartroot',
+    kind: 'flora',
+    harvest: { item: 'heartwood', count: 2, fertilizedCount: 3, extras: [['soft_fiber', 1]] },
+    bonusGrow: null,
+  },
+  dusk_grass: {
+    id: 'dusk_grass',
+    name: 'Duskgrass',
+    kind: 'flora',
+    harvest: { item: 'soft_fiber', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
+    bonusGrow: null,
+  },
+  heartbloom: {
+    id: 'heartbloom',
+    name: 'Heartbloom',
+    kind: 'flora',
+    harvest: { item: 'heart_sap', count: 1, fertilizedCount: 2, extras: [['dew_essence', 2]] },
+    bonusGrow: null,
+  },
+  stormcatcher: {
+    id: 'stormcatcher',
+    name: 'Stormcatcher',
+    kind: 'flora',
+    harvest: { item: 'fulgurite_shard', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
+    bonusGrow: null,
+  },
+  gravebloom: {
+    id: 'gravebloom',
+    name: 'Gravebloom',
+    kind: 'flora',
+    harvest: { item: 'bone_meal', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
+    bonusGrow: null,
+  },
+  precursor_bloom: {
+    id: 'precursor_bloom',
+    name: 'Precursor Bloom',
+    kind: 'flora',
+    harvest: { item: 'living_thread', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
+    bonusGrow: null,
+  },
+  mirror_lily: {
+    id: 'mirror_lily',
+    name: 'Mirror Lily',
+    kind: 'flora',
+    harvest: { item: 'dew_essence', count: 3, fertilizedCount: 5, extras: [['resonant_reed', 1]] },
+    bonusGrow: null,
+  },
+
+  // The cave set (dealt by the interiors, not the surface census).
+  bounce_shroom: {
+    id: 'bounce_shroom',
+    name: 'Bounce-Shroom',
+    kind: 'fungus',
+    harvest: { item: 'seed_bounce_shroom', count: 1, fertilizedCount: 2, extras: [['dew_essence', 1]] },
+    bonusGrow: null,
+  },
+  sunshard_cluster: {
+    id: 'sunshard_cluster',
+    name: 'Sunshard Cluster',
+    kind: 'flora',
+    harvest: { item: 'sunshard', count: 2, fertilizedCount: 4, extras: [['dew_essence', 1]] },
+    bonusGrow: null,
+  },
+  prism_cluster: {
+    id: 'prism_cluster',
+    name: 'Prism Cluster',
+    kind: 'flora',
+    harvest: { item: 'prismatic_core', count: 1, fertilizedCount: 2 },
+    bonusGrow: null,
+  },
 };
 
 /** Table lookup by species id (the hook + worldGen read here). */

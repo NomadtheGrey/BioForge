@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { X, Sparkles, Check, AlertCircle, ArrowRight, Search, Sprout } from 'lucide-react';
 import { CraftingRecipe, ItemId, StructureType } from '../types/game';
-import { ITEMS, RECIPES, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../game/constants'
-import { isGauntletUpgrade, isGearItem, gearTierOf, accessTierOf } from '../game/quests';
-import { BASE_SUPPLY_GROUPS, baseSupplyGroupOf, isBaseSupply } from '../game/baseSupplies';
+import { ITEMS, RECIPES, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../game/items/constants'
+import { isGauntletUpgrade, isGearItem, gearTierOf, accessTierOf } from '../game/quests/quests';
+import { BASE_SUPPLY_GROUPS, baseSupplyGroupOf, isBaseSupply } from '../game/items/baseSupplies';
 import { soundEngine } from '../audio/soundEngine';
 import { RecipeFlowchart } from './RecipeFlowchart';
 
@@ -347,7 +347,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                         <h4 className="text-sm font-semibold text-slate-100">{recipe.name}</h4>
                         {/* Gear parts carry their tier (Adam,
                             2026-10-15) — graph-derived, see
-                            gearTierOf in game/quests.ts. */}
+                            gearTierOf in game/quests/quests.ts. */}
                         {isGearItem(recipe.outputId) && gearTierOf(recipe.outputId) !== null && (
                           <span className="text-[9px] font-tech font-bold px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
                             TIER {gearTierOf(recipe.outputId)}

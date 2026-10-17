@@ -34,7 +34,7 @@ import {
   FaunaEntity,
   FloraEntity,
 } from '../types/game';
-import { ITEMS } from '../game/constants';
+import { ITEMS } from '../game/items/constants';
 import { Minimap } from './Minimap';
 
 /**
@@ -170,8 +170,8 @@ interface HUDProps {
 }
 
 import { QuestTracker } from './QuestTracker';
-import type { QuestProgressView } from '../game/quests';
-import { MODULE_FOR_TOOL, gearTierOf } from '../game/quests';
+import type { QuestProgressView } from '../game/quests/quests';
+import { MODULE_FOR_TOOL, gearTierOf } from '../game/quests/quests';
 import { useHudLayout, type HudPanelId } from '../hooks/useHudLayout';
 import { HudPanel } from './HudPanel';
 import { HudOptionsPanel } from './HudOptionsPanel';

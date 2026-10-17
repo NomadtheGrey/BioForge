@@ -8,7 +8,7 @@
  * rest. WORKING: the growing thing's name and a patience bar.
  * READY: one emerald word — HATCH.
  *
- * All rules live in game/vat.ts; this panel only renders them
+ * All rules live in game/structures/vat.ts; this panel only renders them
  * and reports clicks through callbacks, in the StorageModal
  * shape the game already taught the player.
  */
@@ -16,9 +16,9 @@
 import React from 'react';
 import { X, Sprout, FlaskConical, Egg, ArrowUpCircle } from 'lucide-react';
 import type { FaunaSpecies, ItemId, StructureEntity } from '../types/game';
-import { ITEMS } from '../game/constants';
-import { speciesDef } from '../game/species';
-import { VAT_TIER_NAMES, vatKitFor, vatPlanFor, type VatBand } from '../game/vat';
+import { ITEMS } from '../game/items/constants';
+import { speciesDef } from '../game/creatures/species';
+import { VAT_TIER_NAMES, vatKitFor, vatPlanFor, type VatBand } from '../game/structures/vat';
 
 interface VatModalProps {
   /** The vat being viewed (live entity from the structures list). */

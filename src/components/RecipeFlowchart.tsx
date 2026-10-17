@@ -27,8 +27,8 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { CraftingRecipe, ItemId } from '../types/game';
-import { ITEMS, RECIPES } from '../game/constants';
-import { isGauntletUpgrade, accessTierOf } from '../game/quests';
+import { ITEMS, RECIPES } from '../game/items/constants';
+import { isGauntletUpgrade, accessTierOf } from '../game/quests/quests';
 
 const ICONS: Record<string, LucideIcon> = {
   AlertTriangle,

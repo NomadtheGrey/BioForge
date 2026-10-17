@@ -18,18 +18,18 @@
  */
 
 import { useRef, useState } from 'react';
-import type { BioForgeThreeEngine } from '../game/threeEngine';
-import type { FirstPersonMovementController } from '../game/controller';
+import type { BioForgeThreeEngine } from '../game/engine/threeEngine';
+import type { FirstPersonMovementController } from '../game/engine/controller';
 import type { WorldSnapshot } from '../game/saveSystem';
-import { SPAWN_ZONE, zoneBiomeAt, zoneVariantAt, zoneFaceAt, zoneHops, zoneInfo, zoneKey, biomeDisplayName, type ZoneCoords } from '../game/zones';
-import { generateSeededWorld } from '../game/worldGen';
-import { LANDFORM_EPOCH_MS } from '../game/terrain';
+import { SPAWN_ZONE, zoneBiomeAt, zoneVariantAt, zoneFaceAt, zoneHops, zoneInfo, zoneKey, biomeDisplayName, type ZoneCoords } from '../game/world/zones';
+import { generateSeededWorld } from '../game/world/worldGen';
+import { LANDFORM_EPOCH_MS } from '../game/world/terrain';
 import { multiplayerManager } from '../game/multiplayer';
 import { snapshotOf, buildZoneSyncTravel as buildZoneSyncTravelPayload, type ZoneStores } from '../game/zoneSync';
 import type { GameNotification } from '../types/game';
 // THE WORLD ASKS BACK, S4: saga consequences become real zones here.
-import { applyZoneConsequences } from '../game/asksBack/applyConsequences';
-import type { AsksBackState } from '../game/asksBackState';
+import { applyZoneConsequences } from '../game/quests/asksBack/applyConsequences';
+import type { AsksBackState } from '../game/quests/asksBackState';
 
 // Zone identification is a HELMET feature (Adam, 2026-10-15):
 // naming the land is a sense, and the helmet is the sensory

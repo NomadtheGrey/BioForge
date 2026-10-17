@@ -9,16 +9,16 @@
  * the upgrade button: owning the next growth kit enables it, and
  * applying it raises the pod in place, contents preserved.
  *
- * All the rules live in game/pouch.ts (STORAGE_TIERS); this panel
+ * All the rules live in game/items/pouch.ts (STORAGE_TIERS); this panel
  * only renders them and reports clicks through callbacks.
  */
 
 import React from 'react';
 import { X, Package, ArrowDownToLine, ArrowUpFromLine, Sprout } from 'lucide-react';
 import type { ItemId, StructureEntity } from '../types/game';
-import { ITEMS } from '../game/constants';
-import { STORAGE_TIERS, storageCapsFor, storageKitFor, storageSlotsUsed, type StorageContents } from '../game/pouch';
-import { isSampleItem } from '../game/vat';
+import { ITEMS } from '../game/items/constants';
+import { STORAGE_TIERS, storageCapsFor, storageKitFor, storageSlotsUsed, type StorageContents } from '../game/items/pouch';
+import { isSampleItem } from '../game/structures/vat';
 
 interface StorageModalProps {
   /** The pod being viewed (live entity from the structures list). */

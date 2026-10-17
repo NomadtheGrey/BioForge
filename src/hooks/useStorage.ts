@@ -11,14 +11,14 @@
  * TRANSFERS: deposit/withdraw move as much as FITS and leave the
  * rest where it was — unlike world gains, a transfer never spills.
  * All capacity rules (slots, per-stack caps, tiers, kits) come
- * from game/pouch.ts; these handlers only move counts and write
+ * from game/items/pouch.ts; these handlers only move counts and write
  * the pod back via upsertStructure, so the world snapshot carries
  * its contents like any other structure data.
  */
 
 import { useCallback, useEffect } from 'react';
 import type { GameNotification, ItemId, StructureEntity } from '../types/game';
-import { ITEMS } from '../game/constants';
+import { ITEMS } from '../game/items/constants';
 import {
   pouchTierOf,
   stackCapFor,
@@ -26,8 +26,8 @@ import {
   storageKitFor,
   storageRoomFor,
   type StorageContents,
-} from '../game/pouch';
-import { isSampleItem } from '../game/vat';
+} from '../game/items/pouch';
+import { isSampleItem } from '../game/structures/vat';
 
 interface UseStorageParams {
   getInventory: () => Record<ItemId, number>;

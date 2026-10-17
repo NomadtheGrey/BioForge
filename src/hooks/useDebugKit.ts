@@ -14,7 +14,7 @@
 
 import { useCallback, useRef, type RefObject } from 'react';
 import type { GameNotification, ItemId } from '../types/game';
-import { DEBUG_KIT } from '../game/constants';
+import { DEBUG_KIT } from '../game/items/constants';
 
 interface UseDebugKitParams {
   getInventory: () => Record<ItemId, number>;

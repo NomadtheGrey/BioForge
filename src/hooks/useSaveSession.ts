@@ -18,24 +18,24 @@
  */
 
 import { useRef, useState, useCallback, useEffect } from 'react';
-import type { BioForgeThreeEngine } from '../game/threeEngine';
+import type { BioForgeThreeEngine } from '../game/engine/threeEngine';
 import {
   AUTOSAVE_INTERVAL_MS, listSaveMetadata, deleteSavedGame, buildSavedGame,
   createSaveMetadata, loadSavedGame, storeSavedGame,
   type GameDifficulty, type SaveMetadata, type SavedGameRecord, type WorldSnapshot,
 } from '../game/saveSystem';
-import type { FieldNotesState } from '../game/fieldNotesBook';
-import { EMPTY_ASKS_BACK, type AsksBackState } from '../game/asksBackState';
+import type { FieldNotesState } from '../game/knowledge/fieldNotesBook';
+import { EMPTY_ASKS_BACK, type AsksBackState } from '../game/quests/asksBackState';
 // THE WORLD ASKS BACK, S4: the save-load restore runs the same
 // consequence apply path as zone travel (load mode — removals +
 // settled individuals, never abundance on player-shaped lists).
-import { applyZoneConsequences } from '../game/asksBack/applyConsequences';
+import { applyZoneConsequences } from '../game/quests/asksBack/applyConsequences';
 import { INITIAL_STRUCTURES } from './useWorldEntities';
-import { SPAWN_ZONE, zoneKey, zoneBiomeAt, zoneVariantAt, zoneFaceAt } from '../game/zones';
-import { generateSeededWorld } from '../game/worldGen';
+import { SPAWN_ZONE, zoneKey, zoneBiomeAt, zoneVariantAt, zoneFaceAt } from '../game/world/zones';
+import { generateSeededWorld } from '../game/world/worldGen';
 import { multiplayerManager } from '../game/multiplayer';
 import type { InstanceState } from './useInstances';
-import type { ZoneCoords } from '../game/zones';
+import type { ZoneCoords } from '../game/world/zones';
 import type {
   CodexEntry, DroppedItemEntity, FaunaEntity, FloraEntity, GameNotification,
   ItemId, PlayerState, QuestProgressState, StructureEntity,
@@ -393,7 +393,7 @@ export function useSaveSession(deps: SaveSessionDeps) {
       // — the player can hide it from the quest list's checkbox [Q].
       setQuestProgress({ completedIds: [], trackedId: 'q_first_harvest', showHud: true });
       // The seed earns its keep: a new world's flora and fauna are GROWN
-      // from it (seeded surface scatter — game/worldGen.ts) instead of
+      // from it (seeded surface scatter — game/world/worldGen.ts) instead of
       // reusing the fixed hand-placed starter layout. Starter structures
       // (forge, floors, mound) stay fixed — they're the homestead, not
       // wilderness. Generate from meta.worldSeed: createSaveMetadata

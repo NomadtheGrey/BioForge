@@ -15,8 +15,8 @@ import {
   FaunaEntity,
   FloraEntity,
 } from '../types/game';
-import { BIOMES, ITEMS } from '../game/constants';
-import { isFloorType } from '../game/placement';
+import { BIOMES, ITEMS } from '../game/items/constants';
+import { isFloorType } from '../game/structures/placement';
 
 export interface MinimapProps {
   playerX: number;

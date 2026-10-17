@@ -18,16 +18,16 @@
  */
 
 import { useEffect } from 'react';
-import { BioForgeThreeEngine } from '../game/threeEngine';
-import type { FirstPersonMovementController, ControllerInputState } from '../game/controller';
+import { BioForgeThreeEngine } from '../game/engine/threeEngine';
+import type { FirstPersonMovementController, ControllerInputState } from '../game/engine/controller';
 import * as THREE from 'three';
-import { occupancyConflict, placementFor, isFloorType } from '../game/placement';
-import { noteIdForPickupItem } from '../game/fieldNotesBook';
-import { isSampleItem } from '../game/vat';
-import type { AsksEventInput } from '../game/asksBackState';
+import { occupancyConflict, placementFor, isFloorType } from '../game/structures/placement';
+import { noteIdForPickupItem } from '../game/knowledge/fieldNotesBook';
+import { isSampleItem } from '../game/structures/vat';
+import type { AsksEventInput } from '../game/quests/asksBackState';
 import { multiplayerManager } from '../game/multiplayer';
 import { soundEngine } from '../audio/soundEngine';
-import { ITEMS } from '../game/constants';
+import { ITEMS } from '../game/items/constants';
 import { WORLD_EDGE_COORD, ZONE_PUSH_SECONDS, ZONE_PUSH_MIN_COMPONENT } from './useZoneTravel';
 import { JUMP_GRAVITY, STORY_HEIGHT_METERS } from './useGameInput';
 import type { WorldSnapshot } from '../game/saveSystem';
@@ -650,7 +650,7 @@ export function useGameLoop(deps: GameLoopDeps): void {
           if (pt) {
             const type = selectedStructureRef.current;
             const rotation = liveGameRefs.current.getPlacementRotation();
-            // Same placement math the click will use (game/placement.ts):
+            // Same placement math the click will use (game/structures/placement.ts):
             // panels preview on their EDGE, and the ghost turns red when
             // the spot is already occupied — no promising what the click
             // would refuse.

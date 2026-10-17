@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { X, Backpack, Sparkles, Sprout, Hammer, ArrowUpRight, Search } from 'lucide-react';
 import { ItemId, StructureType, ToolType } from '../types/game';
-import { ITEMS, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../game/constants';
-import { isGauntletUpgrade, isGearItem, gearTierOf } from '../game/quests';
-import { BASE_SUPPLY_GROUPS, baseSupplyGroupOf, isBaseSupply } from '../game/baseSupplies';
-import { POUCH_TIER_CAPS, POUCH_TIER_NAMES, pouchTierOf } from '../game/pouch';
+import { ITEMS, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../game/items/constants';
+import { isGauntletUpgrade, isGearItem, gearTierOf } from '../game/quests/quests';
+import { BASE_SUPPLY_GROUPS, baseSupplyGroupOf, isBaseSupply } from '../game/items/baseSupplies';
+import { POUCH_TIER_CAPS, POUCH_TIER_NAMES, pouchTierOf } from '../game/items/pouch';
 
 interface InventoryModalProps {
   isOpen: boolean;

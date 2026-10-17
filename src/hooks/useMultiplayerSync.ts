@@ -20,10 +20,10 @@ import { useState, useEffect, useRef } from 'react';
 import { multiplayerManager, type EntityKind, type EntitySnapshot, type TunnelPairMouth } from '../game/multiplayer';
 import { soundEngine } from '../audio/soundEngine';
 import { routeForZoneTag, storeEntityEvent, type ZoneStores } from '../game/zoneSync';
-import { generateSeededWorld } from '../game/worldGen';
-import { SPAWN_ZONE, zoneBiomeAt, zoneVariantAt, zoneFaceAt, zoneKey, type ZoneCoords } from '../game/zones';
+import { generateSeededWorld } from '../game/world/worldGen';
+import { SPAWN_ZONE, zoneBiomeAt, zoneVariantAt, zoneFaceAt, zoneKey, type ZoneCoords } from '../game/world/zones';
 import type { WorldSnapshot } from '../game/saveSystem';
-import type { BioForgeThreeEngine } from '../game/threeEngine';
+import type { BioForgeThreeEngine } from '../game/engine/threeEngine';
 import type { PendingTravel } from './useZoneTravel';
 import type {
   DroppedItemEntity, FaunaEntity, FloraEntity, GameNotification, MultiplayerPeer, StructureEntity, ToolType,

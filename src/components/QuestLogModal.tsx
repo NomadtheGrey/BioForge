@@ -16,7 +16,7 @@
  * PLAYSTYLE TABS (Adam, 2026-10-16): the log now opens through a
  * row of tabs — All Quests plus the seven playstyles from
  * ReadMeFiles/PLAYER_STYLES.md (the taxonomy and the per-quest
- * population map live in game/questStyles.ts). The tabs are a
+ * population map live in game/quests/questStyles.ts). The tabs are a
  * LENS, never lanes: nobody picks a style, every tab is always
  * there, and chain state, tracking, and completion are global —
  * the same quest shows the same face in every tab it appears in.
@@ -27,13 +27,13 @@
  */
 import { useState } from 'react';
 import { ScrollText, X } from 'lucide-react';
-import { ITEMS } from '../game/constants';
-import { FIELD_NOTES } from '../game/fieldNotes';
-import type { FieldNotesState } from '../game/fieldNotesBook';
+import { ITEMS } from '../game/items/constants';
+import { FIELD_NOTES } from '../game/knowledge/fieldNotes';
+import type { FieldNotesState } from '../game/knowledge/fieldNotesBook';
 import type { CodexEntry } from '../types/game';
 import type { ItemId } from '../types/game';
-import { ASK_THE_WORLD_LINE, type QuestProgressView } from '../game/quests';
-import { PLAYSTYLE_TABS, questInStyle, type PlayStyleId } from '../game/questStyles';
+import { ASK_THE_WORLD_LINE, type QuestProgressView } from '../game/quests/quests';
+import { PLAYSTYLE_TABS, questInStyle, type PlayStyleId } from '../game/quests/questStyles';
 // THE WORLD ASKS BACK (dev lane, 2026-10-17): the dynamic saga
 // section lives in this tab. The modal only READS the record and
 // fires the callbacks — acceptance, choice, and tracking all land
@@ -42,9 +42,9 @@ import type {
   AsksBackState,
   AsksInstance,
   AsksOffer,
-} from '../game/asksBackState';
-import { MAX_ACTIVE_SAGAS } from '../game/asksBack/director';
-import { goalProgressText, choiceLabels } from '../game/asksBack/latch';
+} from '../game/quests/asksBackState';
+import { MAX_ACTIVE_SAGAS } from '../game/quests/asksBack/director';
+import { goalProgressText, choiceLabels } from '../game/quests/asksBack/latch';
 
 /** The tab state: a playstyle lens, or the Ask the World line's
  *  own tab (a named quest LINE, not a style — it sits apart from

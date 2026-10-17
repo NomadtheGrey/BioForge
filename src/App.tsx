@@ -25,22 +25,22 @@ import {
   ITEMS,
   NON_BUILDABLE_STRUCTURE_IDS,
   getRecipeTier,
-} from './game/constants';
-import { BioForgeThreeEngine } from './game/threeEngine';
+} from './game/items/constants';
+import { BioForgeThreeEngine } from './game/engine/threeEngine';
 import { soundEngine } from './audio/soundEngine';
 import { multiplayerManager, EntityKind, EntitySnapshot, type TunnelPairMouth } from './game/multiplayer';
 
-import { FirstPersonMovementController, ControllerInputState } from './game/controller';
+import { FirstPersonMovementController, ControllerInputState } from './game/engine/controller';
 
 // Modular Domain Hooks (Enforces CODE_MANIFESTO.md Rule 8)
 import { useInventory } from './hooks/useInventory';
 import { useNotifications } from './hooks/useNotifications';
 import { usePlayerState } from './hooks/usePlayerState';
 import { useWorldEntities, INITIAL_STRUCTURES } from './hooks/useWorldEntities';
-import { generateSeededWorld } from './game/worldGen';
-import { generateGameCavern, generateGameCavernLevel, cavernCellToWorld, cavernEntryYaw, cavernStratumName, type CavernResult } from './game/cavern';
-import { generateGameRuin, ruinEntryYaw, ruinCollisionGrid, type RuinResult } from './game/ruinInterior';
-import { FATE_STYLES, type RuinVariantId, type WorldFate } from './game/ruins';
+import { generateSeededWorld } from './game/world/worldGen';
+import { generateGameCavern, generateGameCavernLevel, cavernCellToWorld, cavernEntryYaw, cavernStratumName, type CavernResult } from './game/world/cavern';
+import { generateGameRuin, ruinEntryYaw, ruinCollisionGrid, type RuinResult } from './game/world/ruinInterior';
+import { FATE_STYLES, type RuinVariantId, type WorldFate } from './game/world/ruins';
 import {
   zoneInfo,
   zoneBiomeAt,
@@ -55,10 +55,10 @@ import {
   zoneWeatherAt,
   livingHeartAt,
   type ZoneCoords,
-} from './game/zones';
-import { LANDFORM_EPOCH_MS } from './game/terrain';
+} from './game/world/zones';
+import { LANDFORM_EPOCH_MS } from './game/world/terrain';
 import { routeForZoneTag, storeEntityEvent, snapshotOf, buildZoneSyncTravel as buildZoneSyncTravelPayload, type ZoneStores } from './game/zoneSync';
-import { occupancyConflict, placementFor } from './game/placement';
+import { occupancyConflict, placementFor } from './game/structures/placement';
 import { useToolInteractions } from './hooks/useToolInteractions';
 import {
   AUTOSAVE_INTERVAL_MS,
@@ -73,13 +73,13 @@ import {
   SavedGameRecord,
   WorldSnapshot,
 } from './game/saveSystem';
-import { EMPTY_FIELD_NOTES, type FieldNotesState } from './game/fieldNotesBook';
-import { noteById } from './game/fieldNotesBook';
+import { EMPTY_FIELD_NOTES, type FieldNotesState } from './game/knowledge/fieldNotesBook';
+import { noteById } from './game/knowledge/fieldNotesBook';
 import {
   EMPTY_ASKS_BACK, applyAsksEvents, asksGameDay,
   type AsksBackState, type AsksEventInput,
-} from './game/asksBackState';
-import { runDirector } from './game/asksBack/director';
+} from './game/quests/asksBackState';
+import { runDirector } from './game/quests/asksBack/director';
 // THE WORLD ASKS BACK, S3 (dev lane, 2026-10-17): the step
 // evaluator (latch.ts) makes sagas playable — App triggers it on
 // ledger/day/zone changes and applies its grants/notifications;
@@ -90,12 +90,12 @@ import {
   trackAsksSaga as trackAsksSagaInRecord,
   canAcceptSaga,
   goalProgressText,
-} from './game/asksBack/latch';
-import { recordAsksChoice } from './game/asksBackState';
+} from './game/quests/asksBack/latch';
+import { recordAsksChoice } from './game/quests/asksBackState';
 // THE WORLD ASKS BACK, S4: a release settles the creature in the
 // zone's consequence record — the Director reads it as an anchor
 // and the zone loader materializes it by name.
-import { addSettled, settleIndividual, zoneConsequences } from './game/asksBack/zoneState';
+import { addSettled, settleIndividual, zoneConsequences } from './game/quests/asksBack/zoneState';
 import type { SagaTrackView } from './components/QuestTracker';
 
 import { StartScreenModal } from './components/StartScreenModal';
@@ -103,13 +103,13 @@ import { StartScreenModal } from './components/StartScreenModal';
 // UI Components
 import { HUD } from './components/HUD';
 import { QuestLogModal } from './components/QuestLogModal';
-import { TOOL_NAMES, accessTierOf, MADE_SPECIES_IDS } from './game/quests';
-import { BIOMES } from './game/biomes';
-import { fateForWorld } from './game/ruins';
-import { AW_CHAPTERS, type AwChapter } from './game/awChapters';
+import { TOOL_NAMES, accessTierOf, MADE_SPECIES_IDS } from './game/quests/quests';
+import { BIOMES } from './game/world/biomes';
+import { fateForWorld } from './game/world/ruins';
+import { AW_CHAPTERS, type AwChapter } from './game/quests/awChapters';
 import { ChapterModal } from './components/ChapterModal';
-import { bestWeapon } from './game/weapons';
-import type { WeaponDef } from './game/weapons';
+import { bestWeapon } from './game/creatures/weapons';
+import type { WeaponDef } from './game/creatures/weapons';
 import { useQuests } from './hooks/useQuests';
 import { useStorage } from './hooks/useStorage';
 import { useVat } from './hooks/useVat';
@@ -122,11 +122,11 @@ import { useGameInput, JUMP_GRAVITY, STORY_HEIGHT_METERS } from './hooks/useGame
 import { useGameLoop } from './hooks/useGameLoop';
 import { TouchControls, type TouchMoveInput } from './components/TouchControls';
 import { BioForgeModal } from './components/BioForgeModal';
-import { findTunnelMouths, type TunnelMouthRef } from './game/tunnel';
+import { findTunnelMouths, type TunnelMouthRef } from './game/world/tunnel';
 import { InventoryModal } from './components/InventoryModal';
 import { StorageModal } from './components/StorageModal';
 import { VatModal } from './components/VatModal';
-import { POUCH_TIER_CAPS, pouchTierOf } from './game/pouch';
+import { POUCH_TIER_CAPS, pouchTierOf } from './game/items/pouch';
 import { CodexModal } from './components/CodexModal';
 import { MultiplayerModal } from './components/MultiplayerModal';
 import { ControlsGuideModal } from './components/ControlsGuideModal';
@@ -139,7 +139,7 @@ import { getProjectWorkspaceFiles } from './utils/workspaceFiles';
 // comfortably after the last pre-module world could be created.
 const GAUNTLET_MODULE_EPOCH_MS = Date.UTC(2026, 9, 15, 16, 0, 0);
 
-// The landform epoch lives with the field itself (game/terrain.ts):
+// The landform epoch lives with the field itself (game/world/terrain.ts):
 // worlds created before it keep the original uniform ripple as
 // their ground — their land is part of their history, the same
 // grandfathering the gauntlet modules got.
@@ -256,7 +256,7 @@ export default function App() {
   // Field Notes (dev wiring, 2026-10-16): the discovery notes the
   // player has unlocked by scanning and the named moments they
   // have witnessed. Saved with the world beside the codex; the
-  // shape and the rules live in game/fieldNotesBook.ts.
+  // shape and the rules live in game/knowledge/fieldNotesBook.ts.
   const [fieldNotesState, setFieldNotesState] = useState<FieldNotesState>(EMPTY_FIELD_NOTES);
   // THE WORLD ASKS BACK (dev lane, 2026-10-16): the dynamic saga
   // system's memory — the typed event log, the Director's notebook,
@@ -800,7 +800,7 @@ export default function App() {
   const valleySatiatedUntilRef = useRef(0);
 
   // The BioTunnel (Adam, 2026-10-16): pairing is DERIVED from
-  // the known world (game/tunnel.ts) — the live structure list
+  // the known world (game/world/tunnel.ts) — the live structure list
   // plus every visited zone's snapshot. Transit rides the zone-
   // travel machinery: the other mouth's zone loads exactly like a
   // border crossing (follow pets come through), and the gulp of
@@ -1258,7 +1258,7 @@ export default function App() {
       },
       // The chapter delivery: when the fragment set completes,
       // the world's story opens — the fate named outright, the
-      // one earned exception (game/awChapters.ts).
+      // one earned exception (game/quests/awChapters.ts).
       onQuestComplete: (def) => {
         if (def.id === 'q_aw_happened' && worldSeedRef.current) {
           setAwChapter(AW_CHAPTERS[fateForWorld(worldSeedRef.current)]);
@@ -1274,7 +1274,7 @@ export default function App() {
   // ------------------------------------------------------------------
   // Small observers that record what the player has DONE and SEEN
   // into questProgress.signals; the line's quests derive their
-  // completion from that record (game/quests.ts goalMet). Every
+  // completion from that record (game/quests/quests.ts goalMet). Every
   // writer is a no-op until its fact changes, so these effects
   // cost a comparison per zone step, fauna change, or codex page.
   const questProgressRef = useRef(questProgress);

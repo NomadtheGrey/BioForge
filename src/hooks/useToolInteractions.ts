@@ -16,25 +16,25 @@ import {
   CodexEntry,
   GameNotification,
 } from '../types/game';
-import { ITEMS } from '../game/constants';
-import { TUNNEL_MAX_MOUTHS } from '../game/tunnel';
+import { ITEMS } from '../game/items/constants';
+import { TUNNEL_MAX_MOUTHS } from '../game/world/tunnel';
 import {
   noteById, noteIdsForSpecies, windowNoteIdForSpecies,
   type FieldNotesState,
-} from '../game/fieldNotesBook';
-import type { AsksEventInput } from '../game/asksBackState';
-import { createSeededRandom, hashStringToSeed } from '../game/motion';
-import { ruinLoreLine } from '../game/ruinInterior';
+} from '../game/knowledge/fieldNotesBook';
+import type { AsksEventInput } from '../game/quests/asksBackState';
+import { createSeededRandom, hashStringToSeed } from '../game/engine/motion';
+import { ruinLoreLine } from '../game/world/ruinInterior';
 import { soundEngine } from '../audio/soundEngine';
 import { multiplayerManager } from '../game/multiplayer';
 import { FLORA_MATURE_SECONDS, FERTILIZER_DURATION_SECONDS } from './useWorldEntities';
-import { speciesDef } from '../game/species';
-import { sampleItemId, vatKitFor } from '../game/vat';
-import { storageKitFor } from '../game/pouch';
-import { bestWeapon } from '../game/weapons';
-import type { WeaponDef } from '../game/weapons';
-import { floraDef } from '../game/flora';
-import { GROUND_LAYER_TYPES, isEdgePanel, isLadder, occupancyConflict, placementFor } from '../game/placement';
+import { speciesDef } from '../game/creatures/species';
+import { sampleItemId, vatKitFor } from '../game/structures/vat';
+import { storageKitFor } from '../game/items/pouch';
+import { bestWeapon } from '../game/creatures/weapons';
+import type { WeaponDef } from '../game/creatures/weapons';
+import { floraDef } from '../game/flora/flora';
+import { GROUND_LAYER_TYPES, isEdgePanel, isLadder, occupancyConflict, placementFor } from '../game/structures/placement';
 
 // A new plant must be at least this far (meters) from every existing one —
 // anything closer is a stack of seedlings on one spot, not a garden.
@@ -77,7 +77,7 @@ const rollRuinCacheLoot = (cacheId: string, band: 'shallow' | 'mid' | 'deep'): [
 };
 
 // Taming odds per lure attempt live in the SPECIES TABLE now
-// (game/species.ts — creature build phase, slice 1, 2026-10-15): the
+// (game/creatures/species.ts — creature build phase, slice 1, 2026-10-15): the
 // puff's 0.8, the mouse's 0.6, and the stalker's 0.25 moved there with
 // every other species' design values, so a new species tames by
 // gaining an entry, not a constant and a branch. The rule is
@@ -932,7 +932,7 @@ export function useToolInteractions({
       }
 
       // Species data (display name, tame odds, pet name, bait flow)
-      // comes from the species table — see game/species.ts.
+      // comes from the species table — see game/creatures/species.ts.
       const def = speciesDef(fauna.species);
 
       // -------------------------------------------------------------
@@ -1405,7 +1405,7 @@ export function useToolInteractions({
       }
 
       // Where the piece goes: cell pieces at the cell's center, wall/door
-      // PANELS on the cell edge nearest the aim (game/placement.ts) — and
+      // PANELS on the cell edge nearest the aim (game/structures/placement.ts) — and
       // occupancy to match: one panel per edge; cell pieces keep the
       // one-ground-layer + one-upright-per-cell rule.
       const rotation = getPlacementRotation();
@@ -1489,7 +1489,7 @@ export function useToolInteractions({
           ? { vat: { tier: 1 } }
           : {}),
         // A BioTunnel mouth is born unpaired; App's pairing sweep
-        // lights it when its other half exists (game/tunnel.ts).
+        // lights it when its other half exists (game/world/tunnel.ts).
         ...(selectedStructureType === 'biotunnel_mouth'
           ? { tunnel: { paired: false } }
           : {}),

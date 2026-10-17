@@ -5,7 +5,7 @@
  * STACK CAPS LIVE HERE (Adam, 2026-10-15): every gain — harvest,
  * loot, craft output, pickups — flows through addInventoryItem or
  * craftRecipe, and both clamp to the pouch tier's cap
- * (game/pouch.ts). What doesn't fit FALLS ON THE GROUND: the hook
+ * (game/items/pouch.ts). What doesn't fit FALLS ON THE GROUND: the hook
  * reports the excess through the overflow handler App registers
  * (setOverflowHandler), and App spawns it as a dropped item at the
  * player's feet. Existing holdings above a cap (an old save, the
@@ -14,8 +14,8 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { ItemId, CraftingRecipe } from '../types/game';
-import { INITIAL_INVENTORY, ITEMS, RECIPES } from '../game/constants';
-import { pouchTierOf, stackCapFor } from '../game/pouch';
+import { INITIAL_INVENTORY, ITEMS, RECIPES } from '../game/items/constants';
+import { pouchTierOf, stackCapFor } from '../game/items/pouch';
 
 /** One line of a Grow Prerequisites result: a recipe that was
  *  crafted, and how many times. */

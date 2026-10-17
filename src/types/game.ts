@@ -3,7 +3,7 @@
  * Prismatic Botanical Tech Ecosystem
  */
 
-import type { BiomeId } from '../game/biomes';
+import type { BiomeId } from '../game/world/biomes';
 
 export type ItemId =
   // Raw Botanical Byproducts & Harvests
@@ -281,7 +281,7 @@ export type ItemId =
   // game's progression spine — it starts able to HARVEST only, and
   // each further tool is a module crafted at the forge and grafted
   // on. Owning the module item IS the unlock (App derives the
-  // unlocked tool set from the pouch; see game/quests.ts). The
+  // unlocked tool set from the pouch; see game/quests/quests.ts). The
   // items are equipment: they sit in the pouch, never spent.
   | 'gauntlet_scanner_module'
   | 'gauntlet_planter_module'
@@ -290,7 +290,7 @@ export type ItemId =
   | 'gauntlet_lure_module'
   // Pouch UPGRADES (Adam, 2026-10-15): carrying capacity is a
   // craftable ladder too — owning a pouch item raises every stack's
-  // cap (game/pouch.ts). Equipment like the modules: held, not spent.
+  // cap (game/items/pouch.ts). Equipment like the modules: held, not spent.
   | 'woven_pouch'
   | 'resin_satchel'
   | 'living_rucksack'
@@ -309,7 +309,7 @@ export type ItemId =
   | 'vat_kit_deep'
   // The strikers (Adam, 2026-10-16): six grown weapons, one close +
   // one ranged per craft tier, seated in the gauntlet's seventh
-  // slot. Rules live in game/weapons.ts.
+  // slot. Rules live in game/creatures/weapons.ts.
   | 'briar_barb'
   | 'spit_pod'
   | 'chitin_fang'
@@ -606,7 +606,7 @@ export type FaunaSpecies =
   | 'mirror_moth'
   // Creature build phase, slice 1 (2026-10-15) — the first designed
   // species from the CREATURES_BRAINSTORM roster; their data lives in
-  // src/game/species.ts, and they spawn via its generic bonus route.
+  // src/game/creatures/species.ts, and they spawn via its generic bonus route.
   | 'meadowback'
   | 'pale_hare'
   | 'frost_vole'
@@ -952,7 +952,7 @@ export type StructureType =
   // which is why the engine's structure tables demanded a world
   // model and a glow entry for a glove.)
 
-/** Dressing piece types a cave mouth wears (see game/caveSurface.ts). */
+/** Dressing piece types a cave mouth wears (see game/world/caveSurface.ts). */
 export type CaveDressingType =
   | 'cave_mouth'
   | 'dark_soil_patch'
@@ -994,7 +994,7 @@ export interface CaveLinkData {
   dressing: CaveDressingPiece[];
 }
 
-/** Dressing piece types a ruin landmark wears (see game/ruins.ts). */
+/** Dressing piece types a ruin landmark wears (see game/world/ruins.ts). */
 export type RuinDressingType =
   | 'pillar'
   | 'toppled_pillar'
@@ -1093,7 +1093,7 @@ export interface StructureEntity {
   };
   /**
    * Present only on biotunnel_mouth structures: the derived
-   * pairing state (see game/tunnel.ts) — refreshed by App at every
+   * pairing state (see game/world/tunnel.ts) — refreshed by App at every
    * structure sync, so the engine can light the membrane when the
    * pair is whole and let it go dark when an end is gone. Advisory
    * only: the truth is the count of mouths in the known world.
@@ -1166,7 +1166,7 @@ export interface BiomeArea {
  * and SEEN — zones stood in, ruins entered, stones read, a heart
  * reached, a creature hatched or bonded — written by small
  * observer effects in App and read by the line's quests through
- * game/quests.ts goalMet(). Everything optional: saves from
+ * game/quests/quests.ts goalMet(). Everything optional: saves from
  * before the line simply have no signals yet. Biome ids are
  * stored as plain strings to keep this file import-light.
  */

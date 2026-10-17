@@ -17,11 +17,11 @@
  */
 
 import { useRef, useCallback, useEffect, useMemo, type Dispatch, type SetStateAction } from 'react';
-import { ITEMS, NON_BUILDABLE_STRUCTURE_IDS } from '../game/constants';
-import { isFloorType } from '../game/placement';
-import { TOOL_NAMES } from '../game/quests';
+import { ITEMS, NON_BUILDABLE_STRUCTURE_IDS } from '../game/items/constants';
+import { isFloorType } from '../game/structures/placement';
+import { TOOL_NAMES } from '../game/quests/quests';
 import { soundEngine } from '../audio/soundEngine';
-import type { BioForgeThreeEngine } from '../game/threeEngine';
+import type { BioForgeThreeEngine } from '../game/engine/threeEngine';
 import type { TouchMoveInput } from '../components/TouchControls';
 import type {
   FloraEntity, GameNotification, ItemId, PlayerState, StructureEntity, StructureType, ToolType,

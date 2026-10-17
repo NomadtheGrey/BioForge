@@ -13,11 +13,11 @@ import {
   DroppedItemEntity,
 } from '../types/game';
 import { multiplayerManager } from '../game/multiplayer';
-import { speciesDef } from '../game/species';
-import { sampleItemId, SAMPLE_SHED_SECONDS_TAMED, SAMPLE_SHED_SECONDS_WILD } from '../game/vat';
+import { speciesDef } from '../game/creatures/species';
+import { sampleItemId, SAMPLE_SHED_SECONDS_TAMED, SAMPLE_SHED_SECONDS_WILD } from '../game/structures/vat';
 import type { ItemId } from '../types/game';
 import type { WorldSnapshot } from '../game/saveSystem';
-import type { AsksEventInput } from '../game/asksBackState';
+import type { AsksEventInput } from '../game/quests/asksBackState';
 
 
 // Base time for a plant to go from planted to harvest-ready. Slowed
@@ -1792,7 +1792,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
 
           // Byproduct sheds — TABLE-DRIVEN (creature build phase,
           // slice 1, 2026-10-15): item, interval, and the tamed-only
-          // rule all live in the species table (game/species.ts), so
+          // rule all live in the species table (game/creatures/species.ts), so
           // a new species sheds by gaining an entry, not a branch
           // here. The two shipped patterns are preserved in the data:
           // tamed-only producers (soft-puff pellets, stalker scales)

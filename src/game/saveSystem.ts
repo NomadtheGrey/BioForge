@@ -21,10 +21,10 @@
  * over the multiplayer wire as JSON), so they store and restore verbatim.
  */
 
-import { WORLD_GEN_VERSION } from './worldGen';
-import type { FieldNotesState } from './fieldNotesBook';
-import { EMPTY_ASKS_BACK, type AsksBackState } from './asksBackState';
-import type { ZoneCoords } from './zones';
+import { WORLD_GEN_VERSION } from './world/worldGen';
+import type { FieldNotesState } from './knowledge/fieldNotesBook';
+import { EMPTY_ASKS_BACK, type AsksBackState } from './quests/asksBackState';
+import type { ZoneCoords } from './world/zones';
 import {
   CodexEntry,
   DroppedItemEntity,
@@ -84,12 +84,12 @@ export interface SaveMetadata {
   /**
    * The world's seed, chosen (or rolled) on the New Game screen. World
    * generation will grow flora and fauna from this seed (hashStringToSeed
-   * in game/motion.ts turns the text into a number). Saves written before
+   * in game/engine/motion.ts turns the text into a number). Saves written before
    * seeds existed simply have no seed — readers treat that as ''.
    */
   worldSeed: string;
   /**
-   * Which generation version grew this world (game/worldGen.ts). Saves
+   * Which generation version grew this world (game/world/worldGen.ts). Saves
    * from before seeded generation have no stamp — readers treat that
    * as 0. Recorded so future generators can migrate old worlds instead
    * of guessing.

@@ -14,8 +14,8 @@
  * card directly.
  */
 import { X } from 'lucide-react';
-import { ITEMS } from '../game/constants';
-import type { QuestProgressView } from '../game/quests';
+import { ITEMS } from '../game/items/constants';
+import type { QuestProgressView } from '../game/quests/quests';
 
 /**
  * The saga the tracker follows (S3): an active World Asks Back

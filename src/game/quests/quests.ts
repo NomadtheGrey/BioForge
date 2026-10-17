@@ -660,7 +660,7 @@ export const ASK_THE_WORLD_QUESTS: QuestDef[] = [
     flavor: 'For those who wander',
     title: 'Where Two Lands Meet',
     blurb:
-      'Deep enough out, the countries stop keeping to themselves. Stand where two lands have grown into one another — the Marches, the blended country — and see a place that is two places.',
+      'Wild enough out, the countries stop keeping to themselves. Stand where two lands have grown into one another — the Marches, the blended country — and see a place that is two places.',
     gather: [],
     completeWhen: { kind: 'zoneHybrid' },
     rewardItems: [{ itemId: 'living_thread', count: 1 }],

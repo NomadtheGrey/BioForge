@@ -630,9 +630,9 @@ export const SAGA_ARCS: SagaArc[] = [
     anchor: { domain: 'fauna', filter: 'any' },
     eligible: () => true,
     sizeWeights: [1, 4, 5],
-    titles: ['The Deep Country', 'Beyond the {Family}'],
+    titles: ['The Wild Country', 'Beyond the {Family}'],
     texts: [
-      'The map has an edge, and past it, weather you have never stood in. {Zone} is the doorway — the deep country is the room.',
+      'The map has an edge, and past it, weather you have never stood in. {Zone} is the doorway — the wild country is the room.',
     ],
     beats: [
       {
@@ -640,7 +640,7 @@ export const SAGA_ARCS: SagaArc[] = [
         target: { domain: 'none' },
         titles: ['The Doorway'],
         texts: [
-          'Stand in {Zone} and look outward. Mark the doorway — one survey point where {family} country ends and the deep country begins.',
+          'Stand in {Zone} and look outward. Mark the doorway — one survey point where {family} country ends and the wild country begins.',
         ],
         goalFor: () => ({
           kind: 'PROPOSED',
@@ -662,7 +662,7 @@ export const SAGA_ARCS: SagaArc[] = [
         target: { domain: 'none' },
         titles: ['Read It'],
         texts: [
-          'Map {count} points in the deep country. The weird has geography too — learn its streets.',
+          'Map {count} points in the wild country. The weird has geography too — learn its streets.',
         ],
         goalFor: (_a, _t, _z, dice) => ({
           kind: 'PROPOSED',
@@ -675,7 +675,7 @@ export const SAGA_ARCS: SagaArc[] = [
         target: ANCHOR,
         titles: ['What Lives Out There'],
         texts: [
-          'Everything lives somewhere. Find the {species} of the deep country — witness it, and bring the sight home like a lantern.',
+          'Everything lives somewhere. Find the {species} of the wild country — witness it, and bring the sight home like a lantern.',
         ],
         goalFor: (a) => ({
           kind: 'PROPOSED',
@@ -688,7 +688,7 @@ export const SAGA_ARCS: SagaArc[] = [
         target: ANCHOR,
         titles: ['The Map, Redrawn'],
         texts: [
-          'Come home. Look at your map with deep-country eyes. The quest ends when the deep country stops feeling strange.',
+          'Come home. Look at your map with wild-country eyes. The quest ends when the wild country stops feeling wild.',
         ],
         goalFor: (a, _t, _z) => ({
           kind: 'PROPOSED',

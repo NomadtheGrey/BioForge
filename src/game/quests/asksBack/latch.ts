@@ -283,7 +283,7 @@ function checkGoal(
     }
     case 'zoneTier3': {
       const ok = ctx.signals?.tier3 === true;
-      return status(ok, ok ? 1 : 0, 1, 'deep country');
+      return status(ok, ok ? 1 : 0, 1, 'wild country');
     }
     case 'itemCount': {
       const itemId = goal.itemId as string;
@@ -347,7 +347,7 @@ export function goalProgressText(
     case 'zoneHybrid':
       return st.satisfied ? 'Margin stood in ✓' : 'Stand in the margin';
     case 'zoneTier3':
-      return st.satisfied ? 'Deep country stood in ✓' : 'Stand in tier-3 country';
+      return st.satisfied ? 'Wild country stood in ✓' : 'Stand in tier-3 country';
     case 'itemCount':
       return st.satisfied ? `${st.unit} ✓` : `${st.done}/${st.need} ${st.unit}`;
     default:

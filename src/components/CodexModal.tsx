@@ -15,7 +15,7 @@ import {
 import { itemIcon } from './itemIcon';
 // The graft's reflect numbers ride the shield rules table —
 // the dossier quotes them from the source, never from copy.
-import { SHIELD_GRAFTS, graftOf, type ShieldGrowthMap } from '../game/creatures/shields';
+import { DROP_MAGNET_BRACED, DROP_MAGNET_CARRIED, LODESTONE_SLOT, SHIELD_GRAFTS, graftOf, lodestoneOf, type ShieldGrowthMap } from '../game/creatures/shields';
 
 interface CodexModalProps {
   isOpen: boolean;
@@ -306,7 +306,7 @@ const renderArsenalRow = (e: FamilyEntry) => {
                   <p className="text-xs text-slate-400 leading-relaxed">
                     <strong className="text-slate-200">The Graft Slot</strong> — one graft
                     grown onto the face. Thorn Spikes (a Tier 2 addition): strikes landing on
-                    the shield answer {SHIELD_GRAFTS.spikes.reflectPassive} damage carried, {SHIELD_GRAFTS.spikes.reflectBraced} braced.
+                    the shield answer {SHIELD_GRAFTS.spikes.reflectPassive} damage worn, {SHIELD_GRAFTS.spikes.reflectBraced} braced.
                     {selWeapon.tier >= 2 && ' The graft survives this shield’s grows — combination and consume-and-keep alike.'}
                     {shieldGrowth && (
                       <span className={`block mt-1 font-tech text-[10px] uppercase tracking-wide ${graftOf(shieldGrowth, selWeapon.itemId) ? 'text-emerald-300' : 'text-slate-500'}`}>
@@ -319,10 +319,33 @@ const renderArsenalRow = (e: FamilyEntry) => {
                   </p>
                 </div>
                 )}
+                {/* The Lodestone Slot: the graft's sibling
+                    (Adam's ruling, 2026-10-17 — the pull is a
+                    slot, not a shield). Same grammar as the
+                    graft block: the slot's facts from the
+                    rules table, its state marked live. */}
+                {selWeapon.kind === 'defensive' && (
+                <div className="mt-3 pt-3 border-t border-slate-700/60 flex items-start gap-2">
+                  <span className={`${KIND_ACCENT[selWeapon.kind].bullet} shrink-0 mt-0.5`}>◈</span>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    <strong className="text-slate-200">The Lodestone Slot</strong> — a lodestone
+                    set into the ward's body. {LODESTONE_SLOT.blurb} The pull runs{' '}
+                    {DROP_MAGNET_CARRIED.radius} m worn, {DROP_MAGNET_BRACED.radius} m braced,
+                    and the lodestone survives this shield's grows, like the graft.
+                    {shieldGrowth && (
+                      <span className={`block mt-1 font-tech text-[10px] uppercase tracking-wide ${lodestoneOf(shieldGrowth, selWeapon.itemId) ? 'text-emerald-300' : 'text-slate-500'}`}>
+                        {lodestoneOf(shieldGrowth, selWeapon.itemId)
+                          ? 'Set — this shield wears its lodestone'
+                          : 'Not set'}
+                      </span>
+                    )}
+                  </p>
+                </div>
+                )}
               </div>
             )}
 
-            {/* THE LADDER (strikers) / THE BRANCH (defensives) /
+            {/* THE LADDER (strikers and defensives) /
                 THE PLATFORM (helmet, Quicksteps). */}
             <div className="bg-slate-800/30 p-4 rounded-2xl border border-slate-800">
               <h4 className={`text-xs font-tech font-semibold uppercase mb-2 ${KIND_ACCENT[selWeapon.kind].header}`}>

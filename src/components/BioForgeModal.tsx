@@ -10,6 +10,9 @@ import { RecipeFlowchart } from './RecipeFlowchart';
 // a recipe that grows a striker or shield says its kind beside
 // its tier, in the family's rose.
 import { FAMILY_KIND_LABEL, familyEntryOf } from '../game/items/weaponsFamily';
+// The Shield tab's membership is the shield rules table's own
+// list — crafts and graft recipes alike output a shield item.
+import { isShieldItem } from '../game/creatures/shields';
 
 interface BioForgeModalProps {
   isOpen: boolean;
@@ -34,7 +37,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   onGrowPrerequisites,
   onSelectStructureBlueprint,
 }) => {
-  const [activeCategory, setActiveCategory] = useState<'all' | 'seeds' | 'fertilizers' | 'composites' | 'defenses' | 'gauntlet' | 'helmet' | 'boots' | 'base'>('all');
+  const [activeCategory, setActiveCategory] = useState<'all' | 'seeds' | 'fertilizers' | 'composites' | 'defenses' | 'gauntlet' | 'helmet' | 'boots' | 'shield' | 'base'>('all');
   const [selectedRecipe, setSelectedRecipe] = useState<CraftingRecipe>(RECIPES[0]);
   const [isCrafting, setIsCrafting] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'tree'>('list');
@@ -74,6 +77,11 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     if (activeCategory === 'gauntlet') return isGauntletUpgrade(r.outputId);
     if (activeCategory === 'helmet') return HELMET_GEAR_ITEM_IDS.includes(r.outputId);
     if (activeCategory === 'boots') return BOOTS_GEAR_ITEM_IDS.includes(r.outputId);
+    // The Shield tab (Adam, 2026-10-17): every recipe that
+    // grows a shield OR grows onto one — isShieldItem on the
+    // output catches both, since a graft recipe's output is
+    // the shield it grows onto.
+    if (activeCategory === 'shield') return isShieldItem(r.outputId);
     return r.category === activeCategory;
   });
 
@@ -232,6 +240,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
             { id: 'gauntlet', label: 'Gauntlet' },
             { id: 'helmet', label: 'Helmet' },
             { id: 'boots', label: 'Quicksteps' },
+            { id: 'shield', label: 'Shield' },
             { id: 'seeds', label: 'Spore & Seeds' },
             { id: 'fertilizers', label: 'Fertilizers' },
             { id: 'composites', label: 'Living Composites' },
@@ -305,6 +314,35 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
               />
             ) : (
               <div className="h-full overflow-y-auto p-4 space-y-2">
+                {/* The upgrade ENTRIES at the forge (Adam,
+                    2026-10-17): a platform tab opens by naming
+                    the upgrades it gathers, so the Shield tab
+                    reads as the slot + branches, not a bare
+                    recipe pile. */}
+                {!searchActive && activeCategory === 'shield' && (
+                  <div className="rounded-2xl border border-rose-500/30 bg-rose-950/20 p-3.5">
+                    <h4 className="text-[11px] font-tech font-bold uppercase tracking-wider text-rose-200 mb-1">
+                      The Left Hand’s Ward — Upgrades
+                    </h4>
+                    <p className="text-[11px] text-slate-400 leading-snug">
+                      Four shields below, and the one graft that grows onto any of them: Thorn Spikes,
+                      in the Graft Slot. The line branches, never climbs — the Lantern buys light, the
+                      Fenback buys the wrap and its Spore Answer, the Bulwark buys the Pull.
+                    </p>
+                  </div>
+                )}
+                {!searchActive && activeCategory === 'boots' && (
+                  <div className="rounded-2xl border border-lime-500/30 bg-lime-950/20 p-3.5">
+                    <h4 className="text-[11px] font-tech font-bold uppercase tracking-wider text-lime-200 mb-1">
+                      The Quicksteps — Upgrades
+                    </h4>
+                    <p className="text-[11px] text-slate-400 leading-snug">
+                      One grown pair below, and a growth for every impediment the country puts
+                      underfoot: Waders for the marsh, Stillsteps for still water, Webfoots for the
+                      swim, Ember Soles for the fire. Every growth mounts the same pair, at once.
+                    </p>
+                  </div>
+                )}
                 {visibleRecipes.length === 0 && (
                   <div className="text-center text-slate-500 text-xs font-tech py-10">
                     {searchActive
@@ -357,7 +395,15 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                             TIER {gearTierOf(recipe.outputId)}
                           </span>
                         )}
-                        {familyEntryOf(recipe.outputId) && (
+                        {recipe.graftShield ? (
+                          // A graft recipe grows into the shield's
+                          // SLOT, not into a new shield: its chip
+                          // names the slot, not the base shield's
+                          // family tier (Platforms Parallel).
+                          <span className="text-[9px] font-tech font-bold px-1.5 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                            GRAFT SLOT
+                          </span>
+                        ) : familyEntryOf(recipe.outputId) && (
                           <span className="text-[9px] font-tech font-bold px-1.5 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30">
                             {FAMILY_KIND_LABEL[familyEntryOf(recipe.outputId)!.kind].toUpperCase()} · T{familyEntryOf(recipe.outputId)!.tier}
                           </span>
@@ -402,7 +448,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base font-tech font-bold text-white">{outputItem.name}</h3>
+                    <h3 className="text-base font-tech font-bold text-white">{selectedRecipe.graftShield ? selectedRecipe.name : outputItem.name}</h3>
                     <span className="text-[10px] uppercase font-tech px-2 py-0.5 rounded-full bg-slate-800 text-cyan-300 border border-slate-700">
                       {outputItem.rarity}
                     </span>
@@ -411,9 +457,18 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                         Tier {gearTierOf(outputItem.id)}
                       </span>
                     )}
+                    {selectedRecipe.graftShield ? (
+                      <span className="text-[10px] uppercase font-tech font-bold px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                        Graft Slot
+                      </span>
+                    ) : familyEntryOf(outputItem.id) && (
+                      <span className="text-[10px] uppercase font-tech font-bold px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                        {FAMILY_KIND_LABEL[familyEntryOf(outputItem.id)!.kind]} · Tier {familyEntryOf(outputItem.id)!.tier}
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                    {outputItem.description}
+                    {selectedRecipe.graftShield ? selectedRecipe.description : outputItem.description}
                   </p>
                 </div>
               </div>

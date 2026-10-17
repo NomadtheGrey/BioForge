@@ -53,9 +53,11 @@ export const CodexModal: React.FC<CodexModalProps> = ({
   const totalCount = codexList.length;
 
   // ─── THE GROWN ARSENAL (weapons-family work order, 2026-10-17) ──
-  // The six strikers plus the shield line, shelved by KIND with
-  // their tiers, stats, recipes, and the ladder's one rule: a
-  // higher striker tier CONSUMES the lower weapon of its kind.
+  // The strikers, the shield line, and — since Platforms
+  // Parallel P-2 — the helmet and Quicksteps family records,
+  // shelved by KIND with their tiers, stats, recipes, and each
+  // kind's own grammar: strikers CONSUME their lower rung,
+  // shields branch, platforms accumulate growths.
   // Entries assemble from data (weaponsFamily.ts) — nothing here
   // is per-item. Weapons are forge knowledge, not scanned
   // discoveries, so entries read openly; the pouch (when passed)
@@ -70,6 +72,10 @@ export const CodexModal: React.FC<CodexModalProps> = ({
     const Icon = itemIcon(item.iconName);
     const isSel = selectedWeaponId === e.itemId;
     const grown = owns(e.itemId);
+    // The graft slot rides the shelf row too (Platforms
+    // Parallel, 2026-10-17): a defensive entry names the graft
+    // kind it carries, matching the dossier's Graft Slot row.
+    const rowGraft = e.kind === 'defensive' ? graftOf(shieldGrafts, e.itemId) : null;
     return (
       <div
         key={e.itemId}
@@ -96,6 +102,7 @@ export const CodexModal: React.FC<CodexModalProps> = ({
             <p className="text-[11px] text-slate-400">
               {FAMILY_KIND_LABEL[e.kind]} · Tier {e.tier}
               {e.damage !== undefined ? ` · ${e.damage} dmg` : ''}
+              {rowGraft ? ` · ${SHIELD_GRAFTS[rowGraft].name}` : ''}
             </p>
           </div>
         </div>
@@ -113,8 +120,8 @@ export const CodexModal: React.FC<CodexModalProps> = ({
       {/* Left: the shelves, by kind */}
       <div className="w-5/12 border-r border-slate-800/80 overflow-y-auto p-4 space-y-5">
         <p className="text-[11px] leading-relaxed text-slate-400">
-          Everything the gauntlet and the Left Hand can grow for a fight. One shelf per
-          kind; strikers climb, shields branch.
+          The grown gear, shelved by kind: strikers climb, shields branch, and the
+          helm's and Quicksteps' growths mount their platforms.
         </p>
         {familyByKind().map(({ kind, entries }) => (
           <div key={kind} className="space-y-2">
@@ -170,7 +177,11 @@ export const CodexModal: React.FC<CodexModalProps> = ({
                 <p className="text-[11px] text-slate-500 mt-1.5">
                   {selWeapon.kind === 'defensive'
                     ? 'Worn on the Left Hand — Alt + wheel or Alt + ↑ cycles the hand (lantern ↔ shield ↔ empty).'
-                    : 'Seated on the gauntlet in slot 7 — the slot draws your best of each kind; the wheel swaps the draw.'}
+                    : selWeapon.kind === 'helmet'
+                      ? 'Worn on the Homestead Helm — owning the growth is wearing it; the platform carries every growth at once.'
+                      : selWeapon.kind === 'boots'
+                        ? 'Worn as the Quicksteps — the growth mounts the base set; the pair carries every growth at once.'
+                        : 'Seated on the gauntlet in slot 7 — the slot draws your best of each kind; the wheel swaps the draw.'}
                 </p>
               </div>
             </div>
@@ -212,15 +223,15 @@ export const CodexModal: React.FC<CodexModalProps> = ({
               </div>
             )}
 
-            {/* Defensive entries speak through their SIGNATURE
-                LINES — carried in the registry as data (shield
-                slice, 2026-10-17), rendered verbatim, never
-                hardcoded here: the two states for the Scute, the
-                light-branch for the Lantern, the Fenback's four. */}
-            {selWeapon.kind === 'defensive' && selWeapon.signatures && (
+            {/* Family entries speak through their SIGNATURE
+                LINES — carried in the registry as data, rendered
+                verbatim, never hardcoded here: the Scute's two
+                states, the Fenback's four, the helm's knowing,
+                the Quicksteps' answers, one set per entry. */}
+            {selWeapon.signatures && (
               <div className="bg-slate-800/30 p-4 rounded-2xl border border-slate-800">
                 <h4 className="text-xs font-tech font-semibold uppercase text-slate-400 mb-2">
-                  How It Wards
+                  {selWeapon.kind === 'defensive' ? 'How It Wards' : selWeapon.kind === 'helmet' ? 'What It Knows' : selWeapon.kind === 'boots' ? 'How It Moves' : 'Signatures'}
                 </h4>
                 <ul className="space-y-1.5">
                   {selWeapon.signatures.map((line, i) => (
@@ -234,6 +245,7 @@ export const CodexModal: React.FC<CodexModalProps> = ({
                     never a shelf item (pinned) — its numbers
                     ride the rules table; its state, when the
                     host passes the graft record, marks here. */}
+                {selWeapon.kind === 'defensive' && (
                 <div className="mt-3 pt-3 border-t border-slate-700/60 flex items-start gap-2">
                   <span className="text-rose-300/70 shrink-0 mt-0.5">◈</span>
                   <p className="text-xs text-slate-400 leading-relaxed">
@@ -251,13 +263,15 @@ export const CodexModal: React.FC<CodexModalProps> = ({
                     )}
                   </p>
                 </div>
+                )}
               </div>
             )}
 
-            {/* THE LADDER (strikers) / THE BRANCH (defensives). */}
+            {/* THE LADDER (strikers) / THE BRANCH (defensives) /
+                THE PLATFORM (helmet, Quicksteps). */}
             <div className="bg-slate-800/30 p-4 rounded-2xl border border-slate-800">
               <h4 className="text-xs font-tech font-semibold uppercase text-rose-300/90 mb-2">
-                {selWeapon.kind === 'defensive' ? 'The Branch' : 'The Ladder'}
+                {selWeapon.kind === 'defensive' ? 'The Branch' : selWeapon.kind === 'helmet' || selWeapon.kind === 'boots' ? 'The Platform' : 'The Ladder'}
               </h4>
               <div className="flex items-center gap-1.5 flex-wrap">
                 {familyByKind()
@@ -275,14 +289,25 @@ export const CodexModal: React.FC<CodexModalProps> = ({
                         T{e.tier} {ITEMS[e.itemId]?.name}
                         {inventory && owns(e.itemId) ? ' ✓' : ''}
                       </button>
-                      {i < arr.length - 1 && <span className="text-slate-600 text-xs">→</span>}
+                      {i < arr.length - 1 && (
+                        // Strikers climb, so their strip earns its
+                        // arrows. Defensives BRANCH (the Bulwark
+                        // grows from the Scute, not from the
+                        // Fenback), so their strip is a shelf, not
+                        // a path — a dot, never an arrow.
+                        <span className="text-slate-600 text-xs">{selWeapon.kind === 'close' || selWeapon.kind === 'ranged' ? '→' : '·'}</span>
+                      )}
                     </React.Fragment>
                   ))}
               </div>
               <p className="text-[11px] text-slate-400 leading-relaxed mt-2.5">
                 {selWeapon.kind === 'defensive'
-                  ? 'A branch, not a bigger wall: the Lantern Shield blocks exactly as the Scute Shield does, in both states — its tier buys the light. The lamp is grown into the shield’s face, so the light holds even braced.'
-                  : 'One weapon per tier, per kind — and a higher tier is an upgrade, not a sibling: its recipe consumes the lower weapon, so you never hold two of a kind.'}
+                  ? 'A branch, not a bigger wall: the Scute Shield is the base wall. The Lantern branch buys light, the Fenback branch buys the wrap and its signatures, and the Bulwark branch buys the pull — none of them buys a stronger wall.'
+                  : selWeapon.kind === 'helmet'
+                    ? 'One platform, many growths: the helm carries them all at once — the radar and the Lifefinder on the listening track, every lens in parallel. Nothing here consumes the helm, and no growth replaces another.'
+                    : selWeapon.kind === 'boots'
+                      ? 'One pair, many growths: the Quicksteps carry every growth at once, one per impediment the country puts underfoot. Nothing here consumes the pair, and no growth replaces another.'
+                      : 'One weapon per tier, per kind — and a higher tier is an upgrade, not a sibling: its recipe consumes the lower weapon, so you never hold two of a kind.'}
                 {consumedRung(selWeapon) && (
                   <> This one is grown from the <strong className="text-slate-200">{ITEMS[consumedRung(selWeapon)!.itemId]?.name}</strong>, which the growing consumes.</>
                 )}

@@ -117,6 +117,10 @@ import { useDebugKit } from './hooks/useDebugKit';
 import { useZoneTravel, ZONE_ID_INSTALLED, WORLD_EDGE_COORD, ZONE_PUSH_SECONDS, ZONE_PUSH_MIN_COMPONENT, type PendingTravel } from './hooks/useZoneTravel';
 import { useInstances } from './hooks/useInstances';
 import { useSaveSession } from './hooks/useSaveSession';
+/** S6 Movable Vaults: the carry state lives in App, owned here. */
+import { useCarryVault } from './hooks/useCarryVault';
+/** S6: the carry banner is its own component — App only mounts it. */
+import { CarryBanner } from './components/CarryBanner';
 import { useMultiplayerSync } from './hooks/useMultiplayerSync';
 import { useGameInput, JUMP_GRAVITY, STORY_HEIGHT_METERS } from './hooks/useGameInput';
 import { useGameLoop } from './hooks/useGameLoop';
@@ -799,6 +803,42 @@ export default function App() {
   // the tool hook both read the same ref.
   const valleySatiatedUntilRef = useRef(0);
 
+  // ------------------------------------------------------------------------
+  // S6 Movable Vaults (Adam, 2026-10-17): the carry state. One carried
+  // container at a time, held out of the zone lists in carryRef with
+  // its origin zone stamped. Composed here, BEFORE useToolInteractions
+  // (the inert-kit gate reads carryRef) and useGameLoop (the ghost
+  // driver renders the carried type); the save hook gets a lazy
+  // getter for the autosave projection. The mass lives in the hook +
+  // game/structures/movableVaults.ts — App only wires it (APP RULE).
+  // ------------------------------------------------------------------------
+  const {
+    carryRef,
+    carrying,
+    putDownCarryAt,
+    cancelCarry,
+    dropCarryAtFall,
+    getCarryRef,
+    handleMoveVault,
+  } = useCarryVault({
+    structuresList,
+    addStructure,
+    removeStructure,
+    playerZoneRef,
+    playerPosRef,
+    visitedZonesRef,
+    getPlacementRotation,
+    instanceKind: instanceKindNow,
+    postNotification,
+    // Closes the container panels when a carry begins (the Move
+    // button's other half, handleMoveVault, lives in the hook).
+    closePanels: () => {
+      setActiveModal(null);
+      setStorageTargetId(null);
+      setVatTargetId(null);
+    },
+  });
+
   // The BioTunnel (Adam, 2026-10-16): pairing is DERIVED from
   // the known world (game/world/tunnel.ts) — the live structure list
   // plus every visited zone's snapshot. Transit rides the zone-
@@ -1109,6 +1149,9 @@ export default function App() {
     triggerHarvestFx,
     triggerSolventFx,
     triggerSprayJetFx,
+    // S6 Movable Vaults: the inert-kit gate reads the live carry.
+    carryRef,
+    putDownCarryAt,
 
   });
 
@@ -1179,6 +1222,10 @@ export default function App() {
     // Lazy: the debug hook is called further down; saveNow only
     // reads the stash when a save actually happens.
     getDebugStashRef: () => debugStashRef,
+    // S6 Movable Vaults: the autosave projection reads the live
+    // carry at save time; nothing about the carry is persisted.
+    getCarryRef,
+    getPlacementRotation,
     captureCavePlantings,
     plantingsKey,
   });
@@ -1949,6 +1996,11 @@ const {
       const key = `${pz.zx},${pz.zz}`;
       awMergeRef.current((s) => ({ ...s, fellZone: key }));
     }
+    // S6 MOVABLE VAULTS: death mid-carry sets the vault down where the
+    // player fell — into the LIVE list at the fall position, BEFORE
+    // respawnAtSpawn(), so the normal travel parking carries it into
+    // the fall zone's snapshot. Recoverable: Walk Back for it.
+    dropCarryAtFall();
     healthRef.current = playerState.maxHealth;
     setHealth(playerState.maxHealth);
     staminaRef.current = 100;
@@ -1961,7 +2013,7 @@ const {
     );
     respawnAtSpawn();
     playerDeadRef.current = false;
-  }, [playerState.maxHealth, setHealth, setStamina, postNotification, respawnAtSpawn]);
+  }, [playerState.maxHealth, setHealth, setStamina, postNotification, respawnAtSpawn, dropCarryAtFall]);
   onPlayerDeathRef.current = handlePlayerDeath;
 
   // Pause mode on background return (Adam, 2026-10-15): the engine
@@ -1987,7 +2039,7 @@ const {
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef, returnPausedRef,
-    structuresListRef, floraListRef, annotateTunnelPairing,
+    structuresListRef, floraListRef, annotateTunnelPairing, carryRef,
     activeToolRef, lastBroadcastTime, lastMinimapUpdateTime, latestStateRef, currentZoneId,
     applyPlayerLevel, postNotification, setStamina, setHealth, setMinimapPos,
     setDayNightCycle, setHoverInfo, setIsPointerLocked, onBackgroundReturn,
@@ -2480,6 +2532,7 @@ const {
           onStart={handleVatStart}
           onHatch={handleVatHatch}
           onUpgrade={handleVatUpgrade}
+          onMove={handleMoveVault}
         />
       )}
       {/* The open storage pod (entity re-read live from the list). */}
@@ -2495,8 +2548,12 @@ const {
           onDeposit={handleStorageDeposit}
           onWithdraw={handleStorageWithdraw}
           onUpgrade={handleStorageUpgrade}
+          onMove={handleMoveVault}
         />
       )}
+      {/* S6 MOVABLE VAULTS: the carry banner mounts here, beside the
+          container panels it replaces mid-haul. */}
+      <CarryBanner carrying={carrying} onCancel={cancelCarry} />
       {/* The BioTunnel gulp (Adam, 2026-10-16): while a transit
           runs, the screen is the inside of the tunnel — darkness
           that closes, swallows the travel, and lets go. */}
@@ -2532,6 +2589,9 @@ const {
         isOpen={activeModal === 'codex'}
         onClose={() => setActiveModal(null)}
         codexList={codexList}
+        // The Grown Arsenal marks entries GROWN / NOT GROWN and shows
+        // ingredient counts from the pouch when it has it.
+        inventory={inventory}
       />
 
       <StartScreenModal

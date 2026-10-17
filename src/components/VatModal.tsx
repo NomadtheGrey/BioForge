@@ -8,17 +8,17 @@
  * rest. WORKING: the growing thing's name and a patience bar.
  * READY: one emerald word — HATCH.
  *
- * All rules live in game/vat.ts; this panel only renders them
+ * All rules live in game/structures/vat.ts; this panel only renders them
  * and reports clicks through callbacks, in the StorageModal
  * shape the game already taught the player.
  */
 
 import React from 'react';
-import { X, Sprout, FlaskConical, Egg, ArrowUpCircle } from 'lucide-react';
+import { X, Sprout, FlaskConical, Egg, ArrowUpCircle, Move } from 'lucide-react';
 import type { FaunaSpecies, ItemId, StructureEntity } from '../types/game';
-import { ITEMS } from '../game/constants';
-import { speciesDef } from '../game/species';
-import { VAT_TIER_NAMES, vatKitFor, vatPlanFor, type VatBand } from '../game/vat';
+import { ITEMS } from '../game/items/constants';
+import { speciesDef } from '../game/creatures/species';
+import { VAT_TIER_NAMES, vatKitFor, vatPlanFor, type VatBand } from '../game/structures/vat';
 
 interface VatModalProps {
   /** The vat being viewed (live entity from the structures list). */
@@ -28,6 +28,12 @@ interface VatModalProps {
   onStart: (structure: StructureEntity, species: FaunaSpecies) => void;
   onHatch: (structure: StructureEntity) => void;
   onUpgrade: (structure: StructureEntity) => void;
+  /**
+   * S6 Movable Vaults: lift the WHOLE vat — tier and any running
+   * gestation ride inside, mid-count. Optional so the panel renders
+   * standalone without the carry wired.
+   */
+  onMove?: (structure: StructureEntity) => void;
 }
 
 const BAND_LABEL: Record<VatBand, string> = {
@@ -49,6 +55,7 @@ export const VatModal: React.FC<VatModalProps> = ({
   onStart,
   onHatch,
   onUpgrade,
+  onMove,
 }) => {
   const vat = structure.vat ?? { tier: 1 };
   const tier = Math.min(Math.max(vat.tier, 1), VAT_TIER_NAMES.length);
@@ -82,7 +89,7 @@ export const VatModal: React.FC<VatModalProps> = ({
             <p className="mt-1 text-xs text-slate-300">
               {tier === 1 && 'A young culture — common country can grow here.'}
               {tier === 2 && 'A rich culture — the wild country, and anything that hunts.'}
-              {tier === 3 && 'A deep, strange culture — even the far country can grow here.'}
+              {tier === 3 && 'A deep, strange culture — even the wild country can grow here.'}
             </p>
             {kitId && (
               <button
@@ -96,6 +103,19 @@ export const VatModal: React.FC<VatModalProps> = ({
               >
                 <ArrowUpCircle className="h-3.5 w-3.5" />
                 {hasKit ? `APPLY ${ITEMS[kitId]?.name.toUpperCase()}` : `NEEDS ${ITEMS[kitId]?.name.toUpperCase()}`}
+              </button>
+            )}
+            {/* S6 Movable Vaults: the gentle verb — lift the whole vat,
+                tier and any running gestation riding inside, mid-count.
+                While carrying, the whole kit is inert. */}
+            {onMove && (
+              <button
+                onClick={() => onMove(structure)}
+                className="mt-2 flex items-center gap-1.5 rounded-xl border border-purple-400/60 px-3 py-1.5 text-[11px] font-tech font-bold text-purple-200 hover:scale-105 active:scale-95 cursor-pointer"
+                title="Lift the whole vat — gestation rides along, mid-count"
+              >
+                <Move className="h-3.5 w-3.5" />
+                MOVE VAT
               </button>
             )}
           </div>

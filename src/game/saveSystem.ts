@@ -21,9 +21,10 @@
  * over the multiplayer wire as JSON), so they store and restore verbatim.
  */
 
-import { WORLD_GEN_VERSION } from './worldGen';
-import type { FieldNotesState } from './fieldNotesBook';
-import type { ZoneCoords } from './zones';
+import { WORLD_GEN_VERSION } from './world/worldGen';
+import type { FieldNotesState } from './knowledge/fieldNotesBook';
+import { EMPTY_ASKS_BACK, type AsksBackState } from './quests/asksBackState';
+import type { ZoneCoords } from './world/zones';
 import {
   CodexEntry,
   DroppedItemEntity,
@@ -83,12 +84,12 @@ export interface SaveMetadata {
   /**
    * The world's seed, chosen (or rolled) on the New Game screen. World
    * generation will grow flora and fauna from this seed (hashStringToSeed
-   * in game/motion.ts turns the text into a number). Saves written before
+   * in game/engine/motion.ts turns the text into a number). Saves written before
    * seeds existed simply have no seed — readers treat that as ''.
    */
   worldSeed: string;
   /**
-   * Which generation version grew this world (game/worldGen.ts). Saves
+   * Which generation version grew this world (game/world/worldGen.ts). Saves
    * from before seeded generation have no stamp — readers treat that
    * as 0. Recorded so future generators can migrate old worlds instead
    * of guessing.
@@ -114,6 +115,13 @@ export interface SavedGameRecord extends SaveMetadata {
    * empty book. NO version bump: a bump would orphan every
    * existing save (the loader rejects version mismatches). */
   fieldNotes?: FieldNotesState;
+  /** The World Asks Back (dev lane, 2026-10-16): the dynamic saga
+   *  system's memory — the typed event log, offered/active sagas,
+   *  echoes, and per-zone consequences. Optional in the type for
+   *  the same reason as fieldNotes: records saved before it lack
+   *  the key; buildSavedGame always writes it and the apply path
+   *  falls back to an empty record. NO version bump. */
+  asksBack?: AsksBackState;
   /** Flora the PLAYER planted inside cavern instances, keyed by the
    * cavern's instanceId (Adam, 2026-10-14: planted cave plants persist
    * per-cave). The wild instance flora is NOT stored — instances
@@ -266,7 +274,8 @@ export function buildSavedGame(
   dayNightCycle: number,
   codexList: CodexEntry[],
   cavePlantings?: Record<string, FloraEntity[]>,
-  fieldNotes?: FieldNotesState
+  fieldNotes?: FieldNotesState,
+  asksBack?: AsksBackState
 ): SavedGameRecord {
   return {
     ...metadata,
@@ -279,5 +288,10 @@ export function buildSavedGame(
     codexList,
     cavePlantings: cavePlantings ?? {},
     fieldNotes: fieldNotes ?? { unlocked: [], witnessed: [] },
+    // The World Asks Back (2026-10-16): its whole record rides ONE
+    // optional key. Old saves lack it and land here with an empty
+    // memory — the engine regenerates offers from seed + day, so
+    // nothing the player did is contradicted by the fallback.
+    asksBack: asksBack ?? EMPTY_ASKS_BACK,
   };
 }

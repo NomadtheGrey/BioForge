@@ -1,7 +1,7 @@
 /**
  * useVat — the Culture Vat's behaviors (Adam, 2026-10-15 design;
  * built 2026-10-16), extracted from App.tsx in the useStorage
- * shape. The RULES live in game/vat.ts (bands, soups, gestation
+ * shape. The RULES live in game/structures/vat.ts (bands, soups, gestation
  * lengths, kits); this hook only moves items, writes the vat's
  * record back via upsertStructure, and — at hatch — writes a new
  * creature into the world via upsertFauna. Gestation TIME itself
@@ -11,10 +11,10 @@
 
 import { useCallback } from 'react';
 import type { FaunaEntity, FaunaSpecies, GameNotification, ItemId, StructureEntity } from '../types/game';
-import type { BiomeId } from '../game/biomes';
-import { ITEMS } from '../game/constants';
-import { speciesDef } from '../game/species';
-import { vatKitFor, vatPlanFor } from '../game/vat';
+import type { BiomeId } from '../game/world/biomes';
+import { ITEMS } from '../game/items/constants';
+import { speciesDef } from '../game/creatures/species';
+import { vatKitFor, vatPlanFor } from '../game/structures/vat';
 import { soundEngine } from '../audio/soundEngine';
 
 interface UseVatParams {
@@ -97,7 +97,7 @@ export function useVat({
       'The Culture Deepens',
       vat.tier + 1 === 2
         ? 'The vat richens — wild-country creatures, and anything that hunts, can grow here now.'
-        : 'The vat goes deep and strange — the far country can grow here now.',
+        : 'The vat goes deep and strange — the wild country can grow here now.',
       'craft',
       '#34d399',
     );

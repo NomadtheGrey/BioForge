@@ -7,7 +7,7 @@
  *
  * The gauntlet is the early game's progression spine: it starts
  * able to harvest only, and each other tool is a module crafted at
- * the forge (game/quests.ts holds the chain). Unlocks are DERIVED
+ * the forge (game/quests/quests.ts holds the chain). Unlocks are DERIVED
  * from the pouch — owning a module item is the unlock — with one
  * exception handled by the caller: `grandfathered` worlds (created
  * before the module system existed, plus co-op guests) keep the
@@ -30,10 +30,10 @@ import {
   trackedQuest,
   type QuestDef,
   type QuestProgressView,
-} from '../game/quests';
+} from '../game/quests/quests';
 
 /** Every quest the views serve: the craft chain plus the Ask the
- * World line. The line lives in its own array in game/quests.ts;
+ * World line. The line lives in its own array in game/quests/quests.ts;
  * the latch, tracker, and notifications below are shared
  * infrastructure no line owns (Adam's swap discipline, 2026-10-16). */
 const ALL_QUEST_DEFS = [...QUESTS, ...ASK_THE_WORLD_QUESTS];

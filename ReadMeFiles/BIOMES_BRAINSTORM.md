@@ -520,7 +520,7 @@ calamities, not daily weather.
 
 **TIERS RENUMBERED (Adam, 2026-10-15):** biome tiers now run 0-3, matching
 the crafting tiers — Tier 0 Hearthlands, Tier 1 The Wilds, Tier 2 Strange
-Country, Tier 3 The Far Weird. The registry in biomes.ts carries tier +
+Country, Tier 3 The Grotesque. The registry in biomes.ts carries tier +
 minHops + rarity per biome; the harness holds them in agreement.
 
 **FUNGAL HOLLOW — SPEC + SHIPPED (2026-10-15, live bundle index-CVWRZt1W.js).**

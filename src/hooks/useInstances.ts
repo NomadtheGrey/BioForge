@@ -17,16 +17,16 @@
  */
 
 import { useRef, useState, useCallback } from 'react';
-import type { BioForgeThreeEngine } from '../game/threeEngine';
+import type { BioForgeThreeEngine } from '../game/engine/threeEngine';
 import type { WorldSnapshot } from '../game/saveSystem';
 import {
   generateGameCavern, generateGameCavernLevel, cavernCellToWorld, cavernEntryYaw, cavernStratumName,
   type CavernResult,
-} from '../game/cavern';
-import { generateGameRuin, ruinEntryYaw, ruinCollisionGrid, type RuinResult } from '../game/ruinInterior';
-import { FATE_STYLES, type RuinVariantId, type WorldFate } from '../game/ruins';
-import { zoneCoordsAt, zoneHops, zoneBiomeAt } from '../game/zones';
-import type { BiomeId } from '../game/biomes';
+} from '../game/world/cavern';
+import { generateGameRuin, ruinEntryYaw, ruinCollisionGrid, type RuinResult } from '../game/world/ruinInterior';
+import { FATE_STYLES, type RuinVariantId, type WorldFate } from '../game/world/ruins';
+import { zoneCoordsAt, zoneHops, zoneBiomeAt } from '../game/world/zones';
+import type { BiomeId } from '../game/world/biomes';
 import type { DroppedItemEntity, FaunaEntity, FloraEntity, FloraSpecies, StructureEntity } from '../types/game';
 import type { GameNotification } from '../types/game';
 

@@ -18,15 +18,18 @@
  */
 
 import { useRef, useState } from 'react';
-import type { BioForgeThreeEngine } from '../game/threeEngine';
-import type { FirstPersonMovementController } from '../game/controller';
+import type { BioForgeThreeEngine } from '../game/engine/threeEngine';
+import type { FirstPersonMovementController } from '../game/engine/controller';
 import type { WorldSnapshot } from '../game/saveSystem';
-import { SPAWN_ZONE, zoneBiomeAt, zoneVariantAt, zoneFaceAt, zoneHops, zoneInfo, zoneKey, biomeDisplayName, type ZoneCoords } from '../game/zones';
-import { generateSeededWorld } from '../game/worldGen';
-import { LANDFORM_EPOCH_MS } from '../game/terrain';
+import { SPAWN_ZONE, zoneBiomeAt, zoneVariantAt, zoneFaceAt, zoneHops, zoneInfo, zoneKey, biomeDisplayName, type ZoneCoords } from '../game/world/zones';
+import { generateSeededWorld } from '../game/world/worldGen';
+import { LANDFORM_EPOCH_MS } from '../game/world/terrain';
 import { multiplayerManager } from '../game/multiplayer';
 import { snapshotOf, buildZoneSyncTravel as buildZoneSyncTravelPayload, type ZoneStores } from '../game/zoneSync';
 import type { GameNotification } from '../types/game';
+// THE WORLD ASKS BACK, S4: saga consequences become real zones here.
+import { applyZoneConsequences } from '../game/quests/asksBack/applyConsequences';
+import type { AsksBackState } from '../game/quests/asksBackState';
 
 // Zone identification is a HELMET feature (Adam, 2026-10-15):
 // naming the land is a sense, and the helmet is the sensory
@@ -54,13 +57,24 @@ export type TravelDirection = 'N' | 'S' | 'E' | 'W';
 // callbacks complete it when the host's snapshot lands. Walking
 // off the edge or a silent host cancels it.
 export interface PendingTravel {
-  dir: TravelDirection;
+  // Edge crossings are direction-anchored; a tunnel ride has no
+  // direction — its anchor is the mouth (see `tunnel` below).
+  dir?: TravelDirection;
   nx: number;
   nz: number;
   entryX: number;
   entryZ: number;
   slowTimer: number;
   failTimer: number;
+  /**
+   * The BioTunnel guest fix (Adam, 2026-10-16): a guest's tunnel
+   * ride to a zone they never visited waits on the host's zone
+   * snapshot exactly like an edge crossing. It is NOT edge-
+   * anchored — the game loop watches proximity to the near mouth
+   * instead — and the far mouth's exit is resolved from the
+   * arrived snapshot (by farMouthId) when the ride completes.
+   */
+  tunnel?: { farMouthId: string; nearX: number; nearZ: number };
 }
 
 export interface ZoneTravelDeps {
@@ -84,6 +98,21 @@ export interface ZoneTravelDeps {
    *  zones generated on travel belong to the OPEN world, whose
    *  epoch decides whether pond life may be sown in them. */
   getWorldCreatedAt: () => number;
+  /** The World Asks Back (2026-10-16): stamped on every completed
+   *  crossing — the saga engine reads zone-visit history for echo
+   *  timing and revisit goals. */
+  onZoneEnter?: (zoneKeyVisited: string) => void;
+  /** The BioTunnel guest fix (Adam, 2026-10-16): told when a
+   *  parked crossing is cancelled (walked away, host silent) so
+   *  the ride's caller can release its own state — the tunnel's
+   *  fade/busy flow, which lives outside this hook. */
+  onPendingCancel?: (pending: PendingTravel) => void;
+  /** THE WORLD ASKS BACK, S4: the saga consequence record. The
+   *  world author applies its zone state on every crossing;
+   *  guests never apply it locally (their host's snapshot is
+   *  the truth). Passed as a dep so each crossing reads the
+   *  current record. */
+  asksBackState: AsksBackState;
 }
 
 export interface UseZoneTravelResult {
@@ -108,7 +137,9 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
   const {
     engineRef, playerPosRef, movementController, jumpRef, instanceRef,
     replaceWorld, applyPlayerLevel, postNotification,
-    buildWorldSnapshot, getDayNightCycle, saveNowRef, getWorldCreatedAt,
+    buildWorldSnapshot, getDayNightCycle, saveNowRef, getWorldCreatedAt, onZoneEnter,
+    onPendingCancel,
+    asksBackState,
   } = deps;
 
   // The world is a grid of zones; the player stands in exactly one.
@@ -136,6 +167,7 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
     window.clearTimeout(p.slowTimer);
     window.clearTimeout(p.failTimer);
     pendingTravelRef.current = null;
+    onPendingCancel?.(p);
   };
   // The game loop calls travel through this ref (the loop lives in
   // App until seam 6; the indirection keeps call order irrelevant).
@@ -199,11 +231,30 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
     //    parameter of every roll.
     const nextKey = zoneKey(nx, nz);
     let target = hostSnapshot ?? visitedZonesRef.current.get(nextKey);
+    let freshRoll = false;
     if (hostSnapshot) visitedZonesRef.current.set(nextKey, hostSnapshot);
     if (!target) {
       const gen = generateSeededWorld(seed, nx, nz, { landform: getWorldCreatedAt() >= LANDFORM_EPOCH_MS });
       target = { flora: gen.flora, fauna: gen.fauna, structures: gen.structures, drops: [] };
       visitedZonesRef.current.set(nextKey, target);
+      freshRoll = true;
+    }
+    // THE WORLD ASKS BACK, S4: saga consequences — ONE apply path,
+    // executed by the world author only (solo player or host). A
+    // fresh roll gets the full overlay (removals, abundance, settled
+    // individuals); a revisited zone keeps its player-shaped truth
+    // and only takes removals + settled individuals. Guests arrive
+    // with the host's snapshot and never apply zone state locally
+    // from their own record — the host's truth already carries it.
+    if (!multiplayerManager.isConnected || multiplayerManager.isHost) {
+      const applied = applyZoneConsequences(
+        { fauna: target.fauna, flora: target.flora },
+        nx, nz, asksBackState, freshRoll ? 'generate' : 'load',
+      );
+      if (applied.fauna !== target.fauna || applied.flora !== target.flora) {
+        target = { ...target, fauna: applied.fauna, flora: applied.flora };
+        visitedZonesRef.current.set(nextKey, target);
+      }
     }
     // Follow pets materialize beside their person in a loose ring,
     // already walking to the arrival point.
@@ -223,6 +274,9 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
     // 3. Stand there: identity, paint, position, story, momentum.
     playerZoneRef.current = { zx: nx, zz: nz };
     setPlayerZone({ zx: nx, zz: nz });
+    // The World Asks Back: the crossing itself is the zone-visit
+    // event — stamped here, where the travel actually completed.
+    onZoneEnter?.(nextKey);
     engineRef.current?.setZoneBiome(zoneBiomeAt(seed, nx, nz), zoneFaceAt(seed, nx, nz)?.tint ?? null, zoneFaceAt(seed, nx, nz) ? { distanceMult: zoneFaceAt(seed, nx, nz)!.lightDistanceMult, intensityMult: zoneFaceAt(seed, nx, nz)!.lightIntensityMult } : null);
     applyPlayerLevel(0);
     jumpRef.current = { y: 0, vy: 0, bounceFlip: false };

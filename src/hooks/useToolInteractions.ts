@@ -16,23 +16,27 @@ import {
   CodexEntry,
   GameNotification,
 } from '../types/game';
-import { ITEMS } from '../game/constants';
-import { TUNNEL_MAX_MOUTHS } from '../game/tunnel';
+import { ITEMS } from '../game/items/constants';
+import { TUNNEL_MAX_MOUTHS } from '../game/world/tunnel';
 import {
   noteById, noteIdsForSpecies, windowNoteIdForSpecies,
   type FieldNotesState,
-} from '../game/fieldNotesBook';
-import { createSeededRandom, hashStringToSeed } from '../game/motion';
-import { ruinLoreLine } from '../game/ruinInterior';
+} from '../game/knowledge/fieldNotesBook';
+import type { AsksEventInput } from '../game/quests/asksBackState';
+import { createSeededRandom, hashStringToSeed } from '../game/engine/motion';
+import { ruinLoreLine } from '../game/world/ruinInterior';
 import { soundEngine } from '../audio/soundEngine';
 import { multiplayerManager } from '../game/multiplayer';
 import { FLORA_MATURE_SECONDS, FERTILIZER_DURATION_SECONDS } from './useWorldEntities';
-import { speciesDef } from '../game/species';
-import { sampleItemId } from '../game/vat';
-import { bestWeapon } from '../game/weapons';
-import type { WeaponDef } from '../game/weapons';
-import { floraDef } from '../game/flora';
-import { GROUND_LAYER_TYPES, isEdgePanel, isLadder, occupancyConflict, placementFor } from '../game/placement';
+import { speciesDef } from '../game/creatures/species';
+import { sampleItemId, vatKitFor } from '../game/structures/vat';
+import { storageKitFor } from '../game/items/pouch';
+import { bestWeapon } from '../game/creatures/weapons';
+import type { WeaponDef } from '../game/creatures/weapons';
+import { floraDef } from '../game/flora/flora';
+import { GROUND_LAYER_TYPES, isEdgePanel, isLadder, occupancyConflict, placementFor } from '../game/structures/placement';
+/** S6 Movable Vaults: the inert-kit gate reads the live carry state. */
+import type { CarryState } from '../game/structures/movableVaults';
 
 // A new plant must be at least this far (meters) from every existing one —
 // anything closer is a stack of seedlings on one spot, not a garden.
@@ -75,7 +79,7 @@ const rollRuinCacheLoot = (cacheId: string, band: 'shallow' | 'mid' | 'deep'): [
 };
 
 // Taming odds per lure attempt live in the SPECIES TABLE now
-// (game/species.ts — creature build phase, slice 1, 2026-10-15): the
+// (game/creatures/species.ts — creature build phase, slice 1, 2026-10-15): the
 // puff's 0.8, the mouse's 0.6, and the stalker's 0.25 moved there with
 // every other species' design values, so a new species tames by
 // gaining an entry, not a constant and a branch. The rule is
@@ -131,6 +135,7 @@ export interface UseToolInteractionsParams {
   instanceKind: () => 'surface' | 'cavern' | 'ruin';
   tameFauna: (faunaId: string, customName: string, state: FaunaEntity['state']) => void;
   hearthFeed: (faunaId: string) => number;
+  loadHeartbearer: (faunaId: string, item: ItemId) => number;
   /** The day/night clock, read at click time (slice 40): App's
    *  cycle via its latest-state mirror — 0.25 sunrise, 0.5 noon,
    *  0.75 sunset, 0 midnight. */
@@ -171,6 +176,9 @@ export interface UseToolInteractionsParams {
   fieldNotesState: FieldNotesState;
   unlockFieldNotes: (noteIds: string[]) => void;
   recordFieldWitness: (noteId: string) => void;
+  /** The World Asks Back (2026-10-16): the event sink for saga
+   *  latching — harvest/tame/feed/plant/build writers live here. */
+  recordAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void;
   postNotification: (
     title: string,
     message: string,
@@ -192,6 +200,19 @@ export interface UseToolInteractionsParams {
   triggerSolventFx: (x: number, z: number) => void;
   /** The visible solvent jet, player -> target (Adam, 2026-10-16). */
   triggerSprayJetFx: (x: number, z: number) => void;
+  /**
+   * S6 Movable Vaults: the live carry state (null = not carrying).
+   * While carrying, the whole kit is inert — the only live click is
+   * the put-down click; every other tool/creature/structure attempt
+   * gets the soft "hands full" response.
+   */
+  carryRef: { current: CarryState | null };
+  /** S6: set the carried vault down at a ground spot (false = the spot refused, carry continues). */
+  putDownCarryAt: (worldX: number, worldZ: number) => boolean;
+  /** THE SHIELD (Adam, 2026-10-17): no striking while the shield
+   *  is raised — a wall does not lash out. App bridges the wield
+   *  hook's raisedRef here. */
+  shieldRaisedRef?: { current: boolean };
 }
 
 export function useToolInteractions({
@@ -225,6 +246,7 @@ export function useToolInteractions({
   instanceKind,
   tameFauna,
   hearthFeed,
+  loadHeartbearer,
   getDayNightCycle,
   setFaunaCommand,
   onRequestRelease,
@@ -242,6 +264,7 @@ export function useToolInteractions({
   fieldNotesState,
   unlockFieldNotes,
   recordFieldWitness,
+  recordAsksEvent,
   postNotification,
   onOpenBioForgeModal,
   onOpenStorage,
@@ -252,6 +275,9 @@ export function useToolInteractions({
   triggerHarvestFx,
   triggerSolventFx,
   triggerSprayJetFx,
+  carryRef,
+  putDownCarryAt,
+  shieldRaisedRef,
 }: UseToolInteractionsParams) {
   // What a harvest-ready plant gives up, per species — ONE table shared by
   // the harvest glove (which leaves the plant standing to regrow) and the
@@ -463,6 +489,14 @@ export function useToolInteractions({
         const windowNote = windowNoteIdForSpecies(flora.species);
         if (windowNote) recordFieldWitness(windowNote);
       }
+      // The World Asks Back (2026-10-16): the harvest event for
+      // saga latching — counted by flora species, right where the
+      // harvest is known good.
+      recordAsksEvent?.({
+        kind: 'harvest',
+        flora: flora.species,
+        count: Array.from(collected.values()).reduce((s, n) => s + n, 0),
+      });
 
       postNotification(
         'Harvest Successful',
@@ -472,7 +506,7 @@ export function useToolInteractions({
       );
 
     },
-    [addInventoryItem, resetFloraHarvest, setCodexList, postNotification, triggerHarvestFx, getDayNightCycle]
+    [addInventoryItem, resetFloraHarvest, setCodexList, postNotification, triggerHarvestFx, getDayNightCycle, recordAsksEvent]
   );
 
   // 2. Bio-Scanner
@@ -685,8 +719,14 @@ export function useToolInteractions({
       } else {
         postNotification('Spore Planted', `Successfully cultivated ${ITEMS[selectedSeedId]?.name}. Water with fertilizer to accelerate!`, 'craft', '#4ade80');
       }
+      // The World Asks Back (2026-10-16): the planting event for
+      // saga latching. Seed ids are `seed_<species>` — the prefix
+      // strips to the flora the quest text names.
+      if (selectedSeedId.startsWith('seed_')) {
+        recordAsksEvent?.({ kind: 'plant', flora: selectedSeedId.slice(5) });
+      }
     },
-    [selectedSeedId, selectedFertilizerId, hasItem, deductInventoryItem, applyFloraFertilizer, addFlora, postNotification, floraList]
+    [selectedSeedId, selectedFertilizerId, hasItem, deductInventoryItem, applyFloraFertilizer, addFlora, postNotification, floraList, recordAsksEvent]
   );
 
   // 4. Solvent Sprayer (100% Recycler)
@@ -707,24 +747,54 @@ export function useToolInteractions({
       soundEngine.playSolventSpray();
       triggerSolventFx(structure.worldX, structure.worldZ);
 
-      // A storage pod SPILLS before it dissolves (Adam, 2026-10-15):
-      // everything inside drops at the pod's feet, then the pod
-      // itself returns to the pouch like any structure. Nothing a
-      // player stored is ever deleted by a misclick of solvent.
-      // A gestating vat gives its SAMPLE back before it dissolves
-      // (the pod's spill rule, narrowed to the heart): the soup is
-      // spent into the culture, but the cutting itself is too
-      // precious to delete by a misclick.
+      // Pickup is WHOLE (Adam, 2026-10-15, completed 2026-10-16):
+      // a dissolved structure returns to the player tiers, contents
+      // and all — the structure item itself, every tier kit it had
+      // absorbed, and everything it was holding. Contents ride the
+      // ordinary pouch gain, so what fits goes to the pouch and
+      // any overflow drops at the player's feet like any other
+      // gain: nothing a player stored is ever deleted by solvent.
+      // A gestating vat gives its SAMPLE back too (the pod's rule,
+      // narrowed to the heart): the soup is spent into the culture,
+      // but the cutting itself is too precious to delete.
+      const returnedKits: string[] = [];
+      let returnedContents = false;
+
       if (structure.type === 'culture_vat' && structure.vat?.gestating) {
-        spawnDroppedItem(sampleItemId(structure.vat.gestating.species), 1, structure.worldX, structure.worldZ);
+        addInventoryItem(sampleItemId(structure.vat.gestating.species), 1);
+        returnedContents = true;
       }
 
       if ((structure.type === 'storage_pod' || structure.type === 'sample_rack') && structure.storage) {
         Object.entries(structure.storage.items).forEach(([itemId, count]) => {
           if ((count ?? 0) > 0) {
-            spawnDroppedItem(itemId as ItemId, count as number, structure.worldX, structure.worldZ);
+            addInventoryItem(itemId as ItemId, count as number);
+            returnedContents = true;
           }
         });
+      }
+
+      // Tier kits absorbed by in-place upgrades come back out:
+      // each tier above the base was raised by one kit, and the
+      // kit-ladder helpers name them (pod: hutch, then vault;
+      // vat: rich, then deep).
+      if (structure.storage) {
+        for (let step = 1; step < structure.storage.tier; step++) {
+          const kit = storageKitFor(step);
+          if (kit) {
+            addInventoryItem(kit, 1);
+            returnedKits.push(ITEMS[kit]?.name || kit);
+          }
+        }
+      }
+      if (structure.type === 'culture_vat' && structure.vat) {
+        for (let step = 1; step < structure.vat.tier; step++) {
+          const kit = vatKitFor(step);
+          if (kit) {
+            addInventoryItem(kit, 1);
+            returnedKits.push(ITEMS[kit]?.name || kit);
+          }
+        }
       }
 
       // Return 100% of seed-nodes to inventory
@@ -733,7 +803,9 @@ export function useToolInteractions({
 
       postNotification(
         'Bio-Structure Dissolved',
-        `Gentle enzyme returned 100% of ${ITEMS[structure.type]?.name || structure.type} to your pouch.`,
+        `Gentle enzyme returned 100% of ${ITEMS[structure.type]?.name || structure.type} to your pouch.` +
+          (returnedKits.length > 0 ? ` Tier kits back: ${returnedKits.join(', ')}.` : '') +
+          (returnedContents ? ' Contents returned with it.' : ''),
         'craft',
         '#38bdf8'
       );
@@ -878,8 +950,49 @@ export function useToolInteractions({
       }
 
       // Species data (display name, tame odds, pet name, bait flow)
-      // comes from the species table — see game/species.ts.
+      // comes from the species table — see game/creatures/species.ts.
       const def = speciesDef(fauna.species);
+
+      // -------------------------------------------------------------
+      // THE HEARTBEARER (slice 48, 2026-10-16): not a taming —
+      // a loading. The lure is the offering hand: with it, you
+      // place ONE edible from your pouch on the bearer's back,
+      // and the sim's road delivers it to the valley's heart.
+      // The pantry is the valley's own (nectar, the heart's
+      // sap, eggs and caps) — the bearer carries food, not
+      // freight, and its back holds four.
+      // -------------------------------------------------------------
+      if (fauna.species === 'heartbearer') {
+        if ((fauna.cargoItems ?? []).length >= 4) {
+          postNotification('Fully Laden', 'The Heartbearer already carries all its broad back holds. It will deliver, in its own time — follow it, if you want to see the heart\'s road.', 'alert', '#fbbf24');
+          return;
+        }
+        const EDIBLE_PANTRY: ItemId[] = ['sweet_nectar', 'heart_sap', 'sedge_egg', 'haycap', 'sun_cap', 'meltcap'];
+        const offering = EDIBLE_PANTRY.find((i) => hasItem(i, 1));
+        if (!offering) {
+          postNotification('An Offering for the Road', 'The Heartbearer carries food to the valley\'s heart — nectar, heart sap, eggs, caps: something edible from your pouch, laid on its back, is delivered. You carry nothing it can use.', 'alert', '#fbbf24');
+          return;
+        }
+        deductInventoryItem(offering, 1);
+        const aboard = loadHeartbearer(fauna.id, offering);
+        postNotification('Loaded for the Heart', `${ITEMS[offering]?.name || 'Your offering'} rides the Heartbearer\'s back now — ${aboard} aboard. It will be delivered to the valley\'s heart, and a fed heart answers.`, 'tame', '#2dd4bf');
+        return;
+      }
+
+      // -------------------------------------------------------------
+      // THE ANSWER DEER (slice 48): the gate before the generic
+      // lure. The deer's method is the tamer's own state — the
+      // sim has been collecting your calm on the deer itself
+      // (calmRegard: seconds of slow company, over days). Too
+      // little collected calm and the offering is refused
+      // BEFORE any nectar is spent: the mirror is not fed, it
+      // is met. Enough, and the ordinary roll below decides —
+      // the deer's table odds, on a courtship already earned.
+      // -------------------------------------------------------------
+      if (fauna.species === 'answer_deer' && (fauna.calmRegard ?? 0) < 45) {
+        postNotification('It Keeps What You Bring It', 'The Answer Deer mirrors the visitor it is with — and what it has been brought so far is hurry. Be near it. Be slow. Let a little calm collect, over time, and then offer, at the speed you brought it.', 'alert', '#fbbf24');
+        return;
+      }
 
       // -------------------------------------------------------------
       // THE HEARTH DOG (slice 39, 2026-10-16): the roster's one
@@ -908,10 +1021,17 @@ export function useToolInteractions({
         }
         deductInventoryItem('sweet_nectar', 1);
         const feedings = hearthFeed(fauna.id);
+        // The World Asks Back (2026-10-16): the accepted offering
+        // is the feed event for saga latching (dog-only for now —
+        // it's the only feeder the game has; the creatures lane
+        // adds stamps for others as their social beats grow).
+        if (feedings > 0) recordAsksEvent?.({ kind: 'feed', species: 'hearth_dog' });
         if (feedings >= 3) {
           soundEngine.playTameCritter();
           releaseArmedRef.current.delete(fauna.id);
           tameFauna(fauna.id, def.petName, 'following');
+          // The World Asks Back (2026-10-16): the tame event for saga latching.
+          recordAsksEvent?.({ kind: 'tame', species: fauna.species });
           // Field Notes witness: 'The Dog Has Decided.'
           recordFieldWitness('note_hearth_dog');
           postNotification(
@@ -957,6 +1077,8 @@ export function useToolInteractions({
           soundEngine.playTameCritter();
           releaseArmedRef.current.delete(fauna.id);
           tameFauna(fauna.id, def.petName, 'idle');
+          // The World Asks Back (2026-10-16): the tame event for saga latching.
+          recordAsksEvent?.({ kind: 'tame', species: fauna.species });
           postNotification(
             'Tenancy Agreed',
             'The Rootfall Bear accepts the returned rent and, with it, the arrangement: this hollow has a landlord AND a tenant now, and the guard comes with the lease.',
@@ -994,6 +1116,8 @@ export function useToolInteractions({
         soundEngine.playTameCritter();
         releaseArmedRef.current.delete(fauna.id);
         tameFauna(fauna.id, def.petName, 'following');
+          // The World Asks Back (2026-10-16): the tame event for saga latching.
+          recordAsksEvent?.({ kind: 'tame', species: fauna.species });
 
         postNotification(
           'Companion Domesticated!',
@@ -1037,6 +1161,8 @@ export function useToolInteractions({
 
         soundEngine.playTameCritter();
         tameFauna(fauna.id, 'Base Guardian Stalker', 'patrolling');
+          // The World Asks Back (2026-10-16): the tame event for saga latching.
+          recordAsksEvent?.({ kind: 'tame', species: fauna.species });
 
         postNotification(
           'Apex Guardian Tamed!',
@@ -1075,6 +1201,8 @@ export function useToolInteractions({
         soundEngine.playTameCritter();
         releaseArmedRef.current.delete(fauna.id);
         tameFauna(fauna.id, def.petName, 'following');
+          // The World Asks Back (2026-10-16): the tame event for saga latching.
+          recordAsksEvent?.({ kind: 'tame', species: fauna.species });
 
         postNotification(
           'Companion Domesticated!',
@@ -1100,7 +1228,7 @@ export function useToolInteractions({
         return;
       }
     },
-    [hasItem, deductInventoryItem, tameFauna, hearthFeed, postNotification]
+    [hasItem, deductInventoryItem, tameFauna, hearthFeed, loadHeartbearer, postNotification, recordAsksEvent]
   );
 
   // 6. Bio-Builder Placement
@@ -1295,7 +1423,7 @@ export function useToolInteractions({
       }
 
       // Where the piece goes: cell pieces at the cell's center, wall/door
-      // PANELS on the cell edge nearest the aim (game/placement.ts) — and
+      // PANELS on the cell edge nearest the aim (game/structures/placement.ts) — and
       // occupancy to match: one panel per edge; cell pieces keep the
       // one-ground-layer + one-upright-per-cell rule.
       const rotation = getPlacementRotation();
@@ -1379,22 +1507,34 @@ export function useToolInteractions({
           ? { vat: { tier: 1 } }
           : {}),
         // A BioTunnel mouth is born unpaired; App's pairing sweep
-        // lights it when its other half exists (game/tunnel.ts).
+        // lights it when its other half exists (game/world/tunnel.ts).
         ...(selectedStructureType === 'biotunnel_mouth'
           ? { tunnel: { paired: false } }
           : {}),
       };
 
       addStructure(newStruct);
+      // The World Asks Back (2026-10-16): the build event for saga
+      // latching — counted by structure type, stamped where the
+      // placement is known good.
+      recordAsksEvent?.({ kind: 'build', itemId: selectedStructureType });
       postNotification('Living Composite Placed', `Grown ${ITEMS[selectedStructureType]?.name}. Fully recyclable via Solvent Sprayer [4].`, 'craft', '#a855f7');
       multiplayerManager.broadcastEntityUpsert('structure', newStruct);
     },
-    [selectedStructureType, hasItem, deductInventoryItem, addStructure, postNotification, structuresList, getPlacementRotation]
+    [selectedStructureType, hasItem, deductInventoryItem, addStructure, postNotification, structuresList, getPlacementRotation, recordAsksEvent]
   );
 
   // Unified Interactions Handlers (Flat, zero else)
   const handleGroundClick = useCallback(
     (worldX: number, worldZ: number): void => {
+      // S6 MOVABLE VAULTS: while carrying, the whole kit is inert —
+      // gauntlet tools, weapons, the lot. The ONLY live click is the
+      // put-down click, routed to the carry's placement handler; a
+      // refused spot (red ghost) simply keeps the carry.
+      if (carryRef.current) {
+        putDownCarryAt(worldX, worldZ);
+        return;
+      }
       if (activeTool === 'striker') {
         // Striking at open ground: a close weapon swings at the
         // air; a ranged weapon looses at the point (a burst shot
@@ -1436,11 +1576,17 @@ export function useToolInteractions({
         return;
       }
     },
-    [activeTool, handleBuildPlacement, handlePlanterAction, selectedStructureType, fireProjectile, triggerShotFx, spendStamina, inventory, strikerDrawRef, getPlayerPosition]
+    [activeTool, handleBuildPlacement, handlePlanterAction, selectedStructureType, fireProjectile, triggerShotFx, spendStamina, inventory, strikerDrawRef, getPlayerPosition, carryRef, putDownCarryAt]
   );
 
   const handleFloraInteract = useCallback(
     (flora: FloraEntity): void => {
+      // S6 MOVABLE VAULTS: hands full — the carry leaves the player
+      // tool-less for the haul; set the vault down first.
+      if (carryRef.current) {
+        postNotification('Hands Full', 'Set the carried vault down before using your tools — you are defenseless for the haul.', 'alert', '#fbbf24');
+        return;
+      }
       if (activeTool === 'harvest_glove') {
         handleHarvestFlora(flora);
         return;
@@ -1469,7 +1615,7 @@ export function useToolInteractions({
         return;
       }
     },
-    [activeTool, handleHarvestFlora, handleScanTarget, handlePlanterAction, handleSolventFlora, fireProjectile, triggerShotFx, spendStamina, inventory, strikerDrawRef]
+    [activeTool, handleHarvestFlora, handleScanTarget, handlePlanterAction, handleSolventFlora, fireProjectile, triggerShotFx, spendStamina, inventory, strikerDrawRef, carryRef, postNotification]
   );
 
   /**
@@ -1523,6 +1669,18 @@ export function useToolInteractions({
 
   const handleFaunaInteract = useCallback(
     (fauna: FaunaEntity): void => {
+      // S6 MOVABLE VAULTS: hands full — no lures, scans, strikes, or
+      // solvent while the carry rides. Set the vault down first.
+      if (carryRef.current) {
+        postNotification('Hands Full', 'Set the carried vault down before using your tools — you are defenseless for the haul.', 'alert', '#fbbf24');
+        return;
+      }
+      // THE SHIELD (Adam, 2026-10-17): a raised shield is a wall,
+      // not a weapon — lower it before striking.
+      if (shieldRaisedRef?.current) {
+        postNotification('Shield Raised', 'Your left hand holds a wall — lower the shield before you strike.', 'alert', '#a3e635');
+        return;
+      }
       if (activeTool === 'taming_lure') {
         handleTameFauna(fauna);
         return;
@@ -1578,7 +1736,7 @@ export function useToolInteractions({
         return;
       }
     },
-    [activeTool, handleTameFauna, handleScanTarget, applyDissolve, triggerSprayJetFx, strikeFauna, fireProjectile, triggerShotFx, triggerStrikeHitFx, spendStamina, inventory, strikerDrawRef, postNotification, getPlayerPosition]
+    [activeTool, handleTameFauna, handleScanTarget, applyDissolve, triggerSprayJetFx, strikeFauna, fireProjectile, triggerShotFx, triggerStrikeHitFx, spendStamina, inventory, strikerDrawRef, postNotification, getPlayerPosition, carryRef]
   );
 
   // Builder on a CEILING tile with a floor selected: GROW the ceiling
@@ -1793,6 +1951,13 @@ export function useToolInteractions({
 
  const handleStructureInteract = useCallback(
   (structure: StructureEntity): void => {
+    // S6 MOVABLE VAULTS: hands full — no panels, portals, or tools
+    // while carrying (the carried entity is out of the lists, so
+    // nothing below could see it anyway). Set the vault down first.
+    if (carryRef.current) {
+      postNotification('Hands Full', 'Set the carried vault down before using your tools — you are defenseless for the haul.', 'alert', '#fbbf24');
+      return;
+    }
     // Builder on a ceiling tile with a floor selected: grow the ceiling
     // toward your facing — checked BEFORE the flat-surface routing,
     // which would otherwise treat the tile as ground.
@@ -2101,7 +2266,7 @@ export function useToolInteractions({
       return;
     }
   },
-  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, onOpenStorage, handleGroundClick, handlePlanterAction, selectedSeedId, selectedStructureType, handleBuilderOnPanel, handleBuilderOnBaseBlock, handleGrowCeiling, handlePlaceLadder, handleExtendLadder, handleClimbLadder, postNotification, onEnterCave, onExitCave]
+  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, onOpenStorage, handleGroundClick, handlePlanterAction, selectedSeedId, selectedStructureType, handleBuilderOnPanel, handleBuilderOnBaseBlock, handleGrowCeiling, handlePlaceLadder, handleExtendLadder, handleClimbLadder, postNotification, onEnterCave, onExitCave, carryRef]
 );
 
   return {

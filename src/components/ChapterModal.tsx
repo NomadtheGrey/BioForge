@@ -8,12 +8,12 @@
  * Deliberately unadorned: an amber-ruled panel, the fate's name,
  * the story. App opens it at the latch; the close button is the
  * only control. (Re-reading from the quest log's line tab is the
- * HUD lane's follow-on; the data lives in game/awChapters.ts.)
+ * HUD lane's follow-on; the data lives in game/quests/awChapters.ts.)
  */
 
 import React from 'react';
 import { X } from 'lucide-react';
-import type { AwChapter } from '../game/awChapters';
+import type { AwChapter } from '../game/quests/awChapters';
 
 interface ChapterModalProps {
   chapter: AwChapter;

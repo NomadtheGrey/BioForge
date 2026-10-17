@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { X, Sparkles, Check, AlertCircle, ArrowRight, Search, Sprout } from 'lucide-react';
 import { CraftingRecipe, ItemId, StructureType } from '../types/game';
-import { ITEMS, RECIPES, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../game/constants'
-import { isGauntletUpgrade, isGearItem, gearTierOf, accessTierOf } from '../game/quests';
-import { BASE_SUPPLY_GROUPS, baseSupplyGroupOf, isBaseSupply } from '../game/baseSupplies';
+import { ITEMS, RECIPES, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../game/items/constants'
+import { isGauntletUpgrade, isGearItem, gearTierOf, accessTierOf } from '../game/quests/quests';
+import { BASE_SUPPLY_GROUPS, baseSupplyGroupOf, isBaseSupply } from '../game/items/baseSupplies';
 import { soundEngine } from '../audio/soundEngine';
 import { RecipeFlowchart } from './RecipeFlowchart';
+// Arsenal kind chips on weapon recipes (work order, 2026-10-17):
+// a recipe that grows a striker or shield says its kind beside
+// its tier, in the family's rose.
+import { FAMILY_KIND_LABEL, familyEntryOf } from '../game/items/weaponsFamily';
 
 interface BioForgeModalProps {
   isOpen: boolean;
@@ -347,10 +351,15 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                         <h4 className="text-sm font-semibold text-slate-100">{recipe.name}</h4>
                         {/* Gear parts carry their tier (Adam,
                             2026-10-15) — graph-derived, see
-                            gearTierOf in game/quests.ts. */}
+                            gearTierOf in game/quests/quests.ts. */}
                         {isGearItem(recipe.outputId) && gearTierOf(recipe.outputId) !== null && (
                           <span className="text-[9px] font-tech font-bold px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
                             TIER {gearTierOf(recipe.outputId)}
+                          </span>
+                        )}
+                        {familyEntryOf(recipe.outputId) && (
+                          <span className="text-[9px] font-tech font-bold px-1.5 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                            {FAMILY_KIND_LABEL[familyEntryOf(recipe.outputId)!.kind].toUpperCase()} · T{familyEntryOf(recipe.outputId)!.tier}
                           </span>
                         )}
                       </div>

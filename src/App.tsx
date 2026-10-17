@@ -25,22 +25,22 @@ import {
   ITEMS,
   NON_BUILDABLE_STRUCTURE_IDS,
   getRecipeTier,
-} from './game/constants';
-import { BioForgeThreeEngine } from './game/threeEngine';
+} from './game/items/constants';
+import { BioForgeThreeEngine } from './game/engine/threeEngine';
 import { soundEngine } from './audio/soundEngine';
-import { multiplayerManager, EntityKind, EntitySnapshot } from './game/multiplayer';
+import { multiplayerManager, EntityKind, EntitySnapshot, type TunnelPairMouth } from './game/multiplayer';
 
-import { FirstPersonMovementController, ControllerInputState } from './game/controller';
+import { FirstPersonMovementController, ControllerInputState } from './game/engine/controller';
 
 // Modular Domain Hooks (Enforces CODE_MANIFESTO.md Rule 8)
 import { useInventory } from './hooks/useInventory';
 import { useNotifications } from './hooks/useNotifications';
 import { usePlayerState } from './hooks/usePlayerState';
 import { useWorldEntities, INITIAL_STRUCTURES } from './hooks/useWorldEntities';
-import { generateSeededWorld } from './game/worldGen';
-import { generateGameCavern, generateGameCavernLevel, cavernCellToWorld, cavernEntryYaw, cavernStratumName, type CavernResult } from './game/cavern';
-import { generateGameRuin, ruinEntryYaw, ruinCollisionGrid, type RuinResult } from './game/ruinInterior';
-import { FATE_STYLES, type RuinVariantId, type WorldFate } from './game/ruins';
+import { generateSeededWorld } from './game/world/worldGen';
+import { generateGameCavern, generateGameCavernLevel, cavernCellToWorld, cavernEntryYaw, cavernStratumName, type CavernResult } from './game/world/cavern';
+import { generateGameRuin, ruinEntryYaw, ruinCollisionGrid, type RuinResult } from './game/world/ruinInterior';
+import { FATE_STYLES, type RuinVariantId, type WorldFate } from './game/world/ruins';
 import {
   zoneInfo,
   zoneBiomeAt,
@@ -55,10 +55,10 @@ import {
   zoneWeatherAt,
   livingHeartAt,
   type ZoneCoords,
-} from './game/zones';
-import { LANDFORM_EPOCH_MS } from './game/terrain';
+} from './game/world/zones';
+import { LANDFORM_EPOCH_MS } from './game/world/terrain';
 import { routeForZoneTag, storeEntityEvent, snapshotOf, buildZoneSyncTravel as buildZoneSyncTravelPayload, type ZoneStores } from './game/zoneSync';
-import { occupancyConflict, placementFor } from './game/placement';
+import { occupancyConflict, placementFor } from './game/structures/placement';
 import { useToolInteractions } from './hooks/useToolInteractions';
 import {
   AUTOSAVE_INTERVAL_MS,
@@ -73,37 +73,76 @@ import {
   SavedGameRecord,
   WorldSnapshot,
 } from './game/saveSystem';
-import { EMPTY_FIELD_NOTES, type FieldNotesState } from './game/fieldNotesBook';
+import { EMPTY_FIELD_NOTES, type FieldNotesState } from './game/knowledge/fieldNotesBook';
+import { noteById } from './game/knowledge/fieldNotesBook';
+import {
+  EMPTY_ASKS_BACK, applyAsksEvents, asksGameDay,
+  type AsksBackState, type AsksEventInput,
+} from './game/quests/asksBackState';
+import { runDirector } from './game/quests/asksBack/director';
+// THE WORLD ASKS BACK, S3 (dev lane, 2026-10-17): the step
+// evaluator (latch.ts) makes sagas playable — App triggers it on
+// ledger/day/zone changes and applies its grants/notifications;
+// accept/choice/track are the log's three doors into the record.
+import {
+  evaluateAsks,
+  acceptAsksOffer,
+  trackAsksSaga as trackAsksSagaInRecord,
+  canAcceptSaga,
+  goalProgressText,
+} from './game/quests/asksBack/latch';
+import { recordAsksChoice } from './game/quests/asksBackState';
+// THE WORLD ASKS BACK, S4: a release settles the creature in the
+// zone's consequence record — the Director reads it as an anchor
+// and the zone loader materializes it by name.
+import { addSettled, settleIndividual, zoneConsequences } from './game/quests/asksBack/zoneState';
+import type { SagaTrackView } from './components/QuestTracker';
 
 import { StartScreenModal } from './components/StartScreenModal';
+import { GameInfoModal } from './components/GameInfoModal';
 
 // UI Components
 import { HUD } from './components/HUD';
 import { QuestLogModal } from './components/QuestLogModal';
-import { TOOL_NAMES, accessTierOf, MADE_SPECIES_IDS } from './game/quests';
-import { BIOMES } from './game/biomes';
-import { fateForWorld } from './game/ruins';
-import { AW_CHAPTERS, type AwChapter } from './game/awChapters';
+import { TOOL_NAMES, accessTierOf, MADE_SPECIES_IDS } from './game/quests/quests';
+import { BIOMES } from './game/world/biomes';
+import { fateForWorld } from './game/world/ruins';
+import { AW_CHAPTERS, type AwChapter } from './game/quests/awChapters';
 import { ChapterModal } from './components/ChapterModal';
-import { bestWeapon } from './game/weapons';
-import type { WeaponDef } from './game/weapons';
+import { bestWeapon } from './game/creatures/weapons';
+import type { WeaponDef } from './game/creatures/weapons';
+// The Shield Family (Adam, 2026-10-17): rules, the wield hook, and
+// the Left Hand cycle grammar.
+import {
+  cycleLeftHand as cycleLeftHandNext,
+  graftInheritanceOnCraft,
+  leftHandOrder,
+  shieldOf,
+  type ShieldCombatInput,
+  type ShieldSideEffect,
+} from './game/creatures/shields';
+import { useShieldWield } from './hooks/useShieldWield';
 import { useQuests } from './hooks/useQuests';
 import { useStorage } from './hooks/useStorage';
 import { useVat } from './hooks/useVat';
 import { useDebugKit } from './hooks/useDebugKit';
-import { useZoneTravel, ZONE_ID_INSTALLED, WORLD_EDGE_COORD, ZONE_PUSH_SECONDS, ZONE_PUSH_MIN_COMPONENT } from './hooks/useZoneTravel';
+import { useZoneTravel, ZONE_ID_INSTALLED, WORLD_EDGE_COORD, ZONE_PUSH_SECONDS, ZONE_PUSH_MIN_COMPONENT, type PendingTravel } from './hooks/useZoneTravel';
 import { useInstances } from './hooks/useInstances';
 import { useSaveSession } from './hooks/useSaveSession';
+/** S6 Movable Vaults: the carry state lives in App, owned here. */
+import { useCarryVault } from './hooks/useCarryVault';
+/** S6: the carry banner is its own component — App only mounts it. */
+import { CarryBanner } from './components/CarryBanner';
 import { useMultiplayerSync } from './hooks/useMultiplayerSync';
 import { useGameInput, JUMP_GRAVITY, STORY_HEIGHT_METERS } from './hooks/useGameInput';
 import { useGameLoop } from './hooks/useGameLoop';
 import { TouchControls, type TouchMoveInput } from './components/TouchControls';
 import { BioForgeModal } from './components/BioForgeModal';
-import { findTunnelMouths, type TunnelMouthRef } from './game/tunnel';
+import { findTunnelMouths, type TunnelMouthRef } from './game/world/tunnel';
 import { InventoryModal } from './components/InventoryModal';
 import { StorageModal } from './components/StorageModal';
 import { VatModal } from './components/VatModal';
-import { POUCH_TIER_CAPS, pouchTierOf } from './game/pouch';
+import { POUCH_TIER_CAPS, pouchTierOf } from './game/items/pouch';
 import { CodexModal } from './components/CodexModal';
 import { MultiplayerModal } from './components/MultiplayerModal';
 import { ControlsGuideModal } from './components/ControlsGuideModal';
@@ -116,7 +155,7 @@ import { getProjectWorkspaceFiles } from './utils/workspaceFiles';
 // comfortably after the last pre-module world could be created.
 const GAUNTLET_MODULE_EPOCH_MS = Date.UTC(2026, 9, 15, 16, 0, 0);
 
-// The landform epoch lives with the field itself (game/terrain.ts):
+// The landform epoch lives with the field itself (game/world/terrain.ts):
 // worlds created before it keep the original uniform ripple as
 // their ground — their land is part of their history, the same
 // grandfathering the gauntlet modules got.
@@ -145,12 +184,14 @@ export default function App() {
 
   const {
     playerState,
+    shieldGrafts,
     setActiveTool,
     setSelectedStructureType,
     setSelectedSeedId,
     setSelectedFertilizerId,
     setHeldItemId,
     setQuestProgress,
+    setShieldGrafts,
     setPlayerTransform,
     setStamina,
     setHealth,
@@ -174,6 +215,7 @@ export default function App() {
     removeStructure,
     tameFauna,
     hearthFeed,
+    loadHeartbearer,
     setFaunaCommand,
     applyDissolve,
     strikeFauna,
@@ -186,12 +228,19 @@ export default function App() {
     removeDroppedItem,
     spawnDroppedItem,
     replaceWorld,
+    queueShieldSideEffect,
   } = useWorldEntities();
 
   // 2. Modals & UI States
   const [activeModal, setActiveModal] = useState<
     'bioforge' | 'inventory' | 'codex' | 'multiplayer' | 'controls' | 'devtools' | 'quests' | 'storage' | 'vat' | null
   >(null);
+
+  // The About screen (info screen work order, 2026-10-17): its
+  // own boolean, not an activeModal value — it must open over
+  // the start screen, where no world (and no modal union) is
+  // live yet. The screen carries its own Esc listener.
+  const [showAbout, setShowAbout] = useState(false);
 
   // The striker slot's draw (weapons build, Adam, 2026-10-16):
   // which KIND of weapon slot 7 holds — 'close' or 'ranged'. The
@@ -232,8 +281,36 @@ export default function App() {
   // Field Notes (dev wiring, 2026-10-16): the discovery notes the
   // player has unlocked by scanning and the named moments they
   // have witnessed. Saved with the world beside the codex; the
-  // shape and the rules live in game/fieldNotesBook.ts.
+  // shape and the rules live in game/knowledge/fieldNotesBook.ts.
   const [fieldNotesState, setFieldNotesState] = useState<FieldNotesState>(EMPTY_FIELD_NOTES);
+  // THE WORLD ASKS BACK (dev lane, 2026-10-16): the dynamic saga
+  // system's memory — the typed event log, the Director's notebook,
+  // offered/active sagas, echoes, per-zone consequences. One state
+  // slice, one optional save key; old saves fall back to empty.
+  const [asksBackState, setAsksBackState] = useState<AsksBackState>(EMPTY_ASKS_BACK);
+  // Ref mirror of the record: the 1s space/Director observer below
+  // reads the latest record without re-creating its interval on every
+  // event (the same mirror pattern as liveGameRefs).
+  const asksBackStateRef = useRef(asksBackState);
+  asksBackStateRef.current = asksBackState;
+  // S3: offer ids already announced (a new offer fires one
+  // notification, the first tick after the Director files it).
+  const asksNotifiedRef = useRef<Set<string>>(new Set());
+  // S3: the step evaluator's change signature — it runs only when
+  // the space, the zone, the game day, or the record itself moved.
+  const asksLatchSigRef = useRef<{
+    space: string | null;
+    zkey: string | null;
+    day: number;
+    state: AsksBackState | null;
+  }>({ space: null, zkey: null, day: -1, state: null });
+  // THE EVENT SINK: the one door every asks event walks through.
+  // Call sites hand raw inputs (kind + ids); day and owner are
+  // stamped here from the record's own clock. Batch-friendly —
+  // the sim's sweep hands a whole kill list at once, one setState.
+  const recordAsksEvent = useCallback((input: AsksEventInput | AsksEventInput[]) => {
+    setAsksBackState((prev) => applyAsksEvents(prev, input, 'local'));
+  }, []);
   // Append-only unlock — the scanner's door. Deduped, so rescanning
   // an old friend never grows the book.
   const unlockFieldNotes = useCallback((noteIds: string[]) => {
@@ -251,7 +328,23 @@ export default function App() {
       prev.witnessed.includes(noteId)
         ? prev
         : { ...prev, witnessed: [...prev.witnessed, noteId] });
-  }, []);
+    // The World Asks Back (2026-10-16): the witness stream doubles
+    // as the saga engine's witness signal. Inverting note → species
+    // here covers every stamp the sim already makes (all 33 notes,
+    // scan and sim-side alike) with ZERO new sim hooks — the
+    // creatures lane confirmed most beats already ride this door.
+    const note = noteById(noteId);
+    if (note) {
+      const species = [note.species, ...(note.anyOf ?? [])].filter(
+        (s): s is string => typeof s === 'string'
+      );
+      // One id per species the note keys to; the engine classifies
+      // fauna-vs-flora from the game tables (ids never collide).
+      if (species.length > 0) {
+        recordAsksEvent(species.map((s) => ({ kind: 'witness' as const, species: s })));
+      }
+    }
+  }, [recordAsksEvent]);
   const [dayNightCycle, setDayNightCycle] = useState<number>(0.35);
   const [isMuted, setIsMuted] = useState(false);
   const [isPointerLocked, setIsPointerLocked] = useState(false);
@@ -478,6 +571,15 @@ export default function App() {
   // down (the save-session seam) — App assigns it there, and the
   // hook only ever calls through the ref, after mount.
   const saveNowRef = useRef<() => void>(() => {});
+  // The BioTunnel guest fix (Adam, 2026-10-16): a guest's parked
+  // tunnel ride can be cancelled from outside the tunnel section
+  // (walked away from the mouth — the game loop; host silent — the
+  // fail timer), and the fade/busy flow must release with it. The
+  // tunnel state lives below (it needs this hook's refs), so the
+  // release is bridged through this ref — the established
+  // lazy-bridge idiom of this file (see awMergeRef). Assigned in
+  // the tunnel section; only ever called through, after mount.
+  const tunnelRideReleaseRef = useRef<() => void>(() => {});
   const {
     playerZone, setPlayerZone, playerZoneRef, visitedZonesRef, worldSeedRef,
     sessionSeed, setSessionSeed, edgePushRef, pendingTravelRef, cancelPendingTravel,
@@ -499,6 +601,21 @@ export default function App() {
     // Lazy: the save session composes below; the getter is only
     // exercised on travel, long after mount (pond gate, P5 move 2).
     getWorldCreatedAt: () => currentSaveRef.current?.createdAt ?? 0,
+    // The World Asks Back (2026-10-16): every crossing stamps a
+    // zone-visit into the saga event log — the Director reads
+    // these for echo timing and revisit goals.
+    onZoneEnter: (zoneKeyVisited: string) =>
+      recordAsksEvent({ kind: 'zoneVisit', zoneKey: zoneKeyVisited }),
+    // The BioTunnel guest fix (Adam, 2026-10-16): a cancelled
+    // tunnel ride releases its fade/busy flow — bridged, because
+    // the tunnel state is declared below this hook's call.
+    onPendingCancel: (p) => {
+      if (p.tunnel) tunnelRideReleaseRef.current();
+    },
+    // THE WORLD ASKS BACK, S4: the consequence record. The travel
+    // hook applies its zone state on every crossing — but only for
+    // the world author (solo/host); guests carry the host's truth.
+    asksBackState,
   });
 
   // The descent stack: one frame per level ABOVE the current one,
@@ -522,6 +639,176 @@ export default function App() {
     return inst.depth > 1 ? `${inst.instanceId}#${inst.depth}` : inst.instanceId;
   }, []);
 
+  // ── THE WORLD ASKS BACK — the Director trigger + the space/weather
+  //    observers (S2) ─────────────────────────────────────────────
+  //
+  // One 1-second observer does three cheap jobs (string compares and
+  // a day-number check — never per-frame work):
+  //
+  // 1. SURVEY WRITER: whenever the player's current space changes
+  //    (surface zone crossing, ruin enter/exit, cavern descend/ascend
+  //    — all visible as currentZoneId changes), the new space is
+  //    stamped into the ledger. Distinct spaces ARE the saga engine's
+  //    survey points, so "map N points in the deep rooms" counts
+  //    interiors, not just surface zones. The first tick also stamps
+  //    the spawn space — a coverage writer that only counts changes
+  //    would read 0 at spawn (the parked-zones trap: the map only
+  //    holds zones the player has LEFT).
+  // 2. WEATHER WRITER: when the new space is a surface zone with a
+  //    NAMED weather (zoneWeatherAt !== 'none'), the stamp records
+  //    it. Weather is a fixed per-zone property, so the stamp
+  //    honestly means "stood in a zone whose weather is X" — sound
+  //    for witnessing arcs. (Weather EXPERIENCED DURING something —
+  //    a storm at night — needs a loop-side moment stamp the zone
+  //    data cannot supply; no template asks for that.)
+  // 3. DIRECTOR TRIGGER: when the surface zone changes or the game
+  //    day rolls, the Director evaluates once (pure; returns the
+  //    record unchanged when nothing is owed, so no render happens).
+  //
+  // Both writers share the pre-start seed guard the zone-visit writer
+  // uses: worldSeedRef is empty before the world exists.
+  const runAsksDirector = useCallback(() => {
+    const seed = worldSeedRef.current;
+    if (!seed) return;
+    const { zx, zz } = playerZoneRef.current;
+    setAsksBackState((prev) => runDirector({ worldSeed: seed, zx, zz, state: prev }));
+  }, []);
+
+  // THE WORLD ASKS BACK, S3: the step evaluator. Pure on the
+  // record's latest ref — App applies the outcome: grants ride the
+  // ordinary addInventoryItem gain (pouch caps + overflow drops, as
+  // anywhere else), and the player hears about turns, answers,
+  // and absences. Runs from the 1s observer only when the
+  // signature moved (space/zone/day/record), never per frame.
+  const evaluateAndApplyAsks = useCallback(() => {
+    const seed = worldSeedRef.current;
+    if (!seed) return;
+    const prev = asksBackStateRef.current;
+    const { zx, zz } = playerZoneRef.current;
+    const res = evaluateAsks(prev, {
+      worldSeed: seed,
+      zoneKey: `${zx},${zz}`,
+      signals: questProgressRef.current?.signals,
+      inventory: latestStateRef.current.inventory,
+      itemName: (id: string) => ITEMS[id as ItemId]?.name ?? id,
+    });
+    if (res.state === prev) return; // idempotent: nothing owed
+    setAsksBackState(res.state);
+    for (const g of res.grants) addInventoryItem(g.itemId as ItemId, g.count);
+    for (const a of res.advanced)
+      postNotification('The saga turns', `${a.title} — ${a.stepTitle}`, 'system', '#a78bfa');
+    for (const c of res.completed)
+      postNotification(
+        'The world answers back',
+        `${c.title} — its reward is in your pouch`,
+        'discover',
+        '#a78bfa',
+      );
+    for (const d of res.deadAnchors)
+      postNotification(
+        'An absence',
+        `The ${d.name} in ${d.zoneName} is dead. The saga failed into memory.`,
+        'alert',
+        '#f87171',
+      );
+  }, [addInventoryItem, postNotification]);
+
+  // The log's three doors into the asks record (S3):
+  const acceptAsksSaga = useCallback(
+    (offerId: string) => {
+      const prev = asksBackStateRef.current;
+      if (!canAcceptSaga(prev)) {
+        postNotification(
+          'The world asks patience',
+          'Three sagas is the most the world asks at once — answer or release one first.',
+          'system',
+          '#a78bfa',
+        );
+        return;
+      }
+      const next = acceptAsksOffer(prev, offerId);
+      if (next === prev) return; // the offer faded already
+      setAsksBackState(next);
+      const inst = next.active.find((a) => a.id === offerId);
+      if (inst) postNotification('Saga taken up', inst.title, 'discover', '#a78bfa');
+    },
+    [postNotification],
+  );
+  const chooseAsksBranch = useCallback((sagaId: string, option: string) => {
+    // The choice records; the evaluator advances the choice step
+    // on the next tick — the click and the latch never race.
+    setAsksBackState((prev) => recordAsksChoice(prev, sagaId, option));
+  }, []);
+  const trackAsksSaga = useCallback((sagaId: string | null) => {
+    setAsksBackState((prev) => trackAsksSagaInRecord(prev, sagaId));
+  }, []);
+
+  const asksSpaceRef = useRef<string | null>(null);
+  const asksDirZoneRef = useRef<string | null>(null);
+  const asksDirDayRef = useRef<number>(-1);
+  useEffect(() => {
+    const id = setInterval(() => {
+      const seed = worldSeedRef.current;
+      if (!seed) return; // pre-start: no world, no writers, no Director
+      // — space observer: survey + weather writers —
+      const space = currentZoneId();
+      if (space !== asksSpaceRef.current) {
+        asksSpaceRef.current = space;
+        const inputs: AsksEventInput[] = [{ kind: 'survey', spaceKey: space }];
+        if (instanceRef.current.kind === 'surface') {
+          const { zx, zz } = playerZoneRef.current;
+          const w = zoneWeatherAt(seed, zx, zz);
+          if (w.mode !== 'none') {
+            inputs.push({ kind: 'weather', zoneKey: zoneKey(zx, zz), weatherMode: w.mode });
+          }
+        }
+        recordAsksEvent(inputs);
+      }
+      // — Director triggers: new surface zone, or new game day —
+      const { zx, zz } = playerZoneRef.current;
+      const zkey = `${zx},${zz}`;
+      const day = asksGameDay(asksBackStateRef.current);
+      if (zkey !== asksDirZoneRef.current || day !== asksDirDayRef.current) {
+        asksDirZoneRef.current = zkey;
+        asksDirDayRef.current = day;
+        runAsksDirector();
+      }
+      // — S3: new-offer notifications. The Director may have filed
+      //   this tick; the ref carries the last render, so a fresh
+      //   offer announces on the next tick at the latest — one
+      //   notification per offer, ever (the set is the dedupe).
+      for (const o of asksBackStateRef.current.offers) {
+        if (!asksNotifiedRef.current.has(o.id)) {
+          asksNotifiedRef.current.add(o.id);
+          postNotification(
+            'The world asks',
+            `${o.title} — ${o.zoneName}`,
+            'discover',
+            '#a78bfa',
+          );
+        }
+      }
+      // — S3: step evaluation. Gated on the change signature
+      //   (space / zone / day / the record itself moved) so a quiet
+      //   tick costs one comparison, never a latch pass.
+      const sig = asksLatchSigRef.current;
+      const rec = asksBackStateRef.current;
+      if (
+        space !== sig.space ||
+        zkey !== sig.zkey ||
+        day !== sig.day ||
+        rec !== sig.state
+      ) {
+        sig.space = space;
+        sig.zkey = zkey;
+        sig.day = day;
+        sig.state = rec;
+        evaluateAndApplyAsks();
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [currentZoneId, recordAsksEvent, runAsksDirector, postNotification, evaluateAndApplyAsks]);
+
   // The tool hook's instance guard: building and planting belong to
   // the surface world; inside an instance the hook refuses them (the
   // cavern additionally allows glow-spore planting — ruins allow
@@ -537,20 +824,103 @@ export default function App() {
   // the tool hook both read the same ref.
   const valleySatiatedUntilRef = useRef(0);
 
+  // ------------------------------------------------------------------------
+  // S6 Movable Vaults (Adam, 2026-10-17): the carry state. One carried
+  // container at a time, held out of the zone lists in carryRef with
+  // its origin zone stamped. Composed here, BEFORE useToolInteractions
+  // (the inert-kit gate reads carryRef) and useGameLoop (the ghost
+  // driver renders the carried type); the save hook gets a lazy
+  // getter for the autosave projection. The mass lives in the hook +
+  // game/structures/movableVaults.ts — App only wires it (APP RULE).
+  // ------------------------------------------------------------------------
+  const {
+    carryRef,
+    carrying,
+    putDownCarryAt,
+    cancelCarry,
+    dropCarryAtFall,
+    getCarryRef,
+    handleMoveVault,
+  } = useCarryVault({
+    structuresList,
+    addStructure,
+    removeStructure,
+    playerZoneRef,
+    playerPosRef,
+    visitedZonesRef,
+    getPlacementRotation,
+    instanceKind: instanceKindNow,
+    postNotification,
+    // Closes the container panels when a carry begins (the Move
+    // button's other half, handleMoveVault, lives in the hook).
+    closePanels: () => {
+      setActiveModal(null);
+      setStorageTargetId(null);
+      setVatTargetId(null);
+    },
+  });
+
+  // ------------------------------------------------------------------------
+  // THE SHIELD (Adam, 2026-10-17): the wield hook — raised state,
+  // guard break, spore cooldown, the graft record. Composed here,
+  // BEFORE useToolInteractions (the no-strike-while-raised gate
+  // reads raisedRef) — the same early-composition pattern as the
+  // S6 carry. The mass lives in the hook + game/creatures/
+  // shields.ts — App only wires it (APP RULE).
+  // ------------------------------------------------------------------------
+  const shieldGraftsRef = useRef(shieldGrafts);
+  shieldGraftsRef.current = shieldGrafts;
+  const shieldWield = useShieldWield({
+    heldItemId: playerState.heldItemId,
+    shieldGrafts,
+    setShieldGrafts,
+    carryRef,
+    postNotification,
+  });
+
   // The BioTunnel (Adam, 2026-10-16): pairing is DERIVED from
-  // the known world (game/tunnel.ts) — the live structure list
+  // the known world (game/world/tunnel.ts) — the live structure list
   // plus every visited zone's snapshot. Transit rides the zone-
   // travel machinery: the other mouth's zone loads exactly like a
   // border crossing (follow pets come through), and the gulp of
   // darkness is a fade the travel hides inside. Once the fade
   // closes you are inside the tunnel, and nothing interrupts it.
+  //
+  // The guest fix (Adam, 2026-10-16): a guest who never visited
+  // the far zone can't derive the pair from their own known
+  // world — the host carries the pair's truth (both mouths' zone
+  // keys + structure ids) on the session heartbeat, and guests
+  // union it into pairing display and transit targeting below.
   const [tunnelFade, setTunnelFade] = useState(0);
   const tunnelBusyRef = useRef(false);
+  // The cancelled-ride bridge (declared above the zone-travel
+  // hook): a parked tunnel ride releases the fade/busy flow.
+  tunnelRideReleaseRef.current = () => {
+    tunnelBusyRef.current = false;
+    setTunnelFade(0);
+  };
   const tunnelMouthsNow = (): TunnelMouthRef[] =>
     findTunnelMouths(structuresListRef.current, playerZoneRef.current, visitedZonesRef.current);
   const getTunnelMouthCount = useCallback((): number => tunnelMouthsNow().length, []);
+  // Host-side pair truth for the heartbeat (useMultiplayerSync):
+  // both mouths' zone keys + structure ids, derived from the
+  // host's own known world. Guests never compute this — they
+  // receive it.
+  const getTunnelPairFact = useCallback((): TunnelPairMouth[] =>
+    tunnelMouthsNow().map((m) => ({ zone: zoneKey(m.zone.zx, m.zone.zz), id: m.structure.id })),
+  []);
   const annotateTunnelPairing = useCallback((structures: StructureEntity[]): void => {
-    const paired = tunnelMouthsNow().length >= 2;
+    // Guests read the host's pair fact when one has arrived: the
+    // near mouth lights as paired the moment the host's pair is
+    // whole, even in a zone the guest never visited. Solo, host,
+    // and fact-less guests derive from the known world as before.
+    let paired: boolean;
+    if (multiplayerManager.isConnected && !multiplayerManager.isHost) {
+      const fact = guestTunnelPairRef.current;
+      paired = fact ? fact.length >= 2 : tunnelMouthsNow().length >= 2;
+    } else {
+      paired = tunnelMouthsNow().length >= 2;
+    }
     structures.forEach((s) => {
       if (s.type === 'biotunnel_mouth') s.tunnel = { paired };
     });
@@ -568,7 +938,28 @@ export default function App() {
         return;
       }
       const other = tunnelMouthsNow().find((m) => m.structure.id !== mouth.id);
-      if (!other) {
+      const isGuest = multiplayerManager.isConnected && !multiplayerManager.isHost;
+      // The BioTunnel guest fix (Adam, 2026-10-16): a guest who
+      // never visited the far zone can't derive the pair — but the
+      // host's pair fact names the far end (zone key + mouth id),
+      // so the ride can still be targeted at the host's truth.
+      let farZone: ZoneCoords | null = null;
+      let farMouthId: string | null = null;
+      if (!other && isGuest) {
+        const fact = guestTunnelPairRef.current;
+        if (fact && fact.length >= 2) {
+          const curKey = zoneKey(playerZoneRef.current.zx, playerZoneRef.current.zz);
+          const far = fact.find((m) => m.id !== mouth.id) ?? fact.find((m) => m.zone !== curKey) ?? null;
+          if (far) {
+            const [zx, zz] = far.zone.split(',').map(Number);
+            if (Number.isFinite(zx) && Number.isFinite(zz)) {
+              farZone = { zx, zz };
+              farMouthId = far.id;
+            }
+          }
+        }
+      }
+      if (!other && !farZone) {
         postNotification(
           'A Mouth Without Its Other Half',
           'This BioTunnel mouth hangs dark and still — its pair is gone. Grow the recipe again and set the other mouth down where the tunnel should lead.',
@@ -579,27 +970,107 @@ export default function App() {
       }
       tunnelBusyRef.current = true;
       setTunnelFade(1);
-      window.setTimeout(() => {
-        const o = other.structure;
-        const fx = Math.sin(o.rotation ?? 0);
-        const fz = Math.cos(o.rotation ?? 0);
-        completeTravel(other.zone.zx, other.zone.zz, {
-          x: o.worldX + fx * 2,
-          z: o.worldZ + fz * 2,
-        });
-        postNotification(
-          'The Tunnel Delivers You',
-          'Darkness, one long gulp — and the other mouth lets you out. Nothing followed you through.',
-          'system',
-          '#2dd4bf',
-        );
-        // Ask the World: the crossing itself is the goal state.
-        awMergeRef.current((s) => (s.tunnel ? s : { ...s, tunnel: true }));
-      }, 650);
-      window.setTimeout(() => {
-        setTunnelFade(0);
+      const releaseRide = (): void => {
         tunnelBusyRef.current = false;
-      }, 1750);
+        setTunnelFade(0);
+      };
+      if (other) {
+        // The far mouth is in the known world — ride it at once,
+        // exactly as before. (Solo and host always land here; a
+        // guest lands here too when their map already holds the
+        // far zone — that copy came from the host, so it IS the
+        // truth.)
+        window.setTimeout(() => {
+          const o = other.structure;
+          const fx = Math.sin(o.rotation ?? 0);
+          const fz = Math.cos(o.rotation ?? 0);
+          completeTravel(other.zone.zx, other.zone.zz, {
+            x: o.worldX + fx * 2,
+            z: o.worldZ + fz * 2,
+          });
+          postNotification(
+            'The Tunnel Delivers You',
+            'Darkness, one long gulp — and the other mouth lets you out. Nothing followed you through.',
+            'system',
+            '#2dd4bf',
+          );
+          // Ask the World: the crossing itself is the goal state.
+          awMergeRef.current((s) => (s.tunnel ? s : { ...s, tunnel: true }));
+        }, 650);
+        window.setTimeout(releaseRide, 1750);
+        return;
+      }
+      // Guest, far zone never visited: the host's truth arrives by
+      // the zone-request handshake. The far mouth's exit is
+      // resolved from the arrived snapshot when the ride completes
+      // (useMultiplayerSync); follow pets still cross via
+      // completeTravel, exactly like an edge crossing.
+      const fz = farZone as ZoneCoords;
+      const fmId = farMouthId as string;
+      const farKey = zoneKey(fz.zx, fz.zz);
+      const known = visitedZonesRef.current.get(farKey);
+      const knownMouth =
+        known?.structures.find((s) => s.type === 'biotunnel_mouth' && s.id === fmId) ??
+        known?.structures.find((s) => s.type === 'biotunnel_mouth');
+      if (known && knownMouth) {
+        window.setTimeout(() => {
+          const fx = Math.sin(knownMouth.rotation ?? 0);
+          const fz2 = Math.cos(knownMouth.rotation ?? 0);
+          completeTravel(fz.zx, fz.zz, {
+            x: knownMouth.worldX + fx * 2,
+            z: knownMouth.worldZ + fz2 * 2,
+          });
+          postNotification(
+            'The Tunnel Delivers You',
+            'Darkness, one long gulp — and the other mouth lets you out. Nothing followed you through.',
+            'system',
+            '#2dd4bf',
+          );
+          // Ask the World: the crossing itself is the goal state.
+          awMergeRef.current((s) => (s.tunnel ? s : { ...s, tunnel: true }));
+        }, 650);
+        window.setTimeout(releaseRide, 1750);
+        return;
+      }
+      // Unvisited: park the ride and ask the host, wrapped in the
+      // tunnel's fade/busy flow with the same slow/fail honesty as
+      // edge crossings. Walking away from the mouth or a silent
+      // host cancels (the cancel releases the ride); the arrival
+      // completes it. The Ask-the-World crossing signal fires on
+      // arrival, not on asking — a ride that never leaves grants
+      // nothing.
+      const pending: PendingTravel = {
+        nx: fz.zx,
+        nz: fz.zz,
+        entryX: 0,
+        entryZ: 0,
+        slowTimer: 0,
+        failTimer: 0,
+        tunnel: { farMouthId: fmId, nearX: mouth.worldX, nearZ: mouth.worldZ },
+      };
+      pending.slowTimer = window.setTimeout(() => {
+        if (pendingTravelRef.current === pending) {
+          postNotification(
+            'The Tunnel Waits…',
+            'The far mouth is listening — waiting on the host to send that zone.',
+            'system',
+            '#94a3b8',
+          );
+        }
+      }, 900);
+      pending.failTimer = window.setTimeout(() => {
+        if (pendingTravelRef.current === pending) {
+          cancelPendingTravel();
+          postNotification(
+            'No Answer From the Host',
+            'The far zone never arrived — the tunnel lets you go. Step through again to try once more.',
+            'system',
+            '#f59e0b',
+          );
+        }
+      }, 6000);
+      pendingTravelRef.current = pending;
+      multiplayerManager.broadcastZoneRequest(farKey);
     },
     [completeTravel, postNotification],
   );
@@ -653,6 +1124,7 @@ export default function App() {
     onExitRuin: handleExitRuin,
     instanceKind: instanceKindNow,
     tameFauna,
+    loadHeartbearer,
     hearthFeed,
     getDayNightCycle: () => latestStateRef.current.dayNightCycle,
     setFaunaCommand,
@@ -660,6 +1132,9 @@ export default function App() {
     fieldNotesState,
     unlockFieldNotes,
     recordFieldWitness,
+    // The World Asks Back (2026-10-16): the event sink for saga
+    // latching — harvest/tame/feed/plant/build writers live here.
+    recordAsksEvent,
     postNotification,
     onOpenBioForgeModal: openBioForgeModal,
     onOpenStorage: (structure) => {
@@ -713,6 +1188,12 @@ export default function App() {
     triggerHarvestFx,
     triggerSolventFx,
     triggerSprayJetFx,
+    // S6 Movable Vaults: the inert-kit gate reads the live carry.
+    carryRef,
+    putDownCarryAt,
+    // THE SHIELD (2026-10-17): no striking while the shield is
+    // raised — the wield hook's raisedRef.
+    shieldRaisedRef: shieldWield.raisedRef,
 
   });
 
@@ -722,7 +1203,31 @@ export default function App() {
   handleFaunaInteract,
   handleStructureInteract,
 });
-  const liveGameRefs = useRef({ hasItem, addInventoryItem, updateTick, postNotification, getPlacementRotation, recordFieldWitness });
+  const liveGameRefs = useRef<{
+    hasItem: typeof hasItem;
+    addInventoryItem: typeof addInventoryItem;
+    updateTick: typeof updateTick;
+    postNotification: typeof postNotification;
+    getPlacementRotation: typeof getPlacementRotation;
+    recordFieldWitness: typeof recordFieldWitness;
+    recordAsksEvent: typeof recordAsksEvent;
+    /** THE SHIELD (2026-10-17): set by the effect below once the
+     *  wield hook composes — the game loop's whole shield read. */
+    shield?: {
+      buildCombatInput: (getPlayerFacing: () => number, payStamina: (n: number) => boolean) => ShieldCombatInput | undefined;
+      onStaminaEmpty: () => void;
+      tickClock: (dt: number) => void;
+      raisedRef: { current: boolean };
+      graftsRef: { current: Partial<Record<ItemId, boolean>> };
+      /** THE SHIELD (2026-10-17): the strike side-effect sink —
+       *  the shared consumer queues reflects, staggers, and spore
+       *  bursts here; the sim's post-map sweep drains them. */
+      queueShieldSideEffect: (fx: ShieldSideEffect) => void;
+    };
+  }>({ hasItem, addInventoryItem, updateTick, postNotification, getPlacementRotation, recordFieldWitness, recordAsksEvent });
+  // LAZY: the Left Hand cycle lives below the input call site (the
+  // shield slice, 2026-10-17) — Alt+wheel / Alt+↑↓ ride this ref.
+  const cycleLeftHandRef = useRef((dir: 1 | -1): void => { /* assigned below */ });
 
   useEffect(() => {
     toolHandlersRef.current = {
@@ -731,7 +1236,7 @@ export default function App() {
       handleFaunaInteract,
       handleStructureInteract,
     };
-  liveGameRefs.current = { hasItem, addInventoryItem, updateTick, postNotification, getPlacementRotation, recordFieldWitness };
+  liveGameRefs.current = { hasItem, addInventoryItem, updateTick, postNotification, getPlacementRotation, recordFieldWitness, recordAsksEvent };
 });
   // Zone identity (name + biome) is computed at render time from the
   // active world's seed — see the zone block just above the JSX return.
@@ -768,11 +1273,13 @@ export default function App() {
     playerState,
     codexList,
     fieldNotesState,
+    asksBackState,
     dayNightCycle,
     restoreInventory,
     restorePlayerState,
     setCodexList,
     setFieldNotesState,
+    setAsksBackState,
     setDayNightCycle,
     setQuestProgress,
     replaceWorld,
@@ -781,6 +1288,10 @@ export default function App() {
     // Lazy: the debug hook is called further down; saveNow only
     // reads the stash when a save actually happens.
     getDebugStashRef: () => debugStashRef,
+    // S6 Movable Vaults: the autosave projection reads the live
+    // carry at save time; nothing about the carry is persisted.
+    getCarryRef,
+    getPlacementRotation,
     captureCavePlantings,
     plantingsKey,
   });
@@ -816,6 +1327,35 @@ export default function App() {
       createdAt < LANDFORM_EPOCH_MS,
     );
   }, [playerZone, hasStarted]);
+  // THE WORLD ASKS BACK, S3: the pinned saga's tracker face.
+  // The progress line runs the same latch math as the log card
+  // (latch.ts is the single source), so the two never disagree.
+  const trackedSagaInst = asksBackState.tracked
+    ? asksBackState.active.find(
+        (a) => a.id === asksBackState.tracked && a.status === 'active',
+      )
+    : undefined;
+  const sagaView: SagaTrackView | null = (() => {
+    if (!trackedSagaInst) return null;
+    const step = trackedSagaInst.steps[trackedSagaInst.currentStep];
+    if (!step) return null;
+    return {
+      title: trackedSagaInst.title,
+      zoneName: trackedSagaInst.zoneName,
+      stepN: Math.min(trackedSagaInst.currentStep + 1, trackedSagaInst.steps.length),
+      stepTotal: trackedSagaInst.steps.length,
+      stepTitle: step.title,
+      stepText: step.text,
+      progress: goalProgressText(step, trackedSagaInst, asksBackState, {
+        worldSeed: '',
+        zoneKey: `${playerZone.zx},${playerZone.zz}`,
+        signals: questProgress?.signals,
+        inventory,
+        itemName: (id: string) => ITEMS[id as ItemId]?.name ?? id,
+      }),
+    };
+  })();
+
   const { unlockedTools, questViews, trackedView, showQuestHud, updateQuestProgress } =
     useQuests({
       inventory,
@@ -831,7 +1371,7 @@ export default function App() {
       },
       // The chapter delivery: when the fragment set completes,
       // the world's story opens — the fate named outright, the
-      // one earned exception (game/awChapters.ts).
+      // one earned exception (game/quests/awChapters.ts).
       onQuestComplete: (def) => {
         if (def.id === 'q_aw_happened' && worldSeedRef.current) {
           setAwChapter(AW_CHAPTERS[fateForWorld(worldSeedRef.current)]);
@@ -847,7 +1387,7 @@ export default function App() {
   // ------------------------------------------------------------------
   // Small observers that record what the player has DONE and SEEN
   // into questProgress.signals; the line's quests derive their
-  // completion from that record (game/quests.ts goalMet). Every
+  // completion from that record (game/quests/quests.ts goalMet). Every
   // writer is a no-op until its fact changes, so these effects
   // cost a comparison per zone step, fauna change, or codex page.
   const questProgressRef = useRef(questProgress);
@@ -924,6 +1464,24 @@ export default function App() {
     });
   }, [codexList, hasStarted]);
 
+  // The social set's mirror: the field-notes book's witnessed
+  // list, shadowed into the quest signals so the witness quests
+  // read the same record as every other goal. The book (App
+  // state, saved with the world) stays the authority — this
+  // only copies it when it changes. (Restored 2026-10-16: the
+  // first landing was eaten by a stale-base App push in the
+  // creature-slice interleave; the dev lane's union check
+  // caught the absence — tsc alone could not.)
+  useEffect(() => {
+    if (!hasStarted) return;
+    const w = fieldNotesState.witnessed;
+    awMergeRef.current((s) => {
+      const prev = s.witnessed ?? [];
+      const same = prev.length === w.length && w.every((id) => prev.includes(id));
+      return same ? s : { ...s, witnessed: [...w] };
+    });
+  }, [fieldNotesState, hasStarted]);
+
   // The homestead composites: home-as-organism (a heart tile
   // set down, a hearthpod grown, a tamed companion in residence
   // near the heart) and the hum (hearth + a gestating vat + a
@@ -979,6 +1537,9 @@ export default function App() {
     // Pond depth for the hop gate (P5 move 2): the engine owns the
     // current zone's pond list; input just asks.
     getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0,
+    // The Left Hand cycle (the shield slice): Alt+wheel / Alt+↑↓
+    // walk the owned left-hand instruments through this ref.
+    onCycleLeftHand: (dir) => cycleLeftHandRef.current(dir),
   });
 
 // The striker draw swap (weapons build, Adam, 2026-10-16): flip
@@ -1049,6 +1610,7 @@ saveNowRef.current = saveNow;
 // destructured names are the ones the rest of App already uses.
 const {
   roomCode, isHost, isConnected, peers, chatMessages, chatToasts, inviteRoomCode,
+  guestTunnelPairRef,
   handleJoinCoopFromStart, handleHostSession, handleJoinSession, handleLeaveSession,
   handleSendChatMessage,
 } = useMultiplayerSync({
@@ -1061,6 +1623,22 @@ const {
   upsertFlora, upsertFauna, upsertStructure, upsertDroppedItem,
   removeFlora, removeFauna, removeStructure, removeDroppedItem,
   addStructure, resetFloraHarvest, tameFauna, replaceWorld,
+  // The BioTunnel guest fix (Adam, 2026-10-16): the host's pair
+  // truth rides the heartbeat; guests re-read pairing display
+  // when a fact lands, and a completed tunnel ride announces
+  // itself (the Ask-the-World crossing signal fires on arrival,
+  // never on asking).
+  getTunnelPairFact,
+  onTunnelPairFact: () => annotateTunnelPairing(structuresListRef.current),
+  onTunnelRideArrived: () => {
+    postNotification(
+      'The Tunnel Delivers You',
+      'Darkness, one long gulp — and the other mouth lets you out. Nothing followed you through.',
+      'system',
+      '#2dd4bf',
+    );
+    awMergeRef.current((s) => (s.tunnel ? s : { ...s, tunnel: true }));
+  },
 });
 
   // ------------------------------------------------------------------
@@ -1487,6 +2065,11 @@ const {
       const key = `${pz.zx},${pz.zz}`;
       awMergeRef.current((s) => ({ ...s, fellZone: key }));
     }
+    // S6 MOVABLE VAULTS: death mid-carry sets the vault down where the
+    // player fell — into the LIVE list at the fall position, BEFORE
+    // respawnAtSpawn(), so the normal travel parking carries it into
+    // the fall zone's snapshot. Recoverable: Walk Back for it.
+    dropCarryAtFall();
     healthRef.current = playerState.maxHealth;
     setHealth(playerState.maxHealth);
     staminaRef.current = 100;
@@ -1499,7 +2082,7 @@ const {
     );
     respawnAtSpawn();
     playerDeadRef.current = false;
-  }, [playerState.maxHealth, setHealth, setStamina, postNotification, respawnAtSpawn]);
+  }, [playerState.maxHealth, setHealth, setStamina, postNotification, respawnAtSpawn, dropCarryAtFall]);
   onPlayerDeathRef.current = handlePlayerDeath;
 
   // Pause mode on background return (Adam, 2026-10-15): the engine
@@ -1525,7 +2108,7 @@ const {
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef, returnPausedRef,
-    structuresListRef, floraListRef, annotateTunnelPairing,
+    structuresListRef, floraListRef, annotateTunnelPairing, carryRef,
     activeToolRef, lastBroadcastTime, lastMinimapUpdateTime, latestStateRef, currentZoneId,
     applyPlayerLevel, postNotification, setStamina, setHealth, setMinimapPos,
     setDayNightCycle, setHoverInfo, setIsPointerLocked, onBackgroundReturn,
@@ -1533,39 +2116,69 @@ const {
   });
 
   // ------------------------------------------------------------------------
-  // Left Hand (Adam, 2026-10-14): the off-hand slot for INSTRUMENTS —
-  // the Hand Lantern-Fern (a living torch) and the Prismatic Field
-  // Radar (minimap pings). Taking one INTO the hand spends the pouch
-  // item; stowing returns it. The engine light follows
-  // PlayerState.heldItemId via an engine-wiring effect in the
-  // game-loop hook, so saves, loads, and co-op world swaps all keep
-  // the hand honest.
+  // Left Hand (Adam, 2026-10-14; hand grammar, 2026-10-17): the
+  // off-hand slot for INSTRUMENTS. The cycle walks owned
+  // instruments only — the lantern and every shield the player
+  // has grown — and stows past the last. Taking one INTO the hand
+  // spends the pouch item; stowing returns it. The engine light
+  // follows PlayerState.heldItemId via an engine-wiring effect in
+  // the game-loop hook, so saves, loads, and co-op world swaps
+  // all keep the hand honest.
   // ------------------------------------------------------------------------
-  const handleToggleHeldItem = useCallback((): void => {
-    // The Left Hand holds the LANTERN — the slot raises the one
-    // instrument kept for it, a second click stows it (Adam,
-    // 2026-10-14). The Prismatic Field Radar used to share this
-    // slot; it is a HELMET upgrade now (Adam, 2026-10-16) and
-    // lives in the helm's radar track, installed by ownership.
-    const HOLDABLES: ItemId[] = ['hand_lantern_fern'];
+  const cycleLeftHand = useCallback((direction: 1 | -1): void => {
+    // The Prismatic Field Radar used to share this slot; it is a
+    // HELMET upgrade now (Adam, 2026-10-16) and lives in the
+    // helm's radar track, installed by ownership.
     const held = playerState.heldItemId;
-    const owned = HOLDABLES.filter((id) => id === held || hasItem(id, 1));
+    const owned = leftHandOrder(held, (id) => hasItem(id, 1));
     if (owned.length === 0) {
-      postNotification('Empty Left Hand', 'Craft a Hand Lantern-Fern at the Bio-Forge [B] to hold it here.', 'alert', '#fbbf24');
+      postNotification('Empty Left Hand', 'Craft a Hand Lantern-Fern at the Bio-Forge [B] to hold something here.', 'alert', '#fbbf24');
       return;
     }
-    const idx = held ? owned.indexOf(held) : -1;
-    const next = owned[idx + 1] ?? null;
+    const next = cycleLeftHandNext(held, (id) => hasItem(id, 1), direction);
     if (held) addInventoryItem(held, 1);
     if (next) {
       deductInventoryItem(next, 1);
       setHeldItemId(next);
-      postNotification('Lantern Raised', 'The Hand Lantern-Fern takes your left hand — its light goes where you go.', 'craft', '#22d3ee');
+      const label = next === 'hand_lantern_fern' ? 'Lantern Raised' : `${ITEMS[next]?.name ?? next} Raised`;
+      const blurb = next === 'hand_lantern_fern'
+        ? 'The Hand Lantern-Fern takes your left hand — its light goes where you go.'
+        : `The ${ITEMS[next]?.name ?? next} takes your left hand — strikes from its front will break on it.`;
+      postNotification(label, blurb, 'craft', '#22d3ee');
     } else {
       setHeldItemId(null);
       postNotification('Left Hand Free', `${ITEMS[held as ItemId]?.name ?? 'Item'} stowed back in your pouch.`, 'craft', '#94a3b8');
     }
   }, [playerState.heldItemId, addInventoryItem, deductInventoryItem, hasItem, setHeldItemId, postNotification]);
+
+  // The HUD's Left Hand tile taps the cycle forward (Adam's hand
+  // grammar: Alt+wheel / Alt+arrow also walk it, wired in
+  // useGameInput).
+  const handleToggleHeldItem = useCallback((): void => {
+    cycleLeftHand(1);
+  }, [cycleLeftHand]);
+
+  // THE SHIELD (Adam, 2026-10-17): the game loop reads the wield
+  // hook's refs each frame — raised for the stamina drain and
+  // braced slow, the combat input at the 10 Hz tick for the bite
+  // site, the clock for guard-break and spore cooldowns.
+  useEffect(() => {
+    liveGameRefs.current.shield = {
+      buildCombatInput: shieldWield.buildCombatInput,
+      onStaminaEmpty: shieldWield.onStaminaEmpty,
+      tickClock: shieldWield.tickClock,
+      raisedRef: shieldWield.raisedRef,
+      graftsRef: shieldGraftsRef,
+      queueShieldSideEffect,
+    };
+  }, [shieldWield, queueShieldSideEffect]);
+
+  // THE SHIELD (Adam, 2026-10-17): the wield hook — raised state,
+  // guard break, spore cooldown, the graft record. Composed here,
+  // wired through liveGameRefs; the sim reads it at the bite site.
+  // The input hook's Alt+wheel / Alt+arrow Left Hand cycle (the
+  // shield slice) — assigned where the cycle itself is defined.
+  cycleLeftHandRef.current = cycleLeftHand;
 
   // Radar migration (Adam, 2026-10-16): a save from before the
   // conversion can come back holding the radar in the Left Hand —
@@ -1636,8 +2249,26 @@ const {
       );
       return;
     }
+    // The shield slice: a held ingredient is invisible to the
+    // pouch check — but a shield consumed by its upgrade (or a
+    // lantern eaten by the Lantern Shield) can be in the Left
+    // Hand. Stow the hand FIRST so the craft reads the whole
+    // pouch and the hand is never left holding what it ate.
+    if (playerState.heldItemId && recipe.ingredients.some((ing) => ing.id === playerState.heldItemId)) {
+      addInventoryItem(playerState.heldItemId, 1);
+      setHeldItemId(null);
+    }
     const success = craftRecipe(recipe);
     if (success) {
+      // Graft recipes stamp the spikes onto the shield they grew
+      // on; consume-upgrades (T1->T2, T2->T3) inherit the
+      // parent's graft onto the new tier.
+      if (recipe.graftShield) {
+        shieldWield.graftShield(recipe.graftShield);
+      } else {
+        const inherited = graftInheritanceOnCraft(recipe, shieldGraftsRef.current);
+        if (inherited) shieldWield.graftShield(inherited);
+      }
       postNotification(
         'Synthesis Complete',
         `Synthesized ${recipe.outputCount}x ${ITEMS[recipe.outputId]?.name || recipe.outputId} in Bio-Forge.`,
@@ -1836,6 +2467,14 @@ const {
                 })
             : undefined
         }
+        // THE WORLD ASKS BACK (S3): the pinned saga's tracker face.
+        // While a saga is pinned it takes the tracker's slot; the
+        // authored tracked quest rests in the log and returns when
+        // the saga unpins.
+        sagaView={sagaView}
+        onDismissSaga={
+          sagaView ? () => trackAsksSaga(null) : undefined
+        }
         showQuestHud={showQuestHud}
         onCycleSeed={cycleSelectedSeed}
         onCycleFertilizer={cycleLoadedFertilizer}
@@ -1845,6 +2484,9 @@ const {
         onOpenCodex={() => setActiveModal('codex')}
         onOpenMultiplayer={() => setActiveModal('multiplayer')}
         onOpenControls={() => setActiveModal('controls')}
+        onOpenAbout={() => setShowAbout(true)}
+        shieldRaised={shieldWield.raised}
+        onSetShieldRaised={shieldWield.setShieldRaised}
         onOpenDevTools={() => setActiveModal('devtools')}
         onSave={handleManualSave}
         currentBiomeName={inCavern ? cavernStratumName(cavernDepth || 1) : inRuin ? 'Precursor Ruin' : currentZoneName}
@@ -1917,6 +2559,17 @@ const {
               : {}),
           })
         }
+        // THE WORLD ASKS BACK (S3): the saga section's record and
+        // its three doors (accept / choose / track).
+        asksBackState={asksBackState}
+        onAcceptSaga={acceptAsksSaga}
+        onChooseBranch={chooseAsksBranch}
+        onTrackSaga={trackAsksSaga}
+        sagaLatch={{
+          signals: questProgress?.signals,
+          inventory,
+          zoneKey: `${playerZone.zx},${playerZone.zz}`,
+        }}
       />
       {/* The Ask the World chapter (Adam, 2026-10-16): opens once,
           at the moment the fragment set completes. */}
@@ -1941,9 +2594,32 @@ const {
               </button>
               <button
                 onClick={() => {
-                  releaseFauna(pendingRelease.id);
+                  // THE WORLD ASKS BACK, S4: a release settles the
+                  // creature in this zone's consequence record — the
+                  // source of truth the Director anchors on by name
+                  // and the zone loader materializes on entry. The
+                  // record keeps the name the creature keeps, so the
+                  // two can never disagree; a nameless release takes
+                  // the record's deterministic name, stamped onto the
+                  // live creature too.
+                  const seed = worldSeedRef.current;
+                  const relDay = asksGameDay(asksBackStateRef.current);
+                  const settledName =
+                    pendingRelease.customName ||
+                    settleIndividual(seed, playerZone.zx, playerZone.zz, pendingRelease.species, relDay).name;
+                  releaseFauna(pendingRelease.id, pendingRelease.customName ? undefined : settledName);
+                  setAsksBackState((prev) => {
+                    const key = `${playerZone.zx},${playerZone.zz}`;
+                    const indiv = settleIndividual(seed, playerZone.zx, playerZone.zz, pendingRelease.species, asksGameDay(prev));
+                    const named = { ...indiv, name: settledName };
+                    return {
+                      ...prev,
+                      zoneState: { ...prev.zoneState, [key]: addSettled(zoneConsequences(prev, key), named) },
+                    };
+                  });
                   multiplayerManager.broadcastEntityUpsert('fauna', {
                     ...pendingRelease,
+                    customName: settledName,
                     isTamed: false,
                     command: undefined,
                     state: 'wandering',
@@ -1976,6 +2652,7 @@ const {
           onStart={handleVatStart}
           onHatch={handleVatHatch}
           onUpgrade={handleVatUpgrade}
+          onMove={handleMoveVault}
         />
       )}
       {/* The open storage pod (entity re-read live from the list). */}
@@ -1991,8 +2668,12 @@ const {
           onDeposit={handleStorageDeposit}
           onWithdraw={handleStorageWithdraw}
           onUpgrade={handleStorageUpgrade}
+          onMove={handleMoveVault}
         />
       )}
+      {/* S6 MOVABLE VAULTS: the carry banner mounts here, beside the
+          container panels it replaces mid-haul. */}
+      <CarryBanner carrying={carrying} onCancel={cancelCarry} />
       {/* The BioTunnel gulp (Adam, 2026-10-16): while a transit
           runs, the screen is the inside of the tunnel — darkness
           that closes, swallows the travel, and lets go. */}
@@ -2018,6 +2699,7 @@ const {
         isOpen={activeModal === 'inventory'}
         onClose={() => setActiveModal(null)}
         inventory={inventory}
+        shieldGrafts={shieldGrafts}
         onSelectBlueprint={setSelectedStructureType}
         onSelectSeed={setSelectedSeedId}
         onSelectFertilizer={setSelectedFertilizerId}
@@ -2028,6 +2710,10 @@ const {
         isOpen={activeModal === 'codex'}
         onClose={() => setActiveModal(null)}
         codexList={codexList}
+        // The Grown Arsenal marks entries GROWN / NOT GROWN and shows
+        // ingredient counts from the pouch when it has it.
+        inventory={inventory}
+        shieldGrafts={shieldGrafts}
       />
 
       <StartScreenModal
@@ -2037,7 +2723,10 @@ const {
         onCreateSave={handleCreateSave}
         onDeleteSave={handleDeleteSave}
         onJoinCoop={handleJoinCoopFromStart}
+        onOpenAbout={() => setShowAbout(true)}
       />
+
+      <GameInfoModal isOpen={showAbout} onClose={() => setShowAbout(false)} />
       <MultiplayerModal
         isOpen={activeModal === 'multiplayer'}
         onClose={() => setActiveModal(null)}

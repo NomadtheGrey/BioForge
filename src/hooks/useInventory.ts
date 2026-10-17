@@ -5,7 +5,7 @@
  * STACK CAPS LIVE HERE (Adam, 2026-10-15): every gain — harvest,
  * loot, craft output, pickups — flows through addInventoryItem or
  * craftRecipe, and both clamp to the pouch tier's cap
- * (game/pouch.ts). What doesn't fit FALLS ON THE GROUND: the hook
+ * (game/items/pouch.ts). What doesn't fit FALLS ON THE GROUND: the hook
  * reports the excess through the overflow handler App registers
  * (setOverflowHandler), and App spawns it as a dropped item at the
  * player's feet. Existing holdings above a cap (an old save, the
@@ -14,8 +14,8 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { ItemId, CraftingRecipe } from '../types/game';
-import { INITIAL_INVENTORY, ITEMS, RECIPES } from '../game/constants';
-import { pouchTierOf, stackCapFor } from '../game/pouch';
+import { INITIAL_INVENTORY, ITEMS, RECIPES } from '../game/items/constants';
+import { pouchTierOf, stackCapFor } from '../game/items/pouch';
 
 /** One line of a Grow Prerequisites result: a recipe that was
  *  crafted, and how many times. */
@@ -107,21 +107,30 @@ export function useInventory(): UseInventoryResult {
     const hasAll = recipe.ingredients.every((ing) => (inventory[ing.id] || 0) >= ing.count);
     if (!hasAll) return false;
 
+    // GRAFT (shield slice, 2026-10-17): a graft recipe grows thorn
+    // spikes ONTO a shield the player already owns — the shield is
+    // the workbench, not a material. Materials leave; the shield
+    // count never moves (no deduct, no re-output, no overflow drop);
+    // the graftShield field stamps the graft onto PlayerState in
+    // the craft flow.
+    const isGraft = !!recipe.graftShield;
+
     // The output clamps like any other gain (computed against the
     // pouch BEFORE the ingredients leave — that's the player's
     // moment-of-craft capacity), and its overflow drops too.
-    const fits = fitsCount(recipe.outputId, recipe.outputCount);
+    const fits = isGraft ? 0 : fitsCount(recipe.outputId, recipe.outputCount);
     setInventory((prev) => {
       const nextInv = { ...prev };
       recipe.ingredients.forEach((ing) => {
+        if (isGraft && ing.id === recipe.graftShield) return;
         nextInv[ing.id] = Math.max(0, (nextInv[ing.id] || 0) - ing.count);
       });
-      if (fits > 0) {
+      if (!isGraft && fits > 0) {
         nextInv[recipe.outputId] = (nextInv[recipe.outputId] || 0) + fits;
       }
       return nextInv;
     });
-    const overflow = recipe.outputCount - fits;
+    const overflow = isGraft ? 0 : recipe.outputCount - fits;
     if (overflow > 0) {
       overflowRef.current?.(recipe.outputId, overflow);
     }

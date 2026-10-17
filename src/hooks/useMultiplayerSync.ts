@@ -16,14 +16,14 @@
  * verdicts.
  */
 
-import { useState, useEffect } from 'react';
-import { multiplayerManager, type EntityKind, type EntitySnapshot } from '../game/multiplayer';
+import { useState, useEffect, useRef } from 'react';
+import { multiplayerManager, type EntityKind, type EntitySnapshot, type TunnelPairMouth } from '../game/multiplayer';
 import { soundEngine } from '../audio/soundEngine';
 import { routeForZoneTag, storeEntityEvent, type ZoneStores } from '../game/zoneSync';
-import { generateSeededWorld } from '../game/worldGen';
-import { SPAWN_ZONE, zoneBiomeAt, zoneVariantAt, zoneFaceAt, zoneKey, type ZoneCoords } from '../game/zones';
+import { generateSeededWorld } from '../game/world/worldGen';
+import { SPAWN_ZONE, zoneBiomeAt, zoneVariantAt, zoneFaceAt, zoneKey, type ZoneCoords } from '../game/world/zones';
 import type { WorldSnapshot } from '../game/saveSystem';
-import type { BioForgeThreeEngine } from '../game/threeEngine';
+import type { BioForgeThreeEngine } from '../game/engine/threeEngine';
 import type { PendingTravel } from './useZoneTravel';
 import type {
   DroppedItemEntity, FaunaEntity, FloraEntity, GameNotification, MultiplayerPeer, StructureEntity, ToolType,
@@ -73,6 +73,17 @@ export interface MultiplayerSyncDeps {
   resetFloraHarvest: (floraId: string, regrowthDuration: number) => void;
   tameFauna: (faunaId: string, customName: string, state: FaunaEntity['state']) => void;
   replaceWorld: (world: WorldSnapshot) => void;
+  /** The BioTunnel guest fix (Adam, 2026-10-16): the host's pair
+   *  truth — both mouths' zone keys + ids — derived from the host's
+   *  known world (tunnelMouthsNow). Read on the heartbeat only. */
+  getTunnelPairFact: () => TunnelPairMouth[];
+  /** Called on a guest right after a tunnel-pair fact lands, so the
+   *  pairing display (mouth membrane glow) re-reads it. */
+  onTunnelPairFact?: () => void;
+  /** Called on a guest when a tunnel ride's zone snapshot arrives
+   *  and the crossing completes — the ride's announcement and the
+   *  Ask-the-World crossing signal. Never fires on asking. */
+  onTunnelRideArrived?: () => void;
 }
 
 export interface UseMultiplayerSyncResult {
@@ -83,6 +94,10 @@ export interface UseMultiplayerSyncResult {
   chatMessages: { sender: string; text: string; color: string; time: string }[];
   chatToasts: { id: number; sender: string; text: string; color: string }[];
   inviteRoomCode: string;
+  /** The BioTunnel guest fix: the host's last pair fact (null when
+   *  none has arrived or the session ended). Guests union it into
+   *  pairing display and transit targeting. */
+  guestTunnelPairRef: { current: TunnelPairMouth[] | null };
   handleJoinCoopFromStart: () => void;
   handleHostSession: () => void;
   handleJoinSession: (code: string) => void;
@@ -101,6 +116,7 @@ export function useMultiplayerSync(deps: MultiplayerSyncDeps): UseMultiplayerSyn
     upsertFlora, upsertFauna, upsertStructure, upsertDroppedItem,
     removeFlora, removeFauna, removeStructure, removeDroppedItem,
     addStructure, resetFloraHarvest, tameFauna, replaceWorld,
+    getTunnelPairFact, onTunnelPairFact, onTunnelRideArrived,
   } = deps;
 
   // 3. Multiplayer States
@@ -110,6 +126,12 @@ export function useMultiplayerSync(deps: MultiplayerSyncDeps): UseMultiplayerSyn
   const [peers, setPeers] = useState(multiplayerManager.getConnectedPeers());
   const [chatMessages, setChatMessages] = useState<{ sender: string; text: string; color: string; time: string }[]>([]);
   const [chatToasts, setChatToasts] = useState<{ id: number; sender: string; text: string; color: string }[]>([]);
+
+  // The BioTunnel guest fix (Adam, 2026-10-16): the host's pair
+  // truth, kept here for guests. Pairing display and transit
+  // targeting read it; the host never stores it (its own derived
+  // pair is the truth — see the manager's tunnel_pair guard).
+  const guestTunnelPairRef = useRef<TunnelPairMouth[] | null>(null);
 
   // Invite links: when the game is opened from a shared link
   // (…/?room=CODE), the code is parked here at boot and handed to the
@@ -164,6 +186,10 @@ export function useMultiplayerSync(deps: MultiplayerSyncDeps): UseMultiplayerSyn
         // send the full snapshot so they play in the same place we do.
         if (multiplayerManager.isHost) {
           multiplayerManager.broadcastWorldSync(buildWorldSnapshot(), latestStateRef.current.dayNightCycle, buildZoneSyncTravel());
+          // The BioTunnel guest fix (Adam, 2026-10-16): answer the
+          // joiner with the pair's truth at once, so a guest at a
+          // mouth never has to wait a heartbeat to see it lit.
+          multiplayerManager.broadcastTunnelPair(getTunnelPairFact());
         }
       },
       onPeerLeave: (peerId) => {
@@ -286,7 +312,28 @@ export function useMultiplayerSync(deps: MultiplayerSyncDeps): UseMultiplayerSyn
           // host's copy. (If I'd walked away, the tick already
           // cancelled the pending — this branch can't fire stale.)
           cancelPendingTravel();
-          completeTravel(pending.nx, pending.nz, { x: pending.entryX, z: pending.entryZ }, data.world);
+          // The BioTunnel guest fix (Adam, 2026-10-16): a tunnel
+          // ride's entry was parked unknown — the far zone's truth
+          // was never in hand. Resolve the far mouth's exit from
+          // the arrived snapshot (the host's true mouth, by id),
+          // exactly the exit the direct path computes.
+          let entryX = pending.entryX;
+          let entryZ = pending.entryZ;
+          if (pending.tunnel) {
+            const farMouth =
+              data.world.structures.find((s) => s.type === 'biotunnel_mouth' && s.id === pending.tunnel!.farMouthId) ??
+              data.world.structures.find((s) => s.type === 'biotunnel_mouth');
+            if (farMouth) {
+              const fx = Math.sin(farMouth.rotation ?? 0);
+              const fz = Math.cos(farMouth.rotation ?? 0);
+              entryX = farMouth.worldX + fx * 2;
+              entryZ = farMouth.worldZ + fz * 2;
+            }
+          }
+          completeTravel(pending.nx, pending.nz, { x: entryX, z: entryZ }, data.world);
+          // A completed tunnel ride announces itself — the
+          // Ask-the-World crossing signal fires here, on arrival.
+          if (pending.tunnel) onTunnelRideArrived?.();
           return;
         }
         // Someone else's crossing, overheard: freshen my map with
@@ -298,6 +345,14 @@ export function useMultiplayerSync(deps: MultiplayerSyncDeps): UseMultiplayerSyn
       },
       onDayNight: (value) => {
         setDayNightCycle(value);
+      },
+      onTunnelPair: (mouths) => {
+        // The manager already guards hosts (their own derivation is
+        // the truth). Guests keep the fact and re-read the pairing
+        // display — a near mouth lights as paired the moment the
+        // host's pair is whole, even in a zone never visited.
+        guestTunnelPairRef.current = mouths;
+        onTunnelPairFact?.();
       },
       onWorldSync: (data) => {
         // The host's world replaces ours wholesale. This is memory only:
@@ -359,16 +414,45 @@ export function useMultiplayerSync(deps: MultiplayerSyncDeps): UseMultiplayerSyn
   // because everyone else's heartbeats keep arriving; and nobody vanishes
   // for the crime of standing still. Position truth is playerPosRef, the
   // same source the movement broadcast uses.
+  // The BioTunnel guest fix (Adam, 2026-10-16): the last pair
+  // fact the host broadcast. A change of signature means a mouth
+  // was placed or dissolved, so guests get the new truth. Reset
+  // whenever the heartbeat effect restarts (reconnect), so a new
+  // session always announces its pair on the first beat.
+  const lastPairSigRef = useRef<string>('__unset__');
+
   const PEER_PRESENCE_HEARTBEAT_MS = 1000;
   useEffect(() => {
     if (!isConnected) return;
+    lastPairSigRef.current = '__unset__';
     const sendPresence = () => {
       const pos = playerPosRef.current;
       multiplayerManager.broadcastPlayerMove(pos.x, pos.z, pos.rotation, activeToolRef.current, playerLevelRef.current, currentZoneId());
     };
     sendPresence();
     const heartbeatId = setInterval(sendPresence, PEER_PRESENCE_HEARTBEAT_MS);
-    return () => clearInterval(heartbeatId);
+    // The BioTunnel guest fix (Adam, 2026-10-16): the host carries
+    // the pair's truth on the heartbeat — both mouths' zone keys +
+    // ids, derived from the host's own known world. Guests union it
+    // into pairing display and transit targeting. The fact only
+    // changes when a mouth is placed or dissolved, so it goes out
+    // on change (plus a 30-beat re-affirm, so one dropped message
+    // can't strand a guest's display or a ride).
+    let beats = 0;
+    const pairBeatId = setInterval(() => {
+      if (!multiplayerManager.isHost) return;
+      beats += 1;
+      const fact = getTunnelPairFact();
+      const sig = JSON.stringify(fact);
+      if (sig !== lastPairSigRef.current || beats % 30 === 0) {
+        lastPairSigRef.current = sig;
+        multiplayerManager.broadcastTunnelPair(fact);
+      }
+    }, PEER_PRESENCE_HEARTBEAT_MS);
+    return () => {
+      clearInterval(heartbeatId);
+      clearInterval(pairBeatId);
+    };
   }, [isConnected]);
 
   const handleHostSession = () => {
@@ -401,6 +485,9 @@ export function useMultiplayerSync(deps: MultiplayerSyncDeps): UseMultiplayerSyn
     setIsHost(false);
     setIsConnected(false);
     setPeers([]);
+    // The BioTunnel guest fix: the host's pair truth dies with the
+    // session — pairing display falls back to the known world.
+    guestTunnelPairRef.current = null;
     postNotification('Session Disconnected', 'Returned to local single-explorer mode.', 'system', '#64748b');
   };
 
@@ -420,6 +507,7 @@ export function useMultiplayerSync(deps: MultiplayerSyncDeps): UseMultiplayerSyn
 
   return {
     roomCode, isHost, isConnected, peers, chatMessages, chatToasts, inviteRoomCode,
+    guestTunnelPairRef,
     handleJoinCoopFromStart, handleHostSession, handleJoinSession, handleLeaveSession,
     handleSendChatMessage,
   };

@@ -22,7 +22,7 @@
 
 import type { WorldSnapshot } from './saveSystem';
 import type { EntityKind, EntitySnapshot } from './multiplayer';
-import { generateSeededWorld } from './worldGen';
+import { generateSeededWorld } from './world/worldGen';
 
 /** Apply one entity upsert/remove to a stored snapshot, returning
  *  the new snapshot (list membership replaced, never mutated). */

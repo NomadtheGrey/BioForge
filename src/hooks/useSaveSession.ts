@@ -18,19 +18,30 @@
  */
 
 import { useRef, useState, useCallback, useEffect } from 'react';
-import type { BioForgeThreeEngine } from '../game/threeEngine';
+import type { BioForgeThreeEngine } from '../game/engine/threeEngine';
 import {
   AUTOSAVE_INTERVAL_MS, listSaveMetadata, deleteSavedGame, buildSavedGame,
   createSaveMetadata, loadSavedGame, storeSavedGame,
   type GameDifficulty, type SaveMetadata, type SavedGameRecord, type WorldSnapshot,
 } from '../game/saveSystem';
-import type { FieldNotesState } from '../game/fieldNotesBook';
+import type { FieldNotesState } from '../game/knowledge/fieldNotesBook';
+import { EMPTY_ASKS_BACK, type AsksBackState } from '../game/quests/asksBackState';
+// THE WORLD ASKS BACK, S4: the save-load restore runs the same
+// consequence apply path as zone travel (load mode — removals +
+// settled individuals, never abundance on player-shaped lists).
+import { applyZoneConsequences } from '../game/quests/asksBack/applyConsequences';
 import { INITIAL_STRUCTURES } from './useWorldEntities';
-import { SPAWN_ZONE, zoneKey, zoneBiomeAt, zoneVariantAt, zoneFaceAt } from '../game/zones';
-import { generateSeededWorld } from '../game/worldGen';
+import { SPAWN_ZONE, zoneKey, zoneBiomeAt, zoneVariantAt, zoneFaceAt } from '../game/world/zones';
+import { generateSeededWorld } from '../game/world/worldGen';
 import { multiplayerManager } from '../game/multiplayer';
+/**
+ * S6 Movable Vaults: the autosave projection reads the live carry and
+ * stamps a projected copy via the pure helper — the save record itself
+ * is never mutated in place (buildWorldSnapshot returns LIVE refs).
+ */
+import { projectCarryForSave, type CarryState } from '../game/structures/movableVaults';
 import type { InstanceState } from './useInstances';
-import type { ZoneCoords } from '../game/zones';
+import type { ZoneCoords } from '../game/world/zones';
 import type {
   CodexEntry, DroppedItemEntity, FaunaEntity, FloraEntity, GameNotification,
   ItemId, PlayerState, QuestProgressState, StructureEntity,
@@ -75,6 +86,20 @@ export interface SaveSessionDeps {
   getDebugStashRef: () => { current: InventoryMap | null };
   captureCavePlantings: (key: string) => void;
   plantingsKey: (instanceId: string, depth: number) => string;
+  /** The World Asks Back (2026-10-16): the saga event ledger,
+   *  saved under the save record's `asksBack` key. */
+  asksBackState: AsksBackState;
+  setAsksBackState: (state: AsksBackState) => void;
+  /**
+   * S6 Movable Vaults: LAZY carry getter (the save timer's idiom —
+   * saveNow reads the live carry at save time). The projection writes
+   * a COPY of the carried entity into the SAVED current zone at the
+   * player's feet; the carry state itself is NEVER persisted and the
+   * save format does not change (SAVE_FORMAT_VERSION stays 1).
+   */
+  getCarryRef: () => { current: CarryState | null };
+  /** S6: facing-derived rotation for the projected copy (Adam's pin). */
+  getPlacementRotation: () => number;
 }
 
 export function useSaveSession(deps: SaveSessionDeps) {
@@ -83,10 +108,11 @@ export function useSaveSession(deps: SaveSessionDeps) {
     playerZoneRef, setPlayerZone, visitedZonesRef, worldSeedRef, setSessionSeed,
     cavePlantingsRef, resetInstanceState,
     floraList, faunaList, structuresList, droppedItems,
-    inventory, playerState, codexList, fieldNotesState, dayNightCycle,
-    restoreInventory, restorePlayerState, setCodexList, setFieldNotesState, setDayNightCycle, setQuestProgress,
+    inventory, playerState, codexList, fieldNotesState, asksBackState, dayNightCycle,
+    restoreInventory, restorePlayerState, setCodexList, setFieldNotesState, setAsksBackState, setDayNightCycle, setQuestProgress,
     replaceWorld, enterFullscreenOnTouch, postNotification, getDebugStashRef,
     captureCavePlantings, plantingsKey,
+    getCarryRef, getPlacementRotation,
   } = deps;
 
     // --------------------------------------------------------------------------
@@ -113,12 +139,12 @@ export function useSaveSession(deps: SaveSessionDeps) {
   // one exists purely for save/snapshot assembly.)
   const latestStateRef = useRef({
     floraList, faunaList, structuresList, droppedItems,
-    inventory, playerState, codexList, fieldNotesState, dayNightCycle,
+    inventory, playerState, codexList, fieldNotesState, asksBackState, dayNightCycle,
   });
   useEffect(() => {
     latestStateRef.current = {
       floraList, faunaList, structuresList, droppedItems,
-      inventory, playerState, codexList, fieldNotesState, dayNightCycle,
+      inventory, playerState, codexList, fieldNotesState, asksBackState, dayNightCycle,
     };
   });
 
@@ -196,7 +222,10 @@ export function useSaveSession(deps: SaveSessionDeps) {
     }
     // While a debug-kit swap is active, the STASH is the pouch of
     // record — saves never see the kit (see toggleDebugKit).
-    const record = buildSavedGame(meta, buildWorldSnapshot(), getDebugStashRef().current ?? s.inventory, buildCurrentPlayerState(), s.dayNightCycle, s.codexList, cavePlantingsRef.current, s.fieldNotesState);
+    // buildCurrentPlayerState is hoisted so the S6 projection below can
+    // place the carried vault at the same player feet the record uses.
+    const playerForSave = buildCurrentPlayerState();
+    const record = buildSavedGame(meta, buildWorldSnapshot(), getDebugStashRef().current ?? s.inventory, playerForSave, s.dayNightCycle, s.codexList, cavePlantingsRef.current, s.fieldNotesState, s.asksBackState);
     // Zone travel (2026-10-15): the record also carries every visited
     // zone's snapshot plus where the player is standing. The `world`
     // field above already holds the CURRENT zone's snapshot (the save
@@ -207,6 +236,32 @@ export function useSaveSession(deps: SaveSessionDeps) {
       ...Object.fromEntries(visitedZonesRef.current),
       [zoneKey(playerZoneRef.current.zx, playerZoneRef.current.zz)]: buildWorldSnapshot(),
     };
+    // S6 MOVABLE VAULTS — autosave projection (Adam's catch): a save
+    // NEVER interrupts a carry. If a vault is being carried when the
+    // record is built, project the whole entity into the SAVED COPY of
+    // the current zone at the player's feet. buildWorldSnapshot returns
+    // LIVE refs, so BOTH record.world and record.zones[current] get
+    // fresh objects with copied structure arrays — the live lists are
+    // never mutated. The carry state itself is never persisted (no new
+    // save key; SAVE_FORMAT_VERSION untouched); every autosave
+    // re-projects from live truth, and on reload the vault stands
+    // where the last save caught the player mid-carry.
+    const carryForSave = getCarryRef().current;
+    if (carryForSave) {
+      const currentKey = zoneKey(playerZoneRef.current.zx, playerZoneRef.current.zz);
+      const projected = projectCarryForSave(
+        carryForSave,
+        playerForSave.x,
+        playerForSave.z,
+        getPlacementRotation(),
+      );
+      record.world = { ...record.world, structures: [...record.world.structures, projected] };
+      const currentZoneSnap = record.zones[currentKey] ?? { flora: [], fauna: [], structures: [], drops: [] };
+      record.zones = {
+        ...record.zones,
+        [currentKey]: { ...currentZoneSnap, structures: [...currentZoneSnap.structures, projected] },
+      };
+    }
     record.currentZone = { ...playerZoneRef.current };
     currentSaveRef.current = { ...meta, savedAt: record.savedAt };
     void storeSavedGame(record);
@@ -274,7 +329,29 @@ export function useSaveSession(deps: SaveSessionDeps) {
       setPlayerZone(restoredZone);
       worldSeedRef.current = record.worldSeed ?? '';
       setSessionSeed(record.worldSeed ?? '');
-      replaceWorld(restoredZones.get(zoneKey(restoredZone.zx, restoredZone.zz)) ?? record.world);
+      // THE WORLD ASKS BACK, S4: the restored zone loads through the
+      // same consequence apply path as travel (the world author only —
+      // a guest's restored lists are their host's truth already). Load
+      // mode: removals + settled individuals materialize; abundance
+      // never scales a player-shaped snapshot.
+      const restoredKey = zoneKey(restoredZone.zx, restoredZone.zz);
+      const restoredSnap = restoredZones.get(restoredKey) ?? record.world;
+      const isAuthor = !multiplayerManager.isConnected || multiplayerManager.isHost;
+      const appliedSnap = isAuthor
+        ? applyZoneConsequences(
+            { fauna: restoredSnap.fauna, flora: restoredSnap.flora },
+            restoredZone.zx, restoredZone.zz,
+            record.asksBack ?? EMPTY_ASKS_BACK,
+            'load',
+          )
+        : { fauna: restoredSnap.fauna, flora: restoredSnap.flora };
+      if (appliedSnap.fauna !== restoredSnap.fauna || appliedSnap.flora !== restoredSnap.flora) {
+        const withApplied = { ...restoredSnap, fauna: appliedSnap.fauna, flora: appliedSnap.flora };
+        restoredZones.set(restoredKey, withApplied);
+        replaceWorld(withApplied);
+      } else {
+        replaceWorld(restoredSnap);
+      }
       // Repaint the ground with the RESTORED zone's biome (pre-seed
       // saves pass null and keep the plain quadrant colors). This is
       // the only biome repaint on load — handleSelectSave used to do
@@ -318,6 +395,10 @@ export function useSaveSession(deps: SaveSessionDeps) {
       };
       setCodexList(record.codexList);
       setFieldNotesState(record.fieldNotes ?? { unlocked: [], witnessed: [] });
+      // The World Asks Back: an old record lacks the key and lands
+      // here with an empty memory — offers regenerate from seed +
+      // day, so the fallback contradicts nothing.
+      setAsksBackState(record.asksBack ?? EMPTY_ASKS_BACK);
       setDayNightCycle(record.dayNightCycle);
     };
 
@@ -358,7 +439,7 @@ export function useSaveSession(deps: SaveSessionDeps) {
       // — the player can hide it from the quest list's checkbox [Q].
       setQuestProgress({ completedIds: [], trackedId: 'q_first_harvest', showHud: true });
       // The seed earns its keep: a new world's flora and fauna are GROWN
-      // from it (seeded surface scatter — game/worldGen.ts) instead of
+      // from it (seeded surface scatter — game/world/worldGen.ts) instead of
       // reusing the fixed hand-placed starter layout. Starter structures
       // (forge, floors, mound) stay fixed — they're the homestead, not
       // wilderness. Generate from meta.worldSeed: createSaveMetadata

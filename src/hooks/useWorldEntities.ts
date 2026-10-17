@@ -13,10 +13,26 @@ import {
   DroppedItemEntity,
 } from '../types/game';
 import { multiplayerManager } from '../game/multiplayer';
-import { speciesDef } from '../game/species';
-import { sampleItemId, SAMPLE_SHED_SECONDS_TAMED, SAMPLE_SHED_SECONDS_WILD } from '../game/vat';
+import { speciesDef } from '../game/creatures/species';
+// THE SHIELD (Adam, 2026-10-17): the strike side-effect queue
+// drained in the post-map sweep — thorn-spike reflects, braced
+// staggers, and the Fenback's Spore Answer. Block RESOLUTION
+// lives at the shared onFaunaAttack consumer (the game loop's
+// damage application), so the main bite and the Fall Hawk's
+// stoop block identically; this file only carries the side
+// effects back into the sim.
+import {
+  GRAFT_REFLECT_PASSIVE,
+  SPORE_KNOCKBACK_METERS,
+  SPORE_RADIUS,
+  SPORE_STAGGER_SECONDS,
+  type ShieldSideEffect,
+  type StrikeCtx,
+} from '../game/creatures/shields';
+import { sampleItemId, SAMPLE_SHED_SECONDS_TAMED, SAMPLE_SHED_SECONDS_WILD } from '../game/structures/vat';
 import type { ItemId } from '../types/game';
 import type { WorldSnapshot } from '../game/saveSystem';
+import type { AsksEventInput } from '../game/quests/asksBackState';
 
 
 // Base time for a plant to go from planted to harvest-ready. Slowed
@@ -395,8 +411,9 @@ export interface UseWorldEntitiesResult {
   removeStructure: (structureId: string) => void;
   tameFauna: (faunaId: string, customName: string, state: FaunaEntity['state']) => void;
   hearthFeed: (faunaId: string) => number;
+  loadHeartbearer: (faunaId: string, item: ItemId) => number;
   setFaunaCommand: (faunaId: string, cmd: 'follow' | 'stay' | 'guard') => void;
-  releaseFauna: (faunaId: string) => void;
+  releaseFauna: (faunaId: string, settleName?: string) => void;
   applyDissolve: (faunaId: string) => void;
   /** One close-striker hit: damage + flinch, sim-gated (weapons). */
   strikeFauna: (faunaId: string, damage: number, flinchSeconds: number) => void;
@@ -418,11 +435,16 @@ export interface UseWorldEntitiesResult {
     /** Danger system (slice 5): fired when a wild hunter's bite
      *  lands. The caller (the game loop) owns player health and
      *  applies the house damage pattern. */
-    onFaunaAttack?: (species: FaunaSpecies, damage: number) => void,
+    onFaunaAttack?: (species: FaunaSpecies, damage: number, ctx?: StrikeCtx) => void,
     /** True on Normal/Hostile worlds: hunters chase and bite.
      *  False (Peaceful): the alert theater only, no teeth. */
     attacksArmed?: boolean
   ) => void;
+  /** THE SHIELD (Adam, 2026-10-17): the strike side-effect sink —
+   *  the shared onFaunaAttack consumer queues reflects, braced
+   *  staggers, and spore bursts here; the post-map sweep drains
+   *  them into the sim. */
+  queueShieldSideEffect: (fx: ShieldSideEffect) => void;
 }
 
 export function useWorldEntities(): UseWorldEntitiesResult {
@@ -482,6 +504,41 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   // otter last banked a cache. Per-otter, unhurried, unseen —
   // dividends are not announced.
   const otterCacheRef = useRef<Map<string, number>>(new Map());
+  // Boiler Crab vent-witness dwell (slice 47): seconds each
+  // crab has spent in a player's close company — its steam
+  // vents on a seven-second cycle (mesh-side), so seven
+  // seconds near one is a witnessed venting.
+  const crabDwellRef = useRef<Map<string, number>>(new Map());
+  // The Lodestone Hound's stare (slice 51): per-hound encounter
+  // records — stare seconds accrued, and whether the stare has
+  // completed (the charge earned). Session-transient like the
+  // crab's dwell map: an interrupted encounter simply re-stares.
+  const stareRef = useRef<Map<string, { t: number; committed: boolean }>>(new Map());
+  // The Hush Hound's pursuit clock (slice 51): continuous
+  // seconds a committed hound has held its hunt — the Field
+  // Note witnesses the pursuit, not the meeting.
+  const hushPursuitRef = useRef<Map<string, number>>(new Map());
+  // THE SHIELD (Adam, 2026-10-17): the strike side-effect queue.
+  // The shared onFaunaAttack consumer (game loop) resolves a
+  // strike and queues its sim-side effects here — thorn-spike
+  // reflects, braced staggers, spore bursts — because the
+  // consumer fires during the map phase and can't touch the
+  // fauna list. The post-map sweep drains it in the same tick.
+  const shieldSideEffectsRef = useRef<ShieldSideEffect[]>([]);
+  const queueShieldSideEffect = (fx: ShieldSideEffect): void => {
+    shieldSideEffectsRef.current.push(fx);
+  };
+  // Meadowback sentinel bookkeeping (slice 49): each sentinel's
+  // last bell (sim seconds — the cooldown is the sentinel's own
+  // patience) and whether a hunter stood in its regard last tick
+  // (the Peaceful visitor-bell is an ARRIVAL, edge-triggered,
+  // not a state).
+  const sentinelBellRef = useRef<Map<string, number>>(new Map());
+  const sentinelWatchRef = useRef<Map<string, boolean>>(new Map());
+  // The last puff-hour seen (slice 47): Puffbells puff as the
+  // shared phase crosses each hour mark; the flora tick below
+  // compares hour indices to catch the turn.
+  const puffHourRef = useRef(-1);
   const prevPhaseRef = useRef(0.35);
   const lastPlayerPosRef = useRef<{ x: number; z: number } | null>(null);
 
@@ -620,6 +677,19 @@ export function useWorldEntities(): UseWorldEntitiesResult {
     return count;
   }, []);
 
+  // The Heartbearer's load (slice 48): the lure's offering
+  // hand places an edible on the bearer's back (the tool hook
+  // chose and deducted it); the sim carries it from here —
+  // the route below delivers. Cargo caps at four: a broad
+  // back, not a freight line. Returns the load count.
+  const loadHeartbearer = useCallback((faunaId: string, item: ItemId): number => {
+    const bearer = faunaRef.current.find((f) => f.id === faunaId);
+    if (!bearer || bearer.species !== 'heartbearer' || bearer.isTamed) return 0;
+    const cargo = [...(bearer.cargoItems ?? []), item].slice(0, 4);
+    setFaunaList((prev) => prev.map((fn) => (fn.id === faunaId ? { ...fn, cargoItems: cargo } : fn)));
+    return cargo.length;
+  }, []);
+
   const upsertFauna = useCallback((fauna: FaunaEntity): void => {
     setFaunaList((prev) => {
       const idx = prev.findIndex((f) => f.id === fauna.id);
@@ -714,11 +784,14 @@ export function useWorldEntities(): UseWorldEntitiesResult {
     []
   );
 
-  const releaseFauna = useCallback((faunaId: string): void => {
+  // THE WORLD ASKS BACK, S4: an optional settle name — a nameless
+  // release takes the consequence record's deterministic name so
+  // the live creature and the record can never disagree.
+  const releaseFauna = useCallback((faunaId: string, settleName?: string): void => {
     setFaunaList((prev) =>
       prev.map((fn) =>
         fn.id === faunaId
-          ? { ...fn, isTamed: false, tamedBy: undefined, command: undefined, anchorX: undefined, anchorZ: undefined, state: 'wandering' as const }
+          ? { ...fn, isTamed: false, tamedBy: undefined, command: undefined, anchorX: undefined, anchorZ: undefined, state: 'wandering' as const, ...(settleName ? { customName: settleName } : null) }
           : fn
       )
     );
@@ -795,12 +868,25 @@ export function useWorldEntities(): UseWorldEntitiesResult {
       playerZ: number,
       onPickupItem: (item: DroppedItemEntity) => void,
       onCritterExcrete?: (species: string) => void,
-      onFaunaAttack?: (species: FaunaSpecies, damage: number) => void,
+      onFaunaAttack?: (species: FaunaSpecies, damage: number, ctx?: StrikeCtx) => void,
       attacksArmed?: boolean,
-      dayPhase?: number
+      dayPhase?: number,
+      onFieldWitness?: (noteId: string) => void,
+      onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void,
+      /** The World Asks Back (2026-10-16): the saga event sink —
+       *  culls stamp here, in the kill sweep below. */
+      onAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void
     ): void => {
       const simulateWorld = !multiplayerManager.isConnected || multiplayerManager.isHost;
       combatArmedRef.current = !!attacksArmed;
+      // Field Notes witness stamps (creature slice 47,
+      // 2026-10-16): App's sink is append-only and deduped, so
+      // the sim fires at the witnessed moment and keeps no
+      // ledger of its own — every stamp below is a condition,
+      // not a bookkeeping exercise.
+      const witness = (noteId: string): void => {
+        onFieldWitness?.(noteId);
+      };
       // The projectile ledger runs on this clock (weapons build,
       // 2026-10-16): shots resolve when their travel time elapses.
       simClockRef.current += dt;
@@ -828,6 +914,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
         for (const f of faunaRef.current) {
           if (f.species === 'hollow_hermit' && !f.isTamed && (hermitRegardRef.current.get(f.id) ?? 0) >= 90) {
             spawnDroppedItem('hollow_heart_spore', 1, f.x + 1.3, f.z + 0.6);
+            witness('note_hollow_hermit'); // the gift, seen left (slice 47)
           }
         }
         hermitRegardRef.current.clear();
@@ -870,6 +957,11 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             const ang = Math.random() * Math.PI * 2;
             const dist = 3 + Math.random() * 4;
             spawnDroppedItem(treasure[0], treasure[1], f.x + Math.cos(ang) * dist, f.z + Math.sin(ang) * dist);
+            // The bank, witnessed (slice 47): a cache appearing
+            // in the player's sight is the otter's named moment
+            // (pickup-side can't tell a cache's drops from any
+            // other — the seeing is the stamp).
+            if (Math.hypot(f.x - playerX, f.z - playerZ) < 30) witness('note_root_otter');
           } else {
             otterCacheRef.current.set(f.id, banked);
           }
@@ -918,6 +1010,9 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             );
             if (pod) {
               claimedThisPass.push({ x: pod.worldX, z: pod.worldZ });
+              // The taking-up, witnessed (slice 47): a wisp
+              // settling over a hearth in the player's sight.
+              if (Math.hypot(playerX - pod.worldX, playerZ - pod.worldZ) < 30) witness('note_hearth_wisp');
               nextWisps.set(w.id, { anchorX: pod.worldX, anchorZ: pod.worldZ, pondRadius: 2.5, targetX: pod.worldX, targetZ: pod.worldZ });
               changed = true;
             }
@@ -1018,6 +1113,8 @@ export function useWorldEntities(): UseWorldEntitiesResult {
         const mappedFauna = prevFauna.map((fauna) => {
           let { x, z, state, isTamed, targetX, targetZ, byproductTimer, command } = fauna;
           // Hunter bite cooldown (slice 5); absent on older saves.
+          let sentinelFacing = false;
+          let meadowBusy = false;
           let biteTimer = fauna.biteTimer ?? 0;
           let sampleTimer = fauna.sampleTimer ?? 0;
           // Solvent dissolve (Adam, 2026-10-16): fractional
@@ -1040,7 +1137,20 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // whose table entry names one (the dive cycle today).
           const diveSpec = speciesDef(fauna.species).dive;
           let phaseTimer = fauna.phaseTimer ?? 0;
-          if (diveSpec) phaseTimer = (phaseTimer + dt) % diveSpec.cycleSeconds;
+          if (diveSpec) {
+            const prevPhaseTimer = phaseTimer;
+            phaseTimer = (phaseTimer + dt) % diveSpec.cycleSeconds;
+            // The dive, completed (slice 47 witness): the cycle
+            // crossing from underwater time back into air is a
+            // finished dive, witnessed by anyone standing near.
+            if (
+              prevPhaseTimer < diveSpec.waterSeconds &&
+              phaseTimer >= diveSpec.waterSeconds &&
+              Math.hypot(fauna.x - playerX, fauna.z - playerZ) < 25
+            ) {
+              witness('note_plunge_duck');
+            }
+          }
           // Hearth Dog courtship clocks (slice 39): an arrived,
           // undecided dog counts down its thirty days of
           // loaded-zone time, and digests between offerings.
@@ -1105,10 +1215,53 @@ export function useWorldEntities(): UseWorldEntitiesResult {
               targetZ = anchorZ + Math.cos(angle) * PATROL_RADIUS;
             }
           }
+          // Guard, the Meadowback (slice 49): SENTINEL — the
+          // design's new guard flavor. It does not fetch and it
+          // does not fight: it takes its post at the anchor and
+          // WATCHES (the rotation below keeps its head turning
+          // toward whatever it is watching), and its low
+          // bell-note is the report. Armed worlds: a THREAT bell
+          // when a wild hunter nearby is actively hunting,
+          // re-rung while the danger persists. Peaceful: a
+          // VISITOR bell, once, when a hunter enters its regard —
+          // announced, not feared. The bell's patience is 45 s:
+          // a bell that rings constantly warns about nothing.
+          if (isTamed && command === 'guard' && fauna.species === 'meadowback') {
+            const postX = fauna.anchorX ?? x;
+            const postZ = fauna.anchorZ ?? z;
+            if (Math.hypot(postX - x, postZ - z) > 3) {
+              targetX = postX;
+              targetZ = postZ;
+              state = 'patrolling';
+            } else {
+              targetX = x;
+              targetZ = z;
+              state = 'patrolling';
+              sentinelFacing = true;
+              const hunterInRegard = prevFauna.some(
+                (o) => !o.isTamed && speciesDef(o.species).hunt && Math.hypot(o.x - x, o.z - z) <= 30
+              );
+              const huntingNow = prevFauna.some(
+                (o) => !o.isTamed && o.state === 'attacking' && speciesDef(o.species).hunt && Math.hypot(o.x - x, o.z - z) <= 30
+              );
+              const bellReady = simClockRef.current - (sentinelBellRef.current.get(fauna.id) ?? -1_000_000) > 45;
+              const dPlayer = Math.hypot(playerX - x, playerZ - z);
+              if (bellReady && attacksArmed && huntingNow) {
+                onSentinelBell?.('meadowback', 'threat');
+                sentinelBellRef.current.set(fauna.id, simClockRef.current);
+                if (dPlayer < 40) witness('note_meadowback');
+              } else if (bellReady && !attacksArmed && hunterInRegard && !sentinelWatchRef.current.get(fauna.id)) {
+                onSentinelBell?.('meadowback', 'visitor');
+                sentinelBellRef.current.set(fauna.id, simClockRef.current);
+                if (dPlayer < 40) witness('note_meadowback');
+              }
+              sentinelWatchRef.current.set(fauna.id, hunterInRegard);
+            }
+          }
           // Guard, everyone else (soft-puffs, burrow mice): sanitation
           // duty — fetch the nearest loose drop back to the pouch. With
           // nothing to fetch, return to the anchor post and wait.
-          if (isTamed && command === 'guard' && !speciesDef(fauna.species).hunt) {
+          if (isTamed && command === 'guard' && fauna.species !== 'meadowback' && !speciesDef(fauna.species).hunt) {
             const drop = nearestDrop(x, z);
             if (drop) {
               targetX = drop.x;
@@ -1164,15 +1317,136 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // proximity never alerts them; the provocation clock
           // does. An unprovoked giant is scenery with a pulse.
           const provoked = !hunt?.provokedOnly || provokedTimer > 0;
-          const hunterAlert = !!hunt && provoked && distToPlayer <= hunt.aggroRange;
+          // THE DISTANCE GRADIENT (slice 50): wild-country hunters
+          // carry spawn stamps (wildAggro / wildDmg on the entity;
+          // absent = 1 = the table's word, which is also every
+          // near-country hunter and the whole provoked tier). The
+          // aggro bubble grows — and once a stamped hunter has
+          // COMMITTED, it holds the hunt beyond the bubble's edge:
+          // the leash grows by the same stamp, so out far things
+          // don't just hit harder, they don't quit. A hunter at
+          // stamp 1 deaggros exactly where it always has.
+          const wildAggro = fauna.wildAggro ?? 1;
+          const aggroEff = hunt ? hunt.aggroRange * wildAggro : 0;
+          const latched =
+            fauna.state === 'attacking' && wildAggro > 1 && distToPlayer <= aggroEff * wildAggro;
+          // THE LONG PURSUIT (slice 51 — the Hush Hound): its
+          // leash is the valley itself. Once committed it holds
+          // the hunt at any range — and the heart clearing is
+          // the one sanctuary: a player standing in it is simply
+          // not hunted (no commit, no latch), and the hound
+          // circles outside. (The heart is read exactly where
+          // the valley staff reads it: the heart flora, else
+          // the heart tile.)
+          const heartClear =
+            fauna.species === 'hush_hound' &&
+            (() => {
+              const heart = floraRef.current.find((fl) => fl.species === 'valley_heart' || fl.species === 'heartbloom');
+              const tile = heart ? undefined : structuresRef.current.find((st) => st.type === 'heart_tile');
+              const hx = heart ? heart.x : tile ? tile.worldX : undefined;
+              const hz = heart ? heart.z : tile ? tile.worldZ : undefined;
+              return hx !== undefined && Math.hypot(hx - playerX, hz! - playerZ) <= 12;
+            })();
+          const hushLatched = fauna.species === 'hush_hound' && fauna.state === 'attacking' && !heartClear;
+          const hunterAlert =
+            !!hunt && provoked && !heartClear && (distToPlayer <= aggroEff || latched || hushLatched);
           biteTimer = Math.max(0, biteTimer - dt);
-          if (hunterAlert && hunt) {
+          // FIELD NOTES WITNESS LEDGER (slice 47): the moments
+          // this pass can see, stamped as they happen (the sink
+          // dedups; the sim keeps no ledger of its own).
+          {
+            // The bear's tenancy: the taming bargain lives in
+            // another hook, but a standing tamed bear at the
+            // player's side is the same fact, a breath later.
+            if (fauna.species === 'rootfall_bear' && isTamed && distToPlayer < 20) witness('note_rootfall_bear');
+            // The deer's answer, likewise: a standing tamed
+            // deer WAS the calm courtship, completed.
+            if (fauna.species === 'answer_deer' && isTamed && distToPlayer < 20) witness('note_answer_deer');
+            // Drift Krill, risen: at night the mesh lifts them
+            // to the surface on the swim table's nightRise — to
+            // be near one in the dark is to see the rise.
+            if (fauna.species === 'drift_krill' && isNightNow && distToPlayer < 16) witness('note_drift_krill');
+            // The backward spirals, read: an Untended garden's
+            // moth, close enough to see the winding run wrong.
+            if (fauna.species === 'spiral_moth' && fauna.homeVariant === 'precursor_untended' && distToPlayer < 18) {
+              witness('note_spiral_moth');
+            }
+            // The Boiler Crab's venting: the steam is mesh-side
+            // on a seven-second cycle, so seven seconds in its
+            // close company is a guaranteed witnessed vent.
+            if (fauna.species === 'boiler_crab' && distToPlayer < 11) {
+              const dwell = (crabDwellRef.current.get(fauna.id) ?? 0) + dt;
+              if (dwell >= 7) {
+                witness('note_boiler_crab');
+                crabDwellRef.current.set(fauna.id, -3600);
+              } else {
+                crabDwellRef.current.set(fauna.id, dwell);
+              }
+            }
+            // A great one, provoked: the provocation clock's
+            // first tick on a kill-loot giant. (The bear shares
+            // the provoked-only flag but not the tier — it
+            // carries no killLoot, and has its own note.)
+            if (hunt?.provokedOnly && speciesDef(fauna.species).killLoot && provokedTimer > 0 && (fauna.provokedTimer ?? 0) <= 0) {
+              witness('note_oversize_tier');
+            }
+            // The pond ambush, sprung: for the two patient
+            // hunters, the alert commit IS the ambush.
+            if (hunterAlert && fauna.species === 'fen_lurker') witness('note_fen_lurker');
+            if (hunterAlert && fauna.species === 'pool_snapper') witness('note_pool_snapper');
+            // The long pursuit, witnessed (slice 51): twelve
+            // continuous seconds of a Hush Hound's committed
+            // hunt, in the player's company — the note is about
+            // the pursuit, not the meeting. Crab-style lockout
+            // after the stamp.
+            if (fauna.species === 'hush_hound' && fauna.state === 'attacking' && distToPlayer < 40) {
+              const pursuit = (hushPursuitRef.current.get(fauna.id) ?? 0) + dt;
+              if (pursuit >= 12) {
+                witness('note_hush_hound');
+                hushPursuitRef.current.set(fauna.id, -3600);
+              } else {
+                hushPursuitRef.current.set(fauna.id, pursuit);
+              }
+            } else if (fauna.species === 'hush_hound' && fauna.state !== 'attacking') {
+              hushPursuitRef.current.set(fauna.id, 0);
+            }
+          }
+          // THE STARE (slice 51 — the Lodestone Hound): before
+          // its first charge of an encounter, the hound stops
+          // and STARES for two full seconds — feet still, head
+          // locked. Break away (beyond 2.2× its aggro) and the
+          // encounter resets unwitnessed; sit out the stare and
+          // the charge is earned for the rest of the encounter.
+          // The ringing feet announce it; the looking IS the
+          // warning the danger doctrine promises.
+          let stareGate = false;
+          if (fauna.species === 'lodestone_hound' && hunt) {
+            const rec = stareRef.current.get(fauna.id) ?? { t: 0, committed: false };
+            if (!hunterAlert && distToPlayer > aggroEff * 2.2) {
+              rec.t = 0;
+              rec.committed = false; // encounter over — the next meeting stares again
+            }
+            if (hunterAlert && !rec.committed) {
+              stareGate = true;
+              rec.t += dt;
+              if (rec.t >= 2) {
+                rec.committed = true;
+                stareGate = false;
+                if (distToPlayer < 30) witness('note_lodestone_hound'); // the charge, earned in the player's sight
+              }
+            }
+            stareRef.current.set(fauna.id, rec);
+          }
+          if (hunterAlert && hunt && !stareGate) {
             if (attacksArmed) {
               state = 'attacking';
               targetX = playerX;
               targetZ = playerZ;
               if (distToPlayer <= hunt.biteRange && biteTimer <= 0 && flinchTimer <= 0) {
-                onFaunaAttack?.(fauna.species, hunt.damage);
+                // The gradient's damage axis (slice 50): the
+                // stamp scales the bite; unstamped hunters bite
+                // for exactly their table damage.
+                onFaunaAttack?.(fauna.species, Math.round(hunt.damage * (fauna.wildDmg ?? 1)), { faunaId: fauna.id, x, z });
                 biteTimer = hunt.biteCooldownSeconds;
               }
             } else {
@@ -1180,8 +1454,402 @@ export function useWorldEntities(): UseWorldEntitiesResult {
               targetX = x;
               targetZ = z;
             }
+          } else if (stareGate && hunt) {
+            // Mid-stare, the hound does the Peaceful move at
+            // every difficulty: it stops and faces you. The
+            // stillness is the loudest part.
+            state = 'alert';
+            targetX = x;
+            targetZ = z;
           }
-          if (!isTamed && !hunterAlert) {
+          // -------------------------------------------------------
+          // THE VALLEY STAFF (creature slice 47, 2026-10-16 —
+          // Adam: "wire the creatures up"): the Living family's
+          // social engine, first offices. A valley's FACE is read
+          // from its staff, because the deal already wrote it
+          // there: a Gladhand is dealt only into Welcoming
+          // country, a Taster only into Hungry — their presence
+          // in this zone's company IS the variant, at animal
+          // scale, and the Threshold Hound reads the same page.
+          //
+          // The offices are pure courtesy: no force is ever
+          // applied to the player. The OUT escort is a guide
+          // walking a route at your heel — that you could refuse
+          // it is the design. The courtesy is the warning; the
+          // walking is the sentence, carried out politely.
+          // -------------------------------------------------------
+          let staffEngaged = false;
+          let socialState = fauna.socialState;
+          let socialTimer = fauna.socialTimer ?? 0;
+          let socialTravel = fauna.socialTravel ?? 0;
+          const isStaffMember =
+            !isTamed &&
+            (fauna.species === 'gladhand' || fauna.species === 'threshold_hound' || fauna.species === 'taster');
+          if (isStaffMember && distToPlayer <= 30) {
+            if (fauna.species === 'taster') {
+              // THE TASTING: the taster approaches to tasting
+              // distance and HOLDS while the valley decides;
+              // then the verdict — turn away (filed kindly) or
+              // keep the visitor's pace at tasting distance for
+              // a hundred paces (the whole sentence). The
+              // verdict is hash-seeded per taster: the same
+              // valley reads the same way all visit.
+              if (!socialState) {
+                socialState = 'tasting';
+                socialTimer = 0;
+                socialTravel = 0;
+              }
+              if (socialState === 'tasting') {
+                staffEngaged = true;
+                state = 'following';
+                const awayA = Math.atan2(x - playerX, z - playerZ);
+                targetX = playerX + Math.sin(awayA) * 3.5;
+                targetZ = playerZ + Math.cos(awayA) * 3.5;
+                if (distToPlayer <= 5.5) socialTimer += dt;
+                const deliberation = 18 + ((fauna.id.charCodeAt(fauna.id.length - 1) * 29) % 14);
+                if (socialTimer >= deliberation) {
+                  witness('note_taster'); // the verdict, filed in the player's sight
+                  const idHash = fauna.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+                  socialState = idHash % 2 === 0 ? 'withdrawing' : 'shadowing';
+                  socialTimer = 0;
+                  socialTravel = 0;
+                }
+              } else if (socialState === 'shadowing') {
+                staffEngaged = true;
+                state = 'following';
+                const awayA = Math.atan2(x - playerX, z - playerZ);
+                targetX = playerX + Math.sin(awayA) * 4.5;
+                targetZ = playerZ + Math.cos(awayA) * 4.5;
+                socialTravel += playerSpeed * dt;
+                if (socialTravel >= 100) {
+                  socialState = 'withdrawing';
+                  socialTimer = 0;
+                }
+              } else if (socialState === 'withdrawing') {
+                staffEngaged = true;
+                state = 'wandering';
+                const awayA = Math.atan2(x - playerX, z - playerZ);
+                targetX = x + Math.sin(awayA) * 10;
+                targetZ = z + Math.cos(awayA) * 10;
+                socialTimer += dt;
+                if (socialTimer > 4 || distToPlayer > 24) {
+                  socialState = undefined;
+                  socialTimer = 0;
+                }
+              }
+            } else {
+              // THE ESCORTS: the Gladhand walks you IN (it
+              // exists only where the valley is glad); the
+              // Threshold Hound walks you IN or OUT by the
+              // staff it finds itself among. A guide walks the
+              // route AHEAD of its visitor — showing the paths
+              // by taking them — and comes back to heel when it
+              // falls behind, because an escort that loses its
+              // visitor is just a dog on a walk.
+              const gladStaff = faunaRef.current.some((f) => f.species === 'gladhand');
+              const tasterStaff = faunaRef.current.some((f) => f.species === 'taster');
+              const escortOut = fauna.species === 'threshold_hound' && tasterStaff && !gladStaff;
+              // The heart point of this valley, local frame:
+              // the Valley Heart / Heartbloom flora if the
+              // country grew one, else a heart tile, else the
+              // zone's middle.
+              const heartFlora = floraRef.current.find((fl) => fl.species === 'valley_heart' || fl.species === 'heartbloom');
+              const heartTile = structuresRef.current.find((st) => st.type === 'heart_tile');
+              let destX = heartFlora ? heartFlora.x : heartTile ? heartTile.worldX : 50;
+              let destZ = heartFlora ? heartFlora.z : heartTile ? heartTile.worldZ : 50;
+              if (escortOut) {
+                // OUT's destination: the valley's edge nearest
+                // the visitor — the threshold they are being
+                // walked to, with perfect courtesy.
+                const edges = [
+                  { d: playerZ, x: playerX, z: 3 },
+                  { d: 100 - playerZ, x: playerX, z: 97 },
+                  { d: playerX, x: 3, z: playerZ },
+                  { d: 100 - playerX, x: 97, z: playerZ },
+                ].sort((a, b) => a.d - b.d);
+                destX = edges[0].x;
+                destZ = edges[0].z;
+              }
+              if (!socialState) {
+                socialState = escortOut ? 'escort-out' : 'escort-in';
+                socialTimer = 0;
+              }
+              socialTimer += dt;
+              const destDist = Math.hypot(playerX - destX, playerZ - destZ);
+              if (destDist <= (escortOut ? 5 : 6.5) && socialTimer >= 5) {
+                // The office completes: delivered in, or walked
+                // to the threshold out. The staffer settles; the
+                // escort, performed in full, is witnessed.
+                witness(fauna.species === 'gladhand' ? 'note_gladhand' : 'note_threshold_hound');
+                socialState = undefined;
+                socialTimer = 0;
+                staffEngaged = true;
+                state = 'wandering';
+                targetX = x;
+                targetZ = z;
+              } else {
+                staffEngaged = true;
+                state = 'following';
+                // An escort sustained is also witnessed — a
+                // visitor who dawdles still saw the office.
+                if (socialTimer >= 3) witness(fauna.species === 'gladhand' ? 'note_gladhand' : 'note_threshold_hound');
+                if (distToPlayer > 16) {
+                  targetX = playerX;
+                  targetZ = playerZ;
+                } else {
+                  const dirA = Math.atan2(destX - playerX, destZ - playerZ);
+                  const lead = Math.min(7, Math.max(0, destDist - 2));
+                  targetX = playerX + Math.sin(dirA) * lead;
+                  targetZ = playerZ + Math.cos(dirA) * lead;
+                }
+              }
+            }
+          } else if (isStaffMember && socialState) {
+            // The visitor walked away: the office lapses, and
+            // the valley will offer it again to whoever returns.
+            socialState = undefined;
+            socialTimer = 0;
+            socialTravel = 0;
+          }
+
+          // -------------------------------------------------------
+          // THE MIRROR (creature slice 48, 2026-10-16): the
+          // Answer Deer mirrors the visitor it is with. Calm
+          // company accrues CALM REGARD on the deer itself —
+          // the courtship the lure reads (45 s of it, gathered
+          // over days, persisted with the fauna). Hurry is
+          // mirrored back as flight; stillness, as stillness.
+          // In Hungry country (a Taster on the roster) the herd
+          // mirrors NOTHING — tuned to an appetite that isn't
+          // yours — and the correct reading is the design's:
+          // believe them, and keep your distance, as they keep
+          // theirs.
+          // -------------------------------------------------------
+          let calmRegard = fauna.calmRegard ?? 0;
+          let deerBusy = false;
+          let deerStilling = false;
+          if (fauna.species === 'answer_deer' && !isTamed) {
+            const hungryCountry = faunaRef.current.some((f) => f.species === 'taster');
+            if (hungryCountry) {
+              calmRegard = Math.max(0, calmRegard - dt * 4);
+              if (socialState === 'startled') {
+                socialState = undefined;
+                socialTimer = 0;
+              }
+              if (distToPlayer < 14) {
+                deerBusy = true;
+                state = 'wandering';
+                const awayA = Math.atan2(x - playerX, z - playerZ);
+                targetX = playerX + Math.sin(awayA) * 17;
+                targetZ = playerZ + Math.cos(awayA) * 17;
+              }
+            } else if (socialState === 'startled') {
+              deerBusy = true;
+              state = 'wandering';
+              socialTimer += dt;
+              calmRegard = Math.max(0, calmRegard - dt * 10);
+              const awayA = Math.atan2(x - playerX, z - playerZ);
+              targetX = x + Math.sin(awayA) * 8;
+              targetZ = z + Math.cos(awayA) * 8;
+              if (socialTimer >= 2.5) {
+                socialState = undefined;
+                socialTimer = 0;
+              }
+            } else if (distToPlayer <= 22) {
+              if (playerSpeed > 3.2) {
+                socialState = 'startled';
+                socialTimer = 0;
+                deerBusy = true;
+                state = 'wandering';
+                const awayA = Math.atan2(x - playerX, z - playerZ);
+                targetX = x + Math.sin(awayA) * 8;
+                targetZ = z + Math.cos(awayA) * 8;
+              } else if (playerSpeed < 0.15) {
+                // Stillness, answered with stillness: the deer
+                // holds, and faces you (the rotation below).
+                deerBusy = true;
+                deerStilling = true;
+                state = 'idle';
+                targetX = x;
+                targetZ = z;
+                if (distToPlayer >= 3.5) calmRegard = Math.min(150, calmRegard + dt);
+              } else if (playerSpeed < 0.6) {
+                // Calm company: the deer grazes a loose ring
+                // around its visitor, in no hurry at all.
+                deerBusy = true;
+                state = 'wandering';
+                const awayA = Math.atan2(x - playerX, z - playerZ);
+                targetX = playerX + Math.sin(awayA) * 7;
+                targetZ = playerZ + Math.cos(awayA) * 7;
+                if (distToPlayer >= 3.5) calmRegard = Math.min(150, calmRegard + dt);
+              } else {
+                calmRegard = Math.max(0, calmRegard - dt * 2);
+              }
+            }
+          }
+
+          // -------------------------------------------------------
+          // THE ROAD (creature slice 48): the Heartbearer walks
+          // its supply line — the valley's heart to the valley's
+          // edge and back, in all weathers, resting a breath at
+          // each end. Anything edible on its back (the lure's
+          // offering hand loads it) is DELIVERED at the heart:
+          // the load is consumed by the country, the delivery
+          // is witnessed, and a fed heart answers with its own
+          // sap — the bloom, doubled, made honest at item
+          // scale. Its outer post is remembered on the bearer:
+          // the route is ITS road, kept the way it keeps it.
+          // -------------------------------------------------------
+          let routeX = fauna.routeX;
+          let routeZ = fauna.routeZ;
+          let cargoItems = fauna.cargoItems;
+          let bearerBusy = false;
+          let hawkBusy = false;
+          if (fauna.species === 'heartbearer' && !isTamed) {
+            bearerBusy = true;
+            const heartFlora = floraRef.current.find((fl) => fl.species === 'valley_heart' || fl.species === 'heartbloom');
+            const heartTile = structuresRef.current.find((st) => st.type === 'heart_tile');
+            const hx = heartFlora ? heartFlora.x : heartTile ? heartTile.worldX : 50;
+            const hz = heartFlora ? heartFlora.z : heartTile ? heartTile.worldZ : 50;
+            if (routeX === undefined || routeZ === undefined) {
+              const edges = [
+                { d: z, x, z: 4 },
+                { d: 100 - z, x, z: 96 },
+                { d: x, x: 4, z },
+                { d: 100 - x, x: 96, z },
+              ].sort((a, b) => a.d - b.d);
+              routeX = edges[0].x;
+              routeZ = edges[0].z;
+            }
+            if (!socialState) socialState = 'to-heart';
+            if (socialState === 'resting') {
+              state = 'idle';
+              targetX = x;
+              targetZ = z;
+              socialTimer += dt;
+              if (socialTimer >= 6) {
+                socialTimer = 0;
+                socialState = socialTravel === 1 ? 'to-edge' : 'to-heart';
+              }
+            } else {
+              const tx = socialState === 'to-heart' ? hx : routeX;
+              const tz = socialState === 'to-heart' ? hz : routeZ;
+              state = 'wandering';
+              targetX = tx;
+              targetZ = tz;
+              if (Math.hypot(tx - x, tz - z) <= 2.5) {
+                if (socialState === 'to-heart') {
+                  if ((cargoItems ?? []).length > 0) {
+                    cargoItems = [];
+                    spawnDroppedItem('heart_sap', 1, hx + 1.2, hz + 0.8);
+                    if (distToPlayer < 30) witness('note_heartbearer');
+                  }
+                  socialTravel = 1;
+                } else {
+                  socialTravel = 0;
+                }
+                socialState = 'resting';
+                socialTimer = 0;
+              }
+            }
+          }
+
+          // THE SENTINEL ROTATION (slice 49): a wild meadowback
+          // herd keeps one head up. The rotation is the herd's
+          // own clock — four minutes a watch, members in id
+          // order — and the sentinel stands its watch where it
+          // stands (the rotation below turns its head on a slow
+          // scan). The others graze. It has never once hurried,
+          // and neither has its relief.
+          if (fauna.species === 'meadowback' && !isTamed) {
+            const herd = faunaRef.current
+              .filter((f) => f.species === 'meadowback' && !f.isTamed)
+              .sort((a, b) => a.id.localeCompare(b.id));
+            if (herd.length > 1 && herd[Math.floor(simClockRef.current / 240) % herd.length].id === fauna.id) {
+              meadowBusy = true;
+              sentinelFacing = true;
+              state = 'idle';
+              targetX = x;
+              targetZ = z;
+            }
+          }
+
+          // -------------------------------------------------------
+          // THE FALL HAWK (creature slice 51, 2026-10-17): the
+          // Skyfall Basin's aerial hunt — the roster's first
+          // predator whose whole hunt is bespoke (its table row
+          // carries NO hunt block; the generic engine never sees
+          // it). Three movements, run on the social-state slots:
+          // CIRCLE over its anchor (routeX/routeZ remember the
+          // post; the flight row draws the altitude), STOOP on a
+          // player caught in the open, CLIMB a full eight
+          // seconds before it may stoop again. The tells are the
+          // shadow and the whistle; the counter is COVER —
+          // canopy-scale flora or any structure within reach
+          // breaks the stoop mid-fall, because a hawk that
+          // cannot see a clean fall aborts it. On Peaceful the
+          // stoop still comes (theater, per the doctrine) but
+          // the talons never land (the shared armed gate).
+          // -------------------------------------------------------
+          if (fauna.species === 'fall_hawk' && !isTamed) {
+            hawkBusy = true;
+            if (routeX === undefined || routeZ === undefined) {
+              routeX = x;
+              routeZ = z;
+            }
+            const underCover =
+              structuresRef.current.some((st) => Math.hypot(st.worldX - playerX, st.worldZ - playerZ) <= 4.5) ||
+              floraRef.current.some((fl) => fl.scale >= 1.5 && Math.hypot(fl.x - playerX, fl.z - playerZ) <= 4);
+            if (!socialState) {
+              socialState = 'circling';
+              socialTimer = 0;
+            }
+            if (socialState === 'circling') {
+              // A slow wheel over the post: the target walks a
+              // 10 m circle on the social clock, advanced by the
+              // id hash so no two hawks wheel in step.
+              const idPhase = fauna.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 6;
+              const ang = socialTimer * 0.45 + idPhase;
+              state = 'wandering';
+              targetX = routeX + Math.cos(ang) * 10;
+              targetZ = routeZ + Math.sin(ang) * 10;
+              socialTimer += dt;
+              if (distToPlayer <= 16 && !underCover) {
+                socialState = 'stooping';
+                socialTimer = 0;
+                if (distToPlayer < 30) witness('note_fall_hawk'); // the stoop, committed in the player's sight
+              }
+            } else if (socialState === 'stooping') {
+              state = 'attacking';
+              targetX = playerX;
+              targetZ = playerZ;
+              socialTimer += dt;
+              if (underCover || socialTimer > 3.5) {
+                // Aborted by cover, or the fall went long and
+                // missed its moment: climb out either way.
+                socialState = 'climbing';
+                socialTimer = 0;
+              } else if (distToPlayer <= 2.6) {
+                if (attacksArmed) onFaunaAttack?.(fauna.species, 26, { faunaId: fauna.id, x, z });
+                socialState = 'climbing';
+                socialTimer = 0;
+              }
+            } else if (socialState === 'climbing') {
+              // Eight seconds of climbing, away from the player
+              // — the safe window the design promises.
+              state = 'wandering';
+              const awayA = Math.atan2(x - playerX, z - playerZ);
+              targetX = x + Math.sin(awayA) * 12;
+              targetZ = z + Math.cos(awayA) * 12;
+              socialTimer += dt;
+              if (socialTimer >= 8) {
+                socialState = 'circling';
+                socialTimer = 0;
+              }
+            }
+          }
+
+          if (!isTamed && !hunterAlert && !staffEngaged && !deerBusy && !bearerBusy && !meadowBusy && !hawkBusy) {
             state = 'wandering';
             // Restless wandering: standing at the target re-rolls fast
             // (short pauses, long roams); en route the re-roll stays rare
@@ -1199,6 +1867,8 @@ export function useWorldEntities(): UseWorldEntitiesResult {
               if (fauna.species === 'blink_hare' && Math.random() < 0.65) {
                 x = targetX;
                 z = targetZ;
+                // The vanish, witnessed (slice 47).
+                if (Math.hypot(playerX - x, playerZ - z) < 30) witness('note_blink_hare');
               }
               // THE CANDLE ROAD (slice 42, 2026-10-16): the Moon
               // Moth is the Night Candle's pollinator — the
@@ -1221,6 +1891,10 @@ export function useWorldEntities(): UseWorldEntitiesResult {
                 if (candle) {
                   targetX = candle.x + (Math.random() - 0.5) * 4;
                   targetZ = candle.z + (Math.random() - 0.5) * 4;
+                  // The course change, witnessed (slice 47): a
+                  // moth turning for a candle, in the dark, near
+                  // enough to see the road being flown.
+                  if (distToPlayer < 30) witness('note_moon_moth');
                 }
               }
             }
@@ -1272,7 +1946,16 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           if (distToTarget > 0.4) {
             // A chasing hunter spends its burst (slice 5): the
             // ambusher's whole speed budget, at once, as designed.
-            const moveSpeed = state === 'attacking' ? fauna.speed * 1.35 : isTamed ? fauna.speed * 1.2 : fauna.speed;
+            const moveSpeed =
+              state === 'attacking' && fauna.species === 'fall_hawk'
+                ? fauna.speed * 2.6 // THE STOOP (slice 51): a fall, aimed — the hawk's whole speed budget in one dive
+                : state === 'attacking'
+                  ? fauna.speed * 1.35
+                  : isTamed
+                  ? fauna.speed * 1.2
+                  : staffEngaged && distToPlayer > 10
+                    ? fauna.speed * 1.7 // staff hurry back to heel — the hound does not tire, the usher does not lose you
+                    : fauna.speed;
             // The Hollow Hermit's schedule (slice 42): by day it
             // is scenery — a husk that does not walk while the
             // light is up, exactly as designed. It walks only in
@@ -1287,15 +1970,30 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           }
 
           // An alert stalker watches the intruder, not its path.
-          if (state === 'alert') {
+          // A stilling Answer Deer does the same, in peace
+          // (slice 48): the mirror holds your gaze.
+          if (state === 'alert' || deerStilling) {
             newRot = Math.atan2(playerX - x, playerZ - z);
+          }
+          // A sentinel's head (slice 49): face the nearest wild
+          // hunter in regard; with nothing to watch, sweep —
+          // slowly, the way a hill turns.
+          if (sentinelFacing) {
+            const watched = prevFauna
+              .filter((o) => o.id !== fauna.id && !o.isTamed && speciesDef(o.species).hunt)
+              .sort((a, b) => Math.hypot(a.x - x, a.z - z) - Math.hypot(b.x - x, b.z - z))[0];
+            if (watched && Math.hypot(watched.x - x, watched.z - z) <= 40) {
+              newRot = Math.atan2(watched.x - x, watched.z - z);
+            } else {
+              newRot = (fauna.animTime * 0.25) % (Math.PI * 2);
+            }
           }
 
           byproductTimer += dt;
 
           // Byproduct sheds — TABLE-DRIVEN (creature build phase,
           // slice 1, 2026-10-15): item, interval, and the tamed-only
-          // rule all live in the species table (game/species.ts), so
+          // rule all live in the species table (game/creatures/species.ts), so
           // a new species sheds by gaining an entry, not a branch
           // here. The two shipped patterns are preserved in the data:
           // tamed-only producers (soft-puff pellets, stalker scales)
@@ -1322,6 +2020,12 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             byproductTimer = 0;
             spawnDroppedItem(shed.item, 1, x, z);
             onCritterExcrete?.(fauna.species);
+            // The compost, witnessed (slice 47): the beetle's
+            // finished work appearing at the burrow mouth in
+            // the player's sight (pickup-side, fertilizer is
+            // fertilizer from anywhere — the making is the
+            // moment this note names).
+            if (fauna.species === 'mulch_beetle' && distToPlayer < 25) witness('note_mulch_beetle');
           }
 
           const nextFauna = {
@@ -1342,6 +2046,13 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             hearthDecideTimer,
             hearthFedTimer,
             hearthAgeDays,
+            socialState,
+            socialTimer,
+            socialTravel,
+            calmRegard,
+            cargoItems,
+            routeX,
+            routeZ,
             health: fauna.health - dissolveDamage,
             animTime: fauna.animTime + dt,
           };
@@ -1381,7 +2092,14 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           f.hearthDecideTimer !== undefined &&
           f.hearthDecideTimer <= 0 &&
           (f.hearthFeedings ?? 0) < 3;
-        if (defenderDamage.size === 0 && shotDamage.size === 0 && !mappedFauna.some((f) => f.health <= 0) && !mappedFauna.some(isDeparting)) return mappedFauna;
+        // THE SHIELD (2026-10-17): drain this tick's queued strike
+        // side-effects — the shared onFaunaAttack consumer fires
+        // during the map phase above and queues here, because it
+        // can't touch the fauna list. Drained once per tick, in
+        // the same updater the consumer ran in.
+        const shieldFx = shieldSideEffectsRef.current;
+        shieldSideEffectsRef.current = [];
+        if (defenderDamage.size === 0 && shotDamage.size === 0 && shieldFx.length === 0 && !mappedFauna.some((f) => f.health <= 0) && !mappedFauna.some(isDeparting)) return mappedFauna;
         // Deaths leave remains where they fell — and remains are
         // a SAMPLE, the dead's half of Adam's sample ruling. The
         // killers that reach this sweep: a guardian's bites (the
@@ -1394,14 +2112,58 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             return [];
           }
           const dmg = (defenderDamage.get(f.id) ?? 0) + (shotDamage.get(f.id) ?? 0);
-          const health = f.health - dmg;
+          // THE SHIELD (2026-10-17): the queued strike side-effects
+          // — thorn-spike reflects and braced-wall staggers aimed
+          // at one attacker, plus the Fenback's Spore Answer, a
+          // stagger-and-knockback pulse around the bearer (grafted:
+          // the pulse carries thorn-pricks). Wild fauna only — the
+          // game's own rule holds in reverse: a shield never
+          // answers a companion or a Peaceful.
+          let shieldDmg = 0;
+          let shieldFlinch = 0;
+          let knockX = 0;
+          let knockZ = 0;
+          for (const fx of shieldFx) {
+            if (fx.kind === 'hit') {
+              if (fx.targetId !== f.id) continue;
+              shieldDmg += fx.damage;
+              shieldFlinch = Math.max(shieldFlinch, fx.flinch);
+            } else {
+              if (f.isTamed) continue;
+              const dx = f.x - fx.x;
+              const dz = f.z - fx.z;
+              const dist = Math.hypot(dx, dz);
+              if (dist > SPORE_RADIUS || dist < 0.01) continue;
+              shieldFlinch = Math.max(shieldFlinch, SPORE_STAGGER_SECONDS);
+              knockX += (dx / dist) * SPORE_KNOCKBACK_METERS;
+              knockZ += (dz / dist) * SPORE_KNOCKBACK_METERS;
+              if (fx.grafted) shieldDmg += GRAFT_REFLECT_PASSIVE;
+            }
+          }
+          const health = f.health - dmg - shieldDmg;
           if (health > 0) {
             // Harmed and standing (slice 32): the blow is
             // remembered — a guardian's bite or a landed shot
             // provokes exactly like a strike does.
-            return [dmg ? { ...f, health, provokedTimer: PROVOKED_SECONDS } : f];
+            const stirred = dmg + shieldDmg > 0 || shieldFlinch > 0 || knockX !== 0;
+            return [
+              stirred
+                ? {
+                    ...f,
+                    health,
+                    provokedTimer: PROVOKED_SECONDS,
+                    flinchTimer: Math.max(f.flinchTimer ?? 0, shieldFlinch),
+                    x: f.x + knockX,
+                    z: f.z + knockZ,
+                  }
+                : f,
+            ];
           }
           spawnDroppedItem(sampleItemId(f.species), 1, f.x, f.z);
+          // The World Asks Back (2026-10-16): the cull event for
+          // saga latching — stamped where the kill is known real,
+          // beside the sample the sweep drops.
+          onAsksEvent?.({ kind: 'cull', species: f.species });
           // Kill loot (slice 32 — Adam's oversize pin: "if
           // killed, they should provide good loot"): the
           // species table's killLoot drops where the creature
@@ -1478,6 +2240,21 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           )
         )
         .map((pod) => ({ x: pod.worldX, z: pod.worldZ }));
+      // The Puffbell's hour, witnessed (slice 47): the bells
+      // puff as the shared phase crosses each hour mark (the
+      // mesh swells and puffs on that same clock); when the
+      // hour turns with a ripe bell in the player's sight, the
+      // synchronization has been seen to happen.
+      {
+        const hourIdx = Math.floor(phaseNow * 24);
+        if (hourIdx !== puffHourRef.current) {
+          puffHourRef.current = hourIdx;
+          const bell = floraRef.current.find(
+            (fl) => fl.species === 'puffbell' && fl.growthStage >= 4 && Math.hypot(fl.x - playerX, fl.z - playerZ) < 22
+          );
+          if (bell) witness('note_puffbell');
+        }
+      }
       setFloraList((prevFlora) =>
         prevFlora.map((flora) => {
           // ---------------------------------------------------------------
@@ -1500,6 +2277,8 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // ---------------------------------------------------------------
           if (flora.species === 'tumble_sage') {
             if ((flora.rollLeft ?? 0) > 0) {
+              // The rolling, witnessed (slice 47).
+              if (Math.hypot(flora.x - playerX, flora.z - playerZ) < 22) witness('note_tumble_sage');
               const step = 3.5 * dt;
               const nx = Math.min(96, Math.max(4, flora.x + (flora.rollVx ?? 0) * dt));
               const nz = Math.min(96, Math.max(4, flora.z + (flora.rollVz ?? 0) * dt));
@@ -1577,6 +2356,19 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             newTimer = Math.max(newTimer, FLORA_MATURE_SECONDS * 0.2 + 0.01);
           }
           const isNowReady = newTimer === 0;
+          // The fruiting, witnessed (slice 47): a Hearth Cap
+          // crossing into readiness did so at a certified
+          // hearth — the gate above guarantees it — and if the
+          // player is standing in that hearth's light, the
+          // certification has been seen to bear fruit.
+          if (
+            isNowReady &&
+            !flora.harvestReady &&
+            flora.species === 'hearth_cap' &&
+            Math.hypot(flora.x - playerX, flora.z - playerZ) < 25
+          ) {
+            witness('note_hearth_cap');
+          }
           // Stage is always read against the BASE mature time, so the
           // readout never jumps when a boost starts or wears off.
           const newStage = isNowReady ? 5 : Math.min(4, Math.floor((1 - newTimer / FLORA_MATURE_SECONDS) * 5));
@@ -1642,6 +2434,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
     removeStructure,
     tameFauna,
     hearthFeed,
+    loadHeartbearer,
     setFaunaCommand,
     releaseFauna,
     applyDissolve,
@@ -1654,5 +2447,8 @@ export function useWorldEntities(): UseWorldEntitiesResult {
     removeDroppedItem,
     replaceWorld,
     updateTick,
+    // THE SHIELD (2026-10-17): the strike side-effect sink — App
+    // bridges it to the game loop's shared onFaunaAttack consumer.
+    queueShieldSideEffect,
   };
 }

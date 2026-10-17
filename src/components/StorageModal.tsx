@@ -9,16 +9,16 @@
  * the upgrade button: owning the next growth kit enables it, and
  * applying it raises the pod in place, contents preserved.
  *
- * All the rules live in game/pouch.ts (STORAGE_TIERS); this panel
+ * All the rules live in game/items/pouch.ts (STORAGE_TIERS); this panel
  * only renders them and reports clicks through callbacks.
  */
 
 import React from 'react';
-import { X, Package, ArrowDownToLine, ArrowUpFromLine, Sprout } from 'lucide-react';
+import { X, Package, ArrowDownToLine, ArrowUpFromLine, Sprout, Move } from 'lucide-react';
 import type { ItemId, StructureEntity } from '../types/game';
-import { ITEMS } from '../game/constants';
-import { STORAGE_TIERS, storageCapsFor, storageKitFor, storageSlotsUsed, type StorageContents } from '../game/pouch';
-import { isSampleItem } from '../game/vat';
+import { ITEMS } from '../game/items/constants';
+import { STORAGE_TIERS, storageCapsFor, storageKitFor, storageSlotsUsed, type StorageContents } from '../game/items/pouch';
+import { isSampleItem } from '../game/structures/vat';
 
 interface StorageModalProps {
   /** The pod being viewed (live entity from the structures list). */
@@ -30,6 +30,12 @@ interface StorageModalProps {
   onDeposit: (structure: StructureEntity, itemId: ItemId) => void;
   onWithdraw: (structure: StructureEntity, itemId: ItemId) => void;
   onUpgrade: (structure: StructureEntity) => void;
+  /**
+   * S6 Movable Vaults: lift the WHOLE container — tier, contents in
+   * their exact slots — and carry it. Optional so the panel renders
+   * standalone without the carry wired.
+   */
+  onMove?: (structure: StructureEntity) => void;
 }
 
 export const StorageModal: React.FC<StorageModalProps> = ({
@@ -40,6 +46,7 @@ export const StorageModal: React.FC<StorageModalProps> = ({
   onDeposit,
   onWithdraw,
   onUpgrade,
+  onMove,
 }) => {
   const contents: StorageContents = structure.storage ?? { tier: 1, items: {} };
   const tier = Math.min(Math.max(contents.tier, 1), STORAGE_TIERS.length);
@@ -120,6 +127,24 @@ export const StorageModal: React.FC<StorageModalProps> = ({
             <X className="w-5 h-5" />
           </button>
         </div>
+        {/* S6 Movable Vaults: the gentle verb — lift the whole pod or
+            rack (contents in their exact slots, tier intact) and carry
+            it. While carrying, the whole kit is inert: tool-less and
+            defenseless for the haul. */}
+        {onMove && (
+          <div className="px-6 py-2.5 border-b border-slate-800/70 bg-slate-900/30 flex items-center gap-3">
+            <Move className="w-4 h-4 text-purple-400 shrink-0" />
+            <p className="flex-1 text-xs text-slate-400">
+              Carry this {structure.type === 'sample_rack' ? 'rack' : 'pod'} somewhere better — everything inside rides along.
+            </p>
+            <button
+              onClick={() => onMove(structure)}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-medium font-tech bg-purple-500/20 text-purple-300 border border-purple-500/40 hover:bg-purple-500/30 transition-all"
+            >
+              Move
+            </button>
+          </div>
+        )}
 
         {/* Upgrade strip */}
         {nextCaps && (

@@ -14,17 +14,73 @@
  * card directly.
  */
 import { X } from 'lucide-react';
-import { ITEMS } from '../game/constants';
-import type { QuestProgressView } from '../game/quests';
+import { ITEMS } from '../game/items/constants';
+import type { QuestProgressView } from '../game/quests/quests';
+
+/**
+ * The saga the tracker follows (S3): an active World Asks Back
+ * saga pinned from the quest log. Rendered in the saga's violet —
+ * the authored quest's emerald/amber face stays untouched.
+ */
+export interface SagaTrackView {
+  title: string;
+  zoneName: string;
+  stepN: number;
+  stepTotal: number;
+  stepTitle: string;
+  stepText: string;
+  progress: string;
+}
 
 interface QuestTrackerProps {
-  view: QuestProgressView;
+  view?: QuestProgressView | null;
+  saga?: SagaTrackView | null;
   /** Close this quest's card (Adam, 2026-10-15): the tracker
    * rests; the quest stays in the log, ready to re-track. */
   onDismiss?: () => void;
 }
 
-export const QuestTracker = ({ view, onDismiss }: QuestTrackerProps) => {
+export const QuestTracker = ({ view, saga, onDismiss }: QuestTrackerProps) => {
+  // A pinned saga wears its own face: the saga title, the
+  // current step, and the live progress line (the same math the
+  // log card shows — latch.ts is the single source).
+  if (saga) {
+    return (
+      <div className="relative pointer-events-none w-52 min-[760px]:w-60 rounded-2xl border border-violet-400/25 bg-slate-950/70 backdrop-blur-md px-3.5 py-3 shadow-xl">
+        {onDismiss && (
+          <button
+            onClick={onDismiss}
+            title="Unpin this saga (it stays in the quest log)"
+            className="pointer-events-auto absolute top-2 right-2 w-5 h-5 rounded-md flex items-center justify-center text-slate-400 hover:text-slate-100 hover:bg-slate-700/60 transition-colors"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
+        <div className="flex items-center gap-2">
+          <span className="text-[9px] font-black tracking-[0.18em] px-1.5 py-0.5 rounded-md bg-violet-500/15 border border-violet-400/30 text-violet-300">
+            SAGA
+          </span>
+          <span className="text-[10px] font-black tracking-[0.18em] text-violet-200/70">
+            THE WORLD ASKS BACK
+          </span>
+        </div>
+        <div className="mt-1 text-sm font-bold text-slate-100 leading-tight">
+          {saga.title}
+        </div>
+        <div className="text-[10px] font-semibold tracking-wider text-violet-200/70 mt-0.5">
+          STEP {saga.stepN} OF {saga.stepTotal} · {saga.zoneName}
+        </div>
+        <div className="mt-1.5 text-[11px] font-bold text-slate-200 leading-snug">
+          {saga.stepTitle}
+        </div>
+        <div className="mt-0.5 text-[11px] font-semibold text-violet-200/90 leading-snug">
+          {saga.progress}
+        </div>
+      </div>
+    );
+  }
+
+  if (!view) return null;
   const { def, gather } = view;
 
   return (

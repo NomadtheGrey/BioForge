@@ -3,7 +3,7 @@
  * Prismatic Botanical Tech Ecosystem
  */
 
-import type { BiomeId } from '../game/biomes';
+import type { BiomeId } from '../game/world/biomes';
 
 export type ItemId =
   // Raw Botanical Byproducts & Harvests
@@ -19,6 +19,10 @@ export type ItemId =
   | 'prism_hair'
   | 'lodestone_sand'
   | 'field_scute'
+  | 'fen_scute'
+  | 'scute_shield'
+  | 'lantern_shield'
+  | 'fenback_shield'
   | 'grave_feather'
   | 'kite_ribbon'
   | 'spire_down'
@@ -170,6 +174,13 @@ export type ItemId =
   | 'lake_jelly'
   | 'silver_scale'
   | 'gloom_gel'
+  // Wild-country predator materials (slice 51, 2026-10-17):
+  // premium drops of the three deep-variant hunters — each
+  // deliberately gates nothing critical (the no-harm supply
+  // rule: a predator's material is a prize, never a toll).
+  | 'lodestone_plate'
+  | 'fall_plume'
+  | 'hush_gel'
   | 'hollow_heart_spore'
   | 'sedge_egg'
   | 'clean_bone'
@@ -281,7 +292,7 @@ export type ItemId =
   // game's progression spine — it starts able to HARVEST only, and
   // each further tool is a module crafted at the forge and grafted
   // on. Owning the module item IS the unlock (App derives the
-  // unlocked tool set from the pouch; see game/quests.ts). The
+  // unlocked tool set from the pouch; see game/quests/quests.ts). The
   // items are equipment: they sit in the pouch, never spent.
   | 'gauntlet_scanner_module'
   | 'gauntlet_planter_module'
@@ -290,7 +301,7 @@ export type ItemId =
   | 'gauntlet_lure_module'
   // Pouch UPGRADES (Adam, 2026-10-15): carrying capacity is a
   // craftable ladder too — owning a pouch item raises every stack's
-  // cap (game/pouch.ts). Equipment like the modules: held, not spent.
+  // cap (game/items/pouch.ts). Equipment like the modules: held, not spent.
   | 'woven_pouch'
   | 'resin_satchel'
   | 'living_rucksack'
@@ -309,7 +320,7 @@ export type ItemId =
   | 'vat_kit_deep'
   // The strikers (Adam, 2026-10-16): six grown weapons, one close +
   // one ranged per craft tier, seated in the gauntlet's seventh
-  // slot. Rules live in game/weapons.ts.
+  // slot. Rules live in game/creatures/weapons.ts.
   | 'briar_barb'
   | 'spit_pod'
   | 'chitin_fang'
@@ -606,7 +617,7 @@ export type FaunaSpecies =
   | 'mirror_moth'
   // Creature build phase, slice 1 (2026-10-15) — the first designed
   // species from the CREATURES_BRAINSTORM roster; their data lives in
-  // src/game/species.ts, and they spawn via its generic bonus route.
+  // src/game/creatures/species.ts, and they spawn via its generic bonus route.
   | 'meadowback'
   | 'pale_hare'
   | 'frost_vole'
@@ -806,7 +817,11 @@ export type FaunaSpecies =
   | 'silverfin'
   | 'plated_crab'
   | 'silver_dipper'
-  | 'mirror_heron';
+  | 'mirror_heron'
+  // The three wild predators (slice 51, 2026-10-17).
+  | 'lodestone_hound'
+  | 'fall_hawk'
+  | 'hush_hound';
 
 export interface FaunaEntity {
   id: string;
@@ -852,6 +867,40 @@ export interface FaunaEntity {
   // a species' cyclic behavior (the Plunge Duck's dive cycle),
   // ticked by the sim for species whose table entry names one.
   phaseTimer?: number;
+  // Social engines (creature slice 47, 2026-10-16): the valley
+  // staff's transient office state — an escort's purpose or a
+  // taster's deliberation — plus its clock and, for the taster's
+  // sentence, the visitor's accrued travel under its regard.
+  // Session-transient: an office interrupted by a save simply
+  // lapses, and the valley offers it again.
+  socialState?: string;
+  socialTimer?: number;
+  socialTravel?: number;
+  // The Answer Deer's courtship (slice 48): seconds of calm
+  // company this deer has been shown, accrued by the sim and
+  // READ by the lure — the roster's only tame whose method is
+  // the tamer's own state. Persists with the fauna: calm is
+  // collected over days, not in one held breath.
+  // The variant of the zone this citizen was dealt into
+  // (slice 49), stamped at generation when the zone HAS a
+  // variant. The Spiral Moth reads its keeping from it: in
+  // an Untended garden, the signed spirals run backward.
+  homeVariant?: string;
+  // The distance gradient (creature slice 50, 2026-10-17):
+  // spawn-stamped hunt multipliers for UNPROVOKED hunters,
+  // dealt by wildPressureFor in worldGen and read by the sim's
+  // hunt branch. Absent = 1 — near country, older saves, and
+  // the provoked oversize tier (the giants stay table-true
+  // everywhere; their bargain does not scale).
+  wildDmg?: number;
+  wildAggro?: number;
+  calmRegard?: number;
+  // The Heartbearer's load (slice 48): edibles placed on its
+  // back, delivered to the valley's heart on its route. The
+  // route's outer post is remembered beside them.
+  cargoItems?: ItemId[];
+  routeX?: number;
+  routeZ?: number;
   // Hearth Dog courtship (slice 39, 2026-10-16): the arrived dog
   // carries the reversed taming on its own back — how many
   // offerings it has accepted, how many seconds of loaded-zone
@@ -926,7 +975,7 @@ export type StructureType =
   // which is why the engine's structure tables demanded a world
   // model and a glow entry for a glove.)
 
-/** Dressing piece types a cave mouth wears (see game/caveSurface.ts). */
+/** Dressing piece types a cave mouth wears (see game/world/caveSurface.ts). */
 export type CaveDressingType =
   | 'cave_mouth'
   | 'dark_soil_patch'
@@ -968,7 +1017,7 @@ export interface CaveLinkData {
   dressing: CaveDressingPiece[];
 }
 
-/** Dressing piece types a ruin landmark wears (see game/ruins.ts). */
+/** Dressing piece types a ruin landmark wears (see game/world/ruins.ts). */
 export type RuinDressingType =
   | 'pillar'
   | 'toppled_pillar'
@@ -1067,7 +1116,7 @@ export interface StructureEntity {
   };
   /**
    * Present only on biotunnel_mouth structures: the derived
-   * pairing state (see game/tunnel.ts) — refreshed by App at every
+   * pairing state (see game/world/tunnel.ts) — refreshed by App at every
    * structure sync, so the engine can light the membrane when the
    * pair is whole and let it go dark when an end is gone. Advisory
    * only: the truth is the count of mouths in the known world.
@@ -1100,7 +1149,15 @@ export interface CraftingRecipe {
 
   ingredients: { id: ItemId; count: number }[];
   craftTimeMs: number;
-
+  /**
+   * SHIELD GRAFT (2026-10-17): when set, crafting this recipe does not
+   * just output an item — it grafts thorn spikes onto the shield named
+   * here (outputId is the same shield, consumed and re-output). The
+   * graft state lives on PlayerState.shieldGrafts and survives the
+   * shield's later consume-upgrades (Lantern ← Scute, Fenback ←
+   * Lantern) via inheritance in the craft flow.
+   */
+  graftShield?: ItemId;
 }
 
 export interface CodexEntry {
@@ -1140,7 +1197,7 @@ export interface BiomeArea {
  * and SEEN — zones stood in, ruins entered, stones read, a heart
  * reached, a creature hatched or bonded — written by small
  * observer effects in App and read by the line's quests through
- * game/quests.ts goalMet(). Everything optional: saves from
+ * game/quests/quests.ts goalMet(). Everything optional: saves from
  * before the line simply have no signals yet. Biome ids are
  * stored as plain strings to keep this file import-light.
  */
@@ -1173,6 +1230,11 @@ export interface QuestSignals {
   fellZone?: string;
   /** V2: the player returned on foot to where they fell. */
   walkBack?: boolean;
+  /** The social set (2026-10-16): note ids from the field-notes
+   *  book's WITNESSED list, mirrored here by an App effect so the
+   *  witness quests read the same signals record as every other
+   *  goal. The book stays the authority; this is its shadow. */
+  witnessed?: string[];
 }
 
 export interface QuestProgressState {
@@ -1210,6 +1272,13 @@ export interface PlayerState {
    * the save verbatim with the rest of PlayerState; absent (undefined)
    * on saves from before the slot existed — treat as empty. */
   heldItemId?: ItemId | null;
+  /**
+   * SHIELD GRAFTS (2026-10-17): which shields carry grafted thorn
+   * spikes, by item id. Optional for save compatibility — old saves
+   * load it as {} (no shield was ever grafted). Written by the
+   * graft recipes and inherited through the shield consume-upgrades.
+   */
+  shieldGrafts?: Partial<Record<ItemId, boolean>>;
   /** Mini-quest progress — see QuestProgressState. Optional for
    * save compatibility; new worlds start it fresh in
    * handleCreateSave. */

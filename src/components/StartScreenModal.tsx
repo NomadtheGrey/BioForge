@@ -37,6 +37,10 @@ interface StartScreenModalProps {
   onCreateSave: (name: string, difficulty: GameDifficulty, worldSeed: string) => void;
   onDeleteSave: (id: string) => void;
   onJoinCoop: () => void;
+  // The About screen's first door (info screen work order,
+  // 2026-10-17): a new player meets the primer before spawn.
+  // Optional so the button renders only once App wires it.
+  onOpenAbout?: () => void;
 }
 
 /**
@@ -74,6 +78,7 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
   onCreateSave,
   onDeleteSave,
   onJoinCoop,
+  onOpenAbout,
 }) => {
   // New Game form state. The name may stay blank — saveSystem substitutes
   // "Unnamed World" — so the button is never disabled over a name.
@@ -114,6 +119,16 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
             <h2 className="text-lg font-tech font-bold text-white tracking-wide">BIOFORGE</h2>
             <p className="text-xs text-slate-400">Choose a world, or grow a new one</p>
           </div>
+          {/* The About door: what this game is, before the
+              first spawn (primer §5 — the start-screen About). */}
+          {onOpenAbout && (
+            <button
+              onClick={onOpenAbout}
+              className="ml-auto px-4 py-2 rounded-2xl text-[11px] font-tech font-bold text-emerald-200 border border-emerald-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <Sprout className="w-3.5 h-3.5" /> ABOUT THIS WORLD
+            </button>
+          )}
         </div>
 
         {/* Body */}

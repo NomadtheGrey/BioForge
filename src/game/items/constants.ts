@@ -2788,6 +2788,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 1,
   },
+  lodestone_bulwark: {
+    id: 'lodestone_bulwark',
+    name: 'Lodestone Bulwark',
+    category: 'equipment',
+    description: 'A Scute Shield grown around plates of lodestone until the ward itself pulls. Tier 3 branch: no lamp — its tier buys the pull. Carried, dropped things drift toward you from nine meters; braced, from thirteen, and quicker.',
+    iconName: 'Shield',
+    color: '#7c6f9e',
+    rarity: 'rare',
+    maxStack: 1,
+  },
 
   // ── Pouch upgrades (Adam, 2026-10-15) ─────────────────────────
   // Carrying capacity is a craftable ladder (game/items/pouch.ts): owning

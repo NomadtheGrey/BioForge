@@ -23,6 +23,7 @@ export type ItemId =
   | 'scute_shield'
   | 'lantern_shield'
   | 'fenback_shield'
+  | 'lodestone_bulwark'
   | 'grave_feather'
   | 'kite_ribbon'
   | 'spire_down'

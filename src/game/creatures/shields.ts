@@ -17,7 +17,10 @@
 
 import type { CraftingRecipe, ItemId } from '../../types/game';
 
-/** The three shields, in tier order. */
+/** The shields, in tier order. The Bulwark (Ingredient
+ *  Sinks slice, 2026-10-17) is the family's second BRANCH:
+ *  it forks from the Scute like the Lantern does, but its
+ *  tier buys the lodestone's pull instead of a lamp. */
 export interface ShieldDef {
   /** The crafted item. */
   itemId: ItemId;
@@ -31,6 +34,7 @@ export const SHIELDS: ShieldDef[] = [
   { itemId: 'scute_shield', tier: 1, hasLamp: false },
   { itemId: 'lantern_shield', tier: 2, hasLamp: true },
   { itemId: 'fenback_shield', tier: 3, hasLamp: true },
+  { itemId: 'lodestone_bulwark', tier: 3, hasLamp: false },
 ];
 
 export const SHIELD_ITEM_IDS: ItemId[] = SHIELDS.map((s) => s.itemId);
@@ -75,6 +79,30 @@ export const SPORE_KNOCKBACK_METERS = 2.5;
 /** Shared Cover: the lee zone directly behind a braced bearer. */
 export const LEE_DISTANCE = 2.2;
 export const LEE_HALF_ANGLE_DEG = 40;
+// ---------------------------------------------------------------------------
+// The Lodestone Bulwark's pull (Ingredient Sinks, 2026-10-17):
+// the drop pass in useWorldEntities already vacuums drops
+// toward the player inside a small radius. A held Bulwark
+// widens the lodestone's reach — carried, the pull starts
+// farther out; braced, farther still and quicker. Pickup
+// itself (2 m) never changes: the Bulwark gathers, it does
+// not teleport.
+// ---------------------------------------------------------------------------
+/** The drop pass's standing numbers (no Bulwark held). */
+export const DROP_MAGNET_BASE = { radius: 5.0, speed: 3.5 };
+/** Bulwark carried: drops drift from this far, at this pace. */
+export const DROP_MAGNET_CARRIED = { radius: 9.0, speed: 4.5 };
+/** Bulwark braced: the pull at full stretch. */
+export const DROP_MAGNET_BRACED = { radius: 13.0, speed: 5.5 };
+
+/** The drop-magnet spec for the shield in hand right now. */
+export function dropMagnetFor(
+  shield: ShieldDef | undefined,
+  raised: boolean
+): { radius: number; speed: number } {
+  if (!shield || shield.itemId !== 'lodestone_bulwark') return DROP_MAGNET_BASE;
+  return raised ? DROP_MAGNET_BRACED : DROP_MAGNET_CARRIED;
+}
 
 // ---------------------------------------------------------------------------
 // Geometry — the facing grammar. Angles in radians; 0 faces +Z.

@@ -1051,6 +1051,21 @@ export const RECIPES: CraftingRecipe[] = [
     craftTimeMs: 5000,
   },
   {
+    id: 'craft_lodestone_bulwark',
+    outputId: 'lodestone_bulwark',
+    outputCount: 1,
+    name: 'Lodestone Bulwark',
+    description: 'Grow Lodestone Plates into a Scute Shield until the ward pulls at the world. Tier 3 branch — the tier buys the pull, not a lamp: carried, drops drift to you from nine meters; braced, from thirteen. Consumes the shield.',
+    category: 'defenses',
+    ingredients: [
+      { id: 'scute_shield', count: 1 },
+      { id: 'lodestone_plate', count: 2 },
+      { id: 'carapace_scale', count: 3 },
+      { id: 'resin_sap', count: 3 },
+    ],
+    craftTimeMs: 5000,
+  },
+  {
     id: 'graft_spikes_scute',
     outputId: 'scute_shield',
     outputCount: 1,

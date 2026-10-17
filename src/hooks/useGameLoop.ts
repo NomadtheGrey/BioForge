@@ -38,6 +38,7 @@ import {
   SHIELD_RAISED_DRAIN_PER_SEC,
   resolveShieldStrike,
   shieldOf,
+  dropMagnetFor,
   type ShieldCombatInput,
   type ShieldSideEffect,
   type StrikeCtx,
@@ -126,7 +127,7 @@ export interface GameLoopDeps {
   liveGameRefs: { current: {
     hasItem: (itemId: ItemId, quantity: number) => boolean;
     addInventoryItem: (itemId: ItemId, quantity: number) => void;
-    updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number, ctx?: StrikeCtx) => void, attacksArmed?: boolean, dayPhase?: number, onFieldWitness?: (noteId: string) => void, onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void, onAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void) => void;
+    updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number, ctx?: StrikeCtx) => void, attacksArmed?: boolean, dayPhase?: number, onFieldWitness?: (noteId: string) => void, onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void, onAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void, dropMagnet?: { radius: number; speed: number }) => void;
     postNotification: (title: string, message: string, type?: GameNotification['type'], iconColor?: string) => void;
     // The Field Notes witness sink (App's recordFieldWitness,
     // fieldNotesBook.ts) — optional so the loop never hard-depends
@@ -902,7 +903,14 @@ export function useGameLoop(deps: GameLoopDeps): void {
             },
             // The World Asks Back (2026-10-16): the saga event
             // sink — culls stamp through here into App's ledger.
-            (input) => liveGameRefs.current.recordAsksEvent?.(input)
+            (input) => liveGameRefs.current.recordAsksEvent?.(input),
+            // The Lodestone Bulwark's pull (Ingredient Sinks,
+            // 2026-10-17): the drop pass's reach this tick,
+            // from the shield in hand and whether it is raised.
+            dropMagnetFor(
+              shieldOf(playerState.heldItemId ?? null) ?? undefined,
+              liveGameRefs.current.shield?.raisedRef.current ?? false
+            )
           );
         }
 

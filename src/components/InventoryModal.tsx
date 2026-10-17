@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
-import { X, Backpack, Sparkles, Sprout, Hammer, ArrowUpRight, Search } from 'lucide-react';
+import { X, Backpack, Sprout, Hammer, ArrowUpRight, Search } from 'lucide-react';
 import { ItemId, StructureType, ToolType } from '../types/game';
 import { ITEMS, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../game/items/constants';
 import { isGauntletUpgrade, isGearItem, gearTierOf } from '../game/quests/quests';
 import { BASE_SUPPLY_GROUPS, baseSupplyGroupOf, isBaseSupply } from '../game/items/baseSupplies';
 import { POUCH_TIER_CAPS, POUCH_TIER_NAMES, pouchTierOf } from '../game/items/pouch';
+// Real item icons (shared resolver) + the grown arsenal's
+// family facts for tiles/inspector (work order, 2026-10-17).
+import { itemIcon } from './itemIcon';
+import {
+  FAMILY_KIND_LABEL,
+  consumedRung,
+  familyEntryOf,
+} from '../game/items/weaponsFamily';
 
 interface InventoryModalProps {
   isOpen: boolean;
@@ -283,6 +291,8 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                   const item = ITEMS[id];
                   const count = inventory[id] || 0;
                   const isSelected = activeItem?.id === id;
+                  const TileIcon = itemIcon(item.iconName);
+                  const tileFamily = familyEntryOf(id);
 
                   return (
                     <div
@@ -302,11 +312,19 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                           color: item.color,
                         }}
                       >
-                        <Sparkles className="w-5 h-5" />
+                        <TileIcon className="w-5 h-5" />
                       </div>
                       <span className="text-[11px] font-semibold text-slate-200 text-center line-clamp-1 w-full">
                         {item.name}
                       </span>
+                      {/* Arsenal family chip (work order, 2026-
+                          10-17): kind + tier at a glance, in the
+                          family's rose. */}
+                      {tileFamily && (
+                        <span className="font-tech text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/40">
+                          {FAMILY_KIND_LABEL[tileFamily.kind].toUpperCase()} · T{tileFamily.tier}
+                        </span>
+                      )}
                       {/* One-time gauntlet upgrades are worn, not
                           carried (Adam, 2026-10-15): owning one IS
                           having it equipped, and the pouch says so
@@ -340,7 +358,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                         color: activeItem.color,
                       }}
                     >
-                      <Sparkles className="w-7 h-7" />
+                      {React.createElement(itemIcon(activeItem.iconName), { className: 'w-7 h-7' })}
                     </div>
                     <div>
                       <h3 className="text-base font-tech font-bold text-white">{activeItem.name}</h3>
@@ -384,7 +402,49 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                         </span>
                       </div>
                     )}
+                    {/* Arsenal family rows (work order, 2026-10-17):
+                        kind + tier, the seat, and the striker's
+                        numbers — the same facts the codex dossier
+                        shows, at pouch distance. */}
+                    {familyEntryOf(activeItem.id) && (
+                      <>
+                        <div className="flex justify-between py-1.5 border-b border-slate-800 text-slate-400">
+                          <span>Arsenal</span>
+                          <span className="font-tech uppercase text-rose-300">
+                            {FAMILY_KIND_LABEL[familyEntryOf(activeItem.id)!.kind]} · Tier {familyEntryOf(activeItem.id)!.tier}
+                          </span>
+                        </div>
+                        <div className="flex justify-between py-1.5 border-b border-slate-800 text-slate-400">
+                          <span>Seat</span>
+                          <span className="font-tech uppercase text-slate-200">
+                            {familyEntryOf(activeItem.id)!.kind === 'defensive'
+                              ? 'Left Hand'
+                              : 'Gauntlet · Slot 7'}
+                          </span>
+                        </div>
+                        {familyEntryOf(activeItem.id)!.damage !== undefined && (
+                          <div className="flex justify-between py-1.5 border-b border-slate-800 text-slate-400">
+                            <span>Strike</span>
+                            <span className="font-mono text-slate-200">
+                              {familyEntryOf(activeItem.id)!.damage} dmg · {familyEntryOf(activeItem.id)!.cooldownSeconds}s · {familyEntryOf(activeItem.id)!.staminaCost} stam
+                            </span>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
+                  {/* The family's rules, where the item sits: the
+                      strikers' ladder consumes its lower rung;
+                      the shield line branches instead. */}
+                  {familyEntryOf(activeItem.id) && (
+                    <p className="text-[11px] text-slate-500 leading-relaxed mt-3">
+                      {familyEntryOf(activeItem.id)!.kind === 'defensive'
+                        ? 'The shield line branches: the Lantern Shield blocks exactly as the Scute Shield — its tier buys the light, and its recipe is a combination.'
+                        : consumedRung(familyEntryOf(activeItem.id)!)
+                          ? `Grown from the ${ITEMS[consumedRung(familyEntryOf(activeItem.id)!)!.itemId]?.name}, which the growing consumed — a higher striker tier replaces the lower, never stacks beside it.`
+                          : 'A striker of the ladder: the next tier of its kind is grown FROM this one and consumes it.'}
+                    </p>
+                  )}
                   {/* What a tier IS, said once where players look
                       at parts (Adam, 2026-10-15): the number counts
                       the recipe's depth, and it is the same number

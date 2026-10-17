@@ -1,61 +1,11 @@
 import React, { useMemo } from 'react';
-import {
-  AlertTriangle,
-  Bell,
-  Circle,
-  CircleDot,
-  CloudRain,
-  Cpu,
-  Droplet,
-  Droplets,
-  Flame,
-  Flower,
-  Gem,
-  Grid,
-  Layers,
-  Lightbulb,
-  Maximize2,
-  Shield,
-  Sparkle,
-  Sparkles,
-  Sprout,
-  Square,
-  Sun,
-  Target,
-  Umbrella,
-  Zap,
-  type LucideIcon,
-} from 'lucide-react';
 import { CraftingRecipe, ItemId } from '../types/game';
 import { ITEMS, RECIPES } from '../game/items/constants';
 import { isGauntletUpgrade, accessTierOf } from '../game/quests/quests';
-
-const ICONS: Record<string, LucideIcon> = {
-  AlertTriangle,
-  Bell,
-  Circle,
-  CircleDot,
-  CloudRain,
-  Cpu,
-  Droplet,
-  Droplets,
-  Flame,
-  Flower,
-  Gem,
-  Grid,
-  Layers,
-  Lightbulb,
-  Maximize2,
-  Shield,
-  Sparkle,
-  Sparkles,
-  Sprout,
-  Square,
-  Sun,
-  Target,
-  Umbrella,
-  Zap,
-};
+// Item icons resolve through the ONE shared map (itemIcon.ts,
+// extracted from this file 2026-10-17) — the pouch, forge and
+// codex draw from the same table now.
+import { itemIcon } from './itemIcon';
 
 interface RecipeFlowchartProps {
   inventory: Record<ItemId, number>;
@@ -220,7 +170,7 @@ export const RecipeFlowchart: React.FC<RecipeFlowchartProps> = ({
               return null;
             }
             const item = ITEMS[r.outputId];
-            const Icon = ICONS[item.iconName] || Sprout;
+            const Icon = itemIcon(item.iconName);
             const status = nodeStatus(r);
             const style = statusStyle[status];
             const isSelected = selectedRecipeId === r.id;

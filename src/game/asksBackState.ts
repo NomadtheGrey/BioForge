@@ -42,7 +42,11 @@ export type AsksEventKind =
   | 'harvest' // a flora was harvested (count in detail)
   | 'plant'   // a seed was planted
   | 'build'   // a structure was grown/placed
-  | 'zoneVisit'; // the player entered a zone (zoneKey stamped)
+  | 'zoneVisit' // the player entered a zone (zoneKey stamped)
+  | 'survey' // a new space was occupied — surface zone, ruin interior,
+             // or cavern level (spaceKey stamped; the S2 space observer)
+  | 'weather'; // the player stood in a zone's NAMED weather
+               // (zoneKey + weatherMode; the S2 space observer)
 
 /** The raw input a call site hands the sink — day and owner are
  *  stamped by the sink itself, so callers never compute them. */
@@ -52,8 +56,18 @@ export interface AsksEventInput {
   species?: string;
   /** Flora species id (witness/harvest/plant). */
   flora?: string;
-  /** "zx,zz" zone key (zoneVisit). */
+  /** "zx,zz" zone key (zoneVisit, weather). */
   zoneKey?: string;
+  /** Space key for 'survey' — App's currentZoneId format: 'zone:zx,zz'
+   *  on the surface, a ruin's instanceId, or a cavern level key.
+   *  Distinct spaces are the saga engine's survey points: "mark N
+   *  survey points" counts spaces occupied, so walking a ruin's deep
+   *  rooms and descending cavern levels both count. */
+  spaceKey?: string;
+  /** zoneWeatherAt's WeatherMode for 'weather' ('rain', 'snow', ...).
+   *  Weather is a fixed per-zone property, not an event — the stamp
+   *  honestly means "stood in a zone whose weather is X". */
+  weatherMode?: string;
   /** Item id, when the event is about one. */
   itemId?: string;
   /** How many (harvest counts, sample counts). Default 1. */
@@ -79,6 +93,15 @@ export interface AsksEventLog {
   builtStructures: Record<string, number>;
   /** "zx,zz" → visits and first/last seen (echoes and revisits read this). */
   zoneVisits: Record<string, { visits: number; firstDay: number; lastDay: number }>;
+  /** spaceKey → first game day occupied. The saga engine's survey
+   *  signal lives here: steps asking for N survey points count
+   *  distinct spaces with firstDay >= the saga's start. Optional:
+   *  saves predating S2 fall back to {} at every read and write. */
+  surveyedSpaces?: Record<string, number>;
+  /** zoneKey → the named weather stood in there, and when. One record
+   *  per zone is the whole truth (weather is fixed per zone), so
+   *  re-entries never grow it. Optional, same fallback as above. */
+  weatherWitnessed?: Record<string, { mode: string; day: number }>;
   /** saga id → the option the player chose. */
   choices: Record<string, string>;
   /** saga id → how it ended: 'completed' | 'neglected' | 'deadAnchor' | ... */
@@ -160,6 +183,13 @@ export interface AsksOffer {
   reward: { tier: number; items: { itemId: string; count: number }[] };
   cooldownTags: string[];
   owner: AsksOwner;
+  /** S2: set when the offer consumed a world-memory echo (the
+   *  cross-saga continuity channel; dormant until S3 writes more
+   *  echo kinds than 'neglected'). */
+  echoUsed?: { kind: string; echoId: string } | null;
+  /** S2: set when the saga's anchor is a species the player has
+   *  history with (tamed — read from the event log). */
+  personalUsed?: boolean;
 }
 
 /** An accepted saga being worked (S2/S3). */
@@ -202,6 +232,8 @@ export const EMPTY_ASKS_BACK: AsksBackState = {
     plantedFlora: {},
     builtStructures: {},
     zoneVisits: {},
+    surveyedSpaces: {},
+    weatherWitnessed: {},
     choices: {},
     resolutions: {},
   },
@@ -252,6 +284,11 @@ export function applyAsksEvents(
     plantedFlora: { ...prev.events.plantedFlora },
     builtStructures: { ...prev.events.builtStructures },
     zoneVisits: { ...prev.events.zoneVisits },
+    // S2's space-weather writers: optional on old records, so every
+    // read and this rebuild falls back to {} — a pre-S2 save grows
+    // these maps on its first S2 event, never crashes on their absence.
+    surveyedSpaces: { ...(prev.events.surveyedSpaces ?? {}) },
+    weatherWitnessed: { ...(prev.events.weatherWitnessed ?? {}) },
     choices: { ...prev.events.choices },
     resolutions: { ...prev.events.resolutions },
   };
@@ -273,6 +310,24 @@ export function applyAsksEvents(
           events.zoneVisits[k] = prev_visit
             ? { visits: prev_visit.visits + 1, firstDay: prev_visit.firstDay, lastDay: day }
             : { visits: 1, firstDay: day, lastDay: day };
+        }
+        break;
+      }
+      case 'survey': {
+        // First occupation wins: a survey point is "been there".
+        // The S2 space observer stamps each new space once, so this
+        // map grows by at most one key per space change — never per frame.
+        if (input.spaceKey && events.surveyedSpaces![input.spaceKey] === undefined) {
+          events.surveyedSpaces![input.spaceKey] = day;
+        }
+        break;
+      }
+      case 'weather': {
+        // One record per zone: weather is a fixed per-zone property
+        // (zoneWeatherAt), so the latest stamp is the whole truth and
+        // re-entries never grow the map.
+        if (input.zoneKey && input.weatherMode) {
+          events.weatherWitnessed![input.zoneKey] = { mode: input.weatherMode, day };
         }
         break;
       }

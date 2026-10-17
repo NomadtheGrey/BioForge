@@ -2855,6 +2855,7 @@ const {
         nearForge={craftAccess.nearForge}
         hasSynthesizer={craftAccess.hasSynthesizer}
         shieldGrowth={shieldGrowth}
+        heldItemId={playerState.heldItemId ?? null}
         onCraftRecipe={handleCraftRecipe}
         onGrowPrerequisites={handleGrowPrerequisites}
         onSelectStructureBlueprint={(type) => {

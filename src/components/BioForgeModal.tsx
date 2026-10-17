@@ -47,6 +47,10 @@ interface BioForgeModalProps {
   /** The shield graft slots as worn — a graft recipe locks
    *  when its target's slot already reads a graft. */
   shieldGrowth?: ShieldGrowthMap;
+  /** What the Left Hand wears, when the host passes it: the
+   *  forge stows a held piece before eating it, so a held
+   *  ingredient is yours for every check in this modal. */
+  heldItemId?: ItemId | null;
   onCraftRecipe: (recipe: CraftingRecipe) => void;
   /** Grow Prerequisites (Adam, 2026-10-16): grow a short
    *  reagent's whole chain for the selected recipe in one pass. */
@@ -61,6 +65,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   nearForge,
   hasSynthesizer,
   shieldGrowth,
+  heldItemId,
   onCraftRecipe,
   onGrowPrerequisites,
   onSelectStructureBlueprint,
@@ -168,8 +173,18 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     }
   }
 
+  // WHAT YOU HAVE, hand included: a piece worn in the Left
+  // Hand sits outside the pouch count, but it is still the
+  // player's — the craft flow stows it before consuming it.
+  // Ingredient checks, have-counts and every plan walk read
+  // this folded map; the raw pouch would call a held Lantern
+  // Shield 'missing' on the Fenback's own recipe card.
+  const pouchWithHeld: Record<ItemId, number> = heldItemId
+    ? { ...inventory, [heldItemId]: (inventory[heldItemId] || 0) + 1 }
+    : inventory;
+
   const hasIngredients = (recipe: CraftingRecipe) => {
-    return recipe.ingredients.every((ing) => (inventory[ing.id] || 0) >= ing.count);
+    return recipe.ingredients.every((ing) => (pouchWithHeld[ing.id] || 0) >= ing.count);
   };
 
   const canCraft = (recipe: CraftingRecipe) => {
@@ -378,7 +393,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
           <div className="w-1/2 border-r border-slate-800/80 overflow-hidden">
             {viewMode === 'tree' && !searchActive ? (
               <RecipeFlowchart
-                inventory={inventory}
+                inventory={pouchWithHeld}
                 nearForge={nearForge}
                 hasSynthesizer={hasSynthesizer}
                 selectedRecipeId={selectedRecipe.id}
@@ -571,7 +586,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                 <div className="space-y-2">
                   {selectedRecipe.ingredients.map((ing) => {
                     const ingItem = ITEMS[ing.id];
-                    const currentAmount = inventory[ing.id] || 0;
+                    const currentAmount = pouchWithHeld[ing.id] || 0;
                     const hasEnough = currentAmount >= ing.count;
 
                     return (
@@ -636,7 +651,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                         // still lacks, and where the raw pieces
                         // live. Numbers come from the same
                         // netted walk the tree modal shows.
-                        const plan = buildCraftPlan(ing.id, ing.count, inventory);
+                        const plan = buildCraftPlan(ing.id, ing.count, pouchWithHeld);
                         const root = plan.root;
                         return (
                           <div className="mx-1 mb-1 p-3 rounded-xl border border-cyan-800/40 bg-slate-900/80 text-[11px] leading-snug">
@@ -717,7 +732,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
       <CraftTreeModal
         itemId={treeTarget?.id ?? null}
         need={treeTarget?.need ?? 1}
-        inventory={inventory}
+        inventory={pouchWithHeld}
         onClose={() => setTreeTarget(null)}
       />
     </div>

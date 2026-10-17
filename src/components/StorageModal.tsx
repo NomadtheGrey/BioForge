@@ -17,7 +17,7 @@ import React from 'react';
 import { X, Package, ArrowDownToLine, ArrowUpFromLine, Sprout, Move } from 'lucide-react';
 import type { ItemId, StructureEntity } from '../types/game';
 import { ITEMS } from '../game/items/constants';
-import { STORAGE_TIERS, mergedStorageItems, pooledStorageCaps, storageCapsFor, storageKitFor, storageSlotsUsed, type StorageContents } from '../game/items/pouch';
+import { STORAGE_TIERS, mergedStorageItems, pooledStorageCaps, storageCapsFor, storageKitFor, storageRoomFor, storageSlotsUsed, type StorageContents } from '../game/items/pouch';
 import { isSampleItem } from '../game/structures/vat';
 import { isSlottedUpgrade } from '../game/items/slottedUpgrades';
 
@@ -99,11 +99,19 @@ export const StorageModal: React.FC<StorageModalProps> = ({
   ) => {
     const item = ITEMS[itemId];
     if (!item) return null;
+    // In a cluster the honest figure is the group's total
+    // remaining room for this item (each pod's own room summed).
+    const clusterRoom = clustered
+      ? members.reduce((sum, m) => {
+          const mc: StorageContents = m.storage ?? { tier: 1, items: {} };
+          return sum + storageRoomFor(mc, itemId, storageCapsFor(m.type, mc.tier));
+        }, 0)
+      : 0;
     const roomNote =
       action === 'withdraw'
         ? `pouch holds ${pouchCap}`
         : clustered
-          ? `storage takes ${pooled.perStack}/stack`
+          ? `room for ${clusterRoom} more in the group`
           : `pod takes ${caps.perStack}/stack`;
     return (
       <button
@@ -145,7 +153,7 @@ export const StorageModal: React.FC<StorageModalProps> = ({
               <h2 className="text-lg font-tech font-bold text-white tracking-wide">{caps.name.toUpperCase()}</h2>
               <p className="text-xs text-slate-400">
                 {clustered
-                  ? `${members.length} pods growing together · ${displaySlotsUsed} of ${displaySlots} kinds stored · up to ${pooled.perStack} each`
+                  ? `${members.length} pods growing together · ${displaySlotsUsed} of ${displaySlots} kinds stored, stacked as one`
                   : `${storageSlotsUsed(contents)} of ${caps.slots} kinds stored · up to ${caps.perStack} each`}
               </p>
             </div>

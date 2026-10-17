@@ -117,8 +117,10 @@ import type { WeaponDef } from './game/creatures/weapons';
 import {
   cycleLeftHand as cycleLeftHandNext,
   graftInheritanceOnCraft,
+  graftOf,
   leftHandOrder,
   shieldOf,
+  SHIELD_GRAFTS,
   type ShieldCombatInput,
   type ShieldSideEffect,
 } from './game/creatures/shields';
@@ -2263,6 +2265,21 @@ const {
       addInventoryItem(playerState.heldItemId, 1);
       setHeldItemId(null);
     }
+    // The graft-slot guard (HUD audit, 2026-10-17): the forge
+    // locks a filled slot on its button; this is the same
+    // invariant at the consumption point, so no caller can
+    // burn graft materials on a shield that already wears one.
+    if (recipe.graftShield) {
+      const wornGraft = graftOf(shieldGraftsRef.current, recipe.graftShield);
+      if (wornGraft) {
+        postNotification(
+          'Graft Slot Filled',
+          `Your ${ITEMS[recipe.graftShield]?.name || recipe.graftShield} already wears ${SHIELD_GRAFTS[wornGraft].name}.`,
+          'craft',
+        );
+        return;
+      }
+    }
     const success = craftRecipe(recipe);
     if (success) {
       // Graft recipes stamp their graft onto the shield they
@@ -2692,6 +2709,7 @@ const {
         inventory={inventory}
         nearForge={craftAccess.nearForge}
         hasSynthesizer={craftAccess.hasSynthesizer}
+        shieldGrafts={playerState.shieldGrafts}
         onCraftRecipe={handleCraftRecipe}
         onGrowPrerequisites={handleGrowPrerequisites}
         onSelectStructureBlueprint={(type) => {

@@ -12,7 +12,12 @@ import { RecipeFlowchart } from './RecipeFlowchart';
 import { FAMILY_KIND_LABEL, familyEntryOf } from '../game/items/weaponsFamily';
 // The Shield tab's membership is the shield rules table's own
 // list — crafts and graft recipes alike output a shield item.
-import { isShieldItem } from '../game/creatures/shields';
+// The graft-slot lock (HUD audit, 2026-10-17) reads the same
+// module: a graft recipe whose target already wears a graft
+// must not stay READY — crafting it would burn the materials
+// on a no-op.
+import { isShieldItem, graftOf, SHIELD_GRAFTS } from '../game/creatures/shields';
+import type { PlayerState } from '../types/game';
 
 interface BioForgeModalProps {
   isOpen: boolean;
@@ -20,6 +25,9 @@ interface BioForgeModalProps {
   inventory: Record<ItemId, number>;
   nearForge: boolean;
   hasSynthesizer: boolean;
+  /** The shield graft slots as worn — a graft recipe locks
+   *  when its target's slot already reads a graft. */
+  shieldGrafts?: PlayerState['shieldGrafts'];
   onCraftRecipe: (recipe: CraftingRecipe) => void;
   /** Grow Prerequisites (Adam, 2026-10-16): grow a short
    *  reagent's whole chain for the selected recipe in one pass. */
@@ -33,6 +41,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   inventory,
   nearForge,
   hasSynthesizer,
+  shieldGrafts,
   onCraftRecipe,
   onGrowPrerequisites,
   onSelectStructureBlueprint,
@@ -141,6 +150,9 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     // owning one IS wearing it (auto-equipped), so a second craft
     // would only burn ingredients on a duplicate that cannot stack.
     if (isGauntletUpgrade(recipe.outputId) && (inventory[recipe.outputId] || 0) > 0) return false;
+    // The graft-slot lock (HUD audit, 2026-10-17): one graft per
+    // shield — a filled slot refuses the recipe outright.
+    if (recipe.graftShield && graftOf(shieldGrafts, recipe.graftShield)) return false;
     if (!hasIngredients(recipe)) return false;
     if (nearForge) return true;
     if (accessTierOf(recipe) >= 3) return false;
@@ -152,6 +164,12 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     // about this recipe, ingredients come and go.
     if (isGauntletUpgrade(recipe.outputId) && (inventory[recipe.outputId] || 0) > 0)
       return 'Already grafted onto your gauntlet';
+    // The filled graft slot speaks just as early, in the same
+    // shape: name the graft the shield already wears.
+    if (recipe.graftShield) {
+      const worn = graftOf(shieldGrafts, recipe.graftShield);
+      if (worn) return `Already grafted — ${SHIELD_GRAFTS[worn].name}`;
+    }
     if (!hasIngredients(recipe)) return 'Missing ingredients';
     if (nearForge) return null;
     if (accessTierOf(recipe) >= 3) return 'Advanced synthesis requires a bio-forge station';

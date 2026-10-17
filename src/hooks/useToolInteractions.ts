@@ -309,13 +309,13 @@ export function useToolInteractions({
     }
     switch (flora.species) {
       case 'lantern_fern':
-        return { item: 'soft_fiber', count: flora.fertilizedYield ? 5 : 2, extras: [['dew_essence', 1]] };
+        return { item: 'soft_fiber', count: flora.fertilizedYield ? 5 : 2, extras: [['dew_essence', 1], ['seed_lantern_fern', 1]] };
       case 'sap_weaver':
-        return { item: 'resin_sap', count: flora.fertilizedYield ? 6 : 3, extras: [] };
+        return { item: 'resin_sap', count: flora.fertilizedYield ? 6 : 3, extras: [['seed_sap_weaver', 1]] };
       case 'petal_mill':
-        return { item: 'vibrant_petal', count: flora.fertilizedYield ? 6 : 3, extras: [['sweet_nectar', 2]] };
+        return { item: 'vibrant_petal', count: flora.fertilizedYield ? 6 : 3, extras: [['sweet_nectar', 2], ['seed_petal_mill', 1]] };
       case 'snap_trap':
-        return { item: 'carapace_scale', count: 1, extras: [] };
+        return { item: 'carapace_scale', count: 1, extras: [['seed_snap_trap', 1]] };
       case 'bounce_shroom':
         // Harvesting a bounce-shroom gives its spore back (replant it
         // under another hole) plus the dew that collects on the cap.
@@ -397,6 +397,9 @@ export function useToolInteractions({
         // and bead it as dew; a reed sometimes roots alongside.
         return { item: 'dew_essence', count: flora.fertilizedYield ? 5 : 3, extras: [['resonant_reed', 1]] };
       case 'bell_bloom':
+        // Its own case since the seed ruling (2026-10-17): the
+        // default's yields plus the plant's own seed.
+        return { item: 'dew_essence', count: flora.fertilizedYield ? 4 : 2, extras: [['soft_fiber', 1], ['seed_bell_bloom', 1]] };
       default:
         return { item: 'dew_essence', count: flora.fertilizedYield ? 4 : 2, extras: [['soft_fiber', 1]] };
     }

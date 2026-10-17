@@ -398,7 +398,7 @@ export interface UseWorldEntitiesResult {
   hearthFeed: (faunaId: string) => number;
   loadHeartbearer: (faunaId: string, item: ItemId) => number;
   setFaunaCommand: (faunaId: string, cmd: 'follow' | 'stay' | 'guard') => void;
-  releaseFauna: (faunaId: string) => void;
+  releaseFauna: (faunaId: string, settleName?: string) => void;
   applyDissolve: (faunaId: string) => void;
   /** One close-striker hit: damage + flinch, sim-gated (weapons). */
   strikeFauna: (faunaId: string, damage: number, flinchSeconds: number) => void;
@@ -745,11 +745,14 @@ export function useWorldEntities(): UseWorldEntitiesResult {
     []
   );
 
-  const releaseFauna = useCallback((faunaId: string): void => {
+  // THE WORLD ASKS BACK, S4: an optional settle name — a nameless
+  // release takes the consequence record's deterministic name so
+  // the live creature and the record can never disagree.
+  const releaseFauna = useCallback((faunaId: string, settleName?: string): void => {
     setFaunaList((prev) =>
       prev.map((fn) =>
         fn.id === faunaId
-          ? { ...fn, isTamed: false, tamedBy: undefined, command: undefined, anchorX: undefined, anchorZ: undefined, state: 'wandering' as const }
+          ? { ...fn, isTamed: false, tamedBy: undefined, command: undefined, anchorX: undefined, anchorZ: undefined, state: 'wandering' as const, ...(settleName ? { customName: settleName } : null) }
           : fn
       )
     );

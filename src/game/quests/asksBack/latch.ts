@@ -283,7 +283,7 @@ function checkGoal(
     }
     case 'zoneTier3': {
       const ok = ctx.signals?.tier3 === true;
-      return status(ok, ok ? 1 : 0, 1, 'far country');
+      return status(ok, ok ? 1 : 0, 1, 'deep country');
     }
     case 'itemCount': {
       const itemId = goal.itemId as string;

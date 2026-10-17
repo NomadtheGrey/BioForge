@@ -97,7 +97,7 @@ export function useVat({
       'The Culture Deepens',
       vat.tier + 1 === 2
         ? 'The vat richens — wild-country creatures, and anything that hunts, can grow here now.'
-        : 'The vat goes deep and strange — the far country can grow here now.',
+        : 'The vat goes deep and strange — the deep country can grow here now.',
       'craft',
       '#34d399',
     );

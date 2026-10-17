@@ -232,3 +232,16 @@ THE_DEPARTURE.md). Several ideas above are marked where
 they could serve it — as craft-height proofs and
 apex-country reasons — without this sheet presuming to
 write the vessel's recipe.*
+
+---
+
+*ERRATA (2026-10-17, as the slices landed):*
+*Idea 6 (Bulwark) landed at 493edc0 — seven files, not
+three (type union, gear-tier pin, two hook touches ride
+along any shield). Idea 7 (Plume Charm) landed at fe7c040
+REDESIGNED: the game has no fall damage — falls are the
+jump offset returning to support — so the charm is a
+GLIDE, not insurance: carried, fast descents gentle to
+0.45× gravity with the sink capped at 3 m/s; launches
+untouched. Its recipe also spends soft_fiber ×2 (the
+weave), which the sheet omitted.*

@@ -17,10 +17,12 @@
  *    engine as facts). Gates NEVER trap: Next and Skip always
  *    work, on every step, gated or not.
  *
- * `target` is a HUD_PANELS id (hooks/useHudLayout.ts) the chrome
- * highlights while the step is up, or null when the step's target
- * is the world itself (pick a plant) — the card then stands
- * alone in its no-target mode.
+ * `target` is what the chrome highlights while the step is up:
+ * a HUD_PANELS id (hooks/useHudLayout.ts), or the DOM id of the
+ * top-right utility cluster's buttons ('quests-btn' /
+ * 'howto-btn' — the How to Play cluster is fixed chrome, not a
+ * panel), or null when the step's target is the world itself
+ * (pick a plant) — the card then stands alone in no-target mode.
  */
 
 export type TutorialGate =
@@ -99,7 +101,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: 'questlog',
     title: 'The Quest Log',
     body: 'Press Q, or tap the QUESTS button. The log holds all your quests \u2014 the making-things chain you are on now, and bigger mysteries for later. Open it and take a look.',
-    target: 'quicknav',
+    target: 'quests-btn',
     gate: 'openQuests',
   },
   {
@@ -120,7 +122,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: 'ready',
     title: 'You are ready',
     body: 'That is the whole game: pick things, grow things, wear what you grow, walk farther out. If you ever feel lost, follow your quest tracker \u2014 and the HOW TO PLAY button at the top-right is always there. Good growing!',
-    target: null,
+    target: 'howto-btn',
     gate: 'manual',
   },
 ];

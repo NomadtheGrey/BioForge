@@ -24,6 +24,7 @@
  */
 
 import * as THREE from 'three';
+import { skyRosterNow, nightSkyAt, type MeteorSpec } from './skyCalendar';
 
 // ---------------------------------------------------------------------------
 // Procedural sky textures (planet upgrade, Adam, 2026-10-16)
@@ -339,6 +340,43 @@ function makeCometTexture(): THREE.CanvasTexture {
   return tex;
 }
 
+/**
+ * A meteor: a shorter, thinner streak than a comet — the
+ * same construction (bright head right, tapering tail
+ * left, additive), drawn slimmer so a lone shooting star
+ * reads as a scratch of light, not an apparition.
+ */
+function makeMeteorTexture(): THREE.CanvasTexture {
+  const w = 256;
+  const h = 32;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d')!;
+  for (const [len, alpha, spread] of [[240, 0.12, 5], [180, 0.22, 3], [110, 0.34, 1.6]] as const) {
+    const g = ctx.createLinearGradient(238, 0, 238 - len, 0);
+    g.addColorStop(0, `rgba(255,255,255,${alpha})`);
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(238, h / 2 - 0.8);
+    ctx.lineTo(238 - len, h / 2 - spread);
+    ctx.lineTo(238 - len, h / 2 + spread);
+    ctx.lineTo(238, h / 2 + 0.8);
+    ctx.closePath();
+    ctx.fill();
+  }
+  const glow = ctx.createRadialGradient(234, h / 2, 0, 234, h / 2, 11);
+  glow.addColorStop(0, 'rgba(255,255,255,0.95)');
+  glow.addColorStop(0.4, 'rgba(230,240,255,0.45)');
+  glow.addColorStop(1, 'rgba(230,240,255,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(212, 0, 44, h);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
 export class SkyRig {
   /** The companion sun's light (no shadows; the primary keeps them). */
   public sunLightB: THREE.DirectionalLight;
@@ -368,6 +406,17 @@ export class SkyRig {
   /** Comets (2026-10-16): each crosses the night on its own
    *  fixed arc during its window of the planet's transit. */
   private comets: { group: THREE.Group; plane: THREE.Mesh; mat: THREE.MeshBasicMaterial; from: THREE.Vector3; to: THREE.Vector3; start: number; span: number }[] = [];
+  /** Meteors (Shelf 1, 2026-10-17): a small pool of streak
+   *  planes flown from the sky calendar's nightly list —
+   *  baseline shooting stars plus the shower nights. The
+   *  list LATCHES when the night band is entered and holds
+   *  until dawn, so a wall-clock day rolling over mid-night
+   *  never swaps tonight's sky under the player. */
+  private meteorPool: { group: THREE.Group; plane: THREE.Mesh; mat: THREE.MeshBasicMaterial; from: THREE.Vector3; to: THREE.Vector3; bornAt: number; lifeMs: number; active: boolean }[] = [];
+  private meteorNight: { at: number; spec: MeteorSpec }[] = [];
+  private meteorFired: Set<number> = new Set();
+  private meteorLatched = false;
+  private prevCycle = -1;
   private dirLight: THREE.DirectionalLight;
 
   constructor(scene: THREE.Scene, dirLight: THREE.DirectionalLight) {
@@ -669,6 +718,37 @@ export class SkyRig {
       this.skyGroup.add(group);
       this.comets.push({ group, plane, mat, from: def.from, to: def.to, start: def.start, span: def.span });
     }
+    // Meteor pool (Shelf 1): two dozen streak planes, built
+    // once, hidden until the calendar deals them a flight.
+    // Same construction as the comets — billboarded group,
+    // additive plane, roll set from the velocity in flight.
+    for (let i = 0; i < 24; i++) {
+      const mat = new THREE.MeshBasicMaterial({
+        map: makeMeteorTexture(),
+        transparent: true,
+        opacity: 0,
+        fog: false,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        side: THREE.DoubleSide,
+      });
+      const plane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
+      plane.renderOrder = -10;
+      const group = new THREE.Group();
+      group.add(plane);
+      group.visible = false;
+      this.skyGroup.add(group);
+      this.meteorPool.push({
+        group,
+        plane,
+        mat,
+        from: new THREE.Vector3(),
+        to: new THREE.Vector3(),
+        bornAt: 0,
+        lifeMs: 1,
+        active: false,
+      });
+    }
     // The companion sun gets its own light; both lights aim
     // through the primary's target, which rides the camera (added
     // to the scene here so its matrix updates).
@@ -794,6 +874,8 @@ export class SkyRig {
       comet.plane.rotation.z = Math.atan2(vel.dot(up2), vel.dot(right));
       comet.mat.opacity = Math.sin(Math.PI * p) * 0.95 * nightF;
     }
+    // Meteors (Shelf 1): the calendar's night, flown.
+    this.updateMeteors(cycle, camPos, nightF, underground);
     // Lights ride their bodies; one shared target at the camera
     // keeps the direction honest in every zone.
     const target = this.dirLight.target;
@@ -809,5 +891,102 @@ export class SkyRig {
       this.dirLight.position.copy(camPos).addScaledVector(p, 70);
       this.sunLightB.intensity = 0;
     }
+  }
+
+  /**
+   * Meteors (Shelf 1, 2026-10-17). Reads the sky clock
+   * (skyCalendar's singleton): when the phase enters the
+   * night band (cycle ≥ 0.75 or < 0.25), tonight's list —
+   * baseline stars plus any shower — latches from the
+   * calendar for the wall-clock day at that moment and
+   * each spec fires as the phase crosses its spawn point
+   * (nightT mapped into the band). Flights animate on
+   * real time, billboarded and rolled along their fall
+   * exactly like the comets. Underground or daylight:
+   * nothing fires, and dawn ends flights where they are
+   * (a streak lives about a second; the cut is invisible).
+   */
+  private updateMeteors(cycle: number, camPos: THREE.Vector3, nightF: number, underground: boolean): void {
+    const inNight = cycle >= 0.75 || cycle < 0.25;
+    if (!inNight) {
+      this.meteorLatched = false;
+      this.meteorNight = [];
+      for (const u of this.meteorPool) {
+        u.active = false;
+        u.group.visible = false;
+      }
+      this.prevCycle = cycle;
+      return;
+    }
+    const now = Date.now();
+    const sky = skyRosterNow(now);
+    if (sky && !this.meteorLatched) {
+      const night = nightSkyAt(sky.roster, Math.floor(sky.tDays));
+      this.meteorNight = [...night.baseline, ...(night.shower ? night.shower.meteors : [])]
+        .map((spec) => ({ spec, at: (0.75 + spec.nightT * 0.5) % 1 }))
+        .sort((a, b) => a.at - b.at);
+      this.meteorFired = new Set();
+      this.meteorLatched = true;
+    }
+    if (sky && !underground && this.prevCycle >= 0) {
+      for (let i = 0; i < this.meteorNight.length; i++) {
+        if (this.meteorFired.has(i)) continue;
+        const at = this.meteorNight[i].at;
+        const crossed =
+          this.prevCycle <= cycle
+            ? at > this.prevCycle && at <= cycle
+            : at > this.prevCycle || at <= cycle;
+        if (crossed) {
+          this.meteorFired.add(i);
+          this.spawnMeteor(this.meteorNight[i].spec, now);
+        }
+      }
+    }
+    this.prevCycle = cycle;
+    // Animate the live flights.
+    for (const u of this.meteorPool) {
+      if (!u.active) continue;
+      const k = (now - u.bornAt) / u.lifeMs;
+      if (k >= 1) {
+        u.active = false;
+        u.group.visible = false;
+        continue;
+      }
+      const pos = u.from.clone().lerp(u.to, k).normalize().multiplyScalar(172);
+      const ahead = u.from.clone().lerp(u.to, Math.min(1, k + 0.05)).normalize().multiplyScalar(172);
+      const vel = ahead.sub(pos);
+      u.group.position.copy(pos);
+      u.group.lookAt(camPos);
+      const viewDir = camPos.clone().sub(pos).normalize();
+      const right = new THREE.Vector3().crossVectors(viewDir, new THREE.Vector3(0, 1, 0)).normalize();
+      const up2 = new THREE.Vector3().crossVectors(right, viewDir).normalize();
+      u.plane.rotation.z = Math.atan2(vel.dot(up2), vel.dot(right));
+      u.mat.opacity = Math.sin(Math.PI * k) * nightF;
+    }
+  }
+
+  /** Deals one calendar spec to a free pool unit. */
+  private spawnMeteor(spec: MeteorSpec, now: number): void {
+    const unit = this.meteorPool.find((u) => !u.active);
+    if (!unit) return; // a crowded second in a heavy shower — the sky forgives
+    // The constructor's dirFromAzEl formula (az/el in
+    // radians), local here because spawns happen per frame.
+    const dir = (azDeg: number, elDeg: number): THREE.Vector3 => {
+      const az = (azDeg * Math.PI) / 180;
+      const el = (elDeg * Math.PI) / 180;
+      return new THREE.Vector3(Math.cos(az) * Math.cos(el), Math.sin(el), Math.sin(az) * Math.cos(el));
+    };
+    unit.from.copy(dir(spec.azimuthDeg, spec.elevationDeg));
+    // The fall: down by the spec's drop, skewed sideways by
+    // a fraction of it so streaks rake rather than rain.
+    const skew = ((spec.nightT * 7.31) % 1) - 0.5;
+    unit.to.copy(dir(spec.azimuthDeg + spec.dropDeg * 0.45 * skew, spec.elevationDeg - spec.dropDeg));
+    unit.bornAt = now;
+    unit.lifeMs = spec.bolide ? 1150 : 520 + spec.size * 200;
+    const length = 8 + spec.size * 7.5;
+    unit.plane.scale.set(length, length * 0.14, 1);
+    unit.mat.color.set(spec.hue);
+    unit.active = true;
+    unit.group.visible = true;
   }
 }

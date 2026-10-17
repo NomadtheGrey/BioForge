@@ -127,6 +127,7 @@ import {
 } from './game/creatures/shields';
 import { useShieldWield } from './hooks/useShieldWield';
 import { useQuests } from './hooks/useQuests';
+import { useTutorial } from './hooks/useTutorial';
 import { useStorage } from './hooks/useStorage';
 import { useVat } from './hooks/useVat';
 import { useDebugKit } from './hooks/useDebugKit';
@@ -1186,6 +1187,8 @@ export default function App() {
     // the zone question is answered here, where zone knowledge
     // lives; the interaction only reports that a harvest landed.
     onFloraHarvest: () => {
+      // The tutorial's harvest fact: any landed harvest flips it.
+      setTutorialHarvested(true);
       if (!worldSeedRef.current) return;
       const info = zoneInfo(worldSeedRef.current, playerZoneRef.current.zx, playerZoneRef.current.zz);
       if (info.variant?.id === 'precursor_garden') {
@@ -1394,6 +1397,48 @@ export default function App() {
 
   // The Ask the World chapter, once earned (modal state).
   const [awChapter, setAwChapter] = useState<AwChapter | null>(null);
+
+  // ------------------------------------------------------------------
+  // The Tutorial (How to Play, Slice B part 2 — the wiring).
+  // The engine (hooks/useTutorial) reads five facts, all from
+  // state the game already keeps: a harvest latch flipped by the
+  // harvest callback above, the three modal reads off
+  // activeModal, and the player's zone against home. The HUD
+  // renders the step card + ring from the returned object; the
+  // How to Play modal's SHOW TUTORIAL button starts it.
+  // ------------------------------------------------------------------
+  const [tutorialHarvested, setTutorialHarvested] = useState(false);
+  const tutorial = useTutorial({
+    harvested: tutorialHarvested,
+    pouchOpen: activeModal === 'inventory',
+    forgeOpen: activeModal === 'bioforge',
+    questsOpen: activeModal === 'quests',
+    zoneChanged: playerZone.zx !== 0 || playerZone.zz !== 0,
+  });
+  // Opening How to Play marks the guide seen (the cluster's
+  // pulse settles) — the engine's record and the HUD cluster
+  // write the same key the same way.
+  useEffect(() => {
+    if (showHowToPlay) tutorial.markModalSeen();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showHowToPlay]);
+  // The one-time offer: a fresh player entering a world is told
+  // once that the walk-through exists. Once per device, ever —
+  // the record's offered/completed flags are the gate.
+  const tutorialOfferRef = useRef(false);
+  useEffect(() => {
+    if (!hasStarted || tutorialOfferRef.current) return;
+    if (tutorial.completed || tutorial.offered) return;
+    tutorialOfferRef.current = true;
+    tutorial.markOffered();
+    postNotification(
+      'New to BioForge?',
+      'The HOW TO PLAY button at the top-right can walk you through your first steps.',
+      'discover',
+      '#67e8f9'
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasStarted]);
 
   // ------------------------------------------------------------------
   // Ask the World — signal writers (Adam, 2026-10-16)
@@ -2489,6 +2534,7 @@ const {
 
       {/* Futuristic Botanical Tech HUD */}
       <HUD
+        tutorial={tutorial}
         shieldGrowth={shieldGrowth}
         playerState={{
           ...playerState,
@@ -2787,6 +2833,10 @@ const {
         onOpenAbout={() => {
           setShowHowToPlay(false);
           setShowAbout(true);
+        }}
+        onShowTutorial={() => {
+          setShowHowToPlay(false);
+          tutorial.start();
         }}
       />
       <MultiplayerModal

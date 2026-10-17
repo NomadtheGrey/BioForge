@@ -84,6 +84,10 @@ export interface ZoneTravelDeps {
    *  zones generated on travel belong to the OPEN world, whose
    *  epoch decides whether pond life may be sown in them. */
   getWorldCreatedAt: () => number;
+  /** The World Asks Back (2026-10-16): stamped on every completed
+   *  crossing — the saga engine reads zone-visit history for echo
+   *  timing and revisit goals. */
+  onZoneEnter?: (zoneKeyVisited: string) => void;
 }
 
 export interface UseZoneTravelResult {
@@ -108,7 +112,7 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
   const {
     engineRef, playerPosRef, movementController, jumpRef, instanceRef,
     replaceWorld, applyPlayerLevel, postNotification,
-    buildWorldSnapshot, getDayNightCycle, saveNowRef, getWorldCreatedAt,
+    buildWorldSnapshot, getDayNightCycle, saveNowRef, getWorldCreatedAt, onZoneEnter,
   } = deps;
 
   // The world is a grid of zones; the player stands in exactly one.
@@ -223,6 +227,9 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
     // 3. Stand there: identity, paint, position, story, momentum.
     playerZoneRef.current = { zx: nx, zz: nz };
     setPlayerZone({ zx: nx, zz: nz });
+    // The World Asks Back: the crossing itself is the zone-visit
+    // event — stamped here, where the travel actually completed.
+    onZoneEnter?.(nextKey);
     engineRef.current?.setZoneBiome(zoneBiomeAt(seed, nx, nz), zoneFaceAt(seed, nx, nz)?.tint ?? null, zoneFaceAt(seed, nx, nz) ? { distanceMult: zoneFaceAt(seed, nx, nz)!.lightDistanceMult, intensityMult: zoneFaceAt(seed, nx, nz)!.lightIntensityMult } : null);
     applyPlayerLevel(0);
     jumpRef.current = { y: 0, vy: 0, bounceFlip: false };

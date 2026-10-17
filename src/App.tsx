@@ -74,6 +74,11 @@ import {
   WorldSnapshot,
 } from './game/saveSystem';
 import { EMPTY_FIELD_NOTES, type FieldNotesState } from './game/fieldNotesBook';
+import { noteById } from './game/fieldNotesBook';
+import {
+  EMPTY_ASKS_BACK, applyAsksEvents, asksGameDay,
+  type AsksBackState, type AsksEventInput,
+} from './game/asksBackState';
 
 import { StartScreenModal } from './components/StartScreenModal';
 
@@ -235,6 +240,18 @@ export default function App() {
   // have witnessed. Saved with the world beside the codex; the
   // shape and the rules live in game/fieldNotesBook.ts.
   const [fieldNotesState, setFieldNotesState] = useState<FieldNotesState>(EMPTY_FIELD_NOTES);
+  // THE WORLD ASKS BACK (dev lane, 2026-10-16): the dynamic saga
+  // system's memory — the typed event log, the Director's notebook,
+  // offered/active sagas, echoes, per-zone consequences. One state
+  // slice, one optional save key; old saves fall back to empty.
+  const [asksBackState, setAsksBackState] = useState<AsksBackState>(EMPTY_ASKS_BACK);
+  // THE EVENT SINK: the one door every asks event walks through.
+  // Call sites hand raw inputs (kind + ids); day and owner are
+  // stamped here from the record's own clock. Batch-friendly —
+  // the sim's sweep hands a whole kill list at once, one setState.
+  const recordAsksEvent = useCallback((input: AsksEventInput | AsksEventInput[]) => {
+    setAsksBackState((prev) => applyAsksEvents(prev, input, 'local'));
+  }, []);
   // Append-only unlock — the scanner's door. Deduped, so rescanning
   // an old friend never grows the book.
   const unlockFieldNotes = useCallback((noteIds: string[]) => {
@@ -252,7 +269,23 @@ export default function App() {
       prev.witnessed.includes(noteId)
         ? prev
         : { ...prev, witnessed: [...prev.witnessed, noteId] });
-  }, []);
+    // The World Asks Back (2026-10-16): the witness stream doubles
+    // as the saga engine's witness signal. Inverting note → species
+    // here covers every stamp the sim already makes (all 33 notes,
+    // scan and sim-side alike) with ZERO new sim hooks — the
+    // creatures lane confirmed most beats already ride this door.
+    const note = noteById(noteId);
+    if (note) {
+      const species = [note.species, ...(note.anyOf ?? [])].filter(
+        (s): s is string => typeof s === 'string'
+      );
+      // One id per species the note keys to; the engine classifies
+      // fauna-vs-flora from the game tables (ids never collide).
+      if (species.length > 0) {
+        recordAsksEvent(species.map((s) => ({ kind: 'witness' as const, species: s })));
+      }
+    }
+  }, [recordAsksEvent]);
   const [dayNightCycle, setDayNightCycle] = useState<number>(0.35);
   const [isMuted, setIsMuted] = useState(false);
   const [isPointerLocked, setIsPointerLocked] = useState(false);
@@ -500,6 +533,11 @@ export default function App() {
     // Lazy: the save session composes below; the getter is only
     // exercised on travel, long after mount (pond gate, P5 move 2).
     getWorldCreatedAt: () => currentSaveRef.current?.createdAt ?? 0,
+    // The World Asks Back (2026-10-16): every crossing stamps a
+    // zone-visit into the saga event log — the Director reads
+    // these for echo timing and revisit goals.
+    onZoneEnter: (zoneKeyVisited: string) =>
+      recordAsksEvent({ kind: 'zoneVisit', zoneKey: zoneKeyVisited }),
   });
 
   // The descent stack: one frame per level ABOVE the current one,
@@ -662,6 +700,9 @@ export default function App() {
     fieldNotesState,
     unlockFieldNotes,
     recordFieldWitness,
+    // The World Asks Back (2026-10-16): the event sink for saga
+    // latching — harvest/tame/feed/plant/build writers live here.
+    recordAsksEvent,
     postNotification,
     onOpenBioForgeModal: openBioForgeModal,
     onOpenStorage: (structure) => {
@@ -724,7 +765,7 @@ export default function App() {
   handleFaunaInteract,
   handleStructureInteract,
 });
-  const liveGameRefs = useRef({ hasItem, addInventoryItem, updateTick, postNotification, getPlacementRotation, recordFieldWitness });
+  const liveGameRefs = useRef({ hasItem, addInventoryItem, updateTick, postNotification, getPlacementRotation, recordFieldWitness, recordAsksEvent });
 
   useEffect(() => {
     toolHandlersRef.current = {
@@ -733,7 +774,7 @@ export default function App() {
       handleFaunaInteract,
       handleStructureInteract,
     };
-  liveGameRefs.current = { hasItem, addInventoryItem, updateTick, postNotification, getPlacementRotation, recordFieldWitness };
+  liveGameRefs.current = { hasItem, addInventoryItem, updateTick, postNotification, getPlacementRotation, recordFieldWitness, recordAsksEvent };
 });
   // Zone identity (name + biome) is computed at render time from the
   // active world's seed — see the zone block just above the JSX return.
@@ -770,11 +811,13 @@ export default function App() {
     playerState,
     codexList,
     fieldNotesState,
+    asksBackState,
     dayNightCycle,
     restoreInventory,
     restorePlayerState,
     setCodexList,
     setFieldNotesState,
+    setAsksBackState,
     setDayNightCycle,
     setQuestProgress,
     replaceWorld,

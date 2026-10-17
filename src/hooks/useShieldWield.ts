@@ -23,11 +23,13 @@ import {
   SHIELD_GRAFTS,
   SPORE_COOLDOWN_SECONDS,
   graftOf,
+  lodestoneOf,
   isDisplacementImmune,
   shieldOf,
   type ShieldCombatInput,
   type ShieldCombatSnapshot,
 } from '../game/creatures/shields';
+import { ITEMS } from '../game/items/constants';
 
 export interface ShieldWieldDeps {
   heldItemId: ItemId | null | undefined;
@@ -56,6 +58,10 @@ export interface ShieldWieldApi {
   isGrafted: (itemId: ItemId) => boolean;
   /** Stamp a graft (the graft recipes call this through App). */
   graftShield: (itemId: ItemId, kind?: ShieldGraftId) => void;
+  /** True while the shield wears a set lodestone (HUD surfaces). */
+  isLodestoneSet: (itemId: ItemId) => boolean;
+  /** Set a lodestone (the set recipes call this through App). */
+  setLodestone: (itemId: ItemId) => void;
   /** The per-tick combat input for the fauna sim (bite site only). */
   buildCombatInput: (getPlayerFacing: () => number, payStamina: (n: number) => boolean) => ShieldCombatInput | undefined;
   /** Called by the game loop when the braced drain empties stamina. */
@@ -135,6 +141,33 @@ export function useShieldWield(deps: ShieldWieldDeps): ShieldWieldApi {
     []
   );
 
+  const isLodestoneSet = useCallback(
+    (itemId: ItemId): boolean => lodestoneOf(growthRef.current, itemId),
+    []
+  );
+
+  /** Set a lodestone into a shield's second slot (Adam,
+   *  2026-10-17): the set recipes call this through App. The
+   *  slot refuses a second stone while one stands. */
+  const setLodestone = useCallback(
+    (itemId: ItemId) => {
+      if (lodestoneOf(growthRef.current, itemId)) return;
+      const existing = growthRef.current[itemId];
+      const next: ShieldGrowthMap = {
+        ...growthRef.current,
+        [itemId]: { graft: existing?.graft ?? null, lodestone: true },
+      };
+      setShieldGrowth(next);
+      postNotification(
+        'Lodestone Set',
+        `The lodestone takes hold in the ${ITEMS[itemId]?.name ?? 'shield'} — dropped things will drift to you while it is worn.`,
+        'craft',
+        '#7c6f9e'
+      );
+    },
+    [setShieldGrowth, postNotification]
+  );
+
   /** Stamp a graft into a shield's slot (Platforms Parallel,
    *  2026-10-17): the kind is the stamp — 'spikes' is the only
    *  kind today, and the slot refuses a second graft while one
@@ -142,7 +175,12 @@ export function useShieldWield(deps: ShieldWieldDeps): ShieldWieldApi {
   const graftShield = useCallback(
     (itemId: ItemId, kind: ShieldGraftId = 'spikes') => {
       if (graftOf(growthRef.current, itemId)) return;
-      const next: ShieldGrowthMap = { ...growthRef.current, [itemId]: { graft: kind } };
+      // Merge into the shield's entry: the lodestone slot (its
+      // sibling) survives a graft stamp, and vice versa.
+      const next: ShieldGrowthMap = {
+        ...growthRef.current,
+        [itemId]: { ...growthRef.current[itemId], graft: kind },
+      };
       setShieldGrowth(next);
       const def = SHIELD_GRAFTS[kind];
       postNotification(
@@ -231,6 +269,8 @@ export function useShieldWield(deps: ShieldWieldDeps): ShieldWieldApi {
     wardArcActive,
     isGrafted,
     graftShield,
+    isLodestoneSet,
+    setLodestone,
     buildCombatInput,
     onStaminaEmpty,
     tickClock,

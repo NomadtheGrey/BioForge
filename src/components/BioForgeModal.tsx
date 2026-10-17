@@ -30,7 +30,7 @@ const isStorageOutput = (id: string) => STORAGE_OUTPUT_IDS.includes(id);
 // module: a graft recipe whose target already wears a graft
 // must not stay READY — crafting it would burn the materials
 // on a no-op.
-import { isShieldItem, graftOf, SHIELD_GRAFTS, type ShieldGrowthMap } from '../game/creatures/shields';
+import { isShieldItem, graftOf, lodestoneOf, SHIELD_GRAFTS, type ShieldGrowthMap } from '../game/creatures/shields';
 // The ingredient "?" (Adam, 2026-10-17): hover a row for what
 // is still missing and where it lives; click the "?" for the
 // full crafting tree. The math + sources are pure and
@@ -47,6 +47,10 @@ interface BioForgeModalProps {
   /** The shield graft slots as worn — a graft recipe locks
    *  when its target's slot already reads a graft. */
   shieldGrowth?: ShieldGrowthMap;
+  /** What the Left Hand wears, when the host passes it: the
+   *  forge stows a held piece before eating it, so a held
+   *  ingredient is yours for every check in this modal. */
+  heldItemId?: ItemId | null;
   onCraftRecipe: (recipe: CraftingRecipe) => void;
   /** Grow Prerequisites (Adam, 2026-10-16): grow a short
    *  reagent's whole chain for the selected recipe in one pass. */
@@ -61,6 +65,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   nearForge,
   hasSynthesizer,
   shieldGrowth,
+  heldItemId,
   onCraftRecipe,
   onGrowPrerequisites,
   onSelectStructureBlueprint,
@@ -168,8 +173,18 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     }
   }
 
+  // WHAT YOU HAVE, hand included: a piece worn in the Left
+  // Hand sits outside the pouch count, but it is still the
+  // player's — the craft flow stows it before consuming it.
+  // Ingredient checks, have-counts and every plan walk read
+  // this folded map; the raw pouch would call a held Lantern
+  // Shield 'missing' on the Fenback's own recipe card.
+  const pouchWithHeld: Record<ItemId, number> = heldItemId
+    ? { ...inventory, [heldItemId]: (inventory[heldItemId] || 0) + 1 }
+    : inventory;
+
   const hasIngredients = (recipe: CraftingRecipe) => {
-    return recipe.ingredients.every((ing) => (inventory[ing.id] || 0) >= ing.count);
+    return recipe.ingredients.every((ing) => (pouchWithHeld[ing.id] || 0) >= ing.count);
   };
 
   const canCraft = (recipe: CraftingRecipe) => {
@@ -180,6 +195,9 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     // The graft-slot lock (HUD audit, 2026-10-17): one graft per
     // shield — a filled slot refuses the recipe outright.
     if (recipe.graftShield && graftOf(shieldGrowth, recipe.graftShield)) return false;
+    // The lodestone-slot lock, the graft lock's twin: a shield
+    // already wearing its lodestone refuses the set recipe.
+    if (recipe.lodestoneShield && lodestoneOf(shieldGrowth, recipe.lodestoneShield)) return false;
     // The pouch-tier lock (Adam's play pass, 2026-10-17): the
     // carrying ladder's upgrades are one-time and maxStack 1 —
     // owning one IS the tier, so a re-craft would only burn
@@ -206,6 +224,8 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
       const worn = graftOf(shieldGrowth, recipe.graftShield);
       if (worn) return `Already grafted — ${SHIELD_GRAFTS[worn].name}`;
     }
+    if (recipe.lodestoneShield && lodestoneOf(shieldGrowth, recipe.lodestoneShield))
+      return 'Already set — this shield wears its lodestone';
     // The carried pouch tier speaks in the same family: an
     // owned upgrade is already the player's carrying tier —
     // and a surpassed tier reads the same, by the same rule.
@@ -373,7 +393,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
           <div className="w-1/2 border-r border-slate-800/80 overflow-hidden">
             {viewMode === 'tree' && !searchActive ? (
               <RecipeFlowchart
-                inventory={inventory}
+                inventory={pouchWithHeld}
                 nearForge={nearForge}
                 hasSynthesizer={hasSynthesizer}
                 selectedRecipeId={selectedRecipe.id}
@@ -387,14 +407,16 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                     reads as the slot + branches, not a bare
                     recipe pile. */}
                 {!searchActive && activeCategory === 'shield' && (
-                  <div className="rounded-2xl border border-rose-500/30 bg-rose-950/20 p-3.5">
-                    <h4 className="text-[11px] font-tech font-bold uppercase tracking-wider text-rose-200 mb-1">
+                  <div className="rounded-2xl border border-amber-500/30 bg-amber-950/20 p-3.5">
+                    <h4 className="text-[11px] font-tech font-bold uppercase tracking-wider text-amber-200 mb-1">
                       The Left Hand’s Ward — Upgrades
                     </h4>
                     <p className="text-[11px] text-slate-400 leading-snug">
-                      Four shields below, and the one graft that grows onto any of them: Thorn Spikes,
-                      in the Graft Slot. The line branches, never climbs — the Lantern buys light, the
-                      Fenback buys the wrap and its Spore Answer, the Bulwark buys the Pull.
+                      One ward below, in its three rungs — the Scute grown into the Lantern (its tier
+                      buys the lamp) and the Lantern into the Fenback (the wrap, the Spore Answer) —
+                      and the two slots that ride it at every rung: Thorn Spikes in the Graft Slot,
+                      a Lodestone in its own slot, whose pull gathers what the fight scattered.
+                      Set either on any rung; both survive the climb.
                     </p>
                   </div>
                 )}
@@ -564,7 +586,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                 <div className="space-y-2">
                   {selectedRecipe.ingredients.map((ing) => {
                     const ingItem = ITEMS[ing.id];
-                    const currentAmount = inventory[ing.id] || 0;
+                    const currentAmount = pouchWithHeld[ing.id] || 0;
                     const hasEnough = currentAmount >= ing.count;
 
                     return (
@@ -629,7 +651,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                         // still lacks, and where the raw pieces
                         // live. Numbers come from the same
                         // netted walk the tree modal shows.
-                        const plan = buildCraftPlan(ing.id, ing.count, inventory);
+                        const plan = buildCraftPlan(ing.id, ing.count, pouchWithHeld);
                         const root = plan.root;
                         return (
                           <div className="mx-1 mb-1 p-3 rounded-xl border border-cyan-800/40 bg-slate-900/80 text-[11px] leading-snug">
@@ -710,7 +732,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
       <CraftTreeModal
         itemId={treeTarget?.id ?? null}
         need={treeTarget?.need ?? 1}
-        inventory={inventory}
+        inventory={pouchWithHeld}
         onClose={() => setTreeTarget(null)}
       />
     </div>

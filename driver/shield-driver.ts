@@ -28,6 +28,10 @@ import {
   graftInheritanceOnCraft,
   graftOf,
   graftReflectDamage,
+  dropMagnetFor,
+  lodestoneOf,
+  migrateBulwark,
+  leftHandPiece,
   shieldGrowthFromLegacy,
   type ShieldGraftId,
   type ShieldGrowthMap,
@@ -265,22 +269,32 @@ console.log('\n11. SHARED COVER (lee behind a braced bearer)');
 
 console.log('\n12. LEFT HAND CYCLE (Alt grammar)');
 {
-  check('cycle order: lantern, scute, lantern-shield, fenback, bulwark',
-    JSON.stringify(LEFT_HAND_CYCLE) === JSON.stringify(['hand_lantern_fern', 'scute_shield', 'lantern_shield', 'fenback_shield', 'lodestone_bulwark']));
+  check('cycle order: lantern, scute, lantern-shield, fenback',
+    JSON.stringify(LEFT_HAND_CYCLE) === JSON.stringify(['hand_lantern_fern', 'scute_shield', 'lantern_shield', 'fenback_shield']));
   // Completeness (HUD audit, 2026-10-17): EVERY shield must be
-  // reachable through the hand grammar — the Bulwark stood
-  // outside the cycle for a day because nothing asserted this.
+  // reachable through the hand grammar — a shield stood outside
+  // the cycle once because nothing asserted this.
   check('every shield stands in the cycle',
     SHIELD_ITEM_IDS.every((id) => LEFT_HAND_CYCLE.includes(id)),
     JSON.stringify(SHIELD_ITEM_IDS.filter((id) => !LEFT_HAND_CYCLE.includes(id))));
-  const hasBulwark = (id: ItemId) => id === 'lodestone_bulwark';
-  check('the bulwark is cyclable when owned', cycleLeftHand(null, hasBulwark, 1) === 'lodestone_bulwark');
+  const hasFenback = (id: ItemId) => id === 'fenback_shield';
+  check('the fenback is cyclable when owned', cycleLeftHand(null, hasFenback, 1) === 'fenback_shield');
   const has = (id: ItemId) => id === 'hand_lantern_fern' || id === 'scute_shield';
   check('owned-only: unowned shields skipped',
     JSON.stringify(leftHandOrder(null, has)) === JSON.stringify(['hand_lantern_fern', 'scute_shield']));
   check('forward walks lantern -> scute', cycleLeftHand('hand_lantern_fern', has, 1) === 'scute_shield');
-  check('forward past last stows', cycleLeftHand('scute_shield', has, 1) === null);
-  check('backward from lantern stows', cycleLeftHand('hand_lantern_fern', has, -1) === null);
+  // NO STOW STOP (Adam, 2026-10-17): the cycle wraps among
+  // owned pieces — the hand is never emptied by walking it.
+  check('forward past last wraps to first', cycleLeftHand('scute_shield', has, 1) === 'hand_lantern_fern');
+  check('backward from first wraps to last', cycleLeftHand('hand_lantern_fern', has, -1) === 'scute_shield');
+  check('a single owned piece cycles to itself', cycleLeftHand('scute_shield', (id) => id === 'scute_shield', 1) === 'scute_shield');
+  // AUTO-FILL (Adam, 2026-10-17): an empty hand takes THE
+  // shield (the ladder leaves at most one — nothing to rank),
+  // else the lantern.
+  check('auto-fill takes the owned shield', leftHandPiece((id) => id === 'fenback_shield' || id === 'hand_lantern_fern') === 'fenback_shield');
+  check('auto-fill takes a lone scute', leftHandPiece((id) => id === 'scute_shield') === 'scute_shield');
+  check('auto-fill settles for the lantern', leftHandPiece((id) => id === 'hand_lantern_fern') === 'hand_lantern_fern');
+  check('auto-fill with nothing owned stays empty', leftHandPiece(() => false) === null);
   check('backward walks scute -> lantern', cycleLeftHand('scute_shield', has, -1) === 'hand_lantern_fern');
   check('empty hand forward takes first owned', cycleLeftHand(null, has, 1) === 'hand_lantern_fern');
   check('nothing owned -> null', cycleLeftHand(null, () => false, 1) === null);
@@ -308,26 +322,24 @@ console.log('\n14. GEOMETRY SANITY');
   check('inArc outside false', inArc(Math.PI / 3 + 0.1, 0, 120) === false);
 }
 
-console.log('\n15. THE BULWARK BRANCH (Platforms Parallel, 2026-10-17)');
+console.log('\n15. THE LODESTONE SLOT (Adam, 2026-10-17)');
 {
-  // The other Tier 3: its tier buys the PULL, never the Fenback's
-  // signatures. These checks pin the branch-keyed gates — the
-  // tier-keyed forms silently gave the Bulwark the wrap, the
-  // Spore Answer, and Rooted Stance until this section existed.
-  const BUL = shieldOf('lodestone_bulwark')!;
-  check('bulwark is tier 3 without the lamp', BUL.tier === 3 && BUL.hasLamp === false);
-  const rearPassive = resolveShieldBite({ damage: 12, attackerAngle: REAR, playerFacing: 0, shield: BUL, raised: false, guardBroken: false, carrying: false });
-  check('bulwark rear passive takes FULL (no wrap)', rearPassive.kind === 'none' && rearPassive.finalDamage === 12, JSON.stringify(rearPassive));
-  check('bulwark never sheds the Spore Answer', shouldSporeBurst(BUL, 'braced', true) === false);
-  check('fenback still sheds it (control)', shouldSporeBurst(T3, 'braced', true) === true);
-  check('bulwark is not rooted while braced', isDisplacementImmune(BUL, true) === false);
+  // The Bulwark is abolished; its pull is a SLOT any shield can
+  // wear. These checks pin the family as a pure ladder and the
+  // magnet as growth-keyed, never item-keyed.
+  check('the family is a pure 3-rung ladder', SHIELD_ITEM_IDS.length === 3
+    && shieldOf('scute_shield')!.tier === 1 && shieldOf('lantern_shield')!.tier === 2 && shieldOf('fenback_shield')!.tier === 3);
+  check('the abolished item resolves to no shield', shieldOf('lodestone_bulwark' as ItemId) === undefined);
+  const lodged: ShieldGrowthMap = { fenback_shield: { graft: null, lodestone: true } };
+  check('a bare fenback pulls at base reach', dropMagnetFor(T3, false, {}).radius === 5.0);
+  check('a lodestone fenback pulls carried reach', dropMagnetFor(T3, false, lodged).radius === 9.0);
+  check('braced, the pull stretches', dropMagnetFor(T3, true, lodged).radius === 13.0 && dropMagnetFor(T3, true, lodged).speed === 5.5);
+  check('any shield can wear the slot (a lodestone scute pulls)', dropMagnetFor(T1, false, { scute_shield: { graft: null, lodestone: true } }).radius === 9.0);
+  check('no shield in hand, no pull', dropMagnetFor(undefined, false, lodged).radius === 5.0);
+  check('lodestoneOf reads the slot', lodestoneOf(lodged, 'fenback_shield') === true && lodestoneOf(lodged, 'scute_shield') === false);
+  // The Fenback's own signatures stay hers alone (the P-1 lesson).
+  check('fenback still sheds the Spore Answer (control)', shouldSporeBurst(T3, 'braced', true) === true);
   check('fenback still roots (control)', isDisplacementImmune(T3, true) === true);
-  const bul = fakeInput({ shield: BUL, raised: true });
-  resolveShieldStrike(bul.input, 12, { faunaId: 'driver', x: 0, z: 1 }, 0, 0, 0, () => {}, () => {});
-  check('a braced bulwark block fires no spore burst', bul.state.sporeFired === false);
-  const fen = fakeInput({ shield: T3, raised: true });
-  resolveShieldStrike(fen.input, 12, { faunaId: 'driver', x: 0, z: 1 }, 0, 0, 0, () => {}, () => {});
-  check('the same block on a fenback DOES fire it (control)', fen.state.sporeFired === true);
 }
 
 console.log('\n16. THE GRAFT SLOT + THE SHIELD’S OWN STATE (2026-10-17)');
@@ -345,6 +357,21 @@ console.log('\n16. THE GRAFT SLOT + THE SHIELD’S OWN STATE (2026-10-17)');
   check('a stored kind folds in as itself', graftOf(folded, 'fenback_shield') === 'spikes');
   check('legacy junk grows nothing', graftOf(folded, 'lantern_shield') === null);
   check('no legacy record folds to empty', Object.keys(shieldGrowthFromLegacy(undefined)).length === 0);
+  // Inheritance carries BOTH slots up the ladder (2026-10-17).
+  const fenRecipe = { outputId: 'fenback_shield', ingredients: [{ id: 'lantern_shield', count: 1 }] } as never;
+  const inherited = graftInheritanceOnCraft(fenRecipe, { lantern_shield: { graft: 'spikes', lodestone: true } });
+  check('a consume-upgrade inherits graft and lodestone together',
+    inherited?.itemId === 'fenback_shield' && inherited.kind === 'spikes' && inherited.lodestone === true, JSON.stringify(inherited));
+  // THE BULWARK FOLD: saves from the item era convert at load.
+  const BUL = 'lodestone_bulwark' as ItemId;
+  const solo = migrateBulwark({ [BUL]: 1 } as Record<ItemId, number>, { [BUL]: { graft: 'spikes' } }, BUL);
+  check('a bulwark-only save gains a fenback', solo.changed && (solo.inventory['fenback_shield'] ?? 0) === 1 && solo.inventory[BUL] === undefined);
+  check('the fenback wears the bulwark\'s slots', graftOf(solo.growth, 'fenback_shield') === 'spikes' && lodestoneOf(solo.growth, 'fenback_shield') === true);
+  check('a held bulwark becomes a held fenback', solo.heldItemId === 'fenback_shield');
+  const owned = migrateBulwark({ [BUL]: 1, fenback_shield: 1 } as Record<ItemId, number>, { fenback_shield: { graft: null } }, null);
+  check('an owned fenback is not duplicated', (owned.inventory['fenback_shield'] ?? 0) === 1 && lodestoneOf(owned.growth, 'fenback_shield') === true);
+  const clean = migrateBulwark({ scute_shield: 1 } as Record<ItemId, number>, {}, null);
+  check('a save with no bulwark folds untouched', clean.changed === false);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

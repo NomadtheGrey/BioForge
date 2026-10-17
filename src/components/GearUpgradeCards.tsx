@@ -5,11 +5,11 @@ import { ITEMS } from '../game/items/constants';
 import {
   DROP_MAGNET_BRACED,
   DROP_MAGNET_CARRIED,
+  LODESTONE_SLOT,
   SHIELD_GRAFTS,
   SHIELD_ITEM_IDS,
-  SHIELDS,
-  SPORE_RADIUS,
   graftOf,
+  lodestoneOf,
   type ShieldGrowthMap,
 } from '../game/creatures/shields';
 import { BOOTS, familyByKind } from '../game/items/weaponsFamily';
@@ -35,73 +35,97 @@ interface CardProps {
 const owns = (inventory: Record<ItemId, number>, id: ItemId) => (inventory[id] ?? 0) > 0;
 
 // ─── THE SHIELD CARD ─────────────────────────────────────────
-// Rows: the SLOT first (the one upgrade every shield can
-// carry), then each branch's gift — the lamp, the Fenback's
-// wrap (spore answer at its head, as Adam named it), and the
-// Bulwark's pull (the "magnet"). A row's state names what the
-// pouch actually holds, never a promise.
+// Rebuilt as a PLATFORM entry (Adam, 2026-10-17 — 'very much
+// like the rest of the equipment'): the fork is deleted, so
+// the card is the ladder first — the three rungs in the other
+// cards' row grammar, WORN / GREW ONWARD / NOT GROWN — and
+// beneath it the two SLOTS that ride the ward at every rung:
+// the graft slot on its face, the lodestone slot in its body.
+// A consumed rung reads GREW ONWARD, never NOT GROWN: the
+// player grew it, and the ward they wear is its continuation.
 export const ShieldUpgradesCard: React.FC<CardProps & {
   shieldGrowth?: ShieldGrowthMap;
-}> = ({ inventory, shieldGrowth }) => {
-  const ownedShields = SHIELD_ITEM_IDS.filter((id) => owns(inventory, id));
+  heldItemId?: ItemId | null;
+}> = ({ inventory, shieldGrowth, heldItemId }) => {
+  // A held shield is OUT of the pouch (raising deducts — the
+  // hand's transfer model), and with the hand filling itself
+  // the worn rung is nearly always the held one. Ownership
+  // here counts the hand: the rung in it is WORN, full stop.
+  const ownsShield = (id: ItemId) => owns(inventory, id) || heldItemId === id;
+  const entries = familyByKind().find((sh) => sh.kind === 'defensive')?.entries ?? [];
+  const topTier = Math.max(
+    0,
+    ...entries.filter((e) => ownsShield(e.itemId)).map((e) => e.tier),
+  );
   const graftedNames = SHIELD_ITEM_IDS
     .filter((id) => graftOf(shieldGrowth, id) !== null)
     .map((id) => ITEMS[id]?.name ?? id);
-  const lampShield = SHIELDS.find((s) => s.hasLamp && owns(inventory, s.itemId));
-  const hasFenback = owns(inventory, 'fenback_shield');
-  const hasBulwark = owns(inventory, 'lodestone_bulwark');
+  const lodestoneNames = SHIELD_ITEM_IDS
+    .filter((id) => lodestoneOf(shieldGrowth, id))
+    .map((id) => ITEMS[id]?.name ?? id);
   const spikes = SHIELD_GRAFTS.spikes;
 
-  const rows: { name: string; line: string; state: string; live: boolean }[] = [
+  const chip = (state: string) =>
+    state === 'WORN' || state === 'SET'
+      ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
+      : state === 'GREW ONWARD'
+        ? 'bg-slate-800/50 text-slate-400 border-slate-600/50'
+        : 'bg-slate-800/70 text-slate-500 border-slate-700/60';
+
+  const slotRows: { name: string; line: string; state: string; names: string[] }[] = [
     {
       name: `Graft Slot · ${spikes.name}`,
-      line: `One graft, grown onto any shield's face: strikes that meet it answer ${spikes.reflectPassive} damage carried, ${spikes.reflectBraced} braced. The graft survives the shield's grows.`,
-      state: graftedNames.length > 0 ? `On: ${graftedNames.join(', ')}` : 'No shield grafted yet',
-      live: graftedNames.length > 0,
+      line: `One graft, grown onto the ward's face: strikes that meet it answer ${spikes.reflectPassive} damage worn, ${spikes.reflectBraced} braced. The graft survives the climb.`,
+      state: graftedNames.length > 0 ? 'SET' : 'NOT SET',
+      names: graftedNames,
     },
     {
-      name: 'The Lamp · Lantern branch',
-      line: 'A lantern grown into the shield’s face — the light holds while held, and throws forward while braced.',
-      state: lampShield ? `Lit — ${ITEMS[lampShield.itemId]?.name}` : 'Not grown — the Lantern Shield carries it first',
-      live: !!lampShield,
-    },
-    {
-      name: 'Spore Answer · Fenback',
-      line: `A braced block sheds a stagger-and-knockback spore burst (${SPORE_RADIUS} m) — and the wrap adds rear passive cover, Rooted Stance, and Shared Cover for an ally in your lee.`,
-      state: hasFenback ? 'Carried — Fenback Shield' : 'Not grown — the Fenback carries it',
-      live: hasFenback,
-    },
-    {
-      name: 'The Pull · Lodestone Bulwark',
-      line: `The ward itself pulls: dropped things drift toward you from ${DROP_MAGNET_CARRIED.radius} m carried, ${DROP_MAGNET_BRACED.radius} m braced.`,
-      state: hasBulwark ? 'Carried — Lodestone Bulwark' : 'Not grown — the Bulwark carries it',
-      live: hasBulwark,
+      name: `Lodestone Slot · ${LODESTONE_SLOT.name}`,
+      line: `${LODESTONE_SLOT.blurb} The pull runs ${DROP_MAGNET_CARRIED.radius} m worn, ${DROP_MAGNET_BRACED.radius} m braced — and the lodestone survives the climb like the graft does.`,
+      state: lodestoneNames.length > 0 ? 'SET' : 'NOT SET',
+      names: lodestoneNames,
     },
   ];
 
   return (
-    <div className="rounded-2xl border border-rose-500/30 bg-rose-950/20 p-3.5 mb-3">
+    <div className="rounded-2xl border border-amber-500/30 bg-amber-950/20 p-3.5 mb-3">
       <div className="flex items-center gap-2 mb-2">
-        <Shield className="w-4 h-4 text-rose-300" />
-        <h4 className="text-[11px] font-tech font-bold uppercase tracking-wider text-rose-200">
+        <Shield className="w-4 h-4 text-amber-300" />
+        <h4 className="text-[11px] font-tech font-bold uppercase tracking-wider text-amber-200">
           Shield Upgrades
         </h4>
         <span className="text-[10px] text-slate-500 font-tech">
-          {ownedShields.length} of {SHIELD_ITEM_IDS.length} shields in pouch
+          one ward — grown upward, slots ride it
         </span>
       </div>
       <div className="space-y-1.5">
-        {rows.map((r) => (
-          <div key={r.name} className="flex items-start justify-between gap-3 text-[11px] leading-snug">
+        {entries.map((e) => {
+          const owned = ownsShield(e.itemId);
+          const state = owned ? 'WORN' : e.tier < topTier ? 'GREW ONWARD' : 'NOT GROWN';
+          return (
+            <div key={e.itemId} className="flex items-start justify-between gap-3 text-[11px] leading-snug">
+              <div className="min-w-0">
+                <span className="font-semibold text-slate-200">{ITEMS[e.itemId]?.name ?? e.itemId}</span>
+                <span className="text-slate-400"> — {e.signatures?.[0] ?? ''}</span>
+              </div>
+              <span className={`shrink-0 font-tech text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${chip(state)}`}>
+                {state}
+              </span>
+            </div>
+          );
+        })}
+        {slotRows.map((r) => (
+          <div key={r.name} className="flex items-start justify-between gap-3 text-[11px] leading-snug pt-1 border-t border-slate-700/40">
             <div className="min-w-0">
               <span className="font-semibold text-slate-200">{r.name}</span>
               <span className="text-slate-400"> — {r.line}</span>
+              {r.names.length > 0 && (
+                <span className="block text-[10px] text-emerald-300/80 font-tech mt-0.5">
+                  On your {r.names.join(', ')}
+                </span>
+              )}
             </div>
-            <span className={`shrink-0 font-tech text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${
-              r.live
-                ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
-                : 'bg-slate-800/70 text-slate-500 border-slate-700/60'
-            }`}>
+            <span className={`shrink-0 font-tech text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${chip(r.state)}`}>
               {r.state}
             </span>
           </div>

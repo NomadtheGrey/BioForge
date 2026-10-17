@@ -123,6 +123,9 @@ import {
   graftInheritanceOnCraft,
   graftOf,
   leftHandOrder,
+  leftHandPiece,
+  LEFT_HAND_CYCLE,
+  lodestoneOf,
   shieldOf,
   SHIELD_GRAFTS,
   type ShieldCombatInput,
@@ -2262,6 +2265,33 @@ const {
     postNotification('Radar Finds Its Seat', 'The Prismatic Field Radar belongs in the Homestead Helm now — it rides there whenever helm and radar are both yours.', 'craft', '#a855f7');
   }, [playerState.heldItemId, addInventoryItem, setHeldItemId, postNotification]);
 
+  // THE HAND FILLS ITSELF (Adam, 2026-10-17): "if the player
+  // has one of these, the left hand should never be empty."
+  // Whenever the hand stands empty — a fresh craft landed in
+  // the pouch, a craft ate the held piece (the Lantern Shield
+  // eating the held lantern is the type case: the craft above
+  // stows, consumes, and leaves the hand bare), a load, a
+  // migration — the hand takes what the player owns for it:
+  // THE shield (the ladder consumes upward, so there is only
+  // ever one — no ranking), else the plain lantern. Raising DEDUCTS from
+  // the pouch, the hand's standing model, so the fill makes
+  // the same transfer a cycle tap would. A held piece stands
+  // untouched: the player's choice is honored while it holds.
+  // Mid-carry the kit is inert, so the fill waits for the haul
+  // to end (carrying is a dep for exactly that re-check).
+  useEffect(() => {
+    if (carrying) return;
+    const held = playerState.heldItemId;
+    if (held && LEFT_HAND_CYCLE.includes(held)) return;
+    const best = leftHandPiece((id) => hasItem(id, 1));
+    if (best) {
+      deductInventoryItem(best, 1);
+      setHeldItemId(best);
+    } else if (held) {
+      setHeldItemId(null);
+    }
+  }, [playerState.heldItemId, inventory, carrying, hasItem, deductInventoryItem, setHeldItemId]);
+
   // Where the way out is, while inside a cavern — the radar's violet
   // exit arrow (HUD → Minimap) aims at it. On the spawn zone's
   // surface: null (the minimap's own spawn arrow takes over). In a
@@ -2342,6 +2372,19 @@ const {
         return;
       }
     }
+    // The lodestone-slot guard (Adam, 2026-10-17): the same
+    // invariant for the shield's second slot — no burning set
+    // materials on a shield that already wears a stone.
+    if (recipe.lodestoneShield) {
+      if (lodestoneOf(shieldGrowthRef.current, recipe.lodestoneShield)) {
+        postNotification(
+          'Lodestone Already Set',
+          `Your ${ITEMS[recipe.lodestoneShield]?.name || recipe.lodestoneShield} already wears a lodestone.`,
+          'craft',
+        );
+        return;
+      }
+    }
     // The pouch-tier guard (Adam's play pass, 2026-10-17): the
     // carrying ladder's upgrades are one-time — the same
     // invariant at the consumption point as the modal's
@@ -2380,9 +2423,14 @@ const {
       // parent's graft — kind and all — onto the new tier.
       if (recipe.graftShield) {
         shieldWield.graftShield(recipe.graftShield);
+      } else if (recipe.lodestoneShield) {
+        shieldWield.setLodestone(recipe.lodestoneShield);
       } else {
         const inherited = graftInheritanceOnCraft(recipe, shieldGrowthRef.current);
-        if (inherited) shieldWield.graftShield(inherited.itemId, inherited.kind);
+        if (inherited) {
+          if (inherited.kind) shieldWield.graftShield(inherited.itemId, inherited.kind);
+          if (inherited.lodestone) shieldWield.setLodestone(inherited.itemId);
+        }
       }
       postNotification(
         'Synthesis Complete',
@@ -2807,6 +2855,7 @@ const {
         nearForge={craftAccess.nearForge}
         hasSynthesizer={craftAccess.hasSynthesizer}
         shieldGrowth={shieldGrowth}
+        heldItemId={playerState.heldItemId ?? null}
         onCraftRecipe={handleCraftRecipe}
         onGrowPrerequisites={handleGrowPrerequisites}
         onSelectStructureBlueprint={(type) => {
@@ -2820,6 +2869,7 @@ const {
         onClose={() => setActiveModal(null)}
         inventory={inventory}
         shieldGrowth={shieldGrowth}
+        heldItemId={playerState.heldItemId ?? null}
         onSelectBlueprint={setSelectedStructureType}
         onSelectSeed={setSelectedSeedId}
         onSelectFertilizer={setSelectedFertilizerId}
@@ -2834,6 +2884,7 @@ const {
         // ingredient counts from the pouch when it has it.
         inventory={inventory}
         shieldGrowth={shieldGrowth}
+        heldItemId={playerState.heldItemId ?? null}
       />
 
       <StartScreenModal

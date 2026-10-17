@@ -15,7 +15,7 @@ import {
 import { itemIcon } from './itemIcon';
 // The graft's reflect numbers ride the shield rules table —
 // the dossier quotes them from the source, never from copy.
-import { SHIELD_GRAFTS, graftOf, type ShieldGrowthMap } from '../game/creatures/shields';
+import { DROP_MAGNET_BRACED, DROP_MAGNET_CARRIED, LODESTONE_SLOT, SHIELD_GRAFTS, graftOf, lodestoneOf, type ShieldGrowthMap } from '../game/creatures/shields';
 
 interface CodexModalProps {
   isOpen: boolean;
@@ -28,6 +28,9 @@ interface CodexModalProps {
   // The Spike Graft record (PlayerState.shieldGrowth), when
   // passed: shield dossiers mark GRAFTED on the entry itself.
   shieldGrowth?: ShieldGrowthMap;
+  // What the Left Hand wears, when passed: a held piece is
+  // out of the pouch, so arsenal ownership counts the hand.
+  heldItemId?: ItemId | null;
 }
 
 export const CodexModal: React.FC<CodexModalProps> = ({
@@ -36,6 +39,7 @@ export const CodexModal: React.FC<CodexModalProps> = ({
   codexList,
   inventory,
   shieldGrowth,
+  heldItemId,
 }) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'flora' | 'fauna' | 'composite' | 'arsenal'>('all');
   const [selectedEntry, setSelectedEntry] = useState<CodexEntry>(codexList[0]);
@@ -63,7 +67,7 @@ export const CodexModal: React.FC<CodexModalProps> = ({
   // is per-item. Weapons are forge knowledge, not scanned
   // discoveries, so entries read openly; the pouch (when passed)
   // only marks what stands GROWN.
-  const owns = (id: ItemId) => (inventory?.[id] ?? 0) > 0;
+  const owns = (id: ItemId) => (inventory?.[id] ?? 0) > 0 || heldItemId === id;
   const selWeapon: FamilyEntry | undefined = familyEntryOf(selectedWeaponId);
   const selItem = selWeapon ? ITEMS[selWeapon.itemId] : undefined;
 
@@ -306,7 +310,7 @@ const renderArsenalRow = (e: FamilyEntry) => {
                   <p className="text-xs text-slate-400 leading-relaxed">
                     <strong className="text-slate-200">The Graft Slot</strong> — one graft
                     grown onto the face. Thorn Spikes (a Tier 2 addition): strikes landing on
-                    the shield answer {SHIELD_GRAFTS.spikes.reflectPassive} damage carried, {SHIELD_GRAFTS.spikes.reflectBraced} braced.
+                    the shield answer {SHIELD_GRAFTS.spikes.reflectPassive} damage worn, {SHIELD_GRAFTS.spikes.reflectBraced} braced.
                     {selWeapon.tier >= 2 && ' The graft survives this shield’s grows — combination and consume-and-keep alike.'}
                     {shieldGrowth && (
                       <span className={`block mt-1 font-tech text-[10px] uppercase tracking-wide ${graftOf(shieldGrowth, selWeapon.itemId) ? 'text-emerald-300' : 'text-slate-500'}`}>
@@ -319,14 +323,37 @@ const renderArsenalRow = (e: FamilyEntry) => {
                   </p>
                 </div>
                 )}
+                {/* The Lodestone Slot: the graft's sibling
+                    (Adam's ruling, 2026-10-17 — the pull is a
+                    slot, not a shield). Same grammar as the
+                    graft block: the slot's facts from the
+                    rules table, its state marked live. */}
+                {selWeapon.kind === 'defensive' && (
+                <div className="mt-3 pt-3 border-t border-slate-700/60 flex items-start gap-2">
+                  <span className={`${KIND_ACCENT[selWeapon.kind].bullet} shrink-0 mt-0.5`}>◈</span>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    <strong className="text-slate-200">The Lodestone Slot</strong> — a lodestone
+                    set into the ward's body. {LODESTONE_SLOT.blurb} The pull runs{' '}
+                    {DROP_MAGNET_CARRIED.radius} m worn, {DROP_MAGNET_BRACED.radius} m braced,
+                    and the lodestone survives this shield's grows, like the graft.
+                    {shieldGrowth && (
+                      <span className={`block mt-1 font-tech text-[10px] uppercase tracking-wide ${lodestoneOf(shieldGrowth, selWeapon.itemId) ? 'text-emerald-300' : 'text-slate-500'}`}>
+                        {lodestoneOf(shieldGrowth, selWeapon.itemId)
+                          ? 'Set — this shield wears its lodestone'
+                          : 'Not set'}
+                      </span>
+                    )}
+                  </p>
+                </div>
+                )}
               </div>
             )}
 
-            {/* THE LADDER (strikers) / THE BRANCH (defensives) /
+            {/* THE LADDER (strikers and defensives) /
                 THE PLATFORM (helmet, Quicksteps). */}
             <div className="bg-slate-800/30 p-4 rounded-2xl border border-slate-800">
               <h4 className={`text-xs font-tech font-semibold uppercase mb-2 ${KIND_ACCENT[selWeapon.kind].header}`}>
-                {selWeapon.kind === 'defensive' ? 'The Branch' : selWeapon.kind === 'helmet' || selWeapon.kind === 'boots' ? 'The Platform' : 'The Ladder'}
+                {selWeapon.kind === 'helmet' || selWeapon.kind === 'boots' ? 'The Platform' : 'The Ladder'}
               </h4>
               <div className="flex items-center gap-1.5 flex-wrap">
                 {familyByKind()
@@ -347,19 +374,22 @@ const renderArsenalRow = (e: FamilyEntry) => {
                         {inventory && owns(e.itemId) ? ' ✓' : ''}
                       </button>
                       {i < arr.length - 1 && (
-                        // Strikers climb, so their strip earns its
-                        // arrows. Defensives BRANCH (the Bulwark
-                        // grows from the Scute, not from the
-                        // Fenback), so their strip is a shelf, not
-                        // a path — a dot, never an arrow.
-                        <span className="text-slate-600 text-xs">{selWeapon.kind === 'close' || selWeapon.kind === 'ranged' ? '→' : '·'}</span>
+                        // Ladders climb, so their strips earn
+                        // arrows: strikers, and defensives too
+                        // since the ladder ruling (Adam,
+                        // 2026-10-17 — the shield fork was
+                        // deleted; the Scute climbs through the
+                        // Lantern to the Fenback). The platforms
+                        // (helmet, Quicksteps) are shelves, not
+                        // paths — a dot, never an arrow.
+                        <span className="text-slate-600 text-xs">{selWeapon.kind === 'close' || selWeapon.kind === 'ranged' || selWeapon.kind === 'defensive' ? '→' : '·'}</span>
                       )}
                     </React.Fragment>
                   ))}
               </div>
               <p className="text-[11px] text-slate-400 leading-relaxed mt-2.5">
                 {selWeapon.kind === 'defensive'
-                  ? 'A branch, not a bigger wall: the Scute Shield is the base wall. The Lantern branch buys light, the Fenback branch buys the wrap and its signatures, and the Bulwark branch buys the pull — none of them buys a stronger wall.'
+                  ? 'One ward, grown upward like every other platform (Adam, 2026-10-17 — the fork is gone): the Scute is grown into the Lantern Shield, whose tier buys the lamp, not a thicker wall, and the Lantern into the Fenback, which buys the wrap and its signatures. Two slots ride the ward at every rung — the spike graft on its face, a lodestone in its body — and whatever they hold survives the climb.'
                   : selWeapon.kind === 'helmet'
                     ? 'One platform, many growths: the helm carries them all at once — the radar and the Lifefinder on the listening track, every lens in parallel. Nothing here consumes the helm, and no growth replaces another.'
                     : selWeapon.kind === 'boots'
@@ -386,7 +416,7 @@ const renderArsenalRow = (e: FamilyEntry) => {
                       {ITEMS[ing.id]?.name ?? ing.id} ×{ing.count}
                       {inventory && (
                         <span className={`${KIND_ACCENT[selWeapon.kind].recipeHave} font-mono text-[10px]`}>
-                          (have {inventory[ing.id] ?? 0})
+                          (have {(inventory[ing.id] ?? 0) + (heldItemId === ing.id ? 1 : 0)})
                         </span>
                       )}
                     </span>

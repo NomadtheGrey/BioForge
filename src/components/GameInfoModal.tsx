@@ -2,13 +2,19 @@
  * GameInfoModal — the ABOUT screen (Adam's work order,
  * 2026-10-17): what BioForge is, and who you are in it.
  *
- * COPY DISCIPLINE: every line derives from the Primer
- * (ReadMe-adjacent design doc, bioforge-primer.md) — the
- * game's master explanation. The lead is its §3 opening
- * text, the five sections are its §2 pillars, the gear tiles
- * and closing lines compress its §1. Nothing here invents a
- * claim the game doesn't keep; if the primer changes, this
- * screen follows it.
+ * COPY DISCIPLINE (background lane's ruling, 2026-10-17):
+ * the Primer (bioforge-primer.md) is a MASTER DRAFT — this
+ * screen CUTS from it, never pastes wholesale. The lead is
+ * cut from Version B's first paragraph (the primer §5
+ * start-screen About is exactly that cut); the pillars are
+ * §2, written to be quoted; the gear tiles and closing
+ * lines compress §1. VERSION A (§3) IS DELIBERATELY NOT
+ * USED — it is the new-game opening dialog, a different
+ * moment, and lifting it here would spend its first-run
+ * weight. The one-liner is §5's settled word-of-mouth
+ * line, verbatim. UI text never names a world's fate
+ * (Adam's hard ruling) — the mystery is what happened to
+ * the Precursors, never the answer.
  *
  * Two doors, one screen: the start surface (a new player
  * before spawn) and the pause overlay (re-readable any time
@@ -24,15 +30,13 @@ interface GameInfoModalProps {
   onClose: () => void;
 }
 
-// The Primer §3 — the opening text, in the world's own
-// voice, kept whole so the screen and the first spawn
-// speak the same words.
-const OPENING: string[] = [
-  'You wake in the meadow with the smell of rain coming, and a gauntlet grown around your hand like it always belonged there.',
-  'This is a living world, and it does things the living way. Nothing here is built — it is grown. The forge at your homestead will grow your tools, your walls, your weapons, and in time, your companions. Feed it what the world offers and it will feed you back.',
-  'The creatures are not here for you. They have their own hungers, their own hours, their own opinions — and if one dies, it is gone for good, unless you kept a piece of it safe for the vat. Be a neighbor first. The world notices.',
-  'Grow your gauntlet to do, your helmet to know, your Quicksteps to go. Walk far enough and the land changes its mind about what it is. Dig deep enough and you will find what the Precursors left growing in the dark.',
-  'Start small. Grow the lantern. The rest will call to you.',
+// The lead — CUT from Version B's first paragraph (the
+// primer §5 start-screen About), trimmed to info-screen
+// length: what the game is, in three short beats.
+const LEAD: string[] = [
+  'In BioForge, nothing is built. Everything is grown. At your homestead stands the Bio-Forge, which grows what you need — tools, weapons, walls, and in time even creatures — from what the world offers.',
+  'The creatures are individuals, not resources. They court, negotiate, hoard, and decide — one dog will take thirty days to decide if you are worth trusting — and death is permanent, unless you saved a sample for the Culture Vat, where the lost can be regrown and raised as companions.',
+  'Your world is generated fresh from its seed: meadows, rootwoods, ember fields and saltglass flats, five strata of caves below, the grown ruins of a fallen civilization above — and over it all a ten-minute sky, a ringed giant and three moons by night.',
 ];
 
 // The Primer §2 — the five pillars, each with its line.
@@ -116,7 +120,7 @@ export const GameInfoModal: React.FC<GameInfoModalProps> = ({ isOpen, onClose })
             <div>
               <h2 className="text-lg font-tech font-bold text-white tracking-wide">BIOFORGE</h2>
               <p className="text-xs text-emerald-300/90 italic">
-                You are a grower in a world that grows back.
+                A first-person world where you don’t build anything — you grow it, and the creatures are people.
               </p>
             </div>
           </div>
@@ -130,14 +134,14 @@ export const GameInfoModal: React.FC<GameInfoModalProps> = ({ isOpen, onClose })
         </div>
 
         <div className="overflow-y-auto px-6 py-5 space-y-7">
-          {/* The opening, re-readable (Primer §3). */}
+          {/* The lead: the primer §5 About cut. */}
           <div className="space-y-3">
-            {OPENING.map((para, i) => (
+            {LEAD.map((para, i) => (
               <p
                 key={i}
                 className={`leading-relaxed ${
                   i === 0 ? 'text-[15px] text-slate-100' : 'text-sm text-slate-300'
-                } ${i === OPENING.length - 1 ? 'text-emerald-200 font-medium' : ''}`}
+                }`}
               >
                 {para}
               </p>
@@ -192,18 +196,23 @@ export const GameInfoModal: React.FC<GameInfoModalProps> = ({ isOpen, onClose })
           </div>
 
           {/* The honest answers (Primer §1 + §6): who joins you,
-              and what you're working toward. */}
+              and what hangs over every world. The fate itself is
+              never named here — or anywhere in the UI (Adam's
+              ruling); the mystery is the sentence, not the answer. */}
           <div className="bg-emerald-950/30 border border-emerald-800/40 rounded-2xl px-4 py-3.5 space-y-2">
             <p className="text-xs text-slate-300 leading-relaxed">
               <strong className="text-slate-100">It is also a game for family.</strong>{' '}
               Another player can join your world from their own device and grow alongside
-              you — the same sky, the same creatures, the same dog deciding.
+              you — the host’s world is the real one, and everything in it is shared:
+              the same sky, the same creatures, the same dog deciding.
             </p>
             <p className="text-xs text-slate-300 leading-relaxed">
-              <strong className="text-slate-100">What are you working toward?</strong>{' '}
-              No plot waits at the end of the quests, and there is no win state. What
-              remains is a bigger, stranger, more beloved homestead — and a world you
-              know by heart.
+              <strong className="text-slate-100">What hangs over it all?</strong>{' '}
+              The Precursors grew a civilization across these lands, and it ended.
+              What happened to them is written in your world’s seed — and the ruins,
+              the far country, and the deep strata are how it answers. Day to day,
+              what you are working toward is simpler: a bigger, stranger, more
+              beloved homestead, and a world you know by heart.
             </p>
           </div>
 

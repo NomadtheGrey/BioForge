@@ -79,6 +79,7 @@ import {
   EMPTY_ASKS_BACK, applyAsksEvents, asksGameDay,
   type AsksBackState, type AsksEventInput,
 } from './game/asksBackState';
+import { runDirector } from './game/asksBack/director';
 
 import { StartScreenModal } from './components/StartScreenModal';
 
@@ -245,6 +246,11 @@ export default function App() {
   // offered/active sagas, echoes, per-zone consequences. One state
   // slice, one optional save key; old saves fall back to empty.
   const [asksBackState, setAsksBackState] = useState<AsksBackState>(EMPTY_ASKS_BACK);
+  // Ref mirror of the record: the 1s space/Director observer below
+  // reads the latest record without re-creating its interval on every
+  // event (the same mirror pattern as liveGameRefs).
+  const asksBackStateRef = useRef(asksBackState);
+  asksBackStateRef.current = asksBackState;
   // THE EVENT SINK: the one door every asks event walks through.
   // Call sites hand raw inputs (kind + ids); day and owner are
   // stamped here from the record's own clock. Batch-friendly —
@@ -560,6 +566,75 @@ export default function App() {
     if (inst.kind !== 'cavern') return `zone:${zoneKey(playerZoneRef.current.zx, playerZoneRef.current.zz)}`;
     return inst.depth > 1 ? `${inst.instanceId}#${inst.depth}` : inst.instanceId;
   }, []);
+
+  // ── THE WORLD ASKS BACK — the Director trigger + the space/weather
+  //    observers (S2) ─────────────────────────────────────────────
+  //
+  // One 1-second observer does three cheap jobs (string compares and
+  // a day-number check — never per-frame work):
+  //
+  // 1. SURVEY WRITER: whenever the player's current space changes
+  //    (surface zone crossing, ruin enter/exit, cavern descend/ascend
+  //    — all visible as currentZoneId changes), the new space is
+  //    stamped into the ledger. Distinct spaces ARE the saga engine's
+  //    survey points, so "map N points in the deep rooms" counts
+  //    interiors, not just surface zones. The first tick also stamps
+  //    the spawn space — a coverage writer that only counts changes
+  //    would read 0 at spawn (the parked-zones trap: the map only
+  //    holds zones the player has LEFT).
+  // 2. WEATHER WRITER: when the new space is a surface zone with a
+  //    NAMED weather (zoneWeatherAt !== 'none'), the stamp records
+  //    it. Weather is a fixed per-zone property, so the stamp
+  //    honestly means "stood in a zone whose weather is X" — sound
+  //    for witnessing arcs. (Weather EXPERIENCED DURING something —
+  //    a storm at night — needs a loop-side moment stamp the zone
+  //    data cannot supply; no template asks for that.)
+  // 3. DIRECTOR TRIGGER: when the surface zone changes or the game
+  //    day rolls, the Director evaluates once (pure; returns the
+  //    record unchanged when nothing is owed, so no render happens).
+  //
+  // Both writers share the pre-start seed guard the zone-visit writer
+  // uses: worldSeedRef is empty before the world exists.
+  const runAsksDirector = useCallback(() => {
+    const seed = worldSeedRef.current;
+    if (!seed) return;
+    const { zx, zz } = playerZoneRef.current;
+    setAsksBackState((prev) => runDirector({ worldSeed: seed, zx, zz, state: prev }));
+  }, []);
+
+  const asksSpaceRef = useRef<string | null>(null);
+  const asksDirZoneRef = useRef<string | null>(null);
+  const asksDirDayRef = useRef<number>(-1);
+  useEffect(() => {
+    const id = setInterval(() => {
+      const seed = worldSeedRef.current;
+      if (!seed) return; // pre-start: no world, no writers, no Director
+      // — space observer: survey + weather writers —
+      const space = currentZoneId();
+      if (space !== asksSpaceRef.current) {
+        asksSpaceRef.current = space;
+        const inputs: AsksEventInput[] = [{ kind: 'survey', spaceKey: space }];
+        if (instanceRef.current.kind === 'surface') {
+          const { zx, zz } = playerZoneRef.current;
+          const w = zoneWeatherAt(seed, zx, zz);
+          if (w.mode !== 'none') {
+            inputs.push({ kind: 'weather', zoneKey: zoneKey(zx, zz), weatherMode: w.mode });
+          }
+        }
+        recordAsksEvent(inputs);
+      }
+      // — Director triggers: new surface zone, or new game day —
+      const { zx, zz } = playerZoneRef.current;
+      const zkey = `${zx},${zz}`;
+      const day = asksGameDay(asksBackStateRef.current);
+      if (zkey !== asksDirZoneRef.current || day !== asksDirDayRef.current) {
+        asksDirZoneRef.current = zkey;
+        asksDirDayRef.current = day;
+        runAsksDirector();
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [currentZoneId, recordAsksEvent, runAsksDirector]);
 
   // The tool hook's instance guard: building and planting belong to
   // the surface world; inside an instance the hook refuses them (the

@@ -200,6 +200,7 @@ import { QuestTracker } from './QuestTracker';
 import type { QuestProgressView } from '../game/quests/quests';
 import { MODULE_FOR_TOOL, gearTierOf } from '../game/quests/quests';
 import { useHudLayout, type HudPanelId } from '../hooks/useHudLayout';
+import { useAudioSettings } from '../hooks/useAudioSettings';
 import { HudPanel } from './HudPanel';
 import { TutorialChrome } from './TutorialChrome';
 import type { UseTutorialResult } from '../hooks/useTutorial';
@@ -358,6 +359,9 @@ export const HUD: React.FC<HUDProps> = ({
   // persisted per-device; the pause overlay's OPTIONS button opens
   // the HudOptionsPanel that restores anything hidden from here.
   const hudLayout = useHudLayout();
+  // The mix shelf (Adam, 2026-10-17): the Options screen's SOUND
+  // section reads and writes it; the audio engine will read it.
+  const audioSettings = useAudioSettings();
   const [showHudOptions, setShowHudOptions] = useState<boolean>(false);
 
   // The How to Play pulse (Adam's program, 2026-10-17): the
@@ -1681,7 +1685,7 @@ export const HUD: React.FC<HUDProps> = ({
       {tutorial?.active && tutorial.step && <TutorialChrome tutorial={tutorial} />}
 
       {showHudOptions && (
-        <HudOptionsPanel layout={hudLayout} onClose={() => setShowHudOptions(false)} />
+        <HudOptionsPanel layout={hudLayout} audio={audioSettings} onClose={() => setShowHudOptions(false)} />
       )}
     </div>
   );

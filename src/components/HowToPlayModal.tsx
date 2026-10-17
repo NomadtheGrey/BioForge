@@ -213,30 +213,39 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({
             </p>
           </Section>
 
-          <Section title="Quests — the game teaches in quests">
+          <Section title="Quests — three kinds of call">
             <p>
               Press <span className="text-slate-100 font-medium">Q</span> (or the Quests button)
-              for the Quest Log. Three kinds live there:
+              for the Quest Log. Three kinds of call live there — chase whichever ones
+              pull at you:
             </p>
             <p>
-              <span className="font-semibold text-slate-100">Mini-quests</span>
+              <span className="font-semibold text-slate-100">The authored quests</span>
               <span className="text-slate-400">
-                {' '}— the crafting chain. Each one names what to gather and what it grows into:
-                a pouch, a scanner, a trowel. Following them IS the tutorial the world gives
-                you; the tracker card on your HUD follows the one you've pinned.
+                {' '}— a story told in tasks. The early ones are a crafting chain — a pouch,
+                a scanner, a trowel — and following them teaches you the game; later
+                chapters take you further out and further in. Pin one and the tracker
+                card on your HUD walks with it.
               </span>
             </p>
             <p>
-              <span className="font-semibold text-slate-100">Ask the World</span>
+              <span className="font-semibold text-slate-100">The world asks back</span>
               <span className="text-slate-400">
-                {' '}— questions the land answers as you explore: ruins, glyphs, strange
-                meetings. No fetch lists; go and see.
+                {' '}— the random-ish ones. As you play, the country notices what you do —
+                what you gather, tame, build, and witness — and starts asking things of
+                you in return. No two worlds ask alike, and an ask is never a leash:
+                take the ones that call to you and let the rest lie.
               </span>
             </p>
             <p>
-              <span className="font-semibold text-slate-100">The World Asks Back</span>
+              <span className="font-semibold text-slate-100">The Precursors</span>
               <span className="text-slate-400">
-                {' '}— in time, the country starts asking things of YOU. Watch the tracker.
+                {' '}— someone lived here before you, and they are gone. Their ruins,
+                glyphs, and heart-rooms lie scattered across the country, each keeping
+                a piece of what happened. The Ask the World quests walk that trail:
+                gather the pieces, and in time the codex can assemble the story whole.
+                It is the deepest question the game asks, and it waits as long as you
+                need it to.
               </span>
             </p>
           </Section>
@@ -316,7 +325,9 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({
               <span className="text-slate-100 font-medium">B</span> opens the Bio-Forge — it
               grows everything you will ever wear.{' '}
               <span className="text-slate-100 font-medium">Q</span> opens the Quest Log — the
-              mini-quests are the crafting chain, and following them teaches the game. Your
+              authored quests are the crafting chain, and following them teaches the game.
+              Beyond them, the world files asks of its own as you play, and the oldest
+              trail of all runs through the Precursors' ruins. Your
               gear is three platforms and a shield: the Gauntlet DOES, the Helmet KNOWS, the
               Quicksteps GO. Owning an upgrade is wearing it.
             </p>

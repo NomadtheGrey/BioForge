@@ -70,11 +70,11 @@ new verb, and every verb opens new country.
 - **Planter Trowel [3]** — grafted, not given (see the Forge). It
   does two jobs: it plants seeds, and it applies fertilizer —
   the same trowel sows and feeds.
-- **Taming Lure [4]** — calls the wild to you, and leads the
+- **Solvent Sprayer [4]** — un-grows things gently: plants give
+  back their seed, structures give back their kit, whole.
+- **Taming Lure [5]** — calls the wild to you, and leads the
   tame: a creature following your lure can be told to stay,
   to guard, or — kindly, and by name — to go free.
-- **Solvent Sprayer [5]** — un-grows things gently: plants give
-  back their seed, structures give back their kit, whole.
 - **Bio-Builder [6]** — places what the Forge grows: walls,
   hearths, storage, tunnels.
 - **Striker [7]** — your grown weapons, if you grow them. Tap 7
@@ -175,10 +175,16 @@ words in the file, not here.
 | 6 | Your pouch — open it, see the small stacks | quicknav | pouch opens |
 | 7 | Meet the Bio-Forge — find the Woven Pouch recipe | quicknav | forge opens |
 | 8 | Quests tell you what is next — the tracker card | tracker | Next |
-| 9 | The Quest Log — Q or the QUESTS button | session | log opens |
+| 9 | The Quest Log — Q or the QUESTS button | quests-btn (the cluster) | log opens |
 | 10 | Three things you'll grow — Gauntlet / Helmet / Quicksteps | hotbar | Next |
 | 11 | One trowel, two jobs — sows and feeds | none | Next |
-| 12 | You are ready — lost? follow the tracker | none | Finish |
+| 12 | You are ready — lost? follow the tracker | howto-btn (the cluster) | Finish |
+
+Targets resolve as HUD_PANELS ids or the cluster's DOM ids
+('howto-cluster' / 'howto-btn' / 'quests-btn') — Slice A moves
+the Quests button out of the session panel into the fixed
+top-right cluster beside How to Play, so steps 9 and 12 point
+at the cluster, not a panel.
 
 Gated steps (5, 6, 7, 9) also answer Next/Skip at all times —
 the tutorial never traps. The engine is

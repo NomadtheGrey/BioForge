@@ -57,13 +57,24 @@ export type TravelDirection = 'N' | 'S' | 'E' | 'W';
 // callbacks complete it when the host's snapshot lands. Walking
 // off the edge or a silent host cancels it.
 export interface PendingTravel {
-  dir: TravelDirection;
+  // Edge crossings are direction-anchored; a tunnel ride has no
+  // direction — its anchor is the mouth (see `tunnel` below).
+  dir?: TravelDirection;
   nx: number;
   nz: number;
   entryX: number;
   entryZ: number;
   slowTimer: number;
   failTimer: number;
+  /**
+   * The BioTunnel guest fix (Adam, 2026-10-16): a guest's tunnel
+   * ride to a zone they never visited waits on the host's zone
+   * snapshot exactly like an edge crossing. It is NOT edge-
+   * anchored — the game loop watches proximity to the near mouth
+   * instead — and the far mouth's exit is resolved from the
+   * arrived snapshot (by farMouthId) when the ride completes.
+   */
+  tunnel?: { farMouthId: string; nearX: number; nearZ: number };
 }
 
 export interface ZoneTravelDeps {
@@ -91,6 +102,11 @@ export interface ZoneTravelDeps {
    *  crossing — the saga engine reads zone-visit history for echo
    *  timing and revisit goals. */
   onZoneEnter?: (zoneKeyVisited: string) => void;
+  /** The BioTunnel guest fix (Adam, 2026-10-16): told when a
+   *  parked crossing is cancelled (walked away, host silent) so
+   *  the ride's caller can release its own state — the tunnel's
+   *  fade/busy flow, which lives outside this hook. */
+  onPendingCancel?: (pending: PendingTravel) => void;
   /** THE WORLD ASKS BACK, S4: the saga consequence record. The
    *  world author applies its zone state on every crossing;
    *  guests never apply it locally (their host's snapshot is
@@ -122,6 +138,7 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
     engineRef, playerPosRef, movementController, jumpRef, instanceRef,
     replaceWorld, applyPlayerLevel, postNotification,
     buildWorldSnapshot, getDayNightCycle, saveNowRef, getWorldCreatedAt, onZoneEnter,
+    onPendingCancel,
     asksBackState,
   } = deps;
 
@@ -150,6 +167,7 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
     window.clearTimeout(p.slowTimer);
     window.clearTimeout(p.failTimer);
     pendingTravelRef.current = null;
+    onPendingCancel?.(p);
   };
   // The game loop calls travel through this ref (the loop lives in
   // App until seam 6; the indirection keeps call order irrelevant).

@@ -35,6 +35,7 @@ export interface MultiplayerMessage {
     | 'entity_remove'
     | 'zone_request'
     | 'zone_snapshot'
+    | 'tunnel_pair'
     | 'day_night';
   id: string;
   senderId: string;
@@ -67,7 +68,21 @@ export interface MultiplayerCallbacks {
   // visited). One source of truth, like everything else in co-op.
   onZoneRequest?: (zone: string) => void;
   onZoneSnapshot?: (data: { zone: string; world: WorldSnapshot; worldSeed: string }) => void;
+  // The BioTunnel guest fix (Adam, 2026-10-16): pairing is derived
+  // from the KNOWN world, so a guest who never visited the far zone
+  // can't see the far mouth. The host carries the pair's truth —
+  // both mouths' zone keys + structure ids — to guests on the
+  // heartbeat. Exit positions are NOT carried: they are read from
+  // the far mouth inside the zone snapshot the ride requests.
+  onTunnelPair?: (mouths: TunnelPairMouth[]) => void;
   onDayNight?: (value: number) => void;
+}
+
+/** One end of the BioTunnel pair as the host reports it: the zone
+ *  key it lives in and the mouth structure's id. */
+export interface TunnelPairMouth {
+  zone: string;
+  id: string;
 }
 
 export class MultiplayerManager {
@@ -432,6 +447,17 @@ export class MultiplayerManager {
         break;
       }
 
+      case 'tunnel_pair': {
+        // The host's own derivation is the truth — it never applies
+        // a pair fact, only sends one (world_sync precedent).
+        if (!this.isHost) {
+          this.callbacks.onTunnelPair?.(
+            (msg.payload as { mouths?: TunnelPairMouth[] }).mouths ?? []
+          );
+        }
+        break;
+      }
+
       case 'day_night': {
         const { value } = msg.payload as { value: number };
         this.callbacks.onDayNight?.(value);
@@ -504,6 +530,13 @@ export class MultiplayerManager {
   /** A guest asks the host for a zone it wants to cross into. */
   public broadcastZoneRequest(zone: string) {
     this.broadcastMessage('zone_request', { zone });
+  }
+
+  /** The BioTunnel guest fix (Adam, 2026-10-16): the host's pair
+   *  truth — both mouths' zone keys + ids — for guests who never
+   *  visited the far zone. Host-only; guests apply, hosts ignore. */
+  public broadcastTunnelPair(mouths: TunnelPairMouth[]) {
+    this.broadcastMessage('tunnel_pair', { mouths });
   }
 
   /** The host's answer: the zone's snapshot, from its own record

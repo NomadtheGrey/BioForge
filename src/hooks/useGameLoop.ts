@@ -335,11 +335,16 @@ export function useGameLoop(deps: GameLoopDeps): void {
           const pending = pendingTravelRef.current;
           if (pending) {
             const pp = playerPosRef.current;
-            const stillThere =
-              (pending.dir === 'E' && pp.x > 45) ||
-              (pending.dir === 'W' && pp.x < -45) ||
-              (pending.dir === 'S' && pp.z > 45) ||
-              (pending.dir === 'N' && pp.z < -45);
+            // The BioTunnel guest fix (Adam, 2026-10-16): a tunnel
+            // ride is not edge-anchored — it waits at the mouth it
+            // started from, and dies only if the guest walks away
+            // from that mouth before the host's zone arrives.
+            const stillThere = pending.tunnel
+              ? Math.hypot(pp.x - pending.tunnel.nearX, pp.z - pending.tunnel.nearZ) < 6
+              : (pending.dir === 'E' && pp.x > 45) ||
+                (pending.dir === 'W' && pp.x < -45) ||
+                (pending.dir === 'S' && pp.z > 45) ||
+                (pending.dir === 'N' && pp.z < -45);
             if (!stillThere) cancelPendingTravel();
           }
           const camDir = new THREE.Vector3();

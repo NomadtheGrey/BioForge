@@ -60,9 +60,13 @@ export function stackCapFor(itemId: ItemId, tier: number): number {
 
 /** Storage pod capacity by tier: distinct stacks × per-stack cap. */
 export const STORAGE_TIERS: readonly { slots: number; perStack: number; name: string }[] = [
-  { slots: 4, perStack: 25, name: 'Storage Pod' },
-  { slots: 8, perStack: 50, name: 'Storage Hutch' },
-  { slots: 12, perStack: 100, name: 'Storage Vault' },
+  // Kind counts raised (Adam, 2026-10-17): the pouch holds
+  // unlimited KINDS, so a pod holding four felt wrong — storage
+  // is furniture, and kinds are its axis. Four Vaults together
+  // (see clusters below) pool 256 kinds: endgame storage.
+  { slots: 16, perStack: 25, name: 'Storage Pod' },
+  { slots: 32, perStack: 50, name: 'Storage Hutch' },
+  { slots: 64, perStack: 100, name: 'Storage Vault' },
 ];
 
 /**
@@ -127,4 +131,92 @@ export function storageRoomFor(
   const held = contents.items[itemId] ?? 0;
   if (held <= 0 && storageSlotsUsed(contents) >= caps.slots) return 0;
   return Math.max(0, caps.perStack - held);
+}
+
+// ---------------------------------------------------------------------------
+// STORAGE CLUSTERS (Adam, 2026-10-17): storage pods placed
+// ADJACENT to each other behave as ONE bigger unit — their
+// kind caps pool, their contents present as one store, and a
+// deposit fills the pod you touched first, then its neighbors.
+// Contents never leave their own entities: the save shape is
+// untouched, a member lifted by the carry or dissolved simply
+// leaves the cluster with its share inside, and the pool
+// shrinks by exactly that member. Sample racks never cluster
+// (their shelves are vial-shaped, a different law).
+// ---------------------------------------------------------------------------
+
+/** Center-to-center distance within which two pods count as
+ *  adjacent. Pods stand about a meter wide; builder placement
+ *  side by side lands centers roughly 1.2–2 m apart, so this
+ *  forgives a small gap and still reads as "beside". */
+export const STORAGE_CLUSTER_RADIUS = 2.6;
+
+/**
+ * The cluster a pod belongs to: the connected group of
+ * storage pods within STORAGE_CLUSTER_RADIUS of each other
+ * (adjacency chains — a row of pods is one cluster). The
+ * root comes first; the rest follow by distance from it.
+ * A non-pod (the rack) or an unlisted root returns [root].
+ */
+export function storageClusterOf(
+  structures: readonly { id: string; type: string; worldX: number; worldZ: number }[],
+  root: { id: string; type: string; worldX: number; worldZ: number },
+): typeof structures {
+  if (root.type !== 'storage_pod') return [root];
+  const pods = structures.filter((s) => s.type === 'storage_pod');
+  if (!pods.some((s) => s.id === root.id)) return [root];
+  const byId = new Map(pods.map((s) => [s.id, s]));
+  const members = new Set<string>([root.id]);
+  const queue = [root.id];
+  while (queue.length > 0) {
+    const current = byId.get(queue.shift()!)!;
+    for (const other of pods) {
+      if (members.has(other.id)) continue;
+      const d = Math.hypot(other.worldX - current.worldX, other.worldZ - current.worldZ);
+      if (d <= STORAGE_CLUSTER_RADIUS) {
+        members.add(other.id);
+        queue.push(other.id);
+      }
+    }
+  }
+  const rest = [...members]
+    .filter((id) => id !== root.id)
+    .map((id) => byId.get(id)!)
+    .sort(
+      (a, b) =>
+        Math.hypot(a.worldX - root.worldX, a.worldZ - root.worldZ) -
+        Math.hypot(b.worldX - root.worldX, b.worldZ - root.worldZ),
+    );
+  return [byId.get(root.id)!, ...rest];
+}
+
+/** The cluster's contents as one store: counts summed per item. */
+export function mergedStorageItems(
+  members: readonly { storage?: StorageContents }[],
+): Partial<Record<ItemId, number>> {
+  const merged: Partial<Record<ItemId, number>> = {};
+  for (const member of members) {
+    const items = member.storage?.items ?? {};
+    for (const [id, count] of Object.entries(items) as [ItemId, number][]) {
+      if (count > 0) merged[id] = (merged[id] ?? 0) + count;
+    }
+  }
+  return merged;
+}
+
+/** The cluster's pooled caps: kind slots SUM across members;
+ *  the per-stack figure shown is the deepest member's (any one
+ *  stack still lives within a single pod's own cap — deposits
+ *  distribute member by member). */
+export function pooledStorageCaps(
+  members: readonly { type: string; storage?: StorageContents }[],
+): { slots: number; perStack: number } {
+  let slots = 0;
+  let perStack = 0;
+  for (const member of members) {
+    const caps = storageCapsFor(member.type as never, member.storage?.tier ?? 1);
+    slots += caps.slots;
+    perStack = Math.max(perStack, caps.perStack);
+  }
+  return { slots, perStack };
 }

@@ -150,7 +150,7 @@ import { findTunnelMouths, type TunnelMouthRef } from './game/world/tunnel';
 import { InventoryModal } from './components/InventoryModal';
 import { StorageModal } from './components/StorageModal';
 import { VatModal } from './components/VatModal';
-import { POUCH_TIER_CAPS, POUCH_UPGRADE_ITEMS, pouchTierOf } from './game/items/pouch';
+import { POUCH_TIER_CAPS, POUCH_UPGRADE_ITEMS, pouchTierOf, storageClusterOf } from './game/items/pouch';
 import { CodexModal } from './components/CodexModal';
 import { MultiplayerModal } from './components/MultiplayerModal';
 import { ControlsGuideModal } from './components/ControlsGuideModal';
@@ -1642,6 +1642,7 @@ const { debugStashRef, toggleDebugKit } = useDebugKit({
 const { handleStorageDeposit, handleStorageWithdraw, handleStorageUpgrade } =
   useStorage({
     getInventory: () => latestStateRef.current.inventory,
+    getStructures: () => structuresListRef.current,
     getPlayerPosition,
     addInventoryItem,
     deductInventoryItem,
@@ -2776,6 +2777,7 @@ const {
       {activeModal === 'storage' && storagePod && (
         <StorageModal
           structure={storagePod}
+          clusterMembers={storageClusterOf(structuresList, storagePod) as StructureEntity[]}
           inventory={inventory}
           pouchCap={POUCH_TIER_CAPS[pouchTierNow]}
           onClose={() => {

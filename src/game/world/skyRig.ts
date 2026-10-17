@@ -24,7 +24,14 @@
  */
 
 import * as THREE from 'three';
-import { skyRosterNow, nightSkyAt, cometStatesAt, type MeteorSpec } from './skyCalendar';
+import {
+  skyRosterNow,
+  nightSkyAt,
+  cometStatesAt,
+  readSkyClock,
+  MOON_DRIFT_PER_DAY,
+  type MeteorSpec,
+} from './skyCalendar';
 
 // ---------------------------------------------------------------------------
 // Procedural sky textures (planet upgrade, Adam, 2026-10-16)
@@ -377,6 +384,48 @@ function makeMeteorTexture(): THREE.CanvasTexture {
   return tex;
 }
 
+/**
+ * An aurora curtain: one canvas of falling light — dark at
+ * the hem, a bright emerald band, teal above it, and a
+ * violet fringe at the top edge, cut through with vertical
+ * rays (stripes of uneven light, the way real curtains
+ * pleat). Drawn once; the rig hangs several tinted copies
+ * across the sky and waves them.
+ */
+function makeAuroraTexture(): THREE.CanvasTexture {
+  const w = 256;
+  const h = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d')!;
+  const g = ctx.createLinearGradient(0, h, 0, 0);
+  g.addColorStop(0, 'rgba(40,255,170,0)');
+  g.addColorStop(0.32, 'rgba(40,255,170,0.28)');
+  g.addColorStop(0.48, 'rgba(90,255,190,0.6)');
+  g.addColorStop(0.62, 'rgba(60,230,220,0.34)');
+  g.addColorStop(0.82, 'rgba(120,140,255,0.16)');
+  g.addColorStop(0.93, 'rgba(190,110,255,0.22)');
+  g.addColorStop(1, 'rgba(190,110,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+  // The pleats: vertical rays of uneven brightness, cut
+  // out and added back so the band reads as folded cloth.
+  let x = 0;
+  let n = 0;
+  while (x < w) {
+    const stripeW = 5 + ((n * 37) % 13);
+    const a = 0.05 + ((n * 53) % 10) / 40;
+    ctx.fillStyle = n % 2 ? `rgba(0,40,20,${a})` : `rgba(255,255,255,${a * 0.8})`;
+    ctx.fillRect(x, 0, stripeW, h);
+    x += stripeW;
+    n++;
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
 export class SkyRig {
   /** The companion sun's light (no shadows; the primary keeps them). */
   public sunLightB: THREE.DirectionalLight;
@@ -422,6 +471,15 @@ export class SkyRig {
   private meteorFired: Set<number> = new Set();
   private meteorLatched = false;
   private prevCycle = -1;
+  /** Aurora (Shelf 1): curtain planes hung across the sky,
+   *  shown when the calendar's night carries an aurora AND
+   *  the country below is cold/charged enough to see it.
+   *  The night's aurora state is cached per day index —
+   *  nightSkyAt deals whole meteor lists, so it is asked
+   *  once a day here, never per frame. */
+  private auroraCurtains: { plane: THREE.Mesh; mat: THREE.MeshBasicMaterial; azDeg: number }[] = [];
+  private auroraDay = -1;
+  private auroraTonight = { active: false, intensity: 0 };
   private dirLight: THREE.DirectionalLight;
 
   constructor(scene: THREE.Scene, dirLight: THREE.DirectionalLight) {
@@ -752,6 +810,34 @@ export class SkyRig {
         active: false,
       });
     }
+    // Aurora curtains (Shelf 1): seven tall sheets of the
+    // one aurora texture, tinted in a slow spread from
+    // emerald through teal to violet and hung on an arc
+    // across the sky (azimuths -66..+66 around north-west
+    // high country — the arc is fixed; the calendar and
+    // the geography decide whether it lights). Positioned
+    // per frame in update, where the camera is known.
+    {
+      const tex = makeAuroraTexture();
+      const tints = [0x9dffd0, 0x7dffc8, 0x64f2e0, 0x5fe8f2, 0x6fd8ff, 0x8fc4ff, 0xb49dff];
+      for (let i = 0; i < 7; i++) {
+        const mat = new THREE.MeshBasicMaterial({
+          map: tex,
+          color: tints[i],
+          transparent: true,
+          opacity: 0,
+          fog: false,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+          side: THREE.DoubleSide,
+        });
+        const plane = new THREE.Mesh(new THREE.PlaneGeometry(52, 74), mat);
+        plane.renderOrder = -11;
+        plane.visible = false;
+        this.skyGroup.add(plane);
+        this.auroraCurtains.push({ plane, mat, azDeg: -66 + i * 22 });
+      }
+    }
     // The companion sun gets its own light; both lights aim
     // through the primary's target, which rides the camera (added
     // to the scene here so its matrix updates).
@@ -836,8 +922,17 @@ export class SkyRig {
       // configuration repeats at midnight and agrees on every
       // client. Squash inclines the wheel; depth carries each
       // moon in front of the face and behind it in turn.
-      for (const moon of this.moons) {
-        const a = Math.PI * 2 * (cycle * moon.orbitsPerCycle + moon.phase);
+      // Moon drift (Shelf 1): the calendar's per-day phase
+      // slide joins the rig's own formula — without it the
+      // configuration repeated at midnight exactly and no
+      // alignment could ever be an occasion. Moon 0's
+      // drift is 0: the metronome the others wander from.
+      const driftDays = skyRosterNow(Date.now())?.tDays ?? 0;
+      for (let mi = 0; mi < this.moons.length; mi++) {
+        const moon = this.moons[mi];
+        const a =
+          Math.PI * 2 *
+          (cycle * moon.orbitsPerCycle + moon.phase + (MOON_DRIFT_PER_DAY[mi] ?? 0) * driftDays);
         moon.mesh.position.set(
           Math.cos(a) * moon.orbitR,
           Math.sin(a) * moon.orbitR * moon.squash,
@@ -908,6 +1003,55 @@ export class SkyRig {
     }
     // Meteors (Shelf 1): the calendar's night, flown.
     this.updateMeteors(cycle, camPos, nightF, underground);
+    // Aurora (Shelf 1): the calendar says whether tonight
+    // carries one; the country below says whether it can
+    // be SEEN from here — full over frost and storm country
+    // (the dealt biome id names its families, hybrids
+    // included), a shimmer over the tier-3 wild country,
+    // a whisper deep in tier-2, and nothing over the near
+    // meadows. The curtains breathe and wave on real time.
+    {
+      const clock = readSkyClock();
+      const skyNow = skyRosterNow(Date.now());
+      let strength = 0;
+      if (skyNow && !underground) {
+        const dayIndex = Math.floor(skyNow.tDays);
+        if (this.auroraDay !== dayIndex) {
+          this.auroraDay = dayIndex;
+          this.auroraTonight = nightSkyAt(skyNow.roster, dayIndex).aurora;
+        }
+        if (this.auroraTonight.active) {
+          const id = clock.zoneBiomeId;
+          const gate =
+            id.includes('frost') || id.includes('storm')
+              ? 1
+              : clock.zoneTier >= 3
+                ? 0.55
+                : clock.zoneTier >= 2 && clock.zoneHops >= 6
+                  ? 0.3
+                  : 0;
+          strength = this.auroraTonight.intensity * gate * nightF;
+        }
+      }
+      const t = Date.now() / 1000;
+      const dirA = (azDeg: number, elDeg: number, r: number): THREE.Vector3 => {
+        const az = (azDeg * Math.PI) / 180;
+        const el = (elDeg * Math.PI) / 180;
+        return new THREE.Vector3(Math.cos(az) * Math.cos(el) * r, Math.sin(el) * r, Math.sin(az) * Math.cos(el) * r);
+      };
+      this.auroraCurtains.forEach((c, i) => {
+        if (strength <= 0.01) {
+          c.plane.visible = false;
+          return;
+        }
+        c.plane.visible = true;
+        c.plane.position.copy(dirA(c.azDeg, 34, 168));
+        c.plane.lookAt(camPos);
+        c.plane.rotation.z = 0.06 * Math.sin(t * 0.3 + i * 1.7);
+        const wave = 0.72 + 0.28 * Math.sin(t * 0.45 + i * 1.35);
+        c.mat.opacity = 0.5 * strength * wave;
+      });
+    }
     // Lights ride their bodies; one shared target at the camera
     // keeps the direction honest in every zone.
     const target = this.dirLight.target;

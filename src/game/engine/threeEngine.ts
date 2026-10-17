@@ -1538,9 +1538,11 @@ export class BioForgeThreeEngine {
   private getStructureLightSpec(s: StructureEntity): LightSource {
     const id = `struct:${s.id}`;
     if (s.type === 'lantern_fern_post') {
-      // Built mature: stage-4 equivalent of a wild fern.
-      const g = (0.45 + 4 * 0.14) / 0.45;
-      return { id, x: s.worldX, y: 2.7, z: s.worldZ, color: 0x06b6d4, intensity: 1.8 * g ** 3, distance: 8 * g };
+      // Crafted beats wild (Adam, 2026-10-17): the post is a
+      // LAMP, grown on purpose, and must outshine the plant it
+      // came from — a mature wild fern peaks near 30 / 20 on
+      // the growth curve above, so the post stands at 40 / 26.
+      return { id, x: s.worldX, y: 2.7, z: s.worldZ, color: 0x06b6d4, intensity: 40, distance: 26 };
     }
     const b = this.structureLightBase[s.type];
     return { id, x: s.worldX, y: b.y, z: s.worldZ, color: b.color, intensity: b.intensity, distance: b.distance };
@@ -1572,14 +1574,14 @@ export class BioForgeThreeEngine {
       // light forward of the bearer — same pool, longer reach.
       let sx = this.cachedPlayerX;
       let sz = this.cachedPlayerZ;
-      let distance = 16;
+      let distance = 20;
       if (this.heldLightBraced && this.camera) {
         const dir = new THREE.Vector3();
         this.camera.getWorldDirection(dir);
         const len = Math.hypot(dir.x, dir.z) || 1;
         sx += (dir.x / len) * 2.5;
         sz += (dir.z / len) * 2.5;
-        distance = 22;
+        distance = 26;
       }
       sources.push({
         id: 'held:lantern',
@@ -1587,7 +1589,12 @@ export class BioForgeThreeEngine {
         y: 1.6,
         z: sz,
         color: 0x67e8f9,
-        intensity: 2.6,
+        // A torch's generosity (Adam's play pass, 2026-10-17):
+        // this stood at 2.6 — an order below the wild plant's
+        // own peak (~30) — so a potted lantern in the hand read
+        // as no light at all. 12 sheds real light without
+        // outshining the grown lamps of the homestead.
+        intensity: 12,
         distance,
       });
     }

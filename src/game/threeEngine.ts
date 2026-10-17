@@ -29,6 +29,7 @@ import type { BiomeId } from './biomes';
 import { cavernCellToWorld, type CavernResult } from './cavern';
 import type { RuinResult } from './ruinInterior';
 import { createStructureBuilders, type StructureMaterials } from './structureBuilders';
+import { updateVatLife, updateTunnelLife } from './structureLife';
 import { createCreatureMeshKit, type CreatureMeshKit } from './creatureMeshes';
 import { createLandmarkDressing, type LandmarkDressing } from './landmarkDressing';
 import { FATE_STYLES, type WorldFate } from './ruins';
@@ -301,7 +302,7 @@ export class BioForgeThreeEngine {
   // The type -> builder record lives in game/structureBuilders.ts
   // (extracted 2026-10-14 — this file had hit the push ceiling).
   // Assigned in the constructor once the shared materials exist.
-  private structureBuilders: Record<StructureType, () => THREE.Group>;
+  private structureBuilders: Record<StructureType, (entity?: StructureEntity) => THREE.Group>;
   // Mesh factories over the shared materials (extracted 2026-10-14):
   // creatures/flora in game/creatureMeshes.ts, cave + ruin dressing
   // in game/landmarkDressing.ts. Assigned in the constructor.
@@ -545,8 +546,12 @@ export class BioForgeThreeEngine {
     // model): while airborne the camera rides it, landing returns to 0.
     this.camera.position.y = this.eyeHeight + this.terrainHeightAt(x, z) + level * STORY_HEIGHT + jumpOffset;
     this.updateIrisDoorsProximity(x, z);
-    this.updateVatLife();
-    this.updateTunnelLife();
+    // The structure life passes (extracted 2026-10-17, Adam's
+    // layout ruling: the piece a landing touches moves out into
+    // its own module as part of the landing) — see
+    // game/structureLife.ts.
+    updateVatLife(this.structureMeshMap, this.elapsedTime);
+    updateTunnelLife(this.structureMeshMap, this.elapsedTime);
     this.updateDissolveFizz();
   }
 
@@ -1201,63 +1206,6 @@ export class BioForgeThreeEngine {
     });
   }
 
-  private updateVatLife(): void {
-    this.structureMeshMap.forEach((mesh) => {
-      const entity = mesh.userData.entity as StructureEntity | undefined;
-      if (!entity || entity.type !== 'culture_vat') return;
-      const sac = mesh.getObjectByName('vatSac');
-      const core = mesh.getObjectByName('vatCore') as THREE.Mesh | undefined;
-      const phase = entity.id.length * 1.7;
-      if (sac) {
-        const b = 1 + 0.028 * Math.sin(this.elapsedTime * 1.3 + phase);
-        sac.scale.set(b, 1.12 * b, b);
-      }
-      if (!core) return;
-      const g = entity.vat?.gestating;
-      if (!g) {
-        core.scale.setScalar(0.001);
-        return;
-      }
-      const f = Math.min(1, g.total > 0 ? g.progress / g.total : 0);
-      const s = 0.25 + 0.85 * f;
-      core.scale.set(s, s * 1.08, s);
-      core.rotation.y = this.elapsedTime * 0.25 + phase;
-      core.position.y = 0.92 + (f >= 1 ? 0.05 * Math.sin(this.elapsedTime * 2.2 + phase) : 0);
-      const mat = core.material as THREE.MeshStandardMaterial;
-      mat.opacity = 0.25 + 0.65 * f;
-      mat.emissiveIntensity = f >= 1 ? 0.7 + 0.3 * Math.sin(this.elapsedTime * 2.2 + phase) : 0.25;
-    });
-  }
-
-  /**
-   * Tunnel life (2026-10-16): a BioTunnel mouth's membrane tells
-   * the pair's state at a glance — while the pair is whole (the
-   * derived flag on the entity record, refreshed by App at sync)
-   * it glows teal and stirs on a slow breath, phased by entity id
-   * like the vats; with an end gone it goes dark and still.
-   * Presentation only: pairing truth lives in game/tunnel.ts.
-   */
-  private updateTunnelLife(): void {
-    this.structureMeshMap.forEach((mesh) => {
-      const entity = mesh.userData.entity as StructureEntity | undefined;
-      if (!entity || entity.type !== 'biotunnel_mouth') return;
-      const membrane = mesh.getObjectByName('tunnelMembrane') as THREE.Mesh | undefined;
-      if (!membrane) return;
-      const mat = membrane.material as THREE.MeshStandardMaterial;
-      const phase = entity.id.length * 1.7;
-      if (entity.tunnel?.paired) {
-        const stir = 1 + 0.035 * Math.sin(this.elapsedTime * 1.6 + phase);
-        membrane.scale.set(stir, stir, 1);
-        mat.emissiveIntensity = 0.55 + 0.3 * Math.sin(this.elapsedTime * 1.6 + phase);
-        mat.opacity = 0.55;
-      } else {
-        membrane.scale.set(1, 1, 1);
-        mat.emissiveIntensity = 0;
-        mat.opacity = 0.92;
-      }
-    });
-  }
-
   public updateIrisDoorsProximity(playerX: number, playerZ: number) {
     this.structureMeshMap.forEach((mesh) => {
       const entity = mesh.userData.entity as StructureEntity | undefined;
@@ -1297,7 +1245,7 @@ export class BioForgeThreeEngine {
 
   private createStructureMesh(structure: StructureEntity): THREE.Group {
     const builder = this.structureBuilders[structure.type];
-    const group = builder ? builder() : new THREE.Group();
+    const group = builder ? builder(structure) : new THREE.Group();
     group.userData = { type: 'structure', entity: structure };
     this.applyTerrainTransform(group, structure.type, structure.worldX, structure.worldZ, structure.rotation, structure.level ?? 0);
     // Cave mouths wear their generated dressing (boulders, lips, the

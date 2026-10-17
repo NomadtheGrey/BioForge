@@ -26,6 +26,11 @@ import {
 } from '../game/saveSystem';
 import type { FieldNotesState } from '../game/knowledge/fieldNotesBook';
 import { EMPTY_ASKS_BACK, type AsksBackState } from '../game/quests/asksBackState';
+import {
+  shieldGrowthFromLegacy,
+  type ShieldGraftId,
+  type ShieldGrowthMap,
+} from '../game/creatures/shields';
 // THE WORLD ASKS BACK, S4: the save-load restore runs the same
 // consequence apply path as zone travel (load mode — removals +
 // settled individuals, never abundance on player-shaped lists).
@@ -91,6 +96,10 @@ export interface SaveSessionDeps {
    *  saved under the save record's `asksBack` key. */
   asksBackState: AsksBackState;
   setAsksBackState: (state: AsksBackState) => void;
+  /** The shields' own growth records (Adam's relocation,
+   *  2026-10-17), saved under the record's `shieldGrowth` key. */
+  shieldGrowth: ShieldGrowthMap;
+  setShieldGrowth: (growth: ShieldGrowthMap) => void;
   /**
    * S6 Movable Vaults: LAZY carry getter (the save timer's idiom —
    * saveNow reads the live carry at save time). The projection writes
@@ -109,8 +118,8 @@ export function useSaveSession(deps: SaveSessionDeps) {
     playerZoneRef, setPlayerZone, visitedZonesRef, worldSeedRef, setSessionSeed,
     cavePlantingsRef, resetInstanceState,
     floraList, faunaList, structuresList, droppedItems,
-    inventory, playerState, codexList, fieldNotesState, asksBackState, dayNightCycle,
-    restoreInventory, restorePlayerState, setCodexList, setFieldNotesState, setAsksBackState, setDayNightCycle, setQuestProgress,
+    inventory, playerState, codexList, fieldNotesState, asksBackState, shieldGrowth, dayNightCycle,
+    restoreInventory, restorePlayerState, setCodexList, setFieldNotesState, setAsksBackState, setShieldGrowth, setDayNightCycle, setQuestProgress,
     replaceWorld, enterFullscreenOnTouch, postNotification, getDebugStashRef,
     captureCavePlantings, plantingsKey,
     getCarryRef, getPlacementRotation,
@@ -140,12 +149,12 @@ export function useSaveSession(deps: SaveSessionDeps) {
   // one exists purely for save/snapshot assembly.)
   const latestStateRef = useRef({
     floraList, faunaList, structuresList, droppedItems,
-    inventory, playerState, codexList, fieldNotesState, asksBackState, dayNightCycle,
+    inventory, playerState, codexList, fieldNotesState, asksBackState, shieldGrowth, dayNightCycle,
   });
   useEffect(() => {
     latestStateRef.current = {
       floraList, faunaList, structuresList, droppedItems,
-      inventory, playerState, codexList, fieldNotesState, asksBackState, dayNightCycle,
+      inventory, playerState, codexList, fieldNotesState, asksBackState, shieldGrowth, dayNightCycle,
     };
   });
 
@@ -226,7 +235,7 @@ export function useSaveSession(deps: SaveSessionDeps) {
     // buildCurrentPlayerState is hoisted so the S6 projection below can
     // place the carried vault at the same player feet the record uses.
     const playerForSave = buildCurrentPlayerState();
-    const record = buildSavedGame(meta, buildWorldSnapshot(), getDebugStashRef().current ?? s.inventory, playerForSave, s.dayNightCycle, s.codexList, cavePlantingsRef.current, s.fieldNotesState, s.asksBackState);
+    const record = buildSavedGame(meta, buildWorldSnapshot(), getDebugStashRef().current ?? s.inventory, playerForSave, s.dayNightCycle, s.codexList, cavePlantingsRef.current, s.fieldNotesState, s.asksBackState, s.shieldGrowth);
     // Zone travel (2026-10-15): the record also carries every visited
     // zone's snapshot plus where the player is standing. The `world`
     // field above already holds the CURRENT zone's snapshot (the save
@@ -400,6 +409,18 @@ export function useSaveSession(deps: SaveSessionDeps) {
       // here with an empty memory — offers regenerate from seed +
       // day, so the fallback contradicts nothing.
       setAsksBackState(record.asksBack ?? EMPTY_ASKS_BACK);
+      // The shields' own growth (Adam, 2026-10-17): read its own
+      // key on new records; on records from before the move, the
+      // grafts still sit inside playerState — fold them into the
+      // shields' records (legacy `true` reads as spikes) so no
+      // grafted shield loses its graft. restorePlayerState has
+      // already stripped the old field from the player.
+      setShieldGrowth(
+        record.shieldGrowth ??
+          shieldGrowthFromLegacy(
+            (record.playerState as { shieldGrafts?: Partial<Record<ItemId, ShieldGraftId | boolean>> }).shieldGrafts
+          )
+      );
       setDayNightCycle(record.dayNightCycle);
       // Shelf 1 (sky phenomena): the restored world's clocks
       // include the sky calendar's — seed + creation day zero.

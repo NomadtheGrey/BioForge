@@ -875,7 +875,12 @@ export function useWorldEntities(): UseWorldEntitiesResult {
       onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void,
       /** The World Asks Back (2026-10-16): the saga event sink —
        *  culls stamp here, in the kill sweep below. */
-      onAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void
+      onAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void,
+      /** The Lodestone Bulwark's pull (Ingredient Sinks,
+       *  2026-10-17): the drop pass's reach this tick, dealt
+       *  by shields.dropMagnetFor at the loop's call site.
+       *  Absent = the standing numbers (5 m at 3.5 m/s). */
+      dropMagnet?: { radius: number; speed: number }
     ): void => {
       const simulateWorld = !multiplayerManager.isConnected || multiplayerManager.isHost;
       combatArmedRef.current = !!attacksArmed;
@@ -2402,9 +2407,13 @@ export function useWorldEntities(): UseWorldEntitiesResult {
 
           let nx = item.x;
           let nz = item.z;
-          if (distToPlayer < 5.0) {
-            nx += ((playerX - item.x) / distToPlayer) * 3.5 * dt;
-            nz += ((playerZ - item.z) / distToPlayer) * 3.5 * dt;
+          // The pull's reach: the standing numbers, or the
+          // Lodestone Bulwark's wider ones when it is held.
+          const magnetRadius = dropMagnet?.radius ?? 5.0;
+          const magnetSpeed = dropMagnet?.speed ?? 3.5;
+          if (distToPlayer < magnetRadius) {
+            nx += ((playerX - item.x) / distToPlayer) * magnetSpeed * dt;
+            nz += ((playerZ - item.z) / distToPlayer) * magnetSpeed * dt;
           }
           remaining.push({
             ...item,

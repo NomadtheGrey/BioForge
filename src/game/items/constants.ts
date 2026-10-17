@@ -2286,6 +2286,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   },
   // The Hearthpod (Adam, 2026-10-16): the grown fireplace. Its own
   // description carries the law of the thing — warmth without flame.
+  banner_post: {
+    id: 'banner_post',
+    name: 'Banner Post',
+    category: 'structure',
+    description: 'A tall grown post with a bare cloth, placed with the Bio-Builder wherever you want the country marked — a trailhead, a claim, a homecoming. Click a placed banner while carrying cloth, silk, or wool and it takes that cloth\'s color for its dye.',
+    iconName: 'Flag',
+    color: '#c2b49a',
+    rarity: 'common',
+    maxStack: 10,
+  },
   hearthpod: {
     id: 'hearthpod',
     name: 'Hearthpod',
@@ -2788,6 +2798,26 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 1,
   },
+  lodestone_bulwark: {
+    id: 'lodestone_bulwark',
+    name: 'Lodestone Bulwark',
+    category: 'equipment',
+    description: 'A Scute Shield grown around plates of lodestone until the ward itself pulls. Tier 3 branch: no lamp — its tier buys the pull. Carried, dropped things drift toward you from nine meters; braced, from thirteen, and quicker.',
+    iconName: 'Shield',
+    color: '#7c6f9e',
+    rarity: 'rare',
+    maxStack: 1,
+  },
+  plume_charm: {
+    id: 'plume_charm',
+    name: 'Plume Charm',
+    category: 'equipment',
+    description: 'A Fall Hawk plume woven into spire-down, worn at the belt. While you carry it, a fast fall turns gentle — you sink at a glide instead of dropping, and bounce-shroom arcs become rides.',
+    iconName: 'Feather',
+    color: '#a5c8e8',
+    rarity: 'rare',
+    maxStack: 3,
+  },
 
   // ── Pouch upgrades (Adam, 2026-10-15) ─────────────────────────
   // Carrying capacity is a craftable ladder (game/items/pouch.ts): owning
@@ -2968,10 +2998,15 @@ export const NON_BUILDABLE_STRUCTURE_IDS: ItemId[] = ['cave_mouth', 'cave_exit',
  * and the tab fills in.
  */
 export const HELMET_GEAR_ITEM_IDS: ItemId[] = [
-  'resonant_antenna_fan',
-  'sonar_receiver',
-  'chitin_housing',
-  'biolume_power_cell',
+  // The WORN helmet line only (HUD audit, 2026-10-17): the
+  // radar's four subassemblies (resonant antenna fan, sonar
+  // receiver, chitin housing, biolume power cell) are raw
+  // components the radar is grown FROM — they left this set
+  // so the pouch/forge Helmet tabs stop presenting
+  // ingredients as gear. Their recipes live under Composites
+  // and the parts themselves under Raw. This set and the
+  // HELMETS family record (items/weaponsFamily.ts) name the
+  // same ten ids; the lab family check asserts they agree.
   'prismatic_field_radar',
   'prismatic_lifefinder',
   // The helmet line proper (published 2026-10-15): the base helm

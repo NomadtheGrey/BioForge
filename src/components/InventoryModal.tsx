@@ -13,7 +13,11 @@ import {
   consumedRung,
   familyEntryOf,
 } from '../game/items/weaponsFamily';
-import { GRAFT_REFLECT_BRACED, GRAFT_REFLECT_PASSIVE } from '../game/creatures/shields';
+import { SHIELD_GRAFTS, graftOf, isShieldItem, type ShieldGrowthMap } from '../game/creatures/shields';
+// The platform upgrade ENTRIES (Adam, 2026-10-17): the card
+// at the head of a platform's tab that shows its upgrades —
+// the shield's slot and branches, the Quicksteps' growths.
+import { ShieldUpgradesCard, QuickstepsUpgradesCard } from './GearUpgradeCards';
 
 interface InventoryModalProps {
   isOpen: boolean;
@@ -23,9 +27,9 @@ interface InventoryModalProps {
   onSelectSeed: (seedId: ItemId) => void;
   onSelectFertilizer: (fertilizerId: ItemId) => void;
   onSelectTool: (tool: ToolType) => void;
-  // The Spike Graft record (PlayerState.shieldGrafts), when
+  // The Spike Graft record (PlayerState.shieldGrowth), when
   // passed: a shield's inspector marks GRAFTED on the item.
-  shieldGrafts?: Partial<Record<ItemId, boolean>>;
+  shieldGrowth?: ShieldGrowthMap;
 }
 
 export const InventoryModal: React.FC<InventoryModalProps> = ({
@@ -36,9 +40,9 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
   onSelectSeed,
   onSelectFertilizer,
   onSelectTool,
-  shieldGrafts,
+  shieldGrowth,
 }) => {
-  const [activeTab, setActiveTab] = useState<'all' | 'raw' | 'seed' | 'fertilizer' | 'structure' | 'gauntlet' | 'helmet' | 'boots' | 'base'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'raw' | 'seed' | 'fertilizer' | 'structure' | 'gauntlet' | 'helmet' | 'boots' | 'shield' | 'base'>('all');
   const [selectedItemId, setSelectedItemId] = useState<ItemId | null>(null);
   // Every hook lives ABOVE the isOpen early return below: a hook
   // under it changes the hook count when the modal opens, React
@@ -75,6 +79,9 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
     if (activeTab === 'gauntlet') return isGauntletUpgrade(id);
     if (activeTab === 'helmet') return HELMET_GEAR_ITEM_IDS.includes(id);
     if (activeTab === 'boots') return BOOTS_GEAR_ITEM_IDS.includes(id);
+    // The Shield tab (Adam, 2026-10-17): the Left Hand's family
+    // gets its own shelf in the pouch, like every platform.
+    if (activeTab === 'shield') return isShieldItem(id);
     // Base Supplies (Adam, 2026-10-16): everything you'd build
     // the base with, classified in game/baseSupplies — shared
     // with the forge screen so the shelf never drifts.
@@ -225,6 +232,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
             { id: 'gauntlet', label: 'Gauntlet' },
             { id: 'helmet', label: 'Helmet' },
             { id: 'boots', label: 'Quicksteps' },
+            { id: 'shield', label: 'Shield' },
             { id: 'raw', label: 'Raw Harvests' },
             { id: 'seed', label: 'Flora Seeds' },
             { id: 'fertilizer', label: 'Fertilizers' },
@@ -273,6 +281,17 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
         <div className="flex-1 flex overflow-hidden">
           {/* Left Grid */}
           <div className="w-7/12 border-r border-slate-800/80 overflow-y-auto p-4">
+            {/* The upgrade ENTRIES (Adam, 2026-10-17): a platform's
+                own tab opens with what the platform can carry —
+                the shield's graft slot and branch gifts, the
+                Quicksteps' growths — with live state from the
+                pouch. Search stands them down like the tabs. */}
+            {!searchActive && activeTab === 'shield' && (
+              <ShieldUpgradesCard inventory={inventory} shieldGrowth={shieldGrowth} />
+            )}
+            {!searchActive && activeTab === 'boots' && (
+              <QuickstepsUpgradesCard inventory={inventory} />
+            )}
             {visibleItems.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-slate-500 text-xs">
                 <Backpack className="w-8 h-8 mb-2 opacity-40" />
@@ -298,6 +317,11 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                   const isSelected = activeItem?.id === id;
                   const TileIcon = itemIcon(item.iconName);
                   const tileFamily = familyEntryOf(id);
+                  // A filled graft slot names its KIND on the tile
+                  // itself (Platforms Parallel, 2026-10-17): the
+                  // slot is part of the shield's identity, not a
+                  // bare yes/no badge tucked in the inspector.
+                  const tileGraft = tileFamily?.kind === 'defensive' ? graftOf(shieldGrowth, id) : null;
 
                   return (
                     <div
@@ -328,7 +352,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                       {tileFamily && (
                         <span className="font-tech text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/40">
                           {FAMILY_KIND_LABEL[tileFamily.kind].toUpperCase()} · T{tileFamily.tier}
-                          {tileFamily.kind === 'defensive' && shieldGrafts?.[id] ? ' · GRAFTED' : ''}
+                          {tileGraft ? ` · ${SHIELD_GRAFTS[tileGraft].name.toUpperCase()}` : ''}
                         </span>
                       )}
                       {/* One-time gauntlet upgrades are worn, not
@@ -415,7 +439,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                     {familyEntryOf(activeItem.id) && (
                       <>
                         <div className="flex justify-between py-1.5 border-b border-slate-800 text-slate-400">
-                          <span>Arsenal</span>
+                          <span>{familyEntryOf(activeItem.id)!.kind === 'helmet' ? 'Helmet' : familyEntryOf(activeItem.id)!.kind === 'boots' ? 'Quicksteps' : 'Arsenal'}</span>
                           <span className="font-tech uppercase text-rose-300">
                             {FAMILY_KIND_LABEL[familyEntryOf(activeItem.id)!.kind]} · Tier {familyEntryOf(activeItem.id)!.tier}
                           </span>
@@ -423,9 +447,17 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                         <div className="flex justify-between py-1.5 border-b border-slate-800 text-slate-400">
                           <span>Seat</span>
                           <span className="font-tech uppercase text-slate-200">
+                            {/* Platforms Parallel (2026-10-17): every
+                                kind names its own seat — the row was
+                                written when only the arsenal had
+                                family entries. */}
                             {familyEntryOf(activeItem.id)!.kind === 'defensive'
                               ? 'Left Hand'
-                              : 'Gauntlet · Slot 7'}
+                              : familyEntryOf(activeItem.id)!.kind === 'helmet'
+                                ? 'Homestead Helm'
+                                : familyEntryOf(activeItem.id)!.kind === 'boots'
+                                  ? 'Quicksteps'
+                                  : 'Gauntlet · Slot 7'}
                           </span>
                         </div>
                         {familyEntryOf(activeItem.id)!.damage !== undefined && (
@@ -436,13 +468,16 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                             </span>
                           </div>
                         )}
-                        {familyEntryOf(activeItem.id)!.kind === 'defensive' && shieldGrafts && (
+                        {familyEntryOf(activeItem.id)!.kind === 'defensive' && shieldGrowth && (
                           <div className="flex justify-between py-1.5 border-b border-slate-800 text-slate-400">
-                            <span>Spike Graft</span>
-                            <span className={`font-tech uppercase ${shieldGrafts[activeItem.id] ? 'text-emerald-300' : 'text-slate-500'}`}>
-                              {shieldGrafts[activeItem.id]
-                                ? `Grafted — answers ${GRAFT_REFLECT_PASSIVE} / ${GRAFT_REFLECT_BRACED} braced`
-                                : 'Not grafted'}
+                            <span>Graft Slot</span>
+                            <span className={`font-tech uppercase ${graftOf(shieldGrowth, activeItem.id) ? 'text-emerald-300' : 'text-slate-500'}`}>
+                              {(() => {
+                                const g = graftOf(shieldGrowth, activeItem.id);
+                                return g
+                                  ? `${SHIELD_GRAFTS[g].name} — answers ${SHIELD_GRAFTS[g].reflectPassive} / ${SHIELD_GRAFTS[g].reflectBraced} braced`
+                                  : 'Not grafted';
+                              })()}
                             </span>
                           </div>
                         )}
@@ -452,7 +487,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                   {/* A shield's ward, in its registry lines —
                       the same signatures the codex dossier
                       renders (data, not surface copy). */}
-                  {familyEntryOf(activeItem.id)?.kind === 'defensive' && familyEntryOf(activeItem.id)!.signatures && (
+                  {familyEntryOf(activeItem.id)?.signatures && (
                     <ul className="space-y-1.5 mt-3">
                       {familyEntryOf(activeItem.id)!.signatures!.map((line, i) => (
                         <li key={i} className="text-[11px] text-slate-400 leading-relaxed flex gap-2">
@@ -468,10 +503,14 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                   {familyEntryOf(activeItem.id) && (
                     <p className="text-[11px] text-slate-500 leading-relaxed mt-3">
                       {familyEntryOf(activeItem.id)!.kind === 'defensive'
-                        ? 'The shield line branches: the Lantern Shield blocks exactly as the Scute Shield — its tier buys the light, and its recipe is a combination.'
-                        : consumedRung(familyEntryOf(activeItem.id)!)
-                          ? `Grown from the ${ITEMS[consumedRung(familyEntryOf(activeItem.id)!)!.itemId]?.name}, which the growing consumed — a higher striker tier replaces the lower, never stacks beside it.`
-                          : 'A striker of the ladder: the next tier of its kind is grown FROM this one and consumes it.'}
+                        ? 'The shield line branches from the Scute Shield: later shields buy a different gift — light, wrap, or pull — not a stronger wall. This shield’s signatures above say which branch it is.'
+                        : familyEntryOf(activeItem.id)!.kind === 'helmet'
+                          ? 'A growth of the helm: owning it is wearing it, and the platform carries every growth at once — no lens or listener replaces another.'
+                          : familyEntryOf(activeItem.id)!.kind === 'boots'
+                            ? 'A growth of the Quicksteps: owning it is wearing it, and the pair carries every growth at once — one for each impediment, none replacing another.'
+                            : consumedRung(familyEntryOf(activeItem.id)!)
+                              ? `Grown from the ${ITEMS[consumedRung(familyEntryOf(activeItem.id)!)!.itemId]?.name}, which the growing consumed — a higher striker tier replaces the lower, never stacks beside it.`
+                              : 'A striker of the ladder: the next tier of its kind is grown FROM this one and consumes it.'}
                     </p>
                   )}
                   {/* What a tier IS, said once where players look

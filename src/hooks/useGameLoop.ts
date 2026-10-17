@@ -38,6 +38,8 @@ import {
   SHIELD_RAISED_DRAIN_PER_SEC,
   resolveShieldStrike,
   shieldOf,
+  dropMagnetFor,
+  graftOf,
   type ShieldCombatInput,
   type ShieldSideEffect,
   type StrikeCtx,
@@ -79,6 +81,9 @@ export interface GameLoopDeps {
   /** True while the player owns Ember Soles, the Quicksteps
    *  growth that answers hot ground: soles make lava a road. */
   hasEmberSoles?: () => boolean;
+  /** True while the player carries a Plume Charm (Ingredient
+   *  Sinks, 2026-10-17): fast falls glide instead of dropping. */
+  hasPlumeCharm?: () => boolean;
   /** True while the player stands in an Ember Scar zone. */
   scarHeatRef: { current: boolean };
   // Storm zots (2026-10-15): the mean seconds between lightning
@@ -126,7 +131,7 @@ export interface GameLoopDeps {
   liveGameRefs: { current: {
     hasItem: (itemId: ItemId, quantity: number) => boolean;
     addInventoryItem: (itemId: ItemId, quantity: number) => void;
-    updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number, ctx?: StrikeCtx) => void, attacksArmed?: boolean, dayPhase?: number, onFieldWitness?: (noteId: string) => void, onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void, onAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void) => void;
+    updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number, ctx?: StrikeCtx) => void, attacksArmed?: boolean, dayPhase?: number, onFieldWitness?: (noteId: string) => void, onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void, onAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void, dropMagnet?: { radius: number; speed: number }) => void;
     postNotification: (title: string, message: string, type?: GameNotification['type'], iconColor?: string) => void;
     // The Field Notes witness sink (App's recordFieldWitness,
     // fieldNotesBook.ts) — optional so the loop never hard-depends
@@ -144,7 +149,7 @@ export interface GameLoopDeps {
       onStaminaEmpty: () => void;
       tickClock: (dt: number) => void;
       raisedRef: { current: boolean };
-      graftsRef: { current: Partial<Record<import('../types/game').ItemId, boolean>> };
+      growthRef: { current: import('../game/creatures/shields').ShieldGrowthMap };
       /** THE SHIELD (2026-10-17): the strike side-effect sink —
        *  the shared consumer queues reflects, staggers, and spore
        *  bursts here; the sim's post-map sweep drains them. */
@@ -198,7 +203,7 @@ export interface GameLoopDeps {
 export function useGameLoop(deps: GameLoopDeps): void {
   const {
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
-    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, getLiquidAt, hasEmberSoles, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
+    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, getLiquidAt, hasEmberSoles, hasPlumeCharm, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
     sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
@@ -337,7 +342,18 @@ export function useGameLoop(deps: GameLoopDeps): void {
           // same step keeps the view perfectly continuous while
           // collision and support switch to the upper floor.
           if (jump.vy !== 0 || jump.y > 0) {
-            jump.vy -= JUMP_GRAVITY * stepDt;
+            // The Plume Charm (Ingredient Sinks, 2026-10-17):
+            // the game has no fall damage — falls are this
+            // offset returning to support — so the charm's
+            // gift is the glide: once a descent is honestly
+            // fast (vy < -1.5), gravity gentles to 0.45x and
+            // the sink rate caps at 3 m/s. Launches (vy > 0)
+            // are untouched, so bounce arcs keep their climb
+            // and gain a long, rideable descent.
+            const gliding =
+              jump.vy < -1.5 && !!(hasPlumeCharm && hasPlumeCharm());
+            jump.vy -= JUMP_GRAVITY * stepDt * (gliding ? 0.45 : 1);
+            if (gliding && jump.vy < -3.0) jump.vy = -3.0;
             jump.y += jump.vy * stepDt;
             if (jump.bounceFlip && playerLevelRef.current === 0 && jump.y >= STORY_HEIGHT_METERS) {
               applyPlayerLevel(1);
@@ -677,12 +693,14 @@ export function useGameLoop(deps: GameLoopDeps): void {
         if (shieldCtl) {
           shieldCtl.tickClock(dt);
           const heldShield = shieldOf(playerState.heldItemId ?? null) ?? null;
-          const grafted = !!(heldShield && shieldCtl.graftsRef.current?.[heldShield.itemId]);
+          const grafted = !!(heldShield && graftOf(shieldCtl.growthRef.current, heldShield.itemId));
           engineRef.current.setShieldViewmodel(heldShield, grafted, shieldCtl.raisedRef.current, dt);
           const camDir = new THREE.Vector3();
           engineRef.current.camera.getWorldDirection(camDir);
           const facing = Math.atan2(camDir.x, camDir.z);
-          const wardActive = shieldCtl.raisedRef.current && heldShield?.tier === 3;
+          // The ward arc is the FENBACK's braced ward (branch-
+          // keyed, not tier-keyed — the Bulwark raises no arc).
+          const wardActive = shieldCtl.raisedRef.current && heldShield?.itemId === 'fenback_shield';
           engineRef.current.setWardArc(wardActive, moveResult.x, moveResult.z, facing);
           // The held light follows the Left Hand per frame (a braced
           // lamp-shield throws its light forward — see the engine).
@@ -902,7 +920,14 @@ export function useGameLoop(deps: GameLoopDeps): void {
             },
             // The World Asks Back (2026-10-16): the saga event
             // sink — culls stamp through here into App's ledger.
-            (input) => liveGameRefs.current.recordAsksEvent?.(input)
+            (input) => liveGameRefs.current.recordAsksEvent?.(input),
+            // The Lodestone Bulwark's pull (Ingredient Sinks,
+            // 2026-10-17): the drop pass's reach this tick,
+            // from the shield in hand and whether it is raised.
+            dropMagnetFor(
+              shieldOf(playerState.heldItemId ?? null) ?? undefined,
+              liveGameRefs.current.shield?.raisedRef.current ?? false
+            )
           );
         }
 

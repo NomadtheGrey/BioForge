@@ -117,8 +117,10 @@ import type { WeaponDef } from './game/creatures/weapons';
 import {
   cycleLeftHand as cycleLeftHandNext,
   graftInheritanceOnCraft,
+  graftOf,
   leftHandOrder,
   shieldOf,
+  SHIELD_GRAFTS,
   type ShieldCombatInput,
   type ShieldSideEffect,
 } from './game/creatures/shields';
@@ -185,14 +187,14 @@ export default function App() {
 
   const {
     playerState,
-    shieldGrafts,
+    shieldGrowth,
     setActiveTool,
     setSelectedStructureType,
     setSelectedSeedId,
     setSelectedFertilizerId,
     setHeldItemId,
     setQuestProgress,
-    setShieldGrafts,
+    setShieldGrowth,
     setPlayerTransform,
     setStamina,
     setHealth,
@@ -869,12 +871,12 @@ export default function App() {
   // S6 carry. The mass lives in the hook + game/creatures/
   // shields.ts — App only wires it (APP RULE).
   // ------------------------------------------------------------------------
-  const shieldGraftsRef = useRef(shieldGrafts);
-  shieldGraftsRef.current = shieldGrafts;
+  const shieldGrowthRef = useRef(shieldGrowth);
+  shieldGrowthRef.current = shieldGrowth;
   const shieldWield = useShieldWield({
     heldItemId: playerState.heldItemId,
-    shieldGrafts,
-    setShieldGrafts,
+    shieldGrowth,
+    setShieldGrowth,
     carryRef,
     postNotification,
   });
@@ -1111,6 +1113,7 @@ export default function App() {
     valleySatiatedUntilRef,
     addFlora,
     addStructure,
+    upsertStructure,
     removeStructure,
     removeFlora,
     getPlacementRotation,
@@ -1219,7 +1222,7 @@ export default function App() {
       onStaminaEmpty: () => void;
       tickClock: (dt: number) => void;
       raisedRef: { current: boolean };
-      graftsRef: { current: Partial<Record<ItemId, boolean>> };
+      growthRef: { current: import('./game/creatures/shields').ShieldGrowthMap };
       /** THE SHIELD (2026-10-17): the strike side-effect sink —
        *  the shared consumer queues reflects, staggers, and spore
        *  bursts here; the sim's post-map sweep drains them. */
@@ -1275,12 +1278,14 @@ export default function App() {
     codexList,
     fieldNotesState,
     asksBackState,
+    shieldGrowth,
     dayNightCycle,
     restoreInventory,
     restorePlayerState,
     setCodexList,
     setFieldNotesState,
     setAsksBackState,
+    setShieldGrowth,
     setDayNightCycle,
     setQuestProgress,
     replaceWorld,
@@ -2108,7 +2113,7 @@ const {
   useGameLoop({
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
     jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, lastStaminaSync,
-    sprinting, sporeStaminaRef, marshSluggishRef, getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
+    sprinting, sporeStaminaRef, marshSluggishRef, getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0, hasPlumeCharm: () => (latestStateRef.current.inventory?.plume_charm ?? 0) > 0, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef, returnPausedRef,
@@ -2172,7 +2177,7 @@ const {
       onStaminaEmpty: shieldWield.onStaminaEmpty,
       tickClock: shieldWield.tickClock,
       raisedRef: shieldWield.raisedRef,
-      graftsRef: shieldGraftsRef,
+      growthRef: shieldGrowthRef,
       queueShieldSideEffect,
     };
   }, [shieldWield, queueShieldSideEffect]);
@@ -2262,16 +2267,31 @@ const {
       addInventoryItem(playerState.heldItemId, 1);
       setHeldItemId(null);
     }
+    // The graft-slot guard (HUD audit, 2026-10-17): the forge
+    // locks a filled slot on its button; this is the same
+    // invariant at the consumption point, so no caller can
+    // burn graft materials on a shield that already wears one.
+    if (recipe.graftShield) {
+      const wornGraft = graftOf(shieldGrowthRef.current, recipe.graftShield);
+      if (wornGraft) {
+        postNotification(
+          'Graft Slot Filled',
+          `Your ${ITEMS[recipe.graftShield]?.name || recipe.graftShield} already wears ${SHIELD_GRAFTS[wornGraft].name}.`,
+          'craft',
+        );
+        return;
+      }
+    }
     const success = craftRecipe(recipe);
     if (success) {
-      // Graft recipes stamp the spikes onto the shield they grew
-      // on; consume-upgrades (T1->T2, T2->T3) inherit the
-      // parent's graft onto the new tier.
+      // Graft recipes stamp their graft onto the shield they
+      // grew on; consume-upgrades (T1->T2, T2->T3) inherit the
+      // parent's graft — kind and all — onto the new tier.
       if (recipe.graftShield) {
         shieldWield.graftShield(recipe.graftShield);
       } else {
-        const inherited = graftInheritanceOnCraft(recipe, shieldGraftsRef.current);
-        if (inherited) shieldWield.graftShield(inherited);
+        const inherited = graftInheritanceOnCraft(recipe, shieldGrowthRef.current);
+        if (inherited) shieldWield.graftShield(inherited.itemId, inherited.kind);
       }
       postNotification(
         'Synthesis Complete',
@@ -2446,6 +2466,7 @@ const {
 
       {/* Futuristic Botanical Tech HUD */}
       <HUD
+        shieldGrowth={shieldGrowth}
         playerState={{
           ...playerState,
           x: minimapPos.x,
@@ -2691,6 +2712,7 @@ const {
         inventory={inventory}
         nearForge={craftAccess.nearForge}
         hasSynthesizer={craftAccess.hasSynthesizer}
+        shieldGrowth={shieldGrowth}
         onCraftRecipe={handleCraftRecipe}
         onGrowPrerequisites={handleGrowPrerequisites}
         onSelectStructureBlueprint={(type) => {
@@ -2703,7 +2725,7 @@ const {
         isOpen={activeModal === 'inventory'}
         onClose={() => setActiveModal(null)}
         inventory={inventory}
-        shieldGrafts={shieldGrafts}
+        shieldGrowth={shieldGrowth}
         onSelectBlueprint={setSelectedStructureType}
         onSelectSeed={setSelectedSeedId}
         onSelectFertilizer={setSelectedFertilizerId}
@@ -2717,7 +2739,7 @@ const {
         // The Grown Arsenal marks entries GROWN / NOT GROWN and shows
         // ingredient counts from the pouch when it has it.
         inventory={inventory}
-        shieldGrafts={shieldGrafts}
+        shieldGrowth={shieldGrowth}
       />
 
       <StartScreenModal

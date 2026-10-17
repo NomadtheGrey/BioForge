@@ -1063,6 +1063,9 @@ const GEAR_DISPLAY_TIER: Partial<Record<ItemId, number>> = {
   scute_shield: 1,
   lantern_shield: 2,
   fenback_shield: 3,
+  // The Bulwark branch (Ingredient Sinks, 2026-10-17): Tier 3
+  // like the Fenback — forge-only by the same rule.
+  lodestone_bulwark: 3,
 };
 
 /**

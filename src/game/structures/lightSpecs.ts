@@ -278,6 +278,7 @@ export const STRUCTURE_LIGHT_BASE: Record<Exclude<StructureType, 'lantern_fern_p
     pen_fence: { color: 0x84cc16, intensity: 0.3, distance: 2.0, y: 1.0 },
     pen_gate: { color: 0xa3e635, intensity: 0.35, distance: 2.2, y: 1.2 },
     sample_rack: { color: 0x4ade80, intensity: 0.4, distance: 2.4, y: 1.0 },
+    banner_post: { color: 0xc2b49a, intensity: 0.3, distance: 2.0, y: 2.0 },
     root_table: { color: 0xfbbf24, intensity: 0.25, distance: 2.0, y: 0.9 },
     root_stool: { color: 0xfbbf24, intensity: 0.2, distance: 1.8, y: 0.6 },
     woven_rug: { color: 0xa3e635, intensity: 0.12, distance: 1.5, y: 0.3 },

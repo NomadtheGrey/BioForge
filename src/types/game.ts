@@ -23,6 +23,8 @@ export type ItemId =
   | 'scute_shield'
   | 'lantern_shield'
   | 'fenback_shield'
+  | 'lodestone_bulwark'
+  | 'plume_charm'
   | 'grave_feather'
   | 'kite_ribbon'
   | 'spire_down'
@@ -262,6 +264,7 @@ export type ItemId =
   | 'root_stool'
   | 'woven_rug'
   | 'root_shelf'
+  | 'banner_post'
   | 'root_bed'
   | 'culture_vat'
   | 'vine_ladder'
@@ -953,6 +956,7 @@ export type StructureType =
   | 'woven_rug'
   | 'root_shelf'
   | 'root_bed'
+  | 'banner_post'
   | 'culture_vat'
   | 'vine_ladder'
   | 'cave_mouth'
@@ -1122,6 +1126,15 @@ export interface StructureEntity {
    * only: the truth is the count of mouths in the known world.
    */
   tunnel?: { paired: boolean };
+  /**
+   * Present only on banner_post structures (Ingredient Sinks,
+   * 2026-10-17): the dye record. A placed banner is born
+   * undyed (plain cloth); clicking it while carrying cloth,
+   * silk, or wool dyes it — `tint` is the spent item (its
+   * registry color is stamped alongside, so the mesh builder
+   * needs no item knowledge). Absent on every other type.
+   */
+  banner?: { tint?: ItemId; tintColor?: string };
   /** Present only on ruin_landmark structures: fate/variant/tier record. */
   ruin?: RuinLinkData;
 }
@@ -1153,9 +1166,11 @@ export interface CraftingRecipe {
    * SHIELD GRAFT (2026-10-17): when set, crafting this recipe does not
    * just output an item — it grafts thorn spikes onto the shield named
    * here (outputId is the same shield, consumed and re-output). The
-   * graft state lives on PlayerState.shieldGrafts and survives the
-   * shield's later consume-upgrades (Lantern ← Scute, Fenback ←
-   * Lantern) via inheritance in the craft flow.
+   * graft lives in the shield's OWN growth record (creatures/
+   * shields.ts ShieldGrowthMap, saved under the save record's
+   * shieldGrowth key — Adam, 2026-10-17) and survives the shield's
+   * later consume-upgrades (Lantern ← Scute, Fenback ← Lantern)
+   * via inheritance in the craft flow.
    */
   graftShield?: ItemId;
 }
@@ -1251,6 +1266,11 @@ export interface QuestProgressState {
   dismissedId?: string | null;
 }
 
+/**
+ * (The graft slot's types — ShieldGraftId, ShieldGrowth —
+ * live in creatures/shields.ts with the shield's own state,
+ * per Adam's relocation ruling, 2026-10-17.)
+ */
 export interface PlayerState {
   x: number;
   z: number;
@@ -1272,13 +1292,6 @@ export interface PlayerState {
    * the save verbatim with the rest of PlayerState; absent (undefined)
    * on saves from before the slot existed — treat as empty. */
   heldItemId?: ItemId | null;
-  /**
-   * SHIELD GRAFTS (2026-10-17): which shields carry grafted thorn
-   * spikes, by item id. Optional for save compatibility — old saves
-   * load it as {} (no shield was ever grafted). Written by the
-   * graft recipes and inherited through the shield consume-upgrades.
-   */
-  shieldGrafts?: Partial<Record<ItemId, boolean>>;
   /** Mini-quest progress — see QuestProgressState. Optional for
    * save compatibility; new worlds start it fresh in
    * handleCreateSave. */

@@ -37,22 +37,28 @@ The fate decides what the departure **means**. It does not
 decide what the departure **is**. One engineering problem,
 eleven skins.
 
-## 3. Fate families (the dev lane's grouping, for the pin to judge)
+## 3. Fate families — the working sort (dev lane, 2026-10-17)
 
-The eleven fates sort by what they allow — the answer each one
-makes honest:
+The eleven fates, sorted by what they allow — the answer each
+one makes honest. (Read against the chapters in
+src/game/quests/awChapters.ts; each chapter's own text is the
+evidence.)
 
-- **The fled** (they left, alive, somewhere) → *follow.*
-- **The fallen-but-living** (they endure, diminished) →
-  *answer / uplift / join.*
-- **The turned** (what remains of them is a danger or a
-  wrong) → *confront / destroy.*
-- **The simply gone** (nothing remains to meet) → *honor, and
-  depart for your own reasons.*
+- **FOLLOW** — they left, alive, and a road exists →
+  *Gardeners, Long Experiment, Evacuation, Uplift,
+  Departure.*
+- **ANSWER** ("the Present" — they never left; they are
+  still here, transformed) → *Becoming, Return to Water.*
+- **CONFRONT** — what remains is a threat (the strangers who
+  ended them) → *Taken Out.* A family of one, by design: only
+  one fate has a guilty party.
+- **HONOR** — nobody to meet, follow, or fight → *Crash,
+  War, Sickness.*
 
 One final approach per family, each converging on the same
-gate. The grouping is a proposal; the exact sort belongs to
-the fate table when this gets pinned.
+gate. Follow is heavy (five of eleven) because most endings
+in this game are leavings; the sort is a working proposal for
+Adam's pin, not yet a pin itself.
 
 ## 4. The finale quest: grow the way out
 
@@ -63,6 +69,45 @@ of the whole game as ingredients. Wild-country materials. The
 apexes' country, visited on purpose. Every family's craft at
 its height. The endgame gives the player a reason to use
 everything they have learned — which is what a finale is for.
+
+**The mechanism (Adam, 2026-10-17): the way out is a TIER 4
+RECIPE** — the first T4 in the game, expensive the way a finale
+should be — and the finale's arc is *obtaining* it, then paying
+it. Where the recipe comes from is the family's flavor:
+
+- **ANSWER (Becoming, Return to Water):** the artifacts are
+  assembled, the mystery solved — then the player goes and
+  FINDS them (the Living Valleys; the bright water) and TALKS.
+  When the player is ready to move on, the Precursors GIVE
+  them the T4 recipe for leaving. The ones who stayed hand the
+  road to the ones who go.
+- **FOLLOW:** the road already exists — they left it, some of
+  them "in repair for whoever comes after." The recipe is
+  theirs, left behind in the stations and grand ruins; the
+  finale is earning the right to walk the road they walked.
+- **HONOR (Adam, 2026-10-17):** the artifacts are assembled,
+  and assembling them *opens the way to a memorial* — where
+  ANSWER worlds have a meeting, Honor worlds have a
+  commemoration; there is no one left to talk to, so the
+  player builds the remembering. The recipe comes *somehow*
+  through the memorial (Adam's word — the exact how is a
+  pin-time detail; the dev lane's placeholder: the recipe is
+  kept at the memorial, left by a people who tidied their
+  houses for whoever came next). Then leave.
+- **CONFRONT (Adam, 2026-10-17):** the same pattern — with a
+  motive choice at the encounter. Facing the strangers who
+  ended the Precursors, the player goes in **revenge** or in
+  **curiosity**; the stance is the player's, the skeleton is
+  the same, and the road out runs through the confrontation
+  either way. (The recipe arrives through it — salvaged,
+  seized, or granted by whatever the player finds; the
+  motive colors everything except the shape.)
+
+**The uniform skeleton, all four families:** assemble the
+artifacts → the family's encounter (a road inherited, a
+meeting, a memorial, a confrontation) → the expensive T4
+recipe, somehow → grow the way out, and leave. The families
+differ in everything except the shape.
 
 The registry's long-deferred **Every Ending** (Line 1,
 cross-save) is this design's empty chair: it was always the

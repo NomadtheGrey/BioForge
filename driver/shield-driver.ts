@@ -21,11 +21,16 @@ import {
   SPORE_RADIUS,
   SPORE_STAGGER_SECONDS,
   LEFT_HAND_CYCLE,
+  SHIELD_ITEM_IDS,
   allyInLeeZone,
   attackBearing,
   cycleLeftHand,
   graftInheritanceOnCraft,
+  graftOf,
   graftReflectDamage,
+  shieldGrowthFromLegacy,
+  type ShieldGraftId,
+  type ShieldGrowthMap,
   inArc,
   isDisplacementImmune,
   leftHandOrder,
@@ -68,7 +73,7 @@ function fakeInput(opts: {
     snapshot: () => opts.shield ? {
       shield: opts.shield,
       raised: opts.raised ?? false,
-      grafted: opts.grafted ?? false,
+      graft: (opts.grafted ? 'spikes' : null) as ShieldGraftId | null,
       carrying: opts.carrying ?? false,
       guardBroken: opts.guardBroken ?? false,
       playerFacing: opts.facing ?? 0,
@@ -177,9 +182,13 @@ console.log('\n7. GRAFT SURVIVES T1->T2 AND T2->T3 CONSUMES');
     category: 'defenses', craftTimeMs: 0,
     ingredients: [{ id: 'lantern_shield', count: 1 }, { id: 'fen_scute', count: 4 }],
   };
-  const grafts: Partial<Record<ItemId, boolean>> = { scute_shield: true };
-  check('T1->T2 inherits the graft', graftInheritanceOnCraft(t1to2, grafts) === 'lantern_shield');
-  check('T2->T3 inherits the graft', graftInheritanceOnCraft(t2to3, { lantern_shield: true }) === 'fenback_shield');
+  // The growth-record form (the graft lives in the shield's own
+  // state since Adam's relocation, 2026-10-17): inheritance reads
+  // the parent shield's record and carries the KIND.
+  const grafts: ShieldGrowthMap = { scute_shield: { graft: 'spikes' } };
+  check('T1->T2 inherits the graft', graftInheritanceOnCraft(t1to2, grafts)?.itemId === 'lantern_shield');
+  check('T2->T3 inherits the graft', graftInheritanceOnCraft(t2to3, { lantern_shield: { graft: 'spikes' } })?.itemId === 'fenback_shield');
+  check('the inherited graft keeps its kind', graftInheritanceOnCraft(t1to2, grafts)?.kind === 'spikes');
   check('ungrafted parent inherits nothing', graftInheritanceOnCraft(t1to2, {}) === null);
   check('non-shield output inherits nothing',
     graftInheritanceOnCraft({ ...t1to2, outputId: 'hand_lantern_fern' }, grafts) === null);
@@ -256,8 +265,16 @@ console.log('\n11. SHARED COVER (lee behind a braced bearer)');
 
 console.log('\n12. LEFT HAND CYCLE (Alt grammar)');
 {
-  check('cycle order: lantern, scute, lantern-shield, fenback',
-    JSON.stringify(LEFT_HAND_CYCLE) === JSON.stringify(['hand_lantern_fern', 'scute_shield', 'lantern_shield', 'fenback_shield']));
+  check('cycle order: lantern, scute, lantern-shield, fenback, bulwark',
+    JSON.stringify(LEFT_HAND_CYCLE) === JSON.stringify(['hand_lantern_fern', 'scute_shield', 'lantern_shield', 'fenback_shield', 'lodestone_bulwark']));
+  // Completeness (HUD audit, 2026-10-17): EVERY shield must be
+  // reachable through the hand grammar — the Bulwark stood
+  // outside the cycle for a day because nothing asserted this.
+  check('every shield stands in the cycle',
+    SHIELD_ITEM_IDS.every((id) => LEFT_HAND_CYCLE.includes(id)),
+    JSON.stringify(SHIELD_ITEM_IDS.filter((id) => !LEFT_HAND_CYCLE.includes(id))));
+  const hasBulwark = (id: ItemId) => id === 'lodestone_bulwark';
+  check('the bulwark is cyclable when owned', cycleLeftHand(null, hasBulwark, 1) === 'lodestone_bulwark');
   const has = (id: ItemId) => id === 'hand_lantern_fern' || id === 'scute_shield';
   check('owned-only: unowned shields skipped',
     JSON.stringify(leftHandOrder(null, has)) === JSON.stringify(['hand_lantern_fern', 'scute_shield']));
@@ -289,6 +306,45 @@ console.log('\n14. GEOMETRY SANITY');
   check('inArc center true', inArc(0, 0, 120) === true);
   check('inArc edge (±60°) true', inArc(Math.PI / 3, 0, 120) === true);
   check('inArc outside false', inArc(Math.PI / 3 + 0.1, 0, 120) === false);
+}
+
+console.log('\n15. THE BULWARK BRANCH (Platforms Parallel, 2026-10-17)');
+{
+  // The other Tier 3: its tier buys the PULL, never the Fenback's
+  // signatures. These checks pin the branch-keyed gates — the
+  // tier-keyed forms silently gave the Bulwark the wrap, the
+  // Spore Answer, and Rooted Stance until this section existed.
+  const BUL = shieldOf('lodestone_bulwark')!;
+  check('bulwark is tier 3 without the lamp', BUL.tier === 3 && BUL.hasLamp === false);
+  const rearPassive = resolveShieldBite({ damage: 12, attackerAngle: REAR, playerFacing: 0, shield: BUL, raised: false, guardBroken: false, carrying: false });
+  check('bulwark rear passive takes FULL (no wrap)', rearPassive.kind === 'none' && rearPassive.finalDamage === 12, JSON.stringify(rearPassive));
+  check('bulwark never sheds the Spore Answer', shouldSporeBurst(BUL, 'braced', true) === false);
+  check('fenback still sheds it (control)', shouldSporeBurst(T3, 'braced', true) === true);
+  check('bulwark is not rooted while braced', isDisplacementImmune(BUL, true) === false);
+  check('fenback still roots (control)', isDisplacementImmune(T3, true) === true);
+  const bul = fakeInput({ shield: BUL, raised: true });
+  resolveShieldStrike(bul.input, 12, { faunaId: 'driver', x: 0, z: 1 }, 0, 0, 0, () => {}, () => {});
+  check('a braced bulwark block fires no spore burst', bul.state.sporeFired === false);
+  const fen = fakeInput({ shield: T3, raised: true });
+  resolveShieldStrike(fen.input, 12, { faunaId: 'driver', x: 0, z: 1 }, 0, 0, 0, () => {}, () => {});
+  check('the same block on a fenback DOES fire it (control)', fen.state.sporeFired === true);
+}
+
+console.log('\n16. THE GRAFT SLOT + THE SHIELD’S OWN STATE (2026-10-17)');
+{
+  check('a grown graft reads as its kind', graftOf({ scute_shield: { graft: 'spikes' } }, 'scute_shield') === 'spikes');
+  check('an empty slot reads null', graftOf({ scute_shield: { graft: null } }, 'scute_shield') === null);
+  check('an absent shield reads null', graftOf({}, 'scute_shield') === null);
+  check('an absent record reads null', graftOf(undefined, 'scute_shield') === null);
+  check('reflect reads the graft def (passive)', graftReflectDamage(false, 'spikes') === 4);
+  check('reflect reads the graft def (braced)', graftReflectDamage(true, 'spikes') === 10);
+  // The relocation migration: legacy player-level maps fold into
+  // the shields' own records — true was the boolean era's spikes.
+  const folded = shieldGrowthFromLegacy({ scute_shield: true, fenback_shield: 'spikes' as ShieldGraftId, lantern_shield: false });
+  check('legacy true folds in as spikes', graftOf(folded, 'scute_shield') === 'spikes');
+  check('a stored kind folds in as itself', graftOf(folded, 'fenback_shield') === 'spikes');
+  check('legacy junk grows nothing', graftOf(folded, 'lantern_shield') === null);
+  check('no legacy record folds to empty', Object.keys(shieldGrowthFromLegacy(undefined)).length === 0);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

@@ -15,11 +15,14 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ItemId } from '../types/game';
+import type { ShieldGraftId, ShieldGrowthMap } from '../game/creatures/shields';
 import type { CarryState } from '../game/structures/movableVaults';
 import { carryBlocksInteraction } from '../game/structures/movableVaults';
 import {
   SHIELD_GUARD_BREAK_SECONDS,
+  SHIELD_GRAFTS,
   SPORE_COOLDOWN_SECONDS,
+  graftOf,
   isDisplacementImmune,
   shieldOf,
   type ShieldCombatInput,
@@ -28,8 +31,10 @@ import {
 
 export interface ShieldWieldDeps {
   heldItemId: ItemId | null | undefined;
-  shieldGrafts: Partial<Record<ItemId, boolean>>;
-  setShieldGrafts: (grafts: Partial<Record<ItemId, boolean>>) => void;
+  /** The shields' own growth record (Adam's relocation,
+   *  2026-10-17) — the graft lives with the shield. */
+  shieldGrowth: ShieldGrowthMap;
+  setShieldGrowth: (growth: ShieldGrowthMap) => void;
   /** S6: while a carry is live the whole kit is inert — the shield
    *  cannot be raised. carryBlocksInteraction is the predicate. */
   carryRef: { current: CarryState | null };
@@ -50,7 +55,7 @@ export interface ShieldWieldApi {
   /** The graft record, for HUD surfaces. */
   isGrafted: (itemId: ItemId) => boolean;
   /** Stamp a graft (the graft recipes call this through App). */
-  graftShield: (itemId: ItemId) => void;
+  graftShield: (itemId: ItemId, kind?: ShieldGraftId) => void;
   /** The per-tick combat input for the fauna sim (bite site only). */
   buildCombatInput: (getPlayerFacing: () => number, payStamina: (n: number) => boolean) => ShieldCombatInput | undefined;
   /** Called by the game loop when the braced drain empties stamina. */
@@ -60,7 +65,7 @@ export interface ShieldWieldApi {
 }
 
 export function useShieldWield(deps: ShieldWieldDeps): ShieldWieldApi {
-  const { heldItemId, shieldGrafts, setShieldGrafts, carryRef, postNotification } = deps;
+  const { heldItemId, shieldGrowth, setShieldGrowth, carryRef, postNotification } = deps;
 
   const heldShield = shieldOf(heldItemId ?? null) ?? null;
 
@@ -73,8 +78,8 @@ export function useShieldWield(deps: ShieldWieldDeps): ShieldWieldApi {
   // Mirror the latest deps into refs for the stable closures below.
   const heldShieldRef = useRef(heldShield);
   heldShieldRef.current = heldShield;
-  const graftsRef = useRef(shieldGrafts);
-  graftsRef.current = shieldGrafts;
+  const growthRef = useRef(shieldGrowth);
+  growthRef.current = shieldGrowth;
 
   const setRaisedBoth = useCallback((v: boolean) => {
     raisedRef.current = v;
@@ -125,21 +130,29 @@ export function useShieldWield(deps: ShieldWieldDeps): ShieldWieldApi {
     };
   }, [setShieldRaised]);
 
-  const isGrafted = useCallback((itemId: ItemId): boolean => !!graftsRef.current[itemId], []);
+  const isGrafted = useCallback(
+    (itemId: ItemId): boolean => graftOf(growthRef.current, itemId) !== null,
+    []
+  );
 
+  /** Stamp a graft into a shield's slot (Platforms Parallel,
+   *  2026-10-17): the kind is the stamp — 'spikes' is the only
+   *  kind today, and the slot refuses a second graft while one
+   *  stands (one graft per shield). */
   const graftShield = useCallback(
-    (itemId: ItemId) => {
-      if (graftsRef.current[itemId]) return;
-      const next = { ...graftsRef.current, [itemId]: true };
-      setShieldGrafts(next);
+    (itemId: ItemId, kind: ShieldGraftId = 'spikes') => {
+      if (graftOf(growthRef.current, itemId)) return;
+      const next: ShieldGrowthMap = { ...growthRef.current, [itemId]: { graft: kind } };
+      setShieldGrowth(next);
+      const def = SHIELD_GRAFTS[kind];
       postNotification(
-        'Spikes Grafted',
-        'Thorn spikes take hold across the shield\'s face — strikes that land on it will answer.',
+        `${def.name} Grafted`,
+        `${def.name} take hold across the shield's face — strikes that land on it will answer.`,
         'craft',
         '#65a30d'
       );
     },
-    [setShieldGrafts, postNotification]
+    [setShieldGrowth, postNotification]
   );
 
   const displacementImmune = useCallback((): boolean => {
@@ -181,7 +194,7 @@ export function useShieldWield(deps: ShieldWieldDeps): ShieldWieldApi {
         snapshot: (): ShieldCombatSnapshot => ({
           shield,
           raised: raisedRef.current,
-          grafted: !!graftsRef.current[shield.itemId],
+          graft: graftOf(growthRef.current, shield.itemId),
           carrying: carryBlocksInteraction(carryRef.current),
           guardBroken: clockRef.current < guardBrokenUntilRef.current,
           playerFacing: getPlayerFacing(),

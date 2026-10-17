@@ -95,6 +95,15 @@ interface HUDProps {
   // 2026-10-17): optional so the HUD renders its button only
   // once App wires the opener.
   onOpenAbout?: () => void;
+  // The How to Play opener (Adam's program, 2026-10-17):
+  // optional in the same pattern — the fixed cluster renders
+  // its button only once App wires the modal.
+  onOpenHowToPlay?: () => void;
+  // The tutorial engine (Slice B): App composes useTutorial
+  // and passes its return down; the HUD only renders the
+  // chrome while a step is active. Optional — until App
+  // wires it, the tutorial simply never appears.
+  tutorial?: UseTutorialResult | null;
   onOpenDevTools?: () => void;
   onSave?: () => void;
   currentBiomeName: string;
@@ -192,6 +201,8 @@ import type { QuestProgressView } from '../game/quests/quests';
 import { MODULE_FOR_TOOL, gearTierOf } from '../game/quests/quests';
 import { useHudLayout, type HudPanelId } from '../hooks/useHudLayout';
 import { HudPanel } from './HudPanel';
+import { TutorialChrome } from './TutorialChrome';
+import type { UseTutorialResult } from '../hooks/useTutorial';
 import { HudOptionsPanel } from './HudOptionsPanel';
 import { multiplayerManager, RELAY_BASE_URL } from '../game/multiplayer';
 // Shield faces for the Left Hand tile (shield follow pass,
@@ -294,6 +305,8 @@ export const HUD: React.FC<HUDProps> = ({
   onOpenMultiplayer,
   onOpenControls,
   onOpenAbout,
+  onOpenHowToPlay,
+  tutorial,
   onOpenDevTools,
   onSave,
   currentBiomeName,
@@ -346,6 +359,36 @@ export const HUD: React.FC<HUDProps> = ({
   // the HudOptionsPanel that restores anything hidden from here.
   const hudLayout = useHudLayout();
   const [showHudOptions, setShowHudOptions] = useState<boolean>(false);
+
+  // The How to Play pulse (Adam's program, 2026-10-17): the
+  // button pulses until the modal has been opened ONCE, then
+  // keeps a quiet glow. The memory is per-device, in the
+  // tutorial's own localStorage record (design doc §5:
+  // 'bioforge.tutorial.v1' = { modalSeen, stepIndex,
+  // completed, skipped }) — the HUD only ever reads/writes
+  // modalSeen here, merging so the tutorial engine's fields
+  // are never clobbered; Slice B's useTutorial owns the rest.
+  const [howToSeen, setHowToSeen] = useState<boolean>(() => {
+    try {
+      const raw = localStorage.getItem('bioforge.tutorial.v1');
+      return raw ? JSON.parse(raw)?.modalSeen === true : false;
+    } catch {
+      return false;
+    }
+  });
+  const markHowToSeen = () => {
+    setHowToSeen(true);
+    try {
+      const raw = localStorage.getItem('bioforge.tutorial.v1');
+      const prev = raw ? JSON.parse(raw) : {};
+      localStorage.setItem(
+        'bioforge.tutorial.v1',
+        JSON.stringify({ ...prev, modalSeen: true }),
+      );
+    } catch {
+      /* per-device memory is a nicety, never a crash */
+    }
+  };
   // Escape closes the Options panel too (Adam, 2026-10-16): it
   // is HUD-internal state rather than an App modal, so the
   // input hook's Esc-to-close never sees it — this listener is
@@ -482,6 +525,59 @@ export const HUD: React.FC<HUDProps> = ({
 
   const descriptorToolId = hoveredToolId ?? flashToolId;
   const descriptorTool = tools.find((t) => t.id === descriptorToolId) ?? null;
+
+  // The Left Hand speaks through the SAME descriptor (Adam,
+  // play-pass, 2026-10-17): it was the last tile still wearing
+  // a native browser `title`, so hovering it popped the OS
+  // tooltip while every gauntlet tile used the game's own
+  // panel. Now the hand has hover + flash states mirroring
+  // the tools': hover raises its descriptor, and CYCLING the
+  // hand (click / Alt+wheel / Alt+arrows) flashes it for ~3s
+  // — which is also how touch players, who have no hover,
+  // ever see it. The held/graft facts are hoisted here
+  // because the descriptor and the tile both read them.
+  const [hoveredHand, setHoveredHand] = useState(false);
+  const [flashHand, setFlashHand] = useState(false);
+  const handFlashTimer = useRef<number | null>(null);
+  const prevHeldItemRef = useRef(playerState.heldItemId ?? null);
+  useEffect(() => {
+    const held = playerState.heldItemId ?? null;
+    // Flash on CHANGE only — the first render must not shout
+    // "Left Hand: empty" over the spawn.
+    if (prevHeldItemRef.current === held) return;
+    prevHeldItemRef.current = held;
+    setFlashHand(true);
+    if (handFlashTimer.current !== null) window.clearTimeout(handFlashTimer.current);
+    handFlashTimer.current = window.setTimeout(() => setFlashHand(false), 3000);
+    return () => {
+      if (handFlashTimer.current !== null) window.clearTimeout(handFlashTimer.current);
+    };
+  }, [playerState.heldItemId]);
+
+  const heldItemIdNow = playerState.heldItemId ?? null;
+  const heldIsShield = isShieldItem(heldItemIdNow);
+  const heldGraftKind = heldIsShield ? graftOf(shieldGrowth, heldItemIdNow as ItemId) : null;
+  const heldDisplayName = heldItemIdNow ? ITEMS[heldItemIdNow]?.name ?? heldItemIdNow : null;
+
+  // The hand's descriptor entry, in the tool entries' shape.
+  // Its desc ports the words the native title used to carry:
+  // the graft kind, the raised state, and the cycle hint.
+  const handDescriptor = {
+    label: `Left Hand: ${heldDisplayName ?? 'Empty'}`,
+    icon: heldIsShield ? '🛡️' : heldItemIdNow ? '🔦' : '✋',
+    color: heldIsShield ? '#fb7185' : heldItemIdNow ? '#22d3ee' : '#94a3b8',
+    desc: heldIsShield
+      ? `${heldGraftKind ? `${SHIELD_GRAFTS[heldGraftKind].name} graft · ` : ''}${shieldRaised ? 'BRACED — the wall is up' : 'Lowered — carried blunting is live'} · hold right-mouse to raise · click or Alt+wheel to cycle the hand`
+      : heldItemIdNow
+        ? 'Click or Alt+wheel to cycle the hand'
+        : 'Click or Alt+wheel to cycle the hand — the lantern and grown shields ride here',
+  };
+  // Precedence, gentlest first: a hovered TOOL beats the
+  // hand's flash; the hovered HAND beats everything (the
+  // pointer is the player's attention); the hand's flash
+  // shows only when no tool state is speaking.
+  const handDescriptorVisible =
+    hoveredHand || (flashHand && !hoveredToolId && !flashToolId);
 
   // ---------------------------------------------------------------------
   // Inventory counts for consumables (Adam, 2026-10-14): anything a tool
@@ -865,6 +961,49 @@ export const HUD: React.FC<HUDProps> = ({
           </HudPanel>
         )}
 
+        {/* THE HELP CLUSTER (Adam's How to Play program,
+            2026-10-17): HOW TO PLAY + QUESTS, fixed and labeled
+            at the top-right — NOT a HudPanel, deliberately. A
+            first-time player's lifeline can't be dragged away,
+            ✕-hidden, or Options-toggled; it renders outside the
+            panel system entirely and only its PULSE is stateful
+            (it quiets once the modal has been opened once, per
+            the tutorial memory below). Quests MOVED here from
+            the session bar in the same pass — the two doors a
+            lost player needs, in one glanceable corner. The ids
+            are stable anchors for the tutorial's highlight ring
+            (Slice B resolves step targets by panel id OR by
+            element id). */}
+        <div id="howto-cluster" className="flex items-start gap-1.5 shrink-0">
+          {onOpenHowToPlay && (
+            <button
+              id="howto-btn"
+              onClick={() => {
+                markHowToSeen();
+                onOpenHowToPlay();
+              }}
+              title="How to Play BioForge"
+              className={`px-3 py-2 rounded-2xl border font-tech font-bold text-[11px] tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
+                howToSeen
+                  ? 'text-emerald-200 border-emerald-500/50 bg-emerald-950/40 shadow-[0_0_14px_rgba(52,211,153,0.35)] hover:bg-emerald-900/50'
+                  : 'text-emerald-950 bg-emerald-400 border-emerald-300 shadow-[0_0_22px_rgba(52,211,153,0.75)] animate-pulse hover:bg-emerald-300'
+              }`}
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>HOW TO PLAY</span>
+            </button>
+          )}
+          <button
+            id="quests-btn"
+            onClick={onOpenQuests}
+            title="Quest Log [Q]"
+            className="px-3 py-2 rounded-2xl border border-slate-500/60 bg-slate-900/70 font-tech font-bold text-[11px] tracking-wider text-slate-100 flex items-center gap-1.5 hover:bg-slate-800/80 transition-all cursor-pointer"
+          >
+            <ScrollText className="w-4 h-4 text-emerald-300" />
+            <span>QUESTS</span>
+          </button>
+        </div>
+
         {/* Right Top: the session bar — save, session, and system
             buttons in ONE panel instead of floating as separate
             pills. Two rows now (Adam, 2026-10-16): the old single
@@ -991,17 +1130,10 @@ export const HUD: React.FC<HUDProps> = ({
             </button>
           )}
 
-          {/* Mini-Quest List: opens the quest panel (the Q hotkey
-              does the same). The panel owns the tracker HUD's
-              visibility checkbox and the tracking pick. */}
-          <button
-            onClick={onOpenQuests}
-            title="Mini-Quests [Q]"
-            className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/70 transition-colors flex items-center gap-1.5"
-          >
-            <ScrollText className="w-4 h-4 text-emerald-400" />
-            <span className="text-[11px] font-mono font-medium hidden md:inline">Quests</span>
-          </button>
+          {/* The Quests button that lived here moved UP into
+              the fixed help cluster beside HOW TO PLAY (Adam's
+              program, 2026-10-17) — one door, always visible,
+              never duplicated. */}
 
           {/* Controls Guide */}
           <button
@@ -1224,7 +1356,41 @@ export const HUD: React.FC<HUDProps> = ({
         )}
 
         {/* In-Game Tool Descriptor — styled panel replacing native browser tooltips.
-            Shows the hovered slot, or flashes the newly equipped slot after 1-6 / click selection. */}
+            Shows the hovered slot, or flashes the newly equipped slot after 1-6 / click selection.
+            The Left Hand renders through the same panel (its own
+            block, same chrome) whenever its hover/flash state is
+            the one speaking — see handDescriptorVisible. */}
+        {!descriptorTool && handDescriptorVisible && (
+          <div
+            className={`pointer-events-none glass-panel-biolum rounded-2xl flex items-center animate-fade-in border border-cyan-500/30 shadow-2xl ${
+              touchMode ? 'max-w-[96vw] gap-3 px-3 py-2' : 'max-w-xl gap-4 px-5 py-3'
+            }`}
+          >
+            <div
+              className={`${touchMode ? 'h-9 w-9 text-xl' : 'h-11 w-11 text-2xl'} rounded-xl flex items-center justify-center shrink-0`}
+              style={{
+                backgroundColor: `${handDescriptor.color}20`,
+                border: `1px solid ${handDescriptor.color}50`,
+              }}
+            >
+              {handDescriptor.icon}
+            </div>
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-tech font-bold text-sm text-white">{handDescriptor.label}</span>
+                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300 border border-slate-700">
+                  [ALT]
+                </span>
+                {!hoveredHand && (
+                  <span className="font-tech text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                    IN HAND
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-300 mt-0.5">{handDescriptor.desc}</p>
+            </div>
+          </div>
+        )}
         {descriptorTool && (
           <div
             className={`pointer-events-none glass-panel-biolum rounded-2xl flex items-center animate-fade-in border border-cyan-500/30 shadow-2xl ${
@@ -1352,13 +1518,8 @@ export const HUD: React.FC<HUDProps> = ({
               return (
                 <button
                   onClick={onToggleHeldItem}
-                  title={
-                    heldShield
-                      ? `Left Hand: ${heldName}${heldGraft ? ` (${SHIELD_GRAFTS[heldGraft].name} graft)` : ''} — ${shieldRaised ? 'BRACED, the wall is up' : 'lowered; carried blunting is live'} · hold right-mouse to raise · click or Alt+wheel to cycle the hand`
-                      : heldId
-                        ? `Left Hand: ${heldName} — click or Alt+wheel to cycle the hand`
-                        : 'Left Hand: empty — click or Alt+wheel to cycle the hand'
-                  }
+                  onMouseEnter={() => setHoveredHand(true)}
+                  onMouseLeave={() => setHoveredHand(false)}
                   className={`pointer-events-auto glass-panel rounded-2xl flex flex-col items-center gap-1 shadow-2xl transition-all active:scale-95 ${
                     touchMode ? 'p-1.5' : 'p-2'
                   }`}
@@ -1380,7 +1541,7 @@ export const HUD: React.FC<HUDProps> = ({
                       <Sparkles className="w-5 h-5" />
                     )}
                     {heldGrafted && (
-                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-rose-400 border border-rose-200" title={heldGraft ? `${SHIELD_GRAFTS[heldGraft].name} grafted` : 'Grafted'} />
+                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-rose-400 border border-rose-200" />
                     )}
                   </span>
                   {!touchMode && (
@@ -1481,6 +1642,12 @@ export const HUD: React.FC<HUDProps> = ({
 
       {/* The HUD Options screen (Pause → OPTIONS). Rendered at the
           root so it survives the pause overlay closing. */}
+      {/* The tutorial's chrome (Slice B): step card + target
+          ring, rendered only while the engine says a step is
+          up. Fixed-position inside the component, so it rides
+          above every panel but below the modals. */}
+      {tutorial?.active && tutorial.step && <TutorialChrome tutorial={tutorial} />}
+
       {showHudOptions && (
         <HudOptionsPanel layout={hudLayout} onClose={() => setShowHudOptions(false)} />
       )}

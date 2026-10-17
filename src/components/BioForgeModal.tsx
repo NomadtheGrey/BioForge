@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Sparkles, Check, AlertCircle, ArrowRight, Search, Sprout } from 'lucide-react';
+import { X, Sparkles, Check, AlertCircle, ArrowRight, Search, Sprout, HelpCircle } from 'lucide-react';
 import { CraftingRecipe, ItemId, StructureType } from '../types/game';
 import { ITEMS, RECIPES, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../game/items/constants'
 import { isGauntletUpgrade, isGearItem, gearTierOf, accessTierOf } from '../game/quests/quests';
@@ -10,6 +10,20 @@ import { RecipeFlowchart } from './RecipeFlowchart';
 // a recipe that grows a striker or shield says its kind beside
 // its tier, in the family's rose.
 import { FAMILY_KIND_LABEL, familyEntryOf } from '../game/items/weaponsFamily';
+import { POUCH_TIER_CAPS, POUCH_UPGRADE_ITEMS, STORAGE_TIERS, pouchTierOf } from '../game/items/pouch';
+
+// The Storage tab's membership (Adam, 2026-10-17): the
+// vault line — the pod and its two in-place upgrade kits
+// (STORAGE_TIERS' three rungs) — plus the pouch tier line
+// (POUCH_UPGRADE_ITEMS). The carrying tables own the facts;
+// this list is just their union for the tab filter.
+const STORAGE_OUTPUT_IDS: readonly string[] = [
+  'storage_pod',
+  'storage_kit_hutch',
+  'storage_kit_vault',
+  ...POUCH_UPGRADE_ITEMS,
+];
+const isStorageOutput = (id: string) => STORAGE_OUTPUT_IDS.includes(id);
 // The Shield tab's membership is the shield rules table's own
 // list — crafts and graft recipes alike output a shield item.
 // The graft-slot lock (HUD audit, 2026-10-17) reads the same
@@ -17,6 +31,12 @@ import { FAMILY_KIND_LABEL, familyEntryOf } from '../game/items/weaponsFamily';
 // must not stay READY — crafting it would burn the materials
 // on a no-op.
 import { isShieldItem, graftOf, SHIELD_GRAFTS, type ShieldGrowthMap } from '../game/creatures/shields';
+// The ingredient "?" (Adam, 2026-10-17): hover a row for what
+// is still missing and where it lives; click the "?" for the
+// full crafting tree. The math + sources are pure and
+// lab-checked (game/items/craftingTree.ts).
+import { buildCraftPlan, itemSources } from '../game/items/craftingTree';
+import { CraftTreeModal } from './CraftTreeModal';
 
 interface BioForgeModalProps {
   isOpen: boolean;
@@ -45,8 +65,12 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   onGrowPrerequisites,
   onSelectStructureBlueprint,
 }) => {
-  const [activeCategory, setActiveCategory] = useState<'all' | 'seeds' | 'fertilizers' | 'composites' | 'defenses' | 'gauntlet' | 'helmet' | 'boots' | 'shield' | 'base'>('all');
+  const [activeCategory, setActiveCategory] = useState<'all' | 'seeds' | 'fertilizers' | 'composites' | 'defenses' | 'gauntlet' | 'helmet' | 'boots' | 'shield' | 'storage' | 'base'>('all');
   const [selectedRecipe, setSelectedRecipe] = useState<CraftingRecipe>(RECIPES[0]);
+  // The ingredient inspector: which row is hovered (its card
+  // shows below the row), and which item's tree is open.
+  const [hoverIng, setHoverIng] = useState<ItemId | null>(null);
+  const [treeTarget, setTreeTarget] = useState<{ id: ItemId; need: number } | null>(null);
   const [isCrafting, setIsCrafting] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'tree'>('list');
   // Every hook lives ABOVE the isOpen early return below: a hook
@@ -90,6 +114,10 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     // output catches both, since a graft recipe's output is
     // the shield it grows onto.
     if (activeCategory === 'shield') return isShieldItem(r.outputId);
+    // The Storage tab (Adam, 2026-10-17): the two carrying
+    // ladders in one place — what your pouch holds (tiers)
+    // and what your vaults hold (pod -> hutch -> vault).
+    if (activeCategory === 'storage') return isStorageOutput(r.outputId);
     return r.category === activeCategory;
   });
 
@@ -152,6 +180,15 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     // The graft-slot lock (HUD audit, 2026-10-17): one graft per
     // shield — a filled slot refuses the recipe outright.
     if (recipe.graftShield && graftOf(shieldGrowth, recipe.graftShield)) return false;
+    // The pouch-tier lock (Adam's play pass, 2026-10-17): the
+    // carrying ladder's upgrades are one-time and maxStack 1 —
+    // owning one IS the tier, so a re-craft would only burn
+    // ingredients on a duplicate that cannot stack. Tier-aware
+    // (dev lane's boundary nuance): the tiers never consume,
+    // so crafting a tier BENEATH the one you carry is the same
+    // paid no-op one rung down — the lock keys on the carried
+    // tier, not the item.
+    if (POUCH_UPGRADE_ITEMS.includes(recipe.outputId) && pouchTierOf(inventory) >= POUCH_UPGRADE_ITEMS.indexOf(recipe.outputId) + 1) return false;
     if (!hasIngredients(recipe)) return false;
     if (nearForge) return true;
     if (accessTierOf(recipe) >= 3) return false;
@@ -169,6 +206,18 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
       const worn = graftOf(shieldGrowth, recipe.graftShield);
       if (worn) return `Already grafted — ${SHIELD_GRAFTS[worn].name}`;
     }
+    // The carried pouch tier speaks in the same family: an
+    // owned upgrade is already the player's carrying tier —
+    // and a surpassed tier reads the same, by the same rule.
+    if (POUCH_UPGRADE_ITEMS.includes(recipe.outputId) && pouchTierOf(inventory) >= POUCH_UPGRADE_ITEMS.indexOf(recipe.outputId) + 1)
+      return 'Already crafted — you already carry this tier or better';
+    // The platform gear lock (Adam, 2026-10-17): helmet and
+    // Quicksteps pieces are owned-unique — once made and worn,
+    // the recipe locks; a duplicate could never be worn anyway.
+    if (HELMET_GEAR_ITEM_IDS.includes(recipe.outputId) && (inventory[recipe.outputId] || 0) > 0)
+      return 'Already crafted — already worn on your Homestead Helm';
+    if (BOOTS_GEAR_ITEM_IDS.includes(recipe.outputId) && (inventory[recipe.outputId] || 0) > 0)
+      return 'Already crafted — already grown on your Quicksteps';
     if (!hasIngredients(recipe)) return 'Missing ingredients';
     if (nearForge) return null;
     if (accessTierOf(recipe) >= 3) return 'Advanced synthesis requires a bio-forge station';
@@ -251,13 +300,14 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
         </div>
 
         {/* Categories Bar */}
-        <div className="px-6 py-3 border-b border-slate-800/70 bg-slate-900/30 flex items-center gap-2 overflow-x-auto">
+        <div className="px-6 py-3 border-b border-slate-800/70 bg-slate-900/30 flex flex-wrap items-center gap-2">
           {[
             { id: 'all', label: 'All Synthetics' },
             { id: 'gauntlet', label: 'Gauntlet' },
             { id: 'helmet', label: 'Helmet' },
             { id: 'boots', label: 'Quicksteps' },
             { id: 'shield', label: 'Shield' },
+            { id: 'storage', label: 'Storage' },
             { id: 'seeds', label: 'Spore & Seeds' },
             { id: 'fertilizers', label: 'Fertilizers' },
             { id: 'composites', label: 'Living Composites' },
@@ -345,6 +395,22 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                       Four shields below, and the one graft that grows onto any of them: Thorn Spikes,
                       in the Graft Slot. The line branches, never climbs — the Lantern buys light, the
                       Fenback buys the wrap and its Spore Answer, the Bulwark buys the Pull.
+                    </p>
+                  </div>
+                )}
+                {!searchActive && activeCategory === 'storage' && (
+                  <div className="rounded-2xl border border-amber-500/30 bg-amber-950/20 p-3.5">
+                    <h4 className="text-[11px] font-tech font-bold uppercase tracking-wider text-amber-200 mb-1">
+                      Storage — What Carries Your World
+                    </h4>
+                    <p className="text-[11px] text-slate-400 leading-snug">
+                      Two ladders. ON YOUR BACK: the pouch tiers — stacks grow to{' '}
+                      {POUCH_TIER_CAPS[1]}, then {POUCH_TIER_CAPS[2]}, then {POUCH_TIER_CAPS[3]}.
+                      AT HOME: the {STORAGE_TIERS[0].name} holds {STORAGE_TIERS[0].slots} stacks of{' '}
+                      {STORAGE_TIERS[0].perStack}; grow it in place into the {STORAGE_TIERS[1].name}{' '}
+                      ({STORAGE_TIERS[1].slots} × {STORAGE_TIERS[1].perStack}), then the{' '}
+                      {STORAGE_TIERS[2].name} ({STORAGE_TIERS[2].slots} × {STORAGE_TIERS[2].perStack})
+                      — its contents never move.
                     </p>
                   </div>
                 )}
@@ -502,8 +568,10 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                     const hasEnough = currentAmount >= ing.count;
 
                     return (
+                      <React.Fragment key={ing.id}>
                       <div
-                        key={ing.id}
+                        onMouseEnter={() => setHoverIng(ing.id)}
+                        onMouseLeave={() => setHoverIng((h) => (h === ing.id ? null : h))}
                         className={`p-3 rounded-xl border flex items-center justify-between text-xs transition-colors ${
                           hasEnough
                             ? 'bg-slate-800/40 border-slate-700/60 text-slate-200'
@@ -542,8 +610,64 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                           ) : (
                             <AlertCircle className="w-3.5 h-3.5 text-red-400 ml-1" />
                           )}
+                          {/* The "?" (Adam, 2026-10-17): hover the
+                              row for the missing pieces and where
+                              they live; click for the full tree. */}
+                          <button
+                            onClick={() => setTreeTarget({ id: ing.id, need: ing.count })}
+                            title={`What it takes to have ${ingItem.name} — the full crafting tree`}
+                            className="ml-1 p-1 rounded-full border border-slate-500/50 text-slate-300 hover:text-cyan-200 hover:border-cyan-400/60 hover:bg-cyan-950/40 transition-colors"
+                            aria-label={`Crafting tree for ${ingItem.name}`}
+                          >
+                            <HelpCircle className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       </div>
+                      {hoverIng === ing.id && (() => {
+                        // The hover card: this ingredient's own
+                        // plan, one level deep — what its growth
+                        // still lacks, and where the raw pieces
+                        // live. Numbers come from the same
+                        // netted walk the tree modal shows.
+                        const plan = buildCraftPlan(ing.id, ing.count, inventory);
+                        const root = plan.root;
+                        return (
+                          <div className="mx-1 mb-1 p-3 rounded-xl border border-cyan-800/40 bg-slate-900/80 text-[11px] leading-snug">
+                            {root.shortfall <= 0 ? (
+                              <p className="text-emerald-300 font-medium">You hold what this needs.</p>
+                            ) : root.recipe ? (
+                              <>
+                                <p className="text-slate-300 font-medium mb-1">
+                                  To grow {ingItem.name} × {ing.count}:
+                                </p>
+                                <ul className="space-y-0.5">
+                                  {root.children.map((child) => (
+                                    <li key={child.itemId} className="flex items-baseline gap-1.5">
+                                      <span className={child.shortfall > 0 ? 'text-red-300' : 'text-slate-300'}>
+                                        {ITEMS[child.itemId]?.name ?? child.itemId} — have {child.fromPouch} of {child.need}
+                                      </span>
+                                      {child.shortfall > 0 && !child.recipe && (
+                                        <span className="text-slate-400">· {itemSources(child.itemId)[0] ?? ''}</span>
+                                      )}
+                                      {child.shortfall > 0 && child.recipe && (
+                                        <span className="text-slate-400">· grown at the Forge</span>
+                                      )}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </>
+                            ) : (
+                              <ul className="space-y-0.5">
+                                {itemSources(ing.id).map((line) => (
+                                  <li key={line} className="text-slate-300">{line}</li>
+                                ))}
+                              </ul>
+                            )}
+                            <p className="text-slate-500 mt-1.5">Click the ? for the full crafting tree.</p>
+                          </div>
+                        );
+                      })()}
+                      </React.Fragment>
                     );
                   })}
                 </div>
@@ -583,6 +707,12 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
           </div>
         </div>
       </div>
+      <CraftTreeModal
+        itemId={treeTarget?.id ?? null}
+        need={treeTarget?.need ?? 1}
+        inventory={inventory}
+        onClose={() => setTreeTarget(null)}
+      />
     </div>
   );
 };

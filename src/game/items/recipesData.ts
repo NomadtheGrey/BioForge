@@ -10,86 +10,11 @@
 import type { CraftingRecipe } from '../../types/game';
 
 export const RECIPES: CraftingRecipe[] = [
-  // Seeds
-  {
-    id: 'craft_seed_lantern_fern',
-    outputId: 'seed_lantern_fern',
-    outputCount: 2,
-    name: 'Lantern-Fern Spores',
-    description: 'Synthesize glowing fern spores from soft fibers and dew essence.',
-    category: 'seeds',
-    ingredients: [
-      { id: 'soft_fiber', count: 2 },
-      { id: 'dew_essence', count: 1 },
-    ],
-    craftTimeMs: 1200,
-  },
-  {
-    id: 'craft_seed_sap_weaver',
-    outputId: 'seed_sap_weaver',
-    outputCount: 2,
-    name: 'Sap-Weaver Seed',
-    description: 'Congeal resin sap into viable cultivator seeds.',
-    category: 'seeds',
-    ingredients: [
-      { id: 'resin_sap', count: 3 },
-      { id: 'basic_compost', count: 1 },
-    ],
-    craftTimeMs: 1500,
-  },
-  {
-    id: 'craft_seed_petal_mill',
-    outputId: 'seed_petal_mill',
-    outputCount: 2,
-    name: 'Petal-Mill Seed',
-    description: 'Fuse vibrant petals and sweet nectar into pinwheel floral seeds.',
-    category: 'seeds',
-    ingredients: [
-      { id: 'vibrant_petal', count: 3 },
-      { id: 'sweet_nectar', count: 1 },
-    ],
-    craftTimeMs: 1500,
-  },
-  {
-    id: 'craft_seed_snap_trap',
-    outputId: 'seed_snap_trap',
-    outputCount: 1,
-    name: 'Snap-Trap Bulb',
-    description: 'Bio-engineer a domestic carnivorous snap-trap bulb using carapace scales and sap.',
-    category: 'seeds',
-    ingredients: [
-      { id: 'carapace_scale', count: 2 },
-      { id: 'resin_sap', count: 2 },
-      { id: 'sweet_nectar', count: 2 },
-    ],
-    craftTimeMs: 2500,
-  },
-  {
-    id: 'craft_seed_bell_bloom',
-    outputId: 'seed_bell_bloom',
-    outputCount: 2,
-    name: 'Bell-Bloom Seed',
-    description: 'Distill dew essence and soft fibers into resonant bell-bloom seeds.',
-    category: 'seeds',
-    ingredients: [
-      { id: 'dew_essence', count: 2 },
-      { id: 'soft_fiber', count: 1 },
-    ],
-    craftTimeMs: 1200,
-  },
-  {
-    id: 'craft_seed_bounce_shroom',
-    outputId: 'seed_bounce_shroom',
-    outputCount: 2,
-    name: 'Bounce-Shroom Spores',
-    description: 'Knead soft fibers and dew essence into springy bounce-shroom spores.',
-    category: 'seeds',
-    ingredients: [
-      { id: 'soft_fiber', count: 2 },
-      { id: 'dew_essence', count: 1 },
-    ],
-    craftTimeMs: 1200,
-  },
+  // Seeds are NOT crafted (Adam, 2026-10-17): 'crafting seeds
+  // is weird.' The plantable six yield their own seed on
+  // harvest (flora.ts + the harvest switch), so a first seed
+  // comes from a wild plant and a garden sustains itself.
+  // The six craft_seed_* recipes that stood here are gone.
   {
     id: 'craft_hand_lantern_fern',
     outputId: 'hand_lantern_fern',
@@ -367,7 +292,7 @@ export const RECIPES: CraftingRecipe[] = [
     outputId: 'gauntlet_planter_module',
     outputCount: 1,
     name: 'Planter Module',
-    description: 'Graft a green thumb onto your gauntlet — unlocks the Planter Trowel (tool 3).',
+    description: 'Graft a green thumb onto your gauntlet — unlocks the Planter Trowel (tool 3): plant seeds, and feed what grows by applying fertilizer. One trowel, both duties.',
     category: 'composites',
     ingredients: [
       { id: 'soft_fiber', count: 2 },
@@ -939,6 +864,54 @@ export const RECIPES: CraftingRecipe[] = [
       { id: 'resin_sap', count: 1 },
     ],
     craftTimeMs: 2500,
+  },
+  // THE WINDLUNG (Adam, 2026-10-17): the Quicksteps' breath
+  // ladder — each rung CONSUMES the one below (the weapons
+  // pattern), so the pouch ever holds one rung. Factors in
+  // game/creatures/quicksteps.ts.
+  {
+    id: 'craft_windlung_sprig',
+    outputId: 'windlung_sprig',
+    outputCount: 1,
+    name: 'Windlung Sprig',
+    description: 'A first small lung for the Quicksteps, down-lined and dew-fed: every effort costs less, every rest gives more.',
+    category: 'composites',
+    ingredients: [
+      { id: 'puff_down', count: 2 },
+      { id: 'soft_fiber', count: 2 },
+      { id: 'dew_essence', count: 1 },
+    ],
+    craftTimeMs: 2500,
+  },
+  {
+    id: 'craft_windlung_bellows',
+    outputId: 'windlung_bellows',
+    outputCount: 1,
+    name: 'Windlung Bellows',
+    description: 'The Sprig grown out into paired bellows: sprinting is cheap and breath comes back fast.',
+    category: 'composites',
+    ingredients: [
+      { id: 'windlung_sprig', count: 1 },
+      { id: 'whale_down', count: 1 },
+      { id: 'living_thread', count: 1 },
+      { id: 'spire_down', count: 2 },
+    ],
+    craftTimeMs: 4000,
+  },
+  {
+    id: 'craft_windlung_heart',
+    outputId: 'windlung_heart',
+    outputCount: 1,
+    name: 'Windlung Heart',
+    description: 'The Bellows grown into a true second heart for the road: a sprint barely sips, and a spent bar refills almost at once.',
+    category: 'composites',
+    ingredients: [
+      { id: 'windlung_bellows', count: 1 },
+      { id: 'fall_plume', count: 1 },
+      { id: 'heart_sap', count: 2 },
+      { id: 'living_thread', count: 1 },
+    ],
+    craftTimeMs: 5000,
   },
   {
     id: 'craft_biotunnel_mouth',

@@ -44,6 +44,9 @@ import {
   type ShieldSideEffect,
   type StrikeCtx,
 } from '../game/creatures/shields';
+// THE WINDLUNG (2026-10-17): the Quicksteps' breath ladder —
+// its factors bend the loop's stamina accounting.
+import { staminaFactors } from '../game/creatures/quicksteps';
 import type { WorldSnapshot } from '../game/saveSystem';
 import type { InstanceState } from './useInstances';
 import type { PendingTravel } from './useZoneTravel';
@@ -84,6 +87,10 @@ export interface GameLoopDeps {
   /** True while the player carries a Plume Charm (Ingredient
    *  Sinks, 2026-10-17): fast falls glide instead of dropping. */
   hasPlumeCharm?: () => boolean;
+  /** The worn Windlung rung (0–3, Quicksteps, 2026-10-17):
+   *  its factors bend every stamina drain and recovery the
+   *  loop accounts. Ownership-derived, like the soles. */
+  windlungTier?: () => number;
   /** True while the player stands in an Ember Scar zone. */
   scarHeatRef: { current: boolean };
   // Storm zots (2026-10-15): the mean seconds between lightning
@@ -130,9 +137,9 @@ export interface GameLoopDeps {
   } };
   liveGameRefs: { current: {
     hasItem: (itemId: ItemId, quantity: number) => boolean;
-    addInventoryItem: (itemId: ItemId, quantity: number) => void;
+    addInventoryItem: (itemId: ItemId, quantity: number) => number;
     updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number, ctx?: StrikeCtx) => void, attacksArmed?: boolean, dayPhase?: number, onFieldWitness?: (noteId: string) => void, onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void, onAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void, dropMagnet?: { radius: number; speed: number }) => void;
-    postNotification: (title: string, message: string, type?: GameNotification['type'], iconColor?: string) => void;
+    postNotification: (title: string, message: string, type?: GameNotification["type"], iconColor?: string, key?: string) => void;
     // The Field Notes witness sink (App's recordFieldWitness,
     // fieldNotesBook.ts) — optional so the loop never hard-depends
     // on the book; sim-side witnesses ride in through here too.
@@ -184,7 +191,7 @@ export interface GameLoopDeps {
   latestStateRef: { current: { dayNightCycle: number } };
   currentZoneId: () => string;
   applyPlayerLevel: (level: number) => void;
-  postNotification: (title: string, message: string, type?: GameNotification['type'], iconColor?: string) => void;
+  postNotification: (title: string, message: string, type?: GameNotification["type"], iconColor?: string, key?: string) => void;
   setStamina: (value: number) => void;
   setHealth: (value: number) => void;
   setMinimapPos: (pos: { x: number; z: number; rotation: number }) => void;
@@ -203,7 +210,7 @@ export interface GameLoopDeps {
 export function useGameLoop(deps: GameLoopDeps): void {
   const {
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
-    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, getLiquidAt, hasEmberSoles, hasPlumeCharm, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
+    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, getLiquidAt, hasEmberSoles, hasPlumeCharm, windlungTier, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
     sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
@@ -473,7 +480,10 @@ export function useGameLoop(deps: GameLoopDeps): void {
         // drops and a brief vulnerable beat runs. Blocks pay per
         // hit at the bite site (useWorldEntities).
         const shieldRaised = liveGameRefs.current.shield?.raisedRef.current ?? false;
-        const staminaDelta = (isSprintingNow ? -18 * dt : (shieldRaised ? 0 : (moveResult.isMoving ? 8 : 14) * dt)) - sporeTax - (shieldRaised ? SHIELD_RAISED_DRAIN_PER_SEC * dt : 0);
+        // THE WINDLUNG (2026-10-17): the worn rung's factors
+        // bend the whole line — drains shrink, recovery grows.
+        const wf = staminaFactors(windlungTier ? windlungTier() : 0);
+        const staminaDelta = (isSprintingNow ? -18 * dt * wf.drain : (shieldRaised ? 0 : (moveResult.isMoving ? 8 : 14) * dt * wf.regen)) - sporeTax * wf.drain - (shieldRaised ? SHIELD_RAISED_DRAIN_PER_SEC * dt * wf.drain : 0);
         staminaRef.current = Math.max(0, Math.min(100, staminaRef.current + staminaDelta));
         if (shieldRaised && staminaRef.current <= 0) {
           liveGameRefs.current.shield?.onStaminaEmpty();
@@ -492,7 +502,7 @@ export function useGameLoop(deps: GameLoopDeps): void {
           const cycle = latestStateRef.current.dayNightCycle;
           const isDay = cycle > 0.25 && cycle < 0.75;
           if (isDay) {
-            staminaRef.current = Math.max(0, staminaRef.current - 16 * dt);
+            staminaRef.current = Math.max(0, staminaRef.current - 16 * dt * wf.drain);
             if (staminaRef.current <= 0) {
               const floor = deathArmedRef.current ? 0 : 1;
               healthRef.current = Math.max(floor, healthRef.current - 1.2 * dt);
@@ -506,7 +516,31 @@ export function useGameLoop(deps: GameLoopDeps): void {
               }
             }
           } else {
-            staminaRef.current = Math.min(100, staminaRef.current + 8 * dt);
+            staminaRef.current = Math.min(100, staminaRef.current + 8 * dt * wf.regen);
+          }
+        }
+
+        // ---------------------------------------------------------
+        // THE HEART'S SANCTUARY (Adam, 2026-10-17): standing in
+        // the cavern Heart's glow replenishes you — health and
+        // stamina creep back while you stay. The deepest room
+        // of the cave is where you catch your breath before
+        // the climb out. The rates are the cave's gift, not
+        // your lungs': the Windlung does not multiply them.
+        if (activeInstance.kind === 'cavern') {
+          const heartPos = engineRef.current?.getCavernHeartPos();
+          if (heartPos) {
+            const distToHeart = Math.hypot(playerPosRef.current.x - heartPos.x, playerPosRef.current.z - heartPos.z);
+            if (distToHeart < 4.5) {
+              staminaRef.current = Math.min(100, staminaRef.current + 8 * dt);
+              if (healthRef.current < 100) {
+                healthRef.current = Math.min(100, healthRef.current + 1.5 * dt);
+                if (performance.now() - lastHealthSync.current > 200) {
+                  lastHealthSync.current = performance.now();
+                  setHealth(healthRef.current);
+                }
+              }
+            }
           }
         }
 
@@ -803,8 +837,11 @@ export function useGameLoop(deps: GameLoopDeps): void {
             const input = shieldCtl.buildCombatInput(
               () => tickFacing,
               (n) => {
-                if (staminaRef.current < n) return false;
-                staminaRef.current = Math.max(0, staminaRef.current - n);
+                // The Windlung bends block costs too (2026-10-17):
+                // the payer charges the scaled cost.
+                const cost = n * staminaFactors(windlungTier ? windlungTier() : 0).drain;
+                if (staminaRef.current < cost) return false;
+                staminaRef.current = Math.max(0, staminaRef.current - cost);
                 setStamina(staminaRef.current);
                 return true;
               }
@@ -821,7 +858,14 @@ export function useGameLoop(deps: GameLoopDeps): void {
             moveResult.x,
             moveResult.z,
             (pickedItem) => {
-              liveGameRefs.current.addInventoryItem(pickedItem.itemId, pickedItem.count);
+              // Speak only about what ENTERED the pouch
+              // (2026-10-17): a full stack takes nothing, and a
+              // pickup that took nothing must not toast, sound,
+              // or latch witnesses — the overflow handler drops
+              // the untaken part (stamped with a pickup holdoff)
+              // and says its own 'Pouch Full' piece, once.
+              const taken = liveGameRefs.current.addInventoryItem(pickedItem.itemId, pickedItem.count);
+              if (taken <= 0) return;
               // Field Notes pickup witnesses (fieldNotesBook): a
               // shed gel, scale, plate or requisition collected is
               // the note's named moment.
@@ -834,15 +878,19 @@ export function useGameLoop(deps: GameLoopDeps): void {
                 liveGameRefs.current.recordAsksEvent?.({
                   kind: 'sample',
                   species: pickedItem.itemId.slice('sample_'.length),
-                  count: pickedItem.count,
+                  count: taken,
                 });
               }
               soundEngine.playHarvest();
               liveGameRefs.current.postNotification(
                 'Item Collected',
-                `Picked up ${pickedItem.count}x ${ITEMS[pickedItem.itemId]?.name || pickedItem.itemId}`,
+                `Picked up ${taken}x ${ITEMS[pickedItem.itemId]?.name || pickedItem.itemId}`,
                 'harvest',
-                ITEMS[pickedItem.itemId]?.color || '#38bdf8'
+                ITEMS[pickedItem.itemId]?.color || '#38bdf8',
+                // Keyed (2026-10-17): a pickup spree refreshes
+                // this ONE toast instead of flooding the stack
+                // and evicting toasts that matter.
+                'pickup'
               );
             },
             (critterSpecies) => {

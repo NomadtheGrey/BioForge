@@ -155,6 +155,35 @@ function makeStreakTexture(): THREE.Texture {
   return new THREE.CanvasTexture(c);
 }
 
+// A floating name tag (Adam, 2026-10-17): canvas text on a dark
+// pill, drawn once per label. Used first for the cavern Heart —
+// a destination should announce itself.
+function makeLabelSprite(text: string, accent = '#f9a8d4'): THREE.Sprite {
+  const c = document.createElement('canvas');
+  c.width = 512;
+  c.height = 128;
+  const ctx = c.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = 'rgba(10, 8, 14, 0.72)';
+    ctx.beginPath();
+    ctx.roundRect(56, 28, 400, 72, 36);
+    ctx.fill();
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = '#fdf2f8';
+    ctx.font = '600 40px Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 256, 66);
+  }
+  const tex = new THREE.CanvasTexture(c);
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(3.4, 0.85, 1);
+  return sprite;
+}
+
 // Shared radial-gradient texture for glow sprites (one texture, many sprites).
 function makeGlowTexture(): THREE.Texture {
   const c = document.createElement('canvas');
@@ -1538,9 +1567,11 @@ export class BioForgeThreeEngine {
   private getStructureLightSpec(s: StructureEntity): LightSource {
     const id = `struct:${s.id}`;
     if (s.type === 'lantern_fern_post') {
-      // Built mature: stage-4 equivalent of a wild fern.
-      const g = (0.45 + 4 * 0.14) / 0.45;
-      return { id, x: s.worldX, y: 2.7, z: s.worldZ, color: 0x06b6d4, intensity: 1.8 * g ** 3, distance: 8 * g };
+      // Crafted beats wild (Adam, 2026-10-17): the post is a
+      // LAMP, grown on purpose, and must outshine the plant it
+      // came from — a mature wild fern peaks near 30 / 20 on
+      // the growth curve above, so the post stands at 40 / 26.
+      return { id, x: s.worldX, y: 2.7, z: s.worldZ, color: 0x06b6d4, intensity: 40, distance: 26 };
     }
     const b = this.structureLightBase[s.type];
     return { id, x: s.worldX, y: b.y, z: s.worldZ, color: b.color, intensity: b.intensity, distance: b.distance };
@@ -1572,14 +1603,14 @@ export class BioForgeThreeEngine {
       // light forward of the bearer — same pool, longer reach.
       let sx = this.cachedPlayerX;
       let sz = this.cachedPlayerZ;
-      let distance = 16;
+      let distance = 20;
       if (this.heldLightBraced && this.camera) {
         const dir = new THREE.Vector3();
         this.camera.getWorldDirection(dir);
         const len = Math.hypot(dir.x, dir.z) || 1;
         sx += (dir.x / len) * 2.5;
         sz += (dir.z / len) * 2.5;
-        distance = 22;
+        distance = 26;
       }
       sources.push({
         id: 'held:lantern',
@@ -1587,7 +1618,12 @@ export class BioForgeThreeEngine {
         y: 1.6,
         z: sz,
         color: 0x67e8f9,
-        intensity: 2.6,
+        // A torch's generosity (Adam's play pass, 2026-10-17):
+        // this stood at 2.6 — an order below the wild plant's
+        // own peak (~30) — so a potted lantern in the hand read
+        // as no light at all. 12 sheds real light without
+        // outshining the grown lamps of the homestead.
+        intensity: 12,
         distance,
       });
     }
@@ -1972,6 +2008,16 @@ export class BioForgeThreeEngine {
     return this.cavernMode;
   }
 
+  /** The standing cavern Heart's world position (THE
+   *  SANCTUARY, 2026-10-17): set when a cavern with a heart is
+   *  built, cleared when it is torn down. The game loop reads
+   *  it to replenish a player standing in the Heart's glow. */
+  private cavernHeartPos: { x: number; z: number } | null = null;
+
+  getCavernHeartPos(): { x: number; z: number } | null {
+    return this.cavernHeartPos;
+  }
+
   private buildCavern(cavern: CavernResult): void {
     this.clearCavern();
     const CEIL = 4.6; // cavern ceiling height (flat instance, no stories)
@@ -2077,9 +2123,15 @@ export class BioForgeThreeEngine {
       crystal.name = 'cavernHeart';
       crystal.position.set(w.x, 1.15, w.z);
       this.cavernGroup.add(crystal);
+      this.cavernHeartPos = { x: w.x, z: w.z };
       const heartLight = new THREE.PointLight(0xec4899, 9, 11, 1.5);
       heartLight.position.set(w.x, 1.4, w.z);
       this.cavernGroup.add(heartLight);
+      // Its name tag, floating above the crystal (Adam,
+      // 2026-10-17): the deepest chamber's prize should say so.
+      const heartTag = makeLabelSprite('Heart of the Cavern');
+      heartTag.position.set(w.x, 2.9, w.z);
+      this.cavernGroup.add(heartTag);
     }
 
     // Entrance marker: a cyan ring flat on the floor — "home is here",
@@ -2141,6 +2193,7 @@ export class BioForgeThreeEngine {
       else if (material) material.dispose();
     });
     this.cavernGroup.clear();
+    this.cavernHeartPos = null;
   }
 
   // Instanced ruin interiors (game/world/ruinInterior.ts): the cavern

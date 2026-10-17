@@ -25,6 +25,8 @@ import {
   ITEMS,
   NON_BUILDABLE_STRUCTURE_IDS,
   getRecipeTier,
+  HELMET_GEAR_ITEM_IDS,
+  BOOTS_GEAR_ITEM_IDS,
 } from './game/items/constants';
 import { BioForgeThreeEngine } from './game/engine/threeEngine';
 import { soundEngine } from './audio/soundEngine';
@@ -101,6 +103,7 @@ import type { SagaTrackView } from './components/QuestTracker';
 
 import { StartScreenModal } from './components/StartScreenModal';
 import { GameInfoModal } from './components/GameInfoModal';
+import { HowToPlayModal } from './components/HowToPlayModal';
 
 // UI Components
 import { HUD } from './components/HUD';
@@ -111,6 +114,7 @@ import { fateForWorld } from './game/world/ruins';
 import { AW_CHAPTERS, type AwChapter } from './game/quests/awChapters';
 import { ChapterModal } from './components/ChapterModal';
 import { bestWeapon } from './game/creatures/weapons';
+import { windlungTierOf, staminaFactors } from './game/creatures/quicksteps';
 import type { WeaponDef } from './game/creatures/weapons';
 // The Shield Family (Adam, 2026-10-17): rules, the wield hook, and
 // the Left Hand cycle grammar.
@@ -126,6 +130,7 @@ import {
 } from './game/creatures/shields';
 import { useShieldWield } from './hooks/useShieldWield';
 import { useQuests } from './hooks/useQuests';
+import { useTutorial } from './hooks/useTutorial';
 import { useStorage } from './hooks/useStorage';
 import { useVat } from './hooks/useVat';
 import { useDebugKit } from './hooks/useDebugKit';
@@ -145,7 +150,7 @@ import { findTunnelMouths, type TunnelMouthRef } from './game/world/tunnel';
 import { InventoryModal } from './components/InventoryModal';
 import { StorageModal } from './components/StorageModal';
 import { VatModal } from './components/VatModal';
-import { POUCH_TIER_CAPS, pouchTierOf } from './game/items/pouch';
+import { POUCH_TIER_CAPS, POUCH_UPGRADE_ITEMS, pouchTierOf } from './game/items/pouch';
 import { CodexModal } from './components/CodexModal';
 import { MultiplayerModal } from './components/MultiplayerModal';
 import { ControlsGuideModal } from './components/ControlsGuideModal';
@@ -245,6 +250,12 @@ export default function App() {
   // live yet. The screen carries its own Esc listener.
   const [showAbout, setShowAbout] = useState(false);
 
+  // How to Play (Adam's program, 2026-10-17): same shape as
+  // About — its own boolean, its own Esc listener in the
+  // modal; wiring only, the shell and words are the HUD
+  // lane's (HowToPlayModal) and the design doc's §2.
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
+
   // The striker slot's draw (weapons build, Adam, 2026-10-16):
   // which KIND of weapon slot 7 holds — 'close' or 'ranged'. The
   // drawn WEAPON derives from the pouch (best owned of the drawn
@@ -267,8 +278,12 @@ export default function App() {
   // hook's — the body only ever runs at click time, long after
   // both hooks have run. False = too winded to strike.
   function spendStamina(amount: number): boolean {
-    if (staminaRef.current < amount) return false;
-    staminaRef.current = Math.max(0, staminaRef.current - amount);
+    // THE WINDLUNG (2026-10-17): the worn rung bends discrete
+    // spends too — the payer charges the scaled cost. This is
+    // the one payer weapon strikes route through.
+    const cost = amount * staminaFactors(windlungTierOf(latestStateRef.current.inventory ?? {})).drain;
+    if (staminaRef.current < cost) return false;
+    staminaRef.current = Math.max(0, staminaRef.current - cost);
     return true;
   }
 
@@ -1179,6 +1194,8 @@ export default function App() {
     // the zone question is answered here, where zone knowledge
     // lives; the interaction only reports that a harvest landed.
     onFloraHarvest: () => {
+      // The tutorial's harvest fact: any landed harvest flips it.
+      setTutorialHarvested(true);
       if (!worldSeedRef.current) return;
       const info = zoneInfo(worldSeedRef.current, playerZoneRef.current.zx, playerZoneRef.current.zz);
       if (info.variant?.id === 'precursor_garden') {
@@ -1387,6 +1404,48 @@ export default function App() {
 
   // The Ask the World chapter, once earned (modal state).
   const [awChapter, setAwChapter] = useState<AwChapter | null>(null);
+
+  // ------------------------------------------------------------------
+  // The Tutorial (How to Play, Slice B part 2 — the wiring).
+  // The engine (hooks/useTutorial) reads five facts, all from
+  // state the game already keeps: a harvest latch flipped by the
+  // harvest callback above, the three modal reads off
+  // activeModal, and the player's zone against home. The HUD
+  // renders the step card + ring from the returned object; the
+  // How to Play modal's SHOW TUTORIAL button starts it.
+  // ------------------------------------------------------------------
+  const [tutorialHarvested, setTutorialHarvested] = useState(false);
+  const tutorial = useTutorial({
+    harvested: tutorialHarvested,
+    pouchOpen: activeModal === 'inventory',
+    forgeOpen: activeModal === 'bioforge',
+    questsOpen: activeModal === 'quests',
+    zoneChanged: playerZone.zx !== 0 || playerZone.zz !== 0,
+  });
+  // Opening How to Play marks the guide seen (the cluster's
+  // pulse settles) — the engine's record and the HUD cluster
+  // write the same key the same way.
+  useEffect(() => {
+    if (showHowToPlay) tutorial.markModalSeen();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showHowToPlay]);
+  // The one-time offer: a fresh player entering a world is told
+  // once that the walk-through exists. Once per device, ever —
+  // the record's offered/completed flags are the gate.
+  const tutorialOfferRef = useRef(false);
+  useEffect(() => {
+    if (!hasStarted || tutorialOfferRef.current) return;
+    if (tutorial.completed || tutorial.offered) return;
+    tutorialOfferRef.current = true;
+    tutorial.markOffered();
+    postNotification(
+      'New to BioForge?',
+      'The HOW TO PLAY button at the top-right can walk you through your first steps.',
+      'discover',
+      '#67e8f9'
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasStarted]);
 
   // ------------------------------------------------------------------
   // Ask the World — signal writers (Adam, 2026-10-16)
@@ -2113,7 +2172,7 @@ const {
   useGameLoop({
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
     jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, lastStaminaSync,
-    sprinting, sporeStaminaRef, marshSluggishRef, getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0, hasPlumeCharm: () => (latestStateRef.current.inventory?.plume_charm ?? 0) > 0, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
+    sprinting, sporeStaminaRef, marshSluggishRef, getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0, hasPlumeCharm: () => (latestStateRef.current.inventory?.plume_charm ?? 0) > 0, windlungTier: () => windlungTierOf(latestStateRef.current.inventory ?? {}), scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef, returnPausedRef,
@@ -2281,6 +2340,37 @@ const {
         );
         return;
       }
+    }
+    // The pouch-tier guard (Adam's play pass, 2026-10-17): the
+    // carrying ladder's upgrades are one-time — the same
+    // invariant at the consumption point as the modal's
+    // 'Already crafted' lock, so no caller can burn pouch
+    // ingredients on a tier already carried.
+    if (
+      POUCH_UPGRADE_ITEMS.includes(recipe.outputId) &&
+      pouchTierOf(latestStateRef.current.inventory ?? {}) >= POUCH_UPGRADE_ITEMS.indexOf(recipe.outputId) + 1
+    ) {
+      postNotification(
+        'Already Crafted',
+        `${ITEMS[recipe.outputId]?.name || 'That pouch upgrade'} is beneath the tier already carrying for you.`,
+        'craft',
+      );
+      return;
+    }
+    // The platform gear guard (Adam, 2026-10-17): helmet and
+    // Quicksteps pieces are owned-unique — worn IS installed —
+    // so no caller burns ingredients on a duplicate. Same lock
+    // family as the graft slot and the pouch tiers.
+    if (
+      (HELMET_GEAR_ITEM_IDS.includes(recipe.outputId) || BOOTS_GEAR_ITEM_IDS.includes(recipe.outputId)) &&
+      (latestStateRef.current.inventory?.[recipe.outputId] ?? 0) > 0
+    ) {
+      postNotification(
+        'Already Crafted',
+        `${ITEMS[recipe.outputId]?.name || 'That piece'} is already yours — the platform wears one, and one is all it can wear.`,
+        'craft',
+      );
+      return;
     }
     const success = craftRecipe(recipe);
     if (success) {
@@ -2466,6 +2556,7 @@ const {
 
       {/* Futuristic Botanical Tech HUD */}
       <HUD
+        tutorial={tutorial}
         shieldGrowth={shieldGrowth}
         playerState={{
           ...playerState,
@@ -2510,6 +2601,7 @@ const {
         onOpenMultiplayer={() => setActiveModal('multiplayer')}
         onOpenControls={() => setActiveModal('controls')}
         onOpenAbout={() => setShowAbout(true)}
+        onOpenHowToPlay={() => setShowHowToPlay(true)}
         shieldRaised={shieldWield.raised}
         onSetShieldRaised={shieldWield.setShieldRaised}
         onOpenDevTools={() => setActiveModal('devtools')}
@@ -2753,6 +2845,22 @@ const {
       />
 
       <GameInfoModal isOpen={showAbout} onClose={() => setShowAbout(false)} />
+      <HowToPlayModal
+        isOpen={showHowToPlay}
+        onClose={() => setShowHowToPlay(false)}
+        onOpenQuests={() => {
+          setShowHowToPlay(false);
+          setActiveModal('quests');
+        }}
+        onOpenAbout={() => {
+          setShowHowToPlay(false);
+          setShowAbout(true);
+        }}
+        onShowTutorial={() => {
+          setShowHowToPlay(false);
+          tutorial.start();
+        }}
+      />
       <MultiplayerModal
         isOpen={activeModal === 'multiplayer'}
         onClose={() => setActiveModal(null)}

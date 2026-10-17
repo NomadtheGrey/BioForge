@@ -316,7 +316,7 @@ export const QUESTS: QuestDef[] = [
     questChapter: 1,
     title: 'Sow the Future',
     blurb:
-      'Compost comes from mature harvests — every grown plant you pick leaves some behind. Craft the Planter Module and start gardening.',
+      'Compost comes from mature harvests — every grown plant you pick leaves some behind. Craft the Planter Module and start gardening. The trowel does double duty: it sows your seeds and it feeds your garden — fertilizer is applied with the same tool.',
     gather: [
       { itemId: 'soft_fiber', count: 2 },
       { itemId: 'basic_compost', count: 1 },

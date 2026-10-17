@@ -3580,39 +3580,45 @@ export const FLORA: Record<string, FloraDef> = {
   // ------------------------------------------------------------------
 
   // The starter census five (worldGen FLORA_CENSUS).
+  // SEEDS (Adam, 2026-10-17): the plantable six yield their own
+  // seed on harvest — one flat in extras, materials untouched —
+  // so a garden sustains itself the way the wild does. (The
+  // seed-CRAFTING recipes were removed the same day: 'crafting
+  // seeds is weird.' Bounce-Shroom, below in the table, already
+  // yielded its seed as its main item and keeps that shape.)
   lantern_fern: {
     id: 'lantern_fern',
     name: 'Lantern Fern',
     kind: 'flora',
-    harvest: { item: 'soft_fiber', count: 2, fertilizedCount: 5, extras: [['dew_essence', 1]] },
+    harvest: { item: 'soft_fiber', count: 2, fertilizedCount: 5, extras: [['dew_essence', 1], ['seed_lantern_fern', 1]] },
     bonusGrow: null,
   },
   bell_bloom: {
     id: 'bell_bloom',
     name: 'Bell-Bloom',
     kind: 'flora',
-    harvest: { item: 'dew_essence', count: 2, fertilizedCount: 4, extras: [['soft_fiber', 1]] },
+    harvest: { item: 'dew_essence', count: 2, fertilizedCount: 4, extras: [['soft_fiber', 1], ['seed_bell_bloom', 1]] },
     bonusGrow: null,
   },
   petal_mill: {
     id: 'petal_mill',
     name: 'Petal-Mill',
     kind: 'flora',
-    harvest: { item: 'vibrant_petal', count: 3, fertilizedCount: 6, extras: [['sweet_nectar', 2]] },
+    harvest: { item: 'vibrant_petal', count: 3, fertilizedCount: 6, extras: [['sweet_nectar', 2], ['seed_petal_mill', 1]] },
     bonusGrow: null,
   },
   sap_weaver: {
     id: 'sap_weaver',
     name: 'Sap-Weaver',
     kind: 'flora',
-    harvest: { item: 'resin_sap', count: 3, fertilizedCount: 6 },
+    harvest: { item: 'resin_sap', count: 3, fertilizedCount: 6, extras: [['seed_sap_weaver', 1]] },
     bonusGrow: null,
   },
   snap_trap: {
     id: 'snap_trap',
     name: 'Chittering Snap-Trap',
     kind: 'flora',
-    harvest: { item: 'carapace_scale', count: 1, fertilizedCount: 1 },
+    harvest: { item: 'carapace_scale', count: 1, fertilizedCount: 1, extras: [['seed_snap_trap', 1]] },
     hazardous: true,
     bonusGrow: null,
   },

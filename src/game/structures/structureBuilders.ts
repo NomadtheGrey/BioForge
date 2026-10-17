@@ -1121,14 +1121,52 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       return group;
     },
     'lantern_fern_post': () => {
+      // A LAMP, not a plant (Adam, 2026-10-17): the old build was
+      // the wild fern's own silhouette — a stalk with a glowing
+      // ball — so players kept trying to harvest it. The crafted
+      // post now reads as made furniture at a glance: a flared
+      // rooted base, a pole with JOINERY RINGS (no plant grows
+      // those), and the glow held in a ribbed CAGE under a
+      // porcelain cap, like a lantern housing.
       const group = new THREE.Group();
-      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.16, 2.6, 8), materials.woodRoot);
-      pole.position.y = 1.3;
-      group.add(pole);
 
-      const orb = new THREE.Mesh(new THREE.SphereGeometry(0.38, 16, 16), materials.biolumCyan);
-      orb.position.y = 2.7;
+      // Rooted base flare — a furniture stance, wide and planted.
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.52, 0.3, 10), materials.woodRoot);
+      base.position.y = 0.15;
+      base.castShadow = true;
+      group.add(base);
+
+      // The pole: thicker than any fern stalk, and ringed.
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.15, 2.3, 8), materials.woodRoot);
+      pole.position.y = 1.45;
+      pole.castShadow = true;
+      group.add(pole);
+      [0.75, 1.45, 2.15].forEach((y) => {
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.035, 8, 16), materials.porcelainWhite);
+        ring.rotation.x = Math.PI / 2;
+        ring.position.y = y;
+        group.add(ring);
+      });
+
+      // The cage head: three root ribs bent around the light,
+      // a porcelain cap above, the glow seated at its heart.
+      const headY = 2.85;
+      for (let i = 0; i < 3; i++) {
+        const rib = new THREE.Mesh(new THREE.TorusGeometry(0.44, 0.04, 8, 20), materials.woodRoot);
+        rib.rotation.y = (i * Math.PI) / 3;
+        rib.position.y = headY;
+        group.add(rib);
+      }
+      const orb = new THREE.Mesh(new THREE.SphereGeometry(0.34, 16, 16), materials.biolumCyan);
+      orb.name = 'lampOrb';
+      orb.position.y = headY;
       group.add(orb);
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.42, 0.18, 10), materials.porcelainWhite);
+      cap.position.y = headY + 0.48;
+      group.add(cap);
+      const finial = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 10), materials.woodRoot);
+      finial.position.y = headY + 0.62;
+      group.add(finial);
 
       return group;
     },

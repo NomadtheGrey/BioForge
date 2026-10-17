@@ -17,7 +17,7 @@ import { SHIELD_GRAFTS, graftOf, isShieldItem, type ShieldGrowthMap } from '../g
 // The platform upgrade ENTRIES (Adam, 2026-10-17): the card
 // at the head of a platform's tab that shows its upgrades —
 // the shield's slot and branches, the Quicksteps' growths.
-import { ShieldUpgradesCard, QuickstepsUpgradesCard } from './GearUpgradeCards';
+import { ShieldUpgradesCard, QuickstepsUpgradesCard, HelmetUpgradesCard, GauntletUpgradesCard } from './GearUpgradeCards';
 
 interface InventoryModalProps {
   isOpen: boolean;
@@ -291,6 +291,12 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
             )}
             {!searchActive && activeTab === 'boots' && (
               <QuickstepsUpgradesCard inventory={inventory} />
+            )}
+            {!searchActive && activeTab === 'helmet' && (
+              <HelmetUpgradesCard inventory={inventory} />
+            )}
+            {!searchActive && activeTab === 'gauntlet' && (
+              <GauntletUpgradesCard inventory={inventory} />
             )}
             {visibleItems.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-slate-500 text-xs">

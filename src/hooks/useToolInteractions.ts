@@ -309,13 +309,13 @@ export function useToolInteractions({
     }
     switch (flora.species) {
       case 'lantern_fern':
-        return { item: 'soft_fiber', count: flora.fertilizedYield ? 5 : 2, extras: [['dew_essence', 1]] };
+        return { item: 'soft_fiber', count: flora.fertilizedYield ? 5 : 2, extras: [['dew_essence', 1], ['seed_lantern_fern', 1]] };
       case 'sap_weaver':
-        return { item: 'resin_sap', count: flora.fertilizedYield ? 6 : 3, extras: [] };
+        return { item: 'resin_sap', count: flora.fertilizedYield ? 6 : 3, extras: [['seed_sap_weaver', 1]] };
       case 'petal_mill':
-        return { item: 'vibrant_petal', count: flora.fertilizedYield ? 6 : 3, extras: [['sweet_nectar', 2]] };
+        return { item: 'vibrant_petal', count: flora.fertilizedYield ? 6 : 3, extras: [['sweet_nectar', 2], ['seed_petal_mill', 1]] };
       case 'snap_trap':
-        return { item: 'carapace_scale', count: 1, extras: [] };
+        return { item: 'carapace_scale', count: 1, extras: [['seed_snap_trap', 1]] };
       case 'bounce_shroom':
         // Harvesting a bounce-shroom gives its spore back (replant it
         // under another hole) plus the dew that collects on the cap.
@@ -397,6 +397,9 @@ export function useToolInteractions({
         // and bead it as dew; a reed sometimes roots alongside.
         return { item: 'dew_essence', count: flora.fertilizedYield ? 5 : 3, extras: [['resonant_reed', 1]] };
       case 'bell_bloom':
+        // Its own case since the seed ruling (2026-10-17): the
+        // default's yields plus the plant's own seed.
+        return { item: 'dew_essence', count: flora.fertilizedYield ? 4 : 2, extras: [['soft_fiber', 1], ['seed_bell_bloom', 1]] };
       default:
         return { item: 'dew_essence', count: flora.fertilizedYield ? 4 : 2, extras: [['soft_fiber', 1]] };
     }
@@ -918,27 +921,55 @@ export function useToolInteractions({
   );
 
   // 5. Taming Lure
-  // Release arming (Adam, 2026-10-15): the command cycle is
-  // follow -> stay -> guard -> RELEASE? -> follow... The release
-  // stop never applies on its click: it arms and raises App's
-  // confirm; the NEXT lure click (confirm answered either way)
-  // passes the stop and lands on follow. A fresh tame clears the
-  // arm, so a re-won creature's cycle asks again like new.
+  // Release arming (Adam, 2026-10-15): the release stop never
+  // applies on its click: it arms and raises App's confirm; the
+  // NEXT lure click (confirm answered either way) passes the
+  // stop. A fresh tame clears the arm, so a re-won creature's
+  // cycle asks again like new.
+  // THE RING (Adam, reordered 2026-10-17): stay -> guard ->
+  // follow -> RELEASE? -> back to stay. Release used to sit
+  // between guard and follow, so the cycle asked about letting
+  // a creature go BEFORE it offered follow — backwards for a
+  // fresh tame you want WITH you. Release is now the last
+  // stop, after follow. Entry rule: a companion never commanded
+  // this session that stands at the default 'follow' (a fresh
+  // tame, a vat hatch) enters the ring at STAY — it is never
+  // greeted by the release question; the gate only arms for a
+  // companion that has been cycled TO follow.
   const releaseArmedRef = useRef<Set<string>>(new Set());
+  const commandedRef = useRef<Set<string>>(new Set());
 
   const handleTameFauna = useCallback(
     (fauna: FaunaEntity): void => {
       if (fauna.isTamed) {
-        // The guarded fourth stop: leaving GUARD, the cycle asks
-        // about release before it may wrap to follow.
-        if ((fauna.command ?? 'follow') === 'guard' && !releaseArmedRef.current.has(fauna.id)) {
+        const current = fauna.command ?? 'follow';
+        // Entry rule (see THE RING above): never-commanded and
+        // standing at the default follow — enter at stay.
+        if (current === 'follow' && !commandedRef.current.has(fauna.id)) {
+          commandedRef.current.add(fauna.id);
+          const petName0 = fauna.customName || fauna.species.replace('_', ' ');
+          setFaunaCommand(fauna.id, 'stay');
+          multiplayerManager.broadcastEntityUpsert('fauna', {
+            ...fauna,
+            command: 'stay',
+            targetX: fauna.x,
+            targetZ: fauna.z,
+            state: 'idle',
+          });
+          postNotification('Pet Command', `${petName0} will stay here.`, 'tame', '#2dd4bf');
+          return;
+        }
+        // The guarded last stop: leaving FOLLOW, the cycle asks
+        // about release before it may wrap back to stay.
+        if (current === 'follow' && !releaseArmedRef.current.has(fauna.id)) {
           releaseArmedRef.current.add(fauna.id);
           onRequestRelease(fauna);
           return;
         }
         releaseArmedRef.current.delete(fauna.id);
-        const order: Array<'follow' | 'stay' | 'guard'> = ['follow', 'stay', 'guard'];
-        const next = order[(order.indexOf(fauna.command ?? 'follow') + 1) % order.length];
+        commandedRef.current.add(fauna.id);
+        const order: Array<'stay' | 'guard' | 'follow'> = ['stay', 'guard', 'follow'];
+        const next = order[(order.indexOf(current) + 1) % order.length];
         const petName = fauna.customName || fauna.species.replace('_', ' ');
         const verb = next === 'follow' ? 'follow you' : next === 'stay' ? 'stay here' : 'guard this spot';
         setFaunaCommand(fauna.id, next);
@@ -1033,6 +1064,7 @@ export function useToolInteractions({
         if (feedings >= 3) {
           soundEngine.playTameCritter();
           releaseArmedRef.current.delete(fauna.id);
+          commandedRef.current.delete(fauna.id);
           tameFauna(fauna.id, def.petName, 'following');
           // The World Asks Back (2026-10-16): the tame event for saga latching.
           recordAsksEvent?.({ kind: 'tame', species: fauna.species });
@@ -1080,6 +1112,7 @@ export function useToolInteractions({
         if (Math.random() < (def.tameChance ?? 0)) {
           soundEngine.playTameCritter();
           releaseArmedRef.current.delete(fauna.id);
+          commandedRef.current.delete(fauna.id);
           tameFauna(fauna.id, def.petName, 'idle');
           // The World Asks Back (2026-10-16): the tame event for saga latching.
           recordAsksEvent?.({ kind: 'tame', species: fauna.species });
@@ -1119,6 +1152,7 @@ export function useToolInteractions({
 
         soundEngine.playTameCritter();
         releaseArmedRef.current.delete(fauna.id);
+        commandedRef.current.delete(fauna.id);
         tameFauna(fauna.id, def.petName, 'following');
           // The World Asks Back (2026-10-16): the tame event for saga latching.
           recordAsksEvent?.({ kind: 'tame', species: fauna.species });
@@ -1204,6 +1238,7 @@ export function useToolInteractions({
 
         soundEngine.playTameCritter();
         releaseArmedRef.current.delete(fauna.id);
+        commandedRef.current.delete(fauna.id);
         tameFauna(fauna.id, def.petName, 'following');
           // The World Asks Back (2026-10-16): the tame event for saga latching.
           recordAsksEvent?.({ kind: 'tame', species: fauna.species });

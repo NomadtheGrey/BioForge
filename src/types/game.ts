@@ -229,6 +229,9 @@ export type ItemId =
   | 'stillsteps'
   | 'webfoots'
   | 'ember_soles'
+  | 'windlung_sprig'
+  | 'windlung_bellows'
+  | 'windlung_heart'
   // Cultivation Seeds
   | 'seed_lantern_fern'
   | 'seed_sap_weaver'
@@ -1147,6 +1150,12 @@ export interface DroppedItemEntity {
   z: number;
   y: number;
   bobTime: number;
+  /** Pickup holdoff (Adam's play-pass bug, 2026-10-17): while
+   *  the wall clock is before this stamp, proximity pickup
+   *  waits. Overflow drops are born stamped a few seconds out
+   *  so a full pouch can't loop pickup → overflow → pickup at
+   *  tick rate, spamming toasts and churning the drop list. */
+  pickupAt?: number;
 }
 
 export interface CraftingRecipe {
@@ -1316,6 +1325,12 @@ export interface GameNotification {
   type: 'harvest' | 'discover' | 'tame' | 'craft' | 'alert' | 'system';
   iconColor: string;
   time: number;
+  /** Coalescing key (2026-10-17): a post carrying a key that a
+   *  live toast already wears REPLACES that toast in place and
+   *  resets its timer, instead of taking another slot in the
+   *  stack — the pickup and pouch-full posters use it, so a
+   *  pickup spree can no longer evict a toast that matters. */
+  key?: string;
 }
 
 /**

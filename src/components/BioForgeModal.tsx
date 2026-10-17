@@ -10,7 +10,20 @@ import { RecipeFlowchart } from './RecipeFlowchart';
 // a recipe that grows a striker or shield says its kind beside
 // its tier, in the family's rose.
 import { FAMILY_KIND_LABEL, familyEntryOf } from '../game/items/weaponsFamily';
-import { POUCH_UPGRADE_ITEMS, pouchTierOf } from '../game/items/pouch';
+import { POUCH_TIER_CAPS, POUCH_UPGRADE_ITEMS, STORAGE_TIERS, pouchTierOf } from '../game/items/pouch';
+
+// The Storage tab's membership (Adam, 2026-10-17): the
+// vault line — the pod and its two in-place upgrade kits
+// (STORAGE_TIERS' three rungs) — plus the pouch tier line
+// (POUCH_UPGRADE_ITEMS). The carrying tables own the facts;
+// this list is just their union for the tab filter.
+const STORAGE_OUTPUT_IDS: readonly string[] = [
+  'storage_pod',
+  'storage_kit_hutch',
+  'storage_kit_vault',
+  ...POUCH_UPGRADE_ITEMS,
+];
+const isStorageOutput = (id: string) => STORAGE_OUTPUT_IDS.includes(id);
 // The Shield tab's membership is the shield rules table's own
 // list — crafts and graft recipes alike output a shield item.
 // The graft-slot lock (HUD audit, 2026-10-17) reads the same
@@ -52,7 +65,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   onGrowPrerequisites,
   onSelectStructureBlueprint,
 }) => {
-  const [activeCategory, setActiveCategory] = useState<'all' | 'seeds' | 'fertilizers' | 'composites' | 'defenses' | 'gauntlet' | 'helmet' | 'boots' | 'shield' | 'base'>('all');
+  const [activeCategory, setActiveCategory] = useState<'all' | 'seeds' | 'fertilizers' | 'composites' | 'defenses' | 'gauntlet' | 'helmet' | 'boots' | 'shield' | 'storage' | 'base'>('all');
   const [selectedRecipe, setSelectedRecipe] = useState<CraftingRecipe>(RECIPES[0]);
   // The ingredient inspector: which row is hovered (its card
   // shows below the row), and which item's tree is open.
@@ -101,6 +114,10 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     // output catches both, since a graft recipe's output is
     // the shield it grows onto.
     if (activeCategory === 'shield') return isShieldItem(r.outputId);
+    // The Storage tab (Adam, 2026-10-17): the two carrying
+    // ladders in one place — what your pouch holds (tiers)
+    // and what your vaults hold (pod -> hutch -> vault).
+    if (activeCategory === 'storage') return isStorageOutput(r.outputId);
     return r.category === activeCategory;
   });
 
@@ -283,13 +300,14 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
         </div>
 
         {/* Categories Bar */}
-        <div className="px-6 py-3 border-b border-slate-800/70 bg-slate-900/30 flex items-center gap-2 overflow-x-auto">
+        <div className="px-6 py-3 border-b border-slate-800/70 bg-slate-900/30 flex flex-wrap items-center gap-2">
           {[
             { id: 'all', label: 'All Synthetics' },
             { id: 'gauntlet', label: 'Gauntlet' },
             { id: 'helmet', label: 'Helmet' },
             { id: 'boots', label: 'Quicksteps' },
             { id: 'shield', label: 'Shield' },
+            { id: 'storage', label: 'Storage' },
             { id: 'seeds', label: 'Spore & Seeds' },
             { id: 'fertilizers', label: 'Fertilizers' },
             { id: 'composites', label: 'Living Composites' },
@@ -377,6 +395,22 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                       Four shields below, and the one graft that grows onto any of them: Thorn Spikes,
                       in the Graft Slot. The line branches, never climbs — the Lantern buys light, the
                       Fenback buys the wrap and its Spore Answer, the Bulwark buys the Pull.
+                    </p>
+                  </div>
+                )}
+                {!searchActive && activeCategory === 'storage' && (
+                  <div className="rounded-2xl border border-amber-500/30 bg-amber-950/20 p-3.5">
+                    <h4 className="text-[11px] font-tech font-bold uppercase tracking-wider text-amber-200 mb-1">
+                      Storage — What Carries Your World
+                    </h4>
+                    <p className="text-[11px] text-slate-400 leading-snug">
+                      Two ladders. ON YOUR BACK: the pouch tiers — stacks grow to{' '}
+                      {POUCH_TIER_CAPS[1]}, then {POUCH_TIER_CAPS[2]}, then {POUCH_TIER_CAPS[3]}.
+                      AT HOME: the {STORAGE_TIERS[0].name} holds {STORAGE_TIERS[0].slots} stacks of{' '}
+                      {STORAGE_TIERS[0].perStack}; grow it in place into the {STORAGE_TIERS[1].name}{' '}
+                      ({STORAGE_TIERS[1].slots} × {STORAGE_TIERS[1].perStack}), then the{' '}
+                      {STORAGE_TIERS[2].name} ({STORAGE_TIERS[2].slots} × {STORAGE_TIERS[2].perStack})
+                      — its contents never move.
                     </p>
                   </div>
                 )}

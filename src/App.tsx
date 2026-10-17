@@ -1111,6 +1111,7 @@ export default function App() {
     valleySatiatedUntilRef,
     addFlora,
     addStructure,
+    upsertStructure,
     removeStructure,
     removeFlora,
     getPlacementRotation,

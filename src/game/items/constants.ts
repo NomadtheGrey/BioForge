@@ -2286,6 +2286,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   },
   // The Hearthpod (Adam, 2026-10-16): the grown fireplace. Its own
   // description carries the law of the thing — warmth without flame.
+  banner_post: {
+    id: 'banner_post',
+    name: 'Banner Post',
+    category: 'structure',
+    description: 'A tall grown post with a bare cloth, placed with the Bio-Builder wherever you want the country marked — a trailhead, a claim, a homecoming. Click a placed banner while carrying cloth, silk, or wool and it takes that cloth\'s color for its dye.',
+    iconName: 'Flag',
+    color: '#c2b49a',
+    rarity: 'common',
+    maxStack: 10,
+  },
   hearthpod: {
     id: 'hearthpod',
     name: 'Hearthpod',

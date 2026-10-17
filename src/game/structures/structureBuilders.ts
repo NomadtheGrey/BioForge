@@ -1079,6 +1079,47 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       group.add(irisRight);
       return group;
     },
+    // The Banner Post (Ingredient Sinks, 2026-10-17): a tall
+    // grown pole, a crossbar, and a cloth that hangs from it.
+    // The cloth is born bare (undyed weave) unless the entity
+    // carries a dye record — the tint color was stamped onto
+    // the entity at dye time from the spent cloth's registry
+    // entry, so this builder needs no item knowledge. The
+    // cloth mesh is named 'bannerCloth' and its geometry is
+    // translated so the TOP edge sits at the mesh origin:
+    // structureLife's updateBannerLife sways it from the bar,
+    // like cloth on a line, never around its own middle.
+    'banner_post': (entity) => {
+      const group = new THREE.Group();
+      const rng = mulberry32(hashId(entity?.id ?? 'ghost-banner'));
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.13, 2.9, 8), materials.woodRoot);
+      pole.position.y = 1.45;
+      pole.rotation.z = (rng() - 0.5) * 0.03; // a grown lean, seeded per post
+      pole.castShadow = true;
+      group.add(pole);
+      const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 1.2, 6), materials.woodRoot);
+      bar.rotation.z = Math.PI / 2;
+      bar.position.y = 2.62;
+      bar.castShadow = true;
+      group.add(bar);
+      const knob = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 10), materials.porcelainWhite);
+      knob.position.y = 2.94;
+      group.add(knob);
+      const tintColor = entity?.banner?.tintColor;
+      const clothMat = new THREE.MeshStandardMaterial({
+        color: tintColor ? new THREE.Color(tintColor) : new THREE.Color('#b3a284'),
+        roughness: 0.92,
+        side: THREE.DoubleSide,
+      });
+      const clothGeo = new THREE.PlaneGeometry(1.05, 1.55, 6, 8);
+      clothGeo.translate(0, -0.775, 0); // hang from the top edge
+      const cloth = new THREE.Mesh(clothGeo, clothMat);
+      cloth.name = 'bannerCloth';
+      cloth.position.y = 2.6;
+      cloth.castShadow = true;
+      group.add(cloth);
+      return group;
+    },
     'lantern_fern_post': () => {
       const group = new THREE.Group();
       const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.16, 2.6, 8), materials.woodRoot);

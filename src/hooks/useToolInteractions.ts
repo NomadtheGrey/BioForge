@@ -104,6 +104,9 @@ export interface UseToolInteractionsParams {
   valleySatiatedUntilRef: { current: number };
   addFlora: (flora: FloraEntity) => void;
   addStructure: (structure: StructureEntity) => void;
+  /** Replace a structure in place (the vat's pattern) — the
+   *  banner's dye writes through here. */
+  upsertStructure: (structure: StructureEntity) => void;
   removeStructure: (structureId: string) => void;
   removeFlora: (floraId: string) => void;
   /** Player facing snapped to 90° steps — placed structures inherit it. */
@@ -231,6 +234,7 @@ export function useToolInteractions({
   valleySatiatedUntilRef,
   addFlora,
   addStructure,
+  upsertStructure,
   removeStructure,
   removeFlora,
   getPlacementRotation,
@@ -1511,6 +1515,12 @@ export function useToolInteractions({
         ...(selectedStructureType === 'biotunnel_mouth'
           ? { tunnel: { paired: false } }
           : {}),
+        // A banner post is born undyed (Ingredient Sinks,
+        // 2026-10-17): bare cloth, dyed later by clicking it
+        // with cloth in hand (handleStructureInteract).
+        ...(selectedStructureType === 'banner_post'
+          ? { banner: {} }
+          : {}),
       };
 
       addStructure(newStruct);
@@ -1956,6 +1966,40 @@ export function useToolInteractions({
     // nothing below could see it anyway). Set the vault down first.
     if (carryRef.current) {
       postNotification('Hands Full', 'Set the carried vault down before using your tools — you are defenseless for the haul.', 'alert', '#fbbf24');
+      return;
+    }
+    // The Banner Post's dye (Ingredient Sinks, 2026-10-17): a
+    // bare-hand act, any tool in hand. The first dyeable cloth
+    // the player carries is spent, and the banner takes that
+    // cloth's registry color — every textile in the game is a
+    // dye. Re-dyeing is allowed (a new cloth over the old).
+    if (structure.type === 'banner_post') {
+      const DYE_CLOTHS: ItemId[] = [
+        'veil_cloth', 'rib_silk', 'deck_silk', 'kite_ribbon',
+        'mother_wool', 'dusk_wool', 'lambswool', 'banner_fiber',
+      ];
+      const dye = DYE_CLOTHS.find((id) => (inventory[id] ?? 0) > 0);
+      if (!dye) {
+        postNotification(
+          'Bare Cloth',
+          'This banner flies undyed. Carry cloth, silk, or wool and click it to give it a color.',
+          'system',
+          '#c2b49a'
+        );
+        return;
+      }
+      deductInventoryItem(dye, 1);
+      const dyeDef = ITEMS[dye];
+      upsertStructure({
+        ...structure,
+        banner: { tint: dye, tintColor: dyeDef?.color ?? '#b3a284' },
+      });
+      postNotification(
+        'Banner Dyed',
+        `The cloth drinks the ${dyeDef?.name ?? dye} and flies its color.`,
+        'craft',
+        dyeDef?.color ?? '#c2b49a'
+      );
       return;
     }
     // Builder on a ceiling tile with a floor selected: grow the ceiling

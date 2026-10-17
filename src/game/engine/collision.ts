@@ -73,6 +73,7 @@ function isCollidingWithStructure(
     if (s.type === 'bio_forge_station') obstacleRadius = 1.15;
     if (s.type === 'tamed_snap_trap_turret') obstacleRadius = 0.6;
     if (s.type === 'lantern_fern_post') obstacleRadius = 0.35;
+    if (s.type === 'banner_post') obstacleRadius = 0.3;
     // Furniture footprints (slice E): a bed is a body-length
     // piece; a stool is a small one.
     if (s.type === 'root_bed') obstacleRadius = 0.85;

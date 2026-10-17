@@ -164,3 +164,26 @@ export function updateHeartLife(
     if (mat) mat.emissiveIntensity = 0.18 + 0.55 * p;
   });
 }
+
+/**
+ * The Banner Post's life (Ingredient Sinks, 2026-10-17): the
+ * cloth breathes on its bar. 'bannerCloth' hangs from its top
+ * edge (the builder translated the geometry), so a small
+ * rotation around the bar reads as wind worrying the weave —
+ * a slow billow (rotation.x) over a slower drift (rotation.z),
+ * phased per entity so a row of banners never moves as one.
+ */
+export function updateBannerLife(
+  structureMeshMap: Map<string, THREE.Group>,
+  elapsedTime: number,
+): void {
+  structureMeshMap.forEach((mesh) => {
+    const entity = mesh.userData.entity as StructureEntity | undefined;
+    if (!entity || entity.type !== 'banner_post') return;
+    const cloth = mesh.getObjectByName('bannerCloth');
+    if (!cloth) return;
+    const phase = phaseForId(entity.id);
+    cloth.rotation.x = 0.16 + 0.13 * Math.sin(elapsedTime * 1.15 + phase);
+    cloth.rotation.z = 0.05 * Math.sin(elapsedTime * 0.6 + phase * 1.7);
+  });
+}

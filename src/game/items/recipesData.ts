@@ -1080,6 +1080,21 @@ export const RECIPES: CraftingRecipe[] = [
     craftTimeMs: 4000,
   },
   {
+    id: 'craft_banner_post',
+    outputId: 'banner_post',
+    outputCount: 1,
+    name: 'Banner Post',
+    description: 'Grow a tall marker post and hang it with pennant cloth. Placed bare; click it later with any cloth, silk, or wool in hand to dye the banner that cloth\'s color.',
+    category: 'composites',
+    ingredients: [
+      { id: 'banner_fiber', count: 2 },
+      { id: 'kite_pennant', count: 1 },
+      { id: 'gale_straw', count: 2 },
+      { id: 'resin_sap', count: 1 },
+    ],
+    craftTimeMs: 4000,
+  },
+  {
     id: 'graft_spikes_scute',
     outputId: 'scute_shield',
     outputCount: 1,

@@ -264,6 +264,7 @@ export type ItemId =
   | 'root_stool'
   | 'woven_rug'
   | 'root_shelf'
+  | 'banner_post'
   | 'root_bed'
   | 'culture_vat'
   | 'vine_ladder'
@@ -955,6 +956,7 @@ export type StructureType =
   | 'woven_rug'
   | 'root_shelf'
   | 'root_bed'
+  | 'banner_post'
   | 'culture_vat'
   | 'vine_ladder'
   | 'cave_mouth'
@@ -1124,6 +1126,15 @@ export interface StructureEntity {
    * only: the truth is the count of mouths in the known world.
    */
   tunnel?: { paired: boolean };
+  /**
+   * Present only on banner_post structures (Ingredient Sinks,
+   * 2026-10-17): the dye record. A placed banner is born
+   * undyed (plain cloth); clicking it while carrying cloth,
+   * silk, or wool dyes it — `tint` is the spent item (its
+   * registry color is stamped alongside, so the mesh builder
+   * needs no item knowledge). Absent on every other type.
+   */
+  banner?: { tint?: ItemId; tintColor?: string };
   /** Present only on ruin_landmark structures: fate/variant/tier record. */
   ruin?: RuinLinkData;
 }

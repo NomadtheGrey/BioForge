@@ -2998,10 +2998,15 @@ export const NON_BUILDABLE_STRUCTURE_IDS: ItemId[] = ['cave_mouth', 'cave_exit',
  * and the tab fills in.
  */
 export const HELMET_GEAR_ITEM_IDS: ItemId[] = [
-  'resonant_antenna_fan',
-  'sonar_receiver',
-  'chitin_housing',
-  'biolume_power_cell',
+  // The WORN helmet line only (HUD audit, 2026-10-17): the
+  // radar's four subassemblies (resonant antenna fan, sonar
+  // receiver, chitin housing, biolume power cell) are raw
+  // components the radar is grown FROM — they left this set
+  // so the pouch/forge Helmet tabs stop presenting
+  // ingredients as gear. Their recipes live under Composites
+  // and the parts themselves under Raw. This set and the
+  // HELMETS family record (items/weaponsFamily.ts) name the
+  // same ten ids; the lab family check asserts they agree.
   'prismatic_field_radar',
   'prismatic_lifefinder',
   // The helmet line proper (published 2026-10-15): the base helm

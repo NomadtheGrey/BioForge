@@ -342,6 +342,11 @@ export const LEFT_HAND_CYCLE: ItemId[] = [
   'scute_shield',
   'lantern_shield',
   'fenback_shield',
+  // The Bulwark joins the cycle (HUD audit catch, 2026-10-17):
+  // it was missing since its landing, so the hand grammar
+  // could never select it. The shield driver now asserts
+  // every SHIELD_ITEM_IDS member stands in this cycle.
+  'lodestone_bulwark',
 ];
 
 /** The owned cycle order, given what's held and what the pouch

@@ -21,6 +21,7 @@ import {
   SPORE_RADIUS,
   SPORE_STAGGER_SECONDS,
   LEFT_HAND_CYCLE,
+  SHIELD_ITEM_IDS,
   allyInLeeZone,
   attackBearing,
   cycleLeftHand,
@@ -260,8 +261,16 @@ console.log('\n11. SHARED COVER (lee behind a braced bearer)');
 
 console.log('\n12. LEFT HAND CYCLE (Alt grammar)');
 {
-  check('cycle order: lantern, scute, lantern-shield, fenback',
-    JSON.stringify(LEFT_HAND_CYCLE) === JSON.stringify(['hand_lantern_fern', 'scute_shield', 'lantern_shield', 'fenback_shield']));
+  check('cycle order: lantern, scute, lantern-shield, fenback, bulwark',
+    JSON.stringify(LEFT_HAND_CYCLE) === JSON.stringify(['hand_lantern_fern', 'scute_shield', 'lantern_shield', 'fenback_shield', 'lodestone_bulwark']));
+  // Completeness (HUD audit, 2026-10-17): EVERY shield must be
+  // reachable through the hand grammar — the Bulwark stood
+  // outside the cycle for a day because nothing asserted this.
+  check('every shield stands in the cycle',
+    SHIELD_ITEM_IDS.every((id) => LEFT_HAND_CYCLE.includes(id)),
+    JSON.stringify(SHIELD_ITEM_IDS.filter((id) => !LEFT_HAND_CYCLE.includes(id))));
+  const hasBulwark = (id: ItemId) => id === 'lodestone_bulwark';
+  check('the bulwark is cyclable when owned', cycleLeftHand(null, hasBulwark, 1) === 'lodestone_bulwark');
   const has = (id: ItemId) => id === 'hand_lantern_fern' || id === 'scute_shield';
   check('owned-only: unowned shields skipped',
     JSON.stringify(leftHandOrder(null, has)) === JSON.stringify(['hand_lantern_fern', 'scute_shield']));

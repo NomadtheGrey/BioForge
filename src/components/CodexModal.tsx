@@ -326,7 +326,7 @@ const renderArsenalRow = (e: FamilyEntry) => {
                 THE PLATFORM (helmet, Quicksteps). */}
             <div className="bg-slate-800/30 p-4 rounded-2xl border border-slate-800">
               <h4 className={`text-xs font-tech font-semibold uppercase mb-2 ${KIND_ACCENT[selWeapon.kind].header}`}>
-                {selWeapon.kind === 'defensive' ? 'The Branch' : selWeapon.kind === 'helmet' || selWeapon.kind === 'boots' ? 'The Platform' : 'The Ladder'}
+                {selWeapon.kind === 'helmet' || selWeapon.kind === 'boots' ? 'The Platform' : 'The Ladder'}
               </h4>
               <div className="flex items-center gap-1.5 flex-wrap">
                 {familyByKind()
@@ -347,19 +347,22 @@ const renderArsenalRow = (e: FamilyEntry) => {
                         {inventory && owns(e.itemId) ? ' ✓' : ''}
                       </button>
                       {i < arr.length - 1 && (
-                        // Strikers climb, so their strip earns its
-                        // arrows. Defensives BRANCH (the Bulwark
-                        // grows from the Scute, not from the
-                        // Fenback), so their strip is a shelf, not
-                        // a path — a dot, never an arrow.
-                        <span className="text-slate-600 text-xs">{selWeapon.kind === 'close' || selWeapon.kind === 'ranged' ? '→' : '·'}</span>
+                        // Ladders climb, so their strips earn
+                        // arrows: strikers, and defensives too
+                        // since the ladder ruling (Adam,
+                        // 2026-10-17 — the shield fork was
+                        // deleted; the Scute climbs through the
+                        // Lantern to the Fenback). The platforms
+                        // (helmet, Quicksteps) are shelves, not
+                        // paths — a dot, never an arrow.
+                        <span className="text-slate-600 text-xs">{selWeapon.kind === 'close' || selWeapon.kind === 'ranged' || selWeapon.kind === 'defensive' ? '→' : '·'}</span>
                       )}
                     </React.Fragment>
                   ))}
               </div>
               <p className="text-[11px] text-slate-400 leading-relaxed mt-2.5">
                 {selWeapon.kind === 'defensive'
-                  ? 'A branch, not a bigger wall: the Scute Shield is the base wall. The Lantern branch buys light, the Fenback branch buys the wrap and its signatures, and the Bulwark branch buys the pull — none of them buys a stronger wall.'
+                  ? 'One ward, grown upward like every other platform (Adam, 2026-10-17 — the fork is gone): the Scute is grown into the Lantern Shield, whose tier buys the lamp, not a thicker wall, and the Lantern into the Fenback, which buys the wrap and its signatures. Two slots ride the ward at every rung — the spike graft on its face, a lodestone in its body — and whatever they hold survives the climb.'
                   : selWeapon.kind === 'helmet'
                     ? 'One platform, many growths: the helm carries them all at once — the radar and the Lifefinder on the listening track, every lens in parallel. Nothing here consumes the helm, and no growth replaces another.'
                     : selWeapon.kind === 'boots'

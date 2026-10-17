@@ -99,6 +99,11 @@ interface HUDProps {
   // optional in the same pattern — the fixed cluster renders
   // its button only once App wires the modal.
   onOpenHowToPlay?: () => void;
+  // The tutorial engine (Slice B): App composes useTutorial
+  // and passes its return down; the HUD only renders the
+  // chrome while a step is active. Optional — until App
+  // wires it, the tutorial simply never appears.
+  tutorial?: UseTutorialResult | null;
   onOpenDevTools?: () => void;
   onSave?: () => void;
   currentBiomeName: string;
@@ -196,6 +201,8 @@ import type { QuestProgressView } from '../game/quests/quests';
 import { MODULE_FOR_TOOL, gearTierOf } from '../game/quests/quests';
 import { useHudLayout, type HudPanelId } from '../hooks/useHudLayout';
 import { HudPanel } from './HudPanel';
+import { TutorialChrome } from './TutorialChrome';
+import type { UseTutorialResult } from '../hooks/useTutorial';
 import { HudOptionsPanel } from './HudOptionsPanel';
 import { multiplayerManager, RELAY_BASE_URL } from '../game/multiplayer';
 // Shield faces for the Left Hand tile (shield follow pass,
@@ -299,6 +306,7 @@ export const HUD: React.FC<HUDProps> = ({
   onOpenControls,
   onOpenAbout,
   onOpenHowToPlay,
+  tutorial,
   onOpenDevTools,
   onSave,
   currentBiomeName,
@@ -1552,6 +1560,12 @@ export const HUD: React.FC<HUDProps> = ({
 
       {/* The HUD Options screen (Pause → OPTIONS). Rendered at the
           root so it survives the pause overlay closing. */}
+      {/* The tutorial's chrome (Slice B): step card + target
+          ring, rendered only while the engine says a step is
+          up. Fixed-position inside the component, so it rides
+          above every panel but below the modals. */}
+      {tutorial?.active && tutorial.step && <TutorialChrome tutorial={tutorial} />}
+
       {showHudOptions && (
         <HudOptionsPanel layout={hudLayout} onClose={() => setShowHudOptions(false)} />
       )}

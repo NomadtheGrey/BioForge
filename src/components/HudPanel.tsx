@@ -114,6 +114,12 @@ export const HudPanel: React.FC<HudPanelProps> = ({
 
   return (
     <div
+      // The panel's registry id IS its DOM id (How to Play
+      // tutorial, 2026-10-17): the tutorial's highlight ring
+      // resolves a step's target with getElementById, and the
+      // steps name panels by their HUD_PANELS id. One element
+      // per panel, so the ids stay unique.
+      id={id}
       className={`group/hud relative pointer-events-auto ${dragging ? 'z-30' : ''} ${className}`}
       style={{
         transform: `translate(${offset.x}px, ${offset.y}px)`,

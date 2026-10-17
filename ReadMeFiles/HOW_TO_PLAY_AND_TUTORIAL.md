@@ -155,59 +155,33 @@ remembered per device, and "Show Tutorial" restarts or resumes.
 
 ### The step script (12 steps)
 
-1. **Welcome.** (No highlight.) "Welcome to BioForge. Nothing
-   here is built — everything is grown. This walk takes three
-   minutes and teaches your hands. End it any time; the How to
-   Play button (top-right) brings it back." → Next.
-2. **Your vitals.** (Highlight: vitals.) "Health, stamina, and
-   synthesizer energy. Stamina pays for sprinting, blocking,
-   and striking. Watch it when something bites." → Next.
-3. **Your country and clock.** (Highlight: zone.) "Where you
-   are, what country it is, and the world's day and hour. New
-   country lies in every direction; stranger country lies
-   farther out." → Next.
-4. **Your tools.** (Highlight: hotbar.) "Keys 1–7 draw your
-   gauntlet's tools. Slot 7 is your striker, when you've grown
-   one. The separate tile is your Left Hand — Alt + wheel
-   cycles what it holds." → Next.
-5. **Harvest something.** (Highlight: tracker.) "Your tracker
-   is already following your first mini-quest: First Harvest.
-   Find a ripe plant — it glows a little — and click it with
-   the Harvest Glove [1]." → completes on the harvest signal.
-6. **The pouch.** (Highlight: quicknav.) "Everything you gather
-   lands in your pouch. Open it from the bottom bar and look:
-   stacks are small until your pouch grows." → completes when
-   the pouch opens (or Next after 10 s — never trap a player).
-7. **Meet the Bio-Forge.** (Highlight: quicknav.) "Open the
-   Bio-Forge [B]. Everything you'll ever wear starts here as a
-   recipe. Find the Woven Pouch — your first upgrade." →
-   completes when the forge opens.
-8. **Follow the mini-quests.** (Highlight: tracker.) "See the
-   pattern: the quest names what to gather; the forge grows
-   it. 'Room to Breathe' wants fiber and dew — you have some
-   from harvesting. Crafting the Woven Pouch is your next
-   quest whenever you're ready." → Next (doing it is the
-   quest's job, not the tutorial's gate).
-9. **The Quest Log.** (Highlight: session — the Quests
-   button.) "Q opens the Quest Log: the crafting chain, the
-   Ask the World questions, and bigger mysteries later. Pin
-   the quest you want the tracker to follow." → completes
-   when the log opens.
-10. **The platforms.** (Highlight: hotbar.) "Your gear grows
-    in three platforms: the Gauntlet DOES, the Helmet KNOWS,
-    the Quicksteps GO. The chapter-1 quests graft your
-    Scanner, Planter, Builder, Solvent, and Lure — each one a
-    new verb." → Next.
-11. **Feeding what you grow.** (No highlight.) "When you
-    graft the Planter Trowel [3], remember its double duty:
-    it plants seeds AND applies fertilizer — the same trowel
-    sows and feeds. Growth and Yield fertilizers are crafted
-    at the forge." → Next.
-12. **You're ready.** (Highlight: the How to Play button.)
-    "That's the whole grammar: harvest, grow, graft, walk
-    farther out. The tracker always knows your next step.
-    This button glows whenever you need it. Good growing." →
-    Finish (marks the tutorial complete, §5).
+**The words of record live in `src/hooks/tutorialSteps.ts`**
+(landed with the engine, wip d9728f0) — written at Adam's
+12-year-old bar: plain words, short sentences, every step
+doable by following the card. This table is the map; edit the
+words in the file, not here.
+
+| # | Step | Highlight | Ends |
+|---|---|---|---|
+| 1 | Welcome — you grow things here | none | Next |
+| 2 | Your health bars (green/yellow/blue) | vitals | Next |
+| 3 | Where you are — land, day, hour; farther = stranger | zone | Next |
+| 4 | Your tools 1–7 + the Left Hand and its Alt grammar | hotbar | Next |
+| 5 | Pick your first plant | none (world) | the harvest itself |
+| 6 | Your pouch — open it, see the small stacks | quicknav | pouch opens |
+| 7 | Meet the Bio-Forge — find the Woven Pouch recipe | quicknav | forge opens |
+| 8 | Quests tell you what is next — the tracker card | tracker | Next |
+| 9 | The Quest Log — Q or the QUESTS button | session | log opens |
+| 10 | Three things you'll grow — Gauntlet / Helmet / Quicksteps | hotbar | Next |
+| 11 | One trowel, two jobs — sows and feeds | none | Next |
+| 12 | You are ready — lost? follow the tracker | none | Finish |
+
+Gated steps (5, 6, 7, 9) also answer Next/Skip at all times —
+the tutorial never traps. The engine is
+`src/hooks/useTutorial.ts`: App feeds it four facts (harvested /
+pouch open / forge open / quests open), it advances gated steps
+600 ms after their fact stands, and it keeps the per-device
+record (resume, completion, modal-seen, offered).
 
 ## 4. THE SIGNAL MAP (why this is cheap)
 

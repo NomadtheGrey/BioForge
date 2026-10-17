@@ -24,7 +24,7 @@
  */
 
 import * as THREE from 'three';
-import { skyRosterNow, nightSkyAt, type MeteorSpec } from './skyCalendar';
+import { skyRosterNow, nightSkyAt, cometStatesAt, type MeteorSpec } from './skyCalendar';
 
 // ---------------------------------------------------------------------------
 // Procedural sky textures (planet upgrade, Adam, 2026-10-16)
@@ -403,9 +403,14 @@ export class SkyRig {
    *  signal: the engine's palette pass owns starMaterial's
    *  opacity; update() reads it and scales each entry by its max. */
   private nightMats: { mat: THREE.Material; max: number }[] = [];
-  /** Comets (2026-10-16): each crosses the night on its own
-   *  fixed arc during its window of the planet's transit. */
-  private comets: { group: THREE.Group; plane: THREE.Mesh; mat: THREE.MeshBasicMaterial; from: THREE.Vector3; to: THREE.Vector3; start: number; span: number }[] = [];
+  /** The comet fleet (Shelf 1, 2026-10-17): five planes,
+   *  one per member of the sky calendar's comet ROSTER —
+   *  Adam's ruling: never only one comet. The calendar
+   *  deals each member's period, window, tint, and arc;
+   *  this fleet just flies what it is dealt. (Before the
+   *  roster: two fixed transits on the planet's arc.) */
+  private cometFleet: { group: THREE.Group; plane: THREE.Mesh; mat: THREE.MeshBasicMaterial }[] = [];
+  private cometSeedApplied = '';
   /** Meteors (Shelf 1, 2026-10-17): a small pool of streak
    *  planes flown from the sky calendar's nightly list —
    *  baseline shooting stars plus the shower nights. The
@@ -693,14 +698,12 @@ export class SkyRig {
       this.nightMats.push({ mat, max: 0.85 });
     }
     this.skyGroup.add(dome);
-    // Comets: two apparitions a night (built here, flown in
-    // update). Each rides the skyGroup, NOT the dome — their
-    // arcs are their own, not the firmament's wheel.
-    const cometDefs: { from: THREE.Vector3; to: THREE.Vector3; start: number; span: number }[] = [
-      { from: dirFromAzEl(0.6, 0.95, 172), to: dirFromAzEl(2.5, 0.32, 172), start: 0.08, span: 0.72 },
-      { from: dirFromAzEl(3.7, 1.08, 172), to: dirFromAzEl(5.4, 0.48, 172), start: 0.34, span: 0.6 },
-    ];
-    for (const def of cometDefs) {
+    // The comet fleet (Shelf 1): five apparition planes,
+    // built bare here — the calendar's roster (applied in
+    // update, where the clock is read) deals each member
+    // its tint and size. Each rides the skyGroup, NOT the
+    // dome — their arcs are their own, not the wheel's.
+    for (let i = 0; i < 5; i++) {
       const mat = new THREE.MeshBasicMaterial({
         map: makeCometTexture(),
         transparent: true,
@@ -716,7 +719,7 @@ export class SkyRig {
       group.add(plane);
       group.visible = false;
       this.skyGroup.add(group);
-      this.comets.push({ group, plane, mat, from: def.from, to: def.to, start: def.start, span: def.span });
+      this.cometFleet.push({ group, plane, mat });
     }
     // Meteor pool (Shelf 1): two dozen streak planes, built
     // once, hidden until the calendar deals them a flight.
@@ -851,28 +854,57 @@ export class SkyRig {
     for (const nm of this.nightMats) {
       (nm.mat as THREE.Material & { opacity: number }).opacity = nm.max * nightF;
     }
-    // Comets (2026-10-16): each crosses on its fixed arc during
-    // its window of the planet's transit, fading in and out at
-    // the ends of the run. The tail trails the travel direction:
-    // the plane billboards to the camera, then rolls in its own
-    // plane until the streak points back along the velocity.
-    for (const comet of this.comets) {
-      const p = planetUp ? (planetT - comet.start) / comet.span : -1;
-      if (p < 0 || p > 1) {
-        comet.group.visible = false;
-        continue;
+    // The comet fleet (Shelf 1): the calendar's roster,
+    // flown. Each visible member rides its seeded arc —
+    // position from its azimuth/elevation at the current
+    // day float, brightness from its window curve, the
+    // tail trailing the travel direction exactly as the
+    // old fixed transits flew (billboard, then roll in
+    // plane along the velocity). A member out of its
+    // window is simply not in the sky — the roster's
+    // periods do the scheduling, the planet's transit
+    // no longer gates them.
+    {
+      const sky = skyRosterNow(Date.now());
+      if (sky) {
+        if (this.cometSeedApplied !== sky.roster.worldSeed) {
+          this.cometSeedApplied = sky.roster.worldSeed;
+          sky.roster.comets.forEach((def, i) => {
+            const unit = this.cometFleet[i];
+            if (!unit) return;
+            unit.mat.color.set(def.hue);
+            const len = def.sizeClass === 3 ? 54 : def.sizeClass === 2 ? 38 : 26;
+            unit.plane.scale.set(len / 36, (len * 0.25) / 9, 1);
+          });
+        }
+        const states = cometStatesAt(sky.roster, sky.tDays);
+        const aheadStates = cometStatesAt(sky.roster, sky.tDays + 0.02);
+        const dir = (azDeg: number, elDeg: number): THREE.Vector3 => {
+          const az = (azDeg * Math.PI) / 180;
+          const el = (elDeg * Math.PI) / 180;
+          return new THREE.Vector3(Math.cos(az) * Math.cos(el), Math.sin(el), Math.sin(az) * Math.cos(el));
+        };
+        states.forEach((st, i) => {
+          const unit = this.cometFleet[i];
+          if (!unit) return;
+          if (!st.visible || st.brightness <= 0.01) {
+            unit.group.visible = false;
+            return;
+          }
+          unit.group.visible = true;
+          const pos = dir(st.azimuthDeg, st.elevationDeg).multiplyScalar(172);
+          const ah = aheadStates[i];
+          const ahead = dir(ah.azimuthDeg, ah.elevationDeg).multiplyScalar(172);
+          const vel = ahead.sub(pos);
+          unit.group.position.copy(pos);
+          unit.group.lookAt(camPos);
+          const viewDir = camPos.clone().sub(pos).normalize();
+          const right = new THREE.Vector3().crossVectors(viewDir, new THREE.Vector3(0, 1, 0)).normalize();
+          const up2 = new THREE.Vector3().crossVectors(right, viewDir).normalize();
+          unit.plane.rotation.z = Math.atan2(vel.dot(up2), vel.dot(right));
+          unit.mat.opacity = st.brightness * 0.95 * nightF;
+        });
       }
-      comet.group.visible = true;
-      const pos = comet.from.clone().lerp(comet.to, p).normalize().multiplyScalar(172);
-      const ahead = comet.from.clone().lerp(comet.to, Math.min(1, p + 0.02)).normalize().multiplyScalar(172);
-      const vel = ahead.sub(pos);
-      comet.group.position.copy(pos);
-      comet.group.lookAt(camPos);
-      const viewDir = camPos.clone().sub(pos).normalize();
-      const right = new THREE.Vector3().crossVectors(viewDir, new THREE.Vector3(0, 1, 0)).normalize();
-      const up2 = new THREE.Vector3().crossVectors(right, viewDir).normalize();
-      comet.plane.rotation.z = Math.atan2(vel.dot(up2), vel.dot(right));
-      comet.mat.opacity = Math.sin(Math.PI * p) * 0.95 * nightF;
     }
     // Meteors (Shelf 1): the calendar's night, flown.
     this.updateMeteors(cycle, camPos, nightF, underground);

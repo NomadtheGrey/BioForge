@@ -1066,6 +1066,20 @@ export const RECIPES: CraftingRecipe[] = [
     craftTimeMs: 5000,
   },
   {
+    id: 'craft_plume_charm',
+    outputId: 'plume_charm',
+    outputCount: 1,
+    name: 'Plume Charm',
+    description: 'Weave a Fall Hawk plume through spire-down until the charm remembers the air. Carried, a fast fall glides instead of dropping.',
+    category: 'composites',
+    ingredients: [
+      { id: 'fall_plume', count: 1 },
+      { id: 'spire_down', count: 2 },
+      { id: 'soft_fiber', count: 2 },
+    ],
+    craftTimeMs: 4000,
+  },
+  {
     id: 'graft_spikes_scute',
     outputId: 'scute_shield',
     outputCount: 1,

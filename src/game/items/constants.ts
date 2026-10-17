@@ -2798,6 +2798,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 1,
   },
+  plume_charm: {
+    id: 'plume_charm',
+    name: 'Plume Charm',
+    category: 'equipment',
+    description: 'A Fall Hawk plume woven into spire-down, worn at the belt. While you carry it, a fast fall turns gentle — you sink at a glide instead of dropping, and bounce-shroom arcs become rides.',
+    iconName: 'Feather',
+    color: '#a5c8e8',
+    rarity: 'rare',
+    maxStack: 3,
+  },
 
   // ── Pouch upgrades (Adam, 2026-10-15) ─────────────────────────
   // Carrying capacity is a craftable ladder (game/items/pouch.ts): owning

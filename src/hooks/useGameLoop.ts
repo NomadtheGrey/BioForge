@@ -80,6 +80,9 @@ export interface GameLoopDeps {
   /** True while the player owns Ember Soles, the Quicksteps
    *  growth that answers hot ground: soles make lava a road. */
   hasEmberSoles?: () => boolean;
+  /** True while the player carries a Plume Charm (Ingredient
+   *  Sinks, 2026-10-17): fast falls glide instead of dropping. */
+  hasPlumeCharm?: () => boolean;
   /** True while the player stands in an Ember Scar zone. */
   scarHeatRef: { current: boolean };
   // Storm zots (2026-10-15): the mean seconds between lightning
@@ -199,7 +202,7 @@ export interface GameLoopDeps {
 export function useGameLoop(deps: GameLoopDeps): void {
   const {
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
-    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, getLiquidAt, hasEmberSoles, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
+    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, getLiquidAt, hasEmberSoles, hasPlumeCharm, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
     sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
@@ -338,7 +341,18 @@ export function useGameLoop(deps: GameLoopDeps): void {
           // same step keeps the view perfectly continuous while
           // collision and support switch to the upper floor.
           if (jump.vy !== 0 || jump.y > 0) {
-            jump.vy -= JUMP_GRAVITY * stepDt;
+            // The Plume Charm (Ingredient Sinks, 2026-10-17):
+            // the game has no fall damage — falls are this
+            // offset returning to support — so the charm's
+            // gift is the glide: once a descent is honestly
+            // fast (vy < -1.5), gravity gentles to 0.45x and
+            // the sink rate caps at 3 m/s. Launches (vy > 0)
+            // are untouched, so bounce arcs keep their climb
+            // and gain a long, rideable descent.
+            const gliding =
+              jump.vy < -1.5 && !!(hasPlumeCharm && hasPlumeCharm());
+            jump.vy -= JUMP_GRAVITY * stepDt * (gliding ? 0.45 : 1);
+            if (gliding && jump.vy < -3.0) jump.vy = -3.0;
             jump.y += jump.vy * stepDt;
             if (jump.bounceFlip && playerLevelRef.current === 0 && jump.y >= STORY_HEIGHT_METERS) {
               applyPlayerLevel(1);

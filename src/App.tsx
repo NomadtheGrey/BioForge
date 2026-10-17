@@ -123,6 +123,8 @@ import {
   graftInheritanceOnCraft,
   graftOf,
   leftHandOrder,
+  bestLeftHand,
+  LEFT_HAND_CYCLE,
   lodestoneOf,
   shieldOf,
   SHIELD_GRAFTS,
@@ -2262,6 +2264,32 @@ const {
     setHeldItemId(null);
     postNotification('Radar Finds Its Seat', 'The Prismatic Field Radar belongs in the Homestead Helm now — it rides there whenever helm and radar are both yours.', 'craft', '#a855f7');
   }, [playerState.heldItemId, addInventoryItem, setHeldItemId, postNotification]);
+
+  // THE HAND FILLS ITSELF (Adam, 2026-10-17): "if the player
+  // has one of these, the left hand should never be empty."
+  // Whenever the hand stands empty — a fresh craft landed in
+  // the pouch, a craft ate the held piece (the Lantern Shield
+  // eating the held lantern is the type case: the craft above
+  // stows, consumes, and leaves the hand bare), a load, a
+  // migration — the best owned piece takes the hand: highest
+  // shield first, the plain lantern last. Raising DEDUCTS from
+  // the pouch, the hand's standing model, so the fill makes
+  // the same transfer a cycle tap would. A held piece stands
+  // untouched: the player's choice is honored while it holds.
+  // Mid-carry the kit is inert, so the fill waits for the haul
+  // to end (carrying is a dep for exactly that re-check).
+  useEffect(() => {
+    if (carrying) return;
+    const held = playerState.heldItemId;
+    if (held && LEFT_HAND_CYCLE.includes(held)) return;
+    const best = bestLeftHand((id) => hasItem(id, 1));
+    if (best) {
+      deductInventoryItem(best, 1);
+      setHeldItemId(best);
+    } else if (held) {
+      setHeldItemId(null);
+    }
+  }, [playerState.heldItemId, inventory, carrying, hasItem, deductInventoryItem, setHeldItemId]);
 
   // Where the way out is, while inside a cavern — the radar's violet
   // exit arrow (HUD → Minimap) aims at it. On the spawn zone's

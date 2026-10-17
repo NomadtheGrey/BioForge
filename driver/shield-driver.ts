@@ -31,6 +31,7 @@ import {
   dropMagnetFor,
   lodestoneOf,
   migrateBulwark,
+  bestLeftHand,
   shieldGrowthFromLegacy,
   type ShieldGraftId,
   type ShieldGrowthMap,
@@ -282,8 +283,18 @@ console.log('\n12. LEFT HAND CYCLE (Alt grammar)');
   check('owned-only: unowned shields skipped',
     JSON.stringify(leftHandOrder(null, has)) === JSON.stringify(['hand_lantern_fern', 'scute_shield']));
   check('forward walks lantern -> scute', cycleLeftHand('hand_lantern_fern', has, 1) === 'scute_shield');
-  check('forward past last stows', cycleLeftHand('scute_shield', has, 1) === null);
-  check('backward from lantern stows', cycleLeftHand('hand_lantern_fern', has, -1) === null);
+  // NO STOW STOP (Adam, 2026-10-17): the cycle wraps among
+  // owned pieces — the hand is never emptied by walking it.
+  check('forward past last wraps to first', cycleLeftHand('scute_shield', has, 1) === 'hand_lantern_fern');
+  check('backward from first wraps to last', cycleLeftHand('hand_lantern_fern', has, -1) === 'scute_shield');
+  check('a single owned piece cycles to itself', cycleLeftHand('scute_shield', (id) => id === 'scute_shield', 1) === 'scute_shield');
+  // AUTO-FILL (Adam, 2026-10-17): the best owned piece takes
+  // an empty hand — highest shield first, the lantern last.
+  check('auto-fill prefers the fenback', bestLeftHand(() => true) === 'fenback_shield');
+  check('auto-fill takes the lantern shield over the bare lantern',
+    bestLeftHand((id) => id === 'lantern_shield' || id === 'hand_lantern_fern') === 'lantern_shield');
+  check('auto-fill settles for the lantern', bestLeftHand((id) => id === 'hand_lantern_fern') === 'hand_lantern_fern');
+  check('auto-fill with nothing owned stays empty', bestLeftHand(() => false) === null);
   check('backward walks scute -> lantern', cycleLeftHand('scute_shield', has, -1) === 'hand_lantern_fern');
   check('empty hand forward takes first owned', cycleLeftHand(null, has, 1) === 'hand_lantern_fern');
   check('nothing owned -> null', cycleLeftHand(null, () => false, 1) === null);

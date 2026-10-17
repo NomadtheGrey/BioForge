@@ -471,9 +471,27 @@ export function cycleLeftHand(
   const owned = leftHandOrder(held, hasItem);
   if (owned.length === 0) return null;
   const idx = held ? owned.indexOf(held) : -1;
-  if (direction === 1) return owned[idx + 1] ?? null;
-  // Walking backward past the start stows the hand.
-  return idx <= 0 ? null : owned[idx - 1];
+  // NO STOW STOP (Adam, 2026-10-17): while anything is owned
+  // the cycle is a choice among owned pieces only — it wraps
+  // at both ends and the hand is never emptied by walking it.
+  if (idx === -1) return direction === 1 ? owned[0] : owned[owned.length - 1];
+  return owned[(idx + direction + owned.length) % owned.length];
+}
+
+/** The auto-fill priority (Adam, 2026-10-17): when the hand
+ *  stands empty, the best owned piece takes it — the highest
+ *  shield first, the plain lantern last (a Lantern Shield
+ *  carries its own lamp, so the bare lantern yields to it). */
+export const LEFT_HAND_BEST: ItemId[] = [
+  'fenback_shield',
+  'lantern_shield',
+  'scute_shield',
+  'hand_lantern_fern',
+];
+
+/** The piece the hand should take on its own, if any. */
+export function bestLeftHand(hasItem: (id: ItemId) => boolean): ItemId | null {
+  return LEFT_HAND_BEST.find((id) => hasItem(id)) ?? null;
 }
 
 // ---------------------------------------------------------------------------

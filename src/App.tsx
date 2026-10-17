@@ -2485,6 +2485,8 @@ const {
         onOpenMultiplayer={() => setActiveModal('multiplayer')}
         onOpenControls={() => setActiveModal('controls')}
         onOpenAbout={() => setShowAbout(true)}
+        shieldRaised={shieldWield.raised}
+        onSetShieldRaised={shieldWield.setShieldRaised}
         onOpenDevTools={() => setActiveModal('devtools')}
         onSave={handleManualSave}
         currentBiomeName={inCavern ? cavernStratumName(cavernDepth || 1) : inRuin ? 'Precursor Ruin' : currentZoneName}
@@ -2697,6 +2699,7 @@ const {
         isOpen={activeModal === 'inventory'}
         onClose={() => setActiveModal(null)}
         inventory={inventory}
+        shieldGrafts={shieldGrafts}
         onSelectBlueprint={setSelectedStructureType}
         onSelectSeed={setSelectedSeedId}
         onSelectFertilizer={setSelectedFertilizerId}
@@ -2710,6 +2713,7 @@ const {
         // The Grown Arsenal marks entries GROWN / NOT GROWN and shows
         // ingredient counts from the pouch when it has it.
         inventory={inventory}
+        shieldGrafts={shieldGrafts}
       />
 
       <StartScreenModal

@@ -141,3 +141,26 @@ export function updateTunnelLife(
     }
   });
 }
+
+/**
+ * The Heart Tile's life (Adam, 2026-10-17): the tile has a heart, and
+ * it beats. The 'heartOrgan' swells on the shared double-thump
+ * heartbeat (~1.1s cycle) — scale bulge plus an emissive swell from
+ * within — phased per entity so neighboring tiles never beat in sync.
+ * The pass only stirs the named part; geometry is built once per tile.
+ */
+export function updateHeartLife(
+  structureMeshMap: Map<string, THREE.Group>,
+  elapsedTime: number,
+): void {
+  structureMeshMap.forEach((mesh) => {
+    const entity = mesh.userData.entity as StructureEntity | undefined;
+    if (!entity || entity.type !== 'heart_tile') return;
+    const heart = mesh.getObjectByName('heartOrgan') as THREE.Mesh | undefined;
+    if (!heart) return;
+    const p = pulseHeartbeat(elapsedTime, 1.1, phaseForId(entity.id));
+    heart.scale.set(0.92 * (1 + 0.09 * p), 0.92 * (1 + 0.055 * p), 0.92 * (1 + 0.09 * p));
+    const mat = heart.material as THREE.MeshStandardMaterial | undefined;
+    if (mat) mat.emissiveIntensity = 0.18 + 0.55 * p;
+  });
+}

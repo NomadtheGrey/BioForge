@@ -18,8 +18,10 @@
 // ============================================================================
 
 import * as THREE from 'three';
+import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { StructureType, StructureEntity } from '../types/game';
 import { hashId, mulberry32 } from './lifePulse';
+import { rootGrainTexture, barkTexture, wovenTexture, jitterVertices } from './grownTextures';
 
 /** The engine's shared material palette, as the builders use it. */
 export interface StructureMaterials {
@@ -39,34 +41,110 @@ export interface StructureMaterials {
  * ghosts call with no entity and get the generic seed. */
 export function createStructureBuilders(materials: StructureMaterials): Record<StructureType, (entity?: StructureEntity) => THREE.Group> {
   return {
-    'root_tile_floor': () => {
+    // The Grown Look pass (Adam, 2026-10-17): the root floor finally
+    // reads as roots. The slab wears the root-grain texture with
+    // jittered edges, and raised root ridges cross it and spill over
+    // the sides, knotting where they meet — a floor that grew together
+    // rather than one that was laid.
+    'root_tile_floor': (entity) => {
       const group = new THREE.Group();
-      const floor = new THREE.Mesh(new THREE.BoxGeometry(2, 0.12, 2), materials.woodRoot);
+      const floorGeom = new THREE.BoxGeometry(2, 0.12, 2);
+      jitterVertices(floorGeom, 0.008, hashId(entity?.id ?? 'ghost-floor'));
+      const floor = new THREE.Mesh(
+        floorGeom,
+        new THREE.MeshStandardMaterial({ map: rootGrainTexture(1), roughness: 0.92 }),
+      );
       floor.position.y = 0.06;
       floor.receiveShadow = true;
       group.add(floor);
+      // Raised ridges: half-round roots running across the slab and
+      // drooping over its edges. Seeded per structure so no two floors
+      // knot the same way.
+      const rng = mulberry32(hashId(entity?.id ?? 'ghost-floor'));
+      const ridgeMat = new THREE.MeshStandardMaterial({ color: 0x4a3320, roughness: 0.85 });
+      const ridge = (a: number, b: number): void => {
+        const curve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(-1.16, 0.10 + rng() * 0.04, a),
+          new THREE.Vector3(-0.45, 0.16 + rng() * 0.03, a * 0.5 + (rng() - 0.5) * 0.2),
+          new THREE.Vector3(0.45, 0.15 + rng() * 0.03, b * 0.5 + (rng() - 0.5) * 0.2),
+          new THREE.Vector3(1.16, 0.07 + rng() * 0.04, b),
+        ]);
+        const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 16, 0.045, 6), ridgeMat);
+        tube.castShadow = true;
+        group.add(tube);
+      };
+      ridge(-0.38 + (rng() - 0.5) * 0.1, 0.30 + (rng() - 0.5) * 0.1);
+      ridge(0.05 + (rng() - 0.5) * 0.1, -0.42 + (rng() - 0.5) * 0.1);
+      ridge(0.62 + (rng() - 0.5) * 0.1, 0.05 + (rng() - 0.5) * 0.1);
+      // The knot where the ridges meet: a swollen root knuckle.
+      const knot = new THREE.Mesh(new THREE.SphereGeometry(0.095, 10, 8), ridgeMat);
+      knot.scale.set(1.25, 0.62, 1);
+      knot.position.set((rng() - 0.5) * 0.2, 0.15, (rng() - 0.5) * 0.2);
+      knot.castShadow = true;
+      group.add(knot);
       return group;
     },
-    // The Heart Tile (Adam, 2026-10-16): the spawn base's default
-    // respawn point — a root floor grown with a heart of its own.
-    // Same slab as a root tile, with a heartwood knot at its center
-    // ringed in a faint rose glow: the spot a fallen player wakes on.
-    'heart_tile': () => {
+    // The Heart Tile (Adam, 2026-10-16; Grown Look, 2026-10-17): the
+    // spawn base's default respawn point — a root floor grown with a
+    // heart of its own. Adam's call: it must actually HAVE a heart,
+    // and it must BEAT. Two-lobed organ (welded spheres + tapered
+    // cone) nestled half-sunk at the tile's center, root-spoke
+    // vessels radiating across the slab, a faint rose halo beneath.
+    // The 'heartOrgan' named part is driven by structureLife's heart
+    // pass on the shared double-thump heartbeat, phased per entity.
+    'heart_tile': (entity) => {
       const group = new THREE.Group();
-      const slab = new THREE.Mesh(new THREE.BoxGeometry(2, 0.12, 2), materials.woodRoot);
+      const slabGeom = new THREE.BoxGeometry(2, 0.12, 2);
+      jitterVertices(slabGeom, 0.008, hashId(entity?.id ?? 'ghost-heart'));
+      const slab = new THREE.Mesh(
+        slabGeom,
+        new THREE.MeshStandardMaterial({ map: rootGrainTexture(1), roughness: 0.92 }),
+      );
       slab.position.y = 0.06;
       slab.receiveShadow = true;
       group.add(slab);
-      const knotMat = new THREE.MeshStandardMaterial({ color: 0x9f1239, roughness: 0.6, emissive: 0xe11d48, emissiveIntensity: 0.35 });
-      const knot = new THREE.Mesh(new THREE.SphereGeometry(0.34, 16, 12), knotMat);
-      knot.scale.y = 0.45;
-      knot.position.y = 0.12;
-      knot.castShadow = true;
-      group.add(knot);
-      const ringMat = new THREE.MeshStandardMaterial({ color: 0x881337, roughness: 0.5, emissive: 0xf43f5e, emissiveIntensity: 0.5 });
-      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.52, 0.045, 8, 24), ringMat);
+      // The organ: two lobes up top, a point below — welded into one
+      // smooth fleshy mass. Seeded asymmetry keeps it from reading
+      // sculpted; every heart tile's heart is its own.
+      const rng = mulberry32(hashId(entity?.id ?? 'ghost-heart'));
+      const lobeL = new THREE.SphereGeometry(0.17, 18, 14);
+      lobeL.translate(-0.10 + (rng() - 0.5) * 0.03, 0.16, (rng() - 0.5) * 0.03);
+      const lobeR = new THREE.SphereGeometry(0.17, 18, 14);
+      lobeR.translate(0.10 + (rng() - 0.5) * 0.03, 0.15, (rng() - 0.5) * 0.03);
+      const taper = new THREE.ConeGeometry(0.20, 0.44, 18);
+      taper.rotateX(Math.PI); // point down
+      taper.translate((rng() - 0.5) * 0.03, -0.03, 0);
+      const heartGeom = mergeVertices(mergeGeometries([lobeL, lobeR, taper]), 0.01);
+      heartGeom.computeVertexNormals();
+      const heartMat = new THREE.MeshStandardMaterial({
+        color: 0xb0211f, roughness: 0.26, metalness: 0,
+        emissive: 0x7f1d1d, emissiveIntensity: 0.18,
+      });
+      const heart = new THREE.Mesh(heartGeom, heartMat);
+      heart.name = 'heartOrgan';
+      heart.scale.set(0.92, 0.92, 0.92);
+      heart.position.y = 0.30;
+      heart.castShadow = true;
+      group.add(heart);
+      // Root-spoke vessels: the heart's roots, radiating across the slab.
+      const vesselMat = new THREE.MeshStandardMaterial({ color: 0x7f2d24, roughness: 0.6 });
+      const spokes = 7;
+      for (let i = 0; i < spokes; i++) {
+        const a = (i / spokes) * Math.PI * 2 + (rng() - 0.5) * 0.5;
+        const mid = a + (rng() - 0.5) * 0.4;
+        const curve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(Math.cos(a) * 0.30, 0.13, Math.sin(a) * 0.30),
+          new THREE.Vector3(Math.cos(mid) * 0.58, 0.135, Math.sin(mid) * 0.58),
+          new THREE.Vector3(Math.cos(a) * 0.94, 0.12, Math.sin(a) * 0.94),
+        ]);
+        const vessel = new THREE.Mesh(new THREE.TubeGeometry(curve, 10, 0.02, 5), vesselMat);
+        group.add(vessel);
+      }
+      // The halo: the old ring dimmed to a faint glow beneath the organ.
+      const ringMat = new THREE.MeshStandardMaterial({ color: 0x881337, roughness: 0.5, emissive: 0xf43f5e, emissiveIntensity: 0.25 });
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.56, 0.04, 8, 24), ringMat);
       ring.rotation.x = Math.PI / 2;
-      ring.position.y = 0.13;
+      ring.position.y = 0.125;
       group.add(ring);
       return group;
     },
@@ -383,11 +461,16 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
     // Woven rug: a thick flat weave with a border and fringe.
     // It lies at the floor's own height; the placement datum
     // puts it on whatever surface carries the cell.
-    'woven_rug': () => {
+    // Woven rug (Grown Look, 2026-10-17): the flat green slab gets
+    // the woven-fiber texture — an over-under checker in fiber
+    // tones — and a whispered jitter so its edges aren't cut lines.
+    'woven_rug': (entity) => {
       const group = new THREE.Group();
+      const bodyGeom = new THREE.BoxGeometry(1.8, 0.035, 1.8);
+      jitterVertices(bodyGeom, 0.010, hashId(entity?.id ?? 'ghost-rug'));
       const body = new THREE.Mesh(
-        new THREE.BoxGeometry(1.8, 0.035, 1.8),
-        new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 1 }),
+        bodyGeom,
+        new THREE.MeshStandardMaterial({ map: wovenTexture(3), roughness: 1 }),
       );
       body.position.y = 0.02;
       group.add(body);

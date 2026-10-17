@@ -22,8 +22,18 @@ button away. A first-time player is overwhelmed without this.
 - Obvious by design: an emerald glow + a gentle pulse animation.
   The pulse QUIETS once the player has opened the modal once
   (per-device memory, §5) — it should invite, not nag forever.
-- Registered in HUD_PANELS like every other panel (draggable,
-  hideable, restorable from the Options screen), default ON.
+- **NOT a hideable panel** (HUD lane's refinement, accepted): a
+  first-time player's lifeline can't sit behind a ✕ and an
+  Options screen they don't know exists. The button lives FIXED
+  in the top-right utility cluster, LABELED (never icon-only).
+  If it ever needs an off switch, HUD Options carries a
+  toggle-only entry (the reticle precedent) — a display
+  setting, never a panel hide.
+- **The Quests button is strengthened in the same pass**: the
+  two cluster together in that corner, both labeled — How to
+  Play and Quests, the two doors a lost player needs, in one
+  glanceable place. (A Quests door already exists in the
+  quicknav; this makes it first-class.)
 - Keyboard: **H** opens it too (free key; the Controls Guide gains
   the row).
 
@@ -32,6 +42,13 @@ button away. A first-time player is overwhelmed without this.
 Title: **How to Play BioForge**
 Footer buttons: **Show Tutorial** (primary) · **Open the Quest Log** ·
 **Close**.
+
+Boundary with the Game Info screen (HUD lane's refinement,
+accepted): Game Info stays WHAT THE WORLD IS (the primer's
+copy); How to Play is HOW TO PLAY — verbs, controls, first-hour
+grammar, the tutorial door. No copied overlap. The modal
+carries one small **"About this world"** link that opens Game
+Info for players who want the why. Two doors, two jobs.
 
 ### The words (drafted for the build; Adam edits freely)
 
@@ -123,6 +140,15 @@ and **Next / Skip step / End tutorial**. The current step's
 target HUD element wears a pulsing highlight ring. Steps that
 ask for an action complete when the game sees it done (the
 signal map, §4); pure-reading steps complete on Next.
+
+Chrome rules (HUD lane's, accepted): the ring is
+pointer-events-none; steps whose target is the WORLD, not the
+glass (step 5's harvest) run in a no-target center-card mode
+with no ring; Skip / Exit are present on every step and answer
+to KEYS as well as clicks (signal-advanced steps need no
+clicks while pointer-locked). **Hard rule: the tutorial never
+traps the player** — exitable at any moment, and every gated
+step has a manual beat.
 
 The player can end the tutorial at any step; progress is
 remembered per device, and "Show Tutorial" restarts or resumes.
@@ -223,10 +249,10 @@ Walls → Nothing Wasted → Make a Friend.
 
 ## 6. LANES & SLICES
 
-- **Slice A (HUD lane):** the button + the modal with §2's
-  words + the Quest Log button prominence check (a Quests
-  button already exists in the session bar — confirm it reads
-  as a first-class door; relabel/glyph if not).
+- **Slice A (HUD lane):** the fixed How to Play button + the
+  strengthened Quests button clustered with it (both labeled,
+  top-right) + the modal with §2's words and its "About this
+  world" link into Game Info.
 - **Slice B (this chat's logic, HUD chrome):** useTutorial +
   the step card + the highlight ring keyed to HUD panel ids
   (vitals / zone / hotbar / quicknav / tracker / session) +

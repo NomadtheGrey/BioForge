@@ -17,6 +17,7 @@ import { speciesDef } from '../game/species';
 import { sampleItemId, SAMPLE_SHED_SECONDS_TAMED, SAMPLE_SHED_SECONDS_WILD } from '../game/vat';
 import type { ItemId } from '../types/game';
 import type { WorldSnapshot } from '../game/saveSystem';
+import type { AsksEventInput } from '../game/asksBackState';
 
 
 // Base time for a plant to go from planted to harvest-ready. Slowed
@@ -829,7 +830,10 @@ export function useWorldEntities(): UseWorldEntitiesResult {
       attacksArmed?: boolean,
       dayPhase?: number,
       onFieldWitness?: (noteId: string) => void,
-      onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void
+      onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void,
+      /** The World Asks Back (2026-10-16): the saga event sink —
+       *  culls stamp here, in the kill sweep below. */
+      onAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void
     ): void => {
       const simulateWorld = !multiplayerManager.isConnected || multiplayerManager.isHost;
       combatArmedRef.current = !!attacksArmed;
@@ -1905,6 +1909,10 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             return [dmg ? { ...f, health, provokedTimer: PROVOKED_SECONDS } : f];
           }
           spawnDroppedItem(sampleItemId(f.species), 1, f.x, f.z);
+          // The World Asks Back (2026-10-16): the cull event for
+          // saga latching — stamped where the kill is known real,
+          // beside the sample the sweep drops.
+          onAsksEvent?.({ kind: 'cull', species: f.species });
           // Kill loot (slice 32 — Adam's oversize pin: "if
           // killed, they should provide good loot"): the
           // species table's killLoot drops where the creature

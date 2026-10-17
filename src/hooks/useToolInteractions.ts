@@ -22,6 +22,7 @@ import {
   noteById, noteIdsForSpecies, windowNoteIdForSpecies,
   type FieldNotesState,
 } from '../game/fieldNotesBook';
+import type { AsksEventInput } from '../game/asksBackState';
 import { createSeededRandom, hashStringToSeed } from '../game/motion';
 import { ruinLoreLine } from '../game/ruinInterior';
 import { soundEngine } from '../audio/soundEngine';
@@ -173,6 +174,9 @@ export interface UseToolInteractionsParams {
   fieldNotesState: FieldNotesState;
   unlockFieldNotes: (noteIds: string[]) => void;
   recordFieldWitness: (noteId: string) => void;
+  /** The World Asks Back (2026-10-16): the event sink for saga
+   *  latching — harvest/tame/feed/plant/build writers live here. */
+  recordAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void;
   postNotification: (
     title: string,
     message: string,
@@ -245,6 +249,7 @@ export function useToolInteractions({
   fieldNotesState,
   unlockFieldNotes,
   recordFieldWitness,
+  recordAsksEvent,
   postNotification,
   onOpenBioForgeModal,
   onOpenStorage,
@@ -466,6 +471,14 @@ export function useToolInteractions({
         const windowNote = windowNoteIdForSpecies(flora.species);
         if (windowNote) recordFieldWitness(windowNote);
       }
+      // The World Asks Back (2026-10-16): the harvest event for
+      // saga latching — counted by flora species, right where the
+      // harvest is known good.
+      recordAsksEvent?.({
+        kind: 'harvest',
+        flora: flora.species,
+        count: Array.from(collected.values()).reduce((s, n) => s + n, 0),
+      });
 
       postNotification(
         'Harvest Successful',
@@ -475,7 +488,7 @@ export function useToolInteractions({
       );
 
     },
-    [addInventoryItem, resetFloraHarvest, setCodexList, postNotification, triggerHarvestFx, getDayNightCycle]
+    [addInventoryItem, resetFloraHarvest, setCodexList, postNotification, triggerHarvestFx, getDayNightCycle, recordAsksEvent]
   );
 
   // 2. Bio-Scanner
@@ -688,8 +701,14 @@ export function useToolInteractions({
       } else {
         postNotification('Spore Planted', `Successfully cultivated ${ITEMS[selectedSeedId]?.name}. Water with fertilizer to accelerate!`, 'craft', '#4ade80');
       }
+      // The World Asks Back (2026-10-16): the planting event for
+      // saga latching. Seed ids are `seed_<species>` — the prefix
+      // strips to the flora the quest text names.
+      if (selectedSeedId.startsWith('seed_')) {
+        recordAsksEvent?.({ kind: 'plant', flora: selectedSeedId.slice(5) });
+      }
     },
-    [selectedSeedId, selectedFertilizerId, hasItem, deductInventoryItem, applyFloraFertilizer, addFlora, postNotification, floraList]
+    [selectedSeedId, selectedFertilizerId, hasItem, deductInventoryItem, applyFloraFertilizer, addFlora, postNotification, floraList, recordAsksEvent]
   );
 
   // 4. Solvent Sprayer (100% Recycler)
@@ -984,10 +1003,17 @@ export function useToolInteractions({
         }
         deductInventoryItem('sweet_nectar', 1);
         const feedings = hearthFeed(fauna.id);
+        // The World Asks Back (2026-10-16): the accepted offering
+        // is the feed event for saga latching (dog-only for now —
+        // it's the only feeder the game has; the creatures lane
+        // adds stamps for others as their social beats grow).
+        if (feedings > 0) recordAsksEvent?.({ kind: 'feed', species: 'hearth_dog' });
         if (feedings >= 3) {
           soundEngine.playTameCritter();
           releaseArmedRef.current.delete(fauna.id);
           tameFauna(fauna.id, def.petName, 'following');
+          // The World Asks Back (2026-10-16): the tame event for saga latching.
+          recordAsksEvent?.({ kind: 'tame', species: fauna.species });
           // Field Notes witness: 'The Dog Has Decided.'
           recordFieldWitness('note_hearth_dog');
           postNotification(
@@ -1033,6 +1059,8 @@ export function useToolInteractions({
           soundEngine.playTameCritter();
           releaseArmedRef.current.delete(fauna.id);
           tameFauna(fauna.id, def.petName, 'idle');
+          // The World Asks Back (2026-10-16): the tame event for saga latching.
+          recordAsksEvent?.({ kind: 'tame', species: fauna.species });
           postNotification(
             'Tenancy Agreed',
             'The Rootfall Bear accepts the returned rent and, with it, the arrangement: this hollow has a landlord AND a tenant now, and the guard comes with the lease.',
@@ -1070,6 +1098,8 @@ export function useToolInteractions({
         soundEngine.playTameCritter();
         releaseArmedRef.current.delete(fauna.id);
         tameFauna(fauna.id, def.petName, 'following');
+          // The World Asks Back (2026-10-16): the tame event for saga latching.
+          recordAsksEvent?.({ kind: 'tame', species: fauna.species });
 
         postNotification(
           'Companion Domesticated!',
@@ -1113,6 +1143,8 @@ export function useToolInteractions({
 
         soundEngine.playTameCritter();
         tameFauna(fauna.id, 'Base Guardian Stalker', 'patrolling');
+          // The World Asks Back (2026-10-16): the tame event for saga latching.
+          recordAsksEvent?.({ kind: 'tame', species: fauna.species });
 
         postNotification(
           'Apex Guardian Tamed!',
@@ -1151,6 +1183,8 @@ export function useToolInteractions({
         soundEngine.playTameCritter();
         releaseArmedRef.current.delete(fauna.id);
         tameFauna(fauna.id, def.petName, 'following');
+          // The World Asks Back (2026-10-16): the tame event for saga latching.
+          recordAsksEvent?.({ kind: 'tame', species: fauna.species });
 
         postNotification(
           'Companion Domesticated!',
@@ -1176,7 +1210,7 @@ export function useToolInteractions({
         return;
       }
     },
-    [hasItem, deductInventoryItem, tameFauna, hearthFeed, loadHeartbearer, postNotification]
+    [hasItem, deductInventoryItem, tameFauna, hearthFeed, loadHeartbearer, postNotification, recordAsksEvent]
   );
 
   // 6. Bio-Builder Placement
@@ -1462,10 +1496,14 @@ export function useToolInteractions({
       };
 
       addStructure(newStruct);
+      // The World Asks Back (2026-10-16): the build event for saga
+      // latching — counted by structure type, stamped where the
+      // placement is known good.
+      recordAsksEvent?.({ kind: 'build', itemId: selectedStructureType });
       postNotification('Living Composite Placed', `Grown ${ITEMS[selectedStructureType]?.name}. Fully recyclable via Solvent Sprayer [4].`, 'craft', '#a855f7');
       multiplayerManager.broadcastEntityUpsert('structure', newStruct);
     },
-    [selectedStructureType, hasItem, deductInventoryItem, addStructure, postNotification, structuresList, getPlacementRotation]
+    [selectedStructureType, hasItem, deductInventoryItem, addStructure, postNotification, structuresList, getPlacementRotation, recordAsksEvent]
   );
 
   // Unified Interactions Handlers (Flat, zero else)

@@ -33,7 +33,15 @@ import { SPECIES } from '../creatures/species';
 /** The recipe that MAKES an item, if any: the book's first
  *  non-graft recipe with this output. */
 export function recipeFor(itemId: ItemId): CraftingRecipe | null {
-  return RECIPES.find((r) => r.outputId === itemId && !r.graftShield) ?? null;
+  return recipeIn(RECIPES, itemId);
+}
+
+/** recipeFor against an explicit book (the plan walk carries
+ *  one so the cycle guard can be lab-proven on a synthetic
+ *  book — the shipped book is acyclic, but no future recipe
+ *  may ever hang the forge modal). */
+function recipeIn(book: CraftingRecipe[], itemId: ItemId): CraftingRecipe | null {
+  return book.find((r) => r.outputId === itemId && !r.graftShield) ?? null;
 }
 
 /** Where an item comes from, in plain lines — every source the
@@ -95,6 +103,10 @@ export interface CraftTreeNode {
   recipe: CraftingRecipe | null;
   batches: number;
   children: CraftTreeNode[];
+  /** True when the walk stopped here on the cycle/depth guard:
+   *  the node renders as a raw need rather than expanding
+   *  forever. Reachable only if the book itself loops. */
+  cycle?: boolean;
 }
 
 export interface CraftPlan {
@@ -108,20 +120,28 @@ export interface CraftPlan {
  *  pouch. The walk is depth-first in book order and consumes a
  *  single remaining-pouch map, so shared ingredients are never
  *  double-counted against what the player holds. */
+/** The walk's depth discipline: past this many levels — or the
+ *  moment an item would appear inside its OWN subtree — the
+ *  node stops expanding and reads as a raw need. The shipped
+ *  book never comes close (its deepest chain is ~4); the guard
+ *  exists so a future looping recipe cannot hang the modal. */
+export const CRAFT_TREE_MAX_DEPTH = 16;
+
 export function buildCraftPlan(
   rootId: ItemId,
   rootNeed: number,
-  inventory: Partial<Record<ItemId, number>>
+  inventory: Partial<Record<ItemId, number>>,
+  book: CraftingRecipe[] = RECIPES
 ): CraftPlan {
   const remaining: Partial<Record<ItemId, number>> = { ...inventory };
   const raw = new Map<ItemId, number>();
 
-  const walk = (itemId: ItemId, need: number): CraftTreeNode => {
+  const walk = (itemId: ItemId, need: number, path: ReadonlySet<ItemId>, depth: number): CraftTreeNode => {
     const held = remaining[itemId] ?? 0;
     const fromPouch = Math.min(held, need);
     remaining[itemId] = held - fromPouch;
     const shortfall = need - fromPouch;
-    const recipe = recipeFor(itemId);
+    const recipe = recipeIn(book, itemId);
     const node: CraftTreeNode = {
       itemId,
       need,
@@ -132,18 +152,24 @@ export function buildCraftPlan(
       children: [],
     };
     if (shortfall <= 0) return node;
-    if (!recipe) {
+    if (!recipe || path.has(itemId) || depth >= CRAFT_TREE_MAX_DEPTH) {
+      // A raw leaf — or the cycle/depth guard stopping a loop:
+      // either way the shortfall is something to FIND, and the
+      // node is marked so the modal can say so honestly.
+      if (recipe && (path.has(itemId) || depth >= CRAFT_TREE_MAX_DEPTH)) node.cycle = true;
       raw.set(itemId, (raw.get(itemId) ?? 0) + shortfall);
       return node;
     }
     node.batches = Math.ceil(shortfall / Math.max(1, recipe.outputCount));
+    const nextPath = new Set(path);
+    nextPath.add(itemId);
     node.children = (recipe.ingredients ?? []).map((ing) =>
-      walk(ing.id, ing.count * node.batches)
+      walk(ing.id, ing.count * node.batches, nextPath, depth + 1)
     );
     return node;
   };
 
-  const root = walk(rootId, rootNeed);
+  const root = walk(rootId, rootNeed, new Set(), 0);
   const rawNeeds = [...raw.entries()]
     .map(([itemId, count]) => ({ itemId, count }))
     .sort((a, b) => (ITEMS[a.itemId]?.name ?? a.itemId).localeCompare(ITEMS[b.itemId]?.name ?? b.itemId));

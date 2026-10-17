@@ -526,6 +526,59 @@ export const HUD: React.FC<HUDProps> = ({
   const descriptorToolId = hoveredToolId ?? flashToolId;
   const descriptorTool = tools.find((t) => t.id === descriptorToolId) ?? null;
 
+  // The Left Hand speaks through the SAME descriptor (Adam,
+  // play-pass, 2026-10-17): it was the last tile still wearing
+  // a native browser `title`, so hovering it popped the OS
+  // tooltip while every gauntlet tile used the game's own
+  // panel. Now the hand has hover + flash states mirroring
+  // the tools': hover raises its descriptor, and CYCLING the
+  // hand (click / Alt+wheel / Alt+arrows) flashes it for ~3s
+  // — which is also how touch players, who have no hover,
+  // ever see it. The held/graft facts are hoisted here
+  // because the descriptor and the tile both read them.
+  const [hoveredHand, setHoveredHand] = useState(false);
+  const [flashHand, setFlashHand] = useState(false);
+  const handFlashTimer = useRef<number | null>(null);
+  const prevHeldItemRef = useRef(playerState.heldItemId ?? null);
+  useEffect(() => {
+    const held = playerState.heldItemId ?? null;
+    // Flash on CHANGE only — the first render must not shout
+    // "Left Hand: empty" over the spawn.
+    if (prevHeldItemRef.current === held) return;
+    prevHeldItemRef.current = held;
+    setFlashHand(true);
+    if (handFlashTimer.current !== null) window.clearTimeout(handFlashTimer.current);
+    handFlashTimer.current = window.setTimeout(() => setFlashHand(false), 3000);
+    return () => {
+      if (handFlashTimer.current !== null) window.clearTimeout(handFlashTimer.current);
+    };
+  }, [playerState.heldItemId]);
+
+  const heldItemIdNow = playerState.heldItemId ?? null;
+  const heldIsShield = isShieldItem(heldItemIdNow);
+  const heldGraftKind = heldIsShield ? graftOf(shieldGrowth, heldItemIdNow as ItemId) : null;
+  const heldDisplayName = heldItemIdNow ? ITEMS[heldItemIdNow]?.name ?? heldItemIdNow : null;
+
+  // The hand's descriptor entry, in the tool entries' shape.
+  // Its desc ports the words the native title used to carry:
+  // the graft kind, the raised state, and the cycle hint.
+  const handDescriptor = {
+    label: `Left Hand: ${heldDisplayName ?? 'Empty'}`,
+    icon: heldIsShield ? '🛡️' : heldItemIdNow ? '🔦' : '✋',
+    color: heldIsShield ? '#fb7185' : heldItemIdNow ? '#22d3ee' : '#94a3b8',
+    desc: heldIsShield
+      ? `${heldGraftKind ? `${SHIELD_GRAFTS[heldGraftKind].name} graft · ` : ''}${shieldRaised ? 'BRACED — the wall is up' : 'Lowered — carried blunting is live'} · hold right-mouse to raise · click or Alt+wheel to cycle the hand`
+      : heldItemIdNow
+        ? 'Click or Alt+wheel to cycle the hand'
+        : 'Click or Alt+wheel to cycle the hand — the lantern and grown shields ride here',
+  };
+  // Precedence, gentlest first: a hovered TOOL beats the
+  // hand's flash; the hovered HAND beats everything (the
+  // pointer is the player's attention); the hand's flash
+  // shows only when no tool state is speaking.
+  const handDescriptorVisible =
+    hoveredHand || (flashHand && !hoveredToolId && !flashToolId);
+
   // ---------------------------------------------------------------------
   // Inventory counts for consumables (Adam, 2026-10-14): anything a tool
   // SPENDS shows how many are left — in the descriptor, in the active
@@ -1303,7 +1356,41 @@ export const HUD: React.FC<HUDProps> = ({
         )}
 
         {/* In-Game Tool Descriptor — styled panel replacing native browser tooltips.
-            Shows the hovered slot, or flashes the newly equipped slot after 1-6 / click selection. */}
+            Shows the hovered slot, or flashes the newly equipped slot after 1-6 / click selection.
+            The Left Hand renders through the same panel (its own
+            block, same chrome) whenever its hover/flash state is
+            the one speaking — see handDescriptorVisible. */}
+        {!descriptorTool && handDescriptorVisible && (
+          <div
+            className={`pointer-events-none glass-panel-biolum rounded-2xl flex items-center animate-fade-in border border-cyan-500/30 shadow-2xl ${
+              touchMode ? 'max-w-[96vw] gap-3 px-3 py-2' : 'max-w-xl gap-4 px-5 py-3'
+            }`}
+          >
+            <div
+              className={`${touchMode ? 'h-9 w-9 text-xl' : 'h-11 w-11 text-2xl'} rounded-xl flex items-center justify-center shrink-0`}
+              style={{
+                backgroundColor: `${handDescriptor.color}20`,
+                border: `1px solid ${handDescriptor.color}50`,
+              }}
+            >
+              {handDescriptor.icon}
+            </div>
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-tech font-bold text-sm text-white">{handDescriptor.label}</span>
+                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300 border border-slate-700">
+                  [ALT]
+                </span>
+                {!hoveredHand && (
+                  <span className="font-tech text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                    IN HAND
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-300 mt-0.5">{handDescriptor.desc}</p>
+            </div>
+          </div>
+        )}
         {descriptorTool && (
           <div
             className={`pointer-events-none glass-panel-biolum rounded-2xl flex items-center animate-fade-in border border-cyan-500/30 shadow-2xl ${
@@ -1431,13 +1518,8 @@ export const HUD: React.FC<HUDProps> = ({
               return (
                 <button
                   onClick={onToggleHeldItem}
-                  title={
-                    heldShield
-                      ? `Left Hand: ${heldName}${heldGraft ? ` (${SHIELD_GRAFTS[heldGraft].name} graft)` : ''} — ${shieldRaised ? 'BRACED, the wall is up' : 'lowered; carried blunting is live'} · hold right-mouse to raise · click or Alt+wheel to cycle the hand`
-                      : heldId
-                        ? `Left Hand: ${heldName} — click or Alt+wheel to cycle the hand`
-                        : 'Left Hand: empty — click or Alt+wheel to cycle the hand'
-                  }
+                  onMouseEnter={() => setHoveredHand(true)}
+                  onMouseLeave={() => setHoveredHand(false)}
                   className={`pointer-events-auto glass-panel rounded-2xl flex flex-col items-center gap-1 shadow-2xl transition-all active:scale-95 ${
                     touchMode ? 'p-1.5' : 'p-2'
                   }`}
@@ -1459,7 +1541,7 @@ export const HUD: React.FC<HUDProps> = ({
                       <Sparkles className="w-5 h-5" />
                     )}
                     {heldGrafted && (
-                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-rose-400 border border-rose-200" title={heldGraft ? `${SHIELD_GRAFTS[heldGraft].name} grafted` : 'Grafted'} />
+                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-rose-400 border border-rose-200" />
                     )}
                   </span>
                   {!touchMode && (

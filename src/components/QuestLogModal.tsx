@@ -516,9 +516,9 @@ export const QuestLogModal = ({
               {reward}
             </span>
           )}
-          <span className="text-violet-200/60 italic">
-            Unanswered offers fade back into the world's memory.
-          </span>
+          {/* The fade warning lives once in the section intro —
+              on every offered card it curdles from poetry into
+              boilerplate (HUD polish pass, 2026-10-17). */}
         </div>
       </div>
     );
@@ -624,7 +624,16 @@ export const QuestLogModal = ({
     const offers = asksBackState.offers;
     const actives = asksBackState.active.filter((a) => a.status === 'active');
     const answered = asksBackState.completed;
-    const empty = offers.length === 0 && actives.length === 0 && answered.length === 0;
+    // ABSENT UNTIL THE WORLD FIRST ASKS (HUD polish pass,
+    // 2026-10-17 — the Field Notes doctrine, applied to the
+    // section itself): while no saga has ever been offered,
+    // in hand, or answered, the shelf does not render at all,
+    // so the section's first appearance is itself a discovery
+    // beat in the tab. The "world asks" notification guarantees
+    // a player who receives an offer finds the shelf waiting.
+    if (offers.length === 0 && actives.length === 0 && answered.length === 0) {
+      return null;
+    }
     return (
       <div>
         <div className="text-[10px] font-black tracking-[0.22em] text-violet-300/80 mb-1">
@@ -633,19 +642,9 @@ export const QuestLogModal = ({
         <p className="text-[11px] text-slate-400 leading-snug mb-3">
           Sagas the world offers from your own history — always two steps
           or more, never chained, never placed: dealt, the way the world
-          deals everything. Take one up, or let it fade.
+          deals everything. Take one up, or let it fade — unanswered
+          offers fade back into the world's memory.
         </p>
-        {empty ? (
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/40 px-4 py-6 text-center">
-            <div className="text-2xl mb-1.5">◈</div>
-            <div className="text-sm font-bold text-slate-200">
-              The world is quiet — for now
-            </div>
-            <div className="text-[11px] text-slate-400 mt-1">
-              Keep walking. It notices what you do.
-            </div>
-          </div>
-        ) : (
           <div className="space-y-4">
             {offers.length > 0 && (
               <div>
@@ -674,7 +673,6 @@ export const QuestLogModal = ({
               </div>
             )}
           </div>
-        )}
       </div>
     );
   };
@@ -773,6 +771,14 @@ export const QuestLogModal = ({
               <span className={`font-mono text-[10px] ${isLineTab ? 'text-amber-300' : 'text-amber-200/50'}`}>
                 {lineViews.filter(isDone).length}/{lineViews.length}
               </span>
+              {/* A waiting saga offer shows on the tab itself
+                  (HUD polish pass, 2026-10-17): violet, quiet,
+                  and gone the moment the shelf empties. */}
+              {asksBackState.offers.length > 0 && (
+                <span className="font-mono text-[10px] text-violet-300">
+                  ◈ {asksBackState.offers.length}
+                </span>
+              )}
             </button>
           </div>
           <p className="mt-2 text-[11px] text-slate-400 leading-snug">

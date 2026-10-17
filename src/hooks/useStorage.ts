@@ -28,6 +28,7 @@ import {
   type StorageContents,
 } from '../game/items/pouch';
 import { isSampleItem } from '../game/structures/vat';
+import { isSlottedUpgrade } from '../game/items/slottedUpgrades';
 
 interface UseStorageParams {
   getInventory: () => Record<ItemId, number>;
@@ -82,6 +83,16 @@ export function useStorage({
     const contents: StorageContents = structure.storage ?? { tier: 1, items: {} };
     // The Sample Rack's law (slice D, 2026-10-16): samples only —
     // its shelves are vial-shaped, and everything else refuses.
+    // Slotted upgrades refuse (Adam, 2026-10-17): gauntlet
+    // modules, helmet lenses, Quicksteps growths and pouch
+    // tiers are grown into their gear — never loose cargo,
+    // so no path may stash them. The pod panel never offers
+    // them; this guard is the backstop at the point of
+    // consumption, the graft-lock pattern.
+    if (isSlottedUpgrade(itemId)) {
+      postNotification('Slotted Into Your Gear', 'That upgrade is grown into your equipment — it can\'t be stashed.', 'alert', '#a78bfa');
+      return;
+    }
     if (structure.type === 'sample_rack' && !isSampleItem(itemId)) {
       postNotification('Samples Only', 'The rack\'s shelves hold sample vials and nothing else.', 'alert', '#4ade80');
       return;

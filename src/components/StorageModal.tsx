@@ -19,6 +19,7 @@ import type { ItemId, StructureEntity } from '../types/game';
 import { ITEMS } from '../game/items/constants';
 import { STORAGE_TIERS, storageCapsFor, storageKitFor, storageSlotsUsed, type StorageContents } from '../game/items/pouch';
 import { isSampleItem } from '../game/structures/vat';
+import { isSlottedUpgrade } from '../game/items/slottedUpgrades';
 
 interface StorageModalProps {
   /** The pod being viewed (live entity from the structures list). */
@@ -61,8 +62,16 @@ export const StorageModal: React.FC<StorageModalProps> = ({
   const storedEntries = (Object.entries(contents.items) as [ItemId, number][])
     .filter(([, count]) => count > 0)
     .sort(([a], [b]) => (ITEMS[a]?.name ?? a).localeCompare(ITEMS[b]?.name ?? b));
+  // Slotted upgrades (gauntlet modules, helmet lenses,
+  // Quicksteps growths, pouch tiers) ride their gear and are
+  // never offered for stashing — Adam, 2026-10-17. They are
+  // counted separately so the panel can SAY why they are
+  // missing instead of the pouch looking emptier than it is.
+  const slottedHeld = (Object.entries(inventory) as [ItemId, number][])
+    .filter(([id, count]) => count > 0 && ITEMS[id] && isSlottedUpgrade(id)).length;
   const pouchEntries = (Object.entries(inventory) as [ItemId, number][])
     .filter(([id, count]) => count > 0 && ITEMS[id])
+    .filter(([id]) => !isSlottedUpgrade(id))
     .filter(([id]) => structure.type !== 'sample_rack' || isSampleItem(id))
     .sort(([a], [b]) => (ITEMS[a]?.name ?? a).localeCompare(ITEMS[b]?.name ?? b));
 
@@ -186,11 +195,20 @@ export const StorageModal: React.FC<StorageModalProps> = ({
           <div className="overflow-y-auto p-4">
             <h3 className="text-[11px] font-tech font-bold text-emerald-300/90 tracking-wider mb-2">IN YOUR POUCH — TAP TO STASH</h3>
             {pouchEntries.length === 0 ? (
-              <p className="text-xs text-slate-500">Your pouch is empty.</p>
+              <p className="text-xs text-slate-500">
+                {slottedHeld > 0
+                  ? 'Nothing stashable — everything else you carry is slotted into your gear.'
+                  : 'Your pouch is empty.'}
+              </p>
             ) : (
               <div className="flex flex-col gap-2">
                 {pouchEntries.map(([id, count]) => stackRow(id, count, 'deposit'))}
               </div>
+            )}
+            {slottedHeld > 0 && (
+              <p className="text-[10px] text-slate-600 mt-2">
+                {slottedHeld} slotted upgrade{slottedHeld === 1 ? '' : 's'} ride your gear — grown in, never stashed.
+              </p>
             )}
           </div>
         </div>

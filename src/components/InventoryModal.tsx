@@ -423,9 +423,17 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                         <div className="flex justify-between py-1.5 border-b border-slate-800 text-slate-400">
                           <span>Seat</span>
                           <span className="font-tech uppercase text-slate-200">
+                            {/* Platforms Parallel (2026-10-17): every
+                                kind names its own seat — the row was
+                                written when only the arsenal had
+                                family entries. */}
                             {familyEntryOf(activeItem.id)!.kind === 'defensive'
                               ? 'Left Hand'
-                              : 'Gauntlet · Slot 7'}
+                              : familyEntryOf(activeItem.id)!.kind === 'helmet'
+                                ? 'Homestead Helm'
+                                : familyEntryOf(activeItem.id)!.kind === 'boots'
+                                  ? 'Quicksteps'
+                                  : 'Gauntlet · Slot 7'}
                           </span>
                         </div>
                         {familyEntryOf(activeItem.id)!.damage !== undefined && (

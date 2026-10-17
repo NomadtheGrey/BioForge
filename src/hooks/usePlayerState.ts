@@ -5,7 +5,8 @@
  */
 
 import { useState, useCallback } from 'react';
-import { PlayerState, ToolType, StructureType, ItemId, QuestProgressState, ShieldGraftId } from '../types/game';
+import { PlayerState, ToolType, StructureType, ItemId, QuestProgressState } from '../types/game';
+import type { ShieldGrowthMap } from '../game/creatures/shields';
 
 export interface UsePlayerStateResult {
   playerState: PlayerState;
@@ -15,10 +16,11 @@ export interface UsePlayerStateResult {
   setSelectedFertilizerId: (fertilizerId: ItemId) => void;
   setHeldItemId: (itemId: ItemId | null) => void;
   setQuestProgress: (progress: QuestProgressState) => void;
-  setShieldGrafts: (grafts: Partial<Record<ItemId, ShieldGraftId | boolean>>) => void;
-  /** The shield slice's graft record (the read side of the
-   *  setter — App mirrors it into a ref for the craft flow). */
-  shieldGrafts: Partial<Record<ItemId, ShieldGraftId | boolean>>;
+  setShieldGrowth: (growth: ShieldGrowthMap) => void;
+  /** The shields' OWN growth record (Adam's relocation,
+   *  2026-10-17) — held beside PlayerState, never inside it;
+   *  it persists under the save record's shieldGrowth key. */
+  shieldGrowth: ShieldGrowthMap;
   setPlayerTransform: (x: number, z: number, rotation: number) => void;
   setPlayerLevel: (level: number) => void;
   setStamina: (stamina: number) => void;
@@ -72,11 +74,14 @@ export function usePlayerState(): UsePlayerStateResult {
     setPlayerState((prev) => ({ ...prev, questProgress: progress }));
   }, []);
 
-  // Shield grafts ride PlayerState (and therefore the save) like
-  // heldItemId does — one functional write, no field-by-field
-  // poking from App. Absent on old saves; readers fall back to {}.
-  const setShieldGrafts = useCallback((grafts: Partial<Record<ItemId, ShieldGraftId | boolean>>): void => {
-    setPlayerState((prev) => ({ ...prev, shieldGrafts: grafts }));
+  // The shields' growth record (Adam, 2026-10-17): its own
+  // state beside PlayerState — a graft is a property of the
+  // shield, not of the player. useSaveSession persists it
+  // under the save record's shieldGrowth key and folds any
+  // legacy PlayerState.shieldGrafts into it at load.
+  const [shieldGrowth, setShieldGrowthState] = useState<ShieldGrowthMap>({});
+  const setShieldGrowth = useCallback((growth: ShieldGrowthMap): void => {
+    setShieldGrowthState(growth);
   }, []);
 
   const setPlayerTransform = useCallback((x: number, z: number, rotation: number): void => {
@@ -110,7 +115,13 @@ export function usePlayerState(): UsePlayerStateResult {
   // in one shot, instead of poking each field through its own setter.
   const restorePlayerState = useCallback((saved: PlayerState): void => {
     // Saves from before story levels have no level field — ground story.
-    setPlayerState({ ...saved, level: saved.level ?? 0 });
+    // The grafts moved to the shields' own growth records (Adam,
+    // 2026-10-17): a legacy save's playerState still carries them
+    // inline — useSaveSession folds them into shieldGrowth at
+    // load, and they are stripped here so they never live in
+    // PlayerState (or re-save inside it) again.
+    const { shieldGrafts: _legacyGrafts, ...rest } = saved as PlayerState & { shieldGrafts?: unknown };
+    setPlayerState({ ...rest, level: saved.level ?? 0 });
   }, []);
 
   return {
@@ -121,8 +132,8 @@ export function usePlayerState(): UsePlayerStateResult {
     setSelectedFertilizerId,
     setHeldItemId,
     setQuestProgress,
-    setShieldGrafts,
-    shieldGrafts: playerState.shieldGrafts ?? {},
+    setShieldGrowth,
+    shieldGrowth,
     setPlayerTransform,
     setPlayerLevel,
     setStamina,

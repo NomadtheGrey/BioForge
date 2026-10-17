@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, BookOpen, Sparkles, CheckCircle2, Lock, Eye } from 'lucide-react';
-import { CodexEntry, ItemId, ShieldGraftId } from '../types/game';
+import { CodexEntry, ItemId } from '../types/game';
 import { ITEMS } from '../game/items/constants';
 import {
   FAMILY_KIND_BLURB,
@@ -14,7 +14,7 @@ import {
 import { itemIcon } from './itemIcon';
 // The graft's reflect numbers ride the shield rules table —
 // the dossier quotes them from the source, never from copy.
-import { SHIELD_GRAFTS, graftOf } from '../game/creatures/shields';
+import { SHIELD_GRAFTS, graftOf, type ShieldGrowthMap } from '../game/creatures/shields';
 
 interface CodexModalProps {
   isOpen: boolean;
@@ -24,9 +24,9 @@ interface CodexModalProps {
   // entries GROWN / NOT GROWN and shows ingredient counts from
   // it. Optional so the section renders fully without it.
   inventory?: Record<ItemId, number>;
-  // The Spike Graft record (PlayerState.shieldGrafts), when
+  // The Spike Graft record (PlayerState.shieldGrowth), when
   // passed: shield dossiers mark GRAFTED on the entry itself.
-  shieldGrafts?: Partial<Record<ItemId, ShieldGraftId | boolean>>;
+  shieldGrowth?: ShieldGrowthMap;
 }
 
 export const CodexModal: React.FC<CodexModalProps> = ({
@@ -34,7 +34,7 @@ export const CodexModal: React.FC<CodexModalProps> = ({
   onClose,
   codexList,
   inventory,
-  shieldGrafts,
+  shieldGrowth,
 }) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'flora' | 'fauna' | 'composite' | 'arsenal'>('all');
   const [selectedEntry, setSelectedEntry] = useState<CodexEntry>(codexList[0]);
@@ -75,7 +75,7 @@ export const CodexModal: React.FC<CodexModalProps> = ({
     // The graft slot rides the shelf row too (Platforms
     // Parallel, 2026-10-17): a defensive entry names the graft
     // kind it carries, matching the dossier's Graft Slot row.
-    const rowGraft = e.kind === 'defensive' ? graftOf(shieldGrafts, e.itemId) : null;
+    const rowGraft = e.kind === 'defensive' ? graftOf(shieldGrowth, e.itemId) : null;
     return (
       <div
         key={e.itemId}
@@ -253,10 +253,10 @@ export const CodexModal: React.FC<CodexModalProps> = ({
                     grown onto the face. Thorn Spikes (a Tier 2 addition): strikes landing on
                     the shield answer {SHIELD_GRAFTS.spikes.reflectPassive} damage carried, {SHIELD_GRAFTS.spikes.reflectBraced} braced.
                     {selWeapon.tier >= 2 && ' The graft survives this shield’s grows — combination and consume-and-keep alike.'}
-                    {shieldGrafts && (
-                      <span className={`block mt-1 font-tech text-[10px] uppercase tracking-wide ${graftOf(shieldGrafts, selWeapon.itemId) ? 'text-emerald-300' : 'text-slate-500'}`}>
+                    {shieldGrowth && (
+                      <span className={`block mt-1 font-tech text-[10px] uppercase tracking-wide ${graftOf(shieldGrowth, selWeapon.itemId) ? 'text-emerald-300' : 'text-slate-500'}`}>
                         {(() => {
-                          const g = graftOf(shieldGrafts, selWeapon.itemId);
+                          const g = graftOf(shieldGrowth, selWeapon.itemId);
                           return g ? `Grafted — this shield wears its ${SHIELD_GRAFTS[g].name}` : 'Not grafted';
                         })()}
                       </span>

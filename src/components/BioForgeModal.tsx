@@ -16,8 +16,7 @@ import { FAMILY_KIND_LABEL, familyEntryOf } from '../game/items/weaponsFamily';
 // module: a graft recipe whose target already wears a graft
 // must not stay READY — crafting it would burn the materials
 // on a no-op.
-import { isShieldItem, graftOf, SHIELD_GRAFTS } from '../game/creatures/shields';
-import type { PlayerState } from '../types/game';
+import { isShieldItem, graftOf, SHIELD_GRAFTS, type ShieldGrowthMap } from '../game/creatures/shields';
 
 interface BioForgeModalProps {
   isOpen: boolean;
@@ -27,7 +26,7 @@ interface BioForgeModalProps {
   hasSynthesizer: boolean;
   /** The shield graft slots as worn — a graft recipe locks
    *  when its target's slot already reads a graft. */
-  shieldGrafts?: PlayerState['shieldGrafts'];
+  shieldGrowth?: ShieldGrowthMap;
   onCraftRecipe: (recipe: CraftingRecipe) => void;
   /** Grow Prerequisites (Adam, 2026-10-16): grow a short
    *  reagent's whole chain for the selected recipe in one pass. */
@@ -41,7 +40,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   inventory,
   nearForge,
   hasSynthesizer,
-  shieldGrafts,
+  shieldGrowth,
   onCraftRecipe,
   onGrowPrerequisites,
   onSelectStructureBlueprint,
@@ -152,7 +151,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     if (isGauntletUpgrade(recipe.outputId) && (inventory[recipe.outputId] || 0) > 0) return false;
     // The graft-slot lock (HUD audit, 2026-10-17): one graft per
     // shield — a filled slot refuses the recipe outright.
-    if (recipe.graftShield && graftOf(shieldGrafts, recipe.graftShield)) return false;
+    if (recipe.graftShield && graftOf(shieldGrowth, recipe.graftShield)) return false;
     if (!hasIngredients(recipe)) return false;
     if (nearForge) return true;
     if (accessTierOf(recipe) >= 3) return false;
@@ -167,7 +166,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     // The filled graft slot speaks just as early, in the same
     // shape: name the graft the shield already wears.
     if (recipe.graftShield) {
-      const worn = graftOf(shieldGrafts, recipe.graftShield);
+      const worn = graftOf(shieldGrowth, recipe.graftShield);
       if (worn) return `Already grafted — ${SHIELD_GRAFTS[worn].name}`;
     }
     if (!hasIngredients(recipe)) return 'Missing ingredients';

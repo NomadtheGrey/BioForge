@@ -14,7 +14,8 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ItemId, ShieldGraftId } from '../types/game';
+import type { ItemId } from '../types/game';
+import type { ShieldGraftId, ShieldGrowthMap } from '../game/creatures/shields';
 import type { CarryState } from '../game/structures/movableVaults';
 import { carryBlocksInteraction } from '../game/structures/movableVaults';
 import {
@@ -30,8 +31,10 @@ import {
 
 export interface ShieldWieldDeps {
   heldItemId: ItemId | null | undefined;
-  shieldGrafts: Partial<Record<ItemId, ShieldGraftId | boolean>>;
-  setShieldGrafts: (grafts: Partial<Record<ItemId, ShieldGraftId | boolean>>) => void;
+  /** The shields' own growth record (Adam's relocation,
+   *  2026-10-17) — the graft lives with the shield. */
+  shieldGrowth: ShieldGrowthMap;
+  setShieldGrowth: (growth: ShieldGrowthMap) => void;
   /** S6: while a carry is live the whole kit is inert — the shield
    *  cannot be raised. carryBlocksInteraction is the predicate. */
   carryRef: { current: CarryState | null };
@@ -62,7 +65,7 @@ export interface ShieldWieldApi {
 }
 
 export function useShieldWield(deps: ShieldWieldDeps): ShieldWieldApi {
-  const { heldItemId, shieldGrafts, setShieldGrafts, carryRef, postNotification } = deps;
+  const { heldItemId, shieldGrowth, setShieldGrowth, carryRef, postNotification } = deps;
 
   const heldShield = shieldOf(heldItemId ?? null) ?? null;
 
@@ -75,8 +78,8 @@ export function useShieldWield(deps: ShieldWieldDeps): ShieldWieldApi {
   // Mirror the latest deps into refs for the stable closures below.
   const heldShieldRef = useRef(heldShield);
   heldShieldRef.current = heldShield;
-  const graftsRef = useRef(shieldGrafts);
-  graftsRef.current = shieldGrafts;
+  const growthRef = useRef(shieldGrowth);
+  growthRef.current = shieldGrowth;
 
   const setRaisedBoth = useCallback((v: boolean) => {
     raisedRef.current = v;
@@ -128,7 +131,7 @@ export function useShieldWield(deps: ShieldWieldDeps): ShieldWieldApi {
   }, [setShieldRaised]);
 
   const isGrafted = useCallback(
-    (itemId: ItemId): boolean => graftOf(graftsRef.current, itemId) !== null,
+    (itemId: ItemId): boolean => graftOf(growthRef.current, itemId) !== null,
     []
   );
 
@@ -138,9 +141,9 @@ export function useShieldWield(deps: ShieldWieldDeps): ShieldWieldApi {
    *  stands (one graft per shield). */
   const graftShield = useCallback(
     (itemId: ItemId, kind: ShieldGraftId = 'spikes') => {
-      if (graftOf(graftsRef.current, itemId)) return;
-      const next = { ...graftsRef.current, [itemId]: kind };
-      setShieldGrafts(next);
+      if (graftOf(growthRef.current, itemId)) return;
+      const next: ShieldGrowthMap = { ...growthRef.current, [itemId]: { graft: kind } };
+      setShieldGrowth(next);
       const def = SHIELD_GRAFTS[kind];
       postNotification(
         `${def.name} Grafted`,
@@ -149,7 +152,7 @@ export function useShieldWield(deps: ShieldWieldDeps): ShieldWieldApi {
         '#65a30d'
       );
     },
-    [setShieldGrafts, postNotification]
+    [setShieldGrowth, postNotification]
   );
 
   const displacementImmune = useCallback((): boolean => {
@@ -191,7 +194,7 @@ export function useShieldWield(deps: ShieldWieldDeps): ShieldWieldApi {
         snapshot: (): ShieldCombatSnapshot => ({
           shield,
           raised: raisedRef.current,
-          graft: graftOf(graftsRef.current, shield.itemId),
+          graft: graftOf(growthRef.current, shield.itemId),
           carrying: carryBlocksInteraction(carryRef.current),
           guardBroken: clockRef.current < guardBrokenUntilRef.current,
           playerFacing: getPlayerFacing(),

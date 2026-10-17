@@ -1166,9 +1166,11 @@ export interface CraftingRecipe {
    * SHIELD GRAFT (2026-10-17): when set, crafting this recipe does not
    * just output an item — it grafts thorn spikes onto the shield named
    * here (outputId is the same shield, consumed and re-output). The
-   * graft state lives on PlayerState.shieldGrafts and survives the
-   * shield's later consume-upgrades (Lantern ← Scute, Fenback ←
-   * Lantern) via inheritance in the craft flow.
+   * graft lives in the shield's OWN growth record (creatures/
+   * shields.ts ShieldGrowthMap, saved under the save record's
+   * shieldGrowth key — Adam, 2026-10-17) and survives the shield's
+   * later consume-upgrades (Lantern ← Scute, Fenback ← Lantern)
+   * via inheritance in the craft flow.
    */
   graftShield?: ItemId;
 }
@@ -1265,15 +1267,10 @@ export interface QuestProgressState {
 }
 
 /**
- * SHIELD GRAFT SLOT (Platforms Parallel, 2026-10-17): a shield
- * carries ONE graft in its slot, named by kind — the shield's
- * parallel to the gauntlet's modules and the helmet's growths.
- * 'spikes' is the first kind; new kinds join this union and
- * the SHIELD_GRAFTS table (creatures/shields.ts) without any
- * save-shape change.
+ * (The graft slot's types — ShieldGraftId, ShieldGrowth —
+ * live in creatures/shields.ts with the shield's own state,
+ * per Adam's relocation ruling, 2026-10-17.)
  */
-export type ShieldGraftId = 'spikes';
-
 export interface PlayerState {
   x: number;
   z: number;
@@ -1295,18 +1292,6 @@ export interface PlayerState {
    * the save verbatim with the rest of PlayerState; absent (undefined)
    * on saves from before the slot existed — treat as empty. */
   heldItemId?: ItemId | null;
-  /**
-   * SHIELD GRAFTS (2026-10-17; SLOT formalized 2026-10-17):
-   * each shield's graft slot, by item id — the VALUE is now the
-   * graft's kind (ShieldGraftId), not a boolean. Saves from
-   * before the slot hold `true`, which every reader treats as
-   * 'spikes' (the only graft that existed) via shields.graftOf
-   * — no migration, no version bump. Optional for save
-   * compatibility — old saves load it as {} (nothing grafted).
-   * Written by the graft recipes and inherited through the
-   * shield consume-upgrades, kind and all.
-   */
-  shieldGrafts?: Partial<Record<ItemId, ShieldGraftId | boolean>>;
   /** Mini-quest progress — see QuestProgressState. Optional for
    * save compatibility; new worlds start it fresh in
    * handleCreateSave. */

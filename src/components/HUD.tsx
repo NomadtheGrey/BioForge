@@ -77,6 +77,10 @@ const CycleButtons: React.FC<{
 
 interface HUDProps {
   playerState: PlayerState;
+  /** The shields' own growth record (Adam's relocation,
+   *  2026-10-17) — the Left Hand tile names the held shield's
+   *  graft from the shield's state, not the player's. */
+  shieldGrowth?: ShieldGrowthMap;
   onSelectTool: (tool: ToolType) => void;
   /** Touch-mode selection cycling (the wheel/arrow replacements). */
   onCycleSeed?: (direction: 1 | -1) => void;
@@ -192,7 +196,7 @@ import { HudOptionsPanel } from './HudOptionsPanel';
 import { multiplayerManager, RELAY_BASE_URL } from '../game/multiplayer';
 // Shield faces for the Left Hand tile (shield follow pass,
 // 2026-10-17): which held items are shields, from the rules.
-import { SHIELD_GRAFTS, graftOf, isShieldItem } from '../game/creatures/shields';
+import { SHIELD_GRAFTS, graftOf, isShieldItem, type ShieldGrowthMap } from '../game/creatures/shields';
 // The world's calendar (Shelf 1): the zone panel's day/night
 // row answers WHEN as well as where — the day count is the
 // world's age from its creation stamp, read live each render.
@@ -279,6 +283,7 @@ const SessionStats: React.FC = () => {
 
 export const HUD: React.FC<HUDProps> = ({
   playerState,
+  shieldGrowth,
   onSelectTool,
   onCycleSeed,
   onCycleFertilizer,
@@ -1341,7 +1346,7 @@ export const HUD: React.FC<HUDProps> = ({
               // The slot holds a graft KIND now (Platforms
               // Parallel, 2026-10-17): the tile names it, rather
               // than wearing a bare grafted dot.
-              const heldGraft = heldShield ? graftOf(playerState.shieldGrafts, heldId as ItemId) : null;
+              const heldGraft = heldShield ? graftOf(shieldGrowth, heldId as ItemId) : null;
               const heldGrafted = heldGraft !== null;
               const heldName = heldId ? ITEMS[heldId]?.name ?? heldId : null;
               return (

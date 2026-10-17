@@ -15,7 +15,7 @@
  * stamina drain in hooks/useGameLoop.ts.
  */
 
-import type { CraftingRecipe, ItemId, ShieldGraftId } from '../../types/game';
+import type { CraftingRecipe, ItemId } from '../../types/game';
 
 /** The shields, in tier order. The Bulwark (Ingredient
  *  Sinks slice, 2026-10-17) is the family's second BRANCH:
@@ -73,6 +73,56 @@ export const GRAFT_REFLECT_PASSIVE = 4;
 export const GRAFT_REFLECT_BRACED = 10;
 
 // ---------------------------------------------------------------------------
+// The shield's OWN state (Adam, 2026-10-17): a graft is a
+// property of the shield, part of its own growth — "this
+// biotech is personalized anyway" — not a loose field on the
+// player. The growth record lives here, in the shield module,
+// and persists as its own key on the save record (the pattern
+// the World Asks Back set with its notebook), so a shield
+// carries its growth with it, not with the player's paperwork.
+// ---------------------------------------------------------------------------
+
+/** The graft kinds a shield's slot can hold. */
+export type ShieldGraftId = 'spikes';
+
+/** One shield's own growth: what its graft slot wears today,
+ *  with room for whatever a shield grows next. */
+export interface ShieldGrowth {
+  graft: ShieldGraftId | null;
+}
+
+/** Every shield's growth, by shield item. Sparse by design —
+ *  an absent entry is a shield that has grown nothing yet. */
+export type ShieldGrowthMap = Partial<Record<ItemId, ShieldGrowth>>;
+
+/** Read a shield's graft from its own growth record. */
+export function graftOf(
+  growth: ShieldGrowthMap | undefined,
+  itemId: ItemId
+): ShieldGraftId | null {
+  return growth?.[itemId]?.graft ?? null;
+}
+
+/**
+ * Fold a legacy save's player-level graft map into the
+ * shields' own growth records (the relocation, 2026-10-17).
+ * Legacy `true` meant the one graft that existed then —
+ * spikes; a stored kind keeps its name; anything else grows
+ * nothing. Runs at load; the old field is not carried forward.
+ */
+export function shieldGrowthFromLegacy(
+  legacy: Partial<Record<ItemId, ShieldGraftId | boolean>> | undefined
+): ShieldGrowthMap {
+  const out: ShieldGrowthMap = {};
+  if (!legacy) return out;
+  for (const [id, v] of Object.entries(legacy)) {
+    if (v === true) out[id as ItemId] = { graft: 'spikes' };
+    else if (typeof v === 'string') out[id as ItemId] = { graft: v as ShieldGraftId };
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
 // The graft SLOT (Platforms Parallel, 2026-10-17): one graft per
 // shield, named by kind — the shield's parallel to the gauntlet's
 // modules and the helmet's growths. The defs are data; a second
@@ -98,20 +148,6 @@ export const SHIELD_GRAFTS: Record<ShieldGraftId, ShieldGraftDef> = {
   },
 };
 
-/**
- * Read a shield's graft slot from the save record. Tolerant by
- * design: saves from before the slot hold `true`, which reads
- * as 'spikes' (the only graft that existed then); a stored
- * kind reads as itself; anything else reads as an empty slot.
- */
-export function graftOf(
-  grafts: Partial<Record<ItemId, ShieldGraftId | boolean>> | undefined,
-  itemId: ItemId
-): ShieldGraftId | null {
-  const v = grafts?.[itemId];
-  if (v === true) return 'spikes';
-  return typeof v === 'string' ? v : null;
-}
 /** The Spore Answer (Fenback, braced): stagger-and-knockback pulse. */
 export const SPORE_RADIUS = 3.5;
 export const SPORE_COOLDOWN_SECONDS = 6;
@@ -317,14 +353,14 @@ export function resolveSharedCover(input: CoverInput & { damage: number }): Cove
  */
 export function graftInheritanceOnCraft(
   recipe: CraftingRecipe,
-  grafts: Partial<Record<ItemId, ShieldGraftId | boolean>>
+  growth: ShieldGrowthMap
 ): { itemId: ItemId; kind: ShieldGraftId } | null {
   const output = shieldOf(recipe.outputId);
   if (!output) return null;
   if (recipe.graftShield) return null; // the graft recipe stamps its own
   for (const ing of recipe.ingredients) {
     if (ing.id === recipe.outputId || !isShieldItem(ing.id)) continue;
-    const kind = graftOf(grafts, ing.id);
+    const kind = graftOf(growth, ing.id);
     if (kind) return { itemId: recipe.outputId, kind };
   }
   return null;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Backpack, Sprout, Hammer, ArrowUpRight, Search } from 'lucide-react';
-import { ItemId, ShieldGraftId, StructureType, ToolType } from '../types/game';
+import { ItemId, StructureType, ToolType } from '../types/game';
 import { ITEMS, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../game/items/constants';
 import { isGauntletUpgrade, isGearItem, gearTierOf } from '../game/quests/quests';
 import { BASE_SUPPLY_GROUPS, baseSupplyGroupOf, isBaseSupply } from '../game/items/baseSupplies';
@@ -13,7 +13,7 @@ import {
   consumedRung,
   familyEntryOf,
 } from '../game/items/weaponsFamily';
-import { SHIELD_GRAFTS, graftOf, isShieldItem } from '../game/creatures/shields';
+import { SHIELD_GRAFTS, graftOf, isShieldItem, type ShieldGrowthMap } from '../game/creatures/shields';
 // The platform upgrade ENTRIES (Adam, 2026-10-17): the card
 // at the head of a platform's tab that shows its upgrades —
 // the shield's slot and branches, the Quicksteps' growths.
@@ -27,9 +27,9 @@ interface InventoryModalProps {
   onSelectSeed: (seedId: ItemId) => void;
   onSelectFertilizer: (fertilizerId: ItemId) => void;
   onSelectTool: (tool: ToolType) => void;
-  // The Spike Graft record (PlayerState.shieldGrafts), when
+  // The Spike Graft record (PlayerState.shieldGrowth), when
   // passed: a shield's inspector marks GRAFTED on the item.
-  shieldGrafts?: Partial<Record<ItemId, ShieldGraftId | boolean>>;
+  shieldGrowth?: ShieldGrowthMap;
 }
 
 export const InventoryModal: React.FC<InventoryModalProps> = ({
@@ -40,7 +40,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
   onSelectSeed,
   onSelectFertilizer,
   onSelectTool,
-  shieldGrafts,
+  shieldGrowth,
 }) => {
   const [activeTab, setActiveTab] = useState<'all' | 'raw' | 'seed' | 'fertilizer' | 'structure' | 'gauntlet' | 'helmet' | 'boots' | 'shield' | 'base'>('all');
   const [selectedItemId, setSelectedItemId] = useState<ItemId | null>(null);
@@ -287,7 +287,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                 Quicksteps' growths — with live state from the
                 pouch. Search stands them down like the tabs. */}
             {!searchActive && activeTab === 'shield' && (
-              <ShieldUpgradesCard inventory={inventory} shieldGrafts={shieldGrafts} />
+              <ShieldUpgradesCard inventory={inventory} shieldGrowth={shieldGrowth} />
             )}
             {!searchActive && activeTab === 'boots' && (
               <QuickstepsUpgradesCard inventory={inventory} />
@@ -321,7 +321,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                   // itself (Platforms Parallel, 2026-10-17): the
                   // slot is part of the shield's identity, not a
                   // bare yes/no badge tucked in the inspector.
-                  const tileGraft = tileFamily?.kind === 'defensive' ? graftOf(shieldGrafts, id) : null;
+                  const tileGraft = tileFamily?.kind === 'defensive' ? graftOf(shieldGrowth, id) : null;
 
                   return (
                     <div
@@ -468,12 +468,12 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                             </span>
                           </div>
                         )}
-                        {familyEntryOf(activeItem.id)!.kind === 'defensive' && shieldGrafts && (
+                        {familyEntryOf(activeItem.id)!.kind === 'defensive' && shieldGrowth && (
                           <div className="flex justify-between py-1.5 border-b border-slate-800 text-slate-400">
                             <span>Graft Slot</span>
-                            <span className={`font-tech uppercase ${graftOf(shieldGrafts, activeItem.id) ? 'text-emerald-300' : 'text-slate-500'}`}>
+                            <span className={`font-tech uppercase ${graftOf(shieldGrowth, activeItem.id) ? 'text-emerald-300' : 'text-slate-500'}`}>
                               {(() => {
-                                const g = graftOf(shieldGrafts, activeItem.id);
+                                const g = graftOf(shieldGrowth, activeItem.id);
                                 return g
                                   ? `${SHIELD_GRAFTS[g].name} — answers ${SHIELD_GRAFTS[g].reflectPassive} / ${SHIELD_GRAFTS[g].reflectBraced} braced`
                                   : 'Not grafted';

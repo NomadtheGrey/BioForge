@@ -28,6 +28,9 @@ import {
   graftInheritanceOnCraft,
   graftOf,
   graftReflectDamage,
+  shieldGrowthFromLegacy,
+  type ShieldGraftId,
+  type ShieldGrowthMap,
   inArc,
   isDisplacementImmune,
   leftHandOrder,
@@ -40,7 +43,7 @@ import {
   type ShieldCombatInput,
   type ShieldDef,
 } from '../src/game/creatures/shields';
-import type { CraftingRecipe, ItemId, ShieldGraftId } from '../src/types/game';
+import type { CraftingRecipe, ItemId } from '../src/types/game';
 
 let pass = 0;
 let fail = 0;
@@ -179,12 +182,13 @@ console.log('\n7. GRAFT SURVIVES T1->T2 AND T2->T3 CONSUMES');
     category: 'defenses', craftTimeMs: 0,
     ingredients: [{ id: 'lantern_shield', count: 1 }, { id: 'fen_scute', count: 4 }],
   };
-  // Legacy-form record (boolean true, pre-slot saves): the
-  // inheritance must read it as 'spikes' and carry the KIND.
-  const grafts: Partial<Record<ItemId, boolean>> = { scute_shield: true };
+  // The growth-record form (the graft lives in the shield's own
+  // state since Adam's relocation, 2026-10-17): inheritance reads
+  // the parent shield's record and carries the KIND.
+  const grafts: ShieldGrowthMap = { scute_shield: { graft: 'spikes' } };
   check('T1->T2 inherits the graft', graftInheritanceOnCraft(t1to2, grafts)?.itemId === 'lantern_shield');
-  check('T2->T3 inherits the graft', graftInheritanceOnCraft(t2to3, { lantern_shield: true })?.itemId === 'fenback_shield');
-  check('legacy boolean inherits AS spikes', graftInheritanceOnCraft(t1to2, grafts)?.kind === 'spikes');
+  check('T2->T3 inherits the graft', graftInheritanceOnCraft(t2to3, { lantern_shield: { graft: 'spikes' } })?.itemId === 'fenback_shield');
+  check('the inherited graft keeps its kind', graftInheritanceOnCraft(t1to2, grafts)?.kind === 'spikes');
   check('ungrafted parent inherits nothing', graftInheritanceOnCraft(t1to2, {}) === null);
   check('non-shield output inherits nothing',
     graftInheritanceOnCraft({ ...t1to2, outputId: 'hand_lantern_fern' }, grafts) === null);
@@ -326,14 +330,21 @@ console.log('\n15. THE BULWARK BRANCH (Platforms Parallel, 2026-10-17)');
   check('the same block on a fenback DOES fire it (control)', fen.state.sporeFired === true);
 }
 
-console.log('\n16. THE GRAFT SLOT (Platforms Parallel, 2026-10-17)');
+console.log('\n16. THE GRAFT SLOT + THE SHIELD’S OWN STATE (2026-10-17)');
 {
-  check('legacy true reads as spikes', graftOf({ scute_shield: true }, 'scute_shield') === 'spikes');
-  check('a stored kind reads as itself', graftOf({ scute_shield: 'spikes' }, 'scute_shield') === 'spikes');
-  check('an empty slot reads null', graftOf({}, 'scute_shield') === null);
+  check('a grown graft reads as its kind', graftOf({ scute_shield: { graft: 'spikes' } }, 'scute_shield') === 'spikes');
+  check('an empty slot reads null', graftOf({ scute_shield: { graft: null } }, 'scute_shield') === null);
+  check('an absent shield reads null', graftOf({}, 'scute_shield') === null);
   check('an absent record reads null', graftOf(undefined, 'scute_shield') === null);
   check('reflect reads the graft def (passive)', graftReflectDamage(false, 'spikes') === 4);
   check('reflect reads the graft def (braced)', graftReflectDamage(true, 'spikes') === 10);
+  // The relocation migration: legacy player-level maps fold into
+  // the shields' own records — true was the boolean era's spikes.
+  const folded = shieldGrowthFromLegacy({ scute_shield: true, fenback_shield: 'spikes' as ShieldGraftId, lantern_shield: false });
+  check('legacy true folds in as spikes', graftOf(folded, 'scute_shield') === 'spikes');
+  check('a stored kind folds in as itself', graftOf(folded, 'fenback_shield') === 'spikes');
+  check('legacy junk grows nothing', graftOf(folded, 'lantern_shield') === null);
+  check('no legacy record folds to empty', Object.keys(shieldGrowthFromLegacy(undefined)).length === 0);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

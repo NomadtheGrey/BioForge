@@ -1,6 +1,6 @@
 import React from 'react';
 import { Shield, Footprints } from 'lucide-react';
-import type { ItemId, ShieldGraftId } from '../types/game';
+import type { ItemId } from '../types/game';
 import { ITEMS } from '../game/items/constants';
 import {
   DROP_MAGNET_BRACED,
@@ -10,6 +10,7 @@ import {
   SHIELDS,
   SPORE_RADIUS,
   graftOf,
+  type ShieldGrowthMap,
 } from '../game/creatures/shields';
 import { BOOTS } from '../game/items/weaponsFamily';
 
@@ -38,11 +39,11 @@ const owns = (inventory: Record<ItemId, number>, id: ItemId) => (inventory[id] ?
 // Bulwark's pull (the "magnet"). A row's state names what the
 // pouch actually holds, never a promise.
 export const ShieldUpgradesCard: React.FC<CardProps & {
-  shieldGrafts?: Partial<Record<ItemId, ShieldGraftId | boolean>>;
-}> = ({ inventory, shieldGrafts }) => {
+  shieldGrowth?: ShieldGrowthMap;
+}> = ({ inventory, shieldGrowth }) => {
   const ownedShields = SHIELD_ITEM_IDS.filter((id) => owns(inventory, id));
   const graftedNames = SHIELD_ITEM_IDS
-    .filter((id) => graftOf(shieldGrafts, id) !== null)
+    .filter((id) => graftOf(shieldGrowth, id) !== null)
     .map((id) => ITEMS[id]?.name ?? id);
   const lampShield = SHIELDS.find((s) => s.hasLamp && owns(inventory, s.itemId));
   const hasFenback = owns(inventory, 'fenback_shield');

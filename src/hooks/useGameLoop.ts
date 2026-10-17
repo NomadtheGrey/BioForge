@@ -149,7 +149,7 @@ export interface GameLoopDeps {
       onStaminaEmpty: () => void;
       tickClock: (dt: number) => void;
       raisedRef: { current: boolean };
-      graftsRef: { current: Partial<Record<import('../types/game').ItemId, import('../types/game').ShieldGraftId | boolean>> };
+      growthRef: { current: import('../game/creatures/shields').ShieldGrowthMap };
       /** THE SHIELD (2026-10-17): the strike side-effect sink —
        *  the shared consumer queues reflects, staggers, and spore
        *  bursts here; the sim's post-map sweep drains them. */
@@ -693,7 +693,7 @@ export function useGameLoop(deps: GameLoopDeps): void {
         if (shieldCtl) {
           shieldCtl.tickClock(dt);
           const heldShield = shieldOf(playerState.heldItemId ?? null) ?? null;
-          const grafted = !!(heldShield && graftOf(shieldCtl.graftsRef.current, heldShield.itemId));
+          const grafted = !!(heldShield && graftOf(shieldCtl.growthRef.current, heldShield.itemId));
           engineRef.current.setShieldViewmodel(heldShield, grafted, shieldCtl.raisedRef.current, dt);
           const camDir = new THREE.Vector3();
           engineRef.current.camera.getWorldDirection(camDir);

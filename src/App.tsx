@@ -187,14 +187,14 @@ export default function App() {
 
   const {
     playerState,
-    shieldGrafts,
+    shieldGrowth,
     setActiveTool,
     setSelectedStructureType,
     setSelectedSeedId,
     setSelectedFertilizerId,
     setHeldItemId,
     setQuestProgress,
-    setShieldGrafts,
+    setShieldGrowth,
     setPlayerTransform,
     setStamina,
     setHealth,
@@ -871,12 +871,12 @@ export default function App() {
   // S6 carry. The mass lives in the hook + game/creatures/
   // shields.ts — App only wires it (APP RULE).
   // ------------------------------------------------------------------------
-  const shieldGraftsRef = useRef(shieldGrafts);
-  shieldGraftsRef.current = shieldGrafts;
+  const shieldGrowthRef = useRef(shieldGrowth);
+  shieldGrowthRef.current = shieldGrowth;
   const shieldWield = useShieldWield({
     heldItemId: playerState.heldItemId,
-    shieldGrafts,
-    setShieldGrafts,
+    shieldGrowth,
+    setShieldGrowth,
     carryRef,
     postNotification,
   });
@@ -1222,7 +1222,7 @@ export default function App() {
       onStaminaEmpty: () => void;
       tickClock: (dt: number) => void;
       raisedRef: { current: boolean };
-      graftsRef: { current: Partial<Record<ItemId, import('./types/game').ShieldGraftId | boolean>> };
+      growthRef: { current: import('./game/creatures/shields').ShieldGrowthMap };
       /** THE SHIELD (2026-10-17): the strike side-effect sink —
        *  the shared consumer queues reflects, staggers, and spore
        *  bursts here; the sim's post-map sweep drains them. */
@@ -1278,12 +1278,14 @@ export default function App() {
     codexList,
     fieldNotesState,
     asksBackState,
+    shieldGrowth,
     dayNightCycle,
     restoreInventory,
     restorePlayerState,
     setCodexList,
     setFieldNotesState,
     setAsksBackState,
+    setShieldGrowth,
     setDayNightCycle,
     setQuestProgress,
     replaceWorld,
@@ -2175,7 +2177,7 @@ const {
       onStaminaEmpty: shieldWield.onStaminaEmpty,
       tickClock: shieldWield.tickClock,
       raisedRef: shieldWield.raisedRef,
-      graftsRef: shieldGraftsRef,
+      growthRef: shieldGrowthRef,
       queueShieldSideEffect,
     };
   }, [shieldWield, queueShieldSideEffect]);
@@ -2270,7 +2272,7 @@ const {
     // invariant at the consumption point, so no caller can
     // burn graft materials on a shield that already wears one.
     if (recipe.graftShield) {
-      const wornGraft = graftOf(shieldGraftsRef.current, recipe.graftShield);
+      const wornGraft = graftOf(shieldGrowthRef.current, recipe.graftShield);
       if (wornGraft) {
         postNotification(
           'Graft Slot Filled',
@@ -2288,7 +2290,7 @@ const {
       if (recipe.graftShield) {
         shieldWield.graftShield(recipe.graftShield);
       } else {
-        const inherited = graftInheritanceOnCraft(recipe, shieldGraftsRef.current);
+        const inherited = graftInheritanceOnCraft(recipe, shieldGrowthRef.current);
         if (inherited) shieldWield.graftShield(inherited.itemId, inherited.kind);
       }
       postNotification(
@@ -2464,6 +2466,7 @@ const {
 
       {/* Futuristic Botanical Tech HUD */}
       <HUD
+        shieldGrowth={shieldGrowth}
         playerState={{
           ...playerState,
           x: minimapPos.x,
@@ -2709,7 +2712,7 @@ const {
         inventory={inventory}
         nearForge={craftAccess.nearForge}
         hasSynthesizer={craftAccess.hasSynthesizer}
-        shieldGrafts={playerState.shieldGrafts}
+        shieldGrowth={shieldGrowth}
         onCraftRecipe={handleCraftRecipe}
         onGrowPrerequisites={handleGrowPrerequisites}
         onSelectStructureBlueprint={(type) => {
@@ -2722,7 +2725,7 @@ const {
         isOpen={activeModal === 'inventory'}
         onClose={() => setActiveModal(null)}
         inventory={inventory}
-        shieldGrafts={shieldGrafts}
+        shieldGrowth={shieldGrowth}
         onSelectBlueprint={setSelectedStructureType}
         onSelectSeed={setSelectedSeedId}
         onSelectFertilizer={setSelectedFertilizerId}
@@ -2736,7 +2739,7 @@ const {
         // The Grown Arsenal marks entries GROWN / NOT GROWN and shows
         // ingredient counts from the pouch when it has it.
         inventory={inventory}
-        shieldGrafts={shieldGrafts}
+        shieldGrowth={shieldGrowth}
       />
 
       <StartScreenModal

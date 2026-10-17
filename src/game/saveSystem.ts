@@ -24,6 +24,7 @@
 import { WORLD_GEN_VERSION } from './world/worldGen';
 import type { FieldNotesState } from './knowledge/fieldNotesBook';
 import { EMPTY_ASKS_BACK, type AsksBackState } from './quests/asksBackState';
+import type { ShieldGrowthMap } from './creatures/shields';
 import type { ZoneCoords } from './world/zones';
 import {
   CodexEntry,
@@ -122,6 +123,15 @@ export interface SavedGameRecord extends SaveMetadata {
    *  the key; buildSavedGame always writes it and the apply path
    *  falls back to an empty record. NO version bump. */
   asksBack?: AsksBackState;
+  /** The shields' OWN growth records (Adam's relocation,
+   *  2026-10-17): each shield's graft slot, keyed by shield
+   *  item — a property of the shield, not of the player, so
+   *  it rides its own key exactly like the notebook above.
+   *  Optional: records from before the move carry the grafts
+   *  inside playerState instead; the load path folds those
+   *  in and the old field is never written again. NO
+   *  version bump. */
+  shieldGrowth?: ShieldGrowthMap;
   /** Flora the PLAYER planted inside cavern instances, keyed by the
    * cavern's instanceId (Adam, 2026-10-14: planted cave plants persist
    * per-cave). The wild instance flora is NOT stored — instances
@@ -275,7 +285,8 @@ export function buildSavedGame(
   codexList: CodexEntry[],
   cavePlantings?: Record<string, FloraEntity[]>,
   fieldNotes?: FieldNotesState,
-  asksBack?: AsksBackState
+  asksBack?: AsksBackState,
+  shieldGrowth?: ShieldGrowthMap
 ): SavedGameRecord {
   return {
     ...metadata,
@@ -293,5 +304,7 @@ export function buildSavedGame(
     // memory — the engine regenerates offers from seed + day, so
     // nothing the player did is contradicted by the fallback.
     asksBack: asksBack ?? EMPTY_ASKS_BACK,
+    // The shields' growth records ride their own key (2026-10-17).
+    shieldGrowth: shieldGrowth ?? {},
   };
 }

@@ -83,6 +83,11 @@ The scoot's leash collapses the whole edge-case family:
   zone, exactly where the save (and on death, the world) already believes
   it is. There is no death-drop to recover and nothing to Walk Back for.
 - **Carry never persists:** no new save key, SAVE_FORMAT_VERSION stays 1.
+- **The lift state is session UI, full stop:** it dies with any world
+  reload (death respawn, disconnect, world switch) rather than
+  resurrecting against fresh world state. If it lives in App state that
+  resets on world load, that's automatic — but keep it that way; a future
+  refactor must never promote the lift into persisted state by accident.
 - **Guests:** lifting a host's structure follows the existing structure
   broadcast discipline (remove on lift, upsert on set-down; host stays
   truth on save); a guest disconnect mid-lift simply never sends the

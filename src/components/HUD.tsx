@@ -193,6 +193,10 @@ import { multiplayerManager, RELAY_BASE_URL } from '../game/multiplayer';
 // Shield faces for the Left Hand tile (shield follow pass,
 // 2026-10-17): which held items are shields, from the rules.
 import { isShieldItem } from '../game/creatures/shields';
+// The world's calendar (Shelf 1): the zone panel's day/night
+// row answers WHEN as well as where — the day count is the
+// world's age from its creation stamp, read live each render.
+import { readSkyClock, skyDayFloat } from '../game/world/skyCalendar';
 
 /**
  * SessionStats — the FPS + PING readout in the session bar
@@ -364,6 +368,27 @@ export const HUD: React.FC<HUDProps> = ({
   // HudPanel's ✕ delivers just the panel id; hiding is always "true".
   const hideHudPanel = (panelId: HudPanelId) => hudLayout.setHidden(panelId, true);
   const isDay = dayNightCycle > 0.25 && dayNightCycle < 0.75;
+  // THE WORLD'S CLOCK (Adam, 2026-10-17 — "if we're having day
+  // count and time, let's have HUD put that in a sensible
+  // place"): the zone panel's day/night row carries both. The
+  // DAY is the world's age — Shelf 1's calendar counts
+  // fractional days from the world's creation stamp by wall
+  // clock (the world keeps its own time, watched or not), so
+  // Day = floor + 1. The TIME is the sun's phase read as a
+  // 24-hour dial — the sky rig's own convention: phase 0.25
+  // is sunrise (06:00), 0.5 noon, 0.75 sunset, 0 midnight.
+  // Both recompute on the once-a-second phase tick that
+  // already re-renders this panel. No stamp yet (pre-world)
+  // = no day number; the dial always reads.
+  const skyClock = readSkyClock();
+  const worldDay =
+    skyClock.createdAtMs > 0
+      ? Math.floor(skyDayFloat(skyClock.createdAtMs, Date.now())) + 1
+      : null;
+  const phaseMinutes = Math.floor(dayNightCycle * 24 * 60) % (24 * 60);
+  const phaseClock = `${String(Math.floor(phaseMinutes / 60)).padStart(2, '0')}:${String(
+    phaseMinutes % 60,
+  ).padStart(2, '0')}`;
 
   const tools: { id: ToolType; label: string; key: string; icon: string; desc: string; color: string }[] = [
     {
@@ -805,23 +830,31 @@ export const HUD: React.FC<HUDProps> = ({
           <div className="h-px w-full bg-slate-700/60" />
 
           {/* Day/Night Toggle & Bioluminescence button — its own
-              row in the taller arrangement. */}
+              row in the taller arrangement. The row now also
+              carries the world's clock (Adam, 2026-10-17): the
+              panel already answers WHERE; Day + time answer
+              WHEN, on the same card, inheriting its drag, its
+              ✕, and its Options toggle for free. The button
+              still toggles the bioluminescence mode — its face
+              names the mode under the clock line. */}
           <button
             onClick={onToggleDayNight}
             title="Toggle Day / Night Bioluminescence"
             className="hover:bg-slate-800/80 transition-colors px-2 py-1.5 rounded-xl flex items-center gap-2 text-xs font-medium text-slate-200 w-full"
           >
             {isDay ? (
-              <>
-                <Sun className="w-4 h-4 text-amber-400 animate-spin-slow" />
-                <span className="font-tech text-amber-300">Sol-Cycle</span>
-              </>
+              <Sun className="w-4 h-4 text-amber-400 animate-spin-slow shrink-0" />
             ) : (
-              <>
-                <Moon className="w-4 h-4 text-purple-400 animate-pulse" />
-                <span className="font-tech text-purple-300">Biolum-Night</span>
-              </>
+              <Moon className="w-4 h-4 text-purple-400 animate-pulse shrink-0" />
             )}
+            <span className="flex flex-col items-start leading-tight">
+              <span className={`font-tech ${isDay ? 'text-amber-300' : 'text-purple-300'}`}>
+                {worldDay !== null ? `Day ${worldDay} · ` : ''}{phaseClock}
+              </span>
+              <span className="text-[9px] font-mono text-slate-400">
+                {isDay ? 'Sol-Cycle' : 'Biolum-Night'}
+              </span>
+            </span>
           </button>
         </div>
           </HudPanel>

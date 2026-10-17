@@ -26,6 +26,7 @@ import { generateSeededWorld } from '../game/world/worldGen';
 import { LANDFORM_EPOCH_MS } from '../game/world/terrain';
 import { multiplayerManager } from '../game/multiplayer';
 import { snapshotOf, buildZoneSyncTravel as buildZoneSyncTravelPayload, type ZoneStores } from '../game/zoneSync';
+import { readSkyClock } from '../game/world/skyCalendar';
 import type { GameNotification } from '../types/game';
 // THE WORLD ASKS BACK, S4: saga consequences become real zones here.
 import { applyZoneConsequences } from '../game/quests/asksBack/applyConsequences';
@@ -199,8 +200,8 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
   const snapshotCurrentZone = (): WorldSnapshot => snapshotOf(buildWorldSnapshot());
 
   // The world_sync travel payload for the zone I stand in (zoneSync.ts).
-  const buildZoneSyncTravel = (): { zone: string; zones: Record<string, WorldSnapshot>; worldSeed: string } =>
-    buildZoneSyncTravelPayload(visitedZonesRef.current, zoneKey(playerZoneRef.current.zx, playerZoneRef.current.zz), buildWorldSnapshot(), worldSeedRef.current);
+  const buildZoneSyncTravel = (): { zone: string; zones: Record<string, WorldSnapshot>; worldSeed: string; worldCreatedAt?: number } =>
+    buildZoneSyncTravelPayload(visitedZonesRef.current, zoneKey(playerZoneRef.current.zx, playerZoneRef.current.zz), buildWorldSnapshot(), worldSeedRef.current, readSkyClock().createdAtMs || undefined);
 
   // The crossing itself, once the far zone is IN HAND. Solo players
   // and hosts hold every zone already (their map, or a fresh roll of

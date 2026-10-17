@@ -70,6 +70,9 @@ new verb, and every verb opens new country.
 - **Planter Trowel [3]** — grafted, not given (see the Forge). It
   does two jobs: it plants seeds, and it applies fertilizer —
   the same trowel sows and feeds.
+- **Taming Lure [4]** — calls the wild to you, and leads the
+  tame: a creature following your lure can be told to stay,
+  to guard, or — kindly, and by name — to go free.
 - **Solvent Sprayer [5]** — un-grows things gently: plants give
   back their seed, structures give back their kit, whole.
 - **Bio-Builder [6]** — places what the Forge grows: walls,
@@ -113,9 +116,10 @@ One zone is 100 paces across; the country changes as you walk
 out — meadows first, then wetlands, fungal dark, ember fields,
 saltglass, stranger things. Danger and wonder both rise with
 distance. Days turn on a ten-minute sky; your zone panel reads
-the day and hour. Death is real: you wake at your **Heart
-Tile**, and what you dropped lies where you fell — walk back
-for it.
+the day and hour. Death is real but not theft: you wake at your
+**Heart Tile** with everything you carried still in your
+pouch. The walk back is yours to make — the land remembers
+where you fell, even if your hands come back full.
 
 **Creatures are people.**
 They court, negotiate, hoard, and decide. Some can be fed,

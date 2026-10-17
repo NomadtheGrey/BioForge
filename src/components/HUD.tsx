@@ -928,9 +928,20 @@ export const HUD: React.FC<HUDProps> = ({
               <span className="text-sm font-tech font-bold leading-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-pink-400">
                 {currentBiomeName}
               </span>
+              {/* THE COORDS, BIG (Adam, next iteration,
+                  2026-10-17): the panel's loudest line after
+                  the name. They used to ride the biome line at
+                  10px — findable, never glanceable — yet the
+                  tutorial's zone step teaches X,Z off this very
+                  readout, and a player walking by hops steers
+                  by them. The label is zones.ts' own string
+                  ('Zone 0, 0' = zx, zz). */}
+              <span className="font-tech font-extrabold text-[22px] leading-tight tracking-wide text-cyan-200">
+                {zoneCoordsLabel}
+              </span>
               {currentBiomeType && (
                 <span className="text-[10px] font-mono text-teal-300/80">
-                  Biome · {currentBiomeType} · {zoneCoordsLabel}
+                  Biome · {currentBiomeType}
                 </span>
               )}
               {edgeZoneLabel && (

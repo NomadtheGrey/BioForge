@@ -28,7 +28,8 @@ import { soundEngine } from '../audio/soundEngine';
 import { multiplayerManager } from '../game/multiplayer';
 import { FLORA_MATURE_SECONDS, FERTILIZER_DURATION_SECONDS } from './useWorldEntities';
 import { speciesDef } from '../game/species';
-import { sampleItemId } from '../game/vat';
+import { sampleItemId, vatKitFor } from '../game/vat';
+import { storageKitFor } from '../game/pouch';
 import { bestWeapon } from '../game/weapons';
 import type { WeaponDef } from '../game/weapons';
 import { floraDef } from '../game/flora';
@@ -709,24 +710,54 @@ export function useToolInteractions({
       soundEngine.playSolventSpray();
       triggerSolventFx(structure.worldX, structure.worldZ);
 
-      // A storage pod SPILLS before it dissolves (Adam, 2026-10-15):
-      // everything inside drops at the pod's feet, then the pod
-      // itself returns to the pouch like any structure. Nothing a
-      // player stored is ever deleted by a misclick of solvent.
-      // A gestating vat gives its SAMPLE back before it dissolves
-      // (the pod's spill rule, narrowed to the heart): the soup is
-      // spent into the culture, but the cutting itself is too
-      // precious to delete by a misclick.
+      // Pickup is WHOLE (Adam, 2026-10-15, completed 2026-10-16):
+      // a dissolved structure returns to the player tiers, contents
+      // and all — the structure item itself, every tier kit it had
+      // absorbed, and everything it was holding. Contents ride the
+      // ordinary pouch gain, so what fits goes to the pouch and
+      // any overflow drops at the player's feet like any other
+      // gain: nothing a player stored is ever deleted by solvent.
+      // A gestating vat gives its SAMPLE back too (the pod's rule,
+      // narrowed to the heart): the soup is spent into the culture,
+      // but the cutting itself is too precious to delete.
+      const returnedKits: string[] = [];
+      let returnedContents = false;
+
       if (structure.type === 'culture_vat' && structure.vat?.gestating) {
-        spawnDroppedItem(sampleItemId(structure.vat.gestating.species), 1, structure.worldX, structure.worldZ);
+        addInventoryItem(sampleItemId(structure.vat.gestating.species), 1);
+        returnedContents = true;
       }
 
       if ((structure.type === 'storage_pod' || structure.type === 'sample_rack') && structure.storage) {
         Object.entries(structure.storage.items).forEach(([itemId, count]) => {
           if ((count ?? 0) > 0) {
-            spawnDroppedItem(itemId as ItemId, count as number, structure.worldX, structure.worldZ);
+            addInventoryItem(itemId as ItemId, count as number);
+            returnedContents = true;
           }
         });
+      }
+
+      // Tier kits absorbed by in-place upgrades come back out:
+      // each tier above the base was raised by one kit, and the
+      // kit-ladder helpers name them (pod: hutch, then vault;
+      // vat: rich, then deep).
+      if (structure.storage) {
+        for (let step = 1; step < structure.storage.tier; step++) {
+          const kit = storageKitFor(step);
+          if (kit) {
+            addInventoryItem(kit, 1);
+            returnedKits.push(ITEMS[kit]?.name || kit);
+          }
+        }
+      }
+      if (structure.type === 'culture_vat' && structure.vat) {
+        for (let step = 1; step < structure.vat.tier; step++) {
+          const kit = vatKitFor(step);
+          if (kit) {
+            addInventoryItem(kit, 1);
+            returnedKits.push(ITEMS[kit]?.name || kit);
+          }
+        }
       }
 
       // Return 100% of seed-nodes to inventory
@@ -735,7 +766,9 @@ export function useToolInteractions({
 
       postNotification(
         'Bio-Structure Dissolved',
-        `Gentle enzyme returned 100% of ${ITEMS[structure.type]?.name || structure.type} to your pouch.`,
+        `Gentle enzyme returned 100% of ${ITEMS[structure.type]?.name || structure.type} to your pouch.` +
+          (returnedKits.length > 0 ? ` Tier kits back: ${returnedKits.join(', ')}.` : '') +
+          (returnedContents ? ' Contents returned with it.' : ''),
         'craft',
         '#38bdf8'
       );

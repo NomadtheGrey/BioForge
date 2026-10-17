@@ -210,7 +210,7 @@ export const GameInfoModal: React.FC<GameInfoModalProps> = ({ isOpen, onClose })
               <strong className="text-slate-100">What hangs over it all?</strong>{' '}
               The Precursors grew a civilization across these lands, and it ended.
               What happened to them is written in your world’s seed — and the ruins,
-              the far country, and the deep strata are how it answers. Day to day,
+              the deep country, and the strata below are how it answers. Day to day,
               what you are working toward is simpler: a bigger, stranger, more
               beloved homestead, and a world you know by heart.
             </p>

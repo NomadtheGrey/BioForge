@@ -33,6 +33,7 @@ import { applyZoneConsequences } from '../game/quests/asksBack/applyConsequences
 import { INITIAL_STRUCTURES } from './useWorldEntities';
 import { SPAWN_ZONE, zoneKey, zoneBiomeAt, zoneVariantAt, zoneFaceAt } from '../game/world/zones';
 import { generateSeededWorld } from '../game/world/worldGen';
+import { setSkyWorld } from '../game/world/skyCalendar';
 import { multiplayerManager } from '../game/multiplayer';
 /**
  * S6 Movable Vaults: the autosave projection reads the live carry and
@@ -400,6 +401,9 @@ export function useSaveSession(deps: SaveSessionDeps) {
       // day, so the fallback contradicts nothing.
       setAsksBackState(record.asksBack ?? EMPTY_ASKS_BACK);
       setDayNightCycle(record.dayNightCycle);
+      // Shelf 1 (sky phenomena): the restored world's clocks
+      // include the sky calendar's — seed + creation day zero.
+      setSkyWorld(record.worldSeed ?? '', record.createdAt);
     };
 
     const handleSelectSave = (id: string): void => {
@@ -462,6 +466,11 @@ export function useSaveSession(deps: SaveSessionDeps) {
       playerZoneRef.current = { zx: SPAWN_ZONE.zx, zz: SPAWN_ZONE.zz };
       setPlayerZone({ zx: SPAWN_ZONE.zx, zz: SPAWN_ZONE.zz });
       worldSeedRef.current = meta.worldSeed;
+      // Shelf 1: a new world's sky clock starts at its birth
+      // (the first save, moments later, persists createdAt —
+      // the two anchors agree to within seconds, and the
+      // calendar's phenomena run on day scales).
+      setSkyWorld(meta.worldSeed, Date.now());
       setSessionSeed(meta.worldSeed);
       // The ground wears the spawn zone's biome tint (always meadow).
       engineRef.current?.setZoneBiome(zoneBiomeAt(meta.worldSeed, SPAWN_ZONE.zx, SPAWN_ZONE.zz));

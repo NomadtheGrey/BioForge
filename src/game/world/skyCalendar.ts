@@ -187,6 +187,74 @@ export function moonAngleAt(moonIndex: number, cycle: number, tDays: number): nu
 }
 
 // ---------------------------------------------------------------------------
+// The sky clock — how the rig learns which world this is
+// ---------------------------------------------------------------------------
+
+/**
+ * The rig is constructed inside the engine and never sees
+ * the save system, so the world's identity reaches it
+ * through this small module-level clock: App-side code
+ * writes it wherever a world is loaded, created, or
+ * joined (useSaveSession's restore + new-world paths, the
+ * guest's world-sync handler), and the rig reads it per
+ * frame. No engine lines, no save contact — the writers
+ * own the values, this file just holds them.
+ *
+ * The zone fields ride along for the aurora gate (the
+ * rig renders aurora only under cold/charged country):
+ * App's zone-visit effect already computes the dealt
+ * biome, its tier, and the hops for its own signals, and
+ * writes them here on the same change.
+ */
+export interface SkyClock {
+  worldSeed: string;
+  /** The save record's createdAt — the calendar's day zero. */
+  createdAtMs: number;
+  /** The dealt biome id of the zone being stood in ('' = none yet). */
+  zoneBiomeId: string;
+  zoneTier: number;
+  zoneHops: number;
+}
+
+const skyClockState: SkyClock = {
+  worldSeed: '',
+  createdAtMs: 0,
+  zoneBiomeId: '',
+  zoneTier: 0,
+  zoneHops: 0,
+};
+
+export function setSkyWorld(worldSeed: string, createdAtMs: number): void {
+  skyClockState.worldSeed = worldSeed;
+  skyClockState.createdAtMs = createdAtMs;
+}
+
+export function setSkyZone(biomeId: string, tier: number, hops: number): void {
+  skyClockState.zoneBiomeId = biomeId;
+  skyClockState.zoneTier = tier;
+  skyClockState.zoneHops = hops;
+}
+
+export function readSkyClock(): Readonly<SkyClock> {
+  return skyClockState;
+}
+
+let cachedRoster: SkyRoster | null = null;
+/**
+ * The roster for the clock's world (derived once per
+ * seed, then cached), plus the current day float — or
+ * null before any world is loaded, when the rig keeps
+ * the phenomena dark.
+ */
+export function skyRosterNow(nowMs: number): { roster: SkyRoster; tDays: number } | null {
+  if (!skyClockState.worldSeed || !skyClockState.createdAtMs) return null;
+  if (!cachedRoster || cachedRoster.worldSeed !== skyClockState.worldSeed) {
+    cachedRoster = skyRosterFor(skyClockState.worldSeed);
+  }
+  return { roster: cachedRoster, tDays: skyDayFloat(skyClockState.createdAtMs, nowMs) };
+}
+
+// ---------------------------------------------------------------------------
 // The roster (derived once per world seed)
 // ---------------------------------------------------------------------------
 

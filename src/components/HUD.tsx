@@ -128,6 +128,12 @@ interface HUDProps {
   /** Close the tracked quest's card (its X) — App records the
    * dismissal; the quest stays in the log for re-tracking. */
   onDismissQuest?: () => void;
+  /** S3: the pinned saga's live view — rendered in the tracker's
+   * saga face while set, alongside (not replacing) the authored
+   * quest tracking above. */
+  sagaView?: import('./QuestTracker').SagaTrackView | null;
+  /** Unpin the saga (its X) — the saga stays active in the log. */
+  onDismissSaga?: () => void;
   showQuestHud: boolean;
   dayNightCycle: number;
   onToggleDayNight: () => void;
@@ -278,6 +284,8 @@ export const HUD: React.FC<HUDProps> = ({
   onOpenQuests,
   questView,
   onDismissQuest,
+  sagaView,
+  onDismissSaga,
   showQuestHud,
   dayNightCycle,
   onToggleDayNight,
@@ -641,7 +649,7 @@ export const HUD: React.FC<HUDProps> = ({
               player wants it (the quest list's checkbox) and a
               quest is being followed, and the HUD layout has not
               hidden it (its ✕ / Pause → Options). */}
-          {showQuestHud && questView && !hudLayout.isHidden('tracker') && (
+          {showQuestHud && (questView || sagaView) && !hudLayout.isHidden('tracker') && (
             <HudPanel
               id="tracker"
               label="Mini-Quest Tracker"
@@ -649,7 +657,16 @@ export const HUD: React.FC<HUDProps> = ({
               onMove={hudLayout.setOffset}
               onClose={hideHudPanel}
             >
-              <QuestTracker view={questView} onDismiss={onDismissQuest} />
+              {/* S3: a pinned saga takes the tracker's slot while
+                  set — the authored tracked quest rests in the log,
+                  untouched, and returns when the saga unpins. */}
+              {sagaView ? (
+                <QuestTracker saga={sagaView} onDismiss={onDismissSaga} />
+              ) : (
+                questView && (
+                  <QuestTracker view={questView} onDismiss={onDismissQuest} />
+                )
+              )}
             </HudPanel>
           )}
 

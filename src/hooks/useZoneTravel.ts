@@ -27,6 +27,9 @@ import { LANDFORM_EPOCH_MS } from '../game/terrain';
 import { multiplayerManager } from '../game/multiplayer';
 import { snapshotOf, buildZoneSyncTravel as buildZoneSyncTravelPayload, type ZoneStores } from '../game/zoneSync';
 import type { GameNotification } from '../types/game';
+// THE WORLD ASKS BACK, S4: saga consequences become real zones here.
+import { applyZoneConsequences } from '../game/asksBack/applyConsequences';
+import type { AsksBackState } from '../game/asksBackState';
 
 // Zone identification is a HELMET feature (Adam, 2026-10-15):
 // naming the land is a sense, and the helmet is the sensory
@@ -88,6 +91,12 @@ export interface ZoneTravelDeps {
    *  crossing — the saga engine reads zone-visit history for echo
    *  timing and revisit goals. */
   onZoneEnter?: (zoneKeyVisited: string) => void;
+  /** THE WORLD ASKS BACK, S4: the saga consequence record. The
+   *  world author applies its zone state on every crossing;
+   *  guests never apply it locally (their host's snapshot is
+   *  the truth). Passed as a dep so each crossing reads the
+   *  current record. */
+  asksBackState: AsksBackState;
 }
 
 export interface UseZoneTravelResult {
@@ -113,6 +122,7 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
     engineRef, playerPosRef, movementController, jumpRef, instanceRef,
     replaceWorld, applyPlayerLevel, postNotification,
     buildWorldSnapshot, getDayNightCycle, saveNowRef, getWorldCreatedAt, onZoneEnter,
+    asksBackState,
   } = deps;
 
   // The world is a grid of zones; the player stands in exactly one.
@@ -203,11 +213,30 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
     //    parameter of every roll.
     const nextKey = zoneKey(nx, nz);
     let target = hostSnapshot ?? visitedZonesRef.current.get(nextKey);
+    let freshRoll = false;
     if (hostSnapshot) visitedZonesRef.current.set(nextKey, hostSnapshot);
     if (!target) {
       const gen = generateSeededWorld(seed, nx, nz, { landform: getWorldCreatedAt() >= LANDFORM_EPOCH_MS });
       target = { flora: gen.flora, fauna: gen.fauna, structures: gen.structures, drops: [] };
       visitedZonesRef.current.set(nextKey, target);
+      freshRoll = true;
+    }
+    // THE WORLD ASKS BACK, S4: saga consequences — ONE apply path,
+    // executed by the world author only (solo player or host). A
+    // fresh roll gets the full overlay (removals, abundance, settled
+    // individuals); a revisited zone keeps its player-shaped truth
+    // and only takes removals + settled individuals. Guests arrive
+    // with the host's snapshot and never apply zone state locally
+    // from their own record — the host's truth already carries it.
+    if (!multiplayerManager.isConnected || multiplayerManager.isHost) {
+      const applied = applyZoneConsequences(
+        { fauna: target.fauna, flora: target.flora },
+        nx, nz, asksBackState, freshRoll ? 'generate' : 'load',
+      );
+      if (applied.fauna !== target.fauna || applied.flora !== target.flora) {
+        target = { ...target, fauna: applied.fauna, flora: applied.flora };
+        visitedZonesRef.current.set(nextKey, target);
+      }
     }
     // Follow pets materialize beside their person in a loose ring,
     // already walking to the arrival point.

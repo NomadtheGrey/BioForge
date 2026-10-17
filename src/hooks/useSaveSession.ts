@@ -26,6 +26,10 @@ import {
 } from '../game/saveSystem';
 import type { FieldNotesState } from '../game/fieldNotesBook';
 import { EMPTY_ASKS_BACK, type AsksBackState } from '../game/asksBackState';
+// THE WORLD ASKS BACK, S4: the save-load restore runs the same
+// consequence apply path as zone travel (load mode — removals +
+// settled individuals, never abundance on player-shaped lists).
+import { applyZoneConsequences } from '../game/asksBack/applyConsequences';
 import { INITIAL_STRUCTURES } from './useWorldEntities';
 import { SPAWN_ZONE, zoneKey, zoneBiomeAt, zoneVariantAt, zoneFaceAt } from '../game/zones';
 import { generateSeededWorld } from '../game/worldGen';
@@ -279,7 +283,29 @@ export function useSaveSession(deps: SaveSessionDeps) {
       setPlayerZone(restoredZone);
       worldSeedRef.current = record.worldSeed ?? '';
       setSessionSeed(record.worldSeed ?? '');
-      replaceWorld(restoredZones.get(zoneKey(restoredZone.zx, restoredZone.zz)) ?? record.world);
+      // THE WORLD ASKS BACK, S4: the restored zone loads through the
+      // same consequence apply path as travel (the world author only —
+      // a guest's restored lists are their host's truth already). Load
+      // mode: removals + settled individuals materialize; abundance
+      // never scales a player-shaped snapshot.
+      const restoredKey = zoneKey(restoredZone.zx, restoredZone.zz);
+      const restoredSnap = restoredZones.get(restoredKey) ?? record.world;
+      const isAuthor = !multiplayerManager.isConnected || multiplayerManager.isHost;
+      const appliedSnap = isAuthor
+        ? applyZoneConsequences(
+            { fauna: restoredSnap.fauna, flora: restoredSnap.flora },
+            restoredZone.zx, restoredZone.zz,
+            record.asksBack ?? EMPTY_ASKS_BACK,
+            'load',
+          )
+        : { fauna: restoredSnap.fauna, flora: restoredSnap.flora };
+      if (appliedSnap.fauna !== restoredSnap.fauna || appliedSnap.flora !== restoredSnap.flora) {
+        const withApplied = { ...restoredSnap, fauna: appliedSnap.fauna, flora: appliedSnap.flora };
+        restoredZones.set(restoredKey, withApplied);
+        replaceWorld(withApplied);
+      } else {
+        replaceWorld(restoredSnap);
+      }
       // Repaint the ground with the RESTORED zone's biome (pre-seed
       // saves pass null and keep the plain quadrant colors). This is
       // the only biome repaint on load — handleSelectSave used to do

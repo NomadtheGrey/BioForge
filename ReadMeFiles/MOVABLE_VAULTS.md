@@ -2,24 +2,41 @@
 
 Design record, Adam's rulings verbatim where he ruled. Build slot: Slice S6
 of The World Asks Back build stack, staged on `wip` after S5 (BioTunnel
-guest fix). Sequenced last because App, placement, and the container panels
-are all inside the Asks Back claim — one owner throughout.
+guest fix) and after the file-reorganization window. Sequenced last because
+App, placement, travel, and the container panels are all inside the Asks
+Back claim — one owner throughout.
 
-**RECUT 2026-10-17 (Adam): the move is a SCOOT, not a carry.** The use case
-is base redesign — a few tiles over, inside the zone where the structure
-already stands. The full cross-zone carry from the first draft is OUT:
-"it's not meant to provide bigger pockets" — a carried full vault is
-portable storage, so the move gets a leash. Everything below reflects the
-recut; the earlier design's ferry / autosave-projection / death-drop
-machinery is superseded and should not be built.
+## Ruling history (read in order — the latest governs)
+
+1. **First design (2026-10-16):** full carry, cross-zone ferry allowed;
+   death sets the vault down where the player fell; autosave handling per
+   amendment 2.
+2. **Amendment (2026-10-16 ~21:03, Adam's catch):** BioForge autosaves
+   every ~30 s, so "set down before the save writes" would fire
+   constantly. Rule: a save NEVER interrupts a carry — the save record
+   projects the carried vault at the player's feet in the current zone
+   (save-time projection only; the live carry continues).
+3. **Recut (2026-10-17 morning): the scoot** — 15 m leash, same zone only,
+   exits cancel to origin. Adam's concern: a carried full vault is
+   portable storage.
+4. **FINAL (2026-10-17 07:09, Adam): the leash is friction, not a wall.**
+   "It can be a cross zone thing, it's just inconvenient to try to use it
+   for storage. Gauntlet and shield are already disabled, as are weapons,
+   while carrying the storage." Cross-zone carry is BACK; the 15 m radius
+   gate is OUT. The anti-storage protection is the carry itself: while
+   hauling a vault you have no gauntlet tools, no shield, no weapons —
+   you are tool-less and defenseless for the whole haul, which makes the
+   vault impractical as adventuring storage without banning the
+   cross-country move a base relocation sometimes needs.
 
 ## The problem
 
 Containers (storage pods, sample racks, culture vats) can be grown, filled,
 upgraded — and then never relocated except by dissolving them. Dissolving is
 the teardown verb: it takes the structure apart. Players need the gentle
-verb for rearranging a base: lift the whole thing, contents and all, and set
-it down a few tiles over.
+verb: pick the whole thing up, contents and all, and set it down somewhere
+better — across the base, or across the country if they're willing to walk
+unarmed to do it.
 
 Adam's words: "These vaults need to be movable... We don't want him to have
 to pick up stuff off the floor or out of his pockets." + "We can make the
@@ -39,66 +56,71 @@ move is the gentle verb.
 
 "Anything we might pick up with inventory or tiers needs to be respected."
 
-The lifted state holds THE WHOLE ENTITY, never a hand-picked field subset —
+The carry holds THE WHOLE ENTITY, never a hand-picked field subset —
 contents in their exact slots, tier intact, gestation mid-count, every
-field the normal zone snapshot would store. Tier-gated behavior (capacity,
-gestation) reads from the entity as usual because the entity never stops
-being itself. Fidelity floor = the solvent fix (c281746: tiers + contents
-returned whole); move is simpler and safer because nothing is ever taken
-apart.
+field the normal zone snapshot would store. All paths move that whole
+entity: put-down, cancel-restore, autosave projection, death-drop, and the
+guest structure broadcast. No seam where inventory or tier can leak;
+tier-gated behavior (capacity, gestation) reads from the entity as usual
+because the entity never stops being itself. Fidelity floor = the solvent
+fix (c281746: tiers + contents returned whole); move is simpler and safer
+because nothing is ever taken apart.
 
-## The scoot — mechanics
+## Mechanics
 
-- **Entry:** a Move button on the container's own panel. One lifted
+- **Entry:** a Move button on the container's own panel. One carried
   structure at a time.
-- **Lifted state** = placement mode with the structure's ghost (existing
-  ghost/footprint/datum/reach rules), the entity held in an App lift state
-  recording its origin `{zoneKey, position, entity}`.
-- **THE LEASH:** the ghost is VALID ONLY WITHIN A SMALL RADIUS of the
-  structure's origin — **15 m as the starting constant, tunable** — same
-  zone by construction. Outside the disc the ghost reads invalid exactly
-  like any bad placement, and a set-down click there refuses silently, as
-  placement does today.
-- **Gauntlet INERT while lifted** (Adam's ruling): all tool inputs dead —
-  no harvest, strike, plant, build, solvent. The only live click is the
-  put-down click (route clicks to the placement handler first); a tool
-  attempt gets a soft "hands full" response. HUD shows the lifted state.
-- **Put down:** left-click places at the ghost (validity = placement rules
-  + the leash disc). `R` rotates (existing placement rotation input).
-  Right-click / Esc CANCELS — the structure restores to its origin,
-  untouched. Touch: tap ground to set down; the placement cancel button
-  backs out (existing touch placement flow).
+- **Carrying state** = placement mode with the carried structure's ghost
+  (existing ghost/footprint/datum/reach rules), the entity held OUT of all
+  zone lists in an App carry state recording origin
+  `{zoneKey, entity snapshot}` — the snapshot being the whole entity.
+- **THE WHOLE KIT IS INERT while carrying** (Adam's ruling): gauntlet
+  tools dead (no harvest, plant, build, solvent), weapons dead (the
+  striker draws through the gauntlet), shield dead. The only live click is
+  the put-down click (route clicks to the placement handler first); a tool
+  attempt gets a soft "hands full" response. HUD shows the carried state.
+  This total disarmament is the design's answer to portable storage.
+- **Put down:** left-click places at the ghost (validity = placement
+  rules; red ghost refuses silently, as placement does today). `R` rotates
+  (existing placement rotation input). Right-click / Esc CANCELS — the
+  entity restores to its origin (the live list if the player is back in
+  that zone, else written into that zone's parked visited snapshot).
+  Touch: tap ground to set down; the placement cancel button backs out
+  (existing touch placement flow).
+- **Zone travel mid-carry:** the carried entity rides like follow-pets do
+  through `completeTravel` (held out of lists, so it simply isn't in the
+  departing zone's parked snapshot); the placement ghost stays live after
+  arrival — set down in the new zone.
 
-## Saves, death, and exits — deliberately trivial
+## Saves, death, and guests
 
-The scoot's leash collapses the whole edge-case family:
-
-- **World truth changes only on set-down.** Until then, every save —
-  autosave included — simply records the structure at its origin, because
-  origin is the only state a save can hold. An autosave mid-lift therefore
-  never interrupts play and never needs any special handling: no
-  projection, no set-down-on-save rule.
-- **Any exit from the lifted state other than a set-down** — death, quit,
-  disconnect — CANCELS the move: the structure is at its origin in its home
-  zone, exactly where the save (and on death, the world) already believes
-  it is. There is no death-drop to recover and nothing to Walk Back for.
-- **Carry never persists:** no new save key, SAVE_FORMAT_VERSION stays 1.
-- **The lift state is session UI, full stop:** it dies with any world
-  reload (death respawn, disconnect, world switch) rather than
-  resurrecting against fresh world state. If it lives in App state that
-  resets on world load, that's automatic — but keep it that way; a future
-  refactor must never promote the lift into persisted state by accident.
-- **Guests:** lifting a host's structure follows the existing structure
-  broadcast discipline (remove on lift, upsert on set-down; host stays
-  truth on save); a guest disconnect mid-lift simply never sends the
-  upsert, so the host's structure stands at its origin — consistent by
-  construction.
+- **Autosave (Adam's catch, amendment 2):** the game saves every ~30 s,
+  and a save NEVER interrupts a carry in live play. When the save record
+  is built while carrying, the carried entity is PROJECTED into the saved
+  copy of the current zone at the player's position — save-time
+  projection only. Every autosave re-projects from live truth, so nothing
+  accumulates; on reload, the vault stands where the last save caught the
+  player mid-carry. Quit (pagehide) is just the last autosave — same
+  projection; it reads as "the vault set down when you left."
+- **Carry never persists as a state:** no new save key,
+  SAVE_FORMAT_VERSION stays 1. **The carry state is session UI, full
+  stop:** it dies with any world reload (death respawn, disconnect, world
+  switch) rather than resurrecting against fresh world state — a future
+  refactor must never promote it into persisted state by accident.
+- **Death mid-carry:** the vault sets down where the player fell — into
+  that zone's parked snapshot at the fall position. Recoverable, and it
+  feeds Walk Back (go back for what you dropped).
+- **Guests carrying a host structure:** remove/place go through the
+  existing structure broadcast (remove on lift, upsert on set-down); the
+  host stays truth on save. Projection applies only where save ownership
+  is local; host structures ride the broadcast path — the build must
+  handle this edge explicitly.
 
 ## The vat
 
-Carries (scoots) like the pod and rack; gestation rides the entity
-untouched — nothing in the move can reset or pause it, because the entity
-is never taken apart and never leaves its zone.
+Carries like the pod and rack; gestation rides the entity snapshot
+untouched — an autosave projection must never reset or pause gestation,
+because the projected copy is the same whole entity.
 
 ## Parked seed — the WALKING vault (NOT this build)
 
@@ -109,6 +131,7 @@ it into S6.
 
 ## Verification markers (background lane spot-check)
 
-Radius gate on ghost validity + cancel-restores-origin, plus fresh-checkout
+The carry state, the inert-kit gate (gauntlet + weapons + shield),
+restore-on-cancel, and the autosave projection — plus fresh-checkout
 tsc 0 + build green on the pushed tip and the standing must-survive marker
-sweep. (The first draft's ferry marker is dead — ignore it.)
+sweep. (The morning recut's radius-gate marker is dead — ignore it.)

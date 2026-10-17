@@ -31,8 +31,20 @@ import { ITEMS } from '../game/constants';
 import { FIELD_NOTES } from '../game/fieldNotes';
 import type { FieldNotesState } from '../game/fieldNotesBook';
 import type { CodexEntry } from '../types/game';
+import type { ItemId } from '../types/game';
 import { ASK_THE_WORLD_LINE, type QuestProgressView } from '../game/quests';
 import { PLAYSTYLE_TABS, questInStyle, type PlayStyleId } from '../game/questStyles';
+// THE WORLD ASKS BACK (dev lane, 2026-10-17): the dynamic saga
+// section lives in this tab. The modal only READS the record and
+// fires the callbacks — acceptance, choice, and tracking all land
+// in App, which owns the asksBack state slice.
+import type {
+  AsksBackState,
+  AsksInstance,
+  AsksOffer,
+} from '../game/asksBackState';
+import { MAX_ACTIVE_SAGAS } from '../game/asksBack/director';
+import { goalProgressText, choiceLabels } from '../game/asksBack/latch';
 
 /** The tab state: a playstyle lens, or the Ask the World line's
  *  own tab (a named quest LINE, not a style — it sits apart from
@@ -57,6 +69,20 @@ interface QuestLogModalProps {
   onTrack: (questId: string) => void;
   fieldNotesState: FieldNotesState;
   codexList: CodexEntry[];
+  // THE WORLD ASKS BACK (S3): the saga record the section reads,
+  // plus the three doors into App's state slice.
+  asksBackState: AsksBackState;
+  onAcceptSaga: (offerId: string) => void;
+  onChooseBranch: (sagaId: string, option: string) => void;
+  onTrackSaga: (sagaId: string | null) => void;
+  // S3: what the saga progress lines read — the goal-state signals,
+  // the pouch, and the current zone key. (worldSeed is genuinely
+  // unneeded by the progress math; the latch ctx carries ''.)
+  sagaLatch: {
+    signals?: import('../types/game').QuestSignals;
+    inventory: Record<string, number>;
+    zoneKey: string;
+  };
 }
 
 export const QuestLogModal = ({
@@ -70,6 +96,11 @@ export const QuestLogModal = ({
   onTrack,
   fieldNotesState,
   codexList,
+  asksBackState,
+  onAcceptSaga,
+  onChooseBranch,
+  onTrackSaga,
+  sagaLatch,
 }: QuestLogModalProps) => {
   // The active playstyle lens. Hooks run before the isOpen guard —
   // App keeps this component mounted and flips the flag.
@@ -409,6 +440,245 @@ export const QuestLogModal = ({
     </>
   );
 
+  // ── THE WORLD ASKS BACK (S3) ─────────────────────────────────
+  // The dynamic sagas' shelf, inside the Ask the World tab, AFTER
+  // the invitation chapters (HUD lane's placement note, 2026-10-16:
+  // sagas are kin to the line, not the craft chain).
+  //
+  // STATE HONESTY (HUD lane's second note): offered / active /
+  // answered wear three distinct faces — violet ◈ for an offer,
+  // amber ➤ for work in hand, emerald ✓ for answered. An offer is
+  // NEVER dressed as a locked quest: no lock glyph, no "Opens
+  // after" chain language anywhere — sagas are not chain-gated;
+  // they are taken up or left to fade.
+  const sagaCtx = {
+    worldSeed: '',
+    zoneKey: sagaLatch.zoneKey,
+    signals: sagaLatch.signals,
+    inventory: sagaLatch.inventory,
+    itemName: (id: string) => ITEMS[id as ItemId]?.name ?? id,
+  };
+  const sagaRewardLine = (offer: AsksOffer | AsksInstance) =>
+    offer.reward.items.length > 0
+      ? offer.reward.items
+          .map((i) => `${ITEMS[i.itemId as ItemId]?.name ?? i.itemId} ×${i.count}`)
+          .join(', ')
+      : null;
+  const sagaActiveCount = asksBackState.active.filter(
+    (a) => a.status === 'active',
+  ).length;
+  const sagaRosterFull = sagaActiveCount >= MAX_ACTIVE_SAGAS;
+
+  const renderOfferedSaga = (offer: AsksOffer) => {
+    const reward = sagaRewardLine(offer);
+    return (
+      <div
+        key={offer.id}
+        className="rounded-2xl border border-violet-500/30 bg-violet-950/10 px-4 py-3"
+      >
+        <div className="flex items-center gap-3">
+          <span className="flex-none w-6 h-6 rounded-lg border border-violet-400/50 text-violet-300 flex items-center justify-center text-xs font-black">
+            ◈
+          </span>
+          <div className="flex-1 min-w-0">
+            <div className="text-[10px] font-black tracking-[0.22em] text-violet-300/80">
+              THE WORLD ASKS
+            </div>
+            <div className="text-sm font-bold text-slate-100">{offer.title}</div>
+            <div className="text-[11px] text-slate-400 leading-snug mt-0.5">
+              {offer.text}
+            </div>
+          </div>
+          <button
+            onClick={() => onAcceptSaga(offer.id)}
+            disabled={sagaRosterFull}
+            title={
+              sagaRosterFull
+                ? 'Three sagas is the most the world asks at once — answer or release one first'
+                : 'Take up this saga'
+            }
+            className={`flex-none text-[11px] font-bold px-3 py-1.5 rounded-xl border ${
+              sagaRosterFull
+                ? 'border-slate-700 bg-slate-800/50 text-slate-500 cursor-not-allowed'
+                : 'border-violet-400/60 bg-violet-500/20 text-violet-200 hover:border-violet-300'
+            }`}
+          >
+            ACCEPT
+          </button>
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
+          <span>
+            {offer.steps.length} steps · {offer.zoneName}
+          </span>
+          {reward && (
+            <span>
+              <span className="text-slate-300 font-semibold">Reward:</span>{' '}
+              {reward}
+            </span>
+          )}
+          <span className="text-violet-200/60 italic">
+            Unanswered offers fade back into the world's memory.
+          </span>
+        </div>
+      </div>
+    );
+  };
+
+  const renderActiveSaga = (inst: AsksInstance) => {
+    const step = inst.steps[inst.currentStep];
+    const tracked = asksBackState.tracked === inst.id;
+    const choice = asksBackState.events.choices[inst.id];
+    const isChoiceStep =
+      !!step &&
+      step.goal.kind === 'PROPOSED' &&
+      step.goal.signal === 'chooseBranch' &&
+      choice === undefined;
+    const reward = sagaRewardLine(inst);
+    return (
+      <div
+        key={inst.id}
+        className="rounded-2xl border border-amber-500/30 bg-amber-950/10 px-4 py-3"
+      >
+        <div className="flex items-center gap-3">
+          <span className="flex-none w-6 h-6 rounded-lg border border-amber-400/50 text-amber-300 flex items-center justify-center text-xs font-black">
+            ➤
+          </span>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-bold text-slate-100">{inst.title}</div>
+            <div className="text-[10px] font-semibold tracking-wider text-amber-200/70">
+              STEP {Math.min(inst.currentStep + 1, inst.steps.length)} OF{' '}
+              {inst.steps.length} · {inst.zoneName}
+            </div>
+          </div>
+          <button
+            onClick={() => onTrackSaga(tracked ? null : inst.id)}
+            className={`flex-none text-[11px] font-bold px-3 py-1.5 rounded-xl border ${
+              tracked
+                ? 'border-emerald-400/60 bg-emerald-500/20 text-emerald-200'
+                : 'border-slate-600 bg-slate-800/70 text-slate-200 hover:border-amber-400/50'
+            }`}
+          >
+            {tracked ? 'TRACKING' : 'TRACK'}
+          </button>
+        </div>
+        {step && (
+          <div className="mt-2 pl-9">
+            <div className="text-[13px] font-bold text-slate-200">
+              {step.title}
+            </div>
+            <div className="text-[11px] text-slate-400 leading-snug mt-0.5">
+              {step.text}
+            </div>
+            <div className="mt-1.5 text-[11px] font-semibold text-amber-200/90">
+              {goalProgressText(step, inst, asksBackState, sagaCtx)}
+            </div>
+            {isChoiceStep && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {choiceLabels(inst, step).map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => onChooseBranch(inst.id, opt.value)}
+                    className="text-[11px] font-bold px-3 py-1.5 rounded-xl border border-amber-400/60 bg-amber-500/15 text-amber-100 hover:bg-amber-500/25"
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {reward && (
+          <div className="mt-1.5 pl-9 text-[11px] text-slate-400 leading-snug">
+            <span className="text-slate-300 font-semibold">Reward:</span>{' '}
+            {reward}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderAnsweredSaga = (c: { id: string; day: number; title?: string; zoneName?: string }) => (
+    <div
+      key={c.id}
+      className="rounded-2xl border border-emerald-500/20 bg-emerald-950/10 px-4 py-2.5 flex items-center gap-3"
+    >
+      <span className="flex-none w-6 h-6 rounded-lg border border-emerald-400/40 text-emerald-300 flex items-center justify-center text-xs font-black">
+        ✓
+      </span>
+      <div className="flex-1 min-w-0">
+        <div className="text-[13px] font-bold text-slate-200 truncate">
+          {c.title ?? 'A saga answered'}
+        </div>
+        <div className="text-[10px] text-slate-500">
+          Answered · day {c.day}
+          {c.zoneName ? ` · ${c.zoneName}` : ''}
+        </div>
+      </div>
+      <span className="flex-none text-[10px] font-black tracking-wider text-emerald-300/80">
+        ANSWERED
+      </span>
+    </div>
+  );
+
+  const renderAsksBackSection = () => {
+    const offers = asksBackState.offers;
+    const actives = asksBackState.active.filter((a) => a.status === 'active');
+    const answered = asksBackState.completed;
+    const empty = offers.length === 0 && actives.length === 0 && answered.length === 0;
+    return (
+      <div>
+        <div className="text-[10px] font-black tracking-[0.22em] text-violet-300/80 mb-1">
+          THE WORLD ASKS BACK
+        </div>
+        <p className="text-[11px] text-slate-400 leading-snug mb-3">
+          Sagas the world offers from your own history — always two steps
+          or more, never chained, never placed: dealt, the way the world
+          deals everything. Take one up, or let it fade.
+        </p>
+        {empty ? (
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/40 px-4 py-6 text-center">
+            <div className="text-2xl mb-1.5">◈</div>
+            <div className="text-sm font-bold text-slate-200">
+              The world is quiet — for now
+            </div>
+            <div className="text-[11px] text-slate-400 mt-1">
+              Keep walking. It notices what you do.
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {offers.length > 0 && (
+              <div>
+                <div className="text-[10px] font-black tracking-[0.18em] text-violet-300/70 mb-2">
+                  OFFERED · {offers.length}
+                </div>
+                <div className="space-y-2">{offers.map(renderOfferedSaga)}</div>
+              </div>
+            )}
+            {actives.length > 0 && (
+              <div>
+                <div className="text-[10px] font-black tracking-[0.18em] text-amber-300/70 mb-2">
+                  IN HAND · {actives.length}
+                </div>
+                <div className="space-y-2">{actives.map(renderActiveSaga)}</div>
+              </div>
+            )}
+            {answered.length > 0 && (
+              <div>
+                <div className="text-[10px] font-black tracking-[0.18em] text-emerald-300/60 mb-2">
+                  ANSWERED · {answered.length}
+                </div>
+                <div className="space-y-1.5">
+                  {[...answered].reverse().map(renderAnsweredSaga)}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const styleViews = !isLineTab && activeTab !== 'all' && activeTab !== 'completionists'
     ? tabViews(activeTab)
     : [];
@@ -526,7 +796,10 @@ export const QuestLogModal = ({
             or the active style's shelf in chain order. */}
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
           {isLineTab ? (
-            renderLineSections()
+            <>
+              {renderLineSections()}
+              {renderAsksBackSection()}
+            </>
           ) : activeTab === 'all' || activeTab === 'completionists' ? (
             <>
               {renderChapterSections()}

@@ -720,7 +720,7 @@ export const SAGA_ARCS: SagaArc[] = [
     beats: [
       {
         beat: 'anchor',
-        target: { domain: 'none' },
+        target: ANCHOR,
         titles: ['Go Back'],
         texts: [
           'Return to {Zone}. The way back is part of the quest — walk it like it matters, because it does.',

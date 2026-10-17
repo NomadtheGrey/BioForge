@@ -98,8 +98,8 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
   {
     id: 'questlog',
     title: 'The Quest Log',
-    body: 'Press Q, or tap the QUESTS button at the top-right. The log holds all your quests \u2014 the making-things chain you are on now, and bigger mysteries for later. Open it and take a look.',
-    target: 'session',
+    body: 'Press Q, or tap the QUESTS button. The log holds all your quests \u2014 the making-things chain you are on now, and bigger mysteries for later. Open it and take a look.',
+    target: 'quicknav',
     gate: 'openQuests',
   },
   {

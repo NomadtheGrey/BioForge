@@ -37,7 +37,7 @@ import {
   isPrecursorArc,
   type GameProfile,
 } from './templates';
-import { writeEcho, echoForZone, echoAnchorFor, ECHO_ARC } from './echoes';
+import { writeEcho, echoForZone, echoAnchorFor, ECHO_ARC, applyEchoOverlay } from './echoes';
 import { removedSet, abundanceMap, settledIn } from './zoneState';
 import { zoneHops } from '../zones';
 import {
@@ -326,10 +326,11 @@ function selectOffer(
   }
 
   // ── (b) echo-first: an unconsumed memory in this zone ──
-  // Dormant in S2 — no echo-consumable arc passes the writer
-  // registry yet (echo_return needs S3's echoResolve) — but the
-  // channel is wired: the day S3 unlocks the arc, echoes written
-  // since S2 start are waiting.
+  // S3: the channel is live — echo_return passes the writer
+  // registry now (chooseBranch/resolveBranch/echoResolve all
+  // latch in latch.ts), so echoes written since S2 start are
+  // eligible, and the offer wears its echo face via
+  // applyEchoOverlay before it is stored.
   if (!forceGeneric) {
     const echo = echoForZone(state, zx, zz, day);
     if (echo) {
@@ -338,18 +339,27 @@ function selectOffer(
         const ed = new Dice(hashStringToSeed(`asks-echochance|${echo.id}|${day}`));
         if (ed.chance(0.65)) {
           const ea = echoAnchorFor(echo);
+          // A species-less echo anchors on the zone itself — by NAME,
+          // not the raw "zx,zz" key, so the saga's faces read like
+          // places, not coordinates. 'zone' is a concrete domain for
+          // the abstract-anchor ban (the saga is about THIS place).
+          if (ea.domain === 'zone') ea.name = zone.name;
           const inCensus =
             ea.domain === 'zone' ||
             ((zone.censusFauna.includes(ea.id) || zone.censusFlora.includes(ea.id)) &&
               !removed.has(ea.id));
           if (inCensus) {
-            const cand = generateSaga(worldSeed, zx, zz, day, profile, state.owner, {
+            const raw = generateSaga(worldSeed, zx, zz, day, profile, state.owner, {
               ...baseOpts,
               arcId,
-              echoAnchor: ea.domain === 'zone' ? null : ea,
+              echoAnchor: ea,
               salt: `echo-${echo.id}`,
               forceSize: wantLen,
             });
+            // The overlay is pure and pre-pacing: the offer stored
+            // is the echo-skinned one, so the log and tracker read
+            // it exactly as the player will see it.
+            const cand = raw ? applyEchoOverlay(worldSeed, raw, echo) : null;
             if (cand && passes(cand)) return finalize(cand, echo, false);
           }
         }

@@ -14,8 +14,8 @@
 // unwritable OPTIONAL beat is skipped; an unwritable MANDATORY beat
 // (anchor/need/resolution) fails the arc. This is how the engine
 // keeps its promise — it never offers a saga it cannot latch.
-// S3 unlocks: chooseBranch, resolveBranch, echoResolve (and the echo
-// overlays' takeArtifact / markMemorial).
+// S3 unlocked chooseBranch, resolveBranch, echoResolve (latch.ts);
+// still pending: takeArtifact, markMemorial.
 
 import { Dice, questSeed, questId } from './rng';
 import {
@@ -76,13 +76,14 @@ export const WRITTEN_SIGNALS: ReadonlySet<string> = new Set([
   'surveyPoints', // 'survey' — the S2 space observer
   'weatherWitness', // 'weather' — the S2 space observer
   'revisitZone', // zoneVisits first/last days (S3 latches it)
+  // S3's unlocks — the last two arcs' writers:
+  'chooseBranch', // the choice step's option buttons (latch.ts)
+  'resolveBranch', // the chosen branch's observed action (latch.ts)
+  'echoResolve', // the echo's asked action at its anchor (latch.ts)
 ]);
 
-/** S3's unlock list — signals the generator will honor once writers exist. */
+/** Signals the generator will honor once writers exist. */
 export const PENDING_SIGNALS: ReadonlySet<string> = new Set([
-  'chooseBranch',
-  'resolveBranch',
-  'echoResolve',
   'takeArtifact',
   'markMemorial',
 ]);
@@ -285,7 +286,11 @@ export function itemSlot(goal: StepGoal): string | null {
 // holds. (Census membership is already guaranteed by pickTarget;
 // these are the checks pickTarget can't do.)
 
-const CONCRETE_DOMAINS = new Set(['fauna', 'flora', 'ruin', 'home']);
+const CONCRETE_DOMAINS = new Set(['fauna', 'flora', 'ruin', 'home', 'zone']);
+// 'zone' counts: an echo-return saga anchored on a specific zone
+// ("go back to THIS place") is about something particular — the
+// ban targets sagas about nothing in particular, not sagas whose
+// anchor is a place rather than a creature.
 
 function assertOfferable(
   steps: { title: string; text: string; target: { domain: string } }[],
@@ -411,6 +416,19 @@ function trySaga(
     if (chosen.length >= targetLen) break;
     chosen.push(o);
   }
+  // A resolution that needs a choice is not offered without one:
+  // pack_pressure's resolveBranch latches on the recorded choice,
+  // so a short roll that skipped the choice beat would strand the
+  // saga. The choice rides along whenever the arc defines it and
+  // the resolution is present (still within the 2–6 grammar).
+  if (
+    byBeat.has('choice') &&
+    chosen.includes('resolution') &&
+    !chosen.includes('choice') &&
+    chosen.length < 6
+  ) {
+    chosen.push('choice');
+  }
   chosen.sort((a, b) => BEAT_ORDER.indexOf(a) - BEAT_ORDER.indexOf(b));
 
   const noAbstract = opts?.noAbstract ?? true;
@@ -499,6 +517,19 @@ function trySaga(
   }
 
   if (!assertOfferable(steps)) return null;
+
+  // The choice invariant, enforced at PLACEMENT (the selection fix
+  // above is not enough — a choice beat can fail placement when its
+  // hunter target pick misses): a saga whose resolution latches on
+  // resolveBranch is unofferable without its choice beat. Fail the
+  // arc; the Director tries another.
+  const placedSignals = new Set(
+    steps.flatMap((s) =>
+      s.goal.kind === 'PROPOSED' ? [s.goal.signal] : [],
+    ),
+  );
+  if (placedSignals.has('resolveBranch') && !placedSignals.has('chooseBranch'))
+    return null;
 
   const aslots = targetSlots(
     base,

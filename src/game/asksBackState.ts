@@ -106,6 +106,11 @@ export interface AsksEventLog {
   choices: Record<string, string>;
   /** saga id → how it ended: 'completed' | 'neglected' | 'deadAnchor' | ... */
   resolutions: Record<string, string>;
+  /** S3: species → the last game day any of that species was culled.
+   *  Feeds dead-anchor detection (a saga's anchor dying mid-saga
+   *  seeds a memorial echo). Optional: pre-S3 saves fall back to {} —
+   *  they simply have no death memory yet. */
+  lastCullDay?: Record<string, number>;
 }
 
 /** An echo: an unresolved outcome the world remembers, eligible to
@@ -198,6 +203,12 @@ export interface AsksInstance extends AsksOffer {
   currentStep: number;
   choice?: string;
   startDay: number;
+  /** S3: the current step's latch baseline. `n` is the step index
+   *  (0-based into steps[]), `day` the game day it became current,
+   *  `base` the counter values at that moment — keyed per goal
+   *  (see latch.ts). Optional: absent on instances from before S3,
+   *  which simply re-baseline on the next evaluation. */
+  stepStart?: { n: number; day: number; base: Record<string, number> };
 }
 
 /** THE record. One optional save key holds all of it. */
@@ -211,10 +222,14 @@ export interface AsksBackState {
   memory: AsksMemory;
   offers: AsksOffer[];
   active: AsksInstance[];
-  completed: { id: string; day: number }[];
+  completed: { id: string; day: number; title?: string; zoneName?: string }[];
   echoes: AsksEcho[];
   zoneState: Record<string, ZoneConsequences>;
   cooldowns: { tag: string; day: number }[];
+  /** S3: the saga id pinned to the HUD tracker (null/undefined =
+   *  nothing pinned). A UI preference riding the record so it
+   *  survives reloads; the authored tracked quest is untouched. */
+  tracked?: string | null;
 }
 
 /** A fresh record: nothing witnessed, nothing offered, nothing owed. */
@@ -291,6 +306,9 @@ export function applyAsksEvents(
     weatherWitnessed: { ...(prev.events.weatherWitnessed ?? {}) },
     choices: { ...prev.events.choices },
     resolutions: { ...prev.events.resolutions },
+    // S3's death memory (see the type note above): absent on old
+    // records, rebuilt from {} like the other optional maps.
+    lastCullDay: { ...(prev.events.lastCullDay ?? {}) },
   };
   for (const input of list) {
     const count = input.count ?? 1;
@@ -298,7 +316,12 @@ export function applyAsksEvents(
       case 'witness': bump(events.witnessed, input.species ?? input.flora, count); break;
       case 'tame': bump(events.tamed, input.species, count); break;
       case 'feed': bump(events.fed, input.species, count); break;
-      case 'cull': bump(events.culled, input.species, count); break;
+      case 'cull': {
+        bump(events.culled, input.species, count);
+        // S3: the day-memory dead-anchor detection reads.
+        if (input.species) events.lastCullDay![input.species] = day;
+        break;
+      }
       case 'sample': bump(events.sampled, input.species, count); break;
       case 'harvest': bump(events.harvestedFlora, input.flora, count); break;
       case 'plant': bump(events.plantedFlora, input.flora, count); break;
@@ -334,4 +357,28 @@ export function applyAsksEvents(
     }
   }
   return { ...prev, version: 1, owner: prev.owner || owner, dayZero, events };
+}
+
+/**
+ * Record a saga branch choice (S3: the choice step of pack_pressure).
+ * Pure — the evaluator advances the choice step on the next tick,
+ * so the UI click and the step latch never race. Idempotent: a
+ * recorded choice is never overwritten (the choice is once).
+ */
+export function recordAsksChoice(
+  prev: AsksBackState,
+  sagaId: string,
+  option: string,
+): AsksBackState {
+  if (prev.events.choices[sagaId] !== undefined) return prev;
+  const dayZero = prev.dayZero || Date.now();
+  return {
+    ...prev,
+    version: 1,
+    dayZero,
+    events: {
+      ...prev.events,
+      choices: { ...prev.events.choices, [sagaId]: option },
+    },
+  };
 }

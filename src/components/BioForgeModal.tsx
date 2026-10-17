@@ -10,6 +10,7 @@ import { RecipeFlowchart } from './RecipeFlowchart';
 // a recipe that grows a striker or shield says its kind beside
 // its tier, in the family's rose.
 import { FAMILY_KIND_LABEL, familyEntryOf } from '../game/items/weaponsFamily';
+import { POUCH_UPGRADE_ITEMS } from '../game/items/pouch';
 // The Shield tab's membership is the shield rules table's own
 // list — crafts and graft recipes alike output a shield item.
 // The graft-slot lock (HUD audit, 2026-10-17) reads the same
@@ -152,6 +153,11 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     // The graft-slot lock (HUD audit, 2026-10-17): one graft per
     // shield — a filled slot refuses the recipe outright.
     if (recipe.graftShield && graftOf(shieldGrowth, recipe.graftShield)) return false;
+    // The pouch-tier lock (Adam's play pass, 2026-10-17): the
+    // carrying ladder's upgrades are one-time and maxStack 1 —
+    // owning one IS the tier, so a re-craft would only burn
+    // ingredients on a duplicate that cannot stack.
+    if (POUCH_UPGRADE_ITEMS.includes(recipe.outputId) && (inventory[recipe.outputId] || 0) > 0) return false;
     if (!hasIngredients(recipe)) return false;
     if (nearForge) return true;
     if (accessTierOf(recipe) >= 3) return false;
@@ -169,6 +175,10 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
       const worn = graftOf(shieldGrowth, recipe.graftShield);
       if (worn) return `Already grafted — ${SHIELD_GRAFTS[worn].name}`;
     }
+    // The carried pouch tier speaks in the same family: an
+    // owned upgrade is already the player's carrying tier.
+    if (POUCH_UPGRADE_ITEMS.includes(recipe.outputId) && (inventory[recipe.outputId] || 0) > 0)
+      return 'Already crafted — you already carry this tier';
     if (!hasIngredients(recipe)) return 'Missing ingredients';
     if (nearForge) return null;
     if (accessTierOf(recipe) >= 3) return 'Advanced synthesis requires a bio-forge station';

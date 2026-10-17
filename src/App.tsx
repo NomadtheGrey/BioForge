@@ -145,7 +145,7 @@ import { findTunnelMouths, type TunnelMouthRef } from './game/world/tunnel';
 import { InventoryModal } from './components/InventoryModal';
 import { StorageModal } from './components/StorageModal';
 import { VatModal } from './components/VatModal';
-import { POUCH_TIER_CAPS, pouchTierOf } from './game/items/pouch';
+import { POUCH_TIER_CAPS, POUCH_UPGRADE_ITEMS, pouchTierOf } from './game/items/pouch';
 import { CodexModal } from './components/CodexModal';
 import { MultiplayerModal } from './components/MultiplayerModal';
 import { ControlsGuideModal } from './components/ControlsGuideModal';
@@ -2281,6 +2281,22 @@ const {
         );
         return;
       }
+    }
+    // The pouch-tier guard (Adam's play pass, 2026-10-17): the
+    // carrying ladder's upgrades are one-time — the same
+    // invariant at the consumption point as the modal's
+    // 'Already crafted' lock, so no caller can burn pouch
+    // ingredients on a tier already carried.
+    if (
+      POUCH_UPGRADE_ITEMS.includes(recipe.outputId) &&
+      (latestStateRef.current.inventory?.[recipe.outputId] ?? 0) > 0
+    ) {
+      postNotification(
+        'Already Crafted',
+        `${ITEMS[recipe.outputId]?.name || 'That pouch upgrade'} already carries for you — one pouch tier is enough.`,
+        'craft',
+      );
+      return;
     }
     const success = craftRecipe(recipe);
     if (success) {

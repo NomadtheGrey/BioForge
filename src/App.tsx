@@ -28,7 +28,7 @@ import {
 } from './game/constants';
 import { BioForgeThreeEngine } from './game/threeEngine';
 import { soundEngine } from './audio/soundEngine';
-import { multiplayerManager, EntityKind, EntitySnapshot } from './game/multiplayer';
+import { multiplayerManager, EntityKind, EntitySnapshot, type TunnelPairMouth } from './game/multiplayer';
 
 import { FirstPersonMovementController, ControllerInputState } from './game/controller';
 
@@ -114,7 +114,7 @@ import { useQuests } from './hooks/useQuests';
 import { useStorage } from './hooks/useStorage';
 import { useVat } from './hooks/useVat';
 import { useDebugKit } from './hooks/useDebugKit';
-import { useZoneTravel, ZONE_ID_INSTALLED, WORLD_EDGE_COORD, ZONE_PUSH_SECONDS, ZONE_PUSH_MIN_COMPONENT } from './hooks/useZoneTravel';
+import { useZoneTravel, ZONE_ID_INSTALLED, WORLD_EDGE_COORD, ZONE_PUSH_SECONDS, ZONE_PUSH_MIN_COMPONENT, type PendingTravel } from './hooks/useZoneTravel';
 import { useInstances } from './hooks/useInstances';
 import { useSaveSession } from './hooks/useSaveSession';
 import { useMultiplayerSync } from './hooks/useMultiplayerSync';
@@ -546,6 +546,15 @@ export default function App() {
   // down (the save-session seam) — App assigns it there, and the
   // hook only ever calls through the ref, after mount.
   const saveNowRef = useRef<() => void>(() => {});
+  // The BioTunnel guest fix (Adam, 2026-10-16): a guest's parked
+  // tunnel ride can be cancelled from outside the tunnel section
+  // (walked away from the mouth — the game loop; host silent — the
+  // fail timer), and the fade/busy flow must release with it. The
+  // tunnel state lives below (it needs this hook's refs), so the
+  // release is bridged through this ref — the established
+  // lazy-bridge idiom of this file (see awMergeRef). Assigned in
+  // the tunnel section; only ever called through, after mount.
+  const tunnelRideReleaseRef = useRef<() => void>(() => {});
   const {
     playerZone, setPlayerZone, playerZoneRef, visitedZonesRef, worldSeedRef,
     sessionSeed, setSessionSeed, edgePushRef, pendingTravelRef, cancelPendingTravel,
@@ -572,6 +581,12 @@ export default function App() {
     // these for echo timing and revisit goals.
     onZoneEnter: (zoneKeyVisited: string) =>
       recordAsksEvent({ kind: 'zoneVisit', zoneKey: zoneKeyVisited }),
+    // The BioTunnel guest fix (Adam, 2026-10-16): a cancelled
+    // tunnel ride releases its fade/busy flow — bridged, because
+    // the tunnel state is declared below this hook's call.
+    onPendingCancel: (p) => {
+      if (p.tunnel) tunnelRideReleaseRef.current();
+    },
     // THE WORLD ASKS BACK, S4: the consequence record. The travel
     // hook applies its zone state on every crossing — but only for
     // the world author (solo/host); guests carry the host's truth.
@@ -791,13 +806,42 @@ export default function App() {
   // border crossing (follow pets come through), and the gulp of
   // darkness is a fade the travel hides inside. Once the fade
   // closes you are inside the tunnel, and nothing interrupts it.
+  //
+  // The guest fix (Adam, 2026-10-16): a guest who never visited
+  // the far zone can't derive the pair from their own known
+  // world — the host carries the pair's truth (both mouths' zone
+  // keys + structure ids) on the session heartbeat, and guests
+  // union it into pairing display and transit targeting below.
   const [tunnelFade, setTunnelFade] = useState(0);
   const tunnelBusyRef = useRef(false);
+  // The cancelled-ride bridge (declared above the zone-travel
+  // hook): a parked tunnel ride releases the fade/busy flow.
+  tunnelRideReleaseRef.current = () => {
+    tunnelBusyRef.current = false;
+    setTunnelFade(0);
+  };
   const tunnelMouthsNow = (): TunnelMouthRef[] =>
     findTunnelMouths(structuresListRef.current, playerZoneRef.current, visitedZonesRef.current);
   const getTunnelMouthCount = useCallback((): number => tunnelMouthsNow().length, []);
+  // Host-side pair truth for the heartbeat (useMultiplayerSync):
+  // both mouths' zone keys + structure ids, derived from the
+  // host's own known world. Guests never compute this — they
+  // receive it.
+  const getTunnelPairFact = useCallback((): TunnelPairMouth[] =>
+    tunnelMouthsNow().map((m) => ({ zone: zoneKey(m.zone.zx, m.zone.zz), id: m.structure.id })),
+  []);
   const annotateTunnelPairing = useCallback((structures: StructureEntity[]): void => {
-    const paired = tunnelMouthsNow().length >= 2;
+    // Guests read the host's pair fact when one has arrived: the
+    // near mouth lights as paired the moment the host's pair is
+    // whole, even in a zone the guest never visited. Solo, host,
+    // and fact-less guests derive from the known world as before.
+    let paired: boolean;
+    if (multiplayerManager.isConnected && !multiplayerManager.isHost) {
+      const fact = guestTunnelPairRef.current;
+      paired = fact ? fact.length >= 2 : tunnelMouthsNow().length >= 2;
+    } else {
+      paired = tunnelMouthsNow().length >= 2;
+    }
     structures.forEach((s) => {
       if (s.type === 'biotunnel_mouth') s.tunnel = { paired };
     });
@@ -815,7 +859,28 @@ export default function App() {
         return;
       }
       const other = tunnelMouthsNow().find((m) => m.structure.id !== mouth.id);
-      if (!other) {
+      const isGuest = multiplayerManager.isConnected && !multiplayerManager.isHost;
+      // The BioTunnel guest fix (Adam, 2026-10-16): a guest who
+      // never visited the far zone can't derive the pair — but the
+      // host's pair fact names the far end (zone key + mouth id),
+      // so the ride can still be targeted at the host's truth.
+      let farZone: ZoneCoords | null = null;
+      let farMouthId: string | null = null;
+      if (!other && isGuest) {
+        const fact = guestTunnelPairRef.current;
+        if (fact && fact.length >= 2) {
+          const curKey = zoneKey(playerZoneRef.current.zx, playerZoneRef.current.zz);
+          const far = fact.find((m) => m.id !== mouth.id) ?? fact.find((m) => m.zone !== curKey) ?? null;
+          if (far) {
+            const [zx, zz] = far.zone.split(',').map(Number);
+            if (Number.isFinite(zx) && Number.isFinite(zz)) {
+              farZone = { zx, zz };
+              farMouthId = far.id;
+            }
+          }
+        }
+      }
+      if (!other && !farZone) {
         postNotification(
           'A Mouth Without Its Other Half',
           'This BioTunnel mouth hangs dark and still — its pair is gone. Grow the recipe again and set the other mouth down where the tunnel should lead.',
@@ -826,27 +891,107 @@ export default function App() {
       }
       tunnelBusyRef.current = true;
       setTunnelFade(1);
-      window.setTimeout(() => {
-        const o = other.structure;
-        const fx = Math.sin(o.rotation ?? 0);
-        const fz = Math.cos(o.rotation ?? 0);
-        completeTravel(other.zone.zx, other.zone.zz, {
-          x: o.worldX + fx * 2,
-          z: o.worldZ + fz * 2,
-        });
-        postNotification(
-          'The Tunnel Delivers You',
-          'Darkness, one long gulp — and the other mouth lets you out. Nothing followed you through.',
-          'system',
-          '#2dd4bf',
-        );
-        // Ask the World: the crossing itself is the goal state.
-        awMergeRef.current((s) => (s.tunnel ? s : { ...s, tunnel: true }));
-      }, 650);
-      window.setTimeout(() => {
-        setTunnelFade(0);
+      const releaseRide = (): void => {
         tunnelBusyRef.current = false;
-      }, 1750);
+        setTunnelFade(0);
+      };
+      if (other) {
+        // The far mouth is in the known world — ride it at once,
+        // exactly as before. (Solo and host always land here; a
+        // guest lands here too when their map already holds the
+        // far zone — that copy came from the host, so it IS the
+        // truth.)
+        window.setTimeout(() => {
+          const o = other.structure;
+          const fx = Math.sin(o.rotation ?? 0);
+          const fz = Math.cos(o.rotation ?? 0);
+          completeTravel(other.zone.zx, other.zone.zz, {
+            x: o.worldX + fx * 2,
+            z: o.worldZ + fz * 2,
+          });
+          postNotification(
+            'The Tunnel Delivers You',
+            'Darkness, one long gulp — and the other mouth lets you out. Nothing followed you through.',
+            'system',
+            '#2dd4bf',
+          );
+          // Ask the World: the crossing itself is the goal state.
+          awMergeRef.current((s) => (s.tunnel ? s : { ...s, tunnel: true }));
+        }, 650);
+        window.setTimeout(releaseRide, 1750);
+        return;
+      }
+      // Guest, far zone never visited: the host's truth arrives by
+      // the zone-request handshake. The far mouth's exit is
+      // resolved from the arrived snapshot when the ride completes
+      // (useMultiplayerSync); follow pets still cross via
+      // completeTravel, exactly like an edge crossing.
+      const fz = farZone as ZoneCoords;
+      const fmId = farMouthId as string;
+      const farKey = zoneKey(fz.zx, fz.zz);
+      const known = visitedZonesRef.current.get(farKey);
+      const knownMouth =
+        known?.structures.find((s) => s.type === 'biotunnel_mouth' && s.id === fmId) ??
+        known?.structures.find((s) => s.type === 'biotunnel_mouth');
+      if (known && knownMouth) {
+        window.setTimeout(() => {
+          const fx = Math.sin(knownMouth.rotation ?? 0);
+          const fz2 = Math.cos(knownMouth.rotation ?? 0);
+          completeTravel(fz.zx, fz.zz, {
+            x: knownMouth.worldX + fx * 2,
+            z: knownMouth.worldZ + fz2 * 2,
+          });
+          postNotification(
+            'The Tunnel Delivers You',
+            'Darkness, one long gulp — and the other mouth lets you out. Nothing followed you through.',
+            'system',
+            '#2dd4bf',
+          );
+          // Ask the World: the crossing itself is the goal state.
+          awMergeRef.current((s) => (s.tunnel ? s : { ...s, tunnel: true }));
+        }, 650);
+        window.setTimeout(releaseRide, 1750);
+        return;
+      }
+      // Unvisited: park the ride and ask the host, wrapped in the
+      // tunnel's fade/busy flow with the same slow/fail honesty as
+      // edge crossings. Walking away from the mouth or a silent
+      // host cancels (the cancel releases the ride); the arrival
+      // completes it. The Ask-the-World crossing signal fires on
+      // arrival, not on asking — a ride that never leaves grants
+      // nothing.
+      const pending: PendingTravel = {
+        nx: fz.zx,
+        nz: fz.zz,
+        entryX: 0,
+        entryZ: 0,
+        slowTimer: 0,
+        failTimer: 0,
+        tunnel: { farMouthId: fmId, nearX: mouth.worldX, nearZ: mouth.worldZ },
+      };
+      pending.slowTimer = window.setTimeout(() => {
+        if (pendingTravelRef.current === pending) {
+          postNotification(
+            'The Tunnel Waits…',
+            'The far mouth is listening — waiting on the host to send that zone.',
+            'system',
+            '#94a3b8',
+          );
+        }
+      }, 900);
+      pending.failTimer = window.setTimeout(() => {
+        if (pendingTravelRef.current === pending) {
+          cancelPendingTravel();
+          postNotification(
+            'No Answer From the Host',
+            'The far zone never arrived — the tunnel lets you go. Step through again to try once more.',
+            'system',
+            '#f59e0b',
+          );
+        }
+      }, 6000);
+      pendingTravelRef.current = pending;
+      multiplayerManager.broadcastZoneRequest(farKey);
     },
     [completeTravel, postNotification],
   );
@@ -1349,6 +1494,7 @@ saveNowRef.current = saveNow;
 // destructured names are the ones the rest of App already uses.
 const {
   roomCode, isHost, isConnected, peers, chatMessages, chatToasts, inviteRoomCode,
+  guestTunnelPairRef,
   handleJoinCoopFromStart, handleHostSession, handleJoinSession, handleLeaveSession,
   handleSendChatMessage,
 } = useMultiplayerSync({
@@ -1361,6 +1507,22 @@ const {
   upsertFlora, upsertFauna, upsertStructure, upsertDroppedItem,
   removeFlora, removeFauna, removeStructure, removeDroppedItem,
   addStructure, resetFloraHarvest, tameFauna, replaceWorld,
+  // The BioTunnel guest fix (Adam, 2026-10-16): the host's pair
+  // truth rides the heartbeat; guests re-read pairing display
+  // when a fact lands, and a completed tunnel ride announces
+  // itself (the Ask-the-World crossing signal fires on arrival,
+  // never on asking).
+  getTunnelPairFact,
+  onTunnelPairFact: () => annotateTunnelPairing(structuresListRef.current),
+  onTunnelRideArrived: () => {
+    postNotification(
+      'The Tunnel Delivers You',
+      'Darkness, one long gulp — and the other mouth lets you out. Nothing followed you through.',
+      'system',
+      '#2dd4bf',
+    );
+    awMergeRef.current((s) => (s.tunnel ? s : { ...s, tunnel: true }));
+  },
 });
 
   // ------------------------------------------------------------------

@@ -18,7 +18,8 @@
 // ============================================================================
 
 import * as THREE from 'three';
-import type { StructureType } from '../types/game';
+import type { StructureType, StructureEntity } from '../types/game';
+import { hashId, mulberry32 } from './lifePulse';
 
 /** The engine's shared material palette, as the builders use it. */
 export interface StructureMaterials {
@@ -33,8 +34,10 @@ export interface StructureMaterials {
   ghostInvalid: THREE.MeshBasicMaterial;
 }
 
-/** Build the structure-type -> mesh-builder record for an engine. */
-export function createStructureBuilders(materials: StructureMaterials): Record<StructureType, () => THREE.Group> {
+/** Build the structure-type -> mesh-builder record for an engine.
+ * Builders may read the entity (its id seeds per-instance variation);
+ * ghosts call with no entity and get the generic seed. */
+export function createStructureBuilders(materials: StructureMaterials): Record<StructureType, (entity?: StructureEntity) => THREE.Group> {
   return {
     'root_tile_floor': () => {
       const group = new THREE.Group();
@@ -962,29 +965,62 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
 
       return group;
     },
-    // The BioTunnel mouth (Adam, 2026-10-16): a short ribbed
-    // throat of root and resin standing on a root mound, its
-    // membrane stretched across the front like a drum. The ribs
-    // are full rings so the throat reads from every side; the
-    // membrane is a named child ('tunnelMembrane') whose light
-    // the engine stirs while the pair is whole and lets go dark
-    // when an end is gone (updateTunnelLife in threeEngine).
-    'biotunnel_mouth': () => {
+    // The BioTunnel mouth (Adam, 2026-10-16; grotesque pass,
+    // 2026-10-17): ONE organism with two mouths, and now it reads
+    // like one. A ribbed throat of wet flesh on a root mound — but
+    // the front is an irregular LIP with bone-pale teeth angled
+    // into a dark GULLET, so you can see INTO the thing. The
+    // pairing membrane still lives inside the gullet as the named
+    // 'tunnelMembrane' child (the engine's pairing tell, stirred by
+    // updateTunnelLife exactly as before); the teal glow now burns
+    // from within the throat instead of sitting on a drum.
+    // Per-mouth variation is seeded from the entity id, so the
+    // pair's two mouths are siblings, never twins.
+    'biotunnel_mouth': (entity) => {
       const group = new THREE.Group();
+      // Seed: the entity id when the engine builds the real mesh,
+      // a fixed fallback for ghosts (buildGhostFor passes none).
+      const rng = mulberry32(hashId(entity?.id ?? 'ghost-mouth'));
       const base = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.3, 0.22, 20), materials.woodRoot);
       base.position.y = 0.11;
       base.receiveShadow = true;
       group.add(base);
-      const ribMat = new THREE.MeshStandardMaterial({ color: 0x7c2d12, roughness: 0.85 });
-      const ribGeom = new THREE.TorusGeometry(0.85, 0.09, 10, 24);
+      // Root spurs clawing out of the mound — two or three, seeded.
+      const spurGeom = new THREE.ConeGeometry(0.13, 0.5, 7);
+      const spurCount = 2 + Math.floor(rng() * 2);
+      for (let i = 0; i < spurCount; i++) {
+        const a = (i / spurCount) * Math.PI * 2 + rng() * 0.8;
+        const spur = new THREE.Mesh(spurGeom, materials.woodRoot);
+        spur.position.set(Math.sin(a) * 1.05, 0.14, Math.cos(a) * 1.05);
+        spur.rotation.set(Math.cos(a) * 0.9, 0, -Math.sin(a) * 0.9);
+        spur.castShadow = true;
+        group.add(spur);
+      }
+      // Wet flesh palette — everything grown here shares it, damp
+      // and bruised (Adam: "almost grotesque").
+      const fleshMat = new THREE.MeshStandardMaterial({ color: 0x8e2f2f, roughness: 0.32 });
+      const lipMat = new THREE.MeshStandardMaterial({ color: 0x6b1f2e, roughness: 0.35 });
+      const darkMat = new THREE.MeshStandardMaterial({
+        color: 0x2a0d12, roughness: 0.55, side: THREE.DoubleSide,
+      });
+      const boneMat = new THREE.MeshStandardMaterial({ color: 0xe8dcc0, roughness: 0.5 });
+      // The throat ribs: still five full rings, but grown not
+      // machined — seeded radii and slight tilts per rib.
       for (let i = 0; i < 5; i++) {
-        const rib = new THREE.Mesh(ribGeom, ribMat);
+        const ribGeom = new THREE.TorusGeometry(0.82 + rng() * 0.12, 0.09, 10, 24);
+        const rib = new THREE.Mesh(ribGeom, fleshMat);
         rib.position.set(0, 1.15, -0.36 + i * 0.18);
-        const s = 1 - Math.abs(i - 2) * 0.05;
-        rib.scale.set(s, s, 1);
+        rib.rotation.x = (rng() - 0.5) * 0.12;
+        rib.rotation.y = (rng() - 0.5) * 0.12;
         rib.castShadow = true;
         group.add(rib);
       }
+      // The gullet: an open dark cone from the lip back into the
+      // throat, so the opening has DEPTH. The membrane hangs inside
+      // it instead of capping the front.
+      const gullet = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.24, 0.54, 14, 1, true), darkMat);
+      gullet.position.set(0, 1.15, 0.09);
+      group.add(gullet);
       const membraneMat = new THREE.MeshStandardMaterial({
         color: 0x134e4a,
         roughness: 0.35,
@@ -994,25 +1030,122 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
         opacity: 0.92,
         side: THREE.DoubleSide,
       });
-      const membrane = new THREE.Mesh(new THREE.CircleGeometry(0.78, 24), membraneMat);
-      membrane.position.set(0, 1.15, 0);
+      const membrane = new THREE.Mesh(new THREE.CircleGeometry(0.5, 24), membraneMat);
+      membrane.position.set(0, 1.15, -0.10);
       membrane.name = 'tunnelMembrane';
       group.add(membrane);
+      // The lip: an irregular ring of flesh at the front opening.
+      // Lumpiness is seeded smooth noise around the circle (not per
+      // vertex index, so shared verts displace identically), and it
+      // lives in its own group ('tunnelLip') for the life pass's
+      // peristaltic ripple.
+      const lipGroup = new THREE.Group();
+      lipGroup.name = 'tunnelLip';
+      const lumpPhase1 = rng() * Math.PI * 2;
+      const lumpPhase2 = rng() * Math.PI * 2;
+      const lipGeom = new THREE.TorusGeometry(0.78, 0.16, 12, 28);
+      {
+        const pos = lipGeom.attributes.position as THREE.BufferAttribute;
+        const v = new THREE.Vector3();
+        for (let i = 0; i < pos.count; i++) {
+          v.fromBufferAttribute(pos, i);
+          const theta = Math.atan2(v.y, v.x);
+          const lump = 0.05 * Math.sin(3 * theta + lumpPhase1) + 0.04 * Math.sin(5 * theta + lumpPhase2);
+          const radial = 1 + lump / 0.78;
+          v.x *= radial;
+          v.y *= radial;
+          v.z += 0.04 * Math.sin(4 * theta + lumpPhase1);
+          pos.setXYZ(i, v.x, v.y, v.z);
+        }
+        lipGeom.computeVertexNormals();
+      }
+      const lip = new THREE.Mesh(lipGeom, lipMat);
+      lip.position.set(0, 1.15, 0.36);
+      lip.castShadow = true;
+      lipGroup.add(lip);
+      // The teeth: twelve bone cones ringed inside the lip, angled
+      // into the gullet, NO two the same length (seeded).
+      const throatTarget = new THREE.Vector3(0, 1.15, -0.2);
+      for (let i = 0; i < 12; i++) {
+        const theta = (i / 12) * Math.PI * 2 + (rng() - 0.5) * 0.35;
+        const len = 0.12 + rng() * 0.12;
+        const toothGeom = new THREE.ConeGeometry(0.045, len, 6);
+        toothGeom.rotateX(Math.PI / 2); // tip points +Z, at the throat
+        const tooth = new THREE.Mesh(toothGeom, boneMat);
+        tooth.position.set(Math.cos(theta) * 0.60, 1.15 + Math.sin(theta) * 0.60, 0.40);
+        tooth.lookAt(throatTarget);
+        tooth.castShadow = true;
+        lipGroup.add(tooth);
+      }
+      group.add(lipGroup);
+      // The veins (Adam: "nasty gross veins, pulsing"): raised
+      // branching tubes crawling over the lip and down the throat —
+      // bruise-purple, glossy. Their pulse lives in updateTunnelLife
+      // (heartbeat, phased per mouth); here they are just named
+      // ('tunnelVeins') so the pass can find them.
+      const veinMat = new THREE.MeshStandardMaterial({
+        color: 0x4a1540, roughness: 0.25,
+        emissive: 0x7d1a4d, emissiveIntensity: 0.08,
+      });
+      const veins = new THREE.Group();
+      veins.name = 'tunnelVeins';
+      const veinStems = 5;
+      for (let i = 0; i < veinStems; i++) {
+        const theta0 = rng() * Math.PI * 2;
+        const drift = (rng() - 0.5) * 0.8;
+        const pts: THREE.Vector3[] = [];
+        for (let k = 0; k < 4; k++) {
+          const y = 1.55 - k * 0.38;
+          const radius = 0.86 - k * 0.055;
+          const theta = theta0 + k * 0.35 * (drift >= 0 ? 1 : -1);
+          pts.push(new THREE.Vector3(Math.cos(theta) * radius, y, 0.28 - k * 0.13));
+        }
+        const curve = new THREE.CatmullRomCurve3(pts);
+        veins.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 10, 0.022, 5, false), veinMat));
+        // One branch per stem, peeling off at the second point.
+        const bpts: THREE.Vector3[] = [pts[1]];
+        for (let k = 1; k < 4; k++) {
+          const y = pts[1].y - k * 0.22;
+          const theta = theta0 + 0.5 + k * 0.3 * (drift >= 0 ? 1 : -1);
+          const radius = 0.82 - k * 0.04;
+          bpts.push(new THREE.Vector3(Math.cos(theta) * radius, y, 0.20 - k * 0.10));
+        }
+        const bcurve = new THREE.CatmullRomCurve3(bpts);
+        veins.add(new THREE.Mesh(new THREE.TubeGeometry(bcurve, 8, 0.013, 5, false), veinMat));
+      }
+      group.add(veins);
       return group;
     },
-    'culture_vat': () => {
+    'culture_vat': (entity) => {
       const group = new THREE.Group();
+      // Seed: per-vat variation (the sac's lumps, the vein layout)
+      // rides the entity id; ghosts get the generic seed.
+      const rng = mulberry32(hashId(entity?.id ?? 'ghost-vat'));
 
       // The Culture Vat (Adam, 2026-10-15; look spec from the
-      // background chat): a translucent membrane sac cradled in a
-      // resin rib-frame, rooted in a wood collar — grown, never
-      // manufactured. Named parts (vatSac / vatCore) are how the
-      // engine's per-frame vat-life pass breathes the sac and
-      // grows the silhouette inside it; see threeEngine.
+      // background chat; grotesque pass 2026-10-17): a translucent
+      // membrane sac cradled in a resin rib-frame, rooted in a wood
+      // collar — grown, never manufactured. Named parts (vatSac /
+      // vatCore) are how the engine's per-frame vat-life pass
+      // breathes the sac and grows the silhouette inside it; see
+      // structureLife.ts. The chitin-glass read stays — the
+      // silhouette inside must stay visible.
       const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.86, 1.02, 0.2, 14), materials.woodRoot);
       collar.position.y = 0.1;
       collar.castShadow = true;
       group.add(collar);
+
+      // A flesh ring where the collar meets the sac — the same wet
+      // red as the tunnel mouth's flesh. Accent only, same collar
+      // footprint.
+      const fleshRing = new THREE.Mesh(
+        new THREE.TorusGeometry(0.84, 0.06, 8, 24),
+        new THREE.MeshStandardMaterial({ color: 0x8e2f2f, roughness: 0.32 })
+      );
+      fleshRing.rotation.x = Math.PI / 2;
+      fleshRing.position.y = 0.2;
+      fleshRing.castShadow = true;
+      group.add(fleshRing);
 
       // Root feet: three short toes gripping the ground.
       const footGeom = new THREE.ConeGeometry(0.16, 0.42, 7);
@@ -1026,8 +1159,9 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
 
       // The resin ribs: five half-arcs curling up around the sac
       // like fingers. Resin gets a fresh material per build (the
-      // shared palette has no resin tone).
-      const resinMat = new THREE.MeshStandardMaterial({ color: 0x9a6a33, roughness: 0.55, metalness: 0.05 });
+      // shared palette has no resin tone) — tinted bloodward for
+      // the grotesque pass.
+      const resinMat = new THREE.MeshStandardMaterial({ color: 0x8a3b1f, roughness: 0.55, metalness: 0.05 });
       const ribGeom = new THREE.TorusGeometry(0.8, 0.065, 8, 20, Math.PI);
       for (let i = 0; i < 5; i++) {
         const rib = new THREE.Mesh(ribGeom, resinMat);
@@ -1038,13 +1172,65 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
         group.add(rib);
       }
 
-      // The membrane sac itself: the shared chitin-glass, tall.
-      const sac = new THREE.Mesh(new THREE.SphereGeometry(0.72, 20, 16), materials.chitinGlass);
+      // The membrane sac itself: the shared chitin-glass, tall —
+      // but lumpy now, seeded vertex displacement so every vat has
+      // its own skin. The displacement is per-BUILD geometry (the
+      // material stays shared); the silhouette read is untouched.
+      const lumpPhase1 = rng() * Math.PI * 2;
+      const lumpPhase2 = rng() * Math.PI * 2;
+      const lumpPhase3 = rng() * Math.PI * 2;
+      const sacGeom = new THREE.SphereGeometry(0.72, 20, 16);
+      {
+        const pos = sacGeom.attributes.position as THREE.BufferAttribute;
+        const v = new THREE.Vector3();
+        for (let i = 0; i < pos.count; i++) {
+          v.fromBufferAttribute(pos, i);
+          const n = Math.sin(2.1 * v.x + lumpPhase1) * Math.sin(1.7 * v.y + lumpPhase2) * Math.sin(2.3 * v.z + lumpPhase3);
+          const s = 1 + 0.045 * n;
+          pos.setXYZ(i, v.x * s, v.y * s, v.z * s);
+        }
+        sacGeom.computeVertexNormals();
+      }
+      const sac = new THREE.Mesh(sacGeom, materials.chitinGlass);
       sac.name = 'vatSac';
       sac.scale.set(1, 1.12, 1);
       sac.position.y = 0.98;
       sac.castShadow = true;
       group.add(sac);
+
+      // The veins: raised branching tubes hugging the sac's curve
+      // (bruise-purple, glossy), named 'vatVeins' for the life
+      // pass. Their heartbeat quickens as gestation progresses —
+      // the pass reads the same gestation record as the core.
+      const veinMat = new THREE.MeshStandardMaterial({
+        color: 0x4a1540, roughness: 0.25,
+        emissive: 0x7d1a4d, emissiveIntensity: 0.08,
+      });
+      const veins = new THREE.Group();
+      veins.name = 'vatVeins';
+      const vatVeinStems = 8;
+      for (let i = 0; i < vatVeinStems; i++) {
+        const theta0 = (i / vatVeinStems) * Math.PI * 2 + rng() * 0.5;
+        const drift = (rng() - 0.5) * 1.2;
+        const pts: THREE.Vector3[] = [];
+        for (let k = 0; k < 4; k++) {
+          const y = 0.35 + k * 0.42;
+          const theta = theta0 + k * 0.4 * (drift >= 0 ? 1 : -1);
+          pts.push(new THREE.Vector3(Math.cos(theta) * 0.74, y, Math.sin(theta) * 0.74));
+        }
+        const curve = new THREE.CatmullRomCurve3(pts);
+        veins.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 10, 0.018, 5, false), veinMat));
+        // One branch per stem, peeling off at the second point.
+        const bpts: THREE.Vector3[] = [pts[1]];
+        for (let k = 1; k < 3; k++) {
+          const y = pts[1].y - k * 0.2;
+          const theta = theta0 + 0.6 + k * 0.3 * (drift >= 0 ? 1 : -1);
+          bpts.push(new THREE.Vector3(Math.cos(theta) * 0.73, y, Math.sin(theta) * 0.73));
+        }
+        const bcurve = new THREE.CatmullRomCurve3(bpts);
+        veins.add(new THREE.Mesh(new THREE.TubeGeometry(bcurve, 6, 0.011, 5, false), veinMat));
+      }
+      group.add(veins);
 
       // The silhouette inside: a curled, dark form that firms up
       // as a gestation progresses. Its material is per-build —

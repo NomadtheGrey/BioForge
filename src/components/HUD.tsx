@@ -192,7 +192,7 @@ import { HudOptionsPanel } from './HudOptionsPanel';
 import { multiplayerManager, RELAY_BASE_URL } from '../game/multiplayer';
 // Shield faces for the Left Hand tile (shield follow pass,
 // 2026-10-17): which held items are shields, from the rules.
-import { isShieldItem } from '../game/creatures/shields';
+import { SHIELD_GRAFTS, graftOf, isShieldItem } from '../game/creatures/shields';
 // The world's calendar (Shelf 1): the zone panel's day/night
 // row answers WHEN as well as where — the day count is the
 // world's age from its creation stamp, read live each render.
@@ -1330,21 +1330,26 @@ export const HUD: React.FC<HUDProps> = ({
                 joined it in 2026-10-17. The hand now cycles —
                 click, Alt+wheel, or Alt+↑ — through what the
                 player owns: lantern ↔ Scute Shield ↔ Lantern
-                Shield ↔ Fenback Shield ↔ empty. The tile wears
+                Shield ↔ Fenback Shield ↔ Lodestone Bulwark ↔
+                empty. The tile wears
                 the held thing's face: lantern light (cyan), a
                 shield's ward (rose, BRACED while raised), or
                 the empty hand. */}
             {(() => {
               const heldId = playerState.heldItemId ?? null;
               const heldShield = isShieldItem(heldId);
-              const heldGrafted = heldShield && !!playerState.shieldGrafts?.[heldId as ItemId];
+              // The slot holds a graft KIND now (Platforms
+              // Parallel, 2026-10-17): the tile names it, rather
+              // than wearing a bare grafted dot.
+              const heldGraft = heldShield ? graftOf(playerState.shieldGrafts, heldId as ItemId) : null;
+              const heldGrafted = heldGraft !== null;
               const heldName = heldId ? ITEMS[heldId]?.name ?? heldId : null;
               return (
                 <button
                   onClick={onToggleHeldItem}
                   title={
                     heldShield
-                      ? `Left Hand: ${heldName}${heldGrafted ? ' (spike-grafted)' : ''} — ${shieldRaised ? 'BRACED, the wall is up' : 'lowered; carried blunting is live'} · hold right-mouse to raise · click or Alt+wheel to cycle the hand`
+                      ? `Left Hand: ${heldName}${heldGraft ? ` (${SHIELD_GRAFTS[heldGraft].name} graft)` : ''} — ${shieldRaised ? 'BRACED, the wall is up' : 'lowered; carried blunting is live'} · hold right-mouse to raise · click or Alt+wheel to cycle the hand`
                       : heldId
                         ? `Left Hand: ${heldName} — click or Alt+wheel to cycle the hand`
                         : 'Left Hand: empty — click or Alt+wheel to cycle the hand'
@@ -1370,7 +1375,7 @@ export const HUD: React.FC<HUDProps> = ({
                       <Sparkles className="w-5 h-5" />
                     )}
                     {heldGrafted && (
-                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-rose-400 border border-rose-200" title="Spike-grafted" />
+                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-rose-400 border border-rose-200" title={heldGraft ? `${SHIELD_GRAFTS[heldGraft].name} grafted` : 'Grafted'} />
                     )}
                   </span>
                   {!touchMode && (

@@ -34,6 +34,12 @@ import { INITIAL_STRUCTURES } from './useWorldEntities';
 import { SPAWN_ZONE, zoneKey, zoneBiomeAt, zoneVariantAt, zoneFaceAt } from '../game/world/zones';
 import { generateSeededWorld } from '../game/world/worldGen';
 import { multiplayerManager } from '../game/multiplayer';
+/**
+ * S6 Movable Vaults: the autosave projection reads the live carry and
+ * stamps a projected copy via the pure helper — the save record itself
+ * is never mutated in place (buildWorldSnapshot returns LIVE refs).
+ */
+import { projectCarryForSave, type CarryState } from '../game/structures/movableVaults';
 import type { InstanceState } from './useInstances';
 import type { ZoneCoords } from '../game/world/zones';
 import type {
@@ -84,6 +90,16 @@ export interface SaveSessionDeps {
    *  saved under the save record's `asksBack` key. */
   asksBackState: AsksBackState;
   setAsksBackState: (state: AsksBackState) => void;
+  /**
+   * S6 Movable Vaults: LAZY carry getter (the save timer's idiom —
+   * saveNow reads the live carry at save time). The projection writes
+   * a COPY of the carried entity into the SAVED current zone at the
+   * player's feet; the carry state itself is NEVER persisted and the
+   * save format does not change (SAVE_FORMAT_VERSION stays 1).
+   */
+  getCarryRef: () => { current: CarryState | null };
+  /** S6: facing-derived rotation for the projected copy (Adam's pin). */
+  getPlacementRotation: () => number;
 }
 
 export function useSaveSession(deps: SaveSessionDeps) {
@@ -96,6 +112,7 @@ export function useSaveSession(deps: SaveSessionDeps) {
     restoreInventory, restorePlayerState, setCodexList, setFieldNotesState, setAsksBackState, setDayNightCycle, setQuestProgress,
     replaceWorld, enterFullscreenOnTouch, postNotification, getDebugStashRef,
     captureCavePlantings, plantingsKey,
+    getCarryRef, getPlacementRotation,
   } = deps;
 
     // --------------------------------------------------------------------------
@@ -205,7 +222,10 @@ export function useSaveSession(deps: SaveSessionDeps) {
     }
     // While a debug-kit swap is active, the STASH is the pouch of
     // record — saves never see the kit (see toggleDebugKit).
-    const record = buildSavedGame(meta, buildWorldSnapshot(), getDebugStashRef().current ?? s.inventory, buildCurrentPlayerState(), s.dayNightCycle, s.codexList, cavePlantingsRef.current, s.fieldNotesState, s.asksBackState);
+    // buildCurrentPlayerState is hoisted so the S6 projection below can
+    // place the carried vault at the same player feet the record uses.
+    const playerForSave = buildCurrentPlayerState();
+    const record = buildSavedGame(meta, buildWorldSnapshot(), getDebugStashRef().current ?? s.inventory, playerForSave, s.dayNightCycle, s.codexList, cavePlantingsRef.current, s.fieldNotesState, s.asksBackState);
     // Zone travel (2026-10-15): the record also carries every visited
     // zone's snapshot plus where the player is standing. The `world`
     // field above already holds the CURRENT zone's snapshot (the save
@@ -216,6 +236,32 @@ export function useSaveSession(deps: SaveSessionDeps) {
       ...Object.fromEntries(visitedZonesRef.current),
       [zoneKey(playerZoneRef.current.zx, playerZoneRef.current.zz)]: buildWorldSnapshot(),
     };
+    // S6 MOVABLE VAULTS — autosave projection (Adam's catch): a save
+    // NEVER interrupts a carry. If a vault is being carried when the
+    // record is built, project the whole entity into the SAVED COPY of
+    // the current zone at the player's feet. buildWorldSnapshot returns
+    // LIVE refs, so BOTH record.world and record.zones[current] get
+    // fresh objects with copied structure arrays — the live lists are
+    // never mutated. The carry state itself is never persisted (no new
+    // save key; SAVE_FORMAT_VERSION untouched); every autosave
+    // re-projects from live truth, and on reload the vault stands
+    // where the last save caught the player mid-carry.
+    const carryForSave = getCarryRef().current;
+    if (carryForSave) {
+      const currentKey = zoneKey(playerZoneRef.current.zx, playerZoneRef.current.zz);
+      const projected = projectCarryForSave(
+        carryForSave,
+        playerForSave.x,
+        playerForSave.z,
+        getPlacementRotation(),
+      );
+      record.world = { ...record.world, structures: [...record.world.structures, projected] };
+      const currentZoneSnap = record.zones[currentKey] ?? { flora: [], fauna: [], structures: [], drops: [] };
+      record.zones = {
+        ...record.zones,
+        [currentKey]: { ...currentZoneSnap, structures: [...currentZoneSnap.structures, projected] },
+      };
+    }
     record.currentZone = { ...playerZoneRef.current };
     currentSaveRef.current = { ...meta, savedAt: record.savedAt };
     void storeSavedGame(record);

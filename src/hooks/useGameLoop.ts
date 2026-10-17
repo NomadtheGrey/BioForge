@@ -33,6 +33,8 @@ import { JUMP_GRAVITY, STORY_HEIGHT_METERS } from './useGameInput';
 import type { WorldSnapshot } from '../game/saveSystem';
 import type { InstanceState } from './useInstances';
 import type { PendingTravel } from './useZoneTravel';
+/** S6 Movable Vaults: the ghost driver renders the carried vault. */
+import type { CarryState } from '../game/structures/movableVaults';
 import type {
   DroppedItemEntity, FaunaEntity, FaunaSpecies, FloraEntity, GameNotification, HoverTarget,
   ItemId, PlayerState, StructureEntity, StructureType, ToolType,
@@ -136,6 +138,12 @@ export interface GameLoopDeps {
   isPointerLockedRef: { current: boolean };
   activeModalRef: { current: string | null };
   structuresListRef: { current: StructureEntity[] };
+  /**
+   * S6 Movable Vaults: the live carry state (null = not carrying).
+   * While set, the ghost driver renders the carried vault's ghost
+   * instead of any builder blueprint.
+   */
+  carryRef: { current: CarryState | null };
   /** Refresh derived BioTunnel pairing on the live list (App). */
   annotateTunnelPairing: (structures: StructureEntity[]) => void;
   floraListRef: { current: FloraEntity[] };
@@ -169,7 +177,7 @@ export function useGameLoop(deps: GameLoopDeps): void {
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef, returnPausedRef, onBackgroundReturn,
-    structuresListRef, floraListRef, annotateTunnelPairing,
+    structuresListRef, floraListRef, annotateTunnelPairing, carryRef,
     activeToolRef, lastBroadcastTime, lastMinimapUpdateTime, latestStateRef, currentZoneId,
     applyPlayerLevel, postNotification, setStamina, setHealth, setMinimapPos,
     setDayNightCycle, setHoverInfo, setIsPointerLocked,
@@ -645,7 +653,29 @@ export function useGameLoop(deps: GameLoopDeps): void {
           (selectedStructureRef.current === 'storage_pod' ||
             selectedStructureRef.current === 'biotunnel_mouth' ||
             selectedStructureRef.current === 'sample_rack');
-        if (activeToolRef.current === 'builder' || podByHand) {
+        // S6 MOVABLE VAULTS: the carried vault's ghost. While a carry
+        // is live it owns the ghost channel outright — the carried
+        // entity is out of the zone lists, so it can't conflict with
+        // itself, and the click agrees with the ghost through the
+        // same placement math (placementFor + occupancyConflict).
+        // Rotation is facing-derived, like all placement (Adam's pin).
+        const carried = carryRef.current;
+        if (carried) {
+          const pt = engineRef.current.getAimGroundIntersection();
+          if (pt) {
+            const rotation = liveGameRefs.current.getPlacementRotation();
+            const spot = placementFor(carried.entity.type, pt.x, pt.z, rotation);
+            const blocked = occupancyConflict(carried.entity.type, spot, structuresListRef.current) !== undefined;
+            engineRef.current.setGhostPreview(
+              carried.entity.type,
+              true,
+              spot.worldX,
+              spot.worldZ,
+              rotation,
+              !blocked
+            );
+          }
+        } else if (activeToolRef.current === 'builder' || podByHand) {
           const pt = engineRef.current.getAimGroundIntersection();
           if (pt) {
             const type = selectedStructureRef.current;
@@ -666,7 +696,7 @@ export function useGameLoop(deps: GameLoopDeps): void {
             );
           }
         }
-        if (activeToolRef.current !== 'builder' && !podByHand) {
+        if (!carried && activeToolRef.current !== 'builder' && !podByHand) {
           engineRef.current.setGhostPreview(selectedStructureRef.current, false, 0, 0, 0, true);
         }
 

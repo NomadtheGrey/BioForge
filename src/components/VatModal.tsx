@@ -14,7 +14,7 @@
  */
 
 import React from 'react';
-import { X, Sprout, FlaskConical, Egg, ArrowUpCircle } from 'lucide-react';
+import { X, Sprout, FlaskConical, Egg, ArrowUpCircle, Move } from 'lucide-react';
 import type { FaunaSpecies, ItemId, StructureEntity } from '../types/game';
 import { ITEMS } from '../game/items/constants';
 import { speciesDef } from '../game/creatures/species';
@@ -28,6 +28,12 @@ interface VatModalProps {
   onStart: (structure: StructureEntity, species: FaunaSpecies) => void;
   onHatch: (structure: StructureEntity) => void;
   onUpgrade: (structure: StructureEntity) => void;
+  /**
+   * S6 Movable Vaults: lift the WHOLE vat — tier and any running
+   * gestation ride inside, mid-count. Optional so the panel renders
+   * standalone without the carry wired.
+   */
+  onMove?: (structure: StructureEntity) => void;
 }
 
 const BAND_LABEL: Record<VatBand, string> = {
@@ -49,6 +55,7 @@ export const VatModal: React.FC<VatModalProps> = ({
   onStart,
   onHatch,
   onUpgrade,
+  onMove,
 }) => {
   const vat = structure.vat ?? { tier: 1 };
   const tier = Math.min(Math.max(vat.tier, 1), VAT_TIER_NAMES.length);
@@ -96,6 +103,19 @@ export const VatModal: React.FC<VatModalProps> = ({
               >
                 <ArrowUpCircle className="h-3.5 w-3.5" />
                 {hasKit ? `APPLY ${ITEMS[kitId]?.name.toUpperCase()}` : `NEEDS ${ITEMS[kitId]?.name.toUpperCase()}`}
+              </button>
+            )}
+            {/* S6 Movable Vaults: the gentle verb — lift the whole vat,
+                tier and any running gestation riding inside, mid-count.
+                While carrying, the whole kit is inert. */}
+            {onMove && (
+              <button
+                onClick={() => onMove(structure)}
+                className="mt-2 flex items-center gap-1.5 rounded-xl border border-purple-400/60 px-3 py-1.5 text-[11px] font-tech font-bold text-purple-200 hover:scale-105 active:scale-95 cursor-pointer"
+                title="Lift the whole vat — gestation rides along, mid-count"
+              >
+                <Move className="h-3.5 w-3.5" />
+                MOVE VAT
               </button>
             )}
           </div>

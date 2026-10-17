@@ -35,6 +35,8 @@ import { bestWeapon } from '../game/creatures/weapons';
 import type { WeaponDef } from '../game/creatures/weapons';
 import { floraDef } from '../game/flora/flora';
 import { GROUND_LAYER_TYPES, isEdgePanel, isLadder, occupancyConflict, placementFor } from '../game/structures/placement';
+/** S6 Movable Vaults: the inert-kit gate reads the live carry state. */
+import type { CarryState } from '../game/structures/movableVaults';
 
 // A new plant must be at least this far (meters) from every existing one —
 // anything closer is a stack of seedlings on one spot, not a garden.
@@ -198,6 +200,15 @@ export interface UseToolInteractionsParams {
   triggerSolventFx: (x: number, z: number) => void;
   /** The visible solvent jet, player -> target (Adam, 2026-10-16). */
   triggerSprayJetFx: (x: number, z: number) => void;
+  /**
+   * S6 Movable Vaults: the live carry state (null = not carrying).
+   * While carrying, the whole kit is inert — the only live click is
+   * the put-down click; every other tool/creature/structure attempt
+   * gets the soft "hands full" response.
+   */
+  carryRef: { current: CarryState | null };
+  /** S6: set the carried vault down at a ground spot (false = the spot refused, carry continues). */
+  putDownCarryAt: (worldX: number, worldZ: number) => boolean;
 }
 
 export function useToolInteractions({
@@ -260,6 +271,8 @@ export function useToolInteractions({
   triggerHarvestFx,
   triggerSolventFx,
   triggerSprayJetFx,
+  carryRef,
+  putDownCarryAt,
 }: UseToolInteractionsParams) {
   // What a harvest-ready plant gives up, per species — ONE table shared by
   // the harvest glove (which leaves the plant standing to regrow) and the
@@ -1509,6 +1522,14 @@ export function useToolInteractions({
   // Unified Interactions Handlers (Flat, zero else)
   const handleGroundClick = useCallback(
     (worldX: number, worldZ: number): void => {
+      // S6 MOVABLE VAULTS: while carrying, the whole kit is inert —
+      // gauntlet tools, weapons, the lot. The ONLY live click is the
+      // put-down click, routed to the carry's placement handler; a
+      // refused spot (red ghost) simply keeps the carry.
+      if (carryRef.current) {
+        putDownCarryAt(worldX, worldZ);
+        return;
+      }
       if (activeTool === 'striker') {
         // Striking at open ground: a close weapon swings at the
         // air; a ranged weapon looses at the point (a burst shot
@@ -1550,11 +1571,17 @@ export function useToolInteractions({
         return;
       }
     },
-    [activeTool, handleBuildPlacement, handlePlanterAction, selectedStructureType, fireProjectile, triggerShotFx, spendStamina, inventory, strikerDrawRef, getPlayerPosition]
+    [activeTool, handleBuildPlacement, handlePlanterAction, selectedStructureType, fireProjectile, triggerShotFx, spendStamina, inventory, strikerDrawRef, getPlayerPosition, carryRef, putDownCarryAt]
   );
 
   const handleFloraInteract = useCallback(
     (flora: FloraEntity): void => {
+      // S6 MOVABLE VAULTS: hands full — the carry leaves the player
+      // tool-less for the haul; set the vault down first.
+      if (carryRef.current) {
+        postNotification('Hands Full', 'Set the carried vault down before using your tools — you are defenseless for the haul.', 'alert', '#fbbf24');
+        return;
+      }
       if (activeTool === 'harvest_glove') {
         handleHarvestFlora(flora);
         return;
@@ -1583,7 +1610,7 @@ export function useToolInteractions({
         return;
       }
     },
-    [activeTool, handleHarvestFlora, handleScanTarget, handlePlanterAction, handleSolventFlora, fireProjectile, triggerShotFx, spendStamina, inventory, strikerDrawRef]
+    [activeTool, handleHarvestFlora, handleScanTarget, handlePlanterAction, handleSolventFlora, fireProjectile, triggerShotFx, spendStamina, inventory, strikerDrawRef, carryRef, postNotification]
   );
 
   /**
@@ -1637,6 +1664,12 @@ export function useToolInteractions({
 
   const handleFaunaInteract = useCallback(
     (fauna: FaunaEntity): void => {
+      // S6 MOVABLE VAULTS: hands full — no lures, scans, strikes, or
+      // solvent while the carry rides. Set the vault down first.
+      if (carryRef.current) {
+        postNotification('Hands Full', 'Set the carried vault down before using your tools — you are defenseless for the haul.', 'alert', '#fbbf24');
+        return;
+      }
       if (activeTool === 'taming_lure') {
         handleTameFauna(fauna);
         return;
@@ -1692,7 +1725,7 @@ export function useToolInteractions({
         return;
       }
     },
-    [activeTool, handleTameFauna, handleScanTarget, applyDissolve, triggerSprayJetFx, strikeFauna, fireProjectile, triggerShotFx, triggerStrikeHitFx, spendStamina, inventory, strikerDrawRef, postNotification, getPlayerPosition]
+    [activeTool, handleTameFauna, handleScanTarget, applyDissolve, triggerSprayJetFx, strikeFauna, fireProjectile, triggerShotFx, triggerStrikeHitFx, spendStamina, inventory, strikerDrawRef, postNotification, getPlayerPosition, carryRef]
   );
 
   // Builder on a CEILING tile with a floor selected: GROW the ceiling
@@ -1907,6 +1940,13 @@ export function useToolInteractions({
 
  const handleStructureInteract = useCallback(
   (structure: StructureEntity): void => {
+    // S6 MOVABLE VAULTS: hands full — no panels, portals, or tools
+    // while carrying (the carried entity is out of the lists, so
+    // nothing below could see it anyway). Set the vault down first.
+    if (carryRef.current) {
+      postNotification('Hands Full', 'Set the carried vault down before using your tools — you are defenseless for the haul.', 'alert', '#fbbf24');
+      return;
+    }
     // Builder on a ceiling tile with a floor selected: grow the ceiling
     // toward your facing — checked BEFORE the flat-surface routing,
     // which would otherwise treat the tile as ground.
@@ -2215,7 +2255,7 @@ export function useToolInteractions({
       return;
     }
   },
-  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, onOpenStorage, handleGroundClick, handlePlanterAction, selectedSeedId, selectedStructureType, handleBuilderOnPanel, handleBuilderOnBaseBlock, handleGrowCeiling, handlePlaceLadder, handleExtendLadder, handleClimbLadder, postNotification, onEnterCave, onExitCave]
+  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, onOpenStorage, handleGroundClick, handlePlanterAction, selectedSeedId, selectedStructureType, handleBuilderOnPanel, handleBuilderOnBaseBlock, handleGrowCeiling, handlePlaceLadder, handleExtendLadder, handleClimbLadder, postNotification, onEnterCave, onExitCave, carryRef]
 );
 
   return {

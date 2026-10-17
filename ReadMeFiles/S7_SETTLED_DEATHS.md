@@ -82,7 +82,10 @@ for its world); a guest never writes the ledger directly.
    it never re-offers (300-generation fuzz, the S3 standard).
 5. Old saves (no `settledDeaths` key) load clean.
 
-## Open questions for Adam (pin-time, none block preparation)
+## Open questions for Adam (PARKED 2026-10-17 by Adam — raise at S7 pin-time, not before)
+
+Adam's ruling: pin these questions, bring them up later; the settled-deaths
+portion does what it currently does until S7 builds. None block preparation.
 
 - **Cause of death:** record it (culled by the player / killed wild /
   died of the world)? The ledger can carry it cheaply; it changes the

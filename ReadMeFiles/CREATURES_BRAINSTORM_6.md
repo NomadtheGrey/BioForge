@@ -106,6 +106,15 @@ signature move commits near the player), and a mesh riding an existing
 profile with one signature silhouette piece (plate ridges / stoop wings
 / the long gel hound).
 
+*Build amendment (slice 51, from the spawn smoke test): the three
+predators are EXEMPT from the gradient on both axes. Their table rows
+were written already-scaled for their named country — a 22 bite is the
+design, not a base for the gradient to multiply toward 35 — and each
+is a seated individual: its zone holds exactly ONE (the density axis
+would otherwise deal a second Hush Hound into the same valley, which
+breaks the fiction and the encounter alike). The exemption is a named
+set (FAR_APEX_IDS) in worldGen beside farPressureFor.*
+
 ## Build shape
 
 - Slice 50: the gradient — worldgen spawn-stamping + sim read; types

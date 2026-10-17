@@ -23,7 +23,6 @@ export type ItemId =
   | 'scute_shield'
   | 'lantern_shield'
   | 'fenback_shield'
-  | 'lodestone_bulwark'
   | 'plume_charm'
   | 'grave_feather'
   | 'kite_ribbon'
@@ -1182,6 +1181,15 @@ export interface CraftingRecipe {
    * via inheritance in the craft flow.
    */
   graftShield?: ItemId;
+  /**
+   * The lodestone slot (Adam, 2026-10-17): recipes carrying
+   * this SET a lodestone into the named shield's own growth
+   * (the second shield slot, beside the graft) instead of
+   * teaching anything. The slot lives in the shield's own
+   * state (creatures/shields.ts ShieldGrowthMap) and survives
+   * consume-upgrades via inheritance, like the graft.
+   */
+  lodestoneShield?: ItemId;
 }
 
 export interface CodexEntry {

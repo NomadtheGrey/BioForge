@@ -1024,21 +1024,6 @@ export const RECIPES: CraftingRecipe[] = [
     craftTimeMs: 5000,
   },
   {
-    id: 'craft_lodestone_bulwark',
-    outputId: 'lodestone_bulwark',
-    outputCount: 1,
-    name: 'Lodestone Bulwark',
-    description: 'Grow Lodestone Plates into a Scute Shield until the ward pulls at the world. Tier 3 branch — the tier buys the pull, not a lamp: carried, drops drift to you from nine meters; braced, from thirteen. Consumes the shield.',
-    category: 'defenses',
-    ingredients: [
-      { id: 'scute_shield', count: 1 },
-      { id: 'lodestone_plate', count: 2 },
-      { id: 'carapace_scale', count: 3 },
-      { id: 'resin_sap', count: 3 },
-    ],
-    craftTimeMs: 5000,
-  },
-  {
     id: 'craft_plume_charm',
     outputId: 'plume_charm',
     outputCount: 1,
@@ -1112,22 +1097,58 @@ export const RECIPES: CraftingRecipe[] = [
     craftTimeMs: 2500,
     graftShield: 'fenback_shield',
   },
+  // THE LODESTONE SLOT (Adam, 2026-10-17): the pull the
+  // abolished Bulwark carried is now a SLOT, set into any
+  // shield like the spikes — one recipe per shield, shaped
+  // exactly like the graft sets (the shield itself plus the
+  // slot's materials). The materials are the old Bulwark
+  // fork's, minus the Scute it consumed.
   {
-    // The Bulwark's graft (Platforms Parallel, 2026-10-17):
-    // the fourth shield joins the graft family — every shield
-    // can carry the slot's spikes.
-    id: 'graft_spikes_bulwark',
-    outputId: 'lodestone_bulwark',
+    id: 'set_lodestone_scute',
+    outputId: 'scute_shield',
     outputCount: 1,
-    name: 'Spike Graft — Lodestone Bulwark',
-    description: 'Graft organic thorn spikes across the Bulwark\'s lodestone plates. A Tier 2 addition; the pull gathers, the spikes answer.',
+    name: 'Set Lodestone — Scute Shield',
+    description: 'Set lodestone plates into the Scute Shield: the shield gains the pull — carried, drops drift to you from nine meters; braced, from thirteen.',
     category: 'defenses',
     ingredients: [
-      { id: 'lodestone_bulwark', count: 1 },
+      { id: 'scute_shield', count: 1 },
+      { id: 'lodestone_plate', count: 2 },
       { id: 'carapace_scale', count: 3 },
-      { id: 'resin_sap', count: 2 },
+      { id: 'resin_sap', count: 3 },
     ],
     craftTimeMs: 2500,
-    graftShield: 'lodestone_bulwark',
+    lodestoneShield: 'scute_shield',
+  },
+  {
+    id: 'set_lodestone_lantern',
+    outputId: 'lantern_shield',
+    outputCount: 1,
+    name: 'Set Lodestone — Lantern Shield',
+    description: 'Set lodestone plates into the Lantern Shield: the shield gains the pull — carried, drops drift to you from nine meters; braced, from thirteen.',
+    category: 'defenses',
+    ingredients: [
+      { id: 'lantern_shield', count: 1 },
+      { id: 'lodestone_plate', count: 2 },
+      { id: 'carapace_scale', count: 3 },
+      { id: 'resin_sap', count: 3 },
+    ],
+    craftTimeMs: 2500,
+    lodestoneShield: 'lantern_shield',
+  },
+  {
+    id: 'set_lodestone_fenback',
+    outputId: 'fenback_shield',
+    outputCount: 1,
+    name: 'Set Lodestone — Fenback Shield',
+    description: 'Set lodestone plates into the Fenback Shield: the shield gains the pull — carried, drops drift to you from nine meters; braced, from thirteen.',
+    category: 'defenses',
+    ingredients: [
+      { id: 'fenback_shield', count: 1 },
+      { id: 'lodestone_plate', count: 2 },
+      { id: 'carapace_scale', count: 3 },
+      { id: 'resin_sap', count: 3 },
+    ],
+    craftTimeMs: 2500,
+    lodestoneShield: 'fenback_shield',
   },
 ];

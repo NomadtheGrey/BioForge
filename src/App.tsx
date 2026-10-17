@@ -123,6 +123,7 @@ import {
   graftInheritanceOnCraft,
   graftOf,
   leftHandOrder,
+  lodestoneOf,
   shieldOf,
   SHIELD_GRAFTS,
   type ShieldCombatInput,
@@ -2342,6 +2343,19 @@ const {
         return;
       }
     }
+    // The lodestone-slot guard (Adam, 2026-10-17): the same
+    // invariant for the shield's second slot — no burning set
+    // materials on a shield that already wears a stone.
+    if (recipe.lodestoneShield) {
+      if (lodestoneOf(shieldGrowthRef.current, recipe.lodestoneShield)) {
+        postNotification(
+          'Lodestone Already Set',
+          `Your ${ITEMS[recipe.lodestoneShield]?.name || recipe.lodestoneShield} already wears a lodestone.`,
+          'craft',
+        );
+        return;
+      }
+    }
     // The pouch-tier guard (Adam's play pass, 2026-10-17): the
     // carrying ladder's upgrades are one-time — the same
     // invariant at the consumption point as the modal's
@@ -2380,9 +2394,14 @@ const {
       // parent's graft — kind and all — onto the new tier.
       if (recipe.graftShield) {
         shieldWield.graftShield(recipe.graftShield);
+      } else if (recipe.lodestoneShield) {
+        shieldWield.setLodestone(recipe.lodestoneShield);
       } else {
         const inherited = graftInheritanceOnCraft(recipe, shieldGrowthRef.current);
-        if (inherited) shieldWield.graftShield(inherited.itemId, inherited.kind);
+        if (inherited) {
+          if (inherited.kind) shieldWield.graftShield(inherited.itemId, inherited.kind);
+          if (inherited.lodestone) shieldWield.setLodestone(inherited.itemId);
+        }
       }
       postNotification(
         'Synthesis Complete',

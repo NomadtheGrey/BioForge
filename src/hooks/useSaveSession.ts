@@ -27,6 +27,7 @@ import {
 import type { FieldNotesState } from '../game/knowledge/fieldNotesBook';
 import { EMPTY_ASKS_BACK, type AsksBackState } from '../game/quests/asksBackState';
 import {
+  migrateBulwark,
   shieldGrowthFromLegacy,
   type ShieldGraftId,
   type ShieldGrowthMap,
@@ -396,8 +397,29 @@ export function useSaveSession(deps: SaveSessionDeps) {
         migratedInventory['gauntlet_synthesizer_upgrade'] = 1;
       }
       getDebugStashRef().current = null;
-      restoreInventory(migratedInventory);
-      restorePlayerState(record.playerState);
+      // THE BULWARK FOLD (Adam, 2026-10-17): saves written while
+      // the Lodestone Bulwark was an item convert at load — the
+      // item becomes a Fenback wearing the lodestone slot (and
+      // the Bulwark's graft), its growth record folds with it,
+      // and a held Bulwark becomes a held Fenback. The growth
+      // map is computed here from its own key (or the legacy
+      // playerState fold below) so the conversion sees it whole.
+      const restoredGrowth: ShieldGrowthMap =
+        record.shieldGrowth ??
+        shieldGrowthFromLegacy(
+          (record.playerState as { shieldGrafts?: Partial<Record<ItemId, ShieldGraftId | boolean>> }).shieldGrafts
+        );
+      const bulwarkFold = migrateBulwark(
+        migratedInventory,
+        restoredGrowth,
+        record.playerState.heldItemId ?? null
+      );
+      restoreInventory(bulwarkFold.inventory);
+      restorePlayerState(
+        bulwarkFold.changed
+          ? { ...record.playerState, heldItemId: bulwarkFold.heldItemId }
+          : record.playerState
+      );
       playerPosRef.current = {
         x: record.playerState.x,
         z: record.playerState.z,
@@ -415,12 +437,7 @@ export function useSaveSession(deps: SaveSessionDeps) {
       // shields' records (legacy `true` reads as spikes) so no
       // grafted shield loses its graft. restorePlayerState has
       // already stripped the old field from the player.
-      setShieldGrowth(
-        record.shieldGrowth ??
-          shieldGrowthFromLegacy(
-            (record.playerState as { shieldGrafts?: Partial<Record<ItemId, ShieldGraftId | boolean>> }).shieldGrafts
-          )
-      );
+      setShieldGrowth(bulwarkFold.growth);
       setDayNightCycle(record.dayNightCycle);
       // Shelf 1 (sky phenomena): the restored world's clocks
       // include the sky calendar's — seed + creation day zero.

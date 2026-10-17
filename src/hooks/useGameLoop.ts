@@ -974,7 +974,8 @@ export function useGameLoop(deps: GameLoopDeps): void {
             // from the shield in hand and whether it is raised.
             dropMagnetFor(
               shieldOf(playerState.heldItemId ?? null) ?? undefined,
-              liveGameRefs.current.shield?.raisedRef.current ?? false
+              liveGameRefs.current.shield?.raisedRef.current ?? false,
+              liveGameRefs.current.shield?.growthRef.current
             )
           );
         }

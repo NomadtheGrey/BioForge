@@ -107,24 +107,6 @@ export const DEFENSIVES: FamilyEntry[] = [
       'Shared Cover: while braced, an ally in the lee behind the bearer stands under the wall — blocked-for at braced grade, from the bearer\'s stamina.',
     ],
   },
-  {
-    // The Bulwark (Ingredient Sinks, 2026-10-17): the family's
-    // second Tier 3 branch — the Fenback buys the wrap, the
-    // Bulwark buys the pull. Its distinguishing copy lives
-    // here like every defensive's; the pull's numbers are the
-    // shields.ts constants (DROP_MAGNET_CARRIED / _BRACED),
-    // stated in words so the dossier never drifts from them.
-    itemId: 'lodestone_bulwark',
-    kind: 'defensive',
-    tier: 3,
-    signatures: [
-      'The second Tier 3 branch, not a ladder: grown from a Scute Shield — where the Fenback buys the wrap, the Bulwark buys the pull.',
-      'The Pull: carried, dropped things drift toward you from nine meters out; pickup itself still asks you to arrive.',
-      'Braced, the pull widens and quickens — thirteen meters, and the drift runs faster. A wall that gathers what the fight scattered.',
-      'No lamp: the dark stays dark. Its tier buys reach, not light.',
-      'Grown by combination: its recipe consumes the Scute Shield, two lodestone plates, carapace, and resin.',
-    ],
-  },
 ];
 
 /**

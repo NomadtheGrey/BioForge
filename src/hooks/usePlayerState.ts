@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { PlayerState, ToolType, StructureType, ItemId, QuestProgressState } from '../types/game';
+import { PlayerState, ToolType, StructureType, ItemId, QuestProgressState, ShieldGraftId } from '../types/game';
 
 export interface UsePlayerStateResult {
   playerState: PlayerState;
@@ -15,10 +15,10 @@ export interface UsePlayerStateResult {
   setSelectedFertilizerId: (fertilizerId: ItemId) => void;
   setHeldItemId: (itemId: ItemId | null) => void;
   setQuestProgress: (progress: QuestProgressState) => void;
-  setShieldGrafts: (grafts: Partial<Record<ItemId, boolean>>) => void;
+  setShieldGrafts: (grafts: Partial<Record<ItemId, ShieldGraftId | boolean>>) => void;
   /** The shield slice's graft record (the read side of the
    *  setter — App mirrors it into a ref for the craft flow). */
-  shieldGrafts: Partial<Record<ItemId, boolean>>;
+  shieldGrafts: Partial<Record<ItemId, ShieldGraftId | boolean>>;
   setPlayerTransform: (x: number, z: number, rotation: number) => void;
   setPlayerLevel: (level: number) => void;
   setStamina: (stamina: number) => void;
@@ -75,7 +75,7 @@ export function usePlayerState(): UsePlayerStateResult {
   // Shield grafts ride PlayerState (and therefore the save) like
   // heldItemId does — one functional write, no field-by-field
   // poking from App. Absent on old saves; readers fall back to {}.
-  const setShieldGrafts = useCallback((grafts: Partial<Record<ItemId, boolean>>): void => {
+  const setShieldGrafts = useCallback((grafts: Partial<Record<ItemId, ShieldGraftId | boolean>>): void => {
     setPlayerState((prev) => ({ ...prev, shieldGrafts: grafts }));
   }, []);
 

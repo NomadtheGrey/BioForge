@@ -1139,4 +1139,22 @@ export const RECIPES: CraftingRecipe[] = [
     craftTimeMs: 2500,
     graftShield: 'fenback_shield',
   },
+  {
+    // The Bulwark's graft (Platforms Parallel, 2026-10-17):
+    // the fourth shield joins the graft family — every shield
+    // can carry the slot's spikes.
+    id: 'graft_spikes_bulwark',
+    outputId: 'lodestone_bulwark',
+    outputCount: 1,
+    name: 'Spike Graft — Lodestone Bulwark',
+    description: 'Graft organic thorn spikes across the Bulwark\'s lodestone plates. A Tier 2 addition; the pull gathers, the spikes answer.',
+    category: 'defenses',
+    ingredients: [
+      { id: 'lodestone_bulwark', count: 1 },
+      { id: 'carapace_scale', count: 3 },
+      { id: 'resin_sap', count: 2 },
+    ],
+    craftTimeMs: 2500,
+    graftShield: 'lodestone_bulwark',
+  },
 ];

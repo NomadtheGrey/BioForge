@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Backpack, Sprout, Hammer, ArrowUpRight, Search } from 'lucide-react';
-import { ItemId, StructureType, ToolType } from '../types/game';
+import { ItemId, ShieldGraftId, StructureType, ToolType } from '../types/game';
 import { ITEMS, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../game/items/constants';
 import { isGauntletUpgrade, isGearItem, gearTierOf } from '../game/quests/quests';
 import { BASE_SUPPLY_GROUPS, baseSupplyGroupOf, isBaseSupply } from '../game/items/baseSupplies';
@@ -13,7 +13,7 @@ import {
   consumedRung,
   familyEntryOf,
 } from '../game/items/weaponsFamily';
-import { GRAFT_REFLECT_BRACED, GRAFT_REFLECT_PASSIVE } from '../game/creatures/shields';
+import { SHIELD_GRAFTS, graftOf } from '../game/creatures/shields';
 
 interface InventoryModalProps {
   isOpen: boolean;
@@ -25,7 +25,7 @@ interface InventoryModalProps {
   onSelectTool: (tool: ToolType) => void;
   // The Spike Graft record (PlayerState.shieldGrafts), when
   // passed: a shield's inspector marks GRAFTED on the item.
-  shieldGrafts?: Partial<Record<ItemId, boolean>>;
+  shieldGrafts?: Partial<Record<ItemId, ShieldGraftId | boolean>>;
 }
 
 export const InventoryModal: React.FC<InventoryModalProps> = ({
@@ -438,11 +438,14 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                         )}
                         {familyEntryOf(activeItem.id)!.kind === 'defensive' && shieldGrafts && (
                           <div className="flex justify-between py-1.5 border-b border-slate-800 text-slate-400">
-                            <span>Spike Graft</span>
-                            <span className={`font-tech uppercase ${shieldGrafts[activeItem.id] ? 'text-emerald-300' : 'text-slate-500'}`}>
-                              {shieldGrafts[activeItem.id]
-                                ? `Grafted — answers ${GRAFT_REFLECT_PASSIVE} / ${GRAFT_REFLECT_BRACED} braced`
-                                : 'Not grafted'}
+                            <span>Graft Slot</span>
+                            <span className={`font-tech uppercase ${graftOf(shieldGrafts, activeItem.id) ? 'text-emerald-300' : 'text-slate-500'}`}>
+                              {(() => {
+                                const g = graftOf(shieldGrafts, activeItem.id);
+                                return g
+                                  ? `${SHIELD_GRAFTS[g].name} — answers ${SHIELD_GRAFTS[g].reflectPassive} / ${SHIELD_GRAFTS[g].reflectBraced} braced`
+                                  : 'Not grafted';
+                              })()}
                             </span>
                           </div>
                         )}

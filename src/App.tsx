@@ -1220,7 +1220,7 @@ export default function App() {
       onStaminaEmpty: () => void;
       tickClock: (dt: number) => void;
       raisedRef: { current: boolean };
-      graftsRef: { current: Partial<Record<ItemId, boolean>> };
+      graftsRef: { current: Partial<Record<ItemId, import('./types/game').ShieldGraftId | boolean>> };
       /** THE SHIELD (2026-10-17): the strike side-effect sink —
        *  the shared consumer queues reflects, staggers, and spore
        *  bursts here; the sim's post-map sweep drains them. */
@@ -2265,14 +2265,14 @@ const {
     }
     const success = craftRecipe(recipe);
     if (success) {
-      // Graft recipes stamp the spikes onto the shield they grew
-      // on; consume-upgrades (T1->T2, T2->T3) inherit the
-      // parent's graft onto the new tier.
+      // Graft recipes stamp their graft onto the shield they
+      // grew on; consume-upgrades (T1->T2, T2->T3) inherit the
+      // parent's graft — kind and all — onto the new tier.
       if (recipe.graftShield) {
         shieldWield.graftShield(recipe.graftShield);
       } else {
         const inherited = graftInheritanceOnCraft(recipe, shieldGraftsRef.current);
-        if (inherited) shieldWield.graftShield(inherited);
+        if (inherited) shieldWield.graftShield(inherited.itemId, inherited.kind);
       }
       postNotification(
         'Synthesis Complete',

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, BookOpen, Sparkles, CheckCircle2, Lock, Eye } from 'lucide-react';
-import { CodexEntry, ItemId } from '../types/game';
+import { CodexEntry, ItemId, ShieldGraftId } from '../types/game';
 import { ITEMS } from '../game/items/constants';
 import {
   FAMILY_KIND_BLURB,
@@ -14,7 +14,7 @@ import {
 import { itemIcon } from './itemIcon';
 // The graft's reflect numbers ride the shield rules table —
 // the dossier quotes them from the source, never from copy.
-import { GRAFT_REFLECT_BRACED, GRAFT_REFLECT_PASSIVE } from '../game/creatures/shields';
+import { SHIELD_GRAFTS, graftOf } from '../game/creatures/shields';
 
 interface CodexModalProps {
   isOpen: boolean;
@@ -26,7 +26,7 @@ interface CodexModalProps {
   inventory?: Record<ItemId, number>;
   // The Spike Graft record (PlayerState.shieldGrafts), when
   // passed: shield dossiers mark GRAFTED on the entry itself.
-  shieldGrafts?: Partial<Record<ItemId, boolean>>;
+  shieldGrafts?: Partial<Record<ItemId, ShieldGraftId | boolean>>;
 }
 
 export const CodexModal: React.FC<CodexModalProps> = ({
@@ -237,15 +237,16 @@ export const CodexModal: React.FC<CodexModalProps> = ({
                 <div className="mt-3 pt-3 border-t border-slate-700/60 flex items-start gap-2">
                   <span className="text-rose-300/70 shrink-0 mt-0.5">◈</span>
                   <p className="text-xs text-slate-400 leading-relaxed">
-                    <strong className="text-slate-200">Spike Graft</strong> — thorn spikes
-                    grown onto the face (a Tier 2 addition): strikes landing on the shield
-                    answer {GRAFT_REFLECT_PASSIVE} damage carried, {GRAFT_REFLECT_BRACED} braced.
+                    <strong className="text-slate-200">The Graft Slot</strong> — one graft
+                    grown onto the face. Thorn Spikes (a Tier 2 addition): strikes landing on
+                    the shield answer {SHIELD_GRAFTS.spikes.reflectPassive} damage carried, {SHIELD_GRAFTS.spikes.reflectBraced} braced.
                     {selWeapon.tier >= 2 && ' The graft survives this shield’s grows — combination and consume-and-keep alike.'}
                     {shieldGrafts && (
-                      <span className={`block mt-1 font-tech text-[10px] uppercase tracking-wide ${shieldGrafts[selWeapon.itemId] ? 'text-emerald-300' : 'text-slate-500'}`}>
-                        {shieldGrafts[selWeapon.itemId]
-                          ? 'Grafted — this shield wears its spikes'
-                          : 'Not grafted'}
+                      <span className={`block mt-1 font-tech text-[10px] uppercase tracking-wide ${graftOf(shieldGrafts, selWeapon.itemId) ? 'text-emerald-300' : 'text-slate-500'}`}>
+                        {(() => {
+                          const g = graftOf(shieldGrafts, selWeapon.itemId);
+                          return g ? `Grafted — this shield wears its ${SHIELD_GRAFTS[g].name}` : 'Not grafted';
+                        })()}
                       </span>
                     )}
                   </p>

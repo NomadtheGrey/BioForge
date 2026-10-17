@@ -39,6 +39,7 @@ import {
   resolveShieldStrike,
   shieldOf,
   dropMagnetFor,
+  graftOf,
   type ShieldCombatInput,
   type ShieldSideEffect,
   type StrikeCtx,
@@ -148,7 +149,7 @@ export interface GameLoopDeps {
       onStaminaEmpty: () => void;
       tickClock: (dt: number) => void;
       raisedRef: { current: boolean };
-      graftsRef: { current: Partial<Record<import('../types/game').ItemId, boolean>> };
+      graftsRef: { current: Partial<Record<import('../types/game').ItemId, import('../types/game').ShieldGraftId | boolean>> };
       /** THE SHIELD (2026-10-17): the strike side-effect sink —
        *  the shared consumer queues reflects, staggers, and spore
        *  bursts here; the sim's post-map sweep drains them. */
@@ -692,12 +693,14 @@ export function useGameLoop(deps: GameLoopDeps): void {
         if (shieldCtl) {
           shieldCtl.tickClock(dt);
           const heldShield = shieldOf(playerState.heldItemId ?? null) ?? null;
-          const grafted = !!(heldShield && shieldCtl.graftsRef.current?.[heldShield.itemId]);
+          const grafted = !!(heldShield && graftOf(shieldCtl.graftsRef.current, heldShield.itemId));
           engineRef.current.setShieldViewmodel(heldShield, grafted, shieldCtl.raisedRef.current, dt);
           const camDir = new THREE.Vector3();
           engineRef.current.camera.getWorldDirection(camDir);
           const facing = Math.atan2(camDir.x, camDir.z);
-          const wardActive = shieldCtl.raisedRef.current && heldShield?.tier === 3;
+          // The ward arc is the FENBACK's braced ward (branch-
+          // keyed, not tier-keyed — the Bulwark raises no arc).
+          const wardActive = shieldCtl.raisedRef.current && heldShield?.itemId === 'fenback_shield';
           engineRef.current.setWardArc(wardActive, moveResult.x, moveResult.z, facing);
           // The held light follows the Left Hand per frame (a braced
           // lamp-shield throws its light forward — see the engine).

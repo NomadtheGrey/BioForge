@@ -14,12 +14,14 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ItemId } from '../types/game';
+import type { ItemId, ShieldGraftId } from '../types/game';
 import type { CarryState } from '../game/structures/movableVaults';
 import { carryBlocksInteraction } from '../game/structures/movableVaults';
 import {
   SHIELD_GUARD_BREAK_SECONDS,
+  SHIELD_GRAFTS,
   SPORE_COOLDOWN_SECONDS,
+  graftOf,
   isDisplacementImmune,
   shieldOf,
   type ShieldCombatInput,
@@ -28,8 +30,8 @@ import {
 
 export interface ShieldWieldDeps {
   heldItemId: ItemId | null | undefined;
-  shieldGrafts: Partial<Record<ItemId, boolean>>;
-  setShieldGrafts: (grafts: Partial<Record<ItemId, boolean>>) => void;
+  shieldGrafts: Partial<Record<ItemId, ShieldGraftId | boolean>>;
+  setShieldGrafts: (grafts: Partial<Record<ItemId, ShieldGraftId | boolean>>) => void;
   /** S6: while a carry is live the whole kit is inert — the shield
    *  cannot be raised. carryBlocksInteraction is the predicate. */
   carryRef: { current: CarryState | null };
@@ -50,7 +52,7 @@ export interface ShieldWieldApi {
   /** The graft record, for HUD surfaces. */
   isGrafted: (itemId: ItemId) => boolean;
   /** Stamp a graft (the graft recipes call this through App). */
-  graftShield: (itemId: ItemId) => void;
+  graftShield: (itemId: ItemId, kind?: ShieldGraftId) => void;
   /** The per-tick combat input for the fauna sim (bite site only). */
   buildCombatInput: (getPlayerFacing: () => number, payStamina: (n: number) => boolean) => ShieldCombatInput | undefined;
   /** Called by the game loop when the braced drain empties stamina. */
@@ -125,16 +127,24 @@ export function useShieldWield(deps: ShieldWieldDeps): ShieldWieldApi {
     };
   }, [setShieldRaised]);
 
-  const isGrafted = useCallback((itemId: ItemId): boolean => !!graftsRef.current[itemId], []);
+  const isGrafted = useCallback(
+    (itemId: ItemId): boolean => graftOf(graftsRef.current, itemId) !== null,
+    []
+  );
 
+  /** Stamp a graft into a shield's slot (Platforms Parallel,
+   *  2026-10-17): the kind is the stamp — 'spikes' is the only
+   *  kind today, and the slot refuses a second graft while one
+   *  stands (one graft per shield). */
   const graftShield = useCallback(
-    (itemId: ItemId) => {
-      if (graftsRef.current[itemId]) return;
-      const next = { ...graftsRef.current, [itemId]: true };
+    (itemId: ItemId, kind: ShieldGraftId = 'spikes') => {
+      if (graftOf(graftsRef.current, itemId)) return;
+      const next = { ...graftsRef.current, [itemId]: kind };
       setShieldGrafts(next);
+      const def = SHIELD_GRAFTS[kind];
       postNotification(
-        'Spikes Grafted',
-        'Thorn spikes take hold across the shield\'s face — strikes that land on it will answer.',
+        `${def.name} Grafted`,
+        `${def.name} take hold across the shield's face — strikes that land on it will answer.`,
         'craft',
         '#65a30d'
       );
@@ -181,7 +191,7 @@ export function useShieldWield(deps: ShieldWieldDeps): ShieldWieldApi {
         snapshot: (): ShieldCombatSnapshot => ({
           shield,
           raised: raisedRef.current,
-          grafted: !!graftsRef.current[shield.itemId],
+          graft: graftOf(graftsRef.current, shield.itemId),
           carrying: carryBlocksInteraction(carryRef.current),
           guardBroken: clockRef.current < guardBrokenUntilRef.current,
           playerFacing: getPlayerFacing(),

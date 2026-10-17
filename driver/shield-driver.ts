@@ -25,6 +25,7 @@ import {
   attackBearing,
   cycleLeftHand,
   graftInheritanceOnCraft,
+  graftOf,
   graftReflectDamage,
   inArc,
   isDisplacementImmune,
@@ -38,7 +39,7 @@ import {
   type ShieldCombatInput,
   type ShieldDef,
 } from '../src/game/creatures/shields';
-import type { CraftingRecipe, ItemId } from '../src/types/game';
+import type { CraftingRecipe, ItemId, ShieldGraftId } from '../src/types/game';
 
 let pass = 0;
 let fail = 0;
@@ -68,7 +69,7 @@ function fakeInput(opts: {
     snapshot: () => opts.shield ? {
       shield: opts.shield,
       raised: opts.raised ?? false,
-      grafted: opts.grafted ?? false,
+      graft: (opts.grafted ? 'spikes' : null) as ShieldGraftId | null,
       carrying: opts.carrying ?? false,
       guardBroken: opts.guardBroken ?? false,
       playerFacing: opts.facing ?? 0,
@@ -177,9 +178,12 @@ console.log('\n7. GRAFT SURVIVES T1->T2 AND T2->T3 CONSUMES');
     category: 'defenses', craftTimeMs: 0,
     ingredients: [{ id: 'lantern_shield', count: 1 }, { id: 'fen_scute', count: 4 }],
   };
+  // Legacy-form record (boolean true, pre-slot saves): the
+  // inheritance must read it as 'spikes' and carry the KIND.
   const grafts: Partial<Record<ItemId, boolean>> = { scute_shield: true };
-  check('T1->T2 inherits the graft', graftInheritanceOnCraft(t1to2, grafts) === 'lantern_shield');
-  check('T2->T3 inherits the graft', graftInheritanceOnCraft(t2to3, { lantern_shield: true }) === 'fenback_shield');
+  check('T1->T2 inherits the graft', graftInheritanceOnCraft(t1to2, grafts)?.itemId === 'lantern_shield');
+  check('T2->T3 inherits the graft', graftInheritanceOnCraft(t2to3, { lantern_shield: true })?.itemId === 'fenback_shield');
+  check('legacy boolean inherits AS spikes', graftInheritanceOnCraft(t1to2, grafts)?.kind === 'spikes');
   check('ungrafted parent inherits nothing', graftInheritanceOnCraft(t1to2, {}) === null);
   check('non-shield output inherits nothing',
     graftInheritanceOnCraft({ ...t1to2, outputId: 'hand_lantern_fern' }, grafts) === null);
@@ -289,6 +293,38 @@ console.log('\n14. GEOMETRY SANITY');
   check('inArc center true', inArc(0, 0, 120) === true);
   check('inArc edge (±60°) true', inArc(Math.PI / 3, 0, 120) === true);
   check('inArc outside false', inArc(Math.PI / 3 + 0.1, 0, 120) === false);
+}
+
+console.log('\n15. THE BULWARK BRANCH (Platforms Parallel, 2026-10-17)');
+{
+  // The other Tier 3: its tier buys the PULL, never the Fenback's
+  // signatures. These checks pin the branch-keyed gates — the
+  // tier-keyed forms silently gave the Bulwark the wrap, the
+  // Spore Answer, and Rooted Stance until this section existed.
+  const BUL = shieldOf('lodestone_bulwark')!;
+  check('bulwark is tier 3 without the lamp', BUL.tier === 3 && BUL.hasLamp === false);
+  const rearPassive = resolveShieldBite({ damage: 12, attackerAngle: REAR, playerFacing: 0, shield: BUL, raised: false, guardBroken: false, carrying: false });
+  check('bulwark rear passive takes FULL (no wrap)', rearPassive.kind === 'none' && rearPassive.finalDamage === 12, JSON.stringify(rearPassive));
+  check('bulwark never sheds the Spore Answer', shouldSporeBurst(BUL, 'braced', true) === false);
+  check('fenback still sheds it (control)', shouldSporeBurst(T3, 'braced', true) === true);
+  check('bulwark is not rooted while braced', isDisplacementImmune(BUL, true) === false);
+  check('fenback still roots (control)', isDisplacementImmune(T3, true) === true);
+  const bul = fakeInput({ shield: BUL, raised: true });
+  resolveShieldStrike(bul.input, 12, { faunaId: 'driver', x: 0, z: 1 }, 0, 0, 0, () => {}, () => {});
+  check('a braced bulwark block fires no spore burst', bul.state.sporeFired === false);
+  const fen = fakeInput({ shield: T3, raised: true });
+  resolveShieldStrike(fen.input, 12, { faunaId: 'driver', x: 0, z: 1 }, 0, 0, 0, () => {}, () => {});
+  check('the same block on a fenback DOES fire it (control)', fen.state.sporeFired === true);
+}
+
+console.log('\n16. THE GRAFT SLOT (Platforms Parallel, 2026-10-17)');
+{
+  check('legacy true reads as spikes', graftOf({ scute_shield: true }, 'scute_shield') === 'spikes');
+  check('a stored kind reads as itself', graftOf({ scute_shield: 'spikes' }, 'scute_shield') === 'spikes');
+  check('an empty slot reads null', graftOf({}, 'scute_shield') === null);
+  check('an absent record reads null', graftOf(undefined, 'scute_shield') === null);
+  check('reflect reads the graft def (passive)', graftReflectDamage(false, 'spikes') === 4);
+  check('reflect reads the graft def (braced)', graftReflectDamage(true, 'spikes') === 10);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

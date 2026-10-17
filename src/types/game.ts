@@ -1264,6 +1264,16 @@ export interface QuestProgressState {
   dismissedId?: string | null;
 }
 
+/**
+ * SHIELD GRAFT SLOT (Platforms Parallel, 2026-10-17): a shield
+ * carries ONE graft in its slot, named by kind — the shield's
+ * parallel to the gauntlet's modules and the helmet's growths.
+ * 'spikes' is the first kind; new kinds join this union and
+ * the SHIELD_GRAFTS table (creatures/shields.ts) without any
+ * save-shape change.
+ */
+export type ShieldGraftId = 'spikes';
+
 export interface PlayerState {
   x: number;
   z: number;
@@ -1286,12 +1296,17 @@ export interface PlayerState {
    * on saves from before the slot existed — treat as empty. */
   heldItemId?: ItemId | null;
   /**
-   * SHIELD GRAFTS (2026-10-17): which shields carry grafted thorn
-   * spikes, by item id. Optional for save compatibility — old saves
-   * load it as {} (no shield was ever grafted). Written by the
-   * graft recipes and inherited through the shield consume-upgrades.
+   * SHIELD GRAFTS (2026-10-17; SLOT formalized 2026-10-17):
+   * each shield's graft slot, by item id — the VALUE is now the
+   * graft's kind (ShieldGraftId), not a boolean. Saves from
+   * before the slot hold `true`, which every reader treats as
+   * 'spikes' (the only graft that existed) via shields.graftOf
+   * — no migration, no version bump. Optional for save
+   * compatibility — old saves load it as {} (nothing grafted).
+   * Written by the graft recipes and inherited through the
+   * shield consume-upgrades, kind and all.
    */
-  shieldGrafts?: Partial<Record<ItemId, boolean>>;
+  shieldGrafts?: Partial<Record<ItemId, ShieldGraftId | boolean>>;
   /** Mini-quest progress — see QuestProgressState. Optional for
    * save compatibility; new worlds start it fresh in
    * handleCreateSave. */

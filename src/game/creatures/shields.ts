@@ -15,7 +15,7 @@
  * stamina drain in hooks/useGameLoop.ts.
  */
 
-import type { CraftingRecipe, ItemId } from '../../types/game';
+import type { CraftingRecipe, ItemId, ShieldGraftId } from '../../types/game';
 
 /** The shields, in tier order. The Bulwark (Ingredient
  *  Sinks slice, 2026-10-17) is the family's second BRANCH:
@@ -71,6 +71,47 @@ export const SHIELD_BRACED_STAGGER_SECONDS = 0.4;
  *  braced > passive > none). */
 export const GRAFT_REFLECT_PASSIVE = 4;
 export const GRAFT_REFLECT_BRACED = 10;
+
+// ---------------------------------------------------------------------------
+// The graft SLOT (Platforms Parallel, 2026-10-17): one graft per
+// shield, named by kind — the shield's parallel to the gauntlet's
+// modules and the helmet's growths. The defs are data; a second
+// kind joins this table (and the ShieldGraftId union) without
+// any save-shape change.
+// ---------------------------------------------------------------------------
+
+export interface ShieldGraftDef {
+  id: ShieldGraftId;
+  /** Player-facing name, for the graft notification. */
+  name: string;
+  /** Reflect on a strike the shield met, carried / braced. */
+  reflectPassive: number;
+  reflectBraced: number;
+}
+
+export const SHIELD_GRAFTS: Record<ShieldGraftId, ShieldGraftDef> = {
+  spikes: {
+    id: 'spikes',
+    name: 'Thorn Spikes',
+    reflectPassive: GRAFT_REFLECT_PASSIVE,
+    reflectBraced: GRAFT_REFLECT_BRACED,
+  },
+};
+
+/**
+ * Read a shield's graft slot from the save record. Tolerant by
+ * design: saves from before the slot hold `true`, which reads
+ * as 'spikes' (the only graft that existed then); a stored
+ * kind reads as itself; anything else reads as an empty slot.
+ */
+export function graftOf(
+  grafts: Partial<Record<ItemId, ShieldGraftId | boolean>> | undefined,
+  itemId: ItemId
+): ShieldGraftId | null {
+  const v = grafts?.[itemId];
+  if (v === true) return 'spikes';
+  return typeof v === 'string' ? v : null;
+}
 /** The Spore Answer (Fenback, braced): stagger-and-knockback pulse. */
 export const SPORE_RADIUS = 3.5;
 export const SPORE_COOLDOWN_SECONDS = 6;
@@ -170,7 +211,12 @@ export function resolveShieldBite(input: BiteInput): BiteOutcome {
   const frontal = inArc(attackerAngle, playerFacing, SHIELD_FRONTAL_ARC_DEG);
   // The Fenback's wrap: the passive blunt extends to the rear —
   // the braced wall does NOT widen (facing still matters raised).
-  const rear = !frontal && shield.tier === 3 && inArc(attackerAngle, playerFacing + Math.PI, SHIELD_FRONTAL_ARC_DEG);
+  // A BRANCH signature, keyed on the Fenback itself (Platforms
+  // Parallel fix, 2026-10-17): it was tier === 3 from the days
+  // when tier 3 meant Fenback alone, and the Bulwark — the
+  // other tier-3 branch — silently inherited it. Branch
+  // signatures key on the branch, never the tier.
+  const rear = !frontal && shield.itemId === 'fenback_shield' && inArc(attackerAngle, playerFacing + Math.PI, SHIELD_FRONTAL_ARC_DEG);
   if (raised) {
     if (frontal) return { kind: 'braced', finalDamage: 0 };
     return { kind: 'none', finalDamage: damage };
@@ -181,15 +227,18 @@ export function resolveShieldBite(input: BiteInput): BiteOutcome {
   return { kind: 'none', finalDamage: damage };
 }
 
-/** Thorn-spike reflect on a strike that met the shield. */
-export function graftReflectDamage(raised: boolean): number {
-  return raised ? GRAFT_REFLECT_BRACED : GRAFT_REFLECT_PASSIVE;
+/** A graft's reflect on a strike that met the shield, read
+ *  from the graft's own def (the slot's kind decides). */
+export function graftReflectDamage(raised: boolean, kind: ShieldGraftId = 'spikes'): number {
+  const def = SHIELD_GRAFTS[kind];
+  return raised ? def.reflectBraced : def.reflectPassive;
 }
 
 /** The Spore Answer fires only on a braced Fenback block whose
- *  cooldown has elapsed. */
+ *  cooldown has elapsed. The Fenback's alone (branch-keyed, not
+ *  tier-keyed — see resolveShieldBite's wrap note). */
 export function shouldSporeBurst(shield: ShieldDef | null, blockKind: BlockKind, sporeReady: boolean): boolean {
-  return !!shield && shield.tier === 3 && blockKind === 'braced' && sporeReady;
+  return !!shield && shield.itemId === 'fenback_shield' && blockKind === 'braced' && sporeReady;
 }
 
 /** Rooted Stance: while a Fenback is braced, nothing outside moves
@@ -197,7 +246,8 @@ export function shouldSporeBurst(shield: ShieldDef | null, blockKind: BlockKind,
  *  (No displacement systems exist in the game today; the guard is
  *  the integration point, driver-verified.) */
 export function isDisplacementImmune(shield: ShieldDef | null, raised: boolean): boolean {
-  return !!shield && shield.tier === 3 && raised;
+  // Rooted Stance is the Fenback's (branch-keyed, not tier-keyed).
+  return !!shield && shield.itemId === 'fenback_shield' && raised;
 }
 
 // ---------------------------------------------------------------------------
@@ -258,22 +308,26 @@ export function resolveSharedCover(input: CoverInput & { damage: number }): Cove
 // ---------------------------------------------------------------------------
 
 /**
- * After a successful craft, returns the shield item id to graft when
- * the recipe consumed a grafted shield — else null. (Graft recipes
- * themselves stamp via recipe.graftShield; this handles the
- * consume-upgrades.)
+ * After a successful craft, returns the shield item id to graft
+ * AND the graft's kind when the recipe consumed a grafted
+ * shield — else null. The kind rides along (Platforms Parallel,
+ * 2026-10-17): a graft is inherited as what it IS, not as a
+ * bare yes. (Graft recipes themselves stamp via
+ * recipe.graftShield; this handles the consume-upgrades.)
  */
 export function graftInheritanceOnCraft(
   recipe: CraftingRecipe,
-  grafts: Partial<Record<ItemId, boolean>>
-): ItemId | null {
+  grafts: Partial<Record<ItemId, ShieldGraftId | boolean>>
+): { itemId: ItemId; kind: ShieldGraftId } | null {
   const output = shieldOf(recipe.outputId);
   if (!output) return null;
   if (recipe.graftShield) return null; // the graft recipe stamps its own
-  const graftedParent = recipe.ingredients.some(
-    (ing) => ing.id !== recipe.outputId && isShieldItem(ing.id) && grafts[ing.id]
-  );
-  return graftedParent ? recipe.outputId : null;
+  for (const ing of recipe.ingredients) {
+    if (ing.id === recipe.outputId || !isShieldItem(ing.id)) continue;
+    const kind = graftOf(grafts, ing.id);
+    if (kind) return { itemId: recipe.outputId, kind };
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -379,20 +433,20 @@ export function resolveShieldStrike(
     }
     // The striker's flinch language: the attacker's teeth met a
     // wall — no movement, no bites.
-    queueHit(ctx.faunaId, snap.grafted ? graftReflectDamage(true) : 0, SHIELD_BRACED_STAGGER_SECONDS);
+    queueHit(ctx.faunaId, snap.graft ? graftReflectDamage(true, snap.graft) : 0, SHIELD_BRACED_STAGGER_SECONDS);
     // The Spore Answer: a braced Fenback block sheds a
-    // stagger-and-knockback spore pulse (grafted: the pulse
-    // carries thorn-pricks).
+    // stagger-and-knockback spore pulse (spike-grafted: the
+    // pulse carries thorn-pricks).
     if (shouldSporeBurst(snap.shield, outcome.kind, snap.sporeReady)) {
       input.onSporeBurst();
       input.triggerSporeFx(ctx.x, ctx.z);
-      queueBurst(playerX, playerZ, snap.grafted);
+      queueBurst(playerX, playerZ, snap.graft === 'spikes');
     }
     return { finalDamage: outcome.finalDamage };
   }
-  if (outcome.kind === 'passive' && snap.grafted) {
+  if (outcome.kind === 'passive' && snap.graft) {
     // Carried, the graft still answers — minor.
-    queueHit(ctx.faunaId, graftReflectDamage(false), 0);
+    queueHit(ctx.faunaId, graftReflectDamage(false, snap.graft), 0);
   }
   return { finalDamage: outcome.finalDamage };
 }
@@ -407,8 +461,9 @@ export interface ShieldCombatSnapshot {
   /** The held shield (null = the Left Hand holds no shield). */
   shield: ShieldDef | null;
   raised: boolean;
-  /** Whether the HELD shield carries the spike graft. */
-  grafted: boolean;
+  /** The HELD shield's graft slot: the graft's kind, or null
+   *  when the slot stands empty. */
+  graft: ShieldGraftId | null;
   carrying: boolean;
   guardBroken: boolean;
   playerFacing: number;

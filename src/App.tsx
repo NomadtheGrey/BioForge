@@ -25,6 +25,8 @@ import {
   ITEMS,
   NON_BUILDABLE_STRUCTURE_IDS,
   getRecipeTier,
+  HELMET_GEAR_ITEM_IDS,
+  BOOTS_GEAR_ITEM_IDS,
 } from './game/items/constants';
 import { BioForgeThreeEngine } from './game/engine/threeEngine';
 import { soundEngine } from './audio/soundEngine';
@@ -2346,6 +2348,21 @@ const {
       postNotification(
         'Already Crafted',
         `${ITEMS[recipe.outputId]?.name || 'That pouch upgrade'} is beneath the tier already carrying for you.`,
+        'craft',
+      );
+      return;
+    }
+    // The platform gear guard (Adam, 2026-10-17): helmet and
+    // Quicksteps pieces are owned-unique — worn IS installed —
+    // so no caller burns ingredients on a duplicate. Same lock
+    // family as the graft slot and the pouch tiers.
+    if (
+      (HELMET_GEAR_ITEM_IDS.includes(recipe.outputId) || BOOTS_GEAR_ITEM_IDS.includes(recipe.outputId)) &&
+      (latestStateRef.current.inventory?.[recipe.outputId] ?? 0) > 0
+    ) {
+      postNotification(
+        'Already Crafted',
+        `${ITEMS[recipe.outputId]?.name || 'That piece'} is already yours — the platform wears one, and one is all it can wear.`,
         'craft',
       );
       return;

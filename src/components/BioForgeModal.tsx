@@ -184,6 +184,13 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     // and a surpassed tier reads the same, by the same rule.
     if (POUCH_UPGRADE_ITEMS.includes(recipe.outputId) && pouchTierOf(inventory) >= POUCH_UPGRADE_ITEMS.indexOf(recipe.outputId) + 1)
       return 'Already crafted — you already carry this tier or better';
+    // The platform gear lock (Adam, 2026-10-17): helmet and
+    // Quicksteps pieces are owned-unique — once made and worn,
+    // the recipe locks; a duplicate could never be worn anyway.
+    if (HELMET_GEAR_ITEM_IDS.includes(recipe.outputId) && (inventory[recipe.outputId] || 0) > 0)
+      return 'Already crafted — already worn on your Homestead Helm';
+    if (BOOTS_GEAR_ITEM_IDS.includes(recipe.outputId) && (inventory[recipe.outputId] || 0) > 0)
+      return 'Already crafted — already grown on your Quicksteps';
     if (!hasIngredients(recipe)) return 'Missing ingredients';
     if (nearForge) return null;
     if (accessTierOf(recipe) >= 3) return 'Advanced synthesis requires a bio-forge station';

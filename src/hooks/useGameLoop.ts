@@ -132,7 +132,7 @@ export interface GameLoopDeps {
     hasItem: (itemId: ItemId, quantity: number) => boolean;
     addInventoryItem: (itemId: ItemId, quantity: number) => number;
     updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number, ctx?: StrikeCtx) => void, attacksArmed?: boolean, dayPhase?: number, onFieldWitness?: (noteId: string) => void, onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void, onAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void, dropMagnet?: { radius: number; speed: number }) => void;
-    postNotification: (title: string, message: string, type?: GameNotification['type'], iconColor?: string) => void;
+    postNotification: (title: string, message: string, type?: GameNotification["type"], iconColor?: string, key?: string) => void;
     // The Field Notes witness sink (App's recordFieldWitness,
     // fieldNotesBook.ts) — optional so the loop never hard-depends
     // on the book; sim-side witnesses ride in through here too.
@@ -184,7 +184,7 @@ export interface GameLoopDeps {
   latestStateRef: { current: { dayNightCycle: number } };
   currentZoneId: () => string;
   applyPlayerLevel: (level: number) => void;
-  postNotification: (title: string, message: string, type?: GameNotification['type'], iconColor?: string) => void;
+  postNotification: (title: string, message: string, type?: GameNotification["type"], iconColor?: string, key?: string) => void;
   setStamina: (value: number) => void;
   setHealth: (value: number) => void;
   setMinimapPos: (pos: { x: number; z: number; rotation: number }) => void;
@@ -849,7 +849,11 @@ export function useGameLoop(deps: GameLoopDeps): void {
                 'Item Collected',
                 `Picked up ${taken}x ${ITEMS[pickedItem.itemId]?.name || pickedItem.itemId}`,
                 'harvest',
-                ITEMS[pickedItem.itemId]?.color || '#38bdf8'
+                ITEMS[pickedItem.itemId]?.color || '#38bdf8',
+                // Keyed (2026-10-17): a pickup spree refreshes
+                // this ONE toast instead of flooding the stack
+                // and evicting toasts that matter.
+                'pickup'
               );
             },
             (critterSpecies) => {

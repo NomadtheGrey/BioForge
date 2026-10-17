@@ -37,7 +37,7 @@ interface UseStorageParams {
   upsertStructure: (structure: StructureEntity) => void;
   spawnDroppedItem: (itemId: ItemId, count: number, x: number, z: number, pickupDelayMs?: number) => void;
   setOverflowHandler: (handler: ((itemId: ItemId, count: number) => void) | null) => void;
-  postNotification: (title: string, message: string, type: GameNotification['type'], iconColor: string) => void;
+  postNotification: (title: string, message: string, type: GameNotification['type'], iconColor: string, key?: string) => void;
 }
 
 export interface UseStorageResult {
@@ -70,6 +70,9 @@ export function useStorage({
         `No room for ${count} more ${ITEMS[itemId]?.name ?? itemId} — it fell at your feet. Storage pods and pouch upgrades make room.`,
         'alert',
         '#f59e0b',
+        // Keyed (2026-10-17): repeated overflows refresh the
+        // one toast instead of stacking copies of it.
+        'pouchfull',
       );
     });
     return () => setOverflowHandler(null);

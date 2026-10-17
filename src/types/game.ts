@@ -1322,6 +1322,12 @@ export interface GameNotification {
   type: 'harvest' | 'discover' | 'tame' | 'craft' | 'alert' | 'system';
   iconColor: string;
   time: number;
+  /** Coalescing key (2026-10-17): a post carrying a key that a
+   *  live toast already wears REPLACES that toast in place and
+   *  resets its timer, instead of taking another slot in the
+   *  stack — the pickup and pouch-full posters use it, so a
+   *  pickup spree can no longer evict a toast that matters. */
+  key?: string;
 }
 
 /**

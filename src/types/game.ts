@@ -229,6 +229,9 @@ export type ItemId =
   | 'stillsteps'
   | 'webfoots'
   | 'ember_soles'
+  | 'windlung_sprig'
+  | 'windlung_bellows'
+  | 'windlung_heart'
   // Cultivation Seeds
   | 'seed_lantern_fern'
   | 'seed_sap_weaver'

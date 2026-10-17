@@ -865,6 +865,54 @@ export const RECIPES: CraftingRecipe[] = [
     ],
     craftTimeMs: 2500,
   },
+  // THE WINDLUNG (Adam, 2026-10-17): the Quicksteps' breath
+  // ladder — each rung CONSUMES the one below (the weapons
+  // pattern), so the pouch ever holds one rung. Factors in
+  // game/creatures/quicksteps.ts.
+  {
+    id: 'craft_windlung_sprig',
+    outputId: 'windlung_sprig',
+    outputCount: 1,
+    name: 'Windlung Sprig',
+    description: 'A first small lung for the Quicksteps, down-lined and dew-fed: every effort costs less, every rest gives more.',
+    category: 'composites',
+    ingredients: [
+      { id: 'puff_down', count: 2 },
+      { id: 'soft_fiber', count: 2 },
+      { id: 'dew_essence', count: 1 },
+    ],
+    craftTimeMs: 2500,
+  },
+  {
+    id: 'craft_windlung_bellows',
+    outputId: 'windlung_bellows',
+    outputCount: 1,
+    name: 'Windlung Bellows',
+    description: 'The Sprig grown out into paired bellows: sprinting is cheap and breath comes back fast.',
+    category: 'composites',
+    ingredients: [
+      { id: 'windlung_sprig', count: 1 },
+      { id: 'whale_down', count: 1 },
+      { id: 'living_thread', count: 1 },
+      { id: 'spire_down', count: 2 },
+    ],
+    craftTimeMs: 4000,
+  },
+  {
+    id: 'craft_windlung_heart',
+    outputId: 'windlung_heart',
+    outputCount: 1,
+    name: 'Windlung Heart',
+    description: 'The Bellows grown into a true second heart for the road: a sprint barely sips, and a spent bar refills almost at once.',
+    category: 'composites',
+    ingredients: [
+      { id: 'windlung_bellows', count: 1 },
+      { id: 'fall_plume', count: 1 },
+      { id: 'heart_sap', count: 2 },
+      { id: 'living_thread', count: 1 },
+    ],
+    craftTimeMs: 5000,
+  },
   {
     id: 'craft_biotunnel_mouth',
     outputId: 'biotunnel_mouth',

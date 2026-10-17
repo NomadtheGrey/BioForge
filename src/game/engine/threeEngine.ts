@@ -2008,6 +2008,16 @@ export class BioForgeThreeEngine {
     return this.cavernMode;
   }
 
+  /** The standing cavern Heart's world position (THE
+   *  SANCTUARY, 2026-10-17): set when a cavern with a heart is
+   *  built, cleared when it is torn down. The game loop reads
+   *  it to replenish a player standing in the Heart's glow. */
+  private cavernHeartPos: { x: number; z: number } | null = null;
+
+  getCavernHeartPos(): { x: number; z: number } | null {
+    return this.cavernHeartPos;
+  }
+
   private buildCavern(cavern: CavernResult): void {
     this.clearCavern();
     const CEIL = 4.6; // cavern ceiling height (flat instance, no stories)
@@ -2113,6 +2123,7 @@ export class BioForgeThreeEngine {
       crystal.name = 'cavernHeart';
       crystal.position.set(w.x, 1.15, w.z);
       this.cavernGroup.add(crystal);
+      this.cavernHeartPos = { x: w.x, z: w.z };
       const heartLight = new THREE.PointLight(0xec4899, 9, 11, 1.5);
       heartLight.position.set(w.x, 1.4, w.z);
       this.cavernGroup.add(heartLight);
@@ -2182,6 +2193,7 @@ export class BioForgeThreeEngine {
       else if (material) material.dispose();
     });
     this.cavernGroup.clear();
+    this.cavernHeartPos = null;
   }
 
   // Instanced ruin interiors (game/world/ruinInterior.ts): the cavern

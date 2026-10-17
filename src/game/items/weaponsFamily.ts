@@ -253,6 +253,37 @@ export const BOOTS: FamilyEntry[] = [
     tier: 1,
     signatures: ['Obsidian tread bound in heat-cured resin. Cross the fire country on your own feet — the ground warns you, and the soles answer.'],
   },
+  // THE WINDLUNG (2026-10-17): the breath ladder — a branch of
+  // rungs, each grown from the one below. Its tiers are the
+  // ladder's own (1/2/3), and the numbers are the factors in
+  // game/creatures/quicksteps.ts, in words.
+  {
+    itemId: 'windlung_sprig',
+    kind: 'boots',
+    tier: 1,
+    signatures: [
+      'A first small lung grown into the Quicksteps, down-lined and dew-fed.',
+      'Every stamina drain costs seven-tenths; resting recovery runs near double.',
+    ],
+  },
+  {
+    itemId: 'windlung_bellows',
+    kind: 'boots',
+    tier: 2,
+    signatures: [
+      'Paired bellows at the ankles, grown from the Sprig — they pump with every stride.',
+      'Stamina drains cost under half; recovery runs near triple.',
+    ],
+  },
+  {
+    itemId: 'windlung_heart',
+    kind: 'boots',
+    tier: 3,
+    signatures: [
+      'A true second heart for the road, grown from the Bellows and fed on a Fall Hawk\u2019s plume.',
+      'Stamina drains cost under a fifth — a sprint barely sips — and recovery runs over quadruple: a spent bar refills in under two seconds.',
+    ],
+  },
 ];
 
 export const familyEntryOf = (itemId: ItemId): FamilyEntry | undefined => {

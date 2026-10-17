@@ -2077,6 +2077,39 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'uncommon',
     maxStack: 1,
   },
+  // THE WINDLUNG (Adam, 2026-10-17): a breath grown into the
+  // Quicksteps — a three-rung ladder bending the whole stamina
+  // economy (rules in game/creatures/quicksteps.ts).
+  windlung_sprig: {
+    id: 'windlung_sprig',
+    name: 'Windlung Sprig',
+    category: 'equipment',
+    description: 'Grown onto the Quicksteps: a first small lung, down-lined and dew-fed, breathing alongside your own. Every effort costs a little less; every rest gives more back.',
+    iconName: 'Wind',
+    color: '#7dd3fc',
+    rarity: 'uncommon',
+    maxStack: 1,
+  },
+  windlung_bellows: {
+    id: 'windlung_bellows',
+    name: 'Windlung Bellows',
+    category: 'equipment',
+    description: 'Grown onto the Quicksteps from the Sprig: paired bellows at the ankles, whale-down valved, pumping with every stride. Sprinting is cheap and breath comes back fast.',
+    iconName: 'Wind',
+    color: '#38bdf8',
+    rarity: 'rare',
+    maxStack: 1,
+  },
+  windlung_heart: {
+    id: 'windlung_heart',
+    name: 'Windlung Heart',
+    category: 'equipment',
+    description: 'Grown onto the Quicksteps from the Bellows: a true second heart for the road, fed on a Fall Hawk\u2019s plume. A sprint barely sips at you, and a spent bar refills almost as fast as you can spend it.',
+    iconName: 'HeartPulse',
+    color: '#0ea5e9',
+    rarity: 'rare',
+    maxStack: 1,
+  },
   basic_compost: {
     id: 'basic_compost',
     name: 'Organic Compost',
@@ -3038,6 +3071,12 @@ export const BOOTS_GEAR_ITEM_IDS: ItemId[] = [
   'stillsteps',
   'webfoots',
   'ember_soles',
+  // The Windlung ladder (2026-10-17): worn rungs of the
+  // stamina growth — membership here is what "worn" means for
+  // the forge's already-crafted lock and the family record.
+  'windlung_sprig',
+  'windlung_bellows',
+  'windlung_heart',
 ];
 
 // The recipe book lives in game/items/recipesData.ts (split

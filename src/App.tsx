@@ -99,6 +99,7 @@ import { addSettled, settleIndividual, zoneConsequences } from './game/quests/as
 import type { SagaTrackView } from './components/QuestTracker';
 
 import { StartScreenModal } from './components/StartScreenModal';
+import { GameInfoModal } from './components/GameInfoModal';
 
 // UI Components
 import { HUD } from './components/HUD';
@@ -234,6 +235,12 @@ export default function App() {
   const [activeModal, setActiveModal] = useState<
     'bioforge' | 'inventory' | 'codex' | 'multiplayer' | 'controls' | 'devtools' | 'quests' | 'storage' | 'vat' | null
   >(null);
+
+  // The About screen (info screen work order, 2026-10-17): its
+  // own boolean, not an activeModal value — it must open over
+  // the start screen, where no world (and no modal union) is
+  // live yet. The screen carries its own Esc listener.
+  const [showAbout, setShowAbout] = useState(false);
 
   // The striker slot's draw (weapons build, Adam, 2026-10-16):
   // which KIND of weapon slot 7 holds — 'close' or 'ranged'. The
@@ -2477,6 +2484,7 @@ const {
         onOpenCodex={() => setActiveModal('codex')}
         onOpenMultiplayer={() => setActiveModal('multiplayer')}
         onOpenControls={() => setActiveModal('controls')}
+        onOpenAbout={() => setShowAbout(true)}
         onOpenDevTools={() => setActiveModal('devtools')}
         onSave={handleManualSave}
         currentBiomeName={inCavern ? cavernStratumName(cavernDepth || 1) : inRuin ? 'Precursor Ruin' : currentZoneName}
@@ -2711,7 +2719,10 @@ const {
         onCreateSave={handleCreateSave}
         onDeleteSave={handleDeleteSave}
         onJoinCoop={handleJoinCoopFromStart}
+        onOpenAbout={() => setShowAbout(true)}
       />
+
+      <GameInfoModal isOpen={showAbout} onClose={() => setShowAbout(false)} />
       <MultiplayerModal
         isOpen={activeModal === 'multiplayer'}
         onClose={() => setActiveModal(null)}

@@ -382,7 +382,7 @@ export const QUESTS: QuestDef[] = [
     // pings wake when the Homestead Helm (chapter 3) is owned.
     id: 'q_radar',
     questChapter: 2,
-    title: 'The Far Eye',
+    title: 'The Keen Eye',
     blurb:
       'Four subassemblies, one instrument. The radar rides in the Homestead Helm — grow it now, and it wakes the day the helm is yours, pinging the places worth walking for.',
     gather: [
@@ -398,7 +398,7 @@ export const QUESTS: QuestDef[] = [
     questChapter: 2,
     title: 'The Near Eye',
     blurb:
-      'The Far Eye finds places; the living are nearer and quieter. Grow the Prismatic Lifefinder onto the radar, and the minimap answers for the rare lives too.',
+      'The Keen Eye finds places; the living are nearer and quieter. Grow the Prismatic Lifefinder onto the radar, and the minimap answers for the rare lives too.',
     gather: [
       { itemId: 'resonant_antenna_fan', count: 1 },
       { itemId: 'biolume_power_cell', count: 1 },
@@ -660,7 +660,7 @@ export const ASK_THE_WORLD_QUESTS: QuestDef[] = [
     flavor: 'For those who wander',
     title: 'Where Two Lands Meet',
     blurb:
-      'Far enough out, the countries stop keeping to themselves. Stand where two lands have grown into one another — the Marches, the blended country — and see a place that is two places.',
+      'Deep enough out, the countries stop keeping to themselves. Stand where two lands have grown into one another — the Marches, the blended country — and see a place that is two places.',
     gather: [],
     completeWhen: { kind: 'zoneHybrid' },
     rewardItems: [{ itemId: 'living_thread', count: 1 }],

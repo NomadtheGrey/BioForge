@@ -347,7 +347,7 @@ export function goalProgressText(
     case 'zoneHybrid':
       return st.satisfied ? 'Margin stood in ✓' : 'Stand in the margin';
     case 'zoneTier3':
-      return st.satisfied ? 'Far country stood in ✓' : 'Stand in tier-3 country';
+      return st.satisfied ? 'Deep country stood in ✓' : 'Stand in tier-3 country';
     case 'itemCount':
       return st.satisfied ? `${st.unit} ✓` : `${st.done}/${st.need} ${st.unit}`;
     default:

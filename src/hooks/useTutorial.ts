@@ -40,6 +40,8 @@ export interface TutorialFacts {
   forgeOpen: boolean;
   /** The Quest Log is open right now. */
   questsOpen: boolean;
+  /** The player's zone is no longer the home zone (0, 0). */
+  zoneChanged: boolean;
 }
 
 interface TutorialRecord {
@@ -159,7 +161,9 @@ export function useTutorial(facts: TutorialFacts): UseTutorialResult {
           ? facts.forgeOpen
           : step.gate === 'openQuests'
             ? facts.questsOpen
-            : false
+            : step.gate === 'zoneCross'
+              ? facts.zoneChanged
+              : false
     : false;
   useEffect(() => {
     if (!active || !step || step.gate === 'manual' || !gateFact) return;

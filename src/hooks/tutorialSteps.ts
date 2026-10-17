@@ -30,7 +30,8 @@ export type TutorialGate =
   | 'harvest'    // a flora harvest happened (the game's first-harvest fact)
   | 'openPouch'  // the pouch / inventory modal is open
   | 'openForge'  // the BioForge modal is open
-  | 'openQuests'; // the Quest Log is open
+  | 'openQuests' // the Quest Log is open
+  | 'zoneCross'; // the player has left the home zone (Zone 0, 0)
 
 export interface TutorialStep {
   id: string;
@@ -117,6 +118,18 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     body: 'Soon you will craft the Planter Trowel. Remember this: the trowel does TWO jobs. It plants seeds, AND it spreads fertilizer to feed them. One tool sows, and the same tool feeds.',
     target: null,
     gate: 'manual',
+  },
+  {
+    // The 13th step (Adam, via the HUD chat, 2026-10-17): the
+    // tutorial's one field trip. It teaches the world's grid —
+    // the zone panel's "Zone 0, 0" and the edge line that names
+    // the next zone before you cross — and ends only when the
+    // player's feet are in a new zone (the zoneCross fact).
+    id: 'zonecross',
+    title: 'The edge of the world you know',
+    body: 'See \u201CZone 0, 0\u201D on the panel? That is your home square. The world is made of squares like this one, each about a hundred steps wide. Walk toward any edge \u2014 close to the edge, the panel names the square next door. Cross into a new zone now. New land means new plants, new creatures, new everything.',
+    target: 'zone',
+    gate: 'zoneCross',
   },
   {
     id: 'ready',

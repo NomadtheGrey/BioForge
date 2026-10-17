@@ -89,7 +89,7 @@ export const VatModal: React.FC<VatModalProps> = ({
             <p className="mt-1 text-xs text-slate-300">
               {tier === 1 && 'A young culture — common country can grow here.'}
               {tier === 2 && 'A rich culture — the wild country, and anything that hunts.'}
-              {tier === 3 && 'A deep, strange culture — even the deep country can grow here.'}
+              {tier === 3 && 'A deep, strange culture — even the wild country can grow here.'}
             </p>
             {kitId && (
               <button

@@ -10,6 +10,7 @@ import {
   familyEntryOf,
   recipeForItem,
   type FamilyEntry,
+  type FamilyKind,
 } from '../game/items/weaponsFamily';
 import { itemIcon } from './itemIcon';
 // The graft's reflect numbers ride the shield rules table —
@@ -66,7 +67,61 @@ export const CodexModal: React.FC<CodexModalProps> = ({
   const selWeapon: FamilyEntry | undefined = familyEntryOf(selectedWeaponId);
   const selItem = selWeapon ? ITEMS[selWeapon.itemId] : undefined;
 
-  const renderArsenalRow = (e: FamilyEntry) => {
+  // KIND ACCENTS (Adam's play pass, 2026-10-17): the dossier
+// painted EVERY kind rose — a weapons-era theme — so the
+// helmet's shelf, strip and chips all read red, and red
+// reads as 'not worn / something's wrong'. Each kind now
+// wears its own color, matching the pouch's upgrade cards:
+// strikers keep the heritage rose, ranged takes orange,
+// shields amber, the helmet sky, the Quicksteps emerald.
+// Full literal class strings so Tailwind's scanner sees them.
+const KIND_ACCENT: Record<FamilyKind, {
+  header: string; chip: string; selChip: string; bullet: string;
+  recipe: string; recipeHave: string; rowSel: string;
+}> = {
+  close: {
+    header: 'text-rose-300/90', chip: 'text-rose-300',
+    selChip: 'bg-rose-500/20 text-rose-200 border-rose-500/50',
+    bullet: 'text-rose-300/70',
+    recipe: 'bg-rose-950/40 text-rose-200 border-rose-800/50',
+    recipeHave: 'text-rose-300/60',
+    rowSel: 'bg-slate-800/90 border-rose-500/60 shadow-md shadow-rose-950/40',
+  },
+  ranged: {
+    header: 'text-orange-300/90', chip: 'text-orange-300',
+    selChip: 'bg-orange-500/20 text-orange-200 border-orange-500/50',
+    bullet: 'text-orange-300/70',
+    recipe: 'bg-orange-950/40 text-orange-200 border-orange-800/50',
+    recipeHave: 'text-orange-300/60',
+    rowSel: 'bg-slate-800/90 border-orange-500/60 shadow-md shadow-orange-950/40',
+  },
+  defensive: {
+    header: 'text-amber-300/90', chip: 'text-amber-300',
+    selChip: 'bg-amber-500/20 text-amber-200 border-amber-500/50',
+    bullet: 'text-amber-300/70',
+    recipe: 'bg-amber-950/40 text-amber-200 border-amber-800/50',
+    recipeHave: 'text-amber-300/60',
+    rowSel: 'bg-slate-800/90 border-amber-500/60 shadow-md shadow-amber-950/40',
+  },
+  helmet: {
+    header: 'text-sky-300/90', chip: 'text-sky-300',
+    selChip: 'bg-sky-500/20 text-sky-200 border-sky-500/50',
+    bullet: 'text-sky-300/70',
+    recipe: 'bg-sky-950/40 text-sky-200 border-sky-800/50',
+    recipeHave: 'text-sky-300/60',
+    rowSel: 'bg-slate-800/90 border-sky-500/60 shadow-md shadow-sky-950/40',
+  },
+  boots: {
+    header: 'text-emerald-300/90', chip: 'text-emerald-300',
+    selChip: 'bg-emerald-500/20 text-emerald-200 border-emerald-500/50',
+    bullet: 'text-emerald-300/70',
+    recipe: 'bg-emerald-950/40 text-emerald-200 border-emerald-800/50',
+    recipeHave: 'text-emerald-300/60',
+    rowSel: 'bg-slate-800/90 border-emerald-500/60 shadow-md shadow-emerald-950/40',
+  },
+};
+
+const renderArsenalRow = (e: FamilyEntry) => {
     const item = ITEMS[e.itemId];
     if (!item) return null;
     const Icon = itemIcon(item.iconName);
@@ -82,7 +137,7 @@ export const CodexModal: React.FC<CodexModalProps> = ({
         onClick={() => setSelectedWeaponId(e.itemId)}
         className={`p-3 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
           isSel
-            ? 'bg-slate-800/90 border-rose-500/60 shadow-md shadow-rose-950/40'
+            ? KIND_ACCENT[e.kind].rowSel
             : 'bg-slate-900/40 border-slate-800/60 hover:bg-slate-800/40'
         }`}
       >
@@ -126,7 +181,7 @@ export const CodexModal: React.FC<CodexModalProps> = ({
         {familyByKind().map(({ kind, entries }) => (
           <div key={kind} className="space-y-2">
             <div>
-              <h4 className="text-[11px] font-tech font-bold uppercase tracking-wider text-rose-300/90">
+              <h4 className={`text-[11px] font-tech font-bold uppercase tracking-wider ${KIND_ACCENT[kind].header}`}>
                 {FAMILY_KIND_LABEL[kind]}
               </h4>
               <p className="text-[10px] text-slate-500 leading-snug">{FAMILY_KIND_BLURB[kind]}</p>
@@ -158,7 +213,7 @@ export const CodexModal: React.FC<CodexModalProps> = ({
               <div>
                 <h3 className="text-lg font-tech font-bold text-white">{selItem.name}</h3>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <span className="text-[10px] uppercase font-tech px-2.5 py-0.5 rounded-full bg-slate-800 text-rose-300 border border-slate-700">
+                  <span className={`text-[10px] uppercase font-tech px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700 ${KIND_ACCENT[selWeapon.kind].chip}`}>
                     {FAMILY_KIND_LABEL[selWeapon.kind]} · Tier {selWeapon.tier}
                   </span>
                   <span className="text-[10px] uppercase font-tech px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 capitalize">
@@ -236,7 +291,7 @@ export const CodexModal: React.FC<CodexModalProps> = ({
                 <ul className="space-y-1.5">
                   {selWeapon.signatures.map((line, i) => (
                     <li key={i} className="text-xs text-slate-300 leading-relaxed flex gap-2">
-                      <span className="text-rose-300/70 shrink-0">◈</span>
+                      <span className={`${KIND_ACCENT[selWeapon.kind].bullet} shrink-0`}>◈</span>
                       <span>{line}</span>
                     </li>
                   ))}
@@ -247,7 +302,7 @@ export const CodexModal: React.FC<CodexModalProps> = ({
                     host passes the graft record, marks here. */}
                 {selWeapon.kind === 'defensive' && (
                 <div className="mt-3 pt-3 border-t border-slate-700/60 flex items-start gap-2">
-                  <span className="text-rose-300/70 shrink-0 mt-0.5">◈</span>
+                  <span className={`${KIND_ACCENT[selWeapon.kind].bullet} shrink-0 mt-0.5`}>◈</span>
                   <p className="text-xs text-slate-400 leading-relaxed">
                     <strong className="text-slate-200">The Graft Slot</strong> — one graft
                     grown onto the face. Thorn Spikes (a Tier 2 addition): strikes landing on
@@ -270,7 +325,7 @@ export const CodexModal: React.FC<CodexModalProps> = ({
             {/* THE LADDER (strikers) / THE BRANCH (defensives) /
                 THE PLATFORM (helmet, Quicksteps). */}
             <div className="bg-slate-800/30 p-4 rounded-2xl border border-slate-800">
-              <h4 className="text-xs font-tech font-semibold uppercase text-rose-300/90 mb-2">
+              <h4 className={`text-xs font-tech font-semibold uppercase mb-2 ${KIND_ACCENT[selWeapon.kind].header}`}>
                 {selWeapon.kind === 'defensive' ? 'The Branch' : selWeapon.kind === 'helmet' || selWeapon.kind === 'boots' ? 'The Platform' : 'The Ladder'}
               </h4>
               <div className="flex items-center gap-1.5 flex-wrap">
@@ -282,8 +337,10 @@ export const CodexModal: React.FC<CodexModalProps> = ({
                         onClick={() => setSelectedWeaponId(e.itemId)}
                         className={`px-2.5 py-1.5 rounded-lg text-[11px] font-tech border transition-all ${
                           e.itemId === selWeapon.itemId
-                            ? 'bg-rose-500/20 text-rose-200 border-rose-500/50'
-                            : 'bg-slate-900/60 text-slate-300 border-slate-700/70 hover:bg-slate-800/60'
+                            ? KIND_ACCENT[selWeapon.kind].selChip
+                            : inventory && owns(e.itemId)
+                              ? 'bg-slate-900/60 text-emerald-200 border-emerald-700/60 hover:bg-slate-800/60'
+                              : 'bg-slate-900/60 text-slate-300 border-slate-700/70 hover:bg-slate-800/60'
                         }`}
                       >
                         T{e.tier} {ITEMS[e.itemId]?.name}
@@ -324,11 +381,11 @@ export const CodexModal: React.FC<CodexModalProps> = ({
                   {recipeForItem(selWeapon.itemId)!.ingredients.map((ing) => (
                     <span
                       key={ing.id}
-                      className="text-xs px-3 py-1.5 rounded-xl bg-rose-950/40 text-rose-200 border border-rose-800/50 flex items-center gap-1.5"
+                      className={`text-xs px-3 py-1.5 rounded-xl border flex items-center gap-1.5 ${KIND_ACCENT[selWeapon.kind].recipe}`}
                     >
                       {ITEMS[ing.id]?.name ?? ing.id} ×{ing.count}
                       {inventory && (
-                        <span className="text-rose-300/60 font-mono text-[10px]">
+                        <span className={`${KIND_ACCENT[selWeapon.kind].recipeHave} font-mono text-[10px]`}>
                           (have {inventory[ing.id] ?? 0})
                         </span>
                       )}

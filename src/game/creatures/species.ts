@@ -965,7 +965,7 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
   },
 
   // ------------------------------------------------------------------
-  // Slice 4 (2026-10-15) — emblems + variant one-offs of the far
+  // Slice 4 (2026-10-15) — emblems + variant one-offs of the deep
   // families: Ember, Saltglass, Frost, Bone, Storm.
   // ------------------------------------------------------------------
 
@@ -1905,7 +1905,7 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
 
   // ------------------------------------------------------------------
   // Slice 8 (2026-10-15) — two new gates (hybrid, weather) and the
-  // citizens who needed them, plus the far-range stragglers.
+  // citizens who needed them, plus the deep-range stragglers.
   // ------------------------------------------------------------------
 
   // #43 — the roster's first WEATHER-LOCKED species: a Gel
@@ -2099,18 +2099,18 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
     },
   },
 
-  // #337 — the far country's swallow: a serene bat that
-  // roosts in ruins and high eaves across the far families
+  // #337 — the deep country's swallow: a serene bat that
+  // roosts in ruins and high eaves across the deep families
   // and eats Mote Swarms on the wing. 30% — roost-loyal:
   // keep the eave, keep the bat. (Its roost guano — compost's
-  // far grade — is a place-drop for a later economy slice.)
+  // deep grade — is a place-drop for a later economy slice.)
   far_bat: {
     id: 'far_bat',
-    name: 'Far Bat',
+    name: 'Eave Bat',
     profile: 'flyer',
     tameChance: 0.3,
     bait: 'nectar',
-    petName: 'Far Bat',
+    petName: 'Eave Bat',
     byproduct: null,
     flight: { altitude: 1.9, bobHeight: 0.25, bobRate: 2.4, flapRate: 6.0 },
     bonusSpawn: {
@@ -2655,7 +2655,7 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
 
   // #348 — a crow, honestly: the Temperate + Open + Wet
   // range's trader-in-miniature — where the Storm Crow runs
-  // the far country's barter at legendary scale, the field
+  // the deep country's barter at legendary scale, the field
   // crow practices the family trade at pocket scale. 35%.
   // (Its gift-trading is a behavior, not a shed — no
   // byproduct in v1; the crow decides what a gift is.)
@@ -2975,7 +2975,7 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
   },
 
   // #122 — vapor-TOUCHED but Ordinary, recorded plainly: a
-  // large pale moth of the Far Range — it is a moth, not a
+  // large pale moth of the Deep Range — it is a moth, not a
   // spirit; its paleness is pigment and its drift is wind.
   // Untameable (0%).
   driftmoth: {

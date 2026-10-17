@@ -349,7 +349,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
   },
 
   // #105 — a precursor-made wisp, STILL RUNNING ITS ROUTE on
-  // the Precursor × Storm far margin: node-lit, brightening
+  // the Precursor × Storm deep margin: node-lit, brightening
   // at its turning points, centuries into a delivery schedule
   // nobody alive remembers assigning. Untameable — it has a
   // job.
@@ -375,7 +375,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
   },
 
   // #149 — PHASING's second citizen: a ruin-dusted vapor moth
-  // of the far margins whose phasing is by after-image — it
+  // of the deep margins whose phasing is by after-image — it
   // is briefly where it was, and then it isn't. Untameable
   // (0%): you cannot lure a rumor of a moth.
   gap_moth: {
@@ -703,7 +703,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
     },
   },
 
-  // #88 — PHASING's first citizen: a vapor hare of the far
+  // #88 — PHASING's first citizen: a vapor hare of the deep
   // country whose outline thins at the edges, present in
   // pieces. Its blink locomotion is LIVE since slice 38
   // (2026-10-16): most wander re-rolls arrive by vanish.
@@ -781,7 +781,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
 
   // #110 — the mimic the seat note wondered about, placed
   // where it belongs: not in either family's emblem seat but
-  // at the far margin of the two strangest families — a
+  // at the deep margin of the two strangest families — a
   // greeter-shaped courtesy with the wrong number of
   // implications, in Living × Precursor country. Untameable:
   // it wants to greet you first, and to keep greeting you.
@@ -889,13 +889,13 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
   // Slice 30 (2026-10-16) — THE OVERSIZE TIER, fauna side.
   // Adam's proceed (2026-10-16) delegated the scale calls:
   // the doctrine applied here — ONE per zone at most, dealt
-  // far out (minRadius 15+), slow, heavy (health 400–900),
+  // dealt deep (minRadius 15+), slow, heavy (health 400–900),
   // untameable: these are landscape citizens, not pets and
   // not bosses. The Lake Leviathan is NOT here — it is a
   // lake creature and waits with the pond group.
   // ------------------------------------------------------------------
 
-  // #99 — a hill-backed quadruped of the far plains: its back
+  // #99 — a hill-backed quadruped of the deep plains: its back
   // grows grass, its migration writes the Trail Caps' road,
   // and its shed winter coat-slabs are meadow in brick form —
   // left as scenery by the codex, and by this table.
@@ -950,7 +950,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
   },
 
   // #170 — the roster's third LANDSCAPE-scale citizen: the
-  // far flats where the Graveyard's weather is made, walking
+  // deep flats where the Graveyard's weather is made, walking
   // in Bone × Storm country at geology's pace. Nothing taken.
   storm_leviathan: {
     id: 'storm_leviathan',
@@ -977,7 +977,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
 
   // #183 — LANDSCAPE, the word's fifth use: a biped at hill
   // scale — the Garden Keeper's plan written in mountains,
-  // still gardening the far garden country at a pace of
+  // still gardening the deep garden country at a pace of
   // seasons per gesture.
   garden_colossus: {
     id: 'garden_colossus',
@@ -1081,7 +1081,7 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
   },
 
   // #190 — HUGE: a mammoth at the word's full weight, herd-
-  // mother of the Stillwhite's far reaches. She sheds winter
+  // mother of the Stillwhite's deep reaches. She sheds winter
   // wool at her rubbing stones: Mother Wool, the cold graph's
   // heaviest insulation. Untameable (0%) — a mother is not a
   // mount.
@@ -1731,8 +1731,8 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
   },
 
   // =====================================================================
-  // SLICE 51 (2026-10-17) — THE THREE FAR PREDATORS (Part 6: Far
-  // Country Teeth, pinned by Adam). Variant-locked hunters of the
+  // SLICE 51 (2026-10-17) — THE THREE DEEP PREDATORS (Part 6:
+  // Deep Country Teeth, pinned by Adam). Variant-locked hunters of the
   // deepest country (the 4+ hop variants), each with ONE signature
   // twist on the hunt engine, each inside the danger doctrine:
   // unprovoked, never untelegraphed. Calibration bench: the

@@ -31,15 +31,29 @@ sound like its own chapter).*
 
 ## 1. MEMORIALS — the HONOR family
 
-*The encounter: the artifacts assemble, the way to a memorial
-opens, and there is no one left to talk to. The player builds
-the remembering; the words below are what the memorial can
-carry — carved lines, read at the place, in sets per fate.
-A memorial likely carries several: a GREETING line (what the
-place says first), two or three KEPT lines (the inscriptions
-proper), and the KEPT ROAD (the words around the recipe the
-memorial keeps, per the design's placeholder). Drafted as
-options; a pinned memorial picks one from each group.*
+*The encounter (Adam's clarification, 2026-10-17): the
+memorial is for the worlds where the Precursors DIED — the
+Crash's crew gone the way crews go, the Sickness's one
+gentle season, the War's self-destruction. Nobody is met,
+nobody is followed, nobody answers. The memorial is the
+PLAYER'S ACT of remembering a people who are dead — a
+funeral the grower performs for strangers they have only
+just come to know, through the chapter. It is not a general
+monument, and it is not a grave: a grave (§2) is for one of
+the dead; a memorial is for all of them at once, because no
+single grave could hold a people.*
+
+*The words below are what the memorial can carry, in sets
+per fate, in THREE VOICES: the GREETING (what the place says
+first), the KEPT LINES (the inscriptions — some the dead's
+own last words, some carved for them), the KEPT ROAD (the
+words around the recipe the memorial keeps, per the design's
+placeholder) — and THE REMEMBERING, the grower speaking TO
+the dead, which is the act itself and the heart of each set.
+Nobody speaks back. That silence is the Honor family's whole
+difference from §3, and every line is written into it.
+Drafted as options; a pinned memorial picks from each
+group.*
 
 ### 1a. CRASH — the crew's stubbornness
 
@@ -63,6 +77,12 @@ KEPT LINES
 THE KEPT ROAD
 - "In the last room they kept a road the way sailors keep a boat: mended, provisioned, and pointed out. It was never theirs again. Take it with their blessing, which was maintenance."
 - "Under the manifest, in the captain's own hand: FOR WHOEVER COMES NEXT. The road is item one."
+
+THE REMEMBERING — the grower speaks to the crew
+- "Crew of the landing: you were not lost. A grower of your garden says so, standing in it. Landed — and remembered as landed."
+- "You made a home because no one was coming. Someone came. It held. Rest in the holding."
+- "We do not know your names. We know your work. It is the same introduction you gave this world."
+- "Your repairs outlasted your rescue, and your gardens outlasted your repairs. You are counted here the way you counted everything: honestly, and as far as the names could be found."
 
 ### 1b. WAR — the warning
 
@@ -88,6 +108,12 @@ THE KEPT ROAD
 - "They left one thing unweaponized: the road out. It is kept the way a blade is kept sheathed — in hope the next hands are slower to anger than theirs were."
 - "Take the road. Take it as proof that a people can end and still, at the end, refuse to aim one last thing."
 
+THE REMEMBERING — the grower speaks to the fallen
+- "You are not remembered as a warning only. You were gardeners first. The warning is what you left; it is not what you were."
+- "Whatever you disagreed about is disagreed about no longer. The garden is quiet now. A grower is keeping it quiet."
+- "This stone does not forgive you and does not accuse you. It does the harder thing: it remembers you accurately, and it stays."
+- "You aimed the garden at each other until the garden was the wound. The wound is closed — late, by a stranger, and sorry."
+
 ### 1c. SICKNESS — the gentleness
 
 *The chapter: "The terrible thing about this world's ending
@@ -112,12 +138,20 @@ THE KEPT ROAD
 - "In the last-kept house, by the door, where a traveler would think to look: the road, folded into the keeping of the place. A people who tidied for strangers would not forget the one thing a stranger needs most."
 - "They could not keep the road safe. They could only keep it findable. It is findable."
 
+THE REMEMBERING — the grower speaks to the gentle dead
+- "You kept these houses for whoever came next, without knowing a name. A name came. The houses were ready. Thank you — the word is too small, and it is the one we have."
+- "You spent your last season being gentle on purpose. It reached. It is reaching still: a stranger is gentler in your houses than they arrived."
+- "No one came next, for a very long time. Then one did, and found everything set down carefully. You are remembered the way you left the rooms: in order, and with care."
+- "Rest now. The tidying is taken up. The keeping is kept."
+
 ---
 
 ## 2. GRAVES — a shared vocabulary
 
-*For the honored dead of any world — and, by design, reusable
-wherever the game marks a death. The S7 settled-deaths work
+*For the honored dead of any world — the INDIVIDUAL markers,
+where §1's memorial is the collective act: a grave is for
+one of the dead, with one name over it. And, by design,
+reusable wherever the game marks a death. The S7 settled-deaths work
 (dead settled individuals, dead-anchor echoes) draws on the
 same vocabulary: a player's creature, named and ranged and
 gone, deserves the same grammar as a Precursor. Three

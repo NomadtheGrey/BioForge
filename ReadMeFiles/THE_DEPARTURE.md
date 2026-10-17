@@ -85,13 +85,19 @@ it. Where the recipe comes from is the family's flavor:
   them "in repair for whoever comes after." The recipe is
   theirs, left behind in the stations and grand ruins; the
   finale is earning the right to walk the road they walked.
-- **HONOR / CONFRONT recipe sources (dev-lane proposal,
-  awaiting Adam's word):** Honor's recipe is *inherited* —
-  found in the deepest kept place of a people who left their
-  houses tidy for whoever came next. Confront's is *salvaged
-  under threat* — the strangers' shadow is what makes
-  leaving urgent, and what the recipe costs there is not
-  only materials.
+- **HONOR (Adam, 2026-10-17):** the artifacts are assembled,
+  and assembling them *opens the way to a memorial* — where
+  ANSWER worlds have a meeting, Honor worlds have a
+  commemoration; there is no one left to talk to, so the
+  player builds the remembering. The recipe comes *somehow*
+  through the memorial (Adam's word — the exact how is a
+  pin-time detail; the dev lane's placeholder: the recipe is
+  kept at the memorial, left by a people who tidied their
+  houses for whoever came next). Then leave.
+- **CONFRONT recipe source (dev-lane proposal, the last one
+  awaiting Adam's word):** *salvaged under threat* — the
+  strangers' shadow is what makes leaving urgent, and what
+  the recipe costs there is not only materials.
 
 The registry's long-deferred **Every Ending** (Line 1,
 cross-save) is this design's empty chair: it was always the

@@ -207,7 +207,7 @@ import { HudOptionsPanel } from './HudOptionsPanel';
 import { multiplayerManager, RELAY_BASE_URL } from '../game/multiplayer';
 // Shield faces for the Left Hand tile (shield follow pass,
 // 2026-10-17): which held items are shields, from the rules.
-import { SHIELD_GRAFTS, graftOf, isShieldItem, type ShieldGrowthMap } from '../game/creatures/shields';
+import { SHIELD_GRAFTS, graftOf, isShieldItem, lodestoneOf, type ShieldGrowthMap } from '../game/creatures/shields';
 // The world's calendar (Shelf 1): the zone panel's day/night
 // row answers WHEN as well as where — the day count is the
 // world's age from its creation stamp, read live each render.
@@ -557,6 +557,7 @@ export const HUD: React.FC<HUDProps> = ({
   const heldItemIdNow = playerState.heldItemId ?? null;
   const heldIsShield = isShieldItem(heldItemIdNow);
   const heldGraftKind = heldIsShield ? graftOf(shieldGrowth, heldItemIdNow as ItemId) : null;
+  const heldLodestone = heldIsShield ? lodestoneOf(shieldGrowth, heldItemIdNow as ItemId) : false;
   const heldDisplayName = heldItemIdNow ? ITEMS[heldItemIdNow]?.name ?? heldItemIdNow : null;
 
   // The hand's descriptor entry, in the tool entries' shape.
@@ -567,7 +568,7 @@ export const HUD: React.FC<HUDProps> = ({
     icon: heldIsShield ? '🛡️' : heldItemIdNow ? '🔦' : '✋',
     color: heldIsShield ? '#fb7185' : heldItemIdNow ? '#22d3ee' : '#94a3b8',
     desc: heldIsShield
-      ? `${heldGraftKind ? `${SHIELD_GRAFTS[heldGraftKind].name} graft · ` : ''}${shieldRaised ? 'BRACED — the wall is up' : 'Lowered — carried blunting is live'} · hold right-mouse to raise · click or Alt+wheel to cycle the hand`
+      ? `${heldGraftKind ? `${SHIELD_GRAFTS[heldGraftKind].name} graft · ` : ''}${heldLodestone ? 'Lodestone set · ' : ''}${shieldRaised ? 'BRACED — the wall is up' : 'Lowered — worn blunting is live'} · hold right-mouse to raise · click or Alt+wheel to cycle the hand`
       : heldItemIdNow
         ? 'Click or Alt+wheel to cycle the hand'
         : 'Click or Alt+wheel to cycle the hand — the lantern and grown shields ride here',
@@ -1527,8 +1528,7 @@ export const HUD: React.FC<HUDProps> = ({
                 joined it in 2026-10-17. The hand now cycles —
                 click, Alt+wheel, or Alt+↑ — through what the
                 player owns: lantern ↔ Scute Shield ↔ Lantern
-                Shield ↔ Fenback Shield ↔ Lodestone Bulwark ↔
-                empty. The tile wears
+                Shield ↔ Fenback Shield ↔ empty. The tile wears
                 the held thing's face: lantern light (cyan), a
                 shield's ward (rose, BRACED while raised), or
                 the empty hand. */}
@@ -1540,6 +1540,7 @@ export const HUD: React.FC<HUDProps> = ({
               // than wearing a bare grafted dot.
               const heldGraft = heldShield ? graftOf(shieldGrowth, heldId as ItemId) : null;
               const heldGrafted = heldGraft !== null;
+              const heldLodestoneTile = heldShield ? lodestoneOf(shieldGrowth, heldId as ItemId) : false;
               const heldName = heldId ? ITEMS[heldId]?.name ?? heldId : null;
               return (
                 <button
@@ -1568,6 +1569,9 @@ export const HUD: React.FC<HUDProps> = ({
                     )}
                     {heldGrafted && (
                       <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-rose-400 border border-rose-200" />
+                    )}
+                    {heldLodestoneTile && (
+                      <span className="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full bg-cyan-300 border border-cyan-100" />
                     )}
                   </span>
                   {!touchMode && (

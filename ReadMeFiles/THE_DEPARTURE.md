@@ -149,3 +149,63 @@ The questions this note shelved were answered within the hour:
 
 Still open for the pin: the fate-family sort (section 3),
 the vessel's ingredient list, and everything in section 5.
+
+## 7. The methods (Adam, 2026-10-17 — the evening sitting)
+
+The question this note shelved last — *by what means does the
+grower leave?* — was settled by Adam's correction of its
+premise: **the method depends on the fate.** There is no one
+vehicle. Each family has its own way out, and the way rhymes
+with how that family's Precursors went. The brainstorm list
+(beanstalk, portal, the tunnel that doesn't stop, the seed
+vessel, the sky road, the long trek, the spore drift) was
+struck down to four — one per family — and the spores were
+struck entirely ("we'll leave the spores out").
+
+1. **Follow — repair the portal.** They left by their own road:
+   the grown stations whose rings still stand in the grand
+   ruins (the Departure chapter says so outright). The road
+   exists; it is broken. The Tier 4 "recipe" is a *repair
+   bill*, paid at the ruined station itself — prismatic cores
+   to re-heart the ring, lodestone to re-aim it, living thread
+   to rebind what time ate. The grower does not invent the
+   crossing; they restore it.
+2. **Answer — a brief visit, a quick goodbye, then the Super
+   BioTunnel.** The transformed are not the people who left,
+   and lingering would pretend otherwise — the encounter is
+   deliberately short: the goodbye *is* the encounter. They
+   give the recipe for the deep way: the BioTunnel that
+   doesn't stop, grown down and through the world. The tunnel
+   grammar the game teaches in miniature, at cosmic scale.
+3. **Honor — the Beanstalk.** Where nobody lives and no road
+   stands, the grower grows their own way up: planted at the
+   memorial, tended over days (seed variety across the flora
+   table, fertilizer by the sack, water and essences), and
+   climbed. Life answering death in the game's oldest verbs.
+   Once grown it stands — the climb down is the road back,
+   and the atlas is a ladder in every world so left.
+4. **Confront — through the scar.** A family of one (Taken
+   Out), and the shipped chapter itself dictated the form
+   when read back: the strangers "left no forwarding address
+   and no ruins of its own"; they are "the only blank in a
+   world where everything else can be read." There is no
+   road-head to repair, study, or seize — what they left is
+   *damage*: scars in the deep rooms that match no grown
+   weapon, and the survivors' note carved over and over —
+   *it was not us. Remember that it was not us.* So the way
+   is the wound: the tear their coming made is the only
+   passage that leads where they went. The motive choice
+   Adam pinned earlier bites here: **revenge** steps through
+   the scar after them (no recipe, no growing — departure as
+   pursuit); **curiosity** reads the tear — the one reading
+   the world has never allowed — and grows a way of the
+   grower's own, scar-taught. Either way the price is not
+   road materials but passage protections: grown defenses
+   against a place the world's rules do not cover (the exact
+   list is the recipe conversation, still to come).
+
+With the methods pinned, the family sort (section 3) stands
+as settled. Still open: each method's ingredient list (now
+writable, family by family), the Confront passage costs in
+detail, and everything in section 5 — the other side remains
+parked, untouched by anything above.

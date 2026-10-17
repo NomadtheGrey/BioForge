@@ -258,9 +258,9 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({
               One zone is 100 paces across; the country changes as you walk out — meadows
               first, then wetlands, fungal dark, ember fields, saltglass, stranger things.
               Danger and wonder both rise with distance. Days turn on a ten-minute sky; your
-              zone panel reads the day and hour. If you fall, you wake at your spawn point
-              with your pouch untouched — falling costs you the walk back, never what you
-              carry.
+              zone panel reads the day and hour. If you fall, you wake at your Heart
+              Tile — the glowing tile at your spawn — with your pouch untouched. Falling
+              costs you the walk back, never what you carry.
             </p>
           </Section>
 

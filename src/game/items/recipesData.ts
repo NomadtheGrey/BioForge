@@ -367,7 +367,7 @@ export const RECIPES: CraftingRecipe[] = [
     outputId: 'gauntlet_planter_module',
     outputCount: 1,
     name: 'Planter Module',
-    description: 'Graft a green thumb onto your gauntlet — unlocks the Planter Trowel (tool 3).',
+    description: 'Graft a green thumb onto your gauntlet — unlocks the Planter Trowel (tool 3): plant seeds, and feed what grows by applying fertilizer. One trowel, both duties.',
     category: 'composites',
     ingredients: [
       { id: 'soft_fiber', count: 2 },

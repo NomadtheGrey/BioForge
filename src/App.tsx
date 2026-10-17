@@ -101,6 +101,7 @@ import type { SagaTrackView } from './components/QuestTracker';
 
 import { StartScreenModal } from './components/StartScreenModal';
 import { GameInfoModal } from './components/GameInfoModal';
+import { HowToPlayModal } from './components/HowToPlayModal';
 
 // UI Components
 import { HUD } from './components/HUD';
@@ -244,6 +245,12 @@ export default function App() {
   // the start screen, where no world (and no modal union) is
   // live yet. The screen carries its own Esc listener.
   const [showAbout, setShowAbout] = useState(false);
+
+  // How to Play (Adam's program, 2026-10-17): same shape as
+  // About — its own boolean, its own Esc listener in the
+  // modal; wiring only, the shell and words are the HUD
+  // lane's (HowToPlayModal) and the design doc's §2.
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
 
   // The striker slot's draw (weapons build, Adam, 2026-10-16):
   // which KIND of weapon slot 7 holds — 'close' or 'ranged'. The
@@ -2526,6 +2533,7 @@ const {
         onOpenMultiplayer={() => setActiveModal('multiplayer')}
         onOpenControls={() => setActiveModal('controls')}
         onOpenAbout={() => setShowAbout(true)}
+        onOpenHowToPlay={() => setShowHowToPlay(true)}
         shieldRaised={shieldWield.raised}
         onSetShieldRaised={shieldWield.setShieldRaised}
         onOpenDevTools={() => setActiveModal('devtools')}
@@ -2769,6 +2777,18 @@ const {
       />
 
       <GameInfoModal isOpen={showAbout} onClose={() => setShowAbout(false)} />
+      <HowToPlayModal
+        isOpen={showHowToPlay}
+        onClose={() => setShowHowToPlay(false)}
+        onOpenQuests={() => {
+          setShowHowToPlay(false);
+          setActiveModal('quests');
+        }}
+        onOpenAbout={() => {
+          setShowHowToPlay(false);
+          setShowAbout(true);
+        }}
+      />
       <MultiplayerModal
         isOpen={activeModal === 'multiplayer'}
         onClose={() => setActiveModal(null)}

@@ -148,15 +148,59 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       group.add(ring);
       return group;
     },
-    'chitin_glass_wall': () => {
+    // Chitin glass wall (Adam, 2026-10-16; Grown Look 2026-10-17):
+    // the old turned-porcelain posts read as METAL — pretty but
+    // inappropriate next to an insect-shell pane. The supports are
+    // now what the wall is made of: segmented chitin struts, gently
+    // bowed, stacked plate ridges, amber shell gloss. No porcelain,
+    // no turned posts anywhere.
+    'chitin_glass_wall': (entity) => {
       const group = new THREE.Group();
-      const postGeom = new THREE.CylinderGeometry(0.12, 0.12, 2.4, 8);
-      const leftPost = new THREE.Mesh(postGeom, materials.porcelainWhite);
-      leftPost.position.set(-0.95, 1.2, 0);
-      const rightPost = leftPost.clone();
-      rightPost.position.x = 0.95;
-      group.add(leftPost);
-      group.add(rightPost);
+      const rng = mulberry32(hashId(entity?.id ?? 'ghost-chitinglass'));
+      // Chitin shell material — what the pane itself is made of.
+      const chitinMat = new THREE.MeshStandardMaterial({
+        color: 0x8a5a1e, roughness: 0.32, metalness: 0.08,
+      });
+      const chitinDark = new THREE.MeshStandardMaterial({
+        color: 0x6b4215, roughness: 0.42, metalness: 0.05,
+      });
+      // One strut: a gently bowed spine of stacked shell plates,
+      // splayed roots at its foot. Seeded bow direction per side so
+      // the pair are siblings, never twins.
+      const makeStrut = (xPos: number) => {
+        const strut = new THREE.Group();
+        const bow = 0.06 + rng() * 0.06;
+        const dir = xPos < 0 ? -1 : 1;
+        const top = new THREE.Vector3(xPos + dir * bow, 2.42, 0);
+        const mid = new THREE.Vector3(xPos + dir * bow * 1.4, 1.2, (rng() - 0.5) * 0.06);
+        const base = new THREE.Vector3(xPos, 0.02, 0);
+        const spine = new THREE.QuadraticBezierCurve3(base, mid, top);
+        const tube = new THREE.Mesh(new THREE.TubeGeometry(spine, 10, 0.085, 8), chitinMat);
+        tube.castShadow = true;
+        strut.add(tube);
+        // Stacked plate ridges along the spine — the segments of a
+        // grown limb, not the rings of a lathe.
+        for (let p = 1; p <= 6; p++) {
+          const t = p / 7;
+          const pt = spine.getPoint(t);
+          const ridge = new THREE.Mesh(new THREE.TorusGeometry(0.095, 0.03, 6, 12), p % 2 === 0 ? chitinDark : chitinMat);
+          ridge.rotation.x = Math.PI / 2;
+          ridge.rotation.z = (rng() - 0.5) * 0.35;
+          ridge.position.copy(pt);
+          strut.add(ridge);
+        }
+        // Root-like toes splaying from the foot.
+        for (let k = 0; k < 3; k++) {
+          const a = -0.5 + k * 0.5 + rng() * 0.2;
+          const toe = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.34, 6), chitinDark);
+          toe.position.set(xPos + Math.sin(a) * 0.16, 0.1, Math.cos(a) * 0.16);
+          toe.rotation.set(Math.cos(a) * 0.7, 0, -Math.sin(a) * 0.7);
+          strut.add(toe);
+        }
+        return strut;
+      };
+      group.add(makeStrut(-0.95));
+      group.add(makeStrut(0.95));
 
       const pane = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.2, 0.1), materials.chitinGlass);
       pane.position.set(0, 1.2, 0);
@@ -256,8 +300,14 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
     // is solid from both faces; the alternating z of slats and
     // withies is what makes it read as a weave and not a fence
     // of boards. Ladders hang on its edges like any panel.
-    'rootweave_wall': () => {
+    // Rootweave wall (Adam, 2026-10-16; Grown Look 2026-10-17):
+    // it says WEAVE, so now it weaves. The vertical withies are the
+    // warp; each horizontal weft is a tube that snakes over one
+    // withy and under the next, alternating phase slat to slat.
+    // Vine lashings bind the weave to the posts at top and bottom.
+    'rootweave_wall': (entity) => {
       const group = new THREE.Group();
+      const rng = mulberry32(hashId(entity?.id ?? 'ghost-rootweave'));
       const postGeom = new THREE.CylinderGeometry(0.11, 0.13, 2.4, 8);
       const leftPost = new THREE.Mesh(postGeom, materials.woodRoot);
       leftPost.position.set(-0.95, 1.2, 0);
@@ -267,19 +317,45 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       group.add(leftPost);
       group.add(rightPost);
       const slatMat = new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.9 });
-      const slatGeom = new THREE.BoxGeometry(1.8, 0.19, 0.06);
-      for (let i = 0; i < 10; i++) {
-        const slat = new THREE.Mesh(slatGeom, slatMat);
-        slat.position.set(0, 0.28 + i * 0.205, i % 2 === 0 ? 0.04 : -0.04);
-        slat.castShadow = true;
-        group.add(slat);
-      }
       const withyMat = new THREE.MeshStandardMaterial({ color: 0xa16207, roughness: 0.85 });
+      // The warp: six vertical withies in one plane (the old ones
+      // zig-zagged in z; a warp is flat).
       const withyGeom = new THREE.BoxGeometry(0.09, 2.05, 0.05);
       for (let i = 0; i < 6; i++) {
         const withy = new THREE.Mesh(withyGeom, withyMat);
-        withy.position.set(-0.75 + i * 0.3, 1.2, i % 2 === 0 ? -0.055 : 0.055);
+        withy.position.set(-0.75 + i * 0.3, 1.2, 0);
+        withy.castShadow = true;
         group.add(withy);
+      }
+      // The weft: ten tubes, each threading over/under the withies
+      // in a sine of withy-period, phase flipped per slat. Where a
+      // withy stands, the sine is at its extreme — in front of one
+      // withy, behind the next. Seeded amplitude wobble keeps it
+      // from reading machine-loomed.
+      for (let i = 0; i < 10; i++) {
+        const amp = 0.072 + rng() * 0.012;
+        const pts: THREE.Vector3[] = [];
+        for (let s = 0; s <= 28; s++) {
+          const x = -0.9 + (s / 28) * 1.8;
+          const z = amp * Math.sin((2 * Math.PI * (x + 0.75)) / 0.6 + Math.PI / 2 + i * Math.PI);
+          pts.push(new THREE.Vector3(x, 0.28 + i * 0.205, z));
+        }
+        const weft = new THREE.Mesh(
+          new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 56, 0.088, 6),
+          slatMat,
+        );
+        weft.castShadow = true;
+        group.add(weft);
+      }
+      // Lashings where the weave meets the posts — the pen gate's
+      // torus-wrap language, at the top and bottom of the weave.
+      for (const sx of [-0.95, 0.95]) {
+        for (const y of [0.34, 2.06]) {
+          const lash = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.035, 6, 14), withyMat);
+          lash.rotation.x = Math.PI / 2;
+          lash.position.set(sx, y, 0);
+          group.add(lash);
+        }
       }
       return group;
     },
@@ -287,22 +363,33 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
     // stakes, thorn-tipped and lashed with withies — grown, never
     // lumber. Heights and leans vary stake to stake on a fixed
     // pattern so a fence line looks cultivated, not stamped.
-    'pen_fence': () => {
+    // Briar fence (Adam, 2026-10-16; Grown Look 2026-10-17): pen
+    // panels of uneven briar stakes, thorn-tipped and lashed with
+    // withies — grown, never lumber. Every stake gets a SEEDED
+    // two-axis tilt and a jittered height from the entity id, so a
+    // fence line looks cultivated, never stamped. Each stake lives
+    // in its own pivot group so the thorn rides the tilt.
+    'pen_fence': (entity) => {
       const group = new THREE.Group();
+      const rng = mulberry32(hashId(entity?.id ?? 'ghost-penfence'));
       const stakeMat = new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 0.95 });
       const thornMat = new THREE.MeshStandardMaterial({ color: 0x365314, roughness: 0.9 });
-      const heights = [1.9, 2.2, 1.7, 2.05, 1.8, 2.15, 1.95];
-      const leans = [0.03, -0.05, 0.06, -0.02, 0.05, -0.04, 0.02];
-      for (let i = 0; i < heights.length; i++) {
-        const h = heights[i];
+      for (let i = 0; i < 7; i++) {
+        const h = 1.7 + rng() * 0.5;
+        const pivot = new THREE.Group();
+        pivot.position.set(-0.9 + i * 0.3, 0, (i % 2 === 0 ? 0.02 : -0.02));
+        // Two-axis lean, seeded — a stake grown crooked, not set
+        // crooked: z-lean reads along the fence, x-lean reads against.
+        pivot.rotation.z = (rng() - 0.5) * 0.14;
+        pivot.rotation.x = (rng() - 0.5) * 0.1;
         const stake = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.075, h, 6), stakeMat);
-        stake.position.set(-0.9 + i * 0.3, h / 2, (i % 2 === 0 ? 0.02 : -0.02));
-        stake.rotation.z = leans[i];
+        stake.position.y = h / 2;
         stake.castShadow = true;
-        group.add(stake);
+        pivot.add(stake);
         const thorn = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.16, 6), thornMat);
-        thorn.position.set(-0.9 + i * 0.3 - Math.sin(leans[i]) * h, h + 0.06, stake.position.z);
-        group.add(thorn);
+        thorn.position.y = h + 0.06;
+        pivot.add(thorn);
+        group.add(pivot);
       }
       const lashMat = new THREE.MeshStandardMaterial({ color: 0xa16207, roughness: 0.85 });
       for (const y of [0.55, 1.35]) {
@@ -321,8 +408,9 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
     // swings it by doorOpenProgress, the iris mechanism in
     // briar form. It answers to people (proximity), never to
     // the penned.
-    'pen_gate': () => {
+    'pen_gate': (entity) => {
       const group = new THREE.Group();
+      const rng = mulberry32(hashId(entity?.id ?? 'ghost-pengate'));
       const postMat = materials.woodRoot;
       const postGeom = new THREE.CylinderGeometry(0.1, 0.12, 2.3, 8);
       const hingePost = new THREE.Mesh(postGeom, postMat);
@@ -344,9 +432,13 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       swing.position.set(-0.95, 0, 0);
       const stakeMat = new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 0.95 });
       for (let i = 0; i < 6; i++) {
-        const h = 1.75 + (i % 3) * 0.12;
+        const h = 1.65 + rng() * 0.3;
         const stake = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.065, h, 6), stakeMat);
         stake.position.set(0.18 + i * 0.3, h / 2 + 0.08, 0);
+        // The gate's stakes lean with the same grown irregularity
+        // as the fence's — a small seeded two-axis tilt.
+        stake.rotation.z = (rng() - 0.5) * 0.12;
+        stake.rotation.x = (rng() - 0.5) * 0.08;
         stake.castShadow = true;
         swing.add(stake);
       }
@@ -416,8 +508,9 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       }
       return group;
     },
-    // Furniture (slice E, 2026-10-16): the base becomes a home.
-    // Root table: four root legs and a slab with a resin inlay.
+    // Furniture (slice E, 2026-10-16; Grown Look 2026-10-17):
+    // the table top gets the root-grain texture — it's grown
+    // roots, not a milled board.
     'root_table': () => {
       const group = new THREE.Group();
       const legGeom = new THREE.CylinderGeometry(0.06, 0.08, 0.75, 7);
@@ -429,7 +522,7 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
           group.add(leg);
         }
       }
-      const top = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.09, 1.1), (new THREE.MeshStandardMaterial({ color: 0x5b3a1e, roughness: 0.9 })));
+      const top = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.09, 1.1), (new THREE.MeshStandardMaterial({ map: rootGrainTexture(1), roughness: 0.92 })));
       top.position.y = 0.79;
       top.castShadow = true;
       group.add(top);
@@ -441,7 +534,8 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       group.add(inlay);
       return group;
     },
-    // Root stool: three legs and a polished round seat.
+    // Root stool (Grown Look 2026-10-17): the seat is root grain
+    // now — same roots as the table.
     'root_stool': () => {
       const group = new THREE.Group();
       for (let i = 0; i < 3; i++) {
@@ -452,7 +546,7 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
         leg.rotation.x = -Math.sin(a) * 0.18;
         group.add(leg);
       }
-      const seat = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.3, 0.07, 14), (new THREE.MeshStandardMaterial({ color: 0x5b3a1e, roughness: 0.9 })));
+      const seat = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.3, 0.07, 14), (new THREE.MeshStandardMaterial({ map: rootGrainTexture(1), roughness: 0.92 })));
       seat.position.y = 0.48;
       seat.castShadow = true;
       group.add(seat);
@@ -499,14 +593,17 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
     // small silhouettes of kept things.
     'root_shelf': () => {
       const group = new THREE.Group();
+      // Grown Look 2026-10-17: bark on the uprights, root grain
+      // on the boards — the kit does the work.
+      const frameMat = new THREE.MeshStandardMaterial({ map: barkTexture(2), roughness: 0.9 });
       const sideGeom = new THREE.BoxGeometry(0.08, 1.8, 0.5);
       for (const sx of [-0.75, 0.75]) {
-        const side = new THREE.Mesh(sideGeom, materials.woodRoot);
+        const side = new THREE.Mesh(sideGeom, frameMat);
         side.position.set(sx, 0.9, 0);
         side.castShadow = true;
         group.add(side);
       }
-      const boardMat = (new THREE.MeshStandardMaterial({ color: 0x5b3a1e, roughness: 0.9 }));
+      const boardMat = (new THREE.MeshStandardMaterial({ map: rootGrainTexture(1), roughness: 0.92 }));
       const potMat = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.7 });
       const jarMat = new THREE.MeshStandardMaterial({ color: 0x67e8f9, roughness: 0.3, emissive: 0x155e75, emissiveIntensity: 0.4 });
       for (let i = 0; i < 3; i++) {
@@ -522,9 +619,12 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
     },
     // Root bed: a root frame, a petal-soft mattress, a pillow.
     // Furniture only (Adam): the Heart Tile owns respawning.
+    // Root bed (Grown Look 2026-10-17): the frame wears bark
+    // now; the headboard slat is root grain.
     'root_bed': () => {
       const group = new THREE.Group();
-      const frame = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.22, 2.0), materials.woodRoot);
+      const bedFrameMat = new THREE.MeshStandardMaterial({ map: barkTexture(2), roughness: 0.9 });
+      const frame = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.22, 2.0), bedFrameMat);
       frame.position.y = 0.18;
       frame.castShadow = true;
       group.add(frame);
@@ -546,7 +646,7 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
         post.position.set(sx, 0.45, -0.95);
         group.add(post);
       }
-      const headSlat = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.09, 0.05), (new THREE.MeshStandardMaterial({ color: 0x5b3a1e, roughness: 0.9 })));
+      const headSlat = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.09, 0.05), (new THREE.MeshStandardMaterial({ map: rootGrainTexture(1), roughness: 0.92 })));
       headSlat.position.set(0, 0.72, -0.95);
       group.add(headSlat);
       return group;
@@ -1015,31 +1115,76 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
     // amber glow seam where the lid seals. One mesh serves all
     // three tiers; the tier lives in the entity's storage record
     // and in the pod's panel, not in the silhouette (v1).
-    'storage_pod': () => {
+    // The storage pod (Adam, 2026-10-16; Grown Look 2026-10-17):
+    // it stops being a porcelain urn with a glass lid and starts
+    // being what it is — a CLOSED BUD. A ribbed husk: vertical
+    // ribs curving over a pale woven body, a visible amber seam
+    // where it will one day split, a knotted bulge on the lid.
+    // Footprint and datum are unchanged (S6's carry build holds
+    // the behavior-facing facts of this pod; this is mesh only).
+    'storage_pod': (entity) => {
       const group = new THREE.Group();
+      const rng = mulberry32(hashId(entity?.id ?? 'ghost-pod'));
 
-      // Squashed-sphere body, rooted in a low wood collar.
+      // Rooted in the same low wood collar as before.
       const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.86, 0.18, 14), materials.woodRoot);
       collar.position.y = 0.09;
       collar.castShadow = true;
       group.add(collar);
 
-      const body = new THREE.Mesh(new THREE.SphereGeometry(0.68, 18, 14), materials.porcelainWhite);
-      body.scale.y = 0.78;
+      // The husk body: a squashed sphere in pale woven husk tones,
+      // slightly asymmetric (seeded) so no two pods are lathe-perfect.
+      const huskMat = new THREE.MeshStandardMaterial({
+        map: wovenTexture(4), color: 0xe3d3ac, roughness: 0.75,
+      });
+      const body = new THREE.Mesh(new THREE.SphereGeometry(0.68, 18, 14), huskMat);
+      body.scale.set(1.0, 0.78, 0.94 + rng() * 0.06);
       body.position.y = 0.62;
       body.castShadow = true;
       group.add(body);
 
-      // The lid: a shallow dome cap with an amber seam under it.
+      // Vertical ribs — the bud's sepals — curving over the husk,
+      // seeded lengths so the silhouette is never perfectly even.
+      const ribMat = new THREE.MeshStandardMaterial({ color: 0x7a5f2e, roughness: 0.8 });
+      const ribCount = 10;
+      for (let r = 0; r < ribCount; r++) {
+        const a = (r / ribCount) * Math.PI * 2 + rng() * 0.15;
+        const topY = 1.02 + rng() * 0.1;
+        const ribCurve = new THREE.QuadraticBezierCurve3(
+          new THREE.Vector3(Math.sin(a) * 0.6, 0.18, Math.cos(a) * 0.6),
+          new THREE.Vector3(Math.sin(a) * 0.74, 0.62, Math.cos(a) * 0.74),
+          new THREE.Vector3(Math.sin(a) * 0.42, topY, Math.cos(a) * 0.42),
+        );
+        const rib = new THREE.Mesh(new THREE.TubeGeometry(ribCurve, 8, 0.045, 6), ribMat);
+        rib.castShadow = true;
+        group.add(rib);
+      }
+
+      // The seam where the bud will split one day — amber, kept
+      // from the old design as the grown language of a join.
       const seam = new THREE.Mesh(new THREE.TorusGeometry(0.52, 0.045, 8, 24), materials.biolumAmber);
       seam.rotation.x = Math.PI / 2;
       seam.position.y = 0.98;
       group.add(seam);
 
-      const lid = new THREE.Mesh(new THREE.SphereGeometry(0.54, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2.4), materials.chitinGlass);
+      // The lid: flesh-pale, domed, with a knotted bulge on top —
+      // the closed tip of the bud.
+      const lid = new THREE.Mesh(
+        new THREE.SphereGeometry(0.54, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2.4),
+        new THREE.MeshStandardMaterial({ map: wovenTexture(4), color: 0xd8c096, roughness: 0.7 }),
+      );
+      lid.scale.set(1.0, 0.9, 0.96 + rng() * 0.05);
       lid.position.y = 0.97;
       lid.castShadow = true;
       group.add(lid);
+      const knot = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), ribMat);
+      knot.scale.set(1.0, 0.75, 0.9);
+      knot.position.set((rng() - 0.5) * 0.1, 1.32, (rng() - 0.5) * 0.1);
+      knot.castShadow = true;
+      group.add(knot);
+      const knot2 = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), ribMat);
+      knot2.position.set(knot.position.x + 0.12, 1.28, knot.position.z - 0.05);
+      group.add(knot2);
 
       // A little latch nub on the front — the "click me" affordance.
       const latch = new THREE.Mesh(new THREE.OctahedronGeometry(0.09, 0), materials.biolumAmber);

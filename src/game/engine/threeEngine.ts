@@ -22,6 +22,7 @@ import type { ShieldDef } from '../creatures/shields';
 import { landformHeightAt, type PondLiquid } from '../world/terrain';
 import { buildWaterGroup, waterSurfaceFromLists, waterDepthFromLists, liquidFromLists, type PondLocal, type RiverSegLocal } from '../world/waterField';
 import { SkyRig } from '../world/skyRig';
+import { MoteField } from '../world/moteField';
 import { updateHearthTag } from '../creatures/hearthTag';
 import { FLORA_LIGHT_BASE, STRUCTURE_LIGHT_BASE } from '../structures/lightSpecs';
 import { isFloorType, BUILDING_TYPES, isDoorType } from '../structures/placement';
@@ -230,6 +231,7 @@ export class BioForgeThreeEngine {
    *  init once the primary light exists; driven per frame from
    *  animate with the stored phase. */
   private sky: SkyRig | null = null;
+  private motes: MoteField | null = null;
   /** Scratch sky color, reused so the palette pass never allocates. */
   private skyScratch = new THREE.Color();
 
@@ -459,6 +461,7 @@ export class BioForgeThreeEngine {
     // The heavens (day/night build): built once the primary
     // light exists — the rig positions it per frame.
     this.sky = new SkyRig(this.scene, this.dirLight);
+    this.motes = new MoteField(this.scene);
 
     // Event listeners
     this.initEventListeners();
@@ -886,6 +889,7 @@ export class BioForgeThreeEngine {
     this.zoneLightDistanceMult = distMult;
     this.zoneLightIntensityMult = intMult;
     this.paintTerrainColors();
+    this.motes?.setBiome(biome);
   }
 
   /** Set the sky (2026-10-15): mode + intensity from the zone
@@ -2623,6 +2627,7 @@ private initEventListeners() {
     // The sky rides the camera (day/night build): bodies, stars,
     // and light directions follow the stored phase, per frame.
     this.sky?.update(this.lastDayCycle, this.camera.position, this.cavernMode || this.ruinMode);
+    this.motes?.update(delta, this.camera.position, this.lastDayCycle, this.sky ? this.sky.starMaterial.opacity / 0.95 : 0, !(this.cavernMode || this.ruinMode));
 
     this.renderer.render(this.scene, this.camera);
   };

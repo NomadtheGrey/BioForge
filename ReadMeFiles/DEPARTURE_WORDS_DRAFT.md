@@ -146,52 +146,82 @@ THE REMEMBERING — the grower speaks to the gentle dead
 
 ---
 
-## 2. GRAVES — a shared vocabulary
+## 2. GRAVES — the dead themselves
 
-*For the honored dead of any world — the INDIVIDUAL markers,
-where §1's memorial is the collective act: a grave is for
-one of the dead, with one name over it. And, by design,
-reusable wherever the game marks a death. The S7 settled-deaths work
-(dead settled individuals, dead-anchor echoes) draws on the
-same vocabulary: a player's creature, named and ranged and
-gone, deserves the same grammar as a Precursor. Three
-registers: MARKERS (carved short, fit under any name),
-NAME-FITTED lines (for individuals — {name} and {species}
-are the game's to fill), and THE CAUSE SET (lines shaped by
-how a death came — drafted ready for if Adam pins cause
-recording in the deaths ledger at S7 pin-time; unused until
-then).*
+*Adam's second clarification (2026-10-17): "Same with
+Graves." These are the DEAD PRECURSORS' graves — their
+individual markers and epitaphs, in the Honor worlds where
+they died. The memorial (§1) is the player's act of
+remembering the people as a whole; a grave is smaller and
+closer: one dead person, one resting place, one attempt to
+keep that person from dissolving into the fate that killed
+them.*
 
-MARKERS — under any name
-- "Here the world keeps what it was given."
-- "Gone the way crews go. Counted, and missed correctly."
-- "The ground is not empty. The ground is entrusted."
-- "What grew here grew honestly."
-- "Returned to the long green, which wastes nothing."
-- "A life, whole, in a world that noticed."
-- "The range is quieter by exactly one."
-- "Kept."
+*This section belongs only to the worlds where the
+Precursors died. Every marker below is written for one of
+their dead — not for the people as an abstraction, and not
+for the fate as a symbol.*
 
-NAME-FITTED — for settled individuals and companions
-- "{name} ranged here, and the range remembers the route."
-- "{name}, {species}, of this country. The country signs for the keeping."
-- "Here is {name}'s last country. It suited them. They suited it."
-- "{name} was known here — by step, by habit, by heart. Be known like that."
-- "The vat grew {name} once. The world grew them after. Both grew well."
-- "For {name}: released to the wild, and the wild, in time, released."
+*Because the chapters recover a people's story more readily
+than individual names, the sets work three ways: under a
+recovered name where a world's records preserve one, by role
+where the work is what survives, and for the unnamed where
+weather or ruin has taken the name but not the person.*
 
-THE CAUSE SET — if the ledger ever records how
-- *(the player's own hand)* "Taken by the grower's hand, on the grower's reasons. The hand does not lie about it here."
-- *(the player's own hand)* "Culled, and carved honestly: by the one who raised them. That is the hardest sentence in this vocabulary, and it is spelled right."
-- *(killed wild)* "The country took its own back. No blame grows here; blame is a weed in this soil."
-- *(killed wild)* "What the wild country gives, the wild country may ask for. It asked."
-- *(the world itself — age, sickness, weather)* "The world ended this the way it ends everything: in season."
-- *(the world itself)* "Not taken. Finished — the way a day finishes, having been entirely itself."
+### Shared markers — for any Precursor grave
 
-FOR THE DOG-SHAPED GRIEF — companions, in the closest register
-- "Good. That is the whole inscription, and it is enough."
-- "They decided about you, in the end. You were decided for. Remember being chosen."
-- "The hearth is smaller by one heartbeat. The house rules stand: the door they used is never barred."
+- "A gardener of this world. The garden remains in evidence."
+- "Here rests a hand that made room for life."
+- "They grew more than they took."
+- "A Precursor. A person first; a mystery second."
+- "Known by their rooms, their tools, and their care."
+- "The fate was the world's. This life was their own."
+- "Not a remnant. A person, at rest."
+- "Name weathered away. Work remains."
+
+### 2a. CRASH — graves of the crew
+
+*For the individual dead of the landing and the hard years
+after it: ship's company first, settlers by necessity, each
+one reduced by the memorial to "the crew" unless a grave
+gives them back their scale.*
+
+- "One of the crew that landed and stayed. Not lost."
+- "They helped turn wreckage into a home."
+- "Their work is still standing. So is their name."
+- "They waited for rescue by learning how to live without it."
+- "A ship's hand, a settler's heart, a neighbor by the end."
+- "They kept one thing too long and one person longer. Both were acts of care."
+- "Here the count becomes a person again."
+
+### 2b. WAR — graves of the fallen
+
+*For the individual dead of the self-destruction: not
+symbols in a warning, not halves of a lesson. People who were
+gardeners before the garden was aimed, whether they died
+holding a tool, a weapon, or neither.*
+
+- "A gardener before the garden was aimed."
+- "They died in the disagreement. Remember the person before the side."
+- "No weapon is carved here. A name is enough."
+- "They planted in love before fear began giving the orders."
+- "This one is not a warning. This one was a life."
+- "Whatever they became in the war, they were someone before it."
+- "The soil remembers instructions. Let this stone remember a person."
+
+### 2c. SICKNESS — graves of the gentle dead
+
+*For the individual dead of the one-season ending: people
+whose last work was care, whose tools were set down with the
+expectation of an hour that did not come.*
+
+- "They set down their tools carefully, expecting an hour. The hour did not come."
+- "A keeper of houses. The houses remember the care."
+- "They spent their last season being gentle on purpose."
+- "They cleaned for whoever came next. Someone came."
+- "No hurry is carved here. They had already made their peace with slowness."
+- "A person, not the sickness. Remember the hands before the season."
+- "They left the room ready. Rest was the only thing they did not prepare for someone else."
 
 ---
 
@@ -343,11 +373,9 @@ FAREWELLS
   gift line says "the road" and nothing about where it goes;
   "when you're ready" is the family's own grammar in the
   design note, and all gift drafts are built on it.
-- **The S7 thread.** §2's NAME-FITTED and CAUSE sets are
-  written to be lifted when the settled-deaths pin-time
-  questions are raised (cause recording among them); the
-  grave vocabulary arriving before S7 builds is deliberate —
-  the echo beats will need words the week they land.
+- **Graves stay with the Precursor dead.** §2's markers and
+  epitaphs belong only to the individual Precursors buried
+  in the Honor worlds.
 - **FOLLOW and CONFRONT are not in this brief** — FOLLOW's
   words live on the road itself (stations, grand ruins) and
   CONFRONT's turn on the motive choice; if Adam wants drafts

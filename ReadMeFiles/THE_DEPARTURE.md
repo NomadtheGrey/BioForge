@@ -94,10 +94,20 @@ it. Where the recipe comes from is the family's flavor:
   pin-time detail; the dev lane's placeholder: the recipe is
   kept at the memorial, left by a people who tidied their
   houses for whoever came next). Then leave.
-- **CONFRONT recipe source (dev-lane proposal, the last one
-  awaiting Adam's word):** *salvaged under threat* — the
-  strangers' shadow is what makes leaving urgent, and what
-  the recipe costs there is not only materials.
+- **CONFRONT (Adam, 2026-10-17):** the same pattern — with a
+  motive choice at the encounter. Facing the strangers who
+  ended the Precursors, the player goes in **revenge** or in
+  **curiosity**; the stance is the player's, the skeleton is
+  the same, and the road out runs through the confrontation
+  either way. (The recipe arrives through it — salvaged,
+  seized, or granted by whatever the player finds; the
+  motive colors everything except the shape.)
+
+**The uniform skeleton, all four families:** assemble the
+artifacts → the family's encounter (a road inherited, a
+meeting, a memorial, a confrontation) → the expensive T4
+recipe, somehow → grow the way out, and leave. The families
+differ in everything except the shape.
 
 The registry's long-deferred **Every Ending** (Line 1,
 cross-save) is this design's empty chair: it was always the

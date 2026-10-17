@@ -123,7 +123,7 @@ import {
   graftInheritanceOnCraft,
   graftOf,
   leftHandOrder,
-  bestLeftHand,
+  leftHandPiece,
   LEFT_HAND_CYCLE,
   lodestoneOf,
   shieldOf,
@@ -2271,8 +2271,9 @@ const {
   // the pouch, a craft ate the held piece (the Lantern Shield
   // eating the held lantern is the type case: the craft above
   // stows, consumes, and leaves the hand bare), a load, a
-  // migration — the best owned piece takes the hand: highest
-  // shield first, the plain lantern last. Raising DEDUCTS from
+  // migration — the hand takes what the player owns for it:
+  // THE shield (the ladder consumes upward, so there is only
+  // ever one — no ranking), else the plain lantern. Raising DEDUCTS from
   // the pouch, the hand's standing model, so the fill makes
   // the same transfer a cycle tap would. A held piece stands
   // untouched: the player's choice is honored while it holds.
@@ -2282,7 +2283,7 @@ const {
     if (carrying) return;
     const held = playerState.heldItemId;
     if (held && LEFT_HAND_CYCLE.includes(held)) return;
-    const best = bestLeftHand((id) => hasItem(id, 1));
+    const best = leftHandPiece((id) => hasItem(id, 1));
     if (best) {
       deductInventoryItem(best, 1);
       setHeldItemId(best);

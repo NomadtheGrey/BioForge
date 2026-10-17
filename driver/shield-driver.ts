@@ -31,7 +31,7 @@ import {
   dropMagnetFor,
   lodestoneOf,
   migrateBulwark,
-  bestLeftHand,
+  leftHandPiece,
   shieldGrowthFromLegacy,
   type ShieldGraftId,
   type ShieldGrowthMap,
@@ -288,13 +288,13 @@ console.log('\n12. LEFT HAND CYCLE (Alt grammar)');
   check('forward past last wraps to first', cycleLeftHand('scute_shield', has, 1) === 'hand_lantern_fern');
   check('backward from first wraps to last', cycleLeftHand('hand_lantern_fern', has, -1) === 'scute_shield');
   check('a single owned piece cycles to itself', cycleLeftHand('scute_shield', (id) => id === 'scute_shield', 1) === 'scute_shield');
-  // AUTO-FILL (Adam, 2026-10-17): the best owned piece takes
-  // an empty hand — highest shield first, the lantern last.
-  check('auto-fill prefers the fenback', bestLeftHand(() => true) === 'fenback_shield');
-  check('auto-fill takes the lantern shield over the bare lantern',
-    bestLeftHand((id) => id === 'lantern_shield' || id === 'hand_lantern_fern') === 'lantern_shield');
-  check('auto-fill settles for the lantern', bestLeftHand((id) => id === 'hand_lantern_fern') === 'hand_lantern_fern');
-  check('auto-fill with nothing owned stays empty', bestLeftHand(() => false) === null);
+  // AUTO-FILL (Adam, 2026-10-17): an empty hand takes THE
+  // shield (the ladder leaves at most one — nothing to rank),
+  // else the lantern.
+  check('auto-fill takes the owned shield', leftHandPiece((id) => id === 'fenback_shield' || id === 'hand_lantern_fern') === 'fenback_shield');
+  check('auto-fill takes a lone scute', leftHandPiece((id) => id === 'scute_shield') === 'scute_shield');
+  check('auto-fill settles for the lantern', leftHandPiece((id) => id === 'hand_lantern_fern') === 'hand_lantern_fern');
+  check('auto-fill with nothing owned stays empty', leftHandPiece(() => false) === null);
   check('backward walks scute -> lantern', cycleLeftHand('scute_shield', has, -1) === 'hand_lantern_fern');
   check('empty hand forward takes first owned', cycleLeftHand(null, has, 1) === 'hand_lantern_fern');
   check('nothing owned -> null', cycleLeftHand(null, () => false, 1) === null);

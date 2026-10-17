@@ -478,20 +478,19 @@ export function cycleLeftHand(
   return owned[(idx + direction + owned.length) % owned.length];
 }
 
-/** The auto-fill priority (Adam, 2026-10-17): when the hand
- *  stands empty, the best owned piece takes it — the highest
- *  shield first, the plain lantern last (a Lantern Shield
- *  carries its own lamp, so the bare lantern yields to it). */
-export const LEFT_HAND_BEST: ItemId[] = [
-  'fenback_shield',
-  'lantern_shield',
-  'scute_shield',
-  'hand_lantern_fern',
-];
-
-/** The piece the hand should take on its own, if any. */
-export function bestLeftHand(hasItem: (id: ItemId) => boolean): ItemId | null {
-  return LEFT_HAND_BEST.find((id) => hasItem(id)) ?? null;
+/** The piece an empty hand takes on its own (Adam,
+ *  2026-10-17): THE shield — the ladder consumes upward, so
+ *  a player only ever holds one shield; there is no "best"
+ *  to rank. That shield if they have one, else their lantern.
+ *  (The scan walks the ladder table and keeps the last owned
+ *  rung purely for determinism; in play at most one matches.) */
+export function leftHandPiece(hasItem: (id: ItemId) => boolean): ItemId | null {
+  let shield: ItemId | null = null;
+  for (const def of SHIELDS) {
+    if (hasItem(def.itemId)) shield = def.itemId;
+  }
+  if (shield) return shield;
+  return hasItem('hand_lantern_fern') ? 'hand_lantern_fern' : null;
 }
 
 // ---------------------------------------------------------------------------

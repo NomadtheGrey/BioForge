@@ -18,6 +18,7 @@ import {
   Minimize2,
   Save,
   Flashlight,
+  Shield,
   ChevronLeft,
   ChevronRight,
   ScrollText,
@@ -111,8 +112,16 @@ interface HUDProps {
    * 2 = creature location (the Prismatic Lifefinder growth joins
    * them). Forwarded to the Minimap, which tiers its pings. */
   radarTier: number;
-  /** Click on the Left Hand slot: hold the Hand Lantern-Fern, or stow it. */
+  /** Click on the Left Hand slot: cycle the hand (lantern ↔
+   *  shields ↔ empty, as owned — the same cycle Alt+wheel /
+   *  Alt+↑ drives). */
   onToggleHeldItem: () => void;
+  /** The shield's raised state + its setter (shield slice,
+   *  2026-10-17): the Left Hand tile wears BRACED/LOWERED on a
+   *  held shield, and the touch hold button drives the raise
+   *  through the setter (desktop raises by right-mouse hold). */
+  shieldRaised?: boolean;
+  onSetShieldRaised?: (v: boolean) => void;
   /** Gauntlet modules (2026-10-15): the tools whose modules are
    * grafted on. Locked tiles render dimmed with a lock and report
    * their clicks through onToolLocked instead of selecting. */
@@ -181,6 +190,9 @@ import { useHudLayout, type HudPanelId } from '../hooks/useHudLayout';
 import { HudPanel } from './HudPanel';
 import { HudOptionsPanel } from './HudOptionsPanel';
 import { multiplayerManager, RELAY_BASE_URL } from '../game/multiplayer';
+// Shield faces for the Left Hand tile (shield follow pass,
+// 2026-10-17): which held items are shields, from the rules.
+import { isShieldItem } from '../game/creatures/shields';
 
 /**
  * SessionStats — the FPS + PING readout in the session bar
@@ -283,6 +295,8 @@ export const HUD: React.FC<HUDProps> = ({
   radarActive,
   radarTier,
   onToggleHeldItem,
+  shieldRaised,
+  onSetShieldRaised,
   unlockedTools,
   onToolLocked,
   strikerDrawName,
@@ -1278,26 +1292,62 @@ export const HUD: React.FC<HUDProps> = ({
             }`}
           >
             {/* Left Hand (Adam, 2026-10-14): the off-hand slot.
-                Since the radar conversion (2026-10-16) it holds ONE
-                instrument — the Hand Lantern-Fern (a light that
-                follows you; see threeEngine.setHeldLight). The
-                Prismatic Field Radar used to cycle through here; it
-                is helmet gear now and never a held item. Click
-                holds the lantern, or stows it. */}
-            <button
-              onClick={onToggleHeldItem}
-              title={playerState.heldItemId ? 'Left Hand: Hand Lantern-Fern — click to stow' : 'Left Hand: empty — click to hold the Hand Lantern-Fern'}
-              className={`pointer-events-auto glass-panel rounded-2xl flex flex-col items-center gap-1 shadow-2xl transition-all active:scale-95 ${
-                touchMode ? 'p-1.5' : 'p-2'
-              }`}
-            >
-              <span className={`${touchMode ? 'h-9 w-9' : 'h-10 w-10'} rounded-xl flex items-center justify-center border ${playerState.heldItemId ? 'bg-cyan-950/80 border-cyan-400/70 text-cyan-300 shadow-md shadow-cyan-500/30' : 'bg-slate-900/60 border-slate-700/60 text-slate-500'}`}>
-                {playerState.heldItemId ? <Flashlight className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
-              </span>
-              {!touchMode && (
-                <span className="text-[8px] font-tech font-bold tracking-widest text-slate-400 uppercase">Left Hand</span>
-              )}
-            </button>
+                The radar left it in the 2026-10-16 conversion
+                (helmet gear, never held); the SHIELD family
+                joined it in 2026-10-17. The hand now cycles —
+                click, Alt+wheel, or Alt+↑ — through what the
+                player owns: lantern ↔ Scute Shield ↔ Lantern
+                Shield ↔ Fenback Shield ↔ empty. The tile wears
+                the held thing's face: lantern light (cyan), a
+                shield's ward (rose, BRACED while raised), or
+                the empty hand. */}
+            {(() => {
+              const heldId = playerState.heldItemId ?? null;
+              const heldShield = isShieldItem(heldId);
+              const heldGrafted = heldShield && !!playerState.shieldGrafts?.[heldId as ItemId];
+              const heldName = heldId ? ITEMS[heldId]?.name ?? heldId : null;
+              return (
+                <button
+                  onClick={onToggleHeldItem}
+                  title={
+                    heldShield
+                      ? `Left Hand: ${heldName}${heldGrafted ? ' (spike-grafted)' : ''} — ${shieldRaised ? 'BRACED, the wall is up' : 'lowered; carried blunting is live'} · hold right-mouse to raise · click or Alt+wheel to cycle the hand`
+                      : heldId
+                        ? `Left Hand: ${heldName} — click or Alt+wheel to cycle the hand`
+                        : 'Left Hand: empty — click or Alt+wheel to cycle the hand'
+                  }
+                  className={`pointer-events-auto glass-panel rounded-2xl flex flex-col items-center gap-1 shadow-2xl transition-all active:scale-95 ${
+                    touchMode ? 'p-1.5' : 'p-2'
+                  }`}
+                >
+                  <span className={`relative ${touchMode ? 'h-9 w-9' : 'h-10 w-10'} rounded-xl flex items-center justify-center border ${
+                    heldShield
+                      ? shieldRaised
+                        ? 'bg-rose-950/90 border-rose-400 text-rose-200 shadow-md shadow-rose-500/40'
+                        : 'bg-rose-950/60 border-rose-500/60 text-rose-300 shadow-md shadow-rose-500/20'
+                      : heldId
+                        ? 'bg-cyan-950/80 border-cyan-400/70 text-cyan-300 shadow-md shadow-cyan-500/30'
+                        : 'bg-slate-900/60 border-slate-700/60 text-slate-500'
+                  }`}>
+                    {heldShield ? (
+                      <Shield className="w-5 h-5" />
+                    ) : heldId ? (
+                      <Flashlight className="w-5 h-5" />
+                    ) : (
+                      <Sparkles className="w-5 h-5" />
+                    )}
+                    {heldGrafted && (
+                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-rose-400 border border-rose-200" title="Spike-grafted" />
+                    )}
+                  </span>
+                  {!touchMode && (
+                    <span className={`text-[8px] font-tech font-bold tracking-widest uppercase ${heldShield ? 'text-rose-300' : 'text-slate-400'}`}>
+                      {heldShield ? (shieldRaised ? 'Braced' : 'Shield') : 'Left Hand'}
+                    </span>
+                  )}
+                </button>
+              );
+            })()}
 
           <div
             className={`pointer-events-auto glass-panel rounded-2xl flex items-center shadow-2xl ${
@@ -1356,6 +1406,35 @@ export const HUD: React.FC<HUDProps> = ({
           )}
         </div>
       </div>
+
+      {/* Touch RAISE hold (shield follow pass, 2026-10-17): on
+          touch there is no right-mouse to hold, so the raise is
+          a thumb hold — present only while a shield is in the
+          Left Hand. Press-and-hold raises; release lowers. The
+          wield hook owns the state; this is only its button. */}
+      {touchMode && onSetShieldRaised && isShieldItem(playerState.heldItemId) && (
+        <button
+          onPointerDown={(e) => {
+            e.preventDefault();
+            onSetShieldRaised(true);
+          }}
+          onPointerUp={() => onSetShieldRaised(false)}
+          onPointerLeave={() => onSetShieldRaised(false)}
+          onPointerCancel={() => onSetShieldRaised(false)}
+          onContextMenu={(e) => e.preventDefault()}
+          className={`absolute right-4 bottom-32 z-30 pointer-events-auto glass-panel rounded-full w-16 h-16 flex flex-col items-center justify-center gap-0.5 shadow-2xl transition-all select-none touch-none ${
+            shieldRaised
+              ? 'border-rose-400 text-rose-200 bg-rose-950/80 scale-105'
+              : 'border-rose-500/50 text-rose-300 bg-slate-950/70'
+          }`}
+          title="Hold to raise the shield"
+        >
+          <Shield className="w-6 h-6" />
+          <span className="text-[8px] font-tech font-bold tracking-widest uppercase">
+            {shieldRaised ? 'Braced' : 'Raise'}
+          </span>
+        </button>
+      )}
 
       {/* The HUD Options screen (Pause → OPTIONS). Rendered at the
           root so it survives the pause overlay closing. */}

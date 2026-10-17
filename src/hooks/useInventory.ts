@@ -26,7 +26,7 @@ export interface GrownCraft {
 
 export interface UseInventoryResult {
   inventory: Record<ItemId, number>;
-  addInventoryItem: (itemId: ItemId, count?: number) => void;
+  addInventoryItem: (itemId: ItemId, count?: number) => number;
   deductInventoryItem: (itemId: ItemId, count?: number) => boolean;
   hasItem: (itemId: ItemId, minCount?: number) => boolean;
   craftRecipe: (recipe: CraftingRecipe) => boolean;
@@ -73,8 +73,12 @@ export function useInventory(): UseInventoryResult {
     return Math.min(count, room);
   }, []);
 
-  const addInventoryItem = useCallback((itemId: ItemId, count = 1): void => {
-    if (count <= 0) return;
+  /** Adds what fits; the overflow handler drops the rest.
+   *  Returns how many actually entered the pouch (2026-10-17)
+   *  so callers — the pickup path above all — can speak only
+   *  about what was truly taken. */
+  const addInventoryItem = useCallback((itemId: ItemId, count = 1): number => {
+    if (count <= 0) return 0;
     const fits = fitsCount(itemId, count);
     if (fits > 0) {
       setInventory((prev) => ({
@@ -86,6 +90,7 @@ export function useInventory(): UseInventoryResult {
     if (overflow > 0) {
       overflowRef.current?.(itemId, overflow);
     }
+    return fits;
   }, [fitsCount]);
 
   const hasItem = useCallback((itemId: ItemId, minCount = 1): boolean => {

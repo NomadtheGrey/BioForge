@@ -1147,6 +1147,12 @@ export interface DroppedItemEntity {
   z: number;
   y: number;
   bobTime: number;
+  /** Pickup holdoff (Adam's play-pass bug, 2026-10-17): while
+   *  the wall clock is before this stamp, proximity pickup
+   *  waits. Overflow drops are born stamped a few seconds out
+   *  so a full pouch can't loop pickup → overflow → pickup at
+   *  tick rate, spamming toasts and churning the drop list. */
+  pickupAt?: number;
 }
 
 export interface CraftingRecipe {

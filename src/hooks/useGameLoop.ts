@@ -130,7 +130,7 @@ export interface GameLoopDeps {
   } };
   liveGameRefs: { current: {
     hasItem: (itemId: ItemId, quantity: number) => boolean;
-    addInventoryItem: (itemId: ItemId, quantity: number) => void;
+    addInventoryItem: (itemId: ItemId, quantity: number) => number;
     updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number, ctx?: StrikeCtx) => void, attacksArmed?: boolean, dayPhase?: number, onFieldWitness?: (noteId: string) => void, onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void, onAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void, dropMagnet?: { radius: number; speed: number }) => void;
     postNotification: (title: string, message: string, type?: GameNotification['type'], iconColor?: string) => void;
     // The Field Notes witness sink (App's recordFieldWitness,
@@ -821,7 +821,14 @@ export function useGameLoop(deps: GameLoopDeps): void {
             moveResult.x,
             moveResult.z,
             (pickedItem) => {
-              liveGameRefs.current.addInventoryItem(pickedItem.itemId, pickedItem.count);
+              // Speak only about what ENTERED the pouch
+              // (2026-10-17): a full stack takes nothing, and a
+              // pickup that took nothing must not toast, sound,
+              // or latch witnesses — the overflow handler drops
+              // the untaken part (stamped with a pickup holdoff)
+              // and says its own 'Pouch Full' piece, once.
+              const taken = liveGameRefs.current.addInventoryItem(pickedItem.itemId, pickedItem.count);
+              if (taken <= 0) return;
               // Field Notes pickup witnesses (fieldNotesBook): a
               // shed gel, scale, plate or requisition collected is
               // the note's named moment.
@@ -834,13 +841,13 @@ export function useGameLoop(deps: GameLoopDeps): void {
                 liveGameRefs.current.recordAsksEvent?.({
                   kind: 'sample',
                   species: pickedItem.itemId.slice('sample_'.length),
-                  count: pickedItem.count,
+                  count: taken,
                 });
               }
               soundEngine.playHarvest();
               liveGameRefs.current.postNotification(
                 'Item Collected',
-                `Picked up ${pickedItem.count}x ${ITEMS[pickedItem.itemId]?.name || pickedItem.itemId}`,
+                `Picked up ${taken}x ${ITEMS[pickedItem.itemId]?.name || pickedItem.itemId}`,
                 'harvest',
                 ITEMS[pickedItem.itemId]?.color || '#38bdf8'
               );

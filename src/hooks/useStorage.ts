@@ -35,7 +35,7 @@ interface UseStorageParams {
   addInventoryItem: (itemId: ItemId, count?: number) => void;
   deductInventoryItem: (itemId: ItemId, count?: number) => boolean;
   upsertStructure: (structure: StructureEntity) => void;
-  spawnDroppedItem: (itemId: ItemId, count: number, x: number, z: number) => void;
+  spawnDroppedItem: (itemId: ItemId, count: number, x: number, z: number, pickupDelayMs?: number) => void;
   setOverflowHandler: (handler: ((itemId: ItemId, count: number) => void) | null) => void;
   postNotification: (title: string, message: string, type: GameNotification['type'], iconColor: string) => void;
 }
@@ -61,7 +61,10 @@ export function useStorage({
   useEffect(() => {
     setOverflowHandler((itemId, count) => {
       const pos = getPlayerPosition();
-      spawnDroppedItem(itemId, count, pos.x, pos.z);
+      // Born on a 6-second pickup holdoff (2026-10-17): without
+      // it, a full pouch re-picks this drop next tick, overflows
+      // again, and the pair of toasts strobes forever.
+      spawnDroppedItem(itemId, count, pos.x, pos.z, 6000);
       postNotification(
         'Pouch Full',
         `No room for ${count} more ${ITEMS[itemId]?.name ?? itemId} — it fell at your feet. Storage pods and pouch upgrades make room.`,

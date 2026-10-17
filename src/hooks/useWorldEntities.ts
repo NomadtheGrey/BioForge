@@ -421,7 +421,7 @@ export interface UseWorldEntitiesResult {
   fireProjectile: (shot: { targetId: string; aimX: number; aimZ: number; damage: number; burstRadius?: number; travelSeconds: number }) => void;
   upsertFauna: (fauna: FaunaEntity) => void;
   removeFauna: (faunaId: string) => void;
-  spawnDroppedItem: (itemId: DroppedItemEntity['itemId'], count: number, x: number, z: number) => void;
+  spawnDroppedItem: (itemId: DroppedItemEntity['itemId'], count: number, x: number, z: number, pickupDelayMs?: number) => void;
   upsertDroppedItem: (item: DroppedItemEntity) => void;
   removeDroppedItem: (itemId: string) => void;
   replaceWorld: (world: WorldSnapshot) => void;
@@ -819,7 +819,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
     setFaunaList((prev) => prev.filter((f) => f.id !== faunaId));
   }, []);
 
-  const spawnDroppedItem = useCallback((itemId: DroppedItemEntity['itemId'], count: number, x: number, z: number): void => {
+  const spawnDroppedItem = useCallback((itemId: DroppedItemEntity['itemId'], count: number, x: number, z: number, pickupDelayMs = 0): void => {
     const newItem: DroppedItemEntity = {
       id: 'drop_' + Math.random().toString(36).substring(2, 9),
       itemId,
@@ -828,6 +828,9 @@ export function useWorldEntities(): UseWorldEntitiesResult {
       z,
       y: 0,
       bobTime: 0,
+      // Overflow drops are born on a short holdoff so a full
+      // pouch cannot re-pick them the very next tick (2026-10-17).
+      ...(pickupDelayMs > 0 ? { pickupAt: Date.now() + pickupDelayMs } : {}),
     };
     setDroppedItems((prev) => [...prev, newItem]);
     multiplayerManager.broadcastEntityUpsert('drop', newItem);
@@ -2399,7 +2402,12 @@ export function useWorldEntities(): UseWorldEntitiesResult {
         const remaining: DroppedItemEntity[] = [];
         prevDrops.forEach((item) => {
           const distToPlayer = Math.hypot(playerX - item.x, playerZ - item.z);
-          if (distToPlayer < 2.0) {
+          // The pickup holdoff (2026-10-17): a drop born stamped
+          // (overflow at a full pouch) waits out its window on
+          // the ground instead of looping pickup → overflow →
+          // pickup at tick rate. It still drifts and bobs below.
+          const onHoldoff = item.pickupAt !== undefined && Date.now() < item.pickupAt;
+          if (distToPlayer < 2.0 && !onHoldoff) {
             onPickupItem(item);
             multiplayerManager.broadcastEntityRemove('drop', item.id);
             return;

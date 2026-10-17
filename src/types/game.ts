@@ -1234,6 +1234,14 @@ export interface BiomeArea {
  * stored as plain strings to keep this file import-light.
  */
 export interface QuestSignals {
+  /** The Departure (D1, 2026-10-17): the world's fate
+   *  family ('follow' | 'answer' | 'honor' | 'confront'),
+   *  written by App once the world stands — the finale
+   *  quest's tracker line names the family's road. */
+  finaleFamily?: string;
+  /** The Departure: the act itself, latched by whichever
+   *  family's set-piece carries the player through. */
+  departed?: boolean;
   families?: string[];
   hybrid?: boolean;
   tier3?: boolean;

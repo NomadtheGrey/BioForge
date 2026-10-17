@@ -96,6 +96,7 @@ import {
   goalProgressText,
 } from './game/quests/asksBack/latch';
 import { recordAsksChoice } from './game/quests/asksBackState';
+import { finaleFamilyOf } from './game/quests/finale';
 // THE WORLD ASKS BACK, S4: a release settles the creature in the
 // zone's consequence record — the Director reads it as an anchor
 // and the zone loader materializes it by name.
@@ -1491,6 +1492,13 @@ export default function App() {
       if (!families.includes(info.biome)) { next.families = [...families, info.biome]; changed = true; }
       if (info.hybrid && !s.hybrid) { next.hybrid = true; changed = true; }
       if (tier >= 3 && !s.tier3) { next.tier3 = true; changed = true; }
+      // The Departure (D1): the world's fate family, written
+      // once — the finale quest's tracker names the road this
+      // world's people left standing.
+      if (!s.finaleFamily) {
+        next.finaleFamily = finaleFamilyOf(fateForWorld(worldSeedRef.current));
+        changed = true;
+      }
       // Walk Back: standing in the fell zone again after having
       // left it at least once is the return the quest asks for.
       if (s.fellZone) {

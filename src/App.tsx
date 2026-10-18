@@ -1473,7 +1473,7 @@ export default function App() {
     };
   }>({ hasItem, addInventoryItem, updateTick, postNotification, getPlacementRotation, recordFieldWitness, recordAsksEvent });
   // LAZY: the Left Hand cycle lives below the input call site (the
-  // shield slice, 2026-10-17) — Alt+wheel / Alt+↑↓ ride this ref.
+  // shield slice, 2026-10-17) — Ctrl+wheel / Ctrl+↑↓ ride this ref.
   const cycleLeftHandRef = useRef((dir: 1 | -1): void => { /* assigned below */ });
 
   useEffect(() => {
@@ -1872,7 +1872,7 @@ export default function App() {
     // Pond depth for the hop gate (P5 move 2): the engine owns the
     // current zone's pond list; input just asks.
     getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0,
-    // The Left Hand cycle (the shield slice): Alt+wheel / Alt+↑↓
+    // The Left Hand cycle (the shield slice): Ctrl+wheel / Ctrl+↑↓
     // walk the owned left-hand instruments through this ref.
     onCycleLeftHand: (dir) => cycleLeftHandRef.current(dir),
   });
@@ -2523,7 +2523,7 @@ const {
   }, [playerState.heldItemId, addInventoryItem, deductInventoryItem, hasItem, setHeldItemId, postNotification]);
 
   // The HUD's Left Hand tile taps the cycle forward (Adam's hand
-  // grammar: Alt+wheel / Alt+arrow also walk it, wired in
+  // grammar: Ctrl+wheel / Ctrl+arrow also walk it, wired in
   // useGameInput).
   const handleToggleHeldItem = useCallback((): void => {
     cycleLeftHand(1);
@@ -2547,7 +2547,7 @@ const {
   // THE SHIELD (Adam, 2026-10-17): the wield hook — raised state,
   // guard break, spore cooldown, the graft record. Composed here,
   // wired through liveGameRefs; the sim reads it at the bite site.
-  // The input hook's Alt+wheel / Alt+arrow Left Hand cycle (the
+  // The input hook's Ctrl+wheel / Ctrl+arrow Left Hand cycle (the
   // shield slice) — assigned where the cycle itself is defined.
   cycleLeftHandRef.current = cycleLeftHand;
 

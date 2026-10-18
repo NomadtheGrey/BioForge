@@ -36,7 +36,7 @@ import {
   resumeAudio,
   suspendAudio,
 } from '../game/engine/synthCore';
-import { MusicDirector, type MusicContext } from '../game/engine/musicDirector';
+import { MusicDirector, setActiveDirector, type MusicContext } from '../game/engine/musicDirector';
 import { playCall, voiceParamsFor } from '../game/engine/creatureVoices';
 import { cometStatesAt, nightSkyAt, skyRosterNow } from '../game/world/skyCalendar';
 import { loadAudioSettings } from './useAudioSettings';
@@ -83,7 +83,7 @@ const dist = (ax: number, az: number, bx: number, bz: number) =>
 
 /** Call loudness by distance — absolute gain for the synth
  *  core's scale (peaks ~0.17 up close, gone by 40 paces). */
-const gainAt = (d: number) => 0.17 * Math.pow(clamp01(1 - d / 40), 1.4);
+const gainAt = (d: number) => 0.21 * Math.pow(clamp01(1 - d / 40), 1.4);
 const brightAt = (d: number) => Math.max(0.15, clamp01(1 - d / 45));
 
 interface Seen {
@@ -174,7 +174,10 @@ export function useAudioEngine(deps: { getSnapshot: () => AudioSnapshot | null }
       }
 
       // ── Music ─────────────────────────────────────────────
-      if (!directorRef.current) directorRef.current = new MusicDirector();
+      if (!directorRef.current) {
+        directorRef.current = new MusicDirector();
+        setActiveDirector(directorRef.current);
+      }
       const mc: MusicContext = {
         biome: snap.biome,
         secondary: snap.secondary,
@@ -189,10 +192,13 @@ export function useAudioEngine(deps: { getSnapshot: () => AudioSnapshot | null }
         inRuin: snap.inRuin,
         scar,
         hearth,
-        // Lushness, first pass: the visible flora stand for
-        // the country. The map holds this curve open for
-        // tuning by ear — it is a knob, not a law.
-        lush: Math.max(0.35, Math.min(1.3, snap.floraCount / 110)),
+        // Lushness: the visible flora stand for the country.
+        // The map holds this curve open for tuning by ear —
+        // second pass: the floor rose from 0.35 to 0.55 after
+        // the day-one field report (a thin-flora noon could
+        // stretch phrase gaps past a minute: silence by
+        // arithmetic, whatever the levels).
+        lush: Math.max(0.55, Math.min(1.3, snap.floraCount / 110)),
       };
       directorRef.current.setContext(mc);
       directorRef.current.update();

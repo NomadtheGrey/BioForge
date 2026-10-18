@@ -235,7 +235,7 @@ const renderArsenalRow = (e: FamilyEntry) => {
                 </div>
                 <p className="text-[11px] text-slate-500 mt-1.5">
                   {selWeapon.kind === 'defensive'
-                    ? 'Worn on the Left Hand — Alt + wheel or Alt + ↑ cycles the hand (lantern ↔ shield ↔ empty).'
+                    ? 'Worn on the Left Hand — Ctrl + wheel or Ctrl + ↑ cycles the hand (lantern ↔ shield ↔ empty).'
                     : selWeapon.kind === 'helmet'
                       ? 'Worn on the Homestead Helm — owning the growth is wearing it; the platform carries every growth at once.'
                       : selWeapon.kind === 'boots'

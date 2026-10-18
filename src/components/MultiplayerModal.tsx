@@ -85,8 +85,14 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
     setChatInput('');
   };
 
+  // NO backdrop blur on THIS modal (Adam, 2026-10-18): the
+  // chat window is a LIVE surface — while it is open the
+  // player must still see the world (and anything moving in
+  // it) behind the panel. Every other modal keeps the shared
+  // blur; chat alone goes without, and the panel's own
+  // background carries readability.
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 animate-fade-in">
       <div className="glass-panel-biolum w-full max-w-2xl h-[560px] rounded-3xl flex flex-col overflow-hidden border border-cyan-500/30 shadow-2xl">
         {/* Header */}
         <div className="px-6 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-900/60">
@@ -184,6 +190,38 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
                 <div>
                   <strong className="text-slate-200 block mb-0.5">Instant Zero-Server Browser Connection:</strong>
                   Multiple tabs or browser windows immediately synchronize when connected with the same session code. All base modifications, planted crops, and tamed fauna reflect in real-time.
+                </div>
+              </div>
+
+              {/* Transmissions — the chat log, readable SOLO
+                  (Adam, 2026-10-18): SYSTEM and ADMIN word
+                  lands in this same log whether or not a
+                  session is running, and until this pane
+                  stood here the log only existed inside the
+                  connected view — a solo grower could be
+                  spoken to and never read it back. Read-only
+                  on this side of the door: there is nobody
+                  to transmit to until a session joins, and
+                  the moment one does, this same log is the
+                  one the session view carries (it is never
+                  cleared on leave). */}
+              <div className="p-4 rounded-2xl bg-slate-900/40 border border-slate-800">
+                <span className="text-[10px] text-slate-400 font-mono uppercase block mb-2">Transmissions</span>
+                <div className="h-48 overflow-y-auto space-y-2 pr-1">
+                  {chatMessages.length === 0 ? (
+                    <div className="h-full flex items-center justify-center text-slate-500 text-xs text-center px-4">
+                      No transmissions yet. Word from the system — and your team's chat, once you join them — will land here.
+                    </div>
+                  ) : (
+                    chatMessages.map((msg, idx) => (
+                      <div key={idx} className="text-xs">
+                        <span className="font-bold mr-1" style={{ color: msg.color }}>
+                          {msg.sender}:
+                        </span>
+                        <span className="text-slate-200">{msg.text}</span>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>

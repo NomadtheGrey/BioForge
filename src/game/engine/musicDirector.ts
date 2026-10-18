@@ -7,19 +7,23 @@
  *   — Place seeds the motif: a zone's phrases derive from its
  *     family + coordinates, the same on every visit, in every
  *     world that grows it. You can learn a place by ear.
- *   — Three slow layers: a low root drone, a pad of long
- *     tones, a motif line that phrases and rests. Density
+ *   — Two slow layers: a pad of long tones, and a motif line
+ *     that phrases and rests. (The map's third layer — a low
+ *     root drone under everything — was RETIRED by Adam's ear
+ *     verdict on day one: 'get rid of the hum; the background
+ *     music is OK.' The constant tone went; the music stayed.)
+ *     Density
  *     follows the country's lushness (the hook passes a flora
  *     count; the master curve is a FIRST PASS — the map holds
  *     it open for tuning by ear, deliberately).
  *   — Day and night are mixes, not tracks: night thins the
- *     motif, drops the register, warms the drone — everything
+ *     motif, drops the register, warms the pad — everything
  *     crossfades, nothing switches.
  *   — Hybrid country blends: the primary carries scale and
  *     motif; the secondary lends ONE instrument, occasionally,
  *     at low weight. The other country is visiting.
- *   — Underground is a treatment: pad gone, drone down an
- *     octave, motif thinned to single echoing notes.
+ *   — Underground is a treatment: the pad falls away and the
+ *     motif thins to single echoing notes, sparser with depth.
  *   — THE SCAR-COMPLEX IS SILENT BY DESIGN: near the scar the
  *     director stops scheduling and fades its own bus to
  *     zero. All channels of the tune. The silence is a place.
@@ -87,7 +91,6 @@ interface FamilySpec {
   scale: number[];
   motif: SynthVoice;
   pad: SynthVoice;
-  drone: SynthVoice;
   /** Motif phrases per minute at lush 1, full day. */
   phrases: number;
   /** Density multiplier at full night. */
@@ -108,7 +111,9 @@ interface FamilySpec {
   sigh?: boolean;
   /** Bone: some nights the sigh never comes. */
   absentNights?: boolean;
-  /** Storm: the drone is a pulse; the sky breaking ducks it. */
+  /** Storm: phrases ride a soft pulse beat (re-homed here
+   *  when the drone retired — a beat under phrases, never a
+   *  constant bed); the sky breaking ducks the whole tune. */
   pulse?: boolean;
 }
 
@@ -123,68 +128,68 @@ const FAMILIES: Record<BiomeId, FamilySpec> = {
   // Meadow — the home key. D major pentatonic; the tune every
   // other country modulates away from.
   meadow: {
-    root: 50, scale: MAJ_PENT, motif: 'pluck', pad: 'reed', drone: 'thrum',
+    root: 50, scale: MAJ_PENT, motif: 'pluck', pad: 'reed',
     phrases: 2.1, nightThin: 0.45, nightDrop: -2, spacingMul: 1, noteDur: 1.6,
     comet: 'glass',
   },
   // Rootwood — the home root, woodier mode, sky shut out.
   rootwood: {
-    root: 50, scale: DORIAN_MOTIF, motif: 'knock', pad: 'reed', drone: 'thrum',
+    root: 50, scale: DORIAN_MOTIF, motif: 'knock', pad: 'reed',
     phrases: 1.35, nightThin: 0.5, nightDrop: -3, spacingMul: 1.45, noteDur: 1.3,
     comet: 'none',
   },
   // Wetland — bright water; notes doubled as if reflected.
   wetland: {
-    root: 53, scale: LYD_PENT, motif: 'pluck', pad: 'reed', drone: 'thrum',
+    root: 53, scale: LYD_PENT, motif: 'pluck', pad: 'reed',
     phrases: 2.0, nightThin: 0.8, nightDrop: -2, spacingMul: 0.9, noteDur: 1.4,
     comet: 'breath', echo: true,
   },
   // Fungal — the dark hollow; barely changes at night.
   fungal: {
-    root: 48, scale: MIN_PENT, motif: 'knock', pad: 'reed', drone: 'thrum',
+    root: 48, scale: MIN_PENT, motif: 'knock', pad: 'reed',
     phrases: 1.6, nightThin: 0.92, nightDrop: 0, spacingMul: 0.9, noteDur: 0.9,
     comet: 'none', detunedPad: true, cutoffMul: 0.6,
   },
   // Ember — warm ruin country; a tune half-remembered.
   ember: {
-    root: 45, scale: MIN_PENT, motif: 'reed', pad: 'reed', drone: 'thrum',
+    root: 45, scale: MIN_PENT, motif: 'reed', pad: 'reed',
     phrases: 1.2, nightThin: 0.6, nightDrop: -2, spacingMul: 1.2, noteDur: 2.2,
     comet: 'none', cutoffMul: 1.5, glassVisits: true,
   },
   // Saltglass — the sparsest country; the quiet end's showcase.
   saltglass: {
-    root: 51, scale: MAJ_PENT, motif: 'glass', pad: 'breath', drone: 'thrum',
+    root: 51, scale: MAJ_PENT, motif: 'glass', pad: 'breath',
     phrases: 0.55, nightThin: 0.5, nightDrop: -12, spacingMul: 1.6, noteDur: 3.4,
     comet: 'quicken',
   },
   // Frost — bright and very slow; the wind is the pad.
   frost: {
-    root: 59, scale: [0, 3, 7, 10], motif: 'glass', pad: 'breath', drone: 'thrum',
+    root: 59, scale: [0, 3, 7, 10], motif: 'glass', pad: 'breath',
     phrases: 0.9, nightThin: 1.1, nightDrop: 0, spacingMul: 1.5, noteDur: 2.8,
     comet: 'bright',
   },
   // Precursor — the authored exception (see the figure below).
   precursor: {
-    root: 55, scale: MIXO, motif: 'glass', pad: 'reed', drone: 'thrum',
+    root: 55, scale: MIXO, motif: 'glass', pad: 'reed',
     phrases: 0.8, nightThin: 0.8, nightDrop: 0, spacingMul: 1.1, noteDur: 2.0,
     comet: 'figure',
   },
   // Bone — the home root with the light out of it.
   bone: {
-    root: 50, scale: MINOR, motif: 'reed', pad: 'reed', drone: 'thrum',
+    root: 50, scale: MINOR, motif: 'reed', pad: 'reed',
     phrases: 0.7, nightThin: 0.5, nightDrop: -2, spacingMul: 1.8, noteDur: 2.6,
     comet: 'none', sigh: true, absentNights: true, cutoffMul: 0.7,
   },
   // Storm — charged country; phrases ride a slow pulse.
   storm: {
-    root: 52, scale: MINOR, motif: 'reed', pad: 'thrum', drone: 'thrum',
+    root: 52, scale: MINOR, motif: 'reed', pad: 'thrum',
     phrases: 1.5, nightThin: 1.1, nightDrop: 0, spacingMul: 1, noteDur: 1.5,
     comet: 'none', cutoffMul: 1.6, pulse: true,
   },
   // Living — one organism; handled by the breathing line, not
   // phrases. The spec row exists for its root and voices.
   living: {
-    root: 48, scale: [0], motif: 'reed', pad: 'reed', drone: 'thrum',
+    root: 48, scale: [0], motif: 'reed', pad: 'reed',
     phrases: 0, nightThin: 1, nightDrop: 0, spacingMul: 1, noteDur: 8,
     comet: 'swell',
   },
@@ -202,14 +207,20 @@ const FIGURE_BEATS = [1, 1, 2, 1, 1, 2, 3, 4];
 // ---------------------------------------------------------------------------
 
 const LOOKAHEAD = 0.8; // schedule this far ahead of the clock
-const G = { drone: 0.05, pad: 0.042, motif: 0.085, glass: 0.065, guest: 0.05, hearth: 0.04 };
+// First-pass levels were a WHISPER at real speakers (field
+// report, day one: 'day 3, noon, unmuted — and nothing'): the
+// peaks below are the ear-tuned second pass — motif and glass
+// roughly doubled, pads likewise. (The drone named here was
+// retired the same day — see the header grammar note.)
+// The quiet end stays honest: sparse families stay sparse in
+// TIME (long rests), not in loudness (inaudible notes).
+const G = { pad: 0.085, motif: 0.15, glass: 0.12, guest: 0.08, hearth: 0.07 };
 
 export class MusicDirector {
   private mc: MusicContext | null = null;
   private zoneKey = '';
   private rng: () => number = rngStream(1);
   private degreeIdx = 0;
-  private nextDrone = 0;
   private nextPad = 0;
   private nextPhrase = 0;
   private nextBreath = 0;
@@ -270,36 +281,12 @@ export class MusicDirector {
       this.updateBreathing(now, horizon, mc, spec);
       return;
     }
-    if (this.nextDrone === 0) {
-      this.nextDrone = now + 0.2;
+    if (this.nextPad === 0) {
       this.nextPad = now + 1.2;
       this.nextPhrase = now + 2.0;
     }
-    while (this.nextDrone < horizon) this.scheduleDrone(mc, spec);
     while (this.nextPad < horizon) this.schedulePad(mc, spec);
     while (this.nextPhrase < horizon) this.schedulePhrase(mc, spec);
-  }
-
-  // ── Layer: the drone ──────────────────────────────────────
-  private scheduleDrone(mc: MusicContext, spec: FamilySpec): void {
-    const at = this.nextDrone;
-    const night = mc.night;
-    const rootMidi = spec.root - 12 + (mc.depth > 0 ? -12 : 0);
-    const interval = spec.pulse ? (night > 0.5 ? 3.4 : 4.2) : 11;
-    // The ground's heartbeat: a long root tone (or, in storm
-    // country, the pulse the phrases ride).
-    scheduleTone({
-      bus: 'music', voice: spec.drone, freq: midiHz(rootMidi),
-      at, dur: spec.pulse ? 1.6 : 15, gain: G.drone * (1 + night * 0.15),
-      bright: 0.25,
-    });
-    if (!spec.pulse && this.rng() < 0.5) {
-      scheduleTone({
-        bus: 'music', voice: spec.drone, freq: midiHz(rootMidi + 7),
-        at: at + 2, dur: 12, gain: G.drone * 0.6, bright: 0.25,
-      });
-    }
-    this.nextDrone = at + interval;
   }
 
   // ── Layer: the pad ────────────────────────────────────────
@@ -334,7 +321,7 @@ export class MusicDirector {
       if (mc.biome === 'wetland' && (mc.comet || mc.shower) && mc.night > 0.3) {
         scheduleTone({
           bus: 'music', voice: 'breath', freq: 300, at, dur: 12,
-          gain: 0.05, bright: 0.5,
+          gain: 0.09, bright: 0.5,
         });
       }
     }
@@ -365,6 +352,14 @@ export class MusicDirector {
     const gap = density > 0 ? (60 / density) * (0.7 + rng() * 0.6) : 30;
 
     if (!boneAbsent) {
+      if (spec.pulse) {
+        // Storm's pulse, re-homed: two soft beats under the
+        // phrase — the held breath made audible at the
+        // phrase's feet, then gone. Not a bed; a heartbeat
+        // the phrase borrows.
+        scheduleTone({ bus: 'music', voice: 'thrum', freq: midiHz(spec.root - 12), at, dur: 1.1, gain: 0.055, bright: 0.2 });
+        scheduleTone({ bus: 'music', voice: 'thrum', freq: midiHz(spec.root - 12), at: at + 1.6, dur: 1.1, gain: 0.04, bright: 0.2 });
+      }
       if (mc.biome === 'precursor') this.scheduleFigure(mc, spec, at, wholeFigure);
       else if (spec.sigh) this.scheduleSigh(mc, spec, at);
       else this.scheduleWalk(mc, spec, at);
@@ -492,20 +487,58 @@ export class MusicDirector {
       for (const deg of [0, 7, third]) {
         scheduleTone({
           bus: 'music', voice: 'reed', freq: midiHz(spec.root + 12 + deg),
-          at, dur: 13, gain: 0.05 * gainMul, bright: 0.4,
+          at, dur: 13, gain: 0.085 * gainMul, bright: 0.4,
         });
       }
       scheduleTone({
-        bus: 'music', voice: 'thrum', freq: midiHz(spec.root),
-        at, dur: 12, gain: 0.045 * gainMul, bright: 0.25,
-      });
-      scheduleTone({
         bus: 'music', voice: 'breath', freq: 240, at: at + 2, dur: 9,
-        gain: 0.028 * gainMul, bright: 0.4,
+        gain: 0.05 * gainMul, bright: 0.4,
       });
       if (swell) this.swellNight = mc.dayIndex;
-      // Minutes per breath; slower at night.
-      this.nextBreath = at + 24 + night * 10;
+      // Minutes per breath; slower at night. (Second pass:
+      // the first pass's breaths stood so far apart that the
+      // valley could read as silent — closer together now.)
+      this.nextBreath = at + 18 + night * 8;
     }
   }
+}
+
+
+// ---------------------------------------------------------------------------
+// The live readout — the Options SOUND section (and any future
+// kit surface) asks the standing director how the music is.
+// A silent world should be able to say why: wrong posture
+// (the scar), a sparse family resting, or a dead context are
+// three different silences with three different fixes.
+// ---------------------------------------------------------------------------
+
+let activeDirector: MusicDirector | null = null;
+export function setActiveDirector(d: MusicDirector | null): void {
+  activeDirector = d;
+}
+
+export interface DirectorDebug {
+  family: string;
+  secondary: string | null;
+  posture: string;
+  zone: string;
+  nextPhraseInSec: number | null;
+  night: number;
+}
+
+export function directorDebug(): DirectorDebug | null {
+  const d = activeDirector;
+  if (!d) return null;
+  const mc = (d as unknown as { mc: MusicContext | null }).mc;
+  if (!mc) return null;
+  const now = audioCtx()?.currentTime ?? 0;
+  const next = (d as unknown as { nextPhrase: number }).nextPhrase;
+  return {
+    family: mc.biome,
+    secondary: mc.secondary,
+    posture: (d as unknown as { posture: string }).posture,
+    zone: `${mc.zx},${mc.zz}`,
+    nextPhraseInSec: next > 0 ? Math.max(0, Math.round(next - now)) : null,
+    night: Math.round(mc.night * 100) / 100,
+  };
 }

@@ -196,8 +196,8 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({
               <span className="font-semibold text-slate-100">Your Left Hand</span>
               <span className="text-slate-400">
                 {' '}— holds one instrument: the Hand Lantern-Fern's light, or a grown shield.{' '}
-                <span className="text-slate-200 font-medium">Alt + wheel</span> or{' '}
-                <span className="text-slate-200 font-medium">Alt + ↑/↓</span> cycles it; tapping
+                <span className="text-slate-200 font-medium">Ctrl + wheel</span> or{' '}
+                <span className="text-slate-200 font-medium">Ctrl + ↑/↓</span> cycles it; tapping
                 its tile works too.
               </span>
             </p>
@@ -292,7 +292,7 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({
             <p>
               <span className="font-semibold text-slate-100">Left Hand</span>
               <span className="text-slate-400">
-                {' '}— lantern or shield. <span className="text-slate-200 font-medium">Alt + wheel</span> cycles it.
+                {' '}— lantern or shield. <span className="text-slate-200 font-medium">Ctrl + wheel</span> cycles it.
               </span>
             </p>
           </Section>

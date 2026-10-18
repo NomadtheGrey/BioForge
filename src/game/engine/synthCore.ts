@@ -88,6 +88,17 @@ export function audioCtx(): AudioContext | null {
   return ctx;
 }
 
+export function audioCtxState(): string {
+  return ctx ? ctx.state : 'not created';
+}
+
+/** The director's fader position (1 = shelf level, 0 = the
+ *  scar's silence) — read by the Options screen's live
+ *  readout, so a silent world can say WHY it is silent. */
+export function musicBusLevel(): number {
+  return musicBus ? musicBus.gain.value : 0;
+}
+
 export function resumeAudio(): void {
   if (ctx && ctx.state === 'suspended') void ctx.resume().catch(() => undefined);
 }

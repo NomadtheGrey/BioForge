@@ -443,8 +443,9 @@ export function migrateBulwark(
 }
 
 // ---------------------------------------------------------------------------
-// The Left Hand cycle — Alt is the left-hand modifier (Adam's hand
-// grammar, 2026-10-17): Alt+wheel or Alt+↑ walks the owned
+// The Left Hand cycle — Ctrl is the left-hand modifier (Adam's hand
+// grammar, 2026-10-17; modifier moved Alt → Ctrl, 2026-10-18):
+// Ctrl+wheel or Ctrl+↑ walks the owned
 // left-hand instruments; the plain wheel/arrows keep their
 // gauntlet-side meanings.
 // ---------------------------------------------------------------------------

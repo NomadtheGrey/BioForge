@@ -92,7 +92,7 @@ const GEAR: { icon: React.ReactNode; name: string; verb: string; line: string }[
     icon: <Shield className="w-5 h-5" />,
     name: 'The Left Hand',
     verb: 'HOLDS',
-    line: 'The lantern’s light — or a grown shield: carried, it blunts what strikes its face; raised, it is a wall. Alt + wheel cycles the hand.',
+    line: 'The lantern’s light — or a grown shield: worn, it blunts what strikes its face; raised, it is a wall. Ctrl + wheel cycles the hand.',
   },
 ];
 

@@ -73,7 +73,8 @@ export interface GameInputDeps {
    *  an absent getter means a dry world. */
   getWaterDepth?: (x: number, z: number) => number;
   /** LAZY: the Left Hand cycle (the shield slice, Adam, 2026-10-17):
-   *  Alt+wheel / Alt+↑↓ walk the owned left-hand instruments.
+   *  Ctrl+wheel / Ctrl+↑↓ walk the owned left-hand instruments
+   *  (the modifier moved Alt → Ctrl by Adam's ruling, 2026-10-18).
    *  Ref-driven — App's cycle lives below the input call site. */
   onCycleLeftHand: (dir: 1 | -1) => void;
 }
@@ -419,12 +420,15 @@ export function useGameInput(deps: GameInputDeps) {
 
       const key = e.key.toLowerCase();
 
-      // LEFT HAND (the shield slice, Adam, 2026-10-17): Alt is the
-      // left-hand modifier — Alt+↑/↓ walks the owned left-hand
+      // LEFT HAND (the shield slice, Adam, 2026-10-17; modifier
+      // moved Alt → Ctrl by his ruling, 2026-10-18): Ctrl is the
+      // left-hand modifier — Ctrl+↑/↓ walks the owned left-hand
       // instruments (lantern, shields) INSTEAD of every plain-arrow
       // behavior, and the arrows never register as movement keys
-      // while Alt is held. Checked FIRST, before the tool arrows.
-      if (e.altKey && (key === 'arrowup' || key === 'arrowdown')) {
+      // while Ctrl is held. Checked FIRST, before the tool arrows.
+      // (macOS note: the OS eats Ctrl+↑/↓ for Mission Control —
+      // Mac hands use Ctrl+wheel or the tile click instead.)
+      if (e.ctrlKey && (key === 'arrowup' || key === 'arrowdown')) {
         e.preventDefault();
         onCycleLeftHand(key === 'arrowdown' ? 1 : -1);
         return;
@@ -455,9 +459,9 @@ export function useGameInput(deps: GameInputDeps) {
       }
 
       // Register standard continuous WASD / Arrow movement keys
-      // (skipped while Alt is held — Alt+arrows is the Left Hand
+      // (skipped while Ctrl is held — Ctrl+arrows is the Left Hand
       // cycle, never movement).
-      if (!e.altKey && ['w', 'a', 's', 'd', 'arrowup', 'arrowleft', 'arrowdown', 'arrowright'].includes(key)) {
+      if (!e.ctrlKey && ['w', 'a', 's', 'd', 'arrowup', 'arrowleft', 'arrowdown', 'arrowright'].includes(key)) {
         keysPressed.current[key] = true;
       }
 
@@ -518,12 +522,23 @@ export function useGameInput(deps: GameInputDeps) {
     const handleWheel = (e: WheelEvent) => {
       if (activeModal !== null) return;
       if (e.deltaY === 0) return;
-      // LEFT HAND (the shield slice, Adam, 2026-10-17): Alt is the
-      // left-hand modifier — Alt+wheel walks the owned left-hand
+      // LEFT HAND (the shield slice, Adam, 2026-10-17; modifier
+      // moved Alt → Ctrl by his ruling, 2026-10-18): Ctrl is the
+      // left-hand modifier — Ctrl+wheel walks the owned left-hand
       // instruments, and the plain wheel behavior (gauntlet side:
       // seeds / blueprints / striker draw) does NOT fire while
-      // Alt is held.
-      if (e.altKey) {
+      // Ctrl is held.
+      // THE ZOOM HAZARD, solved on purpose: browsers read
+      // Ctrl+wheel as PAGE ZOOM. This listener is registered
+      // NON-PASSIVE (below) precisely so the preventDefault here
+      // holds the zoom off while the hand cycles — with a passive
+      // listener the call would be ignored and the page would
+      // zoom out from under the player. (Trackpad pinch also
+      // arrives as Ctrl+wheel in Chrome; inside pointer lock the
+      // gesture is inert to the browser anyway, and out of lock
+      // the modal gate above has already returned.)
+      if (e.ctrlKey) {
+        e.preventDefault();
         const now = performance.now();
         if (now - lastWheelCycleRef.current < 150) return;
         lastWheelCycleRef.current = now;
@@ -547,7 +562,10 @@ export function useGameInput(deps: GameInputDeps) {
       }
     };
 
-    window.addEventListener('wheel', handleWheel);
+    // { passive: false } is LOAD-BEARING: window wheel listeners
+    // default to passive in Chrome, which would silently ignore
+    // the Ctrl+wheel zoom guard in handleWheel (see above).
+    window.addEventListener('wheel', handleWheel, { passive: false });
     return () => {
       window.removeEventListener('wheel', handleWheel);
     };

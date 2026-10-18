@@ -778,6 +778,73 @@ export class BioForgeThreeEngine {
     this.wardArcMesh.rotation.y = -facing + Math.PI;
   }
 
+  // The CHARGE SIGHT (helmet slice 5): "a coming strike
+  // paints its warned spot on the ground." Two rings, one
+  // per warning system, built lazily like the ward arc and
+  // stirred per frame by the game loop (which owns both
+  // warning states): the STORM ZOT's ring, charged amber,
+  // rides the player's feet — the bolt takes the cell you
+  // stand in when it lands, so the honest paint follows
+  // you; the LIVING GRAB's ring, the valley's violet, holds
+  // the spot you stood on when the warning sounded — the
+  // grab will take THAT ground whether you still stand on
+  // it or not, and stepping clear is the dodge. A ring hugs
+  // the ground (a paint, not a shell): terrain height +
+  // a decal's lift.
+  private chargeZotRing: THREE.Group | null = null;
+  private chargeGrabRing: THREE.Group | null = null;
+
+  /** Paint (or clear) both warned spots. null = no warning. */
+  public setChargeSight(
+    zot: { x: number; z: number } | null,
+    grab: { x: number; z: number } | null,
+  ): void {
+    this.chargeZotRing = this.placeChargeRing(this.chargeZotRing, 0xfbbf24, zot);
+    this.chargeGrabRing = this.placeChargeRing(this.chargeGrabRing, 0xc084fc, grab);
+  }
+
+  private placeChargeRing(
+    ring: THREE.Group | null,
+    color: number,
+    spot: { x: number; z: number } | null,
+  ): THREE.Group | null {
+    if (!spot) {
+      if (ring) ring.visible = false;
+      return ring;
+    }
+    if (!ring) {
+      ring = new THREE.Group();
+      const ringMesh = new THREE.Mesh(
+        new THREE.RingGeometry(1.05, 1.32, 40),
+        new THREE.MeshBasicMaterial({
+          color,
+          transparent: true,
+          opacity: 0.85,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        }),
+      );
+      ringMesh.rotation.x = -Math.PI / 2;
+      const discMesh = new THREE.Mesh(
+        new THREE.CircleGeometry(1.05, 40),
+        new THREE.MeshBasicMaterial({
+          color,
+          transparent: true,
+          opacity: 0.16,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        }),
+      );
+      discMesh.rotation.x = -Math.PI / 2;
+      ring.add(ringMesh);
+      ring.add(discMesh);
+      this.scene.add(ring);
+    }
+    ring.visible = true;
+    ring.position.set(spot.x, this.terrainHeightAt(spot.x, spot.z) + 0.15, spot.z);
+    return ring;
+  }
+
   public triggerToolAnimation() {
     this.viewmodel.triggerAction();
   }

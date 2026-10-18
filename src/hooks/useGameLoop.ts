@@ -93,6 +93,10 @@ export interface GameLoopDeps {
    *  the Hollow's spore tax stops at the filter, so the
    *  drain line below never charges it. */
   sporeFilter?: () => boolean;
+  /** True while the Charge Sight is WORN (creatures/helmet):
+   *  coming strikes paint their warned spots on the ground
+   *  (the engine's rings, driven below). */
+  chargeSight?: () => boolean;
   /** True while the player carries a Plume Charm (Ingredient
    *  Sinks, 2026-10-17): fast falls glide instead of dropping. */
   hasPlumeCharm?: () => boolean;
@@ -219,7 +223,7 @@ export interface GameLoopDeps {
 export function useGameLoop(deps: GameLoopDeps): void {
   const {
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
-    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, getLiquidAt, hasEmberSoles, biolumeVisor, sporeFilter, hasPlumeCharm, windlungTier, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
+    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, getLiquidAt, hasEmberSoles, biolumeVisor, sporeFilter, chargeSight, hasPlumeCharm, windlungTier, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
     sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
@@ -765,6 +769,27 @@ export function useGameLoop(deps: GameLoopDeps): void {
           // pattern is how worn answers reach this file).
           // The engine gates the treatment to dark country.
           engineRef.current.setBiolumeVisor(!!(biolumeVisor && biolumeVisor()));
+          // The Charge Sight (helmet slice 5): coming strikes
+          // paint their warned spots — read AFTER both warning
+          // blocks have run this frame, so the paint is never
+          // a frame stale. The zot's ring rides the player's
+          // feet (the bolt takes the cell you stand in when
+          // it lands); the grab's ring holds the warned spot
+          // (stepping clear is the dodge; the ring stays
+          // honest). The liveness gates (storm country armed,
+          // a Living temperament present) keep a warning flag
+          // stranded by death or travel from painting forever.
+          const sightOn = !!(chargeSight && chargeSight());
+          engineRef.current.setChargeSight(
+            sightOn && stormZotRef.current > 0 && zotStateRef.current.warned
+              ? { x: moveResult.x, z: moveResult.z }
+              : null,
+            sightOn &&
+              (livingWelcomeRef.current || livingHungerRef.current || livingTwomindedRef.current) &&
+              grabStateRef.current.warned
+              ? { x: grabStateRef.current.warnX, z: grabStateRef.current.warnZ }
+              : null,
+          );
         }
 
         // Smooth Minimap Pos update (every 50ms)

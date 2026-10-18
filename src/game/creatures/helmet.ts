@@ -79,6 +79,16 @@ export function glyphLensWorn(inventory: Inventory): boolean {
 }
 
 /**
+ * The Charge Sight (helmet slice 5): a coming strike paints
+ * its warned spot on the ground. The game loop drives the
+ * engine's rings from the two warning states (the storm
+ * zot's and the Living grab's) gated on this answer.
+ */
+export function chargeSightWorn(inventory: Inventory): boolean {
+  return helmetModuleWorn(inventory, 'charge_sight');
+}
+
+/**
  * The zone read, tiered by the lens line (helmet slice 2):
  * naming the land is a sense, and the helm is the sensory
  * platform. TIER 0 — no lens: the land stays unidentified.

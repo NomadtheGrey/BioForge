@@ -23,7 +23,8 @@
  */
 
 import React from 'react';
-import { X, Sprout, Hand, HardHat, Footprints, Shield } from 'lucide-react';
+import { X, Sprout, Hand, HardHat, Footprints, Shield, DoorOpen } from 'lucide-react';
+import { DepartureInfoModal, DEPARTURE_TEASER } from './DepartureInfoModal';
 
 interface GameInfoModalProps {
   isOpen: boolean;
@@ -97,6 +98,8 @@ export const GameInfoModal: React.FC<GameInfoModalProps> = ({ isOpen, onClose })
   // Esc closes it from either door (the screen is App-state,
   // not the activeModal union, so it carries its own listener
   // — the same pattern the HUD Options panel uses).
+  const [departureOpen, setDepartureOpen] = React.useState(false);
+
   React.useEffect(() => {
     if (!isOpen) return;
     const onKey = (e: KeyboardEvent) => {
@@ -216,11 +219,37 @@ export const GameInfoModal: React.FC<GameInfoModalProps> = ({ isOpen, onClose })
             </p>
           </div>
 
+          {/* The Departure (Adam, 2026-10-18): the About screen
+              carries the road's teaser — the background lane's
+              pre-world-safe words — and a door into its modal.
+              General mode there: this screen also stands before
+              any world exists, so no road is named here. */}
+          <div className="bg-violet-950/25 border border-violet-400/30 rounded-2xl px-4 py-3.5 space-y-2.5">
+            <div className="flex items-center gap-2 text-violet-300">
+              <DoorOpen className="w-4 h-4" />
+              <h3 className="text-xs font-tech font-bold uppercase tracking-wider text-slate-100">
+                The Departure
+              </h3>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">{DEPARTURE_TEASER}</p>
+            <button
+              onClick={() => setDepartureOpen(true)}
+              className="text-[11px] font-bold px-3 py-1.5 rounded-xl border border-violet-400/50 bg-violet-500/15 text-violet-200 hover:bg-violet-500/25 transition-colors"
+            >
+              THE ROAD OUT
+            </button>
+          </div>
+
           <p className="text-center text-[11px] font-tech tracking-[0.25em] text-slate-500 pb-1">
             GROW · TAME · EXPLORE · BELONG
           </p>
         </div>
       </div>
+      <DepartureInfoModal
+        isOpen={departureOpen}
+        onClose={() => setDepartureOpen(false)}
+        showRoad={false}
+      />
     </div>
   );
 };

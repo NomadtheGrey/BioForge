@@ -29,6 +29,8 @@ import { useState } from 'react';
 import { ScrollText, X } from 'lucide-react';
 import { ITEMS } from '../game/items/constants';
 import { FIELD_NOTES } from '../game/knowledge/fieldNotes';
+import { DepartureInfoModal } from './DepartureInfoModal';
+import type { FinaleFamilyId } from '../game/quests/finale';
 import type { FieldNotesState } from '../game/knowledge/fieldNotesBook';
 import type { CodexEntry } from '../types/game';
 import type { ItemId } from '../types/game';
@@ -75,6 +77,10 @@ interface QuestLogModalProps {
   onAcceptSaga: (offerId: string) => void;
   onChooseBranch: (sagaId: string, option: string) => void;
   onTrackSaga: (sagaId: string | null) => void;
+  // The player's world road family (signals.finaleFamily, via
+  // App): the Departure info modal's road slot reads it. A
+  // family id, never a fate name — the UI names shapes only.
+  finaleFamily?: FinaleFamilyId | null;
   // S3: what the saga progress lines read — the goal-state signals,
   // the pouch, and the current zone key. (worldSeed is genuinely
   // unneeded by the progress math; the latch ctx carries ''.)
@@ -101,10 +107,15 @@ export const QuestLogModal = ({
   onChooseBranch,
   onTrackSaga,
   sagaLatch,
+  finaleFamily,
 }: QuestLogModalProps) => {
   // The active playstyle lens. Hooks run before the isOpen guard —
   // App keeps this component mounted and flips the flag.
   const [activeTab, setActiveTab] = useState<LogTab>('all');
+  // The Departure info modal (Adam, 2026-10-18): opened from
+  // the finale card's THE ROAD button; its seal state derives
+  // from the finale view below, not from click-time state.
+  const [departureOpen, setDepartureOpen] = useState(false);
 
   if (!isOpen) return null;
 
@@ -311,6 +322,10 @@ export const QuestLogModal = ({
   const renderLineCard = (v: QuestProgressView) => {
     const done = isDone(v);
     const sealed = !!v.sealed && !done;
+    // The capstone (Adam, 2026-10-18): the Ask the World
+    // line's last card carries its own weight — a FINALE mark,
+    // a violet cast, and the door to its info modal.
+    const isFinale = v.def.id === 'q_aw_departure';
     const tracked = trackedId === v.def.id;
     // The Field Note cross-link (background lane's join key,
     // HUD lane's render, 2026-10-16): a witness-goal card, once
@@ -334,11 +349,13 @@ export const QuestLogModal = ({
       <div
         key={v.def.id}
         className={`rounded-2xl border px-4 py-3 ${
-          done
-            ? 'border-emerald-500/25 bg-emerald-950/20'
-            : sealed
-              ? 'border-amber-500/20 bg-slate-900/30 opacity-60'
-              : 'border-amber-500/30 bg-amber-950/10'
+          isFinale
+            ? `border-violet-400/40 bg-violet-950/15 ${sealed ? 'opacity-70' : ''}`
+            : done
+              ? 'border-emerald-500/25 bg-emerald-950/20'
+              : sealed
+                ? 'border-amber-500/20 bg-slate-900/30 opacity-60'
+                : 'border-amber-500/30 bg-amber-950/10'
         }`}
       >
         <div className="flex items-center gap-3">
@@ -382,6 +399,19 @@ export const QuestLogModal = ({
             <span className="flex-none text-[11px] font-black tracking-wider text-emerald-300">
               DONE
             </span>
+          )}
+          {isFinale && (
+            <>
+              <span className="flex-none text-[9px] font-tech font-bold px-1.5 py-0.5 rounded-full bg-violet-500/15 text-violet-300 border border-violet-400/40">
+                FINALE
+              </span>
+              <button
+                onClick={() => setDepartureOpen(true)}
+                className="flex-none text-[11px] font-bold px-3 py-1.5 rounded-xl border border-violet-400/50 bg-violet-500/15 text-violet-200 hover:bg-violet-500/25 transition-colors"
+              >
+                THE ROAD
+              </button>
+            </>
           )}
         </div>
         {sealed ? (
@@ -841,6 +871,18 @@ export const QuestLogModal = ({
           )}
         </div>
       </div>
+      {/* The Departure, explained — seal state read from the
+          finale's own view, family from App's signals prop. */}
+      <DepartureInfoModal
+        isOpen={departureOpen}
+        onClose={() => setDepartureOpen(false)}
+        finaleFamily={finaleFamily ?? null}
+        sealed={(() => {
+          const fv = views.find((x) => x.def.id === 'q_aw_departure');
+          return fv ? !!fv.sealed && !isDone(fv) : true;
+        })()}
+        showRoad
+      />
     </div>
   );
 };

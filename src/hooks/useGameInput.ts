@@ -63,6 +63,9 @@ export interface GameInputDeps {
   postNotification: (title: string, message: string, type?: GameNotification['type'], iconColor?: string) => void;
   /** LAZY: the debug-kit swap (Backquote), defined below in App. */
   onToggleDebugKit: () => void;
+  /** The water module's stance toggle (F) — App flips the
+   *  stance ref; the game loop reads it in the water. */
+  onWaterStanceToggle: () => void;
   /** LAZY: swap the striker slot's draw (close ↔ ranged), defined
    *  in App — the weapons build (Adam, 2026-10-16). Triggered by
    *  re-selecting slot 7 (key tap or hotbar click) and by the
@@ -85,7 +88,7 @@ export function useGameInput(deps: GameInputDeps) {
     activeModal, isPointerLocked, playerState, inventory,
     structuresListRef, floraListRef, bounceGraceUntil, unlockedTools,
     setActiveTool, setSelectedStructureType, setSelectedSeedId, setSelectedFertilizerId,
-    setActiveModal, postNotification, onToggleDebugKit, onToggleStrikerDraw, getWaterDepth,
+    setActiveModal, postNotification, onToggleDebugKit, onWaterStanceToggle, onToggleStrikerDraw, getWaterDepth,
     onCycleLeftHand,
   } = deps;
   // The keyboard handler calls the toggle through the lazy dep.
@@ -411,6 +414,15 @@ export function useGameInput(deps: GameInputDeps) {
       // tool, 2026-10-15 — see toggleDebugKit).
       if (e.code === 'Backquote') {
         toggleDebugKit();
+        return;
+      }
+
+      // F flips the WATER MODULE's stance (Adam's consolidation,
+      // 2026-10-18): swim ⇄ walk-the-water, for a Quicksteps
+      // wearing the module's second growth. Ctrl+F / Cmd+F is
+      // the browser's find — never the stance.
+      if (e.key.toLowerCase() === 'f' && !e.ctrlKey && !e.metaKey && !e.repeat) {
+        onWaterStanceToggle();
         return;
       }
       if (e.key === '?') {

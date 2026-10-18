@@ -40,6 +40,7 @@ import { useInventory } from './hooks/useInventory';
 import { useNotifications } from './hooks/useNotifications';
 import { useSystemFeed } from './hooks/useSystemFeed';
 import { useHudLayout } from './hooks/useHudLayout';
+import { useAudioEngine, type AudioSnapshot } from './hooks/useAudioEngine';
 import { projectSystemLines } from './game/systemChat';
 import { usePlayerState } from './hooks/usePlayerState';
 import { useWorldEntities, INITIAL_STRUCTURES } from './hooks/useWorldEntities';
@@ -498,6 +499,7 @@ export default function App() {
   const activeModalRef = useRef(activeModal);
   const structuresListRef = useRef(structuresList);
   const floraListRef = useRef(floraList);
+  const faunaListRef = useRef(faunaList);
   const lastBroadcastTime = useRef(0);
   const accumulatedTickTime = useRef(0);
   const accumulatedDayTime = useRef(0);
@@ -526,6 +528,10 @@ export default function App() {
   useEffect(() => {
     floraListRef.current = floraList;
   }, [floraList]);
+
+  useEffect(() => {
+    faunaListRef.current = faunaList;
+  }, [faunaList]);
 
   const triggerHarvestFx = useCallback(
   (x: number, z: number) => engineRef.current?.triggerHarvestEffect(x, z),
@@ -1483,6 +1489,35 @@ export default function App() {
   // active world's seed — see the zone block just above the JSX return.
   // (The old quadrant-name indicator retired with the per-zone model:
   // a zone has ONE name and ONE biome, zones.ts.)
+
+  // ------------------------------------------------------------------
+  // The sound system (Adam's build order, 2026-10-18; HUD lane).
+  // Wiring only: the hook conducts — synth core, music director
+  // (the tunes map), creature voices — and this getter assembles
+  // its snapshot from refs App already owns, in the same shape
+  // useSaveSession's deps take theirs. Before a world exists the
+  // getter returns null and the world is silent.
+  const getAudioSnapshot = useCallback((): AudioSnapshot | null => {
+    const seed = worldSeedRef.current;
+    if (!seed) return null;
+    const info = zoneInfo(seed, playerZoneRef.current.zx, playerZoneRef.current.zz);
+    const inst = instanceRef.current;
+    return {
+      worldSeed: seed,
+      zx: info.zx,
+      zz: info.zz,
+      biome: info.biome,
+      secondary: info.hybrid?.secondary ?? null,
+      dayNight: latestStateRef.current.dayNightCycle,
+      depth: inst.kind === 'cavern' ? inst.depth : 0,
+      inRuin: inst.kind === 'ruin',
+      player: playerPosRef.current,
+      fauna: faunaListRef.current,
+      floraCount: floraListRef.current.length,
+      structures: structuresListRef.current,
+    };
+  }, []);
+  useAudioEngine({ getSnapshot: getAudioSnapshot });
 
   // --------------------------------------------------------------------------
   // Save session (hooks/useSaveSession.ts — seam 3 of the App refactor)

@@ -61,25 +61,22 @@ export const DEFAULT_BUILD_NOTES: BuildNotes = {
  * THIS build's notes. Review surface: read them like a
  * player meeting them cold.
  *
- * CURRENT BUILD (the slice-4 merge, 2026-10-18): the notes
- * stand at the HONEST DEFAULT, deliberately. This build
- * carries operator furniture — the kit's lock and the
- * broadcast composer — nothing a player meets, and the
- * previous build's greeting ('Word travels now', the News
- * Stack) has already fired for it. A quiet build greets
- * quietly; the next player-facing landing writes its own
- * lines here again.
+ * CURRENT BUILD (the sound system, 2026-10-18): the lines
+ * below — written for the landing, in the file's standing
+ * discipline (whoever composes a landing writes its notes).
+ * The previous build's greeting ('One room, many voices')
+ * has already fired; this build must not wear it a second
+ * time (the dev lane's slice-4 lesson, applied).
  */
 export const BUILD_NOTES: BuildNotes = {
-  // The chat fold build (Adam, 2026-10-18): system word —
-  // automated lines and the grower's broadcasts alike —
-  // moved INTO the co-op chat (SYSTEM / ADMIN, reserved
-  // colors), the stream's own panel retired, and player
-  // chat colors became seat-dealt so no two explorers in a
-  // room wear the same voice. Player-facing: it greets.
-  title: 'One room, many voices',
+  // The sound system (the tunes map, built; HUD lane,
+  // 2026-10-18): generative music family by family, creature
+  // voices by the pinned law, the SOUND shelf gone live.
+  // Player-facing in every line: it greets.
+  title: 'The world finds its voice',
   lines: [
-    'System word now arrives in the co-op chat — SYSTEM for the world\'s own notices, ADMIN for word from the grower. The separate system panel has retired; the NEWS seat still keeps the record.',
-    'Every explorer\'s chat wears a color of its own now, dealt by seat — and the sky blue and amber belong to SYSTEM and ADMIN alone.',
+    'The country has a sound now. Every family of land sings in its own scale and temper, a place keeps its tune from visit to visit, and night changes the mix rather than the music. One deep kind of place is silent on purpose — you will know it when you hear it.',
+    'Creatures have their voices, grown from what they are: a greeting when a companion comes into earshot, a sharp tell when something startles, an answer when a neighbor calls back. Nothing nearby dies quietly anymore.',
+    'The SOUND shelf in Options now runs a real mix — Master, Background Music, Creatures, Plants, and Interface, each with its own switch and slider. Set the world as loud as you like it.',
   ],
 };

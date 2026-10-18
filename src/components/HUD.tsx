@@ -104,6 +104,12 @@ interface HUDProps {
   // chrome while a step is active. Optional — until App
   // wires it, the tutorial simply never appears.
   tutorial?: UseTutorialResult | null;
+  // The system stream (system messages, Adam 2026-10-18):
+  // App composes useSystemFeed and passes its return down;
+  // the left stack's last panel renders the stream. Optional
+  // in the established pattern — until App wires it, the
+  // panel simply never appears.
+  systemFeed?: UseSystemFeedResult | null;
   onOpenDevTools?: () => void;
   onSave?: () => void;
   currentBiomeName: string;
@@ -204,6 +210,8 @@ import { useAudioSettings } from '../hooks/useAudioSettings';
 import { HudPanel } from './HudPanel';
 import { TutorialChrome } from './TutorialChrome';
 import type { UseTutorialResult } from '../hooks/useTutorial';
+import type { UseSystemFeedResult } from '../hooks/useSystemFeed';
+import { SystemStreamPanel } from './SystemStreamPanel';
 import { HudOptionsPanel } from './HudOptionsPanel';
 import { multiplayerManager, RELAY_BASE_URL } from '../game/multiplayer';
 // Shield faces for the Left Hand tile (shield follow pass,
@@ -308,6 +316,7 @@ export const HUD: React.FC<HUDProps> = ({
   onOpenAbout,
   onOpenHowToPlay,
   tutorial,
+  systemFeed,
   onOpenDevTools,
   onSave,
   currentBiomeName,
@@ -902,6 +911,28 @@ export const HUD: React.FC<HUDProps> = ({
                   </div>
                 </div>
               </div>
+            </HudPanel>
+          )}
+          {/* The system stream (system messages, Adam
+              2026-10-18): LAST in the stack by the HUD lane's
+              placement call — the column reads urgency-
+              descending, and a stream is a log you consult,
+              not a gauge you watch. The card caps its own
+              height and scrolls internally (the 770px lesson:
+              a feed must never stretch this column). */}
+          {!hudLayout.isHidden('system') && systemFeed && (
+            <HudPanel
+              id="system"
+              label="System Messages"
+              offset={hudLayout.offsetOf('system')}
+              onMove={hudLayout.setOffset}
+              onClose={hideHudPanel}
+            >
+              <SystemStreamPanel
+                lines={systemFeed.lines}
+                unread={systemFeed.unread}
+                onRead={systemFeed.markSeen}
+              />
             </HudPanel>
           )}
         </div>

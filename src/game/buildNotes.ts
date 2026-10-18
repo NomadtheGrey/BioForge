@@ -35,7 +35,10 @@ declare const __BIOFORGE_BUILD_ID__: string;
 export const BUILD_LABEL: string =
   typeof __BIOFORGE_BUILD_ID__ === 'string' ? __BIOFORGE_BUILD_ID__ : 'bioforge-build:dev';
 
-/** The bare stamp ('2026-10-18T14:22Z', or 'dev' locally). */
+/** The bare stamp (an ISO minute, or 'dev' locally). The
+ *  examples in these comments deliberately avoid the real
+ *  stamp's exact shape, so grepping a deployed bundle for
+ *  the stamp pattern finds exactly one string: the stamp. */
 export const BUILD_ID: string = BUILD_LABEL.replace('bioforge-build:', '');
 
 export interface BuildNotes {

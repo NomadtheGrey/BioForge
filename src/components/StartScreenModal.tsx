@@ -150,7 +150,7 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-      <div className="glass-panel-biolum w-full max-w-2xl max-h-[90vh] rounded-3xl flex flex-col overflow-hidden border border-cyan-500/30 shadow-2xl">
+      <div className="glass-panel-biolum w-full max-w-2xl max-h-[90dvh] rounded-3xl flex flex-col overflow-hidden border border-cyan-500/30 shadow-2xl">
         {/* Header */}
         <div className="px-6 py-4 flex items-center gap-3 border-b border-slate-800 bg-slate-900/60">
           <div className="w-10 h-10 rounded-2xl bg-cyan-950/70 border border-cyan-500/40 flex items-center justify-center text-cyan-400">

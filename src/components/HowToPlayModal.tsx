@@ -92,7 +92,7 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4">
-      <div className="glass-panel-biolum w-full max-w-2xl max-h-[88vh] rounded-3xl border border-emerald-500/40 shadow-2xl flex flex-col overflow-hidden">
+      <div className="glass-panel-biolum w-full max-w-2xl max-h-[88dvh] rounded-3xl border border-emerald-500/40 shadow-2xl flex flex-col overflow-hidden">
         {/* Head: the title, the boundary link, and the ✕. */}
         <div className="px-5 pt-4 pb-3 border-b border-slate-700/60">
         <div className="flex items-center gap-3">

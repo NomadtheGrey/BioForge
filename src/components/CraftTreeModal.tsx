@@ -77,7 +77,7 @@ export const CraftTreeModal: React.FC<CraftTreeModalProps> = ({ itemId, need, in
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
       <div
-        className="glass-panel rounded-3xl w-full max-w-lg max-h-[85vh] flex flex-col shadow-2xl"
+        className="glass-panel rounded-3xl w-full max-w-lg max-h-[85dvh] flex flex-col shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between p-5 pb-3">

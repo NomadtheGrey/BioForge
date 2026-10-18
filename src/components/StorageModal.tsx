@@ -142,7 +142,7 @@ export const StorageModal: React.FC<StorageModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4">
-      <div className="w-full max-w-2xl max-h-[85vh] flex flex-col rounded-3xl border border-slate-800 bg-slate-950/95 shadow-2xl overflow-hidden">
+      <div className="w-full max-w-2xl max-h-[85dvh] flex flex-col rounded-3xl border border-slate-800 bg-slate-950/95 shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="px-6 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-900/60">
           <div className="flex items-center gap-3">

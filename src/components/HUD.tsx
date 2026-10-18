@@ -970,9 +970,9 @@ export const HUD: React.FC<HUDProps> = ({
             offset={hudLayout.offsetOf('zone')}
             onMove={hudLayout.setOffset}
             onClose={hideHudPanel}
-            className={`mx-auto shrink-0 ${touchMode ? 'hidden min-[760px]:block' : ''}`}
+            className="mx-auto shrink-0"
           >
-        <div className="glass-panel w-52 px-3 py-2.5 rounded-2xl flex flex-col gap-1.5 shadow-lg">
+        <div className={`glass-panel rounded-2xl flex flex-col shadow-lg ${touchMode ? 'w-44 px-2.5 py-2 gap-1' : 'w-52 px-3 py-2.5 gap-1.5'}`}>
           <div className="flex items-start gap-2">
             <Compass className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
             <div className="flex flex-col min-w-0">
@@ -1645,7 +1645,9 @@ export const HUD: React.FC<HUDProps> = ({
             >
           <div
             className={`flex items-end gap-2 ${
-              touchMode ? 'max-w-full justify-start overflow-x-auto pb-0.5' : ''
+              touchMode
+                ? 'max-w-full justify-start pb-0.5 touch-none [@media(max-width:375px)]:scale-[0.92] [@media(max-width:375px)]:origin-bottom-left'
+                : ''
             }`}
           >
             {/* Left Hand (Adam, 2026-10-14): the off-hand slot.
@@ -1729,7 +1731,7 @@ export const HUD: React.FC<HUDProps> = ({
                   onMouseEnter={() => setHoveredToolId(t.id)}
                   onMouseLeave={() => setHoveredToolId(null)}
                   className={`group relative flex flex-col items-center justify-center ${
-                    touchMode ? 'h-12 w-12' : 'h-14 w-14'
+                    touchMode ? 'h-10 w-10' : 'h-14 w-14'
                   } rounded-xl transition-all duration-200 border ${
                     isActive
                       ? 'bg-slate-800/90 border-cyan-400 shadow-md shadow-cyan-500/20 scale-105'
@@ -1738,7 +1740,7 @@ export const HUD: React.FC<HUDProps> = ({
                         : 'bg-slate-900/60 border-slate-700/40 hover:bg-slate-800/60 text-slate-400 hover:text-white'
                   }`}
                 >
-                  <span className={`${touchMode ? 'text-lg' : 'text-xl'} leading-none ${isLocked ? 'opacity-40 grayscale' : ''}`}>{isLocked ? '🔒' : t.icon}</span>
+                  <span className={`${touchMode ? 'text-base' : 'text-xl'} leading-none ${isLocked ? 'opacity-40 grayscale' : ''}`}>{isLocked ? '🔒' : t.icon}</span>
                   <span className="text-[10px] font-tech font-bold mt-1 text-slate-200">{t.key}</span>
 
                   {/* Consumable count badge: how many of the thing this

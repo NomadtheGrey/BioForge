@@ -70,16 +70,16 @@ export const DEFAULT_BUILD_NOTES: BuildNotes = {
  * applied).
  */
 export const BUILD_NOTES: BuildNotes = {
-  // The commission cure (2026-10-18): the black-screen's
-  // roots, all four — a bad saved panel position can no
-  // longer loop the rescue or survive a load: offsets are
-  // validated wherever they arrive from, the rescue fires
-  // at most once per panel, equal writes are no-ops, and
-  // the safety net's restore also resets the arrangement
-  // so a fault can't ride back in on it.
-  title: 'Set right',
+  // Phone round 2 (2026-10-18): the zone card returns on
+  // touch, the hotbar's scroller (a second gesture-thief)
+  // is gone and the row simply fits, panel arrangements
+  // are remembered per orientation — landscape and
+  // portrait each keep their own — and no modal can stand
+  // taller than the screen it's on, so the close button
+  // is never clipped off the top again.
+  title: 'Fits the hand',
   lines: [
-    'The follow-through on the black-screen repair: its roots are pulled up, not just trimmed back. A panel position that arrives damaged — from an old save, another screen, anywhere — is now checked on the way in and repaired to the panel\'s home spot if it doesn\'t make sense, instead of being carried.',
-    'The panel-rescue can also only ever fire once per panel now, and if the safety net ever catches a fault, restoring the panels resets their arrangement too — so the same fault can\'t walk back in through the restore.',
+    'More phone manners: the zone card shows on touch again (slimmer, so it earns its space), the hotbar row fits without the scroller that kept stealing your drags, and your panel arrangement is now remembered separately for landscape and portrait — turn the phone and each shape keeps its own furniture.',
+    'And no window in the game can stand taller than your screen anymore: on a sideways phone the big panels cap themselves to the display, so the close button is always on screen where it belongs.',
   ],
 };

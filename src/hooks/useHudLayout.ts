@@ -79,10 +79,36 @@ export interface HudOffset {
   y: number;
 }
 
+/**
+ * The two screen SHAPES a layout must survive (Adam's phone
+ * playtest, 2026-10-18): WIDE (landscape — desktops, phones held
+ * sideways) and TALL (portrait). One arrangement cannot serve
+ * both: an offset that is a gentle nudge on a wide monitor is a
+ * exile on a tall phone, and rotating the phone scrambled the
+ * furniture because both shapes were reading — and overwriting —
+ * the same remembered spots. So each panel remembers ONE OFFSET
+ * PER SHAPE, and the hook resolves/writes the bucket the screen
+ * is currently in. Rotating swaps arrangements wholesale instead
+ * of scrambling one.
+ */
+export type HudOrientation = 'landscape' | 'portrait';
+
 export interface HudLayoutState {
   hidden: Partial<Record<HudPanelId, boolean>>;
-  offsets: Partial<Record<HudPanelId, HudOffset>>;
+  /** Per panel, per shape. A legacy save may carry a FLAT offset
+   *  ({x, y}) from before shapes existed — sanitizeHudLayout
+   *  migrates it into the landscape bucket (the shape it was
+   *  almost certainly arranged in), leaving portrait to start
+   *  from the panels' fitted defaults. */
+  offsets: Partial<Record<HudPanelId, Partial<Record<HudOrientation, HudOffset>>>>;
 }
+
+/** Which shape is the screen right now? Square counts as tall —
+ *  a square-ish window behaves like portrait for furniture. */
+const currentOrientation = (): HudOrientation =>
+  typeof window !== 'undefined' && window.innerWidth > window.innerHeight
+    ? 'landscape'
+    : 'portrait';
 
 const STORAGE_KEY = 'bioforge.hudLayout.v1';
 
@@ -115,11 +141,22 @@ const isUsableOffset = (v: unknown): v is HudOffset => {
 export const sanitizeHudLayout = (raw: unknown): HudLayoutState => {
   if (!raw || typeof raw !== 'object') return EMPTY_LAYOUT;
   const parsed = raw as Partial<HudLayoutState>;
-  const offsets: Partial<Record<HudPanelId, HudOffset>> = {};
+  const offsets: HudLayoutState['offsets'] = {};
   if (parsed.offsets && typeof parsed.offsets === 'object') {
-    for (const [id, off] of Object.entries(parsed.offsets)) {
-      if (isUsableOffset(off)) {
-        offsets[id as HudPanelId] = { x: off.x, y: off.y };
+    for (const [id, entry] of Object.entries(parsed.offsets)) {
+      // Legacy flat offset → the landscape bucket (see the
+      // HudLayoutState note). Nested per-shape entries are
+      // proven bucket by bucket; a bad bucket drops alone.
+      if (isUsableOffset(entry)) {
+        offsets[id as HudPanelId] = { landscape: { x: entry.x, y: entry.y } };
+        continue;
+      }
+      if (entry && typeof entry === 'object') {
+        const per: Partial<Record<HudOrientation, HudOffset>> = {};
+        const e = entry as Partial<Record<HudOrientation, unknown>>;
+        if (isUsableOffset(e.landscape)) per.landscape = { x: e.landscape.x, y: e.landscape.y };
+        if (isUsableOffset(e.portrait)) per.portrait = { x: e.portrait.x, y: e.portrait.y };
+        if (per.landscape || per.portrait) offsets[id as HudPanelId] = per;
       }
     }
   }
@@ -160,6 +197,16 @@ export interface HudLayout {
 
 export const useHudLayout = (): HudLayout => {
   const [layout, setLayout] = useState<HudLayoutState>(loadLayout);
+  // The current screen shape. A resize listener keeps it true —
+  // rotation IS a resize — and every offset read/write below is
+  // scoped to it, so the wide arrangement and the tall one
+  // evolve independently from the moment this shipped.
+  const [orientation, setOrientation] = useState<HudOrientation>(currentOrientation);
+  useEffect(() => {
+    const onResize = () => setOrientation(currentOrientation());
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const hydrate = useCallback((next: HudLayoutState) => {
     // Trust nothing about the source: a record from another
@@ -189,8 +236,8 @@ export const useHudLayout = (): HudLayout => {
   );
 
   const offsetOf = useCallback(
-    (id: HudPanelId) => layout.offsets[id] ?? { x: 0, y: 0 },
-    [layout.offsets],
+    (id: HudPanelId) => layout.offsets[id]?.[orientation] ?? { x: 0, y: 0 },
+    [layout.offsets, orientation],
   );
 
   const setHidden = useCallback((id: HudPanelId, hidden: boolean) => {
@@ -208,11 +255,17 @@ export const useHudLayout = (): HudLayout => {
     // never be a resting place.
     if (!Number.isFinite(offset.x) || !Number.isFinite(offset.y)) return;
     setLayout((prev) => {
-      const cur = prev.offsets[id];
+      const cur = prev.offsets[id]?.[orientation];
       if (cur && cur.x === offset.x && cur.y === offset.y) return prev;
-      return { ...prev, offsets: { ...prev.offsets, [id]: offset } };
+      return {
+        ...prev,
+        offsets: {
+          ...prev.offsets,
+          [id]: { ...prev.offsets[id], [orientation]: offset },
+        },
+      };
     });
-  }, []);
+  }, [orientation]);
 
   const showAll = useCallback(() => {
     setLayout((prev) => ({ ...prev, hidden: {} }));

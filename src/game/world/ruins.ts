@@ -140,6 +140,17 @@ export function tierForHops(hops: number): RuinTierId {
   return 'grand';
 }
 
+/**
+ * The fate fragment's home (Adam, 2026-10-18): every ruin's
+ * heart holds treasure — shards and essence at any size —
+ * but the FRAGMENT (the piece the world's story is read
+ * from) is kept only by GRAND ruins. The chapter set is a
+ * deep-country hunt by design.
+ */
+export function heartBearsFragment(tier: RuinTierId | string | undefined): boolean {
+  return tier === 'grand';
+}
+
 function tierDown(tier: RuinTierId): RuinTierId {
   return TIER_LADDER[Math.max(0, TIER_LADDER.indexOf(tier) - 1)];
 }

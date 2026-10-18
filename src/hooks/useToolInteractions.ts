@@ -25,6 +25,7 @@ import {
 import type { AsksEventInput } from '../game/quests/asksBackState';
 import { createSeededRandom, hashStringToSeed } from '../game/engine/motion';
 import { ruinLoreLine } from '../game/world/ruinInterior';
+import { heartBearsFragment } from '../game/world/ruins';
 import { soundEngine } from '../audio/soundEngine';
 import { multiplayerManager } from '../game/multiplayer';
 import { FLORA_MATURE_SECONDS, FERTILIZER_DURATION_SECONDS } from './useWorldEntities';
@@ -154,6 +155,21 @@ export interface UseToolInteractionsParams {
   onGlyphRead?: (glyphStructureId: string) => void;
   /** Ask the World line signals: an artifact heart was opened. */
   onHeartReached?: () => void;
+  /** The Departure (D2): a portal station ring was addressed —
+   *  App runs the repair bill (finale.ts holds the rules). */
+  onPortalRing?: (structure: StructureEntity) => void;
+  /** The Departure (D3): the Presence was addressed — App runs
+   *  the visit (finale.ts holds the rules). */
+  onPresenceAddress?: (structure: StructureEntity) => void;
+  /** The Departure (D3): a Deep BioTunnel mouth was addressed —
+   *  App runs the descent. */
+  onDeepTunnelAddress?: (structure: StructureEntity) => void;
+  /** The Departure (D4): a Memorial was addressed — App runs
+   *  the planting, the tending, and the climb. */
+  onMemorialAddress?: (structure: StructureEntity) => void;
+  /** The Departure (D5): the Scar was addressed — App runs
+   *  the motive choice and the descent. */
+  onScarAddress?: (structure: StructureEntity) => void;
   /** Ask the World line signals: a flora harvest succeeded (the
    * yields are already in the pouch when this fires). */
   onFloraHarvest?: (flora: FloraEntity) => void;
@@ -256,6 +272,11 @@ export function useToolInteractions({
   onRequestRelease,
   onGlyphRead,
   onHeartReached,
+  onPortalRing,
+  onPresenceAddress,
+  onDeepTunnelAddress,
+  onMemorialAddress,
+  onScarAddress,
   onFloraHarvest,
   applyDissolve,
   strikeFauna,
@@ -2196,6 +2217,89 @@ export function useToolInteractions({
       onEnterRuin(structure);
       return;
     }
+    // The Presence (Departure D3): the transformed, met in
+    // their own country. The solvent is refused outright —
+    // these are PEOPLE, as land — the scanner describes, and
+    // every other tool addresses the grove; App runs the
+    // visit through the line callback.
+    if (structure.type === 'the_presence') {
+      if (activeTool === 'solvent_sprayer') {
+        postNotification('You Would Not', 'Whatever else the solvent is for, it is not for them.', 'alert', '#fbbf24');
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onPresenceAddress?.(structure);
+      return;
+    }
+    // The Deep BioTunnel (Departure D3): your own grown way
+    // down. Solvent is refused (it is a living road, and the
+    // game's one un-dissolvable grow), the scanner describes,
+    // and addressing it descends — App runs the act.
+    if (structure.type === 'deep_biotunnel_mouth') {
+      if (activeTool === 'solvent_sprayer') {
+        postNotification('Undissolvable', 'The deep way is a living road — solvent finds no purchase on it.', 'alert', '#fbbf24');
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onDeepTunnelAddress?.(structure);
+      return;
+    }
+    // The Memorial (Departure D4): your own grown ground for
+    // the dead. The solvent is refused — some ground is not
+    // unmade — the scanner describes, and every other tool
+    // addresses it; App runs the planting/tending/climb.
+    if (structure.type === 'memorial') {
+      if (activeTool === 'solvent_sprayer') {
+        postNotification('Consecrated Ground', 'The memorial is not unmade. Not by solvent, not by anything.', 'alert', '#fbbf24');
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onMemorialAddress?.(structure);
+      return;
+    }
+    // The Scar (Departure D5): the strangers' damage. The
+    // solvent finds no purchase (it is not grown, and it is
+    // not the world's to unmake), the scanner describes, and
+    // every other tool addresses the tear; App runs the
+    // motive and the descent.
+    if (structure.type === 'the_scar') {
+      if (activeTool === 'solvent_sprayer') {
+        postNotification('No Purchase', 'Whatever did this is not grown — the solvent beads and runs off, unbitten.', 'alert', '#f87171');
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onScarAddress?.(structure);
+      return;
+    }
+    // The portal station (Departure D2): the Follow road's
+    // ring. Precursor work — the solvent is refused and the
+    // scanner describes, exactly as with the heart; every
+    // other tool ADDRESSES the ring, and App runs the repair
+    // bill through the line callback (the heart's pattern).
+    if (structure.type === 'portal_ring') {
+      if (activeTool === 'solvent_sprayer') {
+        postNotification('Undissolvable', 'Precursor work outlasts solvent — the ring keeps what it is.', 'alert', '#fbbf24');
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onPortalRing?.(structure);
+      return;
+    }
     // Ruin interior contents (P4): caches and the artifact heart are
     // one-shot loot — the harvest glove works their seals, then
     // they're spent (the interior regenerates pristine next entry,
@@ -2228,11 +2332,16 @@ export function useToolInteractions({
         // ruins ever state outright.
         collected.set('precursor_shard', 2);
         collected.set('dew_essence', 2);
-        // Ask the World (Adam, 2026-10-16): every heart also keeps
-        // ONE Fate Fragment — the set piece the chapter is assembled
-        // from. Hearts are one-shot (the structure is consumed
-        // below), so each ruin yields exactly one, ever.
-        collected.set('aw_fragment', 1);
+        // Ask the World: a heart also keeps ONE Fate Fragment —
+        // the set piece the chapter is assembled from — but
+        // only in a GRAND ruin (Adam, 2026-10-18): regular
+        // ruins hold treasure (the shards and essence above);
+        // the fragment is grand country. Hearts are one-shot
+        // (the structure is consumed below), so each grand
+        // ruin yields exactly one, ever.
+        if (heartBearsFragment(structure.ruinFeature?.tier)) {
+          collected.set('aw_fragment', 1);
+        }
         for (const [item, n] of collected) addInventoryItem(item, n);
         triggerHarvestFx(structure.worldX, structure.worldZ);
         removeStructure(structure.id);

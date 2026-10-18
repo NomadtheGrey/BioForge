@@ -2575,6 +2575,69 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 1,
   },
+  // The portal station (Departure D2): a registry row for
+  // the ruin feature's structure type — the ring is world
+  // furniture, never an item a pouch can hold.
+  portal_ring: {
+    id: 'portal_ring',
+    name: 'Portal Station',
+    category: 'structure',
+    description: 'The grown ring their road home ran through, standing patient in a grand ruin\'s heart room. Broken kindly. Address it to mend it.',
+    iconName: 'Donut',
+    color: '#a78bfa',
+    rarity: 'rare',
+    maxStack: 1,
+  },
+  // The Presence (Departure D3, Answer worlds): where the
+  // transformed still are — world furniture, dealt by the
+  // land itself in living valleys and bright water.
+  the_presence: {
+    id: 'the_presence',
+    name: 'The Presence',
+    category: 'structure',
+    description: 'They never left. They became — and this is where they are thickest: a grove that watches back. Address it when you know whose it was.',
+    iconName: 'Sparkles',
+    color: '#86efac',
+    rarity: 'rare',
+    maxStack: 1,
+  },
+  // The Scar (Departure D5, Confront worlds): world
+  // furniture — the tear the strangers left in a grand hall.
+  the_scar: {
+    id: 'the_scar',
+    name: 'The Scar',
+    category: 'structure',
+    description: 'A tear in the world that matches no grown weapon — the only passage that leads where they went. Address it, and choose how you step through.',
+    iconName: 'Zap',
+    color: '#f87171',
+    rarity: 'rare',
+    maxStack: 1,
+  },
+  // The Memorial (Departure D4, Honor worlds): the player's
+  // own grown ground for the dead — and the stalk's cradle.
+  memorial: {
+    id: 'memorial',
+    name: 'The Memorial',
+    category: 'structure',
+    description: 'A ring of stones and woven light for the ones who cannot be followed, met, or fought — only honored. Plant the stalk here. Tend it. Climb.',
+    iconName: 'Landmark',
+    color: '#fbbf24',
+    rarity: 'rare',
+    maxStack: 1,
+  },
+  // The Super BioTunnel (Departure D3): the first Tier-4
+  // grow — a tunnel mouth that doesn't stop. Its recipe is
+  // a GIFT (finaleGate 'visit'), given at the visit.
+  deep_biotunnel_mouth: {
+    id: 'deep_biotunnel_mouth',
+    name: 'Deep BioTunnel Mouth',
+    category: 'structure',
+    description: 'A BioTunnel that doesn\'t stop: grown down and through the world itself, on a recipe the transformed gave you. Set it down, and descend.',
+    iconName: 'CircleDot',
+    color: '#4ade80',
+    rarity: 'rare',
+    maxStack: 1,
+  },
   ruin_glyph: {
     id: 'ruin_glyph',
     name: 'Ruin Glyph',

@@ -187,3 +187,23 @@ export function updateBannerLife(
     cloth.rotation.z = 0.05 * Math.sin(elapsedTime * 0.6 + phase * 1.7);
   });
 }
+
+/**
+ * The beanstalk's sway (Departure D4): a grown road breathes
+ * in the wind — a slow lean, scaled by nothing but time. The
+ * stem is named 'beanstalkStem' by the memorial's builder.
+ */
+export function updateBeanstalkLife(
+  structureMeshMap: Map<string, THREE.Group>,
+  elapsedTime: number,
+): void {
+  structureMeshMap.forEach((mesh) => {
+    const entity = mesh.userData.entity as StructureEntity | undefined;
+    if (!entity || entity.type !== 'memorial') return;
+    const stem = mesh.getObjectByName('beanstalkStem');
+    if (!stem) return;
+    const phase = phaseForId(entity.id);
+    stem.rotation.z = 0.02 * Math.sin(elapsedTime * 0.5 + phase);
+    stem.rotation.x = 0.015 * Math.sin(elapsedTime * 0.37 + phase * 1.3);
+  });
+}

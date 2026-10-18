@@ -33,6 +33,7 @@
 import type { ItemId, ToolType, CraftingRecipe, QuestSignals } from '../../types/game';
 import { ITEMS, RECIPES, getRecipeTier, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../items/constants';
 import { WEAPON_ITEM_IDS, anyWeaponOwned } from '../creatures/weapons';
+import { FINALE_ROADS, PORTAL_BILL, portalPartsMissing, type FinaleFamilyId } from './finale';
 
 /** Every tool the hotbar can hold, in hotbar order. */
 export const ALL_TOOLS: ToolType[] = [
@@ -128,6 +129,10 @@ export interface QuestDef {
   /** The "For those who wander" wink shown in the line's tab —
    * flavor, never a lane or a lock. */
   flavor?: string;
+  /** When set, this quest stays SEALED (presentation only, the
+   * useQuests chapter rule's sibling) until the named quest
+   * completes — the finale waits on What Happened Here. */
+  sealedUntil?: string;
   /** When set, the quest completes when this goal state holds in
    * the player's QuestSignals (types/game.ts), evaluated by
    * goalMet() below. */
@@ -169,7 +174,11 @@ export type QuestGoal =
   // is met when the field-notes book has stamped this note id
   // (App mirrors the witnessed list into the signals). todo/done
   // ride the goal because each species' moment reads differently.
-  | { kind: 'witness'; noteId: string; todo: string; done: string };
+  | { kind: 'witness'; noteId: string; todo: string; done: string }
+  // The Departure (D1, 2026-10-17): the finale's single goal —
+  // the act itself, latched by whichever family's set-piece
+  // carries the player through (finale.ts holds the sort).
+  | { kind: 'departure' };
 
 /** Is this goal state true right now? Signal goals read the
  * QuestSignals record; the itemCount goal reads the pouch
@@ -198,6 +207,7 @@ export function goalMet(
     case 'hum': return s.hum === true;
     case 'walkBack': return s.walkBack === true;
     case 'witness': return (s.witnessed ?? []).includes(goal.noteId);
+    case 'departure': return s.departed === true;
   }
 }
 
@@ -227,6 +237,35 @@ export function goalProgressText(
     case 'hum': return s.hum ? 'The homestead hums' : 'Hearth, vat, and stores, all running at once';
     case 'walkBack': return s.walkBack ? 'You stood there again' : 'Return on foot to the place the land took you';
     case 'witness': return (s.witnessed ?? []).includes(goal.noteId) ? goal.done : goal.todo;
+    case 'departure': {
+      if (s.departed) return 'You have gone through — and the way stands open behind you';
+      // Follow's road sharpens with the repair (D2): the
+      // tracker reads the bill's standing, part by part.
+      if (s.finaleFamily === 'follow') {
+        const missing = portalPartsMissing(s);
+        if (missing.length === 0) return 'The ring stands whole — address it, and step through';
+        const marks = PORTAL_BILL.map((p) => `${s.finaleRepair?.[p.id] ? '✓' : '·'} ${p.name.toLowerCase()}`);
+        return `The ring's repair — ${PORTAL_BILL.length - missing.length} of ${PORTAL_BILL.length}: ${marks.join(' · ')}`;
+      }
+      // Answer's road sharpens at the visit (D3): before it,
+      // the road is the going; after it, the growing.
+      if (s.finaleFamily === 'answer') {
+        return s.finaleVisit
+          ? 'Grow the deep tunnel at the forge, set its mouth, and descend'
+          : 'Go to them — the living valleys, the bright water — and say goodbye';
+      }
+      // Confront's road names the latched motive (D5): the
+      // road knows the difference, as the modal promised.
+      if (s.finaleFamily === 'confront' && s.finaleMotive) {
+        return s.finaleMotive === 'revenge'
+          ? 'Through the scar — as revenge. Address the tear, and pursue'
+          : s.finaleScarPaid
+            ? 'Through the scar — as curiosity, warded. Address the tear, and descend'
+            : 'Through the scar — as curiosity. Ward the way at the tear';
+      }
+      const road = s.finaleFamily ? FINALE_ROADS[s.finaleFamily as FinaleFamilyId] : undefined;
+      return road ? road.todo : 'The way out is the one your world’s people took';
+    }
   }
 }
 
@@ -852,6 +891,25 @@ export const ASK_THE_WORLD_QUESTS: QuestDef[] = [
     gather: [],
     completeWhen: { kind: 'itemCount', itemId: 'aw_fragment', count: 5 },
     rewardNote: 'The chapter itself — and a Listening Shell’s promise. (The Shell comes with the artifacts pass.)',
+  },
+  {
+    // THE FINALE (D1, 2026-10-17): the chapter is the knowing;
+    // this is the answering. One quest for all eleven fates —
+    // the world's family (finale.ts) names the road on the
+    // tracker, and each family's set-piece lands as its own
+    // slice and latches the departure this goal reads. Sealed
+    // until the story stands read whole: knowing first.
+    id: 'q_aw_departure',
+    questChapter: 3,
+    line: ASK_THE_WORLD_LINE,
+    flavor: 'For whoever is left',
+    title: 'The Departure',
+    blurb:
+      'Five fragments, one story — and every story in this world ends the same way: with a way out. Your world’s people found theirs. It stands open still, in the shape they left it. Grow it, and go — or stay, and let it stand. Both are answers.',
+    gather: [],
+    sealedUntil: 'q_aw_happened',
+    completeWhen: { kind: 'departure' },
+    rewardNote: 'The road itself.',
   },
   // ------------------------------------------------------------------
   // THE SOCIAL SET (2026-10-16): quests for the seven social

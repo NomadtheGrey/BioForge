@@ -74,6 +74,19 @@ function isCollidingWithStructure(
     if (s.type === 'tamed_snap_trap_turret') obstacleRadius = 0.6;
     if (s.type === 'lantern_fern_post') obstacleRadius = 0.35;
     if (s.type === 'banner_post') obstacleRadius = 0.3;
+    // The portal station's ring (Departure D2): a monument —
+    // the player addresses it, never stands inside its disc.
+    if (s.type === 'portal_ring') obstacleRadius = 1.3;
+    // The Presence (Departure D3): its heart-growth is solid;
+    // the stone ring around it is the room you stand in.
+    if (s.type === 'the_presence') obstacleRadius = 0.9;
+    // The Deep BioTunnel's throat (Departure D3): addressed,
+    // descended by the click — never stood inside.
+    if (s.type === 'deep_biotunnel_mouth') obstacleRadius = 1.5;
+    // The Memorial (Departure D4): its ring is ground you
+    // stand AMONG — radius 0 leaves only the center point
+    // itself solid, where the stalk grows.
+    if (s.type === 'memorial') obstacleRadius = 0;
     // Furniture footprints (slice E): a bed is a body-length
     // piece; a stool is a small one.
     if (s.type === 'root_bed') obstacleRadius = 0.85;
@@ -96,7 +109,15 @@ function isCollidingWithStructure(
 }
 
 /**
- * Checks if a candidate position collides with dense plants (Snap-Traps, Sap-Weavers)
+ * Flora collision: NONE (Adam's ruling, 2026-10-18). Two
+ * species (snap-trap, sap-weaver) used to gain a collision
+ * disc at growth stage 2 — which trapped a player the
+ * plant grew around, since the resolver can refuse entry
+ * but had no way out. Adam's call: plants are plants —
+ * every species is walk-through, like the rest of the
+ * flora always was. The plants' BEHAVIORS are untouched
+ * (the snap fires on proximity in the sim, not contact),
+ * so nothing else depends on this returning true.
  */
 function isCollidingWithFlora(
   candidateX: number,
@@ -104,20 +125,8 @@ function isCollidingWithFlora(
   floraList: FloraEntity[],
   playerLevel: number = 0
 ): boolean {
-  // Plants live on the ground story; a player crossing an upper floor
-  // passes over them, not through them.
-  if (playerLevel > 0) {
-    return false;
-  }
-  return floraList.some((f) => {
-    // Only mature dense or hazardous flora have physical collision
-    if (f.growthStage < 2) return false;
-    if (f.species !== 'snap_trap' && f.species !== 'sap_weaver') return false;
-
-    const plantRadius = f.species === 'snap_trap' ? 0.65 : 0.7;
-    const distSq = (candidateX - f.x) ** 2 + (candidateZ - f.z) ** 2;
-    return distSq < (plantRadius + PLAYER_RADIUS) ** 2;
-  });
+  void candidateX; void candidateZ; void floraList; void playerLevel;
+  return false;
 }
 
 /** The active cavern grid while the player is inside an instance. */
@@ -167,6 +176,7 @@ export function resolveMovementWithCollision(
   playerLevel: number = 0,
   cavern: CavernGridRef | null = null
 ): { x: number; z: number } {
+
   // 1. Check full displacement
   const targetX = Math.max(-WORLD_BOUNDARY, Math.min(WORLD_BOUNDARY, currentX + desiredDeltaX));
   const targetZ = Math.max(-WORLD_BOUNDARY, Math.min(WORLD_BOUNDARY, currentZ + desiredDeltaZ));

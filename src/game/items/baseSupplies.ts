@@ -59,11 +59,13 @@ const PLACEABLE_GROUPS: Record<string, string[]> = {
     'pen_fence',
     'vine_ladder',
     'biotunnel_mouth',
+    'deep_biotunnel_mouth',
   ],
   stations: [
     'bio_forge_station',
     'culture_vat',
     'cultivation_mound',
+    'memorial',
     'sample_rack',
   ],
   home: [

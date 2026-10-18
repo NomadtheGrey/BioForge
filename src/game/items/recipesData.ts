@@ -929,6 +929,47 @@ export const RECIPES: CraftingRecipe[] = [
     craftTimeMs: 4000,
   },
   {
+    // THE MEMORIAL (Departure D4): Honor's ground. Anyone
+    // may raise one (the recipe is no family's secret — the
+    // ROAD is what the memorial grows, and the climb is
+    // seal-gated in finale.ts, not the planting).
+    id: 'craft_memorial',
+    outputId: 'memorial',
+    outputCount: 1,
+    name: 'The Memorial',
+    description: 'Raise the remembering ground: stones, saltglass, and woven fiber. Plant the beanstalk in it, tend it day by day, and climb.',
+    category: 'composites',
+    ingredients: [
+      { id: 'resin_sap', count: 4 },
+      { id: 'saltglass_shard', count: 2 },
+      { id: 'soft_fiber', count: 4 },
+    ],
+    craftTimeMs: 4000,
+  },
+  {
+    // THE SUPER BIOTUNNEL (Departure D3) — the game's first
+    // Tier-4 recipe, and a GIFT: finaleGate 'visit' keeps it
+    // off the forge's shelf until the transformed hand it
+    // over at the visit. The bill is a tour of the whole
+    // game at its height (§4): a core, plates, thread,
+    // heart-sap, resin.
+    id: 'craft_deep_biotunnel',
+    outputId: 'deep_biotunnel_mouth',
+    outputCount: 1,
+    name: 'The Deep BioTunnel',
+    description: 'Grow the tunnel that doesn\'t stop: down, and through, and out. Their gift, at Tier 4 — set the mouth down and descend.',
+    category: 'composites',
+    finaleGate: 'visit',
+    ingredients: [
+      { id: 'prismatic_core', count: 1 },
+      { id: 'lodestone_plate', count: 2 },
+      { id: 'living_thread', count: 4 },
+      { id: 'heart_sap', count: 3 },
+      { id: 'resin_sap', count: 6 },
+    ],
+    craftTimeMs: 8000,
+  },
+  {
     id: 'craft_culture_vat',
     outputId: 'culture_vat',
     outputCount: 1,

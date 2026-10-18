@@ -47,6 +47,10 @@ interface BioForgeModalProps {
   /** The shield graft slots as worn — a graft recipe locks
    *  when its target's slot already reads a graft. */
   shieldGrowth?: ShieldGrowthMap;
+  /** The Departure (D3): the Answer visit stands made — the
+   *  visit-gated recipes (the gift) join the forge's shelf
+   *  only then. Absent means not visited. */
+  finaleVisit?: boolean;
   /** What the Left Hand wears, when the host passes it: the
    *  forge stows a held piece before eating it, so a held
    *  ingredient is yours for every check in this modal. */
@@ -65,6 +69,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   nearForge,
   hasSynthesizer,
   shieldGrowth,
+  finaleVisit,
   heldItemId,
   onCraftRecipe,
   onGrowPrerequisites,
@@ -99,6 +104,9 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   if (!isOpen) return null;
 
   const filteredRecipes = RECIPES.filter((r) => {
+    // The Departure's gift (D3): a finaleGate 'visit' recipe
+    // is GIVEN, not known — it shelves only after the visit.
+    if (r.finaleGate === 'visit' && !finaleVisit) return false;
     if (activeCategory === 'all') return true;
     // Base Supplies (Adam, 2026-10-16): everything you'd build
     // the base with — the classifier lives in game/baseSupplies

@@ -11,6 +11,7 @@ import {
   CraftingRecipe,
   FloraEntity,
   FaunaEntity,
+  FaunaSpecies,
   StructureEntity,
   DroppedItemEntity,
   ItemId,
@@ -95,6 +96,8 @@ import {
   goalProgressText,
 } from './game/quests/asksBack/latch';
 import { recordAsksChoice } from './game/quests/asksBackState';
+import { finaleFamilyOf, portalClickOutcome, portalPartsMissing, visitOutcome, descendOutcome, memorialOutcome, scarOutcome, SCAR_PRICE, STALK_SEED_IDS, STALK_TEND_COST, STALK_TENDS_TO_GROW, type FinaleFamilyId } from './game/quests/finale';
+import { readSkyClock, skyDayFloat } from './game/world/skyCalendar';
 // THE WORLD ASKS BACK, S4: a release settles the creature in the
 // zone's consequence record — the Director reads it as an anchor
 // and the zone loader materializes it by name.
@@ -104,6 +107,7 @@ import type { SagaTrackView } from './components/QuestTracker';
 import { StartScreenModal } from './components/StartScreenModal';
 import { GameInfoModal } from './components/GameInfoModal';
 import { HowToPlayModal } from './components/HowToPlayModal';
+import { PlaytestKitPanel } from './components/PlaytestKitPanel';
 
 // UI Components
 import { HUD } from './components/HUD';
@@ -113,6 +117,7 @@ import { BIOMES } from './game/world/biomes';
 import { fateForWorld } from './game/world/ruins';
 import { AW_CHAPTERS, type AwChapter } from './game/quests/awChapters';
 import { ChapterModal } from './components/ChapterModal';
+import { ScarChoiceModal } from './components/ScarChoiceModal';
 import { bestWeapon } from './game/creatures/weapons';
 import { windlungTierOf, staminaFactors } from './game/creatures/quicksteps';
 import type { WeaponDef } from './game/creatures/weapons';
@@ -137,6 +142,7 @@ import { useTutorial } from './hooks/useTutorial';
 import { useStorage } from './hooks/useStorage';
 import { useVat } from './hooks/useVat';
 import { useDebugKit } from './hooks/useDebugKit';
+import { usePlaytestKit } from './hooks/usePlaytestKit';
 import { useZoneTravel, ZONE_ID_INSTALLED, WORLD_EDGE_COORD, ZONE_PUSH_SECONDS, ZONE_PUSH_MIN_COMPONENT, type PendingTravel } from './hooks/useZoneTravel';
 import { useInstances } from './hooks/useInstances';
 import { useSaveSession } from './hooks/useSaveSession';
@@ -252,12 +258,19 @@ export default function App() {
   // the start screen, where no world (and no modal union) is
   // live yet. The screen carries its own Esc listener.
   const [showAbout, setShowAbout] = useState(false);
+  // The Departure, Confront (D5): the scar's motive prompt.
+  const [scarChoiceOpen, setScarChoiceOpen] = useState(false);
 
   // How to Play (Adam's program, 2026-10-17): same shape as
   // About — its own boolean, its own Esc listener in the
   // modal; wiring only, the shell and words are the HUD
   // lane's (HowToPlayModal) and the design doc's §2.
   const [showHowToPlay, setShowHowToPlay] = useState(false);
+
+  // The Playtest Kit (Adam, 2026-10-17): the debug backquote
+  // grows from a pouch swap into this panel. Own boolean;
+  // Esc is handled by the panel itself; wiring only.
+  const [showPlaytestKit, setShowPlaytestKit] = useState(false);
 
   // The striker slot's draw (weapons build, Adam, 2026-10-16):
   // which KIND of weapon slot 7 holds — 'close' or 'ranged'. The
@@ -1208,6 +1221,189 @@ export default function App() {
     onHeartReached: () => {
       awMergeRef.current((s) => (s.heart ? s : { ...s, heart: true }));
     },
+    // The Departure, Follow (D2): the portal ring's executor.
+    // Every RULE lives in finale.ts (the bill, the click
+    // outcome); this only runs the outcome — deduct, latch,
+    // and tell the story of what the click did.
+    onPortalRing: () => {
+      const signals = questProgressRef.current?.signals;
+      const discovered = (questProgressRef.current?.completedIds ?? []).includes('q_aw_happened');
+      const outcome = portalClickOutcome(signals, (id, n) => hasItem(id, n), discovered);
+      if (outcome.kind === 'open') {
+        postNotification('The Way Stands Open', 'The ring hums, patient as its makers left it. The road is yours whenever you want it.', 'discover', '#a78bfa');
+        return;
+      }
+      if (outcome.kind === 'depart') {
+        awMergeRef.current((s) => (s.departed ? s : { ...s, departed: true }));
+        postNotification('The Departure', 'The ring wakes around you — and you step through the road your world left standing. Behind you it stays open, the way its makers intended.', 'discover', '#a78bfa');
+        return;
+      }
+      if (outcome.kind === 'sealed') {
+        postNotification('Not Yet Yours to Take', 'The ring stands whole and humming — but a road is not yours until you know whose it was. Five fragments, and the story they tell: finish What Happened Here first.', 'system', '#a8a29e');
+        return;
+      }
+      if (outcome.kind === 'pay') {
+        for (const part of outcome.parts) deductInventoryItem(part.itemId, part.count);
+        const paid: Record<string, boolean> = {};
+        for (const part of outcome.parts) paid[part.id] = true;
+        awMergeRef.current((s) => ({ ...s, finaleRepair: { ...s.finaleRepair, ...paid } }));
+        const stillMissing = portalPartsMissing({ ...signals, finaleRepair: { ...signals?.finaleRepair, ...paid } });
+        postNotification(
+          'The Ring Mends',
+          `${outcome.parts.map((p) => p.name).join(' · ')} — paid from your pouch.${stillMissing.length === 0 ? ' The bill stands paid in full. Address the ring once more, and step through.' : ''}`,
+          'discover',
+          '#a78bfa'
+        );
+        return;
+      }
+      postNotification(
+        'The Portal Station',
+        `Their road home, broken kindly. The ring wants: ${outcome.missing.map((p) => `${p.name.toLowerCase()} (${ITEMS[p.itemId]?.name ?? p.itemId} ×${p.count})`).join(' · ')}.`,
+        'system',
+        '#a8a29e'
+      );
+    },
+    // The Departure, Answer (D3): the visit's executor.
+    // finale.ts decides; this latches and tells.
+    onPresenceAddress: () => {
+      const signals = questProgressRef.current?.signals;
+      const discovered = (questProgressRef.current?.completedIds ?? []).includes('q_aw_happened');
+      const outcome = visitOutcome(signals, discovered);
+      if (outcome === 'gone') {
+        postNotification('The Way Stands Open', 'The grove keeps its watch. The road you grew is yours whenever you want it.', 'discover', '#84cc16');
+        return;
+      }
+      if (outcome === 'notyet') {
+        postNotification('The Presence', 'They are here — thick in this country, watching without alarm. But you do not know them yet, not really. Learn whose they were first: five fragments, and the story they tell.', 'system', '#a8a29e');
+        return;
+      }
+      if (outcome === 'visit') {
+        awMergeRef.current((s) => (s.finaleVisit ? s : { ...s, finaleVisit: true }));
+        postNotification('The Visit', 'It is brief, the way they need it to be. No voices — a grove does not speak — but the regard is unmistakable, and so is the gift left growing in your mind: the way to grow a tunnel that doesn\'t stop. The forge knows it now. Say goodbye; it is the whole of the meeting, and it is enough.', 'discover', '#84cc16');
+        return;
+      }
+      postNotification('The Presence', 'The regard remains, patient as roots. The gift is given; the rest is yours.', 'system', '#84cc16');
+    },
+    // The Departure, Answer (D3): the descent's executor —
+    // the family's one writer of 'departed'.
+    onDeepTunnelAddress: () => {
+      const signals = questProgressRef.current?.signals;
+      const discovered = (questProgressRef.current?.completedIds ?? []).includes('q_aw_happened');
+      const outcome = descendOutcome(signals, discovered);
+      if (outcome === 'gone') {
+        postNotification('The Way Stands Open', 'The deep throat breathes, slow and patient. The road is yours whenever you want it.', 'discover', '#4ade80');
+        return;
+      }
+      if (outcome === 'sealed') {
+        postNotification('Not Yet Yours to Take', 'A road is not yours until you know whose country it crosses. Five fragments, and the story they tell: finish What Happened Here first.', 'system', '#a8a29e');
+        return;
+      }
+      awMergeRef.current((s) => (s.departed ? s : { ...s, departed: true }));
+      postNotification('The Through-Passage', 'Down, then, and through — the tunnel that doesn\'t stop carries you the deep way, the way they taught you to grow. Behind you the mouth breathes on, patient. The road stands.', 'discover', '#4ade80');
+    },
+    // The Departure, Honor (D4): the memorial's executor —
+    // planting, tending, and the climb. The stalk's state
+    // rides the memorial entity itself; the day comes off
+    // the world clock (persisted on the entity at each tend,
+    // so a reload cannot reopen the day — the dev lane's
+    // watch).
+    onMemorialAddress: (structure: StructureEntity) => {
+      const signals = questProgressRef.current?.signals;
+      const discovered = (questProgressRef.current?.completedIds ?? []).includes('q_aw_happened');
+      const clock = readSkyClock();
+      const today = clock ? Math.floor(skyDayFloat(clock.createdAtMs, Date.now())) : 0;
+      const state = {
+        planted: structure.memorial?.stalkPlanted === true,
+        tends: structure.memorial?.stalkTends ?? 0,
+        lastTendDay: structure.memorial?.lastTendDay ?? -1,
+      };
+      const outcome = memorialOutcome(signals, state, discovered, today);
+      if (outcome === 'gone') {
+        postNotification('The Way Stands Open', 'The stalk stands crowned against the sky it emptied. The climb is yours whenever you want it.', 'discover', '#fbbf24');
+        return;
+      }
+      if (outcome === 'plant') {
+        const held = STALK_SEED_IDS.filter((id) => hasItem(id, 1));
+        if (held.length < 3) {
+          postNotification('The Stalk Wants Variety', `A road grown from one garden alone would only lead back to it. Bring seeds of three different kinds — you hold ${held.length} — and the memorial will take one of each.`, 'system', '#a8a29e');
+          return;
+        }
+        const chosen = held.slice(0, 3);
+        chosen.forEach((id) => deductInventoryItem(id, 1));
+        upsertStructure({ ...structure, memorial: { stalkPlanted: true, stalkTends: 0, lastTendDay: -1 } });
+        postNotification('Planted', `${chosen.map((id) => ITEMS[id]?.name ?? id).join(', ')} — one of each, into the remembering ground. The stalk will want tending: compost and dew, once a day.`, 'discover', '#fbbf24');
+        return;
+      }
+      if (outcome === 'tend-wait') {
+        postNotification('It Drinks Deep', 'The stalk has drunk today. Growth turned by the day cannot be hurried — come back tomorrow.', 'system', '#a8a29e');
+        return;
+      }
+      if (outcome === 'tend') {
+        const short = STALK_TEND_COST.filter((c) => !hasItem(c.itemId, c.count));
+        if (short.length > 0) {
+          postNotification('The Stalk Thirsts', `Tending wants: ${STALK_TEND_COST.map((c) => `${ITEMS[c.itemId]?.name ?? c.itemId} ×${c.count}`).join(' · ')}.`, 'system', '#a8a29e');
+          return;
+        }
+        STALK_TEND_COST.forEach((c) => deductInventoryItem(c.itemId, c.count));
+        const tends = state.tends + 1;
+        upsertStructure({ ...structure, memorial: { stalkPlanted: true, stalkTends: tends, lastTendDay: today } });
+        postNotification(
+          tends >= STALK_TENDS_TO_GROW ? 'It Crowns' : 'Tended',
+          tends >= STALK_TENDS_TO_GROW
+            ? 'The stalk crowns — a green ceiling against the sky they emptied. The climb stands ready.'
+            : `Fed and watered. The stalk climbs a little higher — ${tends} of ${STALK_TENDS_TO_GROW} tendings.`,
+          'discover',
+          '#fbbf24'
+        );
+        return;
+      }
+      if (outcome === 'climb-sealed') {
+        postNotification('Not Yet Yours to Take', 'The stalk stands crowned, but a climb is not yours until you know whose sky it climbs into. Five fragments, and the story they tell: finish What Happened Here first.', 'system', '#a8a29e');
+        return;
+      }
+      // outcome === 'climb' — Honor's one writer of 'departed'.
+      awMergeRef.current((s) => (s.departed ? s : { ...s, departed: true }));
+      postNotification('The Climb', 'Up the stalk, hand over leaf, into the sky they emptied — and the higher you climb, the more the world below becomes a garden you once kept. The road stands behind you, green and patient.', 'discover', '#fbbf24');
+    },
+    // The Departure, Confront (D5): the scar's executor.
+    // The motive latches once, ever (the choice opens only
+    // while unset); both descents are this family's act, and
+    // this executor is the family's one writer of 'departed'.
+    onScarAddress: () => {
+      const signals = questProgressRef.current?.signals;
+      const discovered = (questProgressRef.current?.completedIds ?? []).includes('q_aw_happened');
+      const outcome = scarOutcome(signals, discovered, (id, n) => hasItem(id, n));
+      if (outcome === 'gone') {
+        postNotification('The Way Stands Open', 'The tear hangs in the floor, patient as a held breath. The road through it is yours whenever you want it.', 'discover', '#f87171');
+        return;
+      }
+      if (outcome === 'choose') {
+        setScarChoiceOpen(true);
+        return;
+      }
+      if (outcome === 'sealed') {
+        postNotification('Not Yet Yours to Take', 'The road through the scar is chosen — but a passage is not yours until you know whose ending made it. Five fragments, and the story they tell: finish What Happened Here first.', 'system', '#a8a29e');
+        return;
+      }
+      if (outcome === 'wait') {
+        const missing = SCAR_PRICE.filter((c) => !hasItem(c.itemId, c.count));
+        postNotification('Passage Protections', `The way you grew reads the tear and asks its price — grown defenses against a place this world's rules do not cover: ${missing.map((c) => `${ITEMS[c.itemId]?.name ?? c.itemId} ×${c.count}`).join(' · ')}.`, 'system', '#a8a29e');
+        return;
+      }
+      if (outcome === 'pay') {
+        SCAR_PRICE.forEach((c) => deductInventoryItem(c.itemId, c.count));
+        awMergeRef.current((s) => (s.finaleScarPaid ? s : { ...s, finaleScarPaid: true }));
+        postNotification('Warded', 'Scale, cinder, saltglass, thread — the protections knit themselves against the tear, and the way you grew stands open. Address the scar once more, and step through.', 'discover', '#f87171');
+        return;
+      }
+      // 'pursue' and 'descend' — the act, motive-colored.
+      awMergeRef.current((s) => (s.departed ? s : { ...s, departed: true }));
+      if (outcome === 'pursue') {
+        postNotification('The Descent — Pursuit', 'Through the tear, after them — no road grown, no goodbye owed. Whatever ended the Precursors has a head start measured in ages. You are closing it.', 'discover', '#f87171');
+      } else {
+        postNotification('The Descent — The Way You Grew', 'Through the tear, on the road the scar itself taught you — warded, deliberate, and entirely your own. The world behind you keeps its rules. Ahead, they do not apply.', 'discover', '#f87171');
+      }
+    },
     spawnDroppedItem,
     triggerHarvestFx,
     triggerSolventFx,
@@ -1483,6 +1679,13 @@ export default function App() {
       if (!families.includes(info.biome)) { next.families = [...families, info.biome]; changed = true; }
       if (info.hybrid && !s.hybrid) { next.hybrid = true; changed = true; }
       if (tier >= 3 && !s.tier3) { next.tier3 = true; changed = true; }
+      // The Departure (D1): the world's fate family, written
+      // once — the finale quest's tracker names the road this
+      // world's people left standing.
+      if (!s.finaleFamily) {
+        next.finaleFamily = finaleFamilyOf(fateForWorld(worldSeedRef.current));
+        changed = true;
+      }
       // Walk Back: standing in the fell zone again after having
       // left it at least once is the return the quest asks for.
       if (s.fellZone) {
@@ -1601,7 +1804,10 @@ export default function App() {
     setActiveModal, postNotification,
     // Lazy: useDebugKit is called just below (it reads the save
     // session's state mirror); the toggle fires on a keypress only.
-    onToggleDebugKit: () => toggleDebugKit(),
+    // The Playtest Kit (Adam, 2026-10-17): the backquote now
+    // opens the panel; the pouch swap lives INSIDE it as its
+    // first control, one click from where the key used to be.
+    onToggleDebugKit: () => setShowPlaytestKit((v) => !v),
     // The striker draw swap (weapons build): defined just below —
     // ref-driven, fires on the 7 key / wheel / tile click only.
     onToggleStrikerDraw: () => toggleStrikerDraw(),
@@ -1640,6 +1846,24 @@ const { debugStashRef, toggleDebugKit } = useDebugKit({
   restoreInventory,
   postNotification,
 });
+
+// The Playtest Kit's callbacks live in their own hook
+// (hooks/usePlaytestKit — the S6 extraction shape, on the
+// dev lane's boundary note): App only composes them here.
+const { handlePlaytestGive, handlePlaytestSpawn, handlePlaytestPhase, handlePlaytestShower, handlePlaytestHeal } =
+  usePlaytestKit({
+    addInventoryItem,
+    upsertFauna,
+    postNotification,
+    playerPosRef,
+    worldSeedRef,
+    playerZone,
+    setDayNightCycle,
+    setHealth,
+    setStamina,
+    maxHealth: playerState.maxHealth,
+    maxStamina: playerState.maxStamina,
+  });
 
 // Pouch overflow + storage-pod transfers: hooks/useStorage.
 const { handleStorageDeposit, handleStorageWithdraw, handleStorageUpgrade } =
@@ -2709,6 +2933,7 @@ const {
         isOpen={activeModal === 'quests'}
         onClose={() => setActiveModal(null)}
         views={questViews}
+        finaleFamily={(questProgress?.signals?.finaleFamily as FinaleFamilyId | undefined) ?? null}
         completedIds={questProgress?.completedIds ?? []}
         trackedId={questProgress?.trackedId ?? null}
         fieldNotesState={fieldNotesState}
@@ -2740,6 +2965,21 @@ const {
       {/* The Ask the World chapter (Adam, 2026-10-16): opens once,
           at the moment the fragment set completes. */}
       {awChapter && <ChapterModal chapter={awChapter} onClose={() => setAwChapter(null)} />}
+      <ScarChoiceModal
+        isOpen={scarChoiceOpen}
+        onClose={() => setScarChoiceOpen(false)}
+        onChoose={(motive) => {
+          setScarChoiceOpen(false);
+          // The motive latches ONCE, ever — a second choice
+          // can never overwrite the first (the dev lane's watch).
+          awMergeRef.current((s) => (s.finaleMotive ? s : { ...s, finaleMotive: motive }));
+          if (motive === 'revenge') {
+            postNotification('Revenge', 'The scar will remember. No recipe, no growing: when you know whose ending this was, address the tear and step through after them.', 'discover', '#f87171');
+          } else {
+            postNotification('The Reading', 'You read the tear — the one reading the world has never allowed — and it teaches: a way can be grown here, of your own, if it is warded with passage protections. The scar will remember that you asked instead of avenging.', 'discover', '#c4b5fd');
+          }
+        }}
+      />
       {/* Release confirmation (Adam, 2026-10-15): letting a
           companion go is the one command that always asks. */}
       {pendingRelease && (
@@ -2855,6 +3095,7 @@ const {
         nearForge={craftAccess.nearForge}
         hasSynthesizer={craftAccess.hasSynthesizer}
         shieldGrowth={shieldGrowth}
+        finaleVisit={questProgress?.signals?.finaleVisit ?? false}
         heldItemId={playerState.heldItemId ?? null}
         onCraftRecipe={handleCraftRecipe}
         onGrowPrerequisites={handleGrowPrerequisites}
@@ -2914,6 +3155,21 @@ const {
           tutorial.start();
         }}
       />
+      {/* THE PLAYTEST KIT (Adam, 2026-10-17): gated on a
+        live world like the other debug surfaces; wiring
+        only — the panel owns its shell and its searches. */}
+      {showPlaytestKit && hasStarted && (
+        <PlaytestKitPanel
+          kitSwapped={debugStashRef.current !== null}
+          onClose={() => setShowPlaytestKit(false)}
+          onToggleKit={toggleDebugKit}
+          onGive={handlePlaytestGive}
+          onSpawn={handlePlaytestSpawn}
+          onSetPhase={handlePlaytestPhase}
+          onCallShower={handlePlaytestShower}
+          onHeal={handlePlaytestHeal}
+        />
+      )}
       <MultiplayerModal
         isOpen={activeModal === 'multiplayer'}
         onClose={() => setActiveModal(null)}

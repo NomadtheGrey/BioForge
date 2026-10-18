@@ -56,6 +56,7 @@ import { BONUS_GROW_FLORA } from '../flora/flora';
 import type { FaunaEntity, FaunaSpecies, FloraEntity, FloraSpecies, StructureEntity } from '../../types/game';
 import { generateCaveSurface, HOMESTEAD_BLOCKERS } from './caveSurface';
 import { fateForWorld, generateZoneRuins, FATE_STYLES } from './ruins';
+import { finaleFamilyOf } from '../quests/finale';
 import { BONUS_SPAWN_SPECIES } from '../creatures/species';
 import { zonePondsAt, zoneRiversAt, landformHeightAt } from './terrain';
 import type { PondDef, RiverSeg } from './terrain';
@@ -318,7 +319,7 @@ import type { PondDef, RiverSeg } from './terrain';
  *     duck's dive, the crab's venting). The quest-log
  *     wiring is the dev chat's lane, specced in the file.
  */
-export const WORLD_GEN_VERSION = 66; // v66 (2026-10-17): creature slice 51 — the Three Wild Predators (Lodestone Hound of the Magnetic Dunes, Fall Hawk of Skyfall Basin, Hush Hound of the Twominded Valley; variant-locked unprovoked hunters); v65 was creature slice 50 (the Distance Gradient)
+export const WORLD_GEN_VERSION = 67; // v67 (2026-10-18): Departure D3 — the Presence dealt into Answer worlds (living hearts of living zones in becoming worlds; bright-pond shores in return-to-water worlds). v66 was creature slice 51 (the Three Wild Predators); v65 was creature slice 50 (the Distance Gradient)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)
@@ -2026,10 +2027,50 @@ export function generateSeededWorld(seedStr: string, zoneZx = 0, zoneZz = 0, opt
     }
   }
 
+  // ---------------------------------------------------------------------
+  // THE PRESENCE (Departure D3, Answer worlds only): where the
+  // transformed still ARE — the meeting place of the Answer
+  // road. Becoming worlds: the living heart of a living-family
+  // zone. Return-to-water worlds: the shore of the zone's
+  // largest bright pond. Dealt ONLY in answer worlds (the
+  // dev lane's non-perturbation watch: other fates' zones are
+  // untouched by this block — it reads their fate and passes).
+  // ---------------------------------------------------------------------
+  const presenceStructures: StructureEntity[] = [];
+  if (finaleFamilyOf(worldFate) === 'answer') {
+    if (worldFate === 'becoming' && zoneBiome === 'living') {
+      const heart = livingHeartAt(seedStr, zoneZx, zoneZz);
+      presenceStructures.push({
+        id: `presence_${zoneZx}_${zoneZz}`,
+        type: 'the_presence',
+        gridX: Math.round(heart.x / 2), gridZ: Math.round(heart.z / 2),
+        worldX: heart.x, worldZ: heart.z,
+        rotation: 0, level: 0, health: 9999, maxHealth: 9999, doorOpenProgress: 0,
+      });
+    } else if (worldFate === 'return_to_water') {
+      // Bright water is common; the PRESENCE is not. The site
+      // stands only in deeper country (3+ hops) and only in a
+      // seeded share of ponded zones — a meeting place, not
+      // wallpaper (the living valleys are rare by nature; the
+      // bright water must be made rare on purpose).
+      const ponds = zoneHops(zoneZx, zoneZz) >= 3 && createSeededRandom(hashStringToSeed(`${seedStr}:presence:${zoneZx},${zoneZz}`))() < 0.4 ? pondsHere() : [];
+      if (ponds.length > 0) {
+        const largest = ponds.reduce((a, b) => (b.radius > a.radius ? b : a), ponds[0]);
+        presenceStructures.push({
+          id: `presence_${zoneZx}_${zoneZz}`,
+          type: 'the_presence',
+          gridX: Math.round(largest.cx / 2), gridZ: Math.round(largest.cz / 2),
+          worldX: largest.cx, worldZ: largest.cz,
+          rotation: 0, level: 0, health: 9999, maxHealth: 9999, doorOpenProgress: 0,
+        });
+      }
+    }
+  }
+
   return {
     flora: [...flora, ...caveFlora],
     fauna,
-    structures: [...structures, ...ruinStructures, ...bridgeStructures, ...huskStructures, ...boneStructures, ...stormStructures, ...groveStructures],
+    structures: [...structures, ...ruinStructures, ...bridgeStructures, ...huskStructures, ...boneStructures, ...stormStructures, ...groveStructures, ...presenceStructures],
     relaxedPlacements: floraScatter.relaxed + faunaScatter.relaxed,
   };
 }

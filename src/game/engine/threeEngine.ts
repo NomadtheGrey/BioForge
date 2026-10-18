@@ -31,7 +31,7 @@ import type { BiomeId } from '../world/biomes';
 import { cavernCellToWorld, type CavernResult } from '../world/cavern';
 import type { RuinResult } from '../world/ruinInterior';
 import { createStructureBuilders, type StructureMaterials } from '../structures/structureBuilders';
-import { updateVatLife, updateTunnelLife, updateHeartLife, updateBannerLife } from '../structures/structureLife';
+import { updateVatLife, updateTunnelLife, updateHeartLife, updateBannerLife, updateBeanstalkLife } from '../structures/structureLife';
 import { createCreatureMeshKit, type CreatureMeshKit } from '../creatures/creatureMeshes';
 import { createLandmarkDressing, type LandmarkDressing } from '../world/landmarkDressing';
 import { FATE_STYLES, type WorldFate } from '../world/ruins';
@@ -594,6 +594,7 @@ export class BioForgeThreeEngine {
     updateTunnelLife(this.structureMeshMap, this.elapsedTime);
     updateHeartLife(this.structureMeshMap, this.elapsedTime);
     updateBannerLife(this.structureMeshMap, this.elapsedTime);
+    updateBeanstalkLife(this.structureMeshMap, this.elapsedTime);
     this.updateDissolveFizz();
   }
 
@@ -1603,14 +1604,16 @@ export class BioForgeThreeEngine {
       // light forward of the bearer — same pool, longer reach.
       let sx = this.cachedPlayerX;
       let sz = this.cachedPlayerZ;
-      let distance = 20;
+      let distance = 26;
+      let intensity = 40;
       if (this.heldLightBraced && this.camera) {
         const dir = new THREE.Vector3();
         this.camera.getWorldDirection(dir);
         const len = Math.hypot(dir.x, dir.z) || 1;
         sx += (dir.x / len) * 2.5;
         sz += (dir.z / len) * 2.5;
-        distance = 26;
+        distance = 34;
+        intensity = 55;
       }
       sources.push({
         id: 'held:lantern',
@@ -1618,12 +1621,14 @@ export class BioForgeThreeEngine {
         y: 1.6,
         z: sz,
         color: 0x67e8f9,
-        // A torch's generosity (Adam's play pass, 2026-10-17):
-        // this stood at 2.6 — an order below the wild plant's
-        // own peak (~30) — so a potted lantern in the hand read
-        // as no light at all. 12 sheds real light without
-        // outshining the grown lamps of the homestead.
-        intensity: 12,
+        // A carried light must do a lamp's work (Adam's play
+        // pass, 2026-10-18): the pool runs physical falloff,
+        // so the old 12 reached ~1.3 at 3 m — a puddle at the
+        // feet, not visibility. The planted lamp post in this
+        // same system runs 40/26; the HELD lantern now matches
+        // it (40/26), and braced — thrown forward like a
+        // flashlight — goes to 55/34.
+        intensity,
         distance,
       });
     }

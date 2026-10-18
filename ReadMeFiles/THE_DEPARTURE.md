@@ -205,7 +205,16 @@ struck entirely ("we'll leave the spores out").
    list is the recipe conversation, still to come).
 
 With the methods pinned, the family sort (section 3) stands
-as settled. Still open: each method's ingredient list (now
+as settled.
+
+**Parity (Adam, same sitting):** all four finales must be
+climactic *in their own way*, each budgeted as its own
+set-piece — the Follow station's Relighting, the Answer
+tunnel's Through-Passage, the Honor beanstalk's Climb, the
+Confront scar's Descent. No family gets a cheap door. The
+Departure is a program of four builds, not one.
+
+Still open: each method's ingredient list (now
 writable, family by family), the Confront passage costs in
 detail, and everything in section 5 — the other side remains
 parked, untouched by anything above.

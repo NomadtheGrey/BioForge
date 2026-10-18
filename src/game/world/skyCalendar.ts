@@ -239,6 +239,34 @@ export function readSkyClock(): Readonly<SkyClock> {
   return skyClockState;
 }
 
+// ---------------------------------------------------------------------------
+// THE CALLED SHOWER (Playtest Kit, 2026-10-17): the panel
+// can call a shower for tonight — but it deals the world's
+// OWN seeded event, never a fake one: the current 23-day
+// block's ShowerDef (same rng stream, same identity),
+// merely dealt on the called night instead of the block's
+// chosen one. Session-only state — nothing here is saved,
+// and a reload simply forgets the call. (If the block's
+// own night is still ahead, the same shower shows twice
+// in the block; a playtest tradeoff, honestly noted.)
+// ---------------------------------------------------------------------------
+let calledShowerDay: number | null = null;
+let showerCallSerial = 0;
+
+/** Call the current block's seeded shower for tonight.
+ *  Returns false when no world clock stands yet. */
+export function callShowerTonight(nowMs: number): boolean {
+  if (!skyClockState.worldSeed || !skyClockState.createdAtMs) return false;
+  calledShowerDay = Math.floor(skyDayFloat(skyClockState.createdAtMs, nowMs));
+  showerCallSerial += 1;
+  return true;
+}
+
+/** The rig watches this serial to re-latch a called shower. */
+export function showerCallSerialNow(): number {
+  return showerCallSerial;
+}
+
 let cachedRoster: SkyRoster | null = null;
 /**
  * The roster for the clock's world (derived once per
@@ -364,7 +392,10 @@ export function nightSkyAt(roster: SkyRoster, dayIndex: number): NightSky {
   const blockRng = createSeededRandom(hashStringToSeed(`${worldSeed}|shower-block|${blockIndex}`));
   const showerDay = blockIndex * SHOWER_BLOCK_DAYS + 2 + Math.floor(blockRng() * (SHOWER_BLOCK_DAYS - 4));
   let shower: NightSky['shower'] = null;
-  if (dayIndex === showerDay) {
+  // A called shower (Playtest Kit) deals the block's own
+  // def on the called night — the rng draws below run in
+  // the same order, so the event's identity is unchanged.
+  if (dayIndex === showerDay || dayIndex === calledShowerDay) {
     const intensity = [0.6, 1.0, 1.0, 1.5][Math.floor(blockRng() * 4)];
     const def: ShowerDef = {
       blockIndex,

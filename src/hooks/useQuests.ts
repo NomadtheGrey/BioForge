@@ -91,6 +91,13 @@ export function useQuests({
     if (def.line && def.questChapter === 3 && !synthesisDone) {
       return { ...view, sealed: true };
     }
+    // A def can name its own gate (QuestDef.sealedUntil): the
+    // quest stays sealed until that quest completes — the
+    // finale waits on What Happened Here. Presentation only,
+    // exactly like the chapter rule above.
+    if (def.sealedUntil && !(questProgress?.completedIds ?? []).includes(def.sealedUntil)) {
+      return { ...view, sealed: true };
+    }
     return view;
   });
   const trackedView = trackedQuest(

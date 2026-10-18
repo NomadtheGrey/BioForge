@@ -321,5 +321,20 @@ export const STRUCTURE_LIGHT_BASE: Record<Exclude<StructureType, 'lantern_fern_p
     ruin_exit: { color: 0x2dd4bf, intensity: 0.9, distance: 4.5, y: 1.4 },
     precursor_cache: { color: 0x67e8f9, intensity: 0.55, distance: 3, y: 0.8 },
     artifact_heart: { color: 0xfb7185, intensity: 1.1, distance: 5.5, y: 1.5 },
+    // The portal station (Departure D2): a station's violet
+    // shine, grand-room scale — the epic note Adam asked the
+    // finale's places to carry.
+    portal_ring: { color: 0xa78bfa, intensity: 1.5, distance: 10, y: 2.4 },
+    // The Presence (Departure D3): a living green glow, wide
+    // and low — the grove itself is the lamp.
+    the_presence: { color: 0x84cc16, intensity: 1.3, distance: 11, y: 2.6 },
+    // The Deep BioTunnel (Departure D3): a deep green breath
+    // from the throat.
+    deep_biotunnel_mouth: { color: 0x4ade80, intensity: 1.1, distance: 8, y: 1.6 },
+    // The Memorial (Departure D4): a warm remembering glow.
+    memorial: { color: 0xfbbf24, intensity: 0.9, distance: 7, y: 1.8 },
+    // The Scar (Departure D5): a wrong red light, low and
+    // close — it does not so much glow as leak.
+    the_scar: { color: 0xdc2645, intensity: 0.8, distance: 6, y: 0.6 },
     ruin_glyph: { color: 0xa5b4fc, intensity: 0.6, distance: 3, y: 1.1 },
   };

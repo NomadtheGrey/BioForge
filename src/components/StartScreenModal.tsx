@@ -8,10 +8,11 @@
  *     Clicking one loads it. The trash button deletes — two-step, because
  *     deletion is forever and a misclick shouldn't cost anyone a base.
  *   - NEW GAME: name a world, pick its difficulty, and set its seed.
- *     Only Peaceful is selectable today; Normal and Hostile are shown
- *     disabled, per design, until hostile creature AI exists to give
- *     them meaning. The seed is pre-rolled and editable — the world's
- *     fingerprint, saved with it; generation grows from it.
+ *     Peaceful and Normal are selectable; Hostile is shown disabled
+ *     until PLAYER-VS-PLAYER combat exists to give it meaning (its
+ *     creature side is Normal's, already wired). The seed is
+ *     pre-rolled and editable — the world's fingerprint, saved
+ *     with it; generation grows from it.
  *   - JOIN CO-OP: a door for guests. Joining somebody else's world needs
  *     no local save at all, so it bypasses this screen's save logic and
  *     simply opens the game with the multiplayer panel ready.
@@ -55,12 +56,12 @@ interface StartScreenModalProps {
 
 /**
  * The difficulty choices, in the order the screen shows them. `playable`
- * is what greys Normal and Hostile out — flip a flag here when its AI
- * lands and the button lights up with no other UI change needed.
+ * is what greys an option out — flip a flag here when its missing
+ * piece lands and the button lights up with no other UI change.
  */
 const DIFFICULTY_OPTIONS: { id: GameDifficulty; label: string; blurb: string; playable: boolean }[] = [
   { id: 'peaceful', label: 'PEACEFUL', blurb: 'Creatures never attack. Tend, tame, build.', playable: true },
-  { id: 'normal', label: 'NORMAL', blurb: 'The land itself can kill you — death wakes you at the spawn base. Wild creatures still keep their peace, for now.', playable: true },
+  { id: 'normal', label: 'NORMAL', blurb: 'Hunters hunt and the land can kill you — death wakes you at the spawn base. Your weapons are live out there; the spawn zone itself stays a refuge.', playable: true },
   { id: 'hostile', label: 'HOSTILE', blurb: 'Normal, plus explorers can fight each other.', playable: false },
 ];
 
@@ -290,7 +291,7 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
                   key={option.id}
                   disabled={!option.playable}
                   onClick={() => setDifficulty(option.id)}
-                  title={option.playable ? option.blurb : 'Coming soon — needs hostile creature AI'}
+                  title={option.playable ? option.blurb : 'Coming soon — needs player-vs-player combat'}
                   className={
                     !option.playable
                       ? 'p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-600 cursor-not-allowed text-left'

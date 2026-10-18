@@ -116,6 +116,14 @@ interface HUDProps {
   edgeZoneLabel: string | null;
   /** The current zone's grid coordinates, e.g. "Zone 0, 0" (spawn tracking). */
   zoneCoordsLabel: string;
+  // The REFUGE pair (Adam's rulings via the background lane,
+  // 2026-10-18): the spawn zone (0,0) keeps Peaceful's peace
+  // on every world — isRefuge marks the zone panel while the
+  // player stands in it on an armed world, and leavingSafety
+  // carries the mode of a just-crossed border so the warning
+  // popup can speak exactly (see App's crossing watch).
+  isRefuge?: boolean;
+  leavingSafety?: GameDifficulty | null;
   /** While inside a cavern: where the cave exit is (the radar draws a
    * violet way-out arrow toward it). Null on the surface. */
   caveExitTarget: { x: number; z: number } | null;
@@ -213,6 +221,7 @@ import { TutorialChrome } from './TutorialChrome';
 import type { UseTutorialResult } from '../hooks/useTutorial';
 
 import { HudOptionsPanel } from './HudOptionsPanel';
+import type { GameDifficulty } from '../game/saveSystem';
 import { CreditsModal } from './CreditsModal';
 import { DonateButton } from './DonateButton';
 import { multiplayerManager, RELAY_BASE_URL } from '../game/multiplayer';
@@ -325,6 +334,8 @@ export const HUD: React.FC<HUDProps> = ({
   currentBiomeType,
   edgeZoneLabel,
   zoneCoordsLabel,
+  isRefuge,
+  leavingSafety,
   caveExitTarget,
   radarActive,
   radarTier,
@@ -974,6 +985,11 @@ export const HUD: React.FC<HUDProps> = ({
                   Edge · {edgeZoneLabel}
                 </span>
               )}
+              {isRefuge && (
+                <span className="text-[10px] font-mono text-emerald-300/90">
+                  Refuge · nothing here can harm you
+                </span>
+              )}
             </div>
           </div>
 
@@ -1273,6 +1289,31 @@ export const HUD: React.FC<HUDProps> = ({
               {/* DONATE rides beside CREDITS here too (Adam,
                   2026-10-18) — capped until the page stands. */}
               <DonateButton variant="popup" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* LEAVING SAFETY (Adam, 2026-10-18): the border word.
+          Crossing out of the spawn refuge on an armed world
+          arms everything the world's difficulty governs —
+          the player hears it ONCE, at the border, in words
+          exact to the mode (PvP harm is Hostile's alone).
+          Peaceful worlds never see it: nothing arms there.
+          Transient by App's timer; pointer-transparent. */}
+      {leavingSafety && (
+        <div className="absolute inset-x-0 top-[17%] flex justify-center pointer-events-none z-30 px-4">
+          <div className="glass-panel px-5 py-3 rounded-2xl border border-amber-500/50 shadow-2xl flex items-center gap-3 animate-fade-in max-w-md">
+            <Shield className="w-5 h-5 text-amber-300 shrink-0" />
+            <div className="flex flex-col">
+              <span className="font-tech text-xs font-bold tracking-widest text-amber-200">
+                LEAVING SAFETY
+              </span>
+              <span className="text-xs text-slate-200 leading-snug">
+                {leavingSafety === 'hostile'
+                  ? 'The wild country is armed — hunters hunt, the land can kill you, and explorers can harm explorers. You can harm them; they can harm you.'
+                  : 'The wild country is armed — hunters hunt, the land can kill you, and your weapons are live.'}
+              </span>
             </div>
           </div>
         </div>

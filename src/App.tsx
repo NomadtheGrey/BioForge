@@ -2860,6 +2860,39 @@ const {
     helmetReadTier(inventory),
   );
 
+  // LEAVING SAFETY — the border watch (Adam, 2026-10-18).
+  // The spawn zone (0,0) is the REFUGE: it keeps Peaceful's
+  // peace on every world (the background lane's refuge rule).
+  // When the player's zone steps OUT of it on an armed world,
+  // everything the difficulty governs arms at that border —
+  // so the HUD speaks once, at the crossing, in the mode's
+  // exact words. Edge-triggered only: the first zone observed
+  // in a session merely sets the baseline (loading a save
+  // outside the refuge is not a crossing), and stepping back
+  // in re-arms the watch for the next exit. Peaceful worlds
+  // never speak — nothing arms there.
+  const prevZoneRef = useRef<{ zx: number; zz: number } | null>(null);
+  const [leavingSafety, setLeavingSafety] = useState<GameDifficulty | null>(null);
+  useEffect(() => {
+    if (!hasStarted) {
+      prevZoneRef.current = null;
+      return;
+    }
+    const prev = prevZoneRef.current;
+    prevZoneRef.current = playerZone;
+    if (!prev) return;
+    const wasRefuge = prev.zx === 0 && prev.zz === 0;
+    const isRefugeNow = playerZone.zx === 0 && playerZone.zz === 0;
+    if (wasRefuge && !isRefugeNow) {
+      const difficulty = currentSaveRef.current?.difficulty ?? 'peaceful';
+      if (difficulty !== 'peaceful') {
+        setLeavingSafety(difficulty);
+        const id = window.setTimeout(() => setLeavingSafety(null), 5200);
+        return () => window.clearTimeout(id);
+      }
+    }
+  }, [playerZone, hasStarted]);
+
   const hoverHint: string | null = (() => {
     if (playerState.activeTool !== 'planter_trowel' || hoverInfo?.type !== 'flora') return null;
     const flora = hoverInfo.entity;
@@ -3000,6 +3033,12 @@ const {
         currentBiomeType={inCavern ? 'Cavern' : inRuin ? 'Ruin Interior' : currentZoneBiomeLabel}
         edgeZoneLabel={inCavern || inRuin ? null : edgeZoneLabel}
         zoneCoordsLabel={inCavern || inRuin ? 'Instanced Zone' : zoneCoordsLabel}
+        isRefuge={
+          playerZone.zx === 0 &&
+          playerZone.zz === 0 &&
+          (currentSaveRef.current?.difficulty ?? 'peaceful') !== 'peaceful'
+        }
+        leavingSafety={leavingSafety}
         inventory={inventory}
         caveExitTarget={caveExitTarget}
         radarActive={radarTier >= 1}

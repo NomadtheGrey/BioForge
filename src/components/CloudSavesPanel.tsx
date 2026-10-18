@@ -188,7 +188,9 @@ export const CloudSavesPanel: React.FC<CloudSavesPanelProps> = ({ onImport }) =>
           ) : (
             <p className="text-xs text-slate-400 mt-1">
               Off — your worlds live only on this device. Turn it on and a copy of each save
-              follows three words you choose, so your worlds can meet you on another computer.
+              follows three words the game deals you — yours to keep — so your worlds can
+              meet you on another computer. Already have words from another device? Bring
+              them home with I HAVE MY WORDS below.
             </p>
           )}
           {note && <p className="text-xs text-sky-200 mt-2">{note}</p>}
@@ -210,12 +212,22 @@ export const CloudSavesPanel: React.FC<CloudSavesPanelProps> = ({ onImport }) =>
               </button>
             </>
           ) : (
-            <button
-              onClick={turnOn}
-              className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 hover:from-sky-400 hover:to-cyan-300 text-slate-950 text-xs font-tech font-bold flex items-center gap-1.5 active:scale-95 transition-all"
-            >
-              <Cloud className="w-3.5 h-3.5" /> TURN ON
-            </button>
+            <>
+              <button
+                onClick={turnOn}
+                title="Start fresh — the game deals you three new words"
+                className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 hover:from-sky-400 hover:to-cyan-300 text-slate-950 text-xs font-tech font-bold flex items-center gap-1.5 active:scale-95 transition-all"
+              >
+                <Cloud className="w-3.5 h-3.5" /> TURN ON — NEW WORDS
+              </button>
+              <button
+                onClick={() => { setDoorOpen(true); setNote(null); }}
+                title="Bring words you already have — from another device — home to this one"
+                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-tech font-bold flex items-center gap-1.5 transition-colors"
+              >
+                <KeyRound className="w-3.5 h-3.5" /> I HAVE MY WORDS
+              </button>
+            </>
           )}
         </div>
       </div>

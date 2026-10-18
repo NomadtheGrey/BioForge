@@ -2137,6 +2137,15 @@ const {
     healthRef.current = playerState.health;
   }, [playerState.health]);
   const variantAlertedRef = useRef<Set<string>>(new Set());
+  // The WORLD's difficulty, resolved once per render (Adam,
+  // 2026-10-18: the host's save determines difficulty for
+  // everyone in the world): a guest reads the host's law
+  // (adopted on world sync); solo and hosting, your own
+  // save is the law. The zone evaluator's armed switch, the
+  // border-word watch, and the Refuge panel line all read
+  // THIS — a guest in an armed world is under its law in
+  // every surface, never their own save's.
+  const worldDifficulty: GameDifficulty = hostDifficultyRef.current ?? currentSaveRef.current?.difficulty ?? 'peaceful';
   useEffect(() => {
     // The margin check comes FIRST (2026-10-15): a hybrid zone's
     // face is its hybrid def — variant suppressed, effects read
@@ -2158,8 +2167,8 @@ const {
     // isArmedAt (saveSystem) stands the switch down in the
     // spawn zone under any law. This effect re-runs on every
     // zone change, so crossing the refuge border re-reads
-    // the law in the same pass.
-    const worldDifficulty = hostDifficultyRef.current ?? currentSaveRef.current?.difficulty ?? 'peaceful';
+    // the law in the same pass. (worldDifficulty itself is
+    // resolved once per render, above the evaluator.)
     deathArmedRef.current = isArmedAt(worldDifficulty, playerZone.zx, playerZone.zz);
     sporeStaminaRef.current = faceEffect === 'spore_stamina';
     marshSluggishRef.current = faceEffect === 'marsh_sluggish';
@@ -2903,9 +2912,10 @@ const {
     const wasRefuge = prev.zx === 0 && prev.zz === 0;
     const isRefugeNow = playerZone.zx === 0 && playerZone.zz === 0;
     if (wasRefuge && !isRefugeNow) {
-      const difficulty = currentSaveRef.current?.difficulty ?? 'peaceful';
-      if (difficulty !== 'peaceful') {
-        setLeavingSafety(difficulty);
+      // The WORLD's law, not the player's own save (a guest
+      // in an armed world gets the word too).
+      if (worldDifficulty !== 'peaceful') {
+        setLeavingSafety(worldDifficulty);
         const id = window.setTimeout(() => setLeavingSafety(null), 5200);
         return () => window.clearTimeout(id);
       }
@@ -3055,7 +3065,7 @@ const {
         isRefuge={
           playerZone.zx === 0 &&
           playerZone.zz === 0 &&
-          (currentSaveRef.current?.difficulty ?? 'peaceful') !== 'peaceful'
+          worldDifficulty !== 'peaceful'
         }
         leavingSafety={leavingSafety}
         inventory={inventory}

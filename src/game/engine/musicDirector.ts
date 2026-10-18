@@ -214,7 +214,12 @@ const LOOKAHEAD = 0.8; // schedule this far ahead of the clock
 // retired the same day — see the header grammar note.)
 // The quiet end stays honest: sparse families stay sparse in
 // TIME (long rests), not in loudness (inaudible notes).
-const G = { pad: 0.085, motif: 0.15, glass: 0.12, guest: 0.08, hearth: 0.07 };
+// Third pass (Adam's ear, same day: 'it doesn't sound like
+// music — it's a few more hums'): the pads stepped BACK —
+// fewer, shorter, quieter, with air between them (see the pad
+// scheduler) — so the motif's figures stand in relief instead
+// of dissolving into a chord that never ends.
+const G = { pad: 0.055, motif: 0.15, glass: 0.12, guest: 0.08, hearth: 0.07 };
 
 export class MusicDirector {
   private mc: MusicContext | null = null;
@@ -298,21 +303,26 @@ export class MusicDirector {
       const night = mc.night;
       const drop = spec.nightDrop * night + (mc.biome === 'wetland' ? -12 * night : 0);
       const tones = [0, 2, 4]; // scale degrees: third, fifth, ninth-ish
-      const count = 2 + (this.rng() < 0.5 ? 1 : 0);
+      // Two tones, never three, and SHORT (9–13s against a
+      // 21–30s cycle): the pad used to sustain back-to-back
+      // into a de facto chord-drone — a hum wearing the pad's
+      // coat. Now it breathes in, and OUT, and the air between
+      // pad swells is part of the music.
+      const count = 2;
       for (let i = 0; i < count; i++) {
         const deg = spec.scale[tones[i] % spec.scale.length];
         const freq = midiHz(spec.root + 12 + deg + drop);
         const gain = G.pad * (mc.biome === 'frost' ? 1 + night * 0.5 : 1);
         scheduleTone({
           bus: 'music', voice: spec.pad, freq, at: at + i * 0.7,
-          dur: 16 + this.rng() * 6, gain, bright: 0.4, cutoffMul: spec.cutoffMul,
+          dur: 9 + this.rng() * 4, gain, bright: 0.4, cutoffMul: spec.cutoffMul,
         });
         if (spec.detunedPad) {
           // Fungal: a second reed, cents off the first — the
           // hollow's air is thick. The detune widens at night.
           scheduleTone({
             bus: 'music', voice: spec.pad, freq, at: at + i * 0.7,
-            dur: 15, gain: gain * 0.7, bright: 0.35,
+            dur: 9, gain: gain * 0.7, bright: 0.35,
             detune: Math.round(6 + night * 7), cutoffMul: spec.cutoffMul,
           });
         }
@@ -325,7 +335,7 @@ export class MusicDirector {
         });
       }
     }
-    this.nextPad = at + 17 + this.rng() * 9;
+    this.nextPad = at + 21 + this.rng() * 9;
   }
 
   // ── Layer: the motif ──────────────────────────────────────
@@ -379,6 +389,11 @@ export class MusicDirector {
     const baseGain = voice === 'glass' ? G.glass : G.motif;
     const len = mc.depth > 0 ? 1 + (rng() < 0.4 ? 1 : 0) : 2 + Math.floor(rng() * 4);
     const spacing = (0.9 + rng() * 1.1) * spec.spacingMul * (mc.depth > 0 ? 1.6 : 1);
+    // A phrase has a SHAPE (third pass): the first note leans
+    // in (accented), and the gaps between notes group them —
+    // a short step, a breath, a short step, a longer air —
+    // instead of an even drizzle of notes. Figures, not fog.
+    const GROUPING = [0.72, 1.18, 0.85, 1.35];
     let t = at;
     for (let i = 0; i < len; i++) {
       const step = [-2, -1, -1, 0, 1, 1, 2][Math.floor(rng() * 7)];
@@ -387,11 +402,15 @@ export class MusicDirector {
       const deg = spec.scale[this.degreeIdx % spec.scale.length];
       let noteVoice = voice;
       if (spec.glassVisits && rng() < 0.1) noteVoice = 'glass';
-      const freq = midiHz(spec.root + 12 + deg + octave + drop);
       const cometHigh = spec.comet === 'bright' && mc.comet ? 12 : 0;
+      // Reed-voiced motif notes CAP their length: a reed note
+      // at full pad duration is a swell, not a figure. Short,
+      // it speaks with an edge even in the meadow's night voice.
+      const noteDur = noteVoice === 'reed' ? Math.min(spec.noteDur, 1.15) : spec.noteDur;
+      const freq = midiHz(spec.root + 12 + deg + octave + drop + cometHigh);
       scheduleTone({
-        bus: 'music', voice: noteVoice, freq: midiHz(spec.root + 12 + deg + octave + drop + cometHigh),
-        at: t, dur: spec.noteDur, gain: baseGain, bright: 0.6, cutoffMul: spec.cutoffMul,
+        bus: 'music', voice: noteVoice, freq,
+        at: t, dur: noteDur, gain: baseGain * (i === 0 ? 1.3 : 1), bright: 0.6, cutoffMul: spec.cutoffMul,
       });
       if (spec.echo) {
         // Wetland: the note casts its reflection.
@@ -407,7 +426,7 @@ export class MusicDirector {
           gain: baseGain * 0.3, bright: 0.35,
         });
       }
-      t += spacing * (0.7 + rng() * 0.7);
+      t += spacing * GROUPING[i % GROUPING.length] * (0.85 + rng() * 0.3);
     }
     // Meadow's sky lean: one high glass note signs the phrase.
     if (spec.comet === 'glass' && mc.comet && night > 0.3) {
@@ -487,7 +506,7 @@ export class MusicDirector {
       for (const deg of [0, 7, third]) {
         scheduleTone({
           bus: 'music', voice: 'reed', freq: midiHz(spec.root + 12 + deg),
-          at, dur: 13, gain: 0.085 * gainMul, bright: 0.4,
+          at, dur: 9.5, gain: 0.085 * gainMul, bright: 0.4,
         });
       }
       scheduleTone({
@@ -498,7 +517,7 @@ export class MusicDirector {
       // Minutes per breath; slower at night. (Second pass:
       // the first pass's breaths stood so far apart that the
       // valley could read as silent — closer together now.)
-      this.nextBreath = at + 18 + night * 8;
+      this.nextBreath = at + 21 + night * 8;
     }
   }
 }

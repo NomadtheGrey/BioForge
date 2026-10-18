@@ -186,6 +186,10 @@ interface HUDProps {
   hoverInfo: HoverTarget;
   hoverHint?: string | null;
   notifications: GameNotification[];
+  /** Swat a toast away early (click). System word now lives
+   *  12s (useNotifications) — long enough to read, and no
+   *  toast should have to be waited out once read. */
+  onDismissNotification: (id: string) => void;
   roomCode?: string;
   peerCount: number;
   selectedStructureType: StructureType;
@@ -349,6 +353,7 @@ export const HUD: React.FC<HUDProps> = ({
   hoverInfo,
   hoverHint,
   notifications,
+  onDismissNotification,
   roomCode,
   peerCount,
   selectedStructureType,
@@ -1316,7 +1321,9 @@ export const HUD: React.FC<HUDProps> = ({
         {notifications.slice(0, 4).map((n) => (
           <div
             key={n.id}
-            className="glass-panel p-3 rounded-2xl flex items-start gap-3 border border-slate-700/60 shadow-lg animate-slide-left pointer-events-auto"
+            onClick={() => onDismissNotification(n.id)}
+            title="Dismiss"
+            className="glass-panel p-3 rounded-2xl flex items-start gap-3 border border-slate-700/60 shadow-lg animate-slide-left pointer-events-auto cursor-pointer"
           >
             <div
               className="w-2.5 h-2.5 rounded-full mt-1 shrink-0"

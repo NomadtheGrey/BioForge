@@ -40,6 +40,7 @@ import { MusicDirector, setActiveDirector, type MusicContext } from '../game/eng
 import { playCall, voiceParamsFor } from '../game/engine/creatureVoices';
 import { cometStatesAt, nightSkyAt, skyRosterNow } from '../game/world/skyCalendar';
 import { loadAudioSettings } from './useAudioSettings';
+import { soundEngine } from '../audio/soundEngine';
 
 // ---------------------------------------------------------------------------
 // The snapshot App hands over (built from its own refs)
@@ -145,6 +146,14 @@ export function useAudioEngine(deps: { getSnapshot: () => AudioSnapshot | null }
       if (json !== settingsJsonRef.current) {
         settingsJsonRef.current = json;
         applySettings(settings);
+        // ONE MUTE AUTHORITY (2026-10-18): the shelf Master
+        // also gates the LEGACY engine's one-shots (harvest
+        // chimes and kin, which predate the shelf and answer
+        // to their own flag). Driving it here — from the same
+        // settings change that re-folds the new graph — means
+        // the HUD mute button and the Options Master switch
+        // silence EVERYTHING, never half the game.
+        soundEngine.setMuted(!(settings.master?.on ?? true));
       }
 
       const ac = audioCtx();

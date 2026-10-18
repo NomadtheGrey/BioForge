@@ -280,6 +280,11 @@ export class BioForgeThreeEngine {
   // Pooled dynamic lighting: a fixed set of real PointLights fed by
   // grid-merged sources, plus one glow sprite per merged cell.
   private lightPool: THREE.PointLight[] = [];
+  /** The probe snapshot: what the pool actually assigned at
+   * the last refresh (see updateLighting) — the browser-side
+   * instrument for the ground-light dark test, mirrored to
+   * window.__bioforgeLightPool. Read-only by convention. */
+  public lightPoolSnapshot: { color: string; intensity: number; distance: number; heightAboveGround: number; groundLux: number }[] = [];
   private glowSprites: Map<string, THREE.Sprite> = new Map();
   private glowTexture: THREE.Texture | null = null;
   private lastLightUpdate: number = 0;
@@ -318,6 +323,42 @@ export class BioForgeThreeEngine {
    * light forward — the bearer sees what the wall faces.
    */
   private heldLightBraced: boolean = false;
+
+  /** Biolume Visor (helmet build, 2026-10-18): the helm's
+   * living-light sight. The game loop drives this per frame
+   * from the worn derivation (creatures/helmet.ts), the same
+   * way it drives the held light above. The treatment is
+   * threefold, all of it gated to genuinely dark country so
+   * daylight never washes: (1) a dim living glow at the
+   * player's brow in updateLighting's source pool — walk-by
+   * light at your feet, far weaker than a carried lantern
+   * (the lantern keeps its job); (2) the cavern's whisper
+   * lifts and its fog thins (applyCavernLighting), so the
+   * cave's own living light — fungus glow, portal light —
+   * reads at distance instead of drowning; (3) ruin gloom
+   * lifts a step. Dead country gets only the brow-glow: the
+   * visor reads LIVING light, it does not invent daylight. */
+  private biolumeVisorActive: boolean = false;
+
+  /** App drives this via the loop from the worn state:
+   * helm owned + visor owned (ownership is installation). */
+  public setBiolumeVisor(active: boolean): void {
+    if (this.biolumeVisorActive === active) return;
+    this.biolumeVisorActive = active;
+    // The static contexts re-apply on the toggle itself; the
+    // pooled brow-glow follows the flag per frame.
+    if (this.cavernMode) this.applyCavernLighting();
+    if (this.ruinMode) this.ambientLight.intensity = active ? 0.42 : 0.3;
+  }
+
+  /** The last surface dayness the day/night pass computed
+   * (1 = full day). The visor's dark gate reads it. */
+  private lastDayness: number = 1;
+  /** The cavern's depth + darkness color, kept so the
+   * visor's toggle can re-apply the cavern lighting
+   * mid-cave (applyCavernLighting). */
+  private cavernDepthLevel: number = 1;
+  private cavernDarkColor = new THREE.Color(0x020208);
   private cachedPlayerZ: number = 0;
 
   // Spore particles
@@ -1573,29 +1614,57 @@ export class BioForgeThreeEngine {
     this.glowTexture = makeGlowTexture();
   }
 
+  // ------------------------------------------------------------------
+  // THE GROUND-LIGHT FIX (2026-10-18, Adam: "We want the ground
+  // lit — that's about as important as anything.")
+  //
+  // The diagnosis, for whoever reads this next: every physical
+  // thing in this engine rides the terrain — meshes by their
+  // transforms, the camera by eyeHeight + terrainHeightAt,
+  // creatures by the kit's height callback. Light SOURCES were
+  // the one exception: their y was a flat-era constant (the
+  // table's "height the light rides at"), never lifted by the
+  // ground beneath them. On any land standing taller than the
+  // constant — most shaped country — the pooled light sat
+  // UNDERGROUND, and ground whose normal faces up receives
+  // nothing from a light below its horizon: emissive plants
+  // glowed, sprites haloed, and no pool ever landed. The rule
+  // now, for every source: y = the ground it stands on + the
+  // spec's ride height. terrainHeightAt is instance-aware
+  // (0 in caverns/ruins, where floors are flat), so the one
+  // rule is correct in every context. Structures mirror the
+  // placement transform's own ground formula (datum + story).
+  // ------------------------------------------------------------------
   private getFloraLightSpec(flora: FloraEntity): LightSource {
     const id = `flora:${flora.id}`;
+    const groundY = this.terrainHeightAt(flora.x, flora.z);
     if (flora.species === 'lantern_fern') {
       // Growth curve preserved from the per-mesh era: feeble seedling (stage 0)
       // to brilliant mature fern (stage 5). Merging multiplies from here.
       const g = (0.45 + flora.growthStage * 0.14) / 0.45;
-      return { id, x: flora.x, y: 2.2, z: flora.z, color: 0x06b6d4, intensity: 1.8 * g ** 3, distance: 8 * g };
+      return { id, x: flora.x, y: groundY + 2.2, z: flora.z, color: 0x06b6d4, intensity: 1.8 * g ** 3, distance: 8 * g };
     }
     const b = this.floraLightBase[flora.species];
-    return { id, x: flora.x, y: b.y, z: flora.z, color: b.color, intensity: b.intensity, distance: b.distance };
+    return { id, x: flora.x, y: groundY + b.y, z: flora.z, color: b.color, intensity: b.intensity, distance: b.distance };
   }
 
   private getStructureLightSpec(s: StructureEntity): LightSource {
     const id = `struct:${s.id}`;
+    // The placement transform's ground formula, mirrored
+    // (applyTerrainTransform): the build's datum if it has
+    // one, the terrain if not, plus a story per level.
+    const groundY =
+      (this.structureDatums.get(s.id) ?? this.terrainHeightAt(s.worldX, s.worldZ)) +
+      (s.level ?? 0) * STORY_HEIGHT;
     if (s.type === 'lantern_fern_post') {
       // Crafted beats wild (Adam, 2026-10-17): the post is a
       // LAMP, grown on purpose, and must outshine the plant it
       // came from — a mature wild fern peaks near 30 / 20 on
       // the growth curve above, so the post stands at 40 / 26.
-      return { id, x: s.worldX, y: 2.7, z: s.worldZ, color: 0x06b6d4, intensity: 40, distance: 26 };
+      return { id, x: s.worldX, y: groundY + 2.7, z: s.worldZ, color: 0x06b6d4, intensity: 40, distance: 26 };
     }
     const b = this.structureLightBase[s.type];
-    return { id, x: s.worldX, y: b.y, z: s.worldZ, color: b.color, intensity: b.intensity, distance: b.distance };
+    return { id, x: s.worldX, y: groundY + b.y, z: s.worldZ, color: b.color, intensity: b.intensity, distance: b.distance };
   }
 
   private updateLighting(): void {
@@ -1638,7 +1707,10 @@ export class BioForgeThreeEngine {
       sources.push({
         id: 'held:lantern',
         x: sx,
-        y: 1.6,
+        // The ground-light rule (see getFloraLightSpec): the
+        // carried light rides the ground it stands over —
+        // sampled at the (possibly thrown-forward) position.
+        y: this.terrainHeightAt(sx, sz) + 1.6,
         z: sz,
         color: 0x67e8f9,
         // A carried light must do a lamp's work (Adam's play
@@ -1650,6 +1722,30 @@ export class BioForgeThreeEngine {
         // flashlight — goes to 55/34.
         intensity,
         distance,
+      });
+    }
+
+    // The BIOLUME VISOR (helmet build, 2026-10-18): a dim
+    // living glow at the player's brow, fed into the same
+    // pool. It burns ONLY where the world is actually dark —
+    // a cave, a ruin, deep night (dayness under a quarter) —
+    // so daylight never washes and the visor stays a dark-
+    // country instrument. Deliberately far weaker than the
+    // held lantern (10/13 against its 40/26): the visor lets
+    // you walk by living light; the lantern still lights a
+    // room. In dead country this glow is all you get.
+    if (
+      this.biolumeVisorActive &&
+      (this.cavernMode || this.ruinMode || this.lastDayness < 0.25)
+    ) {
+      sources.push({
+        id: 'visor:biolume',
+        x: this.cachedPlayerX,
+        y: this.terrainHeightAt(this.cachedPlayerX, this.cachedPlayerZ) + 1.7,
+        z: this.cachedPlayerZ,
+        color: 0x8ff5d2,
+        intensity: 10,
+        distance: 13,
       });
     }
 
@@ -1704,6 +1800,29 @@ export class BioForgeThreeEngine {
     });
     for (let i = ranked.length; i < this.lightPool.length; i++) {
       this.lightPool[i].visible = false;
+    }
+
+    // THE PROBE (ground-light fix, 2026-10-18): record what
+    // the pool just did, in the terms the dark test is judged
+    // by — each live light's strength, its height above the
+    // ground it stands on (negative would mean buried: the
+    // old bug, visible at a glance), and the illuminance its
+    // center delivers to the ground directly below it
+    // (physical falloff: intensity / height²). Mirrored to
+    // window.__bioforgeLightPool for devtools reading.
+    this.lightPoolSnapshot = ranked.slice(0, this.lightPool.length).map((entry) => {
+      const heightAboveGround = entry.cy - this.terrainHeightAt(entry.cx, entry.cz);
+      const intensity = entry.mergedI * this.zoneLightIntensityMult;
+      return {
+        color: `#${entry.color.getHexString()}`,
+        intensity: Math.round(intensity * 10) / 10,
+        distance: Math.round(entry.mergedD * this.zoneLightDistanceMult * 10) / 10,
+        heightAboveGround: Math.round(heightAboveGround * 100) / 100,
+        groundLux: Math.round((intensity / Math.max(0.25, heightAboveGround ** 2)) * 10) / 10,
+      };
+    });
+    if (typeof window !== 'undefined') {
+      (window as unknown as { __bioforgeLightPool?: unknown }).__bioforgeLightPool = this.lightPoolSnapshot;
     }
 
     const seen = new Set<string>();
@@ -1965,6 +2084,7 @@ export class BioForgeThreeEngine {
     // frame from animate — this pass owns only color + strength.
     const sunSigned = Math.sin((Math.PI * (cycle - 0.25)) / 0.5);
     const dayness = THREE.MathUtils.smoothstep(sunSigned, -0.12, 0.3);
+    this.lastDayness = dayness;
     const twilight = THREE.MathUtils.clamp(1 - Math.abs(sunSigned) / 0.4, 0, 1);
     const sky = this.skyScratch
       .setHex(0x050811)
@@ -2004,21 +2124,21 @@ export class BioForgeThreeEngine {
       // depth level down is darker still (Adam's deeper caves: the
       // darkness itself is the gradient) — fog thickens, the whisper
       // thins, and carried light starts to matter.
-      const sink = Math.max(0, depthLevel - 1);
-      this.dirLight.intensity = Math.max(0.015, 0.03 - sink * 0.008);
-      this.hemiLight.intensity = 0.08;
-      this.ambientLight.intensity = Math.max(0.03, 0.05 - sink * 0.01);
       // Cave resemblance (2026-10-15): the dark itself wears the
       // surface family's color, pre-faded by depth in the cavern's
       // meta (the deep forgets the surface — by L5 the blend is a
       // whisper). Fog + background carry it; the cave's own light
       // sources stay their own colors.
+      // The depth + the computed darkness are KEPT (fields),
+      // and the values themselves are written by
+      // applyCavernLighting — one writer, so the Biolume
+      // Visor's toggle can re-apply them mid-cave.
+      this.cavernDepthLevel = depthLevel;
       const caveDark = new THREE.Color(0x020208);
       const tint = cavern?.meta.biomeTint;
       if (tint) caveDark.lerp(new THREE.Color(tint.color), tint.strength);
-      this.scene.background = caveDark;
-      fog.color.copy(caveDark);
-      fog.density = 0.055 + sink * 0.014;
+      this.cavernDarkColor.copy(caveDark);
+      this.applyCavernLighting();
     } else {
       this.clearCavern();
       // Restore the surface sky: hemisphere back to its built value,
@@ -2031,6 +2151,28 @@ export class BioForgeThreeEngine {
 
   public isInCavern(): boolean {
     return this.cavernMode;
+  }
+
+  /** The cavern's darkness values, written in ONE place:
+   * setCavernMode enters through here, and the Biolume
+   * Visor's toggle re-applies through here. Visor off, the
+   * values are the cave's own (whisper + depth sink). Visor
+   * on, the whisper lifts to a navigable floor and the fog
+   * thins, so the cave's living light carries at distance —
+   * the depths still sink, and dead stretches stay dim: the
+   * lift is a floor, not a flood. */
+  private applyCavernLighting(): void {
+    const sink = Math.max(0, this.cavernDepthLevel - 1);
+    const visor = this.biolumeVisorActive;
+    this.dirLight.intensity = Math.max(0.015, 0.03 - sink * 0.008);
+    this.hemiLight.intensity = visor ? 0.2 : 0.08;
+    this.ambientLight.intensity = visor
+      ? Math.max(0.16, 0.2 - sink * 0.012)
+      : Math.max(0.03, 0.05 - sink * 0.01);
+    this.scene.background = this.cavernDarkColor;
+    const fog = this.scene.fog as THREE.FogExp2;
+    fog.color.copy(this.cavernDarkColor);
+    fog.density = (0.055 + sink * 0.014) * (visor ? 0.6 : 1);
   }
 
   /** The standing cavern Heart's world position (THE
@@ -2239,9 +2381,11 @@ export class BioForgeThreeEngine {
     if (on) {
       // Dim daylight-leak: brighter than a cave (you can navigate
       // by it), dark enough that held light still earns its slot.
+      // The Biolume Visor lifts the gloom a step (its toggle
+      // re-applies this same value while a ruin stands open).
       this.dirLight.intensity = 0.32;
       this.hemiLight.intensity = 0.38;
-      this.ambientLight.intensity = 0.3;
+      this.ambientLight.intensity = this.biolumeVisorActive ? 0.42 : 0.3;
       this.scene.background = new THREE.Color(0x10151c);
       fog.color.setHex(0x10151c);
       fog.density = 0.03;

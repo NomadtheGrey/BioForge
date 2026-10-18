@@ -39,6 +39,7 @@ import { FirstPersonMovementController, ControllerInputState } from './game/engi
 import { useInventory } from './hooks/useInventory';
 import { useNotifications } from './hooks/useNotifications';
 import { useSystemFeed } from './hooks/useSystemFeed';
+import { loadAudioSettings, setMasterOnExternal } from './hooks/useAudioSettings';
 import { useHudLayout } from './hooks/useHudLayout';
 import { useAudioEngine, type AudioSnapshot } from './hooks/useAudioEngine';
 import { projectSystemLines } from './game/systemChat';
@@ -124,6 +125,7 @@ import { ChapterModal } from './components/ChapterModal';
 import { ScarChoiceModal } from './components/ScarChoiceModal';
 import { bestWeapon } from './game/creatures/weapons';
 import { windlungTierOf, staminaFactors } from './game/creatures/quicksteps';
+import { biolumeVisorWorn, helmetReadTier } from './game/creatures/helmet';
 import type { WeaponDef } from './game/creatures/weapons';
 // The Shield Family (Adam, 2026-10-17): rules, the wield hook, and
 // the Left Hand cycle grammar.
@@ -147,7 +149,7 @@ import { useStorage } from './hooks/useStorage';
 import { useVat } from './hooks/useVat';
 import { useDebugKit } from './hooks/useDebugKit';
 import { usePlaytestKit } from './hooks/usePlaytestKit';
-import { useZoneTravel, ZONE_ID_INSTALLED, WORLD_EDGE_COORD, ZONE_PUSH_SECONDS, ZONE_PUSH_MIN_COMPONENT, type PendingTravel } from './hooks/useZoneTravel';
+import { useZoneTravel, WORLD_EDGE_COORD, ZONE_PUSH_SECONDS, ZONE_PUSH_MIN_COMPONENT, type PendingTravel } from './hooks/useZoneTravel';
 import { useInstances } from './hooks/useInstances';
 import { useSaveSession } from './hooks/useSaveSession';
 /** S6 Movable Vaults: the carry state lives in App, owned here. */
@@ -201,6 +203,7 @@ export default function App() {
   const {
     notifications,
     postNotification,
+    clearNotification,
   } = useNotifications();
 
   // The system channel (system messages, Adam 2026-10-18):
@@ -402,7 +405,12 @@ export default function App() {
     }
   }, [recordAsksEvent]);
   const [dayNightCycle, setDayNightCycle] = useState<number>(0.35);
-  const [isMuted, setIsMuted] = useState(false);
+  // The mute button's truth is the SOUND shelf's Master
+  // switch (2026-10-18): it used to flip a private flag in
+  // the legacy engine, which silenced its ambient hum and
+  // nothing else — Adam caught the incoherence by ear. The
+  // button now flips the Master, and every engine obeys it.
+  const [isMuted, setIsMuted] = useState(() => !loadAudioSettings().master.on);
   const [isPointerLocked, setIsPointerLocked] = useState(false);
   // Touch-first devices (phones, tablets) have NO pointer lock —
   // mouse-look's lock simply doesn't exist there. On such a device
@@ -662,6 +670,10 @@ export default function App() {
     // Lazy: the save session composes below; the getter is only
     // exercised on travel, long after mount (pond gate, P5 move 2).
     getWorldCreatedAt: () => currentSaveRef.current?.createdAt ?? 0,
+    // The helm's zone-read tier, bridged like the other worn
+    // answers (helmet slice 2): the arrival announcement and
+    // the HUD labels read the one derivation.
+    getZoneReadTier: () => helmetReadTier(latestStateRef.current.inventory ?? {}),
     // The World Asks Back (2026-10-16): every crossing stamps a
     // zone-visit into the saga event log — the Director reads
     // these for echo timing and revisit goals.
@@ -2475,7 +2487,7 @@ const {
   useGameLoop({
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
     jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, lastStaminaSync,
-    sprinting, sporeStaminaRef, marshSluggishRef, getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0, hasPlumeCharm: () => (latestStateRef.current.inventory?.plume_charm ?? 0) > 0, windlungTier: () => windlungTierOf(latestStateRef.current.inventory ?? {}), scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
+    sprinting, sporeStaminaRef, marshSluggishRef, getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0, hasPlumeCharm: () => (latestStateRef.current.inventory?.plume_charm ?? 0) > 0, windlungTier: () => windlungTierOf(latestStateRef.current.inventory ?? {}), biolumeVisor: () => biolumeVisorWorn(latestStateRef.current.inventory ?? {}), scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef, returnPausedRef,
@@ -2816,7 +2828,7 @@ const {
     playerZone,
     playerPosRef.current.x,
     playerPosRef.current.z,
-    ZONE_ID_INSTALLED,
+    helmetReadTier(inventory),
   );
 
   const hoverHint: string | null = (() => {
@@ -2974,8 +2986,9 @@ const {
         }}
         isMuted={isMuted}
         onToggleMute={() => {
-          const next = soundEngine.toggleMute();
-          setIsMuted(next);
+          const muted = !isMuted;
+          setIsMuted(muted);
+          setMasterOnExternal(!muted);
         }}
         isPointerLocked={isPointerLocked}
         isReturnPaused={returnPaused}
@@ -2987,6 +3000,7 @@ const {
         hoverInfo={hoverInfo}
         hoverHint={hoverHint}
         notifications={notifications}
+        onDismissNotification={clearNotification}
         roomCode={roomCode}
         peerCount={peers.length}
         selectedStructureType={playerState.selectedStructureType}

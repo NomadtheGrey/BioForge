@@ -84,6 +84,11 @@ export interface GameLoopDeps {
   /** True while the player owns Ember Soles, the Quicksteps
    *  growth that answers hot ground: soles make lava a road. */
   hasEmberSoles?: () => boolean;
+  /** True while the Biolume Visor is WORN (helm + visor
+   *  owned — ownership is installation; creatures/helmet).
+   *  The loop drives the engine's visor treatment from it
+   *  per frame, beside the held light's drive. */
+  biolumeVisor?: () => boolean;
   /** True while the player carries a Plume Charm (Ingredient
    *  Sinks, 2026-10-17): fast falls glide instead of dropping. */
   hasPlumeCharm?: () => boolean;
@@ -210,7 +215,7 @@ export interface GameLoopDeps {
 export function useGameLoop(deps: GameLoopDeps): void {
   const {
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
-    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, getLiquidAt, hasEmberSoles, hasPlumeCharm, windlungTier, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
+    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, getLiquidAt, hasEmberSoles, biolumeVisor, hasPlumeCharm, windlungTier, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
     sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
@@ -743,6 +748,14 @@ export function useGameLoop(deps: GameLoopDeps): void {
             playerState.heldItemId === 'hand_lantern_fern' || heldShieldLamp,
             shieldCtl.raisedRef.current && heldShieldLamp
           );
+          // The Biolume Visor follows the helm per frame, the
+          // same way (helmet build, 2026-10-18): the worn
+          // derivation lives in creatures/helmet and arrives
+          // as the biolumeVisor getter dep (the loop's
+          // PlayerState carries no inventory — the getter
+          // pattern is how worn answers reach this file).
+          // The engine gates the treatment to dark country.
+          engineRef.current.setBiolumeVisor(!!(biolumeVisor && biolumeVisor()));
         }
 
         // Smooth Minimap Pos update (every 50ms)

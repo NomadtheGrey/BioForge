@@ -29,7 +29,7 @@
  * normalizes or floors a channel's gain upward.
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 /** Every kind of sound the game will make, as its own channel. */
 export type AudioChannelId =
@@ -133,8 +133,37 @@ export interface AudioSettings {
   gainFor: (id: AudioChannelId) => number;
 }
 
+export const AUDIO_SETTINGS_EVENT = 'bioforge:audio-settings-changed';
+
+/**
+ * Flip the MASTER switch from OUTSIDE the hook — the HUD's
+ * mute button lives in App's wiring, while the shelf state
+ * lives in this hook inside the HUD. One authority either
+ * way: this writes the same store the hook reads, then
+ * announces it so any live hook instance reloads and the
+ * Options switches never disagree with the button.
+ */
+export function setMasterOnExternal(on: boolean): void {
+  const next = loadAudioSettings();
+  next.master = { ...next.master, on };
+  saveAudioSettings(next);
+  try {
+    window.dispatchEvent(new Event(AUDIO_SETTINGS_EVENT));
+  } catch {
+    // No window (tests) — the store is still written.
+  }
+}
+
 export const useAudioSettings = (): AudioSettings => {
   const [state, setState] = useState<AudioSettingsState>(loadAudioSettings);
+
+  // Stay truthful when the master switch is flipped from
+  // outside (the mute button): reload the store on the event.
+  useEffect(() => {
+    const reload = () => setState(loadAudioSettings());
+    window.addEventListener(AUDIO_SETTINGS_EVENT, reload);
+    return () => window.removeEventListener(AUDIO_SETTINGS_EVENT, reload);
+  }, []);
 
   const update = useCallback((id: AudioChannelId, patch: Partial<AudioChannelState>) => {
     setState((prev) => {

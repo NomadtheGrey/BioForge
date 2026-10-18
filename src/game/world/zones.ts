@@ -315,12 +315,15 @@ export function zoneInfo(seedStr: string, zx: number, zz: number): ZoneInfo {
  * The HUD's zone labels for where the player stands (extracted from
  * App.tsx 2026-10-15 under the push-size trigger — this is pure
  * zones logic). Zone identification is a HELMET feature (Adam,
- * 2026-10-15): until a helmet with the zone-identifier upgrade
- * exists (`zoneIdInstalled`), the label does not name the land — it
- * carries the unidentified placeholder; the coordinates stay,
- * because counting zones from home is dead reckoning, not a sensor
- * reading. The edge label names the country beyond the nearest
- * border within 10 m, under the same gate.
+ * 2026-10-15), tiered by the lens line (helmet slice 2, 2026-10-18;
+ * the tier itself is derived in creatures/helmet.helmetReadTier):
+ * TIER 0 (no lens) the label does not name the land — it carries
+ * the unidentified placeholder; TIER 1 (Trail Lens) names the
+ * FAMILY only; TIER 2 (Identifier Lens) names family, variant,
+ * and all. The coordinates stay at every tier, because counting
+ * zones from home is dead reckoning, not a sensor reading. The
+ * edge label names the country beyond the nearest border within
+ * 10 m, under the same tiers.
  */
 export interface ZoneHudLabels {
   name: string;
@@ -334,17 +337,25 @@ export function zoneHudLabels(
   zone: ZoneCoords,
   playerX: number,
   playerZ: number,
-  zoneIdInstalled: boolean,
+  readTier: 0 | 1 | 2,
 ): ZoneHudLabels {
   const coordsLabel = `Zone ${zone.zx}, ${zone.zz}`;
   if (!seed) {
     return { name: 'Starting Zone', biomeLabel: null, coordsLabel, edgeLabel: null };
   }
   const here = zoneInfo(seed, zone.zx, zone.zz);
-  const name = zoneIdInstalled ? here.name : 'Unidentified Country';
-  const biomeLabel = zoneIdInstalled
-    ? zoneKindLabel(here)
-    : 'Zone Identifier not installed — a helmet upgrade reads the land';
+  // The tiered read (see the header): the Trail Lens names
+  // the country by its FAMILY — the proper name is dealt
+  // from the variant, so it waits for the Identifier.
+  const family = biomeDisplayName(here.biome);
+  const name =
+    readTier === 2 ? here.name : readTier === 1 ? `${family} Country` : 'Unidentified Country';
+  const biomeLabel =
+    readTier === 2
+      ? zoneKindLabel(here)
+      : readTier === 1
+        ? `Trail Lens read — the ${family} family; the variant stays the land's secret`
+        : 'Zone Identifier not installed — a helmet upgrade reads the land';
   // Within 10 m of the nearest border: the country beyond it.
   // North is -Z, per the minimap's orientation.
   const edges = [
@@ -356,11 +367,14 @@ export function zoneHudLabels(
   const nearest = edges.reduce((a, b) => (b.dist < a.dist ? b : a));
   let edgeLabel: string | null = null;
   if (nearest.dist <= 10) {
-    if (!zoneIdInstalled) {
+    if (readTier === 0) {
       edgeLabel = `${nearest.dir} — Unidentified Country`;
     } else {
       const beyond = zoneInfo(seed, nearest.zx, nearest.zz);
-      edgeLabel = `${nearest.dir} — ${beyond.name} · ${zoneKindLabel(beyond)}`;
+      edgeLabel =
+        readTier === 2
+          ? `${nearest.dir} — ${beyond.name} · ${zoneKindLabel(beyond)}`
+          : `${nearest.dir} — ${biomeDisplayName(beyond.biome)} Country`;
     }
   }
   return { name, biomeLabel, coordsLabel, edgeLabel };

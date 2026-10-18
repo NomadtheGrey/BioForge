@@ -39,6 +39,15 @@ export interface UseNotificationsResult {
 }
 
 const TOAST_TTL_MS = 4500;
+// System word (Adam, 2026-10-18: 'a brief system message at the
+// bottom left disappeared way too quickly'): posts keyed
+// 'system:<lineId>' are the OPERATOR's voice — build notices and
+// broadcasts. They are rare, they are longer than a pickup line,
+// and if the moment is missed the moment is the only place they
+// announce themselves (the text itself also lives on in the chat
+// log and the NEWS archive). So they keep the screen for a full
+// read instead of a gameplay toast's glance.
+const SYSTEM_WORD_TTL_MS = 12000;
 // How long a key stays quiet after its toast dies. Long
 // enough for the stack to visibly clear during a spree,
 // short enough that a genuinely new event is never old news.
@@ -107,7 +116,10 @@ export function useNotifications(): UseNotificationsResult {
         if (key) keyByIdRef.current.set(notif.id, key);
         timersRef.current.set(
           notif.id,
-          setTimeout(() => clearNotification(notif.id), TOAST_TTL_MS)
+          setTimeout(
+            () => clearNotification(notif.id),
+            key?.startsWith('system:') ? SYSTEM_WORD_TTL_MS : TOAST_TTL_MS
+          )
         );
         return [notif, ...prev.slice(0, 4)];
       });

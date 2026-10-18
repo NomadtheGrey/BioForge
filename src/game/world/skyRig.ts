@@ -873,9 +873,23 @@ export class SkyRig {
     // at midnight, zero at both horizons.
     const sunSigned = Math.sin((Math.PI * (cycle - 0.25)) / 0.5);
     const dayT = (cycle - 0.25) / 0.5;
+    // THE SKY LAW (Adam, 2026-10-18): "We'll pretend it's a
+    // universal law" — bodies rise in the EAST and set in
+    // the WEST, the way Earth's sky runs. East is +x (the
+    // zone grid's own compass: zones.ts names the +zx edge
+    // East), so the path's azimuth runs 0 → π across the
+    // band: at t=0 the body stands on the +x horizon, at
+    // t=1 on the −x. The CLOCK never changed — the cycle's
+    // phases (midnight → sunrise → noon → sunset) and the
+    // elevation curve are exactly as they were; only the
+    // azimuth path reversed. Everything downstream rides
+    // this one function — both suns, the giant on its
+    // mirrored night path, and the directional lights (and
+    // their shadows) positioned from the same directions —
+    // so the one reversal carries the whole sky with it.
     const pathDir = (t: number) => {
       const el = Math.sin(Math.PI * t);
-      const az = Math.PI * (1 - t);
+      const az = Math.PI * t;
       return new THREE.Vector3(Math.cos(az) * 0.92, el, 0.38).normalize();
     };
     const R = 165;
@@ -945,8 +959,11 @@ export class SkyRig {
         );
       }
     }
-    // The whole night dome wheels very slowly with the cycle.
-    this.starDome.rotation.y = cycle * 0.8;
+    // The whole night dome wheels very slowly with the cycle
+    // — signed to wheel WITH the bodies' road under the Sky
+    // Law (east → overhead → west), as it was signed to
+    // match the old road before the flip.
+    this.starDome.rotation.y = -cycle * 0.8;
     // Night fades: the engine's palette pass sets starMaterial's
     // opacity from dayness; everything else nocturnal follows
     // that one signal, scaled by its own max.

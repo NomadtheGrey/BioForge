@@ -17,6 +17,15 @@
 export const DONATE_URL: string | null = null;
 
 /**
+ * KOFI_URL: the maker's Ko-fi page (Adam, 2026-10-18) — the
+ * DonateModal's LIVE door, open today while the itch page
+ * waits for launch. Beside DONATE_URL on the switchboard:
+ * components read these constants; no address is hard-coded
+ * in a seat.
+ */
+export const KOFI_URL = 'https://ko-fi.com/nomadthegrey';
+
+/**
  * FEEDBACK_EMAIL: where a player's word lands (Adam,
  * 2026-10-18) — the game's own Gmail. The FeedbackModal
  * composes a note and hands it to the player's mail program

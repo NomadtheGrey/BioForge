@@ -70,14 +70,16 @@ export const DEFAULT_BUILD_NOTES: BuildNotes = {
  * applied).
  */
 export const BUILD_NOTES: BuildNotes = {
-  // The lantern fix + cloud doors clarified (2026-10-18):
-  // the game loop read the player's hand from a snapshot
-  // frozen at load, so the held lantern never lit; the
-  // cloud panel's two entries are now plainly labeled
-  // siblings (new words / I have my words).
-  title: 'Light, at last',
+  // The small-screen build (2026-10-18): HUD panels drag
+  // properly on touch (the browser used to claim every
+  // touch as a scroll before the drag could start), panels
+  // that arrive off-screen on a narrow phone rescue
+  // themselves, grip/close targets grow for fingers, the
+  // session bar fits the viewport — and the coordinates on
+  // screen now read like a map: north is positive.
+  title: 'In your pocket',
   lines: [
-    'The hand lantern lights again. A wiring fault meant the game checked the hand you had when your world loaded, not the one holding the lantern now — so the fern stayed dark at night and in caves, exactly where it matters. Raise it and walk: the ground lights the way it always should have. (A raised lamp-shield\'s throw works again too, for the same reason.)',
-    'And on the start screen, cloud saves now show their two doors plainly side by side: TURN ON — NEW WORDS if this is your first device, I HAVE MY WORDS if you\'re bringing a world home.',
+    'The game travels better now. On a phone, the HUD panels finally drag where your finger takes them — and if an arrangement saved on a big monitor lands a panel off the edge of a small screen, it nudges itself back into reach on its own. The little grip and close badges grow for touch, and the session bar fits the screen it\'s on.',
+    'And the coordinates read like a map at last: walk north and the zone number climbs. The world under the hood is unchanged — only the numbers on screen turned to face the way you do.',
   ],
 };

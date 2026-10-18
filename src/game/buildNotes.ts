@@ -70,14 +70,14 @@ export const DEFAULT_BUILD_NOTES: BuildNotes = {
  * applied).
  */
 export const BUILD_NOTES: BuildNotes = {
-  // Cloud-door adoption fix (2026-10-18): a device that
-  // arrived by the words door can now ADOPT those words —
-  // before, the door listed and imported but the typed
-  // words vanished, and TURN ON only dealt fresh ones, so
-  // an imported world could never save back to its own box.
-  title: 'Words that stay',
+  // The lantern fix + cloud doors clarified (2026-10-18):
+  // the game loop read the player's hand from a snapshot
+  // frozen at load, so the held lantern never lit; the
+  // cloud panel's two entries are now plainly labeled
+  // siblings (new words / I have my words).
+  title: 'Light, at last',
   lines: [
-    'A fix for travelers: if you brought a world down on a new computer by entering your three words, the door now offers USE THESE WORDS ON THIS DEVICE once your worlds answer. Take it, and this computer saves back to the same cloud box, under the same words — no fresh set dealt, no second box.',
-    'If you already turned cloud saves on here and were dealt new words by mistake: turn them off, enter your original words at the door, and adopt them when your worlds appear.',
+    'The hand lantern lights again. A wiring fault meant the game checked the hand you had when your world loaded, not the one holding the lantern now — so the fern stayed dark at night and in caves, exactly where it matters. Raise it and walk: the ground lights the way it always should have. (A raised lamp-shield\'s throw works again too, for the same reason.)',
+    'And on the start screen, cloud saves now show their two doors plainly side by side: TURN ON — NEW WORDS if this is your first device, I HAVE MY WORDS if you\'re bringing a world home.',
   ],
 };

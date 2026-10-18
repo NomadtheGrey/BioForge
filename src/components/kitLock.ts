@@ -19,9 +19,9 @@
 // zero cost to the one person typing it). The code itself
 // appears NOWHERE in the game. Adam supplies the code; the
 // dev lane relays it; the fingerprint constant below is
-// swapped at build time. (The current constant is the
-// fingerprint of a placeholder, replaced the moment the
-// real code is relayed.)
+// the whole swap. (Adam's code was relayed and swapped in
+// on 2026-10-18 — the placeholder that preceded it never
+// shipped to players.)
 //
 // UNLOCK IS SESSION-ONLY by default. "Remember this device"
 // (Adam's option, his control) stores a flag in localStorage
@@ -59,7 +59,7 @@ export function kitCodeFingerprint(code: string): string {
  * computed by kitCodeFingerprint, pasted here, nothing else
  * changes.
  */
-export const KIT_CODE_FINGERPRINT = 'e90cc67d';
+export const KIT_CODE_FINGERPRINT = '029f96a5';
 
 export function kitUnlocks(code: string): boolean {
   return code.length > 0 && kitCodeFingerprint(code) === KIT_CODE_FINGERPRINT;

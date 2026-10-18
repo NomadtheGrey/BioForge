@@ -26,7 +26,7 @@ import React from 'react';
 import { X, Sprout, Hand, HardHat, Footprints, Shield, DoorOpen } from 'lucide-react';
 import { DepartureInfoModal, DEPARTURE_TEASER } from './DepartureInfoModal';
 import { CreditsModal } from './CreditsModal';
-import { DONATE_URL } from '../game/links';
+import { DonateButton } from './DonateButton';
 
 interface GameInfoModalProps {
   isOpen: boolean;
@@ -248,8 +248,8 @@ export const GameInfoModal: React.FC<GameInfoModalProps> = ({ isOpen, onClose })
               the in-game door to the same pair the start
               header carries — a returning player shouldn't
               have to quit to the menu to find either. The
-              Support button renders only while DONATE_URL
-              stands set (game/links). */}
+              Donation button rides capped until the itch
+              page stands (DonateButton carries the rule). */}
           <div className="bg-slate-800/30 border border-slate-800 rounded-2xl px-4 py-3.5 space-y-2.5">
             <h3 className="text-xs font-tech font-bold uppercase tracking-wider text-slate-100">
               Who Grew This
@@ -265,14 +265,10 @@ export const GameInfoModal: React.FC<GameInfoModalProps> = ({ isOpen, onClose })
               >
                 CREDITS
               </button>
-              {DONATE_URL && (
-                <button
-                  onClick={() => { if (DONATE_URL) window.open(DONATE_URL, '_blank', 'noopener'); }}
-                  className="text-[11px] font-bold px-3 py-1.5 rounded-xl border border-rose-500/50 bg-rose-500/10 text-rose-200 hover:bg-rose-500/20 transition-colors"
-                >
-                  SUPPORT BIOFORGE
-                </button>
-              )}
+              {/* The Donation door beside Credits (Adam,
+                  2026-10-18) — capped until the itch page
+                  stands; DonateButton carries the rule. */}
+              <DonateButton variant="section" />
             </div>
           </div>
 

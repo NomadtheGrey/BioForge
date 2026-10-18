@@ -89,6 +89,27 @@ export interface GameLoopDeps {
    *  The loop drives the engine's visor treatment from it
    *  per frame, beside the held light's drive. */
   biolumeVisor?: () => boolean;
+  /** True while the Spore Filter is WORN (creatures/helmet):
+   *  the Hollow's spore tax stops at the filter, so the
+   *  drain line below never charges it. */
+  sporeFilter?: () => boolean;
+  /** True while the Charge Sight is WORN (creatures/helmet):
+   *  coming strikes paint their warned spots on the ground
+   *  (the engine's rings, driven below). */
+  chargeSight?: () => boolean;
+  /** True while Waders are GROWN (creatures/quicksteps):
+   *  the Mirror Marsh's wading drag is answered. */
+  waders?: () => boolean;
+  /** True while Webfoots are GROWN (creatures/quicksteps):
+   *  the swim ladder rises toward a stroke. */
+  webfoots?: () => boolean;
+  /** True while Stillsteps are GROWN (creatures/quicksteps):
+   *  still water holds the player's step. */
+  stillsteps?: () => boolean;
+  /** The STILL water surface at a point (ponds of plain
+   *  water only), bridged from the engine — the loop's
+   *  held-water test for the Stillsteps drag clear. */
+  getPondSurface?: (x: number, z: number) => number | null;
   /** True while the player carries a Plume Charm (Ingredient
    *  Sinks, 2026-10-17): fast falls glide instead of dropping. */
   hasPlumeCharm?: () => boolean;
@@ -215,7 +236,7 @@ export interface GameLoopDeps {
 export function useGameLoop(deps: GameLoopDeps): void {
   const {
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
-    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, getLiquidAt, hasEmberSoles, biolumeVisor, hasPlumeCharm, windlungTier, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
+    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, getLiquidAt, getPondSurface, hasEmberSoles, biolumeVisor, sporeFilter, chargeSight, waders, webfoots, stillsteps, hasPlumeCharm, windlungTier, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
     sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
@@ -271,19 +292,36 @@ export function useGameLoop(deps: GameLoopDeps): void {
         const wantSprint = (sprinting.current || touchInput.sprint) && staminaRef.current > 0;
         // Variant effect (Adam, 2026-10-15): Mirror Marsh wading
         // drag — every stride at 85% while on its surface. The
-        // planned answer is a boots module (Waders); until boots
-        // exist, the marsh is country you feel in your legs.
-        const wading = marshSluggishRef.current && instanceRef.current.kind === 'surface' ? 0.85 : 1;
+        // answer is the Waders growth (movement build,
+        // 2026-10-18): grown, the drag is simply not charged.
+        // (The marsh's variant effect is the marsh's alone —
+        // pond depth below is a different water and a
+        // different answer, per the items' own words.)
+        const wading = marshSluggishRef.current && instanceRef.current.kind === 'surface' && !(waders && waders()) ? 0.85 : 1;
         // Pond water (P5 move 2, Adam, 2026-10-16): real depth,
         // real drag — ankle water slows a stride a little, waist
-        // water a lot, chest water halves you. This is WADING;
-        // floating/swimming arrives with the movement platform.
-        // Waders (the Quicksteps growth) are the marsh's answer
-        // today; pond relief can hang on the same platform later.
+        // water a lot, chest water halves you. WEBFOOTS (the
+        // Quicksteps growth, movement build 2026-10-18) raise
+        // the ladder toward a stroke: deep water still costs,
+        // but it stops being a struggle — 0.8 / 0.9 / 0.95
+        // against the bare 0.5 / 0.65 / 0.85.
         const waterDepth = instanceRef.current.kind === 'surface' && getWaterDepth
           ? getWaterDepth(playerPosRef.current.x, playerPosRef.current.z)
           : 0;
-        const inWater = waterDepth > 1.0 ? 0.5 : waterDepth > 0.35 ? 0.65 : waterDepth > 0.05 ? 0.85 : 1;
+        const webbed = !!(webfoots && webfoots());
+        // STILLSTEPS (movement build, 2026-10-18): over held
+        // water — a pond of plain water under the growth —
+        // there is no wading at all: you are ON it, not in
+        // it (the engine stands the eye on the surface in
+        // setPlayerPosition, driven below). Rivers never
+        // hold (the pond query excludes them by construction),
+        // and the rim stays honest: a skim of water
+        // (≤ ankle depth) is shore, not a step.
+        const pondSurface = instanceRef.current.kind === 'surface' && getPondSurface
+          ? getPondSurface(playerPosRef.current.x, playerPosRef.current.z)
+          : null;
+        const onHeldWater = !!(stillsteps && stillsteps()) && pondSurface !== null && waterDepth > 0.05;
+        const inWater = onHeldWater ? 1 : waterDepth > 1.0 ? (webbed ? 0.8 : 0.5) : waterDepth > 0.35 ? (webbed ? 0.9 : 0.65) : waterDepth > 0.05 ? (webbed ? 0.95 : 0.85) : 1;
         // Rooted by the valley (Living, 2026-10-15): a landed
         // grab holds you at 40% speed while the snare lasts.
         const snared = performance.now() < grabSnareUntilRef.current && instanceRef.current.kind === 'surface' ? 0.4 : 1;
@@ -478,7 +516,12 @@ export function useGameLoop(deps: GameLoopDeps): void {
         // planned answer is a helmet + filter upgrade; until it
         // exists, the hollow is a place you cross, not linger in.
         // Surface only — underground is cave air, not hollow air.
-        const sporeTax = sporeStaminaRef.current && activeInstance.kind === 'surface' ? 8 * dt : 0;
+        // The Hollow's spore tax — unless the Spore Filter
+        // is worn (helmet slice 3): the tax stops at the
+        // filter, exactly as the item promises. The country
+        // ref still stands (the evaluator keeps teaching the
+        // land); only the charge is negated.
+        const sporeTax = sporeStaminaRef.current && activeInstance.kind === 'surface' && !(sporeFilter && sporeFilter()) ? 8 * dt : 0;
         // THE SHIELD (2026-10-17): a raised shield is effort —
         // bracing suppresses stamina recovery and drinks it slowly
         // (the braced tax). At empty the guard breaks: the shield
@@ -756,6 +799,32 @@ export function useGameLoop(deps: GameLoopDeps): void {
           // pattern is how worn answers reach this file).
           // The engine gates the treatment to dark country.
           engineRef.current.setBiolumeVisor(!!(biolumeVisor && biolumeVisor()));
+          // The Charge Sight (helmet slice 5): coming strikes
+          // paint their warned spots — read AFTER both warning
+          // blocks have run this frame, so the paint is never
+          // a frame stale. The zot's ring rides the player's
+          // feet (the bolt takes the cell you stand in when
+          // it lands); the grab's ring holds the warned spot
+          // (stepping clear is the dodge; the ring stays
+          // honest). The liveness gates (storm country armed,
+          // a Living temperament present) keep a warning flag
+          // stranded by death or travel from painting forever.
+          // Stillsteps (movement build, 2026-10-18): the
+          // engine stands the player on pond surfaces while
+          // the growth is worn (setStillsteps); the drag
+          // clear lives with the water factors above.
+          engineRef.current.setStillsteps(!!(stillsteps && stillsteps()));
+          const sightOn = !!(chargeSight && chargeSight());
+          engineRef.current.setChargeSight(
+            sightOn && stormZotRef.current > 0 && zotStateRef.current.warned
+              ? { x: moveResult.x, z: moveResult.z }
+              : null,
+            sightOn &&
+              (livingWelcomeRef.current || livingHungerRef.current || livingTwomindedRef.current) &&
+              grabStateRef.current.warned
+              ? { x: grabStateRef.current.warnX, z: grabStateRef.current.warnZ }
+              : null,
+          );
         }
 
         // Smooth Minimap Pos update (every 50ms)

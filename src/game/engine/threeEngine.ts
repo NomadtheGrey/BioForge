@@ -20,7 +20,7 @@ import {
 import { FirstPersonViewmodel } from './viewmodel';
 import type { ShieldDef } from '../creatures/shields';
 import { landformHeightAt, type PondLiquid } from '../world/terrain';
-import { buildWaterGroup, waterSurfaceFromLists, waterDepthFromLists, liquidFromLists, type PondLocal, type RiverSegLocal } from '../world/waterField';
+import { buildWaterGroup, waterSurfaceFromLists, waterDepthFromLists, liquidFromLists, pondWaterSurfaceAt, type PondLocal, type RiverSegLocal } from '../world/waterField';
 import { SkyRig } from '../world/skyRig';
 import { MoteField } from '../world/moteField';
 import { updateHearthTag } from '../creatures/hearthTag';
@@ -351,6 +351,27 @@ export class BioForgeThreeEngine {
     if (this.ruinMode) this.ambientLight.intensity = active ? 0.42 : 0.3;
   }
 
+  /** Shade Visor (helmet slice 3): glare country — the
+   * salt Flats, the Singing Ice, the Mirror Marsh — "dims
+   * to bearable" (the item's own words). The dimming is an
+   * exposure trim: the constructor's 1.15 is the game's
+   * one exposure and this setter is its only other writer,
+   * so the trim can never drift against the light writers
+   * the way a per-light multiplier would. App drives it
+   * from the zone read + the worn derivation; the trim is
+   * country-wide and context-free (a cave under glare
+   * country is already dark — exposure there is a whisper
+   * off an already-dim scene, and the surface restores the
+   * moment the country or the visor changes). */
+  private shadeVisorActive: boolean = false;
+
+  /** App drives this from the worn state + glare country. */
+  public setShadeVisor(active: boolean): void {
+    if (this.shadeVisorActive === active) return;
+    this.shadeVisorActive = active;
+    this.renderer.toneMappingExposure = active ? 0.9 : 1.15;
+  }
+
   /** The last surface dayness the day/night pass computed
    * (1 = full day). The visor's dark gate reads it. */
   private lastDayness: number = 1;
@@ -633,7 +654,19 @@ export class BioForgeThreeEngine {
     // Story levels add a wall-height per floor above the ground.
     // jumpOffset is the jump arc (App's cosmetic Y over the level
     // model): while airborne the camera rides it, landing returns to 0.
-    this.camera.position.y = this.eyeHeight + this.terrainHeightAt(x, z) + level * STORY_HEIGHT + jumpOffset;
+    // STILLSTEPS (movement build, 2026-10-18): while the growth
+    // is on the player's feet, still water is ground — the eye
+    // rides the pond's surface instead of its floor wherever
+    // the surface stands higher. Surface only, ground story
+    // only: instances have no ponds (and the mode flags keep a
+    // surface pond's circle from floating a cave walker whose
+    // local coords happen to overlap it).
+    let groundY = this.terrainHeightAt(x, z);
+    if (this.stillstepsActive && level === 0 && !this.cavernMode && !this.ruinMode) {
+      const ps = this.pondSurfaceAt(x, z);
+      if (ps !== null && ps > groundY) groundY = ps;
+    }
+    this.camera.position.y = this.eyeHeight + groundY + level * STORY_HEIGHT + jumpOffset;
     this.updateIrisDoorsProximity(x, z);
     // The structure life passes (extracted 2026-10-17, Adam's
     // layout ruling: the piece a landing touches moves out into
@@ -757,6 +790,73 @@ export class BioForgeThreeEngine {
     this.wardArcMesh.rotation.y = -facing + Math.PI;
   }
 
+  // The CHARGE SIGHT (helmet slice 5): "a coming strike
+  // paints its warned spot on the ground." Two rings, one
+  // per warning system, built lazily like the ward arc and
+  // stirred per frame by the game loop (which owns both
+  // warning states): the STORM ZOT's ring, charged amber,
+  // rides the player's feet — the bolt takes the cell you
+  // stand in when it lands, so the honest paint follows
+  // you; the LIVING GRAB's ring, the valley's violet, holds
+  // the spot you stood on when the warning sounded — the
+  // grab will take THAT ground whether you still stand on
+  // it or not, and stepping clear is the dodge. A ring hugs
+  // the ground (a paint, not a shell): terrain height +
+  // a decal's lift.
+  private chargeZotRing: THREE.Group | null = null;
+  private chargeGrabRing: THREE.Group | null = null;
+
+  /** Paint (or clear) both warned spots. null = no warning. */
+  public setChargeSight(
+    zot: { x: number; z: number } | null,
+    grab: { x: number; z: number } | null,
+  ): void {
+    this.chargeZotRing = this.placeChargeRing(this.chargeZotRing, 0xfbbf24, zot);
+    this.chargeGrabRing = this.placeChargeRing(this.chargeGrabRing, 0xc084fc, grab);
+  }
+
+  private placeChargeRing(
+    ring: THREE.Group | null,
+    color: number,
+    spot: { x: number; z: number } | null,
+  ): THREE.Group | null {
+    if (!spot) {
+      if (ring) ring.visible = false;
+      return ring;
+    }
+    if (!ring) {
+      ring = new THREE.Group();
+      const ringMesh = new THREE.Mesh(
+        new THREE.RingGeometry(1.05, 1.32, 40),
+        new THREE.MeshBasicMaterial({
+          color,
+          transparent: true,
+          opacity: 0.85,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        }),
+      );
+      ringMesh.rotation.x = -Math.PI / 2;
+      const discMesh = new THREE.Mesh(
+        new THREE.CircleGeometry(1.05, 40),
+        new THREE.MeshBasicMaterial({
+          color,
+          transparent: true,
+          opacity: 0.16,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        }),
+      );
+      discMesh.rotation.x = -Math.PI / 2;
+      ring.add(ringMesh);
+      ring.add(discMesh);
+      this.scene.add(ring);
+    }
+    ring.visible = true;
+    ring.position.set(spot.x, this.terrainHeightAt(spot.x, spot.z) + 0.15, spot.z);
+    return ring;
+  }
+
   public triggerToolAnimation() {
     this.viewmodel.triggerAction();
   }
@@ -824,6 +924,25 @@ export class BioForgeThreeEngine {
    *  (pond build, 2026-10-16) to ride swimmers at their surface. */
   public waterSurfaceAt(x: number, z: number): number | null {
     return waterSurfaceFromLists(this.zonePondsLocal, this.zoneRiverSegsLocal, x, z);
+  }
+
+  /** The STILL water surface at a LOCAL point (Stillsteps):
+   * ponds of plain water only — rivers flow and never hold
+   * a step, and neither do lava or brine. The pure test is
+   * waterField.pondWaterSurfaceAt. */
+  public pondSurfaceAt(x: number, z: number): number | null {
+    return pondWaterSurfaceAt(this.zonePondsLocal, x, z);
+  }
+
+  /** Stillsteps (movement build, 2026-10-18): the loop
+   * drives this from the grown derivation (creatures/
+   * quicksteps.stillstepsGrown). While active, setPlayer-
+   * Position stands the player on pond surfaces (above),
+   * and the loop clears the wading drag over held water. */
+  private stillstepsActive: boolean = false;
+
+  public setStillsteps(active: boolean): void {
+    this.stillstepsActive = active;
   }
 
   /** How deep the water is at a LOCAL point (meters; 0 = dry).
@@ -1349,6 +1468,64 @@ export class BioForgeThreeEngine {
     const px = playerX !== undefined ? playerX : this.cachedPlayerX;
     const pz = playerZ !== undefined ? playerZ : this.cachedPlayerZ;
     this.updateIrisDoorsProximity(px, pz);
+    this.refreshCacheGlow(structuresList);
+  }
+
+  /** The Glyph Lens's cache glow (helmet slice 4): App
+   * drives this from the worn derivation (creatures/
+   * helmet.glyphLensWorn). The markers themselves are
+   * maintained by refreshCacheGlow on every structure
+   * sync; this setter only owns their visibility. */
+  private glyphLensActive: boolean = false;
+
+  public setGlyphLens(active: boolean): void {
+    this.glyphLensActive = active;
+    this.cacheGlowSprites.forEach((sp) => {
+      sp.visible = active;
+    });
+  }
+
+  /** Faint markers over precursor caches, drawn THROUGH
+   * ruin walls (depthTest off, high render order) — the
+   * Glyph Lens's second promise ("caches glow faintly
+   * through ruin walls"). One sprite per cache, keyed by
+   * structure id, pruned on the same sync that seats the
+   * meshes: a looted cache leaves the structure list
+   * (useToolInteractions removes it), so its glow dies in
+   * the same pass, and leaving the ruin clears them all. */
+  private cacheGlowSprites = new Map<string, THREE.Sprite>();
+
+  private refreshCacheGlow(structuresList: StructureEntity[]): void {
+    const cacheIds = new Set<string>();
+    structuresList.forEach((s) => {
+      if (s.type !== 'precursor_cache') return;
+      cacheIds.add(s.id);
+      if (this.cacheGlowSprites.has(s.id)) return;
+      const mat = new THREE.SpriteMaterial({
+        map: this.glowTexture,
+        color: 0xf5d76e,
+        transparent: true,
+        opacity: 0.38,
+        depthTest: false,
+        depthWrite: false,
+      });
+      const sp = new THREE.Sprite(mat);
+      sp.renderOrder = 999;
+      sp.scale.set(2.4, 2.4, 1);
+      const gy =
+        (this.structureDatums.get(s.id) ?? this.terrainHeightAt(s.worldX, s.worldZ)) + 1.3;
+      sp.position.set(s.worldX, gy, s.worldZ);
+      sp.visible = this.glyphLensActive;
+      this.scene.add(sp);
+      this.cacheGlowSprites.set(s.id, sp);
+    });
+    this.cacheGlowSprites.forEach((sp, id) => {
+      if (!cacheIds.has(id)) {
+        this.scene.remove(sp);
+        (sp.material as THREE.SpriteMaterial).dispose();
+        this.cacheGlowSprites.delete(id);
+      }
+    });
   }
 
   /**

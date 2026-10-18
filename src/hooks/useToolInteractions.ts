@@ -30,6 +30,7 @@ import { soundEngine } from '../audio/soundEngine';
 import { multiplayerManager } from '../game/multiplayer';
 import { FLORA_MATURE_SECONDS, FERTILIZER_DURATION_SECONDS } from './useWorldEntities';
 import { speciesDef } from '../game/creatures/species';
+import { glyphLensWorn } from '../game/creatures/helmet';
 import { sampleItemId, vatKitFor } from '../game/structures/vat';
 import { storageKitFor } from '../game/items/pouch';
 import { MOUND_FEED_MAX, MOUND_HARVEST_COST, MOUND_KINDS, resolveKindSpend, type KindSpendLine } from '../game/items/itemKinds';
@@ -2419,7 +2420,10 @@ export function useToolInteractions({
       }
       // Reading a glyph serves the fate's lore line for its band —
       // the story is the loot. Repeatable: stones don't mind.
-      const band = structure.ruinFeature?.band === 'deep' ? 'deep' : 'shallow';
+      // The Glyph Lens (helmet slice 4) reads deeper: a shallow
+      // stone gives its DEEP line first.
+      const band =
+        structure.ruinFeature?.band === 'deep' || glyphLensWorn(inventory) ? 'deep' : 'shallow';
       const fate = structure.ruinFeature?.fate ?? 'gardeners';
       postNotification('What the Stone Remembers', ruinLoreLine(fate, band), 'system', '#a5b4fc');
       // The Ask the World line counts DISTINCT ruins read (App

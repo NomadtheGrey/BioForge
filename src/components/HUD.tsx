@@ -213,6 +213,8 @@ import { TutorialChrome } from './TutorialChrome';
 import type { UseTutorialResult } from '../hooks/useTutorial';
 
 import { HudOptionsPanel } from './HudOptionsPanel';
+import { CreditsModal } from './CreditsModal';
+import { DonateButton } from './DonateButton';
 import { multiplayerManager, RELAY_BASE_URL } from '../game/multiplayer';
 // Shield faces for the Left Hand tile (shield follow pass,
 // 2026-10-17): which held items are shields, from the rules.
@@ -371,6 +373,11 @@ export const HUD: React.FC<HUDProps> = ({
   // section reads and writes it; the audio engine will read it.
   const audioSettings = useAudioSettings();
   const [showHudOptions, setShowHudOptions] = useState<boolean>(false);
+  // The credits' third door (Adam, 2026-10-18): the pause
+  // popup is where a player lands mid-session — the roll
+  // belongs one click from RESUME, not only at the start
+  // screen and in Game Info.
+  const [showCredits, setShowCredits] = useState<boolean>(false);
 
   // The How to Play pulse (Adam's program, 2026-10-17): the
   // button pulses until the modal has been opened ONCE, then
@@ -1253,6 +1260,19 @@ export const HUD: React.FC<HUDProps> = ({
                   <Sprout className="w-3.5 h-3.5" /> ABOUT
                 </button>
               )}
+              {/* CREDITS beside ABOUT (Adam, 2026-10-18): the
+                  pause popup is the mid-game home for the
+                  game's standing screens — options, the primer,
+                  and now the roll of who grew this. */}
+              <button
+                onClick={() => setShowCredits(true)}
+                className="px-5 py-2 rounded-2xl text-xs font-tech font-bold text-amber-200 border border-amber-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <ScrollText className="w-3.5 h-3.5" /> CREDITS
+              </button>
+              {/* DONATE rides beside CREDITS here too (Adam,
+                  2026-10-18) — capped until the page stands. */}
+              <DonateButton variant="popup" />
             </div>
           </div>
         </div>
@@ -1701,6 +1721,9 @@ export const HUD: React.FC<HUDProps> = ({
 
       {showHudOptions && (
         <HudOptionsPanel layout={hudLayout} audio={audioSettings} onClose={() => setShowHudOptions(false)} />
+      )}
+      {showCredits && (
+        <CreditsModal isOpen={showCredits} onClose={() => setShowCredits(false)} />
       )}
     </div>
   );

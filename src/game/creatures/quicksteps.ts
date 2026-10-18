@@ -46,6 +46,31 @@ export const WINDLUNG_FACTORS: StaminaFactors[] = [
   { drain: 0.18, regen: 4.5 },
 ];
 
+/** A Quicksteps growth's worn answer (the movement build,
+ *  2026-10-18): grown = owned, the same doctrine as the
+ *  Windlung rungs below — the growth rides the platform by
+ *  being in the pouch; there is no separate equip state,
+ *  and no state is saved. The game loop reads these through
+ *  its getter deps, so the answers stay local-player. */
+export function emberSolesGrown(inventory: Partial<Record<ItemId, number>>): boolean {
+  return (inventory['ember_soles'] ?? 0) > 0;
+}
+
+/** Waders: the Mirror Marsh's wading drag, answered. */
+export function wadersGrown(inventory: Partial<Record<ItemId, number>>): boolean {
+  return (inventory['waders'] ?? 0) > 0;
+}
+
+/** Webfoots: the swim becomes a stroke, not a struggle. */
+export function webfootsGrown(inventory: Partial<Record<ItemId, number>>): boolean {
+  return (inventory['webfoots'] ?? 0) > 0;
+}
+
+/** Stillsteps: step onto still water and it holds. */
+export function stillstepsGrown(inventory: Partial<Record<ItemId, number>>): boolean {
+  return (inventory['stillsteps'] ?? 0) > 0;
+}
+
 /** Which rung the pouch holds (0 = none). The ladder consumes
  *  upward, so at most one rung is ever held; the highest wins
  *  regardless. */

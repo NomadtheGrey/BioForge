@@ -124,8 +124,8 @@ import { AW_CHAPTERS, type AwChapter } from './game/quests/awChapters';
 import { ChapterModal } from './components/ChapterModal';
 import { ScarChoiceModal } from './components/ScarChoiceModal';
 import { bestWeapon } from './game/creatures/weapons';
-import { windlungTierOf, staminaFactors } from './game/creatures/quicksteps';
-import { biolumeVisorWorn, helmetReadTier } from './game/creatures/helmet';
+import { windlungTierOf, staminaFactors, emberSolesGrown, wadersGrown, webfootsGrown, stillstepsGrown } from './game/creatures/quicksteps';
+import { biolumeVisorWorn, helmetReadTier, sporeFilterWorn, shadeVisorWorn, glyphLensWorn, chargeSightWorn } from './game/creatures/helmet';
 import type { WeaponDef } from './game/creatures/weapons';
 // The Shield Family (Adam, 2026-10-17): rules, the wield hook, and
 // the Left Hand cycle grammar.
@@ -2438,6 +2438,35 @@ const {
     }
   }, [sessionSeed, playerZone, postNotification]);
 
+  // The Shade Visor's drive (helmet slice 3): glare country
+  // dims to bearable while the visor is worn. The country
+  // test mirrors the evaluator's own reads (the family, and
+  // the variant with hybrids wearing their hybrid face);
+  // the worn test is creatures/helmet's; the engine owns
+  // the dimming. Runs on zone, seed, and inventory — the
+  // three things the answer can change with.
+  useEffect(() => {
+    if (!sessionSeed) {
+      engineRef.current?.setShadeVisor(false);
+      return;
+    }
+    const family = zoneBiomeAt(sessionSeed, playerZone.zx, playerZone.zz);
+    const hybrid = zoneHybridAt(sessionSeed, playerZone.zx, playerZone.zz);
+    const variant = hybrid ? null : zoneVariantAt(sessionSeed, playerZone.zx, playerZone.zz);
+    // The item's own list: the Flats (saltglass), the
+    // Singing Ice (frost), the Mirror Marsh (wetland).
+    const glareCountry = family === 'saltglass' || family === 'frost' || variant?.id === 'mirror_marsh';
+    engineRef.current?.setShadeVisor(glareCountry && shadeVisorWorn(inventory));
+  }, [sessionSeed, playerZone, inventory]);
+
+  // The Glyph Lens's drive (helmet slice 4): the engine's
+  // cache-glow markers show only while the lens is worn.
+  // (The deep-line half needs no drive — the glyph read
+  // itself consults the worn derivation at read time.)
+  useEffect(() => {
+    engineRef.current?.setGlyphLens(glyphLensWorn(inventory));
+  }, [inventory]);
+
   const handlePlayerDeath = useCallback((): void => {
     // Ask the World (Walk Back): remember where the land took
     // you — unless it was the spawn zone itself, where waking
@@ -2487,7 +2516,7 @@ const {
   useGameLoop({
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
     jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, lastStaminaSync,
-    sprinting, sporeStaminaRef, marshSluggishRef, getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0, hasPlumeCharm: () => (latestStateRef.current.inventory?.plume_charm ?? 0) > 0, windlungTier: () => windlungTierOf(latestStateRef.current.inventory ?? {}), biolumeVisor: () => biolumeVisorWorn(latestStateRef.current.inventory ?? {}), scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
+    sprinting, sporeStaminaRef, marshSluggishRef, getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0, getPondSurface: (x: number, z: number) => engineRef.current?.pondSurfaceAt(x, z) ?? null, hasPlumeCharm: () => (latestStateRef.current.inventory?.plume_charm ?? 0) > 0, windlungTier: () => windlungTierOf(latestStateRef.current.inventory ?? {}), hasEmberSoles: () => emberSolesGrown(latestStateRef.current.inventory ?? {}), waders: () => wadersGrown(latestStateRef.current.inventory ?? {}), webfoots: () => webfootsGrown(latestStateRef.current.inventory ?? {}), stillsteps: () => stillstepsGrown(latestStateRef.current.inventory ?? {}), biolumeVisor: () => biolumeVisorWorn(latestStateRef.current.inventory ?? {}), sporeFilter: () => sporeFilterWorn(latestStateRef.current.inventory ?? {}), chargeSight: () => chargeSightWorn(latestStateRef.current.inventory ?? {}), scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef, returnPausedRef,

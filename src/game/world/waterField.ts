@@ -173,6 +173,21 @@ export function buildWaterGroup(
 }
 
 /** The water surface height at a LOCAL point, or null when dry. */
+/** The STILL water surface at a point (Stillsteps, movement
+ *  build 2026-10-18): ponds only, water only — rivers flow
+ *  and never hold a step, and lava/brine ponds are not
+ *  "still water" in the item's promise. Null when no pond
+ *  of plain water covers the point. */
+export function pondWaterSurfaceAt(ponds: PondLocal[], x: number, z: number): number | null {
+  let surface: number | null = null;
+  for (const p of ponds) {
+    if (p.liquid !== 'water') continue;
+    if (Math.hypot(x - p.x, z - p.z) >= p.radius) continue;
+    surface = surface === null ? p.waterY : Math.max(surface, p.waterY);
+  }
+  return surface;
+}
+
 export function waterSurfaceFromLists(ponds: PondLocal[], riverSegs: RiverSegLocal[], x: number, z: number): number | null {
   let surface: number | null = null;
   for (const p of ponds) {

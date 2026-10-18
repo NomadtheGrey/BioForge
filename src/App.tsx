@@ -96,7 +96,7 @@ import {
   goalProgressText,
 } from './game/quests/asksBack/latch';
 import { recordAsksChoice } from './game/quests/asksBackState';
-import { finaleFamilyOf } from './game/quests/finale';
+import { finaleFamilyOf, portalClickOutcome, portalPartsMissing } from './game/quests/finale';
 // THE WORLD ASKS BACK, S4: a release settles the creature in the
 // zone's consequence record — the Director reads it as an anchor
 // and the zone loader materializes it by name.
@@ -1216,6 +1216,43 @@ export default function App() {
     },
     onHeartReached: () => {
       awMergeRef.current((s) => (s.heart ? s : { ...s, heart: true }));
+    },
+    // The Departure, Follow (D2): the portal ring's executor.
+    // Every RULE lives in finale.ts (the bill, the click
+    // outcome); this only runs the outcome — deduct, latch,
+    // and tell the story of what the click did.
+    onPortalRing: () => {
+      const signals = questProgressRef.current?.signals;
+      const outcome = portalClickOutcome(signals, (id, n) => hasItem(id, n));
+      if (outcome.kind === 'open') {
+        postNotification('The Way Stands Open', 'The ring hums, patient as its makers left it. The road is yours whenever you want it.', 'discover', '#a78bfa');
+        return;
+      }
+      if (outcome.kind === 'depart') {
+        awMergeRef.current((s) => (s.departed ? s : { ...s, departed: true }));
+        postNotification('The Departure', 'The ring wakes around you — and you step through the road your world left standing. Behind you it stays open, the way its makers intended.', 'discover', '#a78bfa');
+        return;
+      }
+      if (outcome.kind === 'pay') {
+        for (const part of outcome.parts) deductInventoryItem(part.itemId, part.count);
+        const paid: Record<string, boolean> = {};
+        for (const part of outcome.parts) paid[part.id] = true;
+        awMergeRef.current((s) => ({ ...s, finaleRepair: { ...s.finaleRepair, ...paid } }));
+        const stillMissing = portalPartsMissing({ ...signals, finaleRepair: { ...signals?.finaleRepair, ...paid } });
+        postNotification(
+          'The Ring Mends',
+          `${outcome.parts.map((p) => p.name).join(' · ')} — paid from your pouch.${stillMissing.length === 0 ? ' The bill stands paid in full. Address the ring once more, and step through.' : ''}`,
+          'discover',
+          '#a78bfa'
+        );
+        return;
+      }
+      postNotification(
+        'The Portal Station',
+        `Their road home, broken kindly. The ring wants: ${outcome.missing.map((p) => `${p.name.toLowerCase()} (${ITEMS[p.itemId]?.name ?? p.itemId} ×${p.count})`).join(' · ')}.`,
+        'system',
+        '#a8a29e'
+      );
     },
     spawnDroppedItem,
     triggerHarvestFx,

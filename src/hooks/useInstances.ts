@@ -509,6 +509,10 @@ export function useInstances(deps: InstancesDeps): UseInstancesResult {
           structures.push({ ...base, id: `ruincache_${link.instanceId}_${f.id}`, type: 'precursor_cache', ruinFeature: { fate, band: f.band } });
         } else if (f.type === 'artifact_heart') {
           structures.push({ ...base, id: `ruinheart_${link.instanceId}_${f.id}`, type: 'artifact_heart', ruinFeature: { fate, band: 'deep' } });
+        } else if (f.type === 'portal_ring') {
+          // The Departure (D2): a Follow world's station ring,
+          // standing in the grand ruin's heart room.
+          structures.push({ ...base, id: `ruinportal_${link.instanceId}_${f.id}`, type: 'portal_ring', ruinFeature: { fate, band: 'deep' } });
         } else {
           structures.push({
             ...base,

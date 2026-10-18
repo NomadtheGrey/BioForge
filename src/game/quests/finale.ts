@@ -54,6 +54,65 @@ export function finaleFamilyOf(fate: WorldFate): FinaleFamilyId {
  * tracker's standing line until the departure is made;
  * the per-family set-pieces sharpen it as they land.
  */
+
+// ---------------------------------------------------------------------------
+// FOLLOW — THE REPAIR BILL (D2, 2026-10-17)
+// ---------------------------------------------------------------------------
+// §7 prices the portal's repair in the design's own words:
+// "prismatic cores to re-heart the ring, lodestone to
+// re-aim it, living thread to rebind what time ate." The
+// counts are the finale's weight (Adam proceeded on this
+// shape, 2026-10-17): a real bill, not a second job.
+// The bill is payable at ANY station ring, in any order —
+// the stations are one network, and the repair is the
+// player's project, so its state rides the quest signals.
+
+import type { ItemId, QuestSignals } from '../../types/game';
+
+export type PortalPartId = 'heart' | 'aim' | 'bind';
+
+export interface PortalPart {
+  id: PortalPartId;
+  /** The repair's name, as the ring's story tells it. */
+  name: string;
+  itemId: ItemId;
+  count: number;
+}
+
+export const PORTAL_BILL: PortalPart[] = [
+  { id: 'heart', name: 'Re-heart the ring', itemId: 'prismatic_core', count: 2 },
+  { id: 'aim', name: 'Re-aim the ring', itemId: 'lodestone_plate', count: 4 },
+  { id: 'bind', name: 'Rebind what time ate', itemId: 'living_thread', count: 3 },
+];
+
+/** Parts of the bill still unpaid. */
+export function portalPartsMissing(signals: QuestSignals | undefined): PortalPart[] {
+  const repair = signals?.finaleRepair ?? {};
+  return PORTAL_BILL.filter((part) => !repair[part.id]);
+}
+
+/** The ring's answer to a click, as pure decision:
+ *  - 'open'   — the departure is already made; the way stands.
+ *  - 'depart' — the bill stands paid in full; this click goes through.
+ *  - 'pay'    — these parts can be paid from the pouch right now.
+ *  - 'wait'   — nothing payable; these parts (and their costs) remain. */
+export type PortalOutcome =
+  | { kind: 'open' }
+  | { kind: 'depart' }
+  | { kind: 'pay'; parts: PortalPart[] }
+  | { kind: 'wait'; missing: PortalPart[] };
+
+export function portalClickOutcome(
+  signals: QuestSignals | undefined,
+  hasItem: (itemId: ItemId, count: number) => boolean,
+): PortalOutcome {
+  if (signals?.departed) return { kind: 'open' };
+  const missing = portalPartsMissing(signals);
+  if (missing.length === 0) return { kind: 'depart' };
+  const payable = missing.filter((part) => hasItem(part.itemId, part.count));
+  if (payable.length > 0) return { kind: 'pay', parts: payable };
+  return { kind: 'wait', missing };
+}
 export const FINALE_ROADS: Record<FinaleFamilyId, { name: string; todo: string }> = {
   follow: {
     name: 'Repair the Portal',

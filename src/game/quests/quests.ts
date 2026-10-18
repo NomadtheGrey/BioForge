@@ -33,7 +33,7 @@
 import type { ItemId, ToolType, CraftingRecipe, QuestSignals } from '../../types/game';
 import { ITEMS, RECIPES, getRecipeTier, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../items/constants';
 import { WEAPON_ITEM_IDS, anyWeaponOwned } from '../creatures/weapons';
-import { FINALE_ROADS, type FinaleFamilyId } from './finale';
+import { FINALE_ROADS, PORTAL_BILL, portalPartsMissing, type FinaleFamilyId } from './finale';
 
 /** Every tool the hotbar can hold, in hotbar order. */
 export const ALL_TOOLS: ToolType[] = [
@@ -239,6 +239,14 @@ export function goalProgressText(
     case 'witness': return (s.witnessed ?? []).includes(goal.noteId) ? goal.done : goal.todo;
     case 'departure': {
       if (s.departed) return 'You have gone through — and the way stands open behind you';
+      // Follow's road sharpens with the repair (D2): the
+      // tracker reads the bill's standing, part by part.
+      if (s.finaleFamily === 'follow') {
+        const missing = portalPartsMissing(s);
+        if (missing.length === 0) return 'The ring stands whole — address it, and step through';
+        const marks = PORTAL_BILL.map((p) => `${s.finaleRepair?.[p.id] ? '✓' : '·'} ${p.name.toLowerCase()}`);
+        return `The ring's repair — ${PORTAL_BILL.length - missing.length} of ${PORTAL_BILL.length}: ${marks.join(' · ')}`;
+      }
       const road = s.finaleFamily ? FINALE_ROADS[s.finaleFamily as FinaleFamilyId] : undefined;
       return road ? road.todo : 'The way out is the one your world’s people took';
     }

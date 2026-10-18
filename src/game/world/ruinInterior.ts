@@ -36,6 +36,7 @@
 import { createSeededRandom, hashStringToSeed } from '../engine/motion';
 import { cavernCellToWorld } from './cavern';
 import type { RuinVariantId, RuinTierId, WorldFate } from './ruins';
+import { finaleFamilyOf } from '../quests/finale';
 
 /** Interior generator version, stamped into every result's meta. */
 export const RUIN_INTERIOR_GEN_VERSION = 1;
@@ -54,7 +55,7 @@ export interface RuinRoom {
 
 export interface RuinFeature {
   id: string;
-  type: 'clue_shallow' | 'cache' | 'clue_deep' | 'artifact_heart';
+  type: 'clue_shallow' | 'cache' | 'clue_deep' | 'artifact_heart' | 'portal_ring';
   cx: number;
   cy: number;
   roomId: string;
@@ -726,13 +727,18 @@ function stageDamage(
 // clue_* -> glyph stones (lore), cache -> precursor caches (loot),
 // artifact_heart -> the ruin's heart prize.
 
-function stageFeatures(layout: LayoutResult): { features: RuinFeature[]; maxDepth: number } {
+function stageFeatures(
+  layout: LayoutResult,
+  fate: WorldFate,
+  tier: RuinInteriorTier,
+): { features: RuinFeature[]; maxDepth: number } {
   const { rooms, entranceRoom, heart } = layout;
   const features: RuinFeature[] = [];
   const add = (type: RuinFeature['type'], room: RoomInternal, band: RuinFeature['band']): void => {
     const [cx, cy] = roomCenter(room);
     features.push({ id: 'rf_' + features.length, type, cx, cy, roomId: room.id, depth: room.depth, band });
   };
+
   const maxDepth = Math.max(...rooms.map((r) => r.depth));
   const bandOf = (d: number): RuinFeature['band'] =>
     (d <= 1 ? 'shallow' : d >= Math.max(2, maxDepth - 1) ? 'deep' : 'mid');
@@ -743,6 +749,24 @@ function stageFeatures(layout: LayoutResult): { features: RuinFeature[]; maxDept
     else add(r.depth % 2 === 0 ? 'clue_deep' : 'cache', r, bandOf(r.depth));
   }
   add('artifact_heart', heart, 'deep');
+  // THE PORTAL STATION (Departure D2, Follow worlds): in a
+  // grand ruin of a Follow fate, the ruin's GRAND HALL —
+  // its largest room — holds the station ring their road
+  // home ran through; the chapters say the rings "still
+  // stand in the grand ruins." The heart rooms are small
+  // (measured 3–7 cells); a monument belongs in the hall
+  // (measured min dimension ≥ 6 in every grand ruin), so
+  // the ring stands in its own chamber, at its center.
+  if (tier === 'grand' && finaleFamilyOf(fate) === 'follow') {
+    let hall: RoomInternal | null = null;
+    for (const r of rooms) {
+      if (r.id === entranceRoom.id) continue;
+      if (!hall || r.w * r.h > hall.w * hall.h || (r.w * r.h === hall.w * hall.h && r.depth > hall.depth)) hall = r;
+    }
+    if (hall && Math.min(hall.w, hall.h) >= 5) {
+      add('portal_ring', hall, 'deep');
+    }
+  }
   return { features, maxDepth };
 }
 
@@ -805,7 +829,7 @@ export function generateRuin(
   const damageStats = stageDamage(damageRng, g, w, h, layout, style);
 
   // ---- Stage 3: features by graph depth ----
-  const { features, maxDepth } = stageFeatures(layout);
+  const { features, maxDepth } = stageFeatures(layout, fate, tier);
 
   // ---- Entrance cell + markers (drawn last so maps read at a glance) ----
   const entranceRoom = layout.entranceRoom;

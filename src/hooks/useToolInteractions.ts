@@ -154,6 +154,9 @@ export interface UseToolInteractionsParams {
   onGlyphRead?: (glyphStructureId: string) => void;
   /** Ask the World line signals: an artifact heart was opened. */
   onHeartReached?: () => void;
+  /** The Departure (D2): a portal station ring was addressed —
+   *  App runs the repair bill (finale.ts holds the rules). */
+  onPortalRing?: (structure: StructureEntity) => void;
   /** Ask the World line signals: a flora harvest succeeded (the
    * yields are already in the pouch when this fires). */
   onFloraHarvest?: (flora: FloraEntity) => void;
@@ -256,6 +259,7 @@ export function useToolInteractions({
   onRequestRelease,
   onGlyphRead,
   onHeartReached,
+  onPortalRing,
   onFloraHarvest,
   applyDissolve,
   strikeFauna,
@@ -2194,6 +2198,23 @@ export function useToolInteractions({
         return;
       }
       onEnterRuin(structure);
+      return;
+    }
+    // The portal station (Departure D2): the Follow road's
+    // ring. Precursor work — the solvent is refused and the
+    // scanner describes, exactly as with the heart; every
+    // other tool ADDRESSES the ring, and App runs the repair
+    // bill through the line callback (the heart's pattern).
+    if (structure.type === 'portal_ring') {
+      if (activeTool === 'solvent_sprayer') {
+        postNotification('Undissolvable', 'Precursor work outlasts solvent — the ring keeps what it is.', 'alert', '#fbbf24');
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onPortalRing?.(structure);
       return;
     }
     // Ruin interior contents (P4): caches and the artifact heart are

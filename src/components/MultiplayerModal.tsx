@@ -85,8 +85,14 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
     setChatInput('');
   };
 
+  // NO backdrop blur on THIS modal (Adam, 2026-10-18): the
+  // chat window is a LIVE surface — while it is open the
+  // player must still see the world (and anything moving in
+  // it) behind the panel. Every other modal keeps the shared
+  // blur; chat alone goes without, and the panel's own
+  // background carries readability.
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 animate-fade-in">
       <div className="glass-panel-biolum w-full max-w-2xl h-[560px] rounded-3xl flex flex-col overflow-hidden border border-cyan-500/30 shadow-2xl">
         {/* Header */}
         <div className="px-6 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-900/60">

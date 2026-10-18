@@ -1093,6 +1093,10 @@ export interface StructureEntity {
   ruinFeature?: {
     fate: string;
     band: 'shallow' | 'mid' | 'deep';
+    /** The ruin's size tier (world/ruins RuinTierId), when the
+     *  conversion knows it — the artifact heart reads it to
+     *  decide whether it keeps a fate fragment (grand only). */
+    tier?: string;
   };
   maxHealth: number;
   doorOpenProgress: number; // 0 closed, 1 open

@@ -25,6 +25,7 @@ import {
 import type { AsksEventInput } from '../game/quests/asksBackState';
 import { createSeededRandom, hashStringToSeed } from '../game/engine/motion';
 import { ruinLoreLine } from '../game/world/ruinInterior';
+import { heartBearsFragment } from '../game/world/ruins';
 import { soundEngine } from '../audio/soundEngine';
 import { multiplayerManager } from '../game/multiplayer';
 import { FLORA_MATURE_SECONDS, FERTILIZER_DURATION_SECONDS } from './useWorldEntities';
@@ -2249,11 +2250,16 @@ export function useToolInteractions({
         // ruins ever state outright.
         collected.set('precursor_shard', 2);
         collected.set('dew_essence', 2);
-        // Ask the World (Adam, 2026-10-16): every heart also keeps
-        // ONE Fate Fragment — the set piece the chapter is assembled
-        // from. Hearts are one-shot (the structure is consumed
-        // below), so each ruin yields exactly one, ever.
-        collected.set('aw_fragment', 1);
+        // Ask the World: a heart also keeps ONE Fate Fragment —
+        // the set piece the chapter is assembled from — but
+        // only in a GRAND ruin (Adam, 2026-10-18): regular
+        // ruins hold treasure (the shards and essence above);
+        // the fragment is grand country. Hearts are one-shot
+        // (the structure is consumed below), so each grand
+        // ruin yields exactly one, ever.
+        if (heartBearsFragment(structure.ruinFeature?.tier)) {
+          collected.set('aw_fragment', 1);
+        }
         for (const [item, n] of collected) addInventoryItem(item, n);
         triggerHarvestFx(structure.worldX, structure.worldZ);
         removeStructure(structure.id);

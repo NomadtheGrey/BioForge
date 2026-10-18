@@ -74,6 +74,9 @@ function isCollidingWithStructure(
     if (s.type === 'tamed_snap_trap_turret') obstacleRadius = 0.6;
     if (s.type === 'lantern_fern_post') obstacleRadius = 0.35;
     if (s.type === 'banner_post') obstacleRadius = 0.3;
+    // The portal station's ring (Departure D2): a monument —
+    // the player addresses it, never stands inside its disc.
+    if (s.type === 'portal_ring') obstacleRadius = 1.3;
     // Furniture footprints (slice E): a bed is a body-length
     // piece; a stool is a small one.
     if (s.type === 'root_bed') obstacleRadius = 0.85;
@@ -167,6 +170,37 @@ export function resolveMovementWithCollision(
   playerLevel: number = 0,
   cavern: CavernGridRef | null = null
 ): { x: number; z: number } {
+  // DEPENETRATION (Adam's live find, 2026-10-18): a snap-trap
+  // or sap-weaver that GROWS to stage 2+ under a standing
+  // player leaves the player's current position inside its
+  // collision disc — and every candidate check below then
+  // refuses every move, because a single step still lands
+  // inside the disc. The player is stuck for good. So: if
+  // the CURRENT position already stands inside a flora
+  // disc, walk the player straight out to its rim first
+  // (the plant grew; the ground politely makes room),
+  // whatever this frame's input was. One disc per frame —
+  // an overlapping second plant resolves next frame.
+  if (playerLevel <= 0) {
+    for (const f of floraList) {
+      if (f.growthStage < 2) continue;
+      if (f.species !== 'snap_trap' && f.species !== 'sap_weaver') continue;
+      const plantRadius = f.species === 'snap_trap' ? 0.65 : 0.7;
+      const rim = plantRadius + PLAYER_RADIUS;
+      const dx = currentX - f.x;
+      const dz = currentZ - f.z;
+      const distSq = dx * dx + dz * dz;
+      if (distSq >= rim * rim) continue;
+      const dist = Math.sqrt(distSq);
+      // Dead center has no exit direction; step east.
+      const ux = dist > 0.0001 ? dx / dist : 1;
+      const uz = dist > 0.0001 ? dz / dist : 0;
+      return {
+        x: Math.max(-WORLD_BOUNDARY, Math.min(WORLD_BOUNDARY, f.x + ux * (rim + 0.05))),
+        z: Math.max(-WORLD_BOUNDARY, Math.min(WORLD_BOUNDARY, f.z + uz * (rim + 0.05))),
+      };
+    }
+  }
   // 1. Check full displacement
   const targetX = Math.max(-WORLD_BOUNDARY, Math.min(WORLD_BOUNDARY, currentX + desiredDeltaX));
   const targetZ = Math.max(-WORLD_BOUNDARY, Math.min(WORLD_BOUNDARY, currentZ + desiredDeltaZ));

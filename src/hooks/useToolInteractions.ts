@@ -32,6 +32,7 @@ import { FLORA_MATURE_SECONDS, FERTILIZER_DURATION_SECONDS } from './useWorldEnt
 import { speciesDef } from '../game/creatures/species';
 import { sampleItemId, vatKitFor } from '../game/structures/vat';
 import { storageKitFor } from '../game/items/pouch';
+import { MOUND_FEED_MAX, MOUND_HARVEST_COST, MOUND_KINDS, resolveKindSpend, type KindSpendLine } from '../game/items/itemKinds';
 import { bestWeapon } from '../game/creatures/weapons';
 import type { WeaponDef } from '../game/creatures/weapons';
 import { floraDef } from '../game/flora/flora';
@@ -1577,6 +1578,14 @@ export function useToolInteractions({
         ...(selectedStructureType === 'banner_post'
           ? { banner: {} }
           : {}),
+        // A cultivation mound is born hungry (P1, 2026-10-18):
+        // its stock of banked kind-matter starts empty. (The
+        // starting-base mound predates the field — readers
+        // treat a missing stock as 0, and the first feeding
+        // stamps it.)
+        ...(selectedStructureType === 'cultivation_mound'
+          ? { mound: { stock: 0 } }
+          : {}),
       };
 
       addStructure(newStruct);
@@ -2078,6 +2087,47 @@ export function useToolInteractions({
     // Planter on flat surfaces: a mound IS soil, so any seed plants there.
     if (activeTool === 'planter_trowel' && structure.type === 'cultivation_mound') {
       handlePlanterAction(structure.worldX, structure.worldZ);
+      return;
+    }
+    // The Mound EATS (P1, 2026-10-18): the cultivation mound's
+    // second job. This branch deliberately sits BEHIND the
+    // builder and planter routing above (the dev lane's
+    // banner-lesson watch): the builder still treats the
+    // mound as ground, the trowel still plants in it — any
+    // OTHER tool addresses the mound itself.
+    //   FEED — holding kind-matter (caps, gels, greenery, in
+    //     that order) banks up to MOUND_FEED_MAX pieces into
+    //     the mound's stock, through the one resolver.
+    //   HARVEST — holding none, with stock banked, every
+    //     MOUND_HARVEST_COST of stock pays out one compost.
+    if (structure.type === 'cultivation_mound') {
+      const stock = structure.mound?.stock ?? 0;
+      const working = { ...inventory };
+      const fedLines: KindSpendLine[] = [];
+      let room = MOUND_FEED_MAX;
+      for (const kind of MOUND_KINDS) {
+        if (room <= 0) break;
+        const plan = resolveKindSpend(working, kind, room);
+        for (const line of plan.lines) {
+          fedLines.push(line);
+          working[line.itemId] = (working[line.itemId] ?? 0) - line.count;
+          room -= line.count;
+        }
+      }
+      const fed = fedLines.reduce((sum, l) => sum + l.count, 0);
+      if (fed > 0) {
+        fedLines.forEach((l) => deductInventoryItem(l.itemId, l.count));
+        upsertStructure({ ...structure, mound: { stock: stock + fed } });
+        postNotification('The Mound Eats', `Banked ${fed} scrap${fed === 1 ? '' : 's'} — the mound holds ${stock + fed}. Every ${MOUND_HARVEST_COST} pays out a compost.`, 'craft', '#84cc16');
+        return;
+      }
+      if (stock >= MOUND_HARVEST_COST) {
+        upsertStructure({ ...structure, mound: { stock: stock - MOUND_HARVEST_COST } });
+        addInventoryItem('basic_compost', 1);
+        postNotification('Compost Gathered', `The mound gives up a compost. ${stock - MOUND_HARVEST_COST} scrap${stock - MOUND_HARVEST_COST === 1 ? '' : 's'} still banked.`, 'craft', '#84cc16');
+        return;
+      }
+      postNotification('The Cultivation Mound', `Plant any seed here with the trowel — or feed it caps, gels, and greenery and it will pay compost back. Banked: ${stock} of ${MOUND_HARVEST_COST} toward one.`, 'system', '#a8a29e');
       return;
     }
     // Planter on a floor: floors are paved, and only lantern-ferns root on

@@ -1157,6 +1157,10 @@ export interface StructureEntity {
    *  a reload cannot reopen the day's tend). Entity state:
    *  the stalk is THIS memorial's, and travels with it. */
   memorial?: { stalkPlanted?: boolean; stalkTends?: number; lastTendDay?: number };
+  /** The Mound (P1): banked kind-matter, fed by hand. One
+   *  number, entity-side — the mound's stock is the mound's,
+   *  and travels with the entity like the stalk's tends. */
+  mound?: { stock: number };
   /** Present only on ruin_landmark structures: fate/variant/tier record. */
   ruin?: RuinLinkData;
 }
@@ -1189,6 +1193,13 @@ export interface CraftingRecipe {
   category: 'seeds' | 'fertilizers' | 'composites' | 'defenses';
 
   ingredients: { id: ItemId; count: number }[];
+  /** Category ingredients (P1): slots paid by KIND through
+   *  itemKinds.resolveKindSpend — "any cap ×4" instead of a
+   *  named item. NOTE for the crafting tree: kind slots
+   *  deliberately do NOT chain (a plan cannot say which exact
+   *  items a kind will take), so Grow Prerequisites treats a
+   *  kind slot as a leaf need. */
+  kindIngredients?: { kind: string; count: number }[];
   craftTimeMs: number;
   /** The Departure (D3): a recipe the world GIVES rather than
    *  the forge simply knowing — 'visit' recipes stay off the

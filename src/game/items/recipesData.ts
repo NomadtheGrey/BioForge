@@ -929,6 +929,24 @@ export const RECIPES: CraftingRecipe[] = [
     craftTimeMs: 4000,
   },
   {
+    // COMPOST FROM SCRAPS (P1): the category-ingredient
+    // proof — any cap ×4 + any gel ×1, paid by KIND through
+    // itemKinds.resolveKindSpend. The bench's sixty-eight
+    // sink-less scraps become compost feedstock.
+    id: 'craft_compost_from_scraps',
+    outputId: 'basic_compost',
+    outputCount: 2,
+    name: 'Compost from Scraps',
+    description: 'Grind down whatever caps and gels the country gave you — any four caps, any one gel — into honest compost.',
+    category: 'fertilizers',
+    ingredients: [],
+    kindIngredients: [
+      { kind: 'cap', count: 4 },
+      { kind: 'gel', count: 1 },
+    ],
+    craftTimeMs: 2500,
+  },
+  {
     // THE MEMORIAL (Departure D4): Honor's ground. Anyone
     // may raise one (the recipe is no family's secret — the
     // ROAD is what the memorial grows, and the climb is

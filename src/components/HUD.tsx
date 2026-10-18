@@ -1065,13 +1065,13 @@ export const HUD: React.FC<HUDProps> = ({
             onClose={hideHudPanel}
             className="shrink-0"
           >
-        <div className="glass-panel p-1.5 rounded-2xl flex flex-col gap-1 shadow-lg">
+        <div className={`glass-panel p-1.5 rounded-2xl flex flex-col gap-1 shadow-lg ${touchMode ? 'max-w-[calc(100vw-1rem)]' : ''}`}>
           {/* The bar's TITLE (Adam, 2026-10-16): every other panel
               says what it is at a glance — this one now does too. */}
           <div className="px-1.5 pt-1 pb-0.5 text-[9px] font-tech font-bold tracking-widest text-slate-400 uppercase">
             Session
           </div>
-          <div className="flex items-center gap-1">
+          <div className={`flex items-center gap-1 ${touchMode ? 'flex-wrap' : ''}`}>
           {/* Save World (manual save — autosave also runs every 30s) */}
           {onSave && (
             <button

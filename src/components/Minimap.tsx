@@ -17,6 +17,7 @@ import {
 } from '../types/game';
 import { BIOMES, ITEMS } from '../game/items/constants';
 import { isFloorType } from '../game/structures/placement';
+import { displayZ } from '../game/world/zones';
 
 export interface MinimapProps {
   playerX: number;
@@ -702,7 +703,7 @@ export const Minimap: React.FC<MinimapProps> = ({
                 <span className="text-slate-400 font-mono">{hoveredEntity.distance}m</span>
               </div>
               <span className="text-slate-400 text-[9px] font-mono">
-                {hoveredEntity.type} • X: {hoveredEntity.x} Z: {hoveredEntity.z}
+                {hoveredEntity.type} • X: {hoveredEntity.x} Z: {displayZ(hoveredEntity.z)}
               </span>
             </div>
           )}
@@ -719,7 +720,7 @@ export const Minimap: React.FC<MinimapProps> = ({
             </span>
           </div>
           <span className="text-slate-300">
-            X: {Math.round(playerX)} | Z: {Math.round(playerZ)}
+            X: {Math.round(playerX)} | Z: {Math.round(displayZ(playerZ))}
           </span>
         </div>
 

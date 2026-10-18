@@ -333,13 +333,13 @@ export function useToolInteractions({
     }
     switch (flora.species) {
       case 'lantern_fern':
-        return { item: 'soft_fiber', count: flora.fertilizedYield ? 5 : 2, extras: [['dew_essence', 1], ['seed_lantern_fern', 1]] };
+        return { item: 'soft_fiber', count: flora.fertilizedYield ? 5 : 2, extras: [['dew_essence', 1]] };
       case 'sap_weaver':
-        return { item: 'resin_sap', count: flora.fertilizedYield ? 6 : 3, extras: [['seed_sap_weaver', 1]] };
+        return { item: 'resin_sap', count: flora.fertilizedYield ? 6 : 3, extras: [] };
       case 'petal_mill':
-        return { item: 'vibrant_petal', count: flora.fertilizedYield ? 6 : 3, extras: [['sweet_nectar', 2], ['seed_petal_mill', 1]] };
+        return { item: 'vibrant_petal', count: flora.fertilizedYield ? 6 : 3, extras: [['sweet_nectar', 2]] };
       case 'snap_trap':
-        return { item: 'carapace_scale', count: 1, extras: [['seed_snap_trap', 1]] };
+        return { item: 'carapace_scale', count: 1, extras: [] };
       case 'bounce_shroom':
         // Harvesting a bounce-shroom gives its spore back (replant it
         // under another hole) plus the dew that collects on the cap.

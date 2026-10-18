@@ -1870,16 +1870,16 @@ export class BioForgeThreeEngine {
       // light forward of the bearer — same pool, longer reach.
       let sx = this.cachedPlayerX;
       let sz = this.cachedPlayerZ;
-      let distance = 26;
-      let intensity = 40;
+      let distance = 38;
+      let intensity = 90;
       if (this.heldLightBraced && this.camera) {
         const dir = new THREE.Vector3();
         this.camera.getWorldDirection(dir);
         const len = Math.hypot(dir.x, dir.z) || 1;
         sx += (dir.x / len) * 2.5;
         sz += (dir.z / len) * 2.5;
-        distance = 34;
-        intensity = 55;
+        distance = 46;
+        intensity = 120;
       }
       sources.push({
         id: 'held:lantern',
@@ -1894,8 +1894,11 @@ export class BioForgeThreeEngine {
         // pass, 2026-10-18): the pool runs physical falloff,
         // so the old 12 reached ~1.3 at 3 m — a puddle at the
         // feet, not visibility. The planted lamp post in this
-        // same system runs 40/26; the HELD lantern now matches
-        // it (40/26), and braced — thrown forward like a
+        // same system runs 40/26. THE RADIUS, BY A LOT (Adam,
+        // later the same day, having finally seen the light):
+        // the held lantern now OUTSHINES the post on purpose —
+        // 90/38, a pool that reads a good ten meters out — and
+        // braced — thrown forward like a
         // flashlight — goes to 55/34.
         intensity,
         distance,
@@ -1958,7 +1961,12 @@ export class BioForgeThreeEngine {
         // Sublinear but rewarding: 1 source keeps full strength, 3 merged
         // ferns read as one big much-more-effective light, 50 saturate.
         const mergedI = cell.maxI * (1 + 0.85 * Math.log2(cell.count));
-        const mergedD = Math.min(24, cell.maxDist + 0.6 * (cell.count - 1));
+        // The distance cap is 48, not 24 (2026-10-18): at 24
+        // it silently ate the held lantern's reach — a source
+        // could ask for any distance and the merge handed back
+        // 24. The cap still exists to keep a merged thicket
+        // from throwing light across the map.
+        const mergedD = Math.min(48, cell.maxDist + 0.6 * (cell.count - 1));
         const color = new THREE.Color(cell.r / cell.si, cell.g / cell.si, cell.b / cell.si);
         return { key, cx, cy, cz, d2, mergedI, mergedD, color };
       })

@@ -70,19 +70,16 @@ export const DEFAULT_BUILD_NOTES: BuildNotes = {
  * applied).
  */
 export const BUILD_NOTES: BuildNotes = {
-  // The light-and-lenses stack (2026-10-18): the ground-light
-  // fix (Adam's priority — pooled light rides its ground and
-  // the tables speak the physical scale), the helm's first
-  // working lenses (Biolume Visor + the zone reads), the
-  // Sky Law (east rise, west set), and the HUD lane's ear-led
-  // stack: music figures in place of fog, the legacy hum
-  // retired at its source, one mute authority, system word
-  // that stays readable, and a roomier Options panel.
-  title: 'Light that lands',
+  // The platform stack (2026-10-18): the helmet's remaining
+  // modules (Spore Filter, Shade Visor, Glyph Lens, Charge
+  // Sight) and the Quicksteps growths (Ember Soles, Waders,
+  // Webfoots, Stillsteps) all gain their working effects —
+  // every lens and growth now does what its card promises.
+  // Plus the HUD lane's credits third door (the pause popup).
+  title: 'The platform wakes',
   lines: [
-    'The world\'s light lands where it always should have. Lantern posts pool on the ground beneath them, a lantern in hand throws a real circle of light, and down in the Biolume caves the glow fungus lights the floor you walk by.',
-    'The helm\'s lenses have opened their eyes. The Biolume Visor reads living light through the deepest dark; the Trail Lens names a country\'s family, and the Identifier Lens names it whole — walk into new country and hear what your helm can see.',
-    'The sky runs Earth\'s way now, by universal law: the suns rise in the east and set in the west, and the great ringed giant follows them through the night.',
-    'The music speaks in figures again — motifs with edges and air between them, the old hum gone for good — and word from the system now stays on screen long enough to read it. The Options panel has a bigger room, too, with its switches in two columns.',
+    'Every lens on your helm now does what its card promises: the Spore Filter stills the Hollow\'s tax, the Shade Visor dims the glare country, the Glyph Lens reads the deep line in ruin stones and finds the caches glowing through their walls, and the Charge Sight paints the ground where a strike is about to fall.',
+    'Your Quicksteps have grown sure: Ember Soles make lava slow ground instead of a burn, Waders stride the Mirror Marsh unhindered, Webfoots turn a swim into a stroke — and Stillsteps let you step out onto still pond water and walk it. Rivers still run, though. Still water only.',
+    'The credits roll has a third door now: pause the game and it\'s there in the popup, beside Resume and Options.',
   ],
 };

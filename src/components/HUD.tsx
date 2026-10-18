@@ -26,6 +26,7 @@ import {
   ScrollText,
   Settings2,
   Sprout,
+  MessageSquare,
 } from 'lucide-react';
 import {
   ToolType,
@@ -232,6 +233,7 @@ import { HudOptionsPanel } from './HudOptionsPanel';
 import type { GameDifficulty } from '../game/saveSystem';
 import { CreditsModal } from './CreditsModal';
 import { DonateButton } from './DonateButton';
+import { FeedbackModal } from './FeedbackModal';
 import { multiplayerManager, RELAY_BASE_URL } from '../game/multiplayer';
 // Shield faces for the Left Hand tile (shield follow pass,
 // 2026-10-17): which held items are shields, from the rules.
@@ -398,6 +400,7 @@ export const HUD: React.FC<HUDProps> = ({
   // belongs one click from RESUME, not only at the start
   // screen and in Game Info.
   const [showCredits, setShowCredits] = useState<boolean>(false);
+  const [showFeedback, setShowFeedback] = useState<boolean>(false);
 
   // The How to Play pulse (Adam's program, 2026-10-17): the
   // button pulses until the modal has been opened ONCE, then
@@ -1129,6 +1132,18 @@ export const HUD: React.FC<HUDProps> = ({
             <span className="text-[11px] font-mono font-medium hidden md:inline">Credits</span>
           </button>
           <DonateButton variant="session" />
+          {/* FEEDBACK, beside the pair (Adam, 2026-10-18): the
+              player's word to the grower belongs in the same
+              always-visible row — a bug found mid-walk is
+              reported mid-walk, not after a trip to a menu. */}
+          <button
+            onClick={() => setShowFeedback(true)}
+            title="Feedback — report an issue or make a recommendation"
+            className="p-2 rounded-xl text-violet-300 hover:text-violet-200 hover:bg-violet-950/50 transition-colors flex items-center gap-1.5"
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span className="text-[11px] font-mono font-medium hidden md:inline">Feedback</span>
+          </button>
           </div>
 
           {/* Second row: the system toggles and the two list
@@ -1831,6 +1846,13 @@ export const HUD: React.FC<HUDProps> = ({
       )}
       {showCredits && (
         <CreditsModal isOpen={showCredits} onClose={() => setShowCredits(false)} />
+      )}
+      {showFeedback && (
+        <FeedbackModal
+          isOpen={showFeedback}
+          onClose={() => setShowFeedback(false)}
+          contextLine={`${zoneCoordsLabel} · ${currentBiomeName ?? 'Unknown country'} · ${touchMode ? 'touch' : 'desktop'}`}
+        />
       )}
     </div>
   );

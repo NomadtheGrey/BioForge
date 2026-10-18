@@ -15,3 +15,12 @@
  * itself in the same build.
  */
 export const DONATE_URL: string | null = null;
+
+/**
+ * FEEDBACK_EMAIL: where a player's word lands (Adam,
+ * 2026-10-18) — the game's own Gmail. The FeedbackModal
+ * composes a note and hands it to the player's mail program
+ * addressed here; if a real backend ever replaces that, the
+ * address still stands as the destination of record.
+ */
+export const FEEDBACK_EMAIL = 'bioforge.game@gmail.com';

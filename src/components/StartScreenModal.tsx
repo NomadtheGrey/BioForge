@@ -22,12 +22,13 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Play, Plus, Trash2, Users, Sprout, RefreshCw, Newspaper } from 'lucide-react';
+import { Play, Plus, Trash2, Users, Sprout, RefreshCw, Newspaper, MessageSquare } from 'lucide-react';
 import { CreditsModal } from './CreditsModal';
 import { NewsModal } from './NewsModal';
 import type { UseSystemFeedResult } from '../hooks/useSystemFeed';
 import { activeBroadcasts } from '../game/systemFeed';
 import { DonateButton } from './DonateButton';
+import { FeedbackModal } from './FeedbackModal';
 import {
   GameDifficulty,
   SaveMetadata,
@@ -111,6 +112,7 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
   // this menu's header, so the state lives here — no App
   // wiring needed.
   const [showCredits, setShowCredits] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   // The news seat (system messages, Adam 2026-10-18): same
   // local-state pattern as the credits. A NOTICE-priority
@@ -181,6 +183,15 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
                 capped until DONATE_URL lands at wrap — see
                 DonateButton for the one-component rule. */}
             <DonateButton variant="header" />
+            {/* The Feedback door (Adam, 2026-10-18): beside
+                Donate in the header — a player who never gets
+                past this screen can still send word. */}
+            <button
+              onClick={() => setShowFeedback(true)}
+              className="px-4 py-2 rounded-2xl text-[11px] font-tech font-bold text-violet-200 border border-violet-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <MessageSquare className="w-3.5 h-3.5" /> FEEDBACK
+            </button>
             {/* The About door: what this game is, before the
                 first spawn (primer §5 — the start-screen About). */}
             {onOpenAbout && (
@@ -337,6 +348,7 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
         </div>
       </div>
       <CreditsModal isOpen={showCredits} onClose={() => setShowCredits(false)} />
+      <FeedbackModal isOpen={showFeedback} onClose={() => setShowFeedback(false)} />
       <NewsModal
         isOpen={showNews}
         onClose={() => {

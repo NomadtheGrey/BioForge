@@ -229,7 +229,15 @@ export interface GameLoopDeps {
   activeToolRef: { current: ToolType };
   lastBroadcastTime: { current: number };
   lastMinimapUpdateTime: { current: number };
-  latestStateRef: { current: { dayNightCycle: number } };
+  // The save-session bundle, refreshed every render. The loop's
+  // engine effect below is MOUNT-ONLY (}, [])), so anything it
+  // needs LIVE must come through a ref like this one — the
+  // destructured `playerState` prop inside that effect is the
+  // FIRST render's state, frozen forever (the lantern bug,
+  // 2026-10-18: the held-light drive read the frozen hand and
+  // the lantern never lit). playerState is declared here for
+  // the held-item reads.
+  latestStateRef: { current: { dayNightCycle: number; playerState: { heldItemId?: ItemId | null } } };
   currentZoneId: () => string;
   applyPlayerLevel: (level: number) => void;
   postNotification: (title: string, message: string, type?: GameNotification["type"], iconColor?: string, key?: string) => void;
@@ -814,7 +822,7 @@ export function useGameLoop(deps: GameLoopDeps): void {
         const shieldCtl = liveGameRefs.current.shield;
         if (shieldCtl) {
           shieldCtl.tickClock(dt);
-          const heldShield = shieldOf(playerState.heldItemId ?? null) ?? null;
+          const heldShield = shieldOf(latestStateRef.current.playerState.heldItemId ?? null) ?? null;
           const grafted = !!(heldShield && graftOf(shieldCtl.growthRef.current, heldShield.itemId));
           engineRef.current.setShieldViewmodel(heldShield, grafted, shieldCtl.raisedRef.current, dt);
           const camDir = new THREE.Vector3();
@@ -828,7 +836,7 @@ export function useGameLoop(deps: GameLoopDeps): void {
           // lamp-shield throws its light forward — see the engine).
           const heldShieldLamp = heldShield?.hasLamp ?? false;
           engineRef.current.setHeldLight(
-            playerState.heldItemId === 'hand_lantern_fern' || heldShieldLamp,
+            latestStateRef.current.playerState.heldItemId === 'hand_lantern_fern' || heldShieldLamp,
             shieldCtl.raisedRef.current && heldShieldLamp
           );
           // The Biolume Visor follows the helm per frame, the
@@ -1097,7 +1105,7 @@ export function useGameLoop(deps: GameLoopDeps): void {
             // 2026-10-17): the drop pass's reach this tick,
             // from the shield in hand and whether it is raised.
             dropMagnetFor(
-              shieldOf(playerState.heldItemId ?? null) ?? undefined,
+              shieldOf(latestStateRef.current.playerState.heldItemId ?? null) ?? undefined,
               liveGameRefs.current.shield?.raisedRef.current ?? false,
               liveGameRefs.current.shield?.growthRef.current
             )

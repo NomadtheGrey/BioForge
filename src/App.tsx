@@ -124,7 +124,7 @@ import { AW_CHAPTERS, type AwChapter } from './game/quests/awChapters';
 import { ChapterModal } from './components/ChapterModal';
 import { ScarChoiceModal } from './components/ScarChoiceModal';
 import { bestWeapon } from './game/creatures/weapons';
-import { windlungTierOf, staminaFactors, emberSolesGrown, wadersGrown, webfootsGrown } from './game/creatures/quicksteps';
+import { windlungTierOf, staminaFactors, emberSolesGrown, wadersGrown, webfootsGrown, stillstepsGrown } from './game/creatures/quicksteps';
 import { biolumeVisorWorn, helmetReadTier, sporeFilterWorn, shadeVisorWorn, glyphLensWorn, chargeSightWorn } from './game/creatures/helmet';
 import type { WeaponDef } from './game/creatures/weapons';
 // The Shield Family (Adam, 2026-10-17): rules, the wield hook, and
@@ -2516,7 +2516,7 @@ const {
   useGameLoop({
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
     jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, lastStaminaSync,
-    sprinting, sporeStaminaRef, marshSluggishRef, getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0, hasPlumeCharm: () => (latestStateRef.current.inventory?.plume_charm ?? 0) > 0, windlungTier: () => windlungTierOf(latestStateRef.current.inventory ?? {}), hasEmberSoles: () => emberSolesGrown(latestStateRef.current.inventory ?? {}), waders: () => wadersGrown(latestStateRef.current.inventory ?? {}), webfoots: () => webfootsGrown(latestStateRef.current.inventory ?? {}), biolumeVisor: () => biolumeVisorWorn(latestStateRef.current.inventory ?? {}), sporeFilter: () => sporeFilterWorn(latestStateRef.current.inventory ?? {}), chargeSight: () => chargeSightWorn(latestStateRef.current.inventory ?? {}), scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
+    sprinting, sporeStaminaRef, marshSluggishRef, getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0, getPondSurface: (x: number, z: number) => engineRef.current?.pondSurfaceAt(x, z) ?? null, hasPlumeCharm: () => (latestStateRef.current.inventory?.plume_charm ?? 0) > 0, windlungTier: () => windlungTierOf(latestStateRef.current.inventory ?? {}), hasEmberSoles: () => emberSolesGrown(latestStateRef.current.inventory ?? {}), waders: () => wadersGrown(latestStateRef.current.inventory ?? {}), webfoots: () => webfootsGrown(latestStateRef.current.inventory ?? {}), stillsteps: () => stillstepsGrown(latestStateRef.current.inventory ?? {}), biolumeVisor: () => biolumeVisorWorn(latestStateRef.current.inventory ?? {}), sporeFilter: () => sporeFilterWorn(latestStateRef.current.inventory ?? {}), chargeSight: () => chargeSightWorn(latestStateRef.current.inventory ?? {}), scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef, returnPausedRef,

@@ -103,6 +103,13 @@ export interface GameLoopDeps {
   /** True while Webfoots are GROWN (creatures/quicksteps):
    *  the swim ladder rises toward a stroke. */
   webfoots?: () => boolean;
+  /** True while Stillsteps are GROWN (creatures/quicksteps):
+   *  still water holds the player's step. */
+  stillsteps?: () => boolean;
+  /** The STILL water surface at a point (ponds of plain
+   *  water only), bridged from the engine — the loop's
+   *  held-water test for the Stillsteps drag clear. */
+  getPondSurface?: (x: number, z: number) => number | null;
   /** True while the player carries a Plume Charm (Ingredient
    *  Sinks, 2026-10-17): fast falls glide instead of dropping. */
   hasPlumeCharm?: () => boolean;
@@ -229,7 +236,7 @@ export interface GameLoopDeps {
 export function useGameLoop(deps: GameLoopDeps): void {
   const {
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
-    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, getLiquidAt, hasEmberSoles, biolumeVisor, sporeFilter, chargeSight, waders, webfoots, hasPlumeCharm, windlungTier, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
+    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, getLiquidAt, getPondSurface, hasEmberSoles, biolumeVisor, sporeFilter, chargeSight, waders, webfoots, stillsteps, hasPlumeCharm, windlungTier, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
     sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
@@ -302,7 +309,19 @@ export function useGameLoop(deps: GameLoopDeps): void {
           ? getWaterDepth(playerPosRef.current.x, playerPosRef.current.z)
           : 0;
         const webbed = !!(webfoots && webfoots());
-        const inWater = waterDepth > 1.0 ? (webbed ? 0.8 : 0.5) : waterDepth > 0.35 ? (webbed ? 0.9 : 0.65) : waterDepth > 0.05 ? (webbed ? 0.95 : 0.85) : 1;
+        // STILLSTEPS (movement build, 2026-10-18): over held
+        // water — a pond of plain water under the growth —
+        // there is no wading at all: you are ON it, not in
+        // it (the engine stands the eye on the surface in
+        // setPlayerPosition, driven below). Rivers never
+        // hold (the pond query excludes them by construction),
+        // and the rim stays honest: a skim of water
+        // (≤ ankle depth) is shore, not a step.
+        const pondSurface = instanceRef.current.kind === 'surface' && getPondSurface
+          ? getPondSurface(playerPosRef.current.x, playerPosRef.current.z)
+          : null;
+        const onHeldWater = !!(stillsteps && stillsteps()) && pondSurface !== null && waterDepth > 0.05;
+        const inWater = onHeldWater ? 1 : waterDepth > 1.0 ? (webbed ? 0.8 : 0.5) : waterDepth > 0.35 ? (webbed ? 0.9 : 0.65) : waterDepth > 0.05 ? (webbed ? 0.95 : 0.85) : 1;
         // Rooted by the valley (Living, 2026-10-15): a landed
         // grab holds you at 40% speed while the snare lasts.
         const snared = performance.now() < grabSnareUntilRef.current && instanceRef.current.kind === 'surface' ? 0.4 : 1;
@@ -790,6 +809,11 @@ export function useGameLoop(deps: GameLoopDeps): void {
           // honest). The liveness gates (storm country armed,
           // a Living temperament present) keep a warning flag
           // stranded by death or travel from painting forever.
+          // Stillsteps (movement build, 2026-10-18): the
+          // engine stands the player on pond surfaces while
+          // the growth is worn (setStillsteps); the drag
+          // clear lives with the water factors above.
+          engineRef.current.setStillsteps(!!(stillsteps && stillsteps()));
           const sightOn = !!(chargeSight && chargeSight());
           engineRef.current.setChargeSight(
             sightOn && stormZotRef.current > 0 && zotStateRef.current.warned

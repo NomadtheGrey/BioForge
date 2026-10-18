@@ -20,7 +20,7 @@ import {
 import { FirstPersonViewmodel } from './viewmodel';
 import type { ShieldDef } from '../creatures/shields';
 import { landformHeightAt, type PondLiquid } from '../world/terrain';
-import { buildWaterGroup, waterSurfaceFromLists, waterDepthFromLists, liquidFromLists, type PondLocal, type RiverSegLocal } from '../world/waterField';
+import { buildWaterGroup, waterSurfaceFromLists, waterDepthFromLists, liquidFromLists, pondWaterSurfaceAt, type PondLocal, type RiverSegLocal } from '../world/waterField';
 import { SkyRig } from '../world/skyRig';
 import { MoteField } from '../world/moteField';
 import { updateHearthTag } from '../creatures/hearthTag';
@@ -654,7 +654,19 @@ export class BioForgeThreeEngine {
     // Story levels add a wall-height per floor above the ground.
     // jumpOffset is the jump arc (App's cosmetic Y over the level
     // model): while airborne the camera rides it, landing returns to 0.
-    this.camera.position.y = this.eyeHeight + this.terrainHeightAt(x, z) + level * STORY_HEIGHT + jumpOffset;
+    // STILLSTEPS (movement build, 2026-10-18): while the growth
+    // is on the player's feet, still water is ground — the eye
+    // rides the pond's surface instead of its floor wherever
+    // the surface stands higher. Surface only, ground story
+    // only: instances have no ponds (and the mode flags keep a
+    // surface pond's circle from floating a cave walker whose
+    // local coords happen to overlap it).
+    let groundY = this.terrainHeightAt(x, z);
+    if (this.stillstepsActive && level === 0 && !this.cavernMode && !this.ruinMode) {
+      const ps = this.pondSurfaceAt(x, z);
+      if (ps !== null && ps > groundY) groundY = ps;
+    }
+    this.camera.position.y = this.eyeHeight + groundY + level * STORY_HEIGHT + jumpOffset;
     this.updateIrisDoorsProximity(x, z);
     // The structure life passes (extracted 2026-10-17, Adam's
     // layout ruling: the piece a landing touches moves out into
@@ -912,6 +924,25 @@ export class BioForgeThreeEngine {
    *  (pond build, 2026-10-16) to ride swimmers at their surface. */
   public waterSurfaceAt(x: number, z: number): number | null {
     return waterSurfaceFromLists(this.zonePondsLocal, this.zoneRiverSegsLocal, x, z);
+  }
+
+  /** The STILL water surface at a LOCAL point (Stillsteps):
+   * ponds of plain water only — rivers flow and never hold
+   * a step, and neither do lava or brine. The pure test is
+   * waterField.pondWaterSurfaceAt. */
+  public pondSurfaceAt(x: number, z: number): number | null {
+    return pondWaterSurfaceAt(this.zonePondsLocal, x, z);
+  }
+
+  /** Stillsteps (movement build, 2026-10-18): the loop
+   * drives this from the grown derivation (creatures/
+   * quicksteps.stillstepsGrown). While active, setPlayer-
+   * Position stands the player on pond surfaces (above),
+   * and the loop clears the wading drag over held water. */
+  private stillstepsActive: boolean = false;
+
+  public setStillsteps(active: boolean): void {
+    this.stillstepsActive = active;
   }
 
   /** How deep the water is at a LOCAL point (meters; 0 = dry).

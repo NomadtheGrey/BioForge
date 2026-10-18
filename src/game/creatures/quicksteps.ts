@@ -66,6 +66,11 @@ export function webfootsGrown(inventory: Partial<Record<ItemId, number>>): boole
   return (inventory['webfoots'] ?? 0) > 0;
 }
 
+/** Stillsteps: step onto still water and it holds. */
+export function stillstepsGrown(inventory: Partial<Record<ItemId, number>>): boolean {
+  return (inventory['stillsteps'] ?? 0) > 0;
+}
+
 /** Which rung the pouch holds (0 = none). The ladder consumes
  *  upward, so at most one rung is ever held; the highest wins
  *  regardless. */

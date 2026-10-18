@@ -125,7 +125,7 @@ import { ChapterModal } from './components/ChapterModal';
 import { ScarChoiceModal } from './components/ScarChoiceModal';
 import { bestWeapon } from './game/creatures/weapons';
 import { windlungTierOf, staminaFactors } from './game/creatures/quicksteps';
-import { biolumeVisorWorn, helmetReadTier, sporeFilterWorn, shadeVisorWorn } from './game/creatures/helmet';
+import { biolumeVisorWorn, helmetReadTier, sporeFilterWorn, shadeVisorWorn, glyphLensWorn } from './game/creatures/helmet';
 import type { WeaponDef } from './game/creatures/weapons';
 // The Shield Family (Adam, 2026-10-17): rules, the wield hook, and
 // the Left Hand cycle grammar.
@@ -2458,6 +2458,14 @@ const {
     const glareCountry = family === 'saltglass' || family === 'frost' || variant?.id === 'mirror_marsh';
     engineRef.current?.setShadeVisor(glareCountry && shadeVisorWorn(inventory));
   }, [sessionSeed, playerZone, inventory]);
+
+  // The Glyph Lens's drive (helmet slice 4): the engine's
+  // cache-glow markers show only while the lens is worn.
+  // (The deep-line half needs no drive — the glyph read
+  // itself consults the worn derivation at read time.)
+  useEffect(() => {
+    engineRef.current?.setGlyphLens(glyphLensWorn(inventory));
+  }, [inventory]);
 
   const handlePlayerDeath = useCallback((): void => {
     // Ask the World (Walk Back): remember where the land took

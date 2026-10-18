@@ -1370,6 +1370,64 @@ export class BioForgeThreeEngine {
     const px = playerX !== undefined ? playerX : this.cachedPlayerX;
     const pz = playerZ !== undefined ? playerZ : this.cachedPlayerZ;
     this.updateIrisDoorsProximity(px, pz);
+    this.refreshCacheGlow(structuresList);
+  }
+
+  /** The Glyph Lens's cache glow (helmet slice 4): App
+   * drives this from the worn derivation (creatures/
+   * helmet.glyphLensWorn). The markers themselves are
+   * maintained by refreshCacheGlow on every structure
+   * sync; this setter only owns their visibility. */
+  private glyphLensActive: boolean = false;
+
+  public setGlyphLens(active: boolean): void {
+    this.glyphLensActive = active;
+    this.cacheGlowSprites.forEach((sp) => {
+      sp.visible = active;
+    });
+  }
+
+  /** Faint markers over precursor caches, drawn THROUGH
+   * ruin walls (depthTest off, high render order) — the
+   * Glyph Lens's second promise ("caches glow faintly
+   * through ruin walls"). One sprite per cache, keyed by
+   * structure id, pruned on the same sync that seats the
+   * meshes: a looted cache leaves the structure list
+   * (useToolInteractions removes it), so its glow dies in
+   * the same pass, and leaving the ruin clears them all. */
+  private cacheGlowSprites = new Map<string, THREE.Sprite>();
+
+  private refreshCacheGlow(structuresList: StructureEntity[]): void {
+    const cacheIds = new Set<string>();
+    structuresList.forEach((s) => {
+      if (s.type !== 'precursor_cache') return;
+      cacheIds.add(s.id);
+      if (this.cacheGlowSprites.has(s.id)) return;
+      const mat = new THREE.SpriteMaterial({
+        map: this.glowTexture,
+        color: 0xf5d76e,
+        transparent: true,
+        opacity: 0.38,
+        depthTest: false,
+        depthWrite: false,
+      });
+      const sp = new THREE.Sprite(mat);
+      sp.renderOrder = 999;
+      sp.scale.set(2.4, 2.4, 1);
+      const gy =
+        (this.structureDatums.get(s.id) ?? this.terrainHeightAt(s.worldX, s.worldZ)) + 1.3;
+      sp.position.set(s.worldX, gy, s.worldZ);
+      sp.visible = this.glyphLensActive;
+      this.scene.add(sp);
+      this.cacheGlowSprites.set(s.id, sp);
+    });
+    this.cacheGlowSprites.forEach((sp, id) => {
+      if (!cacheIds.has(id)) {
+        this.scene.remove(sp);
+        (sp.material as THREE.SpriteMaterial).dispose();
+        this.cacheGlowSprites.delete(id);
+      }
+    });
   }
 
   /**

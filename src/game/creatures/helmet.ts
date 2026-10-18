@@ -68,6 +68,17 @@ export function shadeVisorWorn(inventory: Inventory): boolean {
 }
 
 /**
+ * The Glyph Lens (helmet slice 4): glyph stones give their
+ * deep line first (the read in useToolInteractions flips a
+ * shallow stone's band on this answer), and caches glow
+ * faintly through ruin walls (the engine's cache-glow
+ * markers, threeEngine.setGlyphLens).
+ */
+export function glyphLensWorn(inventory: Inventory): boolean {
+  return helmetModuleWorn(inventory, 'glyph_lens');
+}
+
+/**
  * The zone read, tiered by the lens line (helmet slice 2):
  * naming the land is a sense, and the helm is the sensory
  * platform. TIER 0 — no lens: the land stays unidentified.

@@ -214,6 +214,7 @@ import type { UseTutorialResult } from '../hooks/useTutorial';
 
 import { HudOptionsPanel } from './HudOptionsPanel';
 import { CreditsModal } from './CreditsModal';
+import { DonateButton } from './DonateButton';
 import { multiplayerManager, RELAY_BASE_URL } from '../game/multiplayer';
 // Shield faces for the Left Hand tile (shield follow pass,
 // 2026-10-17): which held items are shields, from the rules.
@@ -1269,6 +1270,9 @@ export const HUD: React.FC<HUDProps> = ({
               >
                 <ScrollText className="w-3.5 h-3.5" /> CREDITS
               </button>
+              {/* DONATE rides beside CREDITS here too (Adam,
+                  2026-10-18) — capped until the page stands. */}
+              <DonateButton variant="popup" />
             </div>
           </div>
         </div>

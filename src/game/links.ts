@@ -7,10 +7,11 @@
  *
  * DONATE_URL: the BioForge itch page's donation door. The page
  * itself stands at wrap (~Oct 24); until the address is real,
- * this stays null and NO donate button renders anywhere — a
- * support button that 404s costs more goodwill than a week's
- * patience. The day the page stands, set the URL here and both
- * seats (the start-screen header and the Game Info screen)
- * light in the same build.
+ * this stays null. The BUTTON, though, renders everywhere
+ * from the start (Adam's later call, 2026-10-18: the Donation
+ * door sits beside Credits wherever Credits lies) — capped
+ * and honest about it, via components/DonateButton. The day
+ * the page stands, set the URL here and every seat wires
+ * itself in the same build.
  */
 export const DONATE_URL: string | null = null;

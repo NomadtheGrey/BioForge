@@ -7,12 +7,14 @@
 //   BUILD_ID — the build's stamp: the minute it was built,
 //   injected by vite.config.ts as a define (zero manual
 //   steps; it changes on every build because the clock
-//   does). The merge flow reads the stamp back out of the
-//   deployed bundle — grep for 'bioforge-build:' — and
-//   writes it into the system feed as latestBuild, with the
-//   action level the update honestly needs. A build that
-//   polls the feed and finds a NEWER stamp knows it is the
-//   old build, and speaks at that level.
+//   does). The merge flow reads the stamp from the deployed
+//   /build.txt (a static file the same config emits — a
+//   bundle grep would NOT survive minification, which folds
+//   the label away) and writes it into the system feed as
+//   latestBuild, with the action level the update honestly
+//   needs. A build that polls the feed and finds a NEWER
+//   stamp knows it is the old build, and speaks at that
+//   level.
 //
 //   BUILD_NOTES — this build's own release notes, in player
 //   voice, spoiler-safe (the guide's discipline: tease,

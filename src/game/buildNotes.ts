@@ -61,25 +61,28 @@ export const DEFAULT_BUILD_NOTES: BuildNotes = {
  * THIS build's notes. Review surface: read them like a
  * player meeting them cold.
  *
- * CURRENT BUILD (the sound system, 2026-10-18): the lines
- * below — written for the landing, in the file's standing
- * discipline (whoever composes a landing writes its notes).
- * The previous build's greeting ('One room, many voices')
- * has already fired; this build must not wear it a second
- * time (the dev lane's slice-4 lesson, applied).
+ * CURRENT BUILD (the light-and-lenses stack, 2026-10-18):
+ * the lines below — written for the landing, in the file's
+ * standing discipline (whoever composes a landing writes
+ * its notes). The previous build's greeting ('Clearer air,
+ * a surer hand') has already fired; this build must not
+ * wear it a second time (the dev lane's slice-4 lesson,
+ * applied).
  */
 export const BUILD_NOTES: BuildNotes = {
-  // The day-one stack (2026-10-18): the sound field fix +
-  // the hum's retirement (HUD lane's ear-led passes), the
-  // Left Hand's move to Ctrl (Adam's ruling), and the chat
-  // pair — the solo transmissions pane and the un-blurred
-  // co-op window (background lane). The sound build's own
-  // notes fired with its merge; this build speaks for
-  // itself, per the standing discipline.
-  title: 'Clearer air, a surer hand',
+  // The light-and-lenses stack (2026-10-18): the ground-light
+  // fix (Adam's priority — pooled light rides its ground and
+  // the tables speak the physical scale), the helm's first
+  // working lenses (Biolume Visor + the zone reads), the
+  // Sky Law (east rise, west set), and the HUD lane's ear-led
+  // stack: music figures in place of fog, the legacy hum
+  // retired at its source, one mute authority, system word
+  // that stays readable, and a roomier Options panel.
+  title: 'Light that lands',
   lines: [
-    'The music sits at its true level now — the first mix was a whisper, and it has been set right. The low hum underneath it has retired for good; the country plays in two clean layers, and the SOUND shelf in Options will tell you what it is doing.',
-    'The Left Hand cycles on Ctrl now — Ctrl and the arrow keys, or Ctrl and the scroll wheel — and every guide and card that names the key names the new one.',
-    'The co-op window no longer blurs the world behind it, and its log stands open before you ever join a session: word from the system is readable even when you wander alone.',
+    'The world\'s light lands where it always should have. Lantern posts pool on the ground beneath them, a lantern in hand throws a real circle of light, and down in the Biolume caves the glow fungus lights the floor you walk by.',
+    'The helm\'s lenses have opened their eyes. The Biolume Visor reads living light through the deepest dark; the Trail Lens names a country\'s family, and the Identifier Lens names it whole — walk into new country and hear what your helm can see.',
+    'The sky runs Earth\'s way now, by universal law: the suns rise in the east and set in the west, and the great ringed giant follows them through the night.',
+    'The music speaks in figures again — motifs with edges and air between them, the old hum gone for good — and word from the system now stays on screen long enough to read it. The Options panel has a bigger room, too, with its switches in two columns.',
   ],
 };

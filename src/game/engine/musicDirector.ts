@@ -210,7 +210,8 @@ const LOOKAHEAD = 0.8; // schedule this far ahead of the clock
 // First-pass levels were a WHISPER at real speakers (field
 // report, day one: 'day 3, noon, unmuted — and nothing'): the
 // peaks below are the ear-tuned second pass — motif and glass
-// roughly doubled, pads likewise, the drone still the floor.
+// roughly doubled, pads likewise. (The drone named here was
+// retired the same day — see the header grammar note.)
 // The quiet end stays honest: sparse families stay sparse in
 // TIME (long rests), not in loudness (inaudible notes).
 const G = { pad: 0.085, motif: 0.15, glass: 0.12, guest: 0.08, hearth: 0.07 };

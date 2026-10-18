@@ -182,6 +182,8 @@ export type ItemId =
   | 'lodestone_plate'
   | 'fall_plume'
   | 'hush_gel'
+  | 'gloom_chitin'
+  | 'husk_spore'
   | 'hollow_heart_spore'
   | 'sedge_egg'
   | 'clean_bone'
@@ -836,7 +838,9 @@ export type FaunaSpecies =
   // The three wild predators (slice 51, 2026-10-17).
   | 'lodestone_hound'
   | 'fall_hawk'
-  | 'hush_hound';
+  | 'hush_hound'
+  | 'gloom_skitter'
+  | 'spore_husk';
 
 export interface FaunaEntity {
   id: string;
@@ -909,6 +913,13 @@ export interface FaunaEntity {
   // everywhere; their bargain does not scale).
   wildDmg?: number;
   wildAggro?: number;
+  // The cavern roam (creature slice C1, Part 7, 2026-10-18):
+  // floor-verified patrol points dealt WITH a cavern citizen by
+  // cavernFauna.ts — every point is a cavern floor cell and every
+  // leg between consecutive points was walked along the grid at
+  // deal time, so a cave creature's targets never ask it to cross
+  // a wall the sim cannot see. Absent on every surface citizen.
+  cavernRoam?: { x: number; z: number }[];
   calmRegard?: number;
   // The Heartbearer's load (slice 48): edibles placed on its
   // back, delivered to the valley's heart on its route. The

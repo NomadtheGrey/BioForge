@@ -23,6 +23,7 @@ import {
   generateGameCavern, generateGameCavernLevel, cavernCellToWorld, cavernEntryYaw, cavernStratumName,
   type CavernResult,
 } from '../game/world/cavern';
+import { dealCavernFauna } from '../game/creatures/cavernFauna';
 import { generateGameRuin, ruinEntryYaw, ruinCollisionGrid, type RuinResult } from '../game/world/ruinInterior';
 import { FATE_STYLES, type RuinVariantId, type WorldFate } from '../game/world/ruins';
 import { zoneCoordsAt, zoneHops, zoneBiomeAt } from '../game/world/zones';
@@ -264,7 +265,13 @@ export function useInstances(deps: InstancesDeps): UseInstancesResult {
       const plantedBack = (cavePlantingsRef.current[plantingsKey(instanceId, depth)] ?? [])
         .filter((p) => !caveFlora.some((f) => f.id === p.id))
         .map((p) => ({ ...p }));
-      replaceWorld({ flora: [...caveFlora, ...plantedBack], fauna: [], structures, drops: [] });
+      // The level's citizens (Part 7, slice C1): dealt by depth
+      // from the cavern's own floor — the instance's fauna list
+      // shipped empty until the cave program opened, and this is
+      // the one door every level enters through, so entry and
+      // descent can never deal different country.
+      const caveFauna = dealCavernFauna(cavern, instanceId, depth);
+      replaceWorld({ flora: [...caveFlora, ...plantedBack], fauna: caveFauna, structures, drops: [] });
       engineRef.current?.setCavernMode(true, cavern, depth);
       applyPlayerLevel(0);
       playerPosRef.current = { x: entry.x, z: entry.z, rotation: entryYaw };

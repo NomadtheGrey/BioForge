@@ -1824,4 +1824,52 @@ export const SPECIES_LATE: Record<string, SpeciesDef> = {
       health: 120,
     },
   },
+  // ------------------------------------------------------------------
+  // THE CAVE CITIZENS (Part 7, slice C1, 2026-10-18). These two
+  // carry NO bonusSpawn and never will: they are dealt by
+  // cavernFauna.ts into cavern instances, banded by DEPTH, and
+  // the two dealers share no table — a cavern species cannot leak
+  // onto the surface, nor a surface species down. Their speed and
+  // health live in the dealer's bands (the surface dealer reads
+  // them from bonusSpawn; the cavern dealer keeps its own page).
+  // ------------------------------------------------------------------
+  gloom_skitter: {
+    id: 'gloom_skitter',
+    name: 'Gloom Skitter',
+    profile: 'insect',
+    // It eats what the cave grows and wants only to be left
+    // unlit and alone; a third of the time, it decides the hand
+    // that feeds it is acceptable. The rest of the time it is
+    // simply elsewhere, very quickly.
+    tameChance: 0.3,
+    bait: 'nectar',
+    petName: 'Skitter',
+    byproduct: null,
+    // Required by the type, null by design: dealt by depth
+    // (cavernFauna.ts), never by biome.
+    bonusSpawn: null,
+    // No hunt block, deliberately: the skitter has no teeth for
+    // anyone, in any difficulty. Its whole behavior is the flee
+    // (see the cavern engine in useWorldEntities).
+    killLoot: [['gloom_chitin', 1]],
+  },
+  spore_husk: {
+    id: 'spore_husk',
+    name: 'Spore Husk',
+    profile: 'colony',
+    // A colony is not tameable — there is no single temperament
+    // to win, only a dome that breathes. Scan it, mind its swell,
+    // harvest what it gives up.
+    tameChance: 0,
+    bait: 'nectar',
+    petName: 'Husk',
+    // The slow weep: a colony sheds a single spore on a long
+    // cycle, patience's door. The reliable door is the burst
+    // (the cavern engine in useWorldEntities scatters two).
+    byproduct: { item: 'husk_spore', seconds: 600, tamedOnly: false },
+    // Required by the type, null by design: dealt by depth
+    // (cavernFauna.ts), never by biome.
+    bonusSpawn: null,
+    killLoot: [['husk_spore', 2], ['gloom_chitin', 1]],
+  },
 };

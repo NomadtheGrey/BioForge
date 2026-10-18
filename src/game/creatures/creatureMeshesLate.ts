@@ -1859,6 +1859,72 @@ export function buildLateFaunaMesh(
         break;
       }
 
+    case 'gloom_skitter': {
+        // The Biolume Caverns' first citizen (Part 7, slice C1):
+        // a palm-sized body of dark gel on six quick legs, with a
+        // paler core showing through and two eye dots that catch
+        // light it wants no part of. Low and quick in the build,
+        // because it is low and quick in the world.
+        const gelMat = new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.3, transparent: true, opacity: 0.88 });
+        const coreMat = new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.45, transparent: true, opacity: 0.75 });
+        const eyeMat = new THREE.MeshStandardMaterial({ color: 0xd6d3cd, roughness: 0.2, emissive: 0x44403c, emissiveIntensity: 0.7 });
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.16, 9, 7), gelMat);
+        body.scale.set(1, 0.62, 1.35);
+        body.position.y = 0.16;
+        group.add(body);
+        const core = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), coreMat);
+        core.scale.set(0.9, 0.6, 1.3);
+        core.position.y = 0.15;
+        group.add(core);
+        for (const sx of [-1, 1]) {
+          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.022, 6, 5), eyeMat);
+          eye.position.set(sx * 0.055, 0.2, 0.19);
+          group.add(eye);
+          // Six legs, three a side, thin as pins — a skitter's
+          // whole argument is in its legs.
+          for (let i = 0; i < 3; i++) {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.005, 0.22, 4), gelMat);
+            leg.position.set(sx * 0.17, 0.09, 0.1 - i * 0.1);
+            leg.rotation.z = sx * 0.9;
+            leg.rotation.x = (i - 1) * 0.25;
+            group.add(leg);
+          }
+        }
+        break;
+      }
+
+    case 'spore_husk': {
+        // A fungus colony the size of a sitting dog (Part 7,
+        // slice C1): a ribbed translucent dome over a ring of
+        // stub feet it long ago stopped needing. The ribs are
+        // the tell the design promises — they read at distance,
+        // in lantern light, before the swell begins.
+        const domeMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.55, transparent: true, opacity: 0.9 });
+        const ribMat = new THREE.MeshStandardMaterial({ color: 0xd6d3cd, roughness: 0.5, transparent: true, opacity: 0.85 });
+        const footMat = new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 0.7 });
+        const dome = new THREE.Mesh(new THREE.SphereGeometry(0.42, 12, 9), domeMat);
+        dome.scale.set(1, 0.78, 1);
+        dome.position.y = 0.3;
+        group.add(dome);
+        // The ribs: pale bands standing proud of the dome.
+        for (let i = 0; i < 5; i++) {
+          const rib = new THREE.Mesh(new THREE.TorusGeometry(0.4 - Math.abs(i - 2) * 0.055, 0.018, 5, 18), ribMat);
+          rib.position.y = 0.16 + i * 0.11;
+          rib.rotation.x = Math.PI / 2;
+          rib.scale.set(1, 1, 0.78);
+          group.add(rib);
+        }
+        // The stub feet, in a ring it no longer uses.
+        for (let i = 0; i < 7; i++) {
+          const a = (i / 7) * Math.PI * 2;
+          const foot = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 5), footMat);
+          foot.position.set(Math.sin(a) * 0.4, 0.05, Math.cos(a) * 0.4);
+          foot.scale.set(1, 0.6, 1);
+          group.add(foot);
+        }
+        break;
+      }
+
     default:
       return null;
   }

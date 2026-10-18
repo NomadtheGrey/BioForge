@@ -96,7 +96,7 @@ import {
   goalProgressText,
 } from './game/quests/asksBack/latch';
 import { recordAsksChoice } from './game/quests/asksBackState';
-import { finaleFamilyOf, portalClickOutcome, portalPartsMissing } from './game/quests/finale';
+import { finaleFamilyOf, portalClickOutcome, portalPartsMissing, type FinaleFamilyId } from './game/quests/finale';
 // THE WORLD ASKS BACK, S4: a release settles the creature in the
 // zone's consequence record — the Director reads it as an anchor
 // and the zone loader materializes it by name.
@@ -2788,6 +2788,7 @@ const {
         isOpen={activeModal === 'quests'}
         onClose={() => setActiveModal(null)}
         views={questViews}
+        finaleFamily={(questProgress?.signals?.finaleFamily as FinaleFamilyId | undefined) ?? null}
         completedIds={questProgress?.completedIds ?? []}
         trackedId={questProgress?.trackedId ?? null}
         fieldNotesState={fieldNotesState}

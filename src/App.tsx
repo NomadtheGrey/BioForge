@@ -201,6 +201,7 @@ export default function App() {
   const {
     notifications,
     postNotification,
+    clearNotification,
   } = useNotifications();
 
   // The system channel (system messages, Adam 2026-10-18):
@@ -2987,6 +2988,7 @@ const {
         hoverInfo={hoverInfo}
         hoverHint={hoverHint}
         notifications={notifications}
+        onDismissNotification={clearNotification}
         roomCode={roomCode}
         peerCount={peers.length}
         selectedStructureType={playerState.selectedStructureType}

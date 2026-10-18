@@ -1791,6 +1791,29 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 99,
   },
+  // Cave citizens' yield (creatures C1 added the ids + loot;
+  // these defs complete the pair — without them ITEMS failed
+  // its Record<ItemId, ItemDef> completeness).
+  gloom_chitin: {
+    id: 'gloom_chitin',
+    name: 'Gloom Chitin',
+    category: 'raw',
+    description: 'Dark, light-drinking shell plate from the Gloom Skitters of the deep caves — it seems to swallow the lamplight that touches it.',
+    iconName: 'Shell',
+    color: '#4c1d95',
+    rarity: 'uncommon',
+    maxStack: 99,
+  },
+  husk_spore: {
+    id: 'husk_spore',
+    name: 'Husk Spore',
+    category: 'raw',
+    description: 'A heavy spore shed by Spore Husk colonies in the caverns — wept slowly by a living dome, or scattered when one bursts.',
+    iconName: 'Sparkle',
+    color: '#a16207',
+    rarity: 'uncommon',
+    maxStack: 99,
+  },
   prismatic_core: {
     id: 'prismatic_core',
     name: 'Prismatic Core',

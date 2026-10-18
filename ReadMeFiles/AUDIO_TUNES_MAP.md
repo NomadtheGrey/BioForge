@@ -27,12 +27,18 @@ the SOUND shelf (Options → Background Music), already landed.
   family + its coordinates: the same zone hums the same motif
   family on every visit, in every world that grows it — you can
   learn a place by ear the way you learn a species' voice.
-- **The form is three layers, all slow.** A low root drone
-  (barely there), a pad of two or three long tones, and a motif
-  line that phrases and rests — notes every few seconds, never a
-  tune you could hum against your will. Density follows the
-  country's own densities: lush country phrases more often;
-  sparse country leaves long, honest silences between notes.
+- **The form is two layers, all slow.** A pad of two or three
+  long tones, and a motif line that phrases and rests — notes
+  every few seconds, never a tune you could hum against your
+  will. Density follows the country's own densities: lush
+  country phrases more often; sparse country leaves long,
+  honest silences between notes. *(Amended 2026-10-18: the
+  map's original third layer — a low root drone under
+  everything — was retired by Adam's ear on the system's
+  first day: 'get rid of the hum; the background music is OK.'
+  Storm's pulse survives as beats under its phrases, not a
+  bed; the living valley breathes without its low thrum;
+  bone country's ground tone went with the layer.)*
 - **Day and night are mixes, not tracks.** Night drops the
   register, thins the motif (roughly half the phrases), and
   warms the drone. The layers crossfade at dawn and dusk with

@@ -1,28 +1,26 @@
 /**
- * DonateButton — the donation door, seated beside CREDITS
- * wherever the credits live (Adam, 2026-10-18: 'put a
- * Donation button next to the Credits button wherever it
- * lies. It won't wire to anything yet, but it can read
- * whatever is clever').
+ * DonateButton — the support door, seated beside CREDITS
+ * wherever the credits live (Adam, 2026-10-18).
  *
- * One component, three seats — the start-screen header, Game
- * Info's Who Grew This, and the pause popup — so the door
- * looks and behaves the same everywhere. It ALWAYS renders:
- * Adam's call supersedes the older rule that the support seat
- * stayed dark until launch. Until game/links' DONATE_URL
- * stands set (the itch page, at wrap), the button is a capped
- * jar: present, labeled, and honest about being capped — its
- * tooltip carries the word. The day the URL lands, this same
- * button opens it, everywhere at once, with no seat edits.
+ * One component, four seats — the start-screen header, Game
+ * Info's Who Grew This, the pause popup, and the Session
+ * bar — so the door looks the same everywhere and behaves
+ * the same: it OPENS the DonateModal (the two doors, Ko-fi
+ * live and itch.io capped until launch; Adam's build order
+ * replaced the earlier link-or-capped button wholesale).
+ *
+ * The component owns its modal state, so a seat needs no
+ * wiring beyond dropping the button in — the modal renders
+ * from here, in whichever root the seat lives.
  */
-import React from 'react';
+import React, { useState } from 'react';
 import { Heart } from 'lucide-react';
-import { DONATE_URL } from '../game/links';
+import { DonateModal } from './DonateModal';
 
 export type DonateButtonVariant = 'header' | 'section' | 'popup' | 'session';
 
 const CLASSES: Record<DonateButtonVariant, string> = {
-  // Start-screen header pill (the old SUPPORT seat's dress).
+  // Start-screen header pill.
   header:
     'px-4 py-2 rounded-2xl text-[11px] font-tech font-bold text-rose-200 border border-rose-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5',
   // Game Info's small section button (beside its CREDITS).
@@ -31,18 +29,14 @@ const CLASSES: Record<DonateButtonVariant, string> = {
   // The pause popup's standing-row pill (beside RESUME kin).
   popup:
     'px-5 py-2 rounded-2xl text-xs font-tech font-bold text-rose-200 border border-rose-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5',
-  // The session bar's ghost button (Adam, 2026-10-18: the
-  // doors belong on the always-visible Session UI, next to
-  // Ping — not only behind an alt-tab).
+  // The session bar's ghost button (labels hide on small
+  // screens, like every other button in that bar).
   session:
     'p-2 rounded-xl text-rose-300 hover:text-rose-200 hover:bg-rose-950/50 transition-colors cursor-pointer flex items-center gap-1.5',
 };
 
-const CAPPED_WORD =
-  'The jar is still capped — it opens when the game\u2019s page stands at launch. Reaching for it counts.';
-
 export const DonateButton: React.FC<{ variant: DonateButtonVariant }> = ({ variant }) => {
-  const url = DONATE_URL;
+  const [open, setOpen] = useState(false);
   // The session bar speaks in its own casing and hides labels
   // on small screens, like every other button in that bar.
   const inner =
@@ -56,21 +50,12 @@ export const DonateButton: React.FC<{ variant: DonateButtonVariant }> = ({ varia
         <Heart className="w-3.5 h-3.5" /> DONATE
       </>
     );
-  if (url) {
-    return (
-      <button onClick={() => window.open(url, '_blank', 'noopener')} className={CLASSES[variant]}>
+  return (
+    <>
+      <button onClick={() => setOpen(true)} title="Support BioForge" className={CLASSES[variant]}>
         {inner}
       </button>
-    );
-  }
-  return (
-    <button
-      type="button"
-      title={CAPPED_WORD}
-      aria-label={`Donate — ${CAPPED_WORD}`}
-      className={`${CLASSES[variant]} opacity-90`}
-    >
-      {inner}
-    </button>
+      {open && <DonateModal isOpen={open} onClose={() => setOpen(false)} />}
+    </>
   );
 };

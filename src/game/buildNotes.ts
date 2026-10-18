@@ -70,14 +70,15 @@ export const DEFAULT_BUILD_NOTES: BuildNotes = {
  * applied).
  */
 export const BUILD_NOTES: BuildNotes = {
-  // Propagation + cave citizens (2026-10-18): every plant
-  // can be planted again — seed-bearers shed seed when
-  // picked, the rest plant from a piece of themselves —
-  // and the deep caves gain their first citizens.
-  title: 'Grow it again',
+  // Hostile + the two doors (2026-10-18): the third law
+  // opens — explorers can fight on Hostile worlds, weapons
+  // and shields exactly as they are — and the Donate
+  // button becomes a two-door modal (Ko-fi live, itch at
+  // launch).
+  title: 'Among yourselves',
   lines: [
-    'Every plant in the world can now be grown again. Pick a plant that bears seed and it sheds a seed or two by luck — a fed plant sheds more surely. Plants that would never seed — reeds, vines, jellies, the crystal growths — plant instead from a piece of themselves, and a piece only comes from dissolving the original: the cutting costs the plant.',
-    'The trowel\'s wheel now walks all your planting stock, seeds and pieces together, and either kind equips for the trowel straight from your pouch. A handful of plants stay the land\'s own — their stories say why, if you read them.',
-    'And the deep caves have citizens now. Something down there is shy of the light, and something else breathes slowly in the dark. Mind what swells.',
+    'HOSTILE worlds are open. Start a world under the third law and explorers can fight each other: your weapons work on people exactly as they work on creatures, and a raised shield turns a person\'s blow the way it turns teeth. Death is still the land\'s mercy — you wake at the spawn base, pouch untouched.',
+    'The spawn country stays a refuge under every law, Hostile included: nothing and no one can harm you there. Cross its border on a Hostile world and you are fair game, and so are they.',
+    'The DONATE button now opens two doors: Ko-fi, live today, and the game\'s itch page, which lights the day it stands at launch. Everything in the game is free — support just keeps it growing.',
   ],
 };

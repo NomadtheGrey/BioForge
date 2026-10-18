@@ -74,6 +74,7 @@ import {
   buildSavedGame,
   createSaveMetadata,
   isArmedAt,
+  isHostileAt,
   deleteSavedGame,
   listSaveMetadata,
   loadSavedGame,
@@ -142,6 +143,7 @@ import {
   SHIELD_GRAFTS,
   type ShieldCombatInput,
   type ShieldSideEffect,
+  type StrikeCtx,
 } from './game/creatures/shields';
 import { useShieldWield } from './hooks/useShieldWield';
 import { useQuests } from './hooks/useQuests';
@@ -1226,6 +1228,8 @@ export default function App() {
     strikeFauna,
     fireProjectile,
     strikerDrawRef,
+    pvpArmed: () => pvpArmedRef.current,
+    getPeers: () => Array.from(peerPositionsRef.current.entries()).map(([id, pos]) => ({ id, x: pos.x, z: pos.z })),
     spendStamina,
     triggerShotFx,
     triggerStrikeHitFx: (x: number, z: number) => engineRef.current?.triggerStrikeBurst(x, z),
@@ -1547,6 +1551,17 @@ export default function App() {
   // it over our own save's difficulty when setting the
   // armed switch.
   const hostDifficultyRef = useRef<GameDifficulty | null>(null);
+  // HOSTILE (2026-10-18): the PvP plumbing's three bags.
+  // peerPositionsRef — same-zone explorers' positions (the
+  // sync hook keeps it; the weapon hook hit-tests against
+  // it). explorerStrikesRef — strikes addressed to this
+  // player, drained by the game loop through the shared
+  // shield/health consumer. pvpArmedRef — the law where the
+  // player stands (Hostile + outside the Refuge), kept by
+  // the same effect that keeps deathArmedRef.
+  const peerPositionsRef = useRef<Map<string, { x: number; z: number }>>(new Map());
+  const explorerStrikesRef = useRef<{ damage: number; ctx: StrikeCtx }[]>([]);
+  const pvpArmedRef = useRef(false);
   // The WATER MODULE's stance (Adam's consolidation,
   // 2026-10-18): 'walk' the water or 'swim' it, at the
   // module's second tier; F flips it (useGameInput). A
@@ -2015,7 +2030,7 @@ const {
 } = useMultiplayerSync({
   engineRef, playerPosRef, playerLevelRef, activeToolRef, currentZoneId,
   playerZone, inCavern, inRuin,
-  playerZoneRef, setPlayerZone, visitedZonesRef, worldSeedRef, hostDifficultyRef, getWorldDifficulty: () => currentSaveRef.current?.difficulty ?? 'peaceful', setSessionSeed,
+  playerZoneRef, setPlayerZone, visitedZonesRef, worldSeedRef, hostDifficultyRef, getWorldDifficulty: () => currentSaveRef.current?.difficulty ?? 'peaceful', peerPositionsRef, explorerStrikesRef, setSessionSeed,
   zoneStores, buildZoneSyncTravel, completeTravel, cancelPendingTravel, pendingTravelRef,
   buildWorldSnapshot, latestStateRef, setHasStarted, setDayNightCycle, resetInstanceState,
   postNotification, enterFullscreenOnTouch, setActiveModal,
@@ -2193,6 +2208,7 @@ const {
     // the law in the same pass. (worldDifficulty itself is
     // resolved once per render, above the evaluator.)
     deathArmedRef.current = isArmedAt(worldDifficulty, playerZone.zx, playerZone.zz);
+    pvpArmedRef.current = isHostileAt(worldDifficulty, playerZone.zx, playerZone.zz);
     sporeStaminaRef.current = faceEffect === 'spore_stamina';
     marshSluggishRef.current = faceEffect === 'marsh_sluggish';
     scarHeatRef.current = faceEffect === 'scar_heat';
@@ -2567,7 +2583,7 @@ const {
   useGameLoop({
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
     jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, lastStaminaSync,
-    sprinting, sporeStaminaRef, marshSluggishRef, getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0, getPondSurface: (x: number, z: number) => engineRef.current?.pondSurfaceAt(x, z) ?? null, hasPlumeCharm: () => (latestStateRef.current.inventory?.plume_charm ?? 0) > 0, windlungTier: () => windlungTierOf(latestStateRef.current.inventory ?? {}), hasEmberSoles: () => emberSolesGrown(latestStateRef.current.inventory ?? {}), waders: () => wadersGrown(latestStateRef.current.inventory ?? {}), waterTier: () => waterModuleTier(latestStateRef.current.inventory ?? {}), waterWalk: () => waterModeRef.current === 'walk', onWaterHint: setWaterHint, waterHintRef, biolumeVisor: () => biolumeVisorWorn(latestStateRef.current.inventory ?? {}), sporeFilter: () => sporeFilterWorn(latestStateRef.current.inventory ?? {}), chargeSight: () => chargeSightWorn(latestStateRef.current.inventory ?? {}), scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
+    sprinting, sporeStaminaRef, marshSluggishRef, getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0, getPondSurface: (x: number, z: number) => engineRef.current?.pondSurfaceAt(x, z) ?? null, hasPlumeCharm: () => (latestStateRef.current.inventory?.plume_charm ?? 0) > 0, windlungTier: () => windlungTierOf(latestStateRef.current.inventory ?? {}), hasEmberSoles: () => emberSolesGrown(latestStateRef.current.inventory ?? {}), waders: () => wadersGrown(latestStateRef.current.inventory ?? {}), waterTier: () => waterModuleTier(latestStateRef.current.inventory ?? {}), waterWalk: () => waterModeRef.current === 'walk', onWaterHint: setWaterHint, waterHintRef, biolumeVisor: () => biolumeVisorWorn(latestStateRef.current.inventory ?? {}), sporeFilter: () => sporeFilterWorn(latestStateRef.current.inventory ?? {}), chargeSight: () => chargeSightWorn(latestStateRef.current.inventory ?? {}), scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, explorerStrikesRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef, returnPausedRef,

@@ -49,6 +49,7 @@ export interface MultiplayerMessage {
     | 'zone_request'
     | 'zone_snapshot'
     | 'tunnel_pair'
+    | 'player_hit'
     | 'day_night';
   id: string;
   senderId: string;
@@ -69,6 +70,14 @@ export interface MultiplayerCallbacks {
   onFaunaTamed?: (faunaId: string, tamedBy: string) => void;
   onWorldSync?: (data: { structures: StructureEntity[]; flora: FloraEntity[]; fauna: FaunaEntity[]; drops: DroppedItemEntity[]; dayNightCycle: number; zone?: string; zones?: Record<string, WorldSnapshot>; worldSeed?: string; worldCreatedAt?: number; difficulty?: GameDifficulty }) => void;
   onChatMessage?: (senderName: string, text: string, color: string) => void;
+  // HOSTILE (2026-10-18): an explorer's strike lands on YOU.
+  // Dispatched only to the addressed victim (the manager
+  // filters by targetId); the damage is the weapon's own
+  // number, and the strike resolves on the victim's client
+  // through the shared shield/health consumer — the same
+  // door a creature's bite uses. x/z are the attacker's
+  // position at the strike, for the shield's facing math.
+  onPlayerHit?: (senderId: string, senderName: string, damage: number, x: number, z: number) => void;
   // Entity events carry the SENDER's zone tag (zone travel,
   // 2026-10-15): with players wandering different zones of the same
   // world independently, an upsert is only meaningful in the zone it
@@ -468,6 +477,20 @@ export class MultiplayerManager {
         break;
       }
 
+      case 'player_hit': {
+        // HOSTILE (2026-10-18): a strike addressed to ONE
+        // explorer. Everyone hears the broadcast (the relay
+        // has no private channels); only the addressed
+        // victim's callback fires — everyone else's client
+        // drops it here, so a hit can never land twice or
+        // on a bystander.
+        const hit = msg.payload as { targetId: string; damage: number; x: number; z: number };
+        if (hit.targetId === this.peerId) {
+          this.callbacks.onPlayerHit?.(msg.senderId, msg.senderName, hit.damage, hit.x, hit.z);
+        }
+        break;
+      }
+
       case 'zone_request': {
         // Only the host answers: it owns the world's zones.
         if (this.isHost) {
@@ -593,6 +616,16 @@ export class MultiplayerManager {
 
   public broadcastChat(text: string) {
     this.broadcastMessage('chat_message', { text });
+  }
+
+  /** HOSTILE (2026-10-18): report a landed strike on another
+   *  explorer. The attacker judges the hit on their own
+   *  client (their weapons, their aim, the peer positions
+   *  they can see); the victim's client resolves it through
+   *  the shared shield/health consumer. x/z are the
+   *  attacker's position at the strike. */
+  public broadcastPlayerHit(targetId: string, damage: number, x: number, z: number) {
+    this.broadcastMessage('player_hit', { targetId, damage, x, z });
   }
 
   public getConnectedPeers(): MultiplayerPeer[] {

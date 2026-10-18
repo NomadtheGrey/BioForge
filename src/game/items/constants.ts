@@ -40,9 +40,11 @@ const SEED_ITEM_DEFS = Object.fromEntries(
       `seed_${def.id}`,
       {
         id: `seed_${def.id}` as ItemId,
-        name: `${def.name} ${def.kind === 'fungus' ? 'Spores' : 'Seeds'}`,
+        // Fungi and ferns bear spores; everything else, seeds —
+        // the lantern fern's hand-written "Spore" set the taste.
+        name: `${def.name} ${def.kind === 'fungus' || def.id.includes('fern') ? 'Spores' : 'Seeds'}`,
         category: 'seed',
-        description: def.kind === 'fungus'
+        description: def.kind === 'fungus' || def.id.includes('fern')
           ? `Spores of the ${def.name} — plant them where its kind takes hold, and it rises again.`
           : `Seeds of the ${def.name} — plant them where its kind takes hold, and it rises again.`,
         iconName: def.kind === 'fungus' ? 'Sparkles' : 'Sprout',
@@ -1720,26 +1722,6 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     description: 'A slab of the Hush Hound, which was a slab of the valley. It does not glow, hum, or drip. It sits the way the valley sits when something is walking in it — quietly, and entirely on purpose.',
     iconName: 'Droplets',
     color: '#365314',
-    rarity: 'rare',
-    maxStack: 99,
-  },
-  gloom_chitin: {
-    id: 'gloom_chitin',
-    name: 'Gloom Chitin',
-    category: 'raw',
-    description: 'The dark plate of cave things — skitter shell and husk rind alike cure into it down where no sun has ever audited the work. Light, hard, and faintly warm from the gel beneath.',
-    iconName: 'Shield',
-    color: '#44403c',
-    rarity: 'rare',
-    maxStack: 99,
-  },
-  husk_spore: {
-    id: 'husk_spore',
-    name: 'Husk Spore',
-    category: 'raw',
-    description: 'The seed-dust of a Spore Husk, gathered from a burst or a patient weep. It wants only dark and stillness; the cave provides both, and so, in time, does the husk.',
-    iconName: 'Sparkles',
-    color: '#a8a29e',
     rarity: 'rare',
     maxStack: 99,
   },

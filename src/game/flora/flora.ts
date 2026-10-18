@@ -138,6 +138,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'gulp_lily',
     name: 'Gulp Lily',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'dew_essence', count: 2, fertilizedCount: 3 },
     hazardous: true,
     bonusGrow: {
@@ -159,6 +160,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'waygrass',
     name: 'Waygrass',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'soft_fiber', count: 2, fertilizedCount: 3 },
     bonusGrow: {
       biomes: ['meadow', 'storm', 'bone', 'saltglass'],
@@ -178,6 +180,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'flame_lily',
     name: 'Flame Lily',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'vibrant_petal', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
     bonusGrow: {
       biomes: ['ember'],
@@ -196,6 +199,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'salt_daisy',
     name: 'Salt Daisy',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'vibrant_petal', count: 2, fertilizedCount: 3 },
     bonusGrow: {
       biomes: ['saltglass'],
@@ -216,6 +220,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'compass_cress',
     name: 'Compass Cress',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'lodestone_sand', count: 2, fertilizedCount: 3 },
     bonusGrow: {
       biomes: ['storm'],
@@ -239,6 +244,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'ice_grass',
     name: 'Ice Grass',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'dew_essence', count: 2, fertilizedCount: 3 },
     bonusGrow: {
       biomes: ['frost'],
@@ -258,6 +264,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'field_cap',
     name: 'Field Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'basic_compost', count: 2, fertilizedCount: 3, extras: [['glow_spore', 1]] },
     bonusGrow: {
       biomes: ['fungal', 'rootwood', 'meadow', 'wetland'],
@@ -276,6 +283,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'frostcap',
     name: 'Frostcap',
     kind: 'fungus',
+    propagation: 'glow_spore',
     harvest: { item: 'glow_spore', count: 2, fertilizedCount: 4 },
     bonusGrow: {
       biomes: ['fungal', 'frost'],
@@ -296,6 +304,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'haycap',
     name: 'Haycap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'haycap', count: 2, fertilizedCount: 3 },
     bonusGrow: {
       biomes: ['meadow'],
@@ -315,6 +324,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'coal_cap',
     name: 'Coal Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'basic_compost', count: 2, fertilizedCount: 3, extras: [['glow_spore', 1]] },
     bonusGrow: {
       biomes: ['ember'],
@@ -334,6 +344,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'snow_morel',
     name: 'Snow Morel',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'snow_morel', count: 2, fertilizedCount: 3 },
     bonusGrow: {
       biomes: ['frost'],
@@ -354,6 +365,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'ink_cap',
     name: 'Ink Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'ink_cap', count: 2, fertilizedCount: 3 },
     bonusGrow: {
       biomes: ['precursor'],
@@ -380,6 +392,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'bonemoss',
     name: 'Bonemoss',
     kind: 'flora',
+    propagation: 'bonemoss',
     harvest: { item: 'bonemoss', count: 2, fertilizedCount: 3 },
     bonusGrow: {
       biomes: ['bone'],
@@ -400,6 +413,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'listening_fern',
     name: 'Listening Fern',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'listening_frond', count: 2, fertilizedCount: 3 },
     bonusGrow: {
       biomes: ['living'],
@@ -421,6 +435,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'snowbell',
     name: 'Snowbell',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'ice_petal', count: 2, fertilizedCount: 3 },
     bonusGrow: {
       biomes: ['frost'],
@@ -440,6 +455,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'grave_vine',
     name: 'Grave Vine',
     kind: 'flora',
+    propagation: 'gravevine_flower',
     harvest: { item: 'gravevine_flower', count: 2, fertilizedCount: 3 },
     bonusGrow: {
       biomes: ['rootwood', 'bone'],
@@ -461,6 +477,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'saltroot',
     name: 'Saltroot',
     kind: 'flora',
+    propagation: 'saltroot_glass',
     harvest: { item: 'saltroot_glass', count: 2, fertilizedCount: 3 },
     bonusGrow: {
       biomes: ['saltglass', 'rootwood'],
@@ -482,6 +499,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'stormroot',
     name: 'Stormroot',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'storm_fruit', count: 2, fertilizedCount: 3 },
     bonusGrow: {
       biomes: ['storm', 'living'],
@@ -503,6 +521,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'bog_lantern',
     name: 'Bog Lantern',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'bog_light', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['wetland'],
@@ -522,6 +541,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'gale_grass',
     name: 'Gale Grass',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'gale_straw', count: 2, fertilizedCount: 3 },
     bonusGrow: {
       biomes: ['storm'],
@@ -544,6 +564,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'doorstep_rose',
     name: 'Doorstep Rose',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'vibrant_petal', count: 2, fertilizedCount: 3 },
     bonusGrow: {
       biomes: ['living'],
@@ -563,6 +584,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'glyph_vine',
     name: 'Glyph Vine',
     kind: 'flora',
+    propagation: 'glyph_leaf',
     harvest: { item: 'glyph_leaf', count: 2, fertilizedCount: 3 },
     bonusGrow: {
       biomes: ['precursor'],
@@ -582,6 +604,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'glowcap',
     name: 'Glowcap',
     kind: 'fungus',
+    propagation: 'glow_spore',
     harvest: { item: 'glow_spore', count: 2, fertilizedCount: 4 },
     bonusGrow: {
       biomes: ['fungal'],
@@ -602,6 +625,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'ash_puff',
     name: 'Ash Puff',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'ash_puff', count: 2, fertilizedCount: 3 },
     bonusGrow: {
       biomes: ['ember'],
@@ -629,6 +653,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'meadow_clover',
     name: 'Meadow Clover',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'basic_compost', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['meadow'],
@@ -647,6 +672,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'vent_rose',
     name: 'Vent Rose',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'vent_petal', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['ember'],
@@ -667,6 +693,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'stormcap',
     name: 'Stormcap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'stormcap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['storm', 'fungal'],
@@ -687,6 +714,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'anvil_cap',
     name: 'Anvil Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'anvil_bracket', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['precursor'],
@@ -706,6 +734,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'glass_fern',
     name: 'Glass Fern',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'glass_frond', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['saltglass'],
@@ -726,6 +755,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'forge_bloom',
     name: 'Forge Bloom',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'forge_petal', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['ember', 'precursor'],
@@ -746,6 +776,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'ember_ivy',
     name: 'Ember Ivy',
     kind: 'flora',
+    propagation: 'ember_leaf',
     harvest: { item: 'ember_leaf', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['ember', 'living'],
@@ -766,6 +797,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'frost_ivy',
     name: 'Frost Ivy',
     kind: 'flora',
+    propagation: 'frost_leaf',
     harvest: { item: 'frost_leaf', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['living', 'frost'],
@@ -785,6 +817,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'mirror_reed',
     name: 'Mirror Reed',
     kind: 'flora',
+    propagation: 'mirror_bloom',
     harvest: { item: 'mirror_bloom', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['wetland'],
@@ -805,6 +838,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'rime_grass',
     name: 'Rime Grass',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'soft_fiber', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['frost'],
@@ -825,6 +859,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'fang_fern',
     name: 'Fang Fern',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'basic_compost', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['frost'],
@@ -845,6 +880,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'mirror_cap',
     name: 'Mirror Cap',
     kind: 'fungus',
+    propagation: 'glow_spore',
     harvest: { item: 'glow_spore', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['wetland'],
@@ -872,6 +908,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'meltcap',
     name: 'Meltcap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'meltcap', count: 1, fertilizedCount: 2 },
     harvestWindow: { around: 'midnight', closedText: 'In this light it is already half meltwater — the cap keeps only at midnight. Come back in the deep of the night.' },
     bonusGrow: {
@@ -893,6 +930,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'poolcap',
     name: 'Poolcap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'poolcap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['wetland'],
@@ -913,6 +951,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'saltcap',
     name: 'Saltcap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: {
       item: 'saltglass_shard', count: 1, fertilizedCount: 2,
       extras: [['saltcap_heart', 1]],
@@ -935,6 +974,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'tomb_cap',
     name: 'Tomb Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'tomb_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['fungal', 'precursor'],
@@ -955,6 +995,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'ring_cap',
     name: 'Ring Cap',
     kind: 'fungus',
+    propagation: 'glow_spore',
     harvest: { item: 'glow_spore', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['meadow'],
@@ -973,6 +1014,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'veil_cap',
     name: 'Veil Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'veil_cloth', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['fungal'],
@@ -992,6 +1034,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'glass_cap',
     name: 'Glass Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'glass_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['saltglass'],
@@ -1012,6 +1055,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'heart_shelf',
     name: 'Heart Shelf',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'soft_fiber', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['rootwood'],
@@ -1032,6 +1076,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'bone_puff',
     name: 'Bone Puff',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'bone_puff', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['bone'],
@@ -1051,6 +1096,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'wind_puff',
     name: 'Wind Puff',
     kind: 'fungus',
+    propagation: 'glow_spore',
     harvest: { item: 'glow_spore', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['storm'],
@@ -1070,6 +1116,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'door_cap',
     name: 'Door Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'door_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['living'],
@@ -1090,6 +1137,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'glyph_cap',
     name: 'Glyph Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'basic_compost', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['precursor'],
@@ -1117,6 +1165,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'canopy_cup',
     name: 'Canopy Cup',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'cup_water', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['rootwood'],
@@ -1136,6 +1185,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'banner_vine',
     name: 'Banner Vine',
     kind: 'flora',
+    propagation: 'banner_fiber',
     harvest: { item: 'banner_fiber', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['storm'],
@@ -1155,6 +1205,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'charnel_bloom',
     name: 'Charnel Bloom',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'grave_pollen', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['bone', 'fungal'],
@@ -1176,6 +1227,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'wrongbloom',
     name: 'Wrongbloom',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'wrong_thread', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['precursor'],
@@ -1199,6 +1251,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'tumble_sage',
     name: 'Tumble Sage',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'sage_leaf', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['meadow', 'storm'],
@@ -1221,6 +1274,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'amber_bloom',
     name: 'Amber Bloom',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'amber_bloom', count: 1, fertilizedCount: 1 },
     bonusGrow: {
       biomes: ['rootwood'],
@@ -1240,6 +1294,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'silt_rose',
     name: 'Silt Rose',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'silt_petal', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['wetland'],
@@ -1260,6 +1315,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'ghost_orchid',
     name: 'Ghost Orchid',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'ghost_bloom', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['fungal'],
@@ -1279,6 +1335,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'thaw_rose',
     name: 'Thaw Rose',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'thaw_bloom', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['saltglass'],
@@ -1300,6 +1357,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'dust_rose',
     name: 'Dust Rose',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'dust_petal', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['bone'],
@@ -1320,6 +1378,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'obsidian_rose',
     name: 'Obsidian Rose',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'obsidian_petal', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['saltglass'],
@@ -1341,6 +1400,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'hedge_rose',
     name: 'Hedge Rose',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'hedge_hip', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['meadow', 'rootwood'],
@@ -1370,6 +1430,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'raincatcher',
     name: 'Raincatcher',
     kind: 'flora',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['storm'],
@@ -1390,6 +1451,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'tending_vine',
     name: 'Tending Vine',
     kind: 'flora',
+    propagation: 'tending_cutting',
     harvest: { item: 'tending_cutting', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['precursor'],
@@ -1410,6 +1472,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'hearthroot',
     name: 'Hearthroot',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'hearth_bloom', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['living'],
@@ -1430,6 +1493,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'puffbell',
     name: 'Puffbell',
     kind: 'fungus',
+    propagation: 'puff_spore',
     harvest: { item: 'puff_spore', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['fungal'],
@@ -1450,6 +1514,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'arch_tree',
     name: 'Arch Tree',
     kind: 'flora',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['precursor', 'rootwood'],
@@ -1470,6 +1535,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'smoke_tree',
     name: 'Smoke Tree',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'smoke_heart', count: 1, fertilizedCount: 1 },
     bonusGrow: {
       biomes: ['ember', 'rootwood'],
@@ -1491,6 +1557,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'lightcreep',
     name: 'Lightcreep',
     kind: 'flora',
+    propagation: 'creep_sheet',
     harvest: { item: 'creep_sheet', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['fungal'],
@@ -1511,6 +1578,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'zot_star',
     name: 'Zot Star',
     kind: 'flora',
+    propagation: 'star_glass',
     harvest: { item: 'star_glass', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['storm'],
@@ -1534,6 +1602,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'grabvine',
     name: 'Grabvine',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'living_thread', count: 1, fertilizedCount: 1 },
     hazardous: true,
     bonusGrow: {
@@ -1557,6 +1626,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'maw_bloom',
     name: 'Maw Bloom',
     kind: 'flora',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     hazardous: true,
     bonusGrow: {
@@ -1580,6 +1650,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'quiver_cap',
     name: 'Quiver Cap',
     kind: 'fungus',
+    propagation: 'quiver_gel',
     harvest: { item: 'quiver_gel', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['fungal'],
@@ -1600,6 +1671,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'balloon_vine',
     name: 'Balloon Vine',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'pod_bladder', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['storm'],
@@ -1647,6 +1719,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'lambswool',
     name: 'Lambswool',
     kind: 'flora',
+    propagation: 'lambswool',
     harvest: { item: 'lambswool', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['meadow'],
@@ -1666,6 +1739,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'spore_fern',
     name: 'Spore Fern',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'basic_compost', count: 2, fertilizedCount: 3 },
     bonusGrow: {
       biomes: ['fungal'],
@@ -1686,6 +1760,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'coalwood',
     name: 'Coalwood',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'coalwood_timber', count: 1, fertilizedCount: 1 },
     bonusGrow: {
       biomes: ['ember'],
@@ -1705,6 +1780,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'aurora_vine',
     name: 'Aurora Vine',
     kind: 'flora',
+    propagation: 'aurora_cord',
     harvest: { item: 'aurora_cord', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['frost'],
@@ -1725,6 +1801,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'bridge_moss',
     name: 'Bridge Moss',
     kind: 'flora',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['rootwood'],
@@ -1744,6 +1821,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'canopy_orchid',
     name: 'Canopy Orchid',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'canopy_bloom', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['rootwood'],
@@ -1784,6 +1862,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'kite_flower',
     name: 'Kite Flower',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'kite_bud', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['storm'],
@@ -1802,6 +1881,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'guest_flower',
     name: 'Guest Flower',
     kind: 'flora',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['living'],
@@ -1820,6 +1900,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'clock_bloom',
     name: 'Clock Bloom',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'clock_petal', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['precursor'],
@@ -1838,6 +1919,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'roadweed',
     name: 'Roadweed',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'roadweed_leaf', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['meadow', 'rootwood', 'fungal', 'wetland', 'bone', 'storm', 'saltglass'],
@@ -1864,6 +1946,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'bog_jelly',
     name: 'Bog Jelly',
     kind: 'fungus',
+    propagation: 'bog_jelly',
     harvest: { item: 'bog_jelly', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['wetland'],
@@ -1882,6 +1965,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'reed_rust',
     name: 'Reed Rust',
     kind: 'fungus',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['wetland'],
@@ -1900,6 +1984,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'salt_jelly',
     name: 'Salt Jelly',
     kind: 'fungus',
+    propagation: 'salt_jelly',
     harvest: { item: 'salt_jelly', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['saltglass'],
@@ -1919,6 +2004,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'ice_shelf',
     name: 'Ice Shelf',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'ice_shelf', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['frost'],
@@ -1939,6 +2025,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'root_cup',
     name: 'Root Cup',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'cup_water', count: 1, fertilizedCount: 1 },
     bonusGrow: {
       biomes: ['rootwood'],
@@ -1958,6 +2045,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'marrow_mold',
     name: 'Marrow Mold',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'marrow_earth', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['bone'],
@@ -1977,6 +2065,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'static_cap',
     name: 'Static Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'static_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['storm'],
@@ -1998,6 +2087,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'hearth_cap',
     name: 'Hearth Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'hearth_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['living'],
@@ -2016,6 +2106,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'bed_cap',
     name: 'Bed Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'bed_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['precursor'],
@@ -2035,6 +2126,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'path_puff',
     name: 'Path Puff',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'path_puff', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['meadow', 'rootwood', 'fungal', 'wetland', 'bone', 'storm', 'saltglass'],
@@ -2053,6 +2145,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'dew_mold',
     name: 'Dew Mold',
     kind: 'fungus',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['wetland', 'meadow', 'rootwood', 'fungal', 'living', 'precursor'],
@@ -2071,6 +2164,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'scar_cap',
     name: 'Scar Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'scar_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['ember'],
@@ -2096,6 +2190,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'drift_mold',
     name: 'Drift Mold',
     kind: 'fungus',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['ember'],
@@ -2117,6 +2212,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'glass_mold',
     name: 'Glass Mold',
     kind: 'fungus',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['saltglass'],
@@ -2137,6 +2233,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'strike_cap',
     name: 'Strike Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'strike_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['storm'],
@@ -2158,6 +2255,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'dune_cap',
     name: 'Dune Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'dune_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['saltglass'],
@@ -2177,6 +2275,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'basin_puff',
     name: 'Basin Puff',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'basin_puff', count: 1, fertilizedCount: 1 },
     bonusGrow: {
       biomes: ['storm'],
@@ -2195,6 +2294,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'thaw_jelly',
     name: 'Thaw Jelly',
     kind: 'fungus',
+    propagation: 'thaw_jelly',
     harvest: { item: 'thaw_jelly', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['saltglass'],
@@ -2214,6 +2314,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'prism_cap',
     name: 'Prism Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'prism_gill', count: 1, fertilizedCount: 1 },
     bonusGrow: {
       biomes: ['saltglass'],
@@ -2233,6 +2334,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'still_cap',
     name: 'Still Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'still_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['frost'],
@@ -2252,6 +2354,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'fang_shelf',
     name: 'Fang Shelf',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'fang_shelf', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['frost'],
@@ -2271,6 +2374,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'song_cap',
     name: 'Song Cap',
     kind: 'fungus',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['frost'],
@@ -2291,6 +2395,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'canopy_cap',
     name: 'Canopy Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'canopy_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['rootwood'],
@@ -2310,6 +2415,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'gloom_cap',
     name: 'Gloom Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'gloom_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['rootwood'],
@@ -2334,6 +2440,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'fall_shelf',
     name: 'Fall Shelf',
     kind: 'fungus',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['rootwood'],
@@ -2351,6 +2458,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'row_cap',
     name: 'Row Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'row_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['precursor'],
@@ -2369,6 +2477,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'wild_cap',
     name: 'Wild Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'wild_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['precursor'],
@@ -2387,6 +2496,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'dust_cap',
     name: 'Dust Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'dust_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['bone'],
@@ -2405,6 +2515,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'marrow_cap',
     name: 'Marrow Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'marrow_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['bone'],
@@ -2424,6 +2535,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'rib_cap',
     name: 'Rib Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'rib_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['bone'],
@@ -2443,6 +2555,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'scald_cap',
     name: 'Scald Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'scald_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['wetland', 'ember'],
@@ -2462,6 +2575,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'compost_cap',
     name: 'Compost Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'compost_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['meadow', 'fungal'],
@@ -2480,6 +2594,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'brine_cap',
     name: 'Brine Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'brine_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['wetland', 'saltglass'],
@@ -2499,6 +2614,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'iron_cap',
     name: 'Iron Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'iron_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['ember', 'storm'],
@@ -2518,6 +2634,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'hedge_cap',
     name: 'Hedge Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'hedge_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['meadow', 'rootwood'],
@@ -2538,6 +2655,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'sun_cap',
     name: 'Sun Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'sun_cap', count: 1, fertilizedCount: 2 },
     harvestWindow: { around: 'noon', closedText: 'The cap is shut — it opens at noon and closes by two, and the pans keep the deadline. Come back at the height of the day, at a run.' },
     bonusGrow: {
@@ -2564,6 +2682,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'mist_cap',
     name: 'Mist Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'mist_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['wetland'],
@@ -2583,6 +2702,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'tool_cap',
     name: 'Tool Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'tool_foam', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['living'],
@@ -2603,6 +2723,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'sail_cap',
     name: 'Sail Cap',
     kind: 'fungus',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['storm'],
@@ -2623,6 +2744,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'night_cap',
     name: 'Night Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'night_cap', count: 1, fertilizedCount: 2 },
     harvestWindow: { around: 'midnight', closedText: 'By day the cap is down and the pantry is shut — it fruits at midnight, picked by lantern. Come back in the dark hours.' },
     bonusGrow: {
@@ -2642,6 +2764,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'storm_mold',
     name: 'Storm Mold',
     kind: 'fungus',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['storm', 'meadow', 'saltglass', 'ember'],
@@ -2660,6 +2783,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'dark_cap',
     name: 'Dark Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'dark_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['rootwood', 'bone'],
@@ -2678,6 +2802,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'husk_cap',
     name: 'Husk Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'husk_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['bone'],
@@ -2697,6 +2822,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'shell_cap',
     name: 'Shell Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'shell_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['frost'],
@@ -2717,6 +2843,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'trail_cap',
     name: 'Trail Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'trail_cap', count: 1, fertilizedCount: 1 },
     bonusGrow: {
       biomes: ['meadow', 'storm'],
@@ -2736,6 +2863,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'sweet_cap',
     name: 'Sweet Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'sweet_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['living'],
@@ -2754,6 +2882,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'great_puff',
     name: 'Great Puff',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'great_puff', count: 1, fertilizedCount: 1 },
     bonusGrow: {
       biomes: ['meadow'],
@@ -2772,6 +2901,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'rust_cap',
     name: 'Rust Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'rust_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['ember', 'storm'],
@@ -2797,6 +2927,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'answer_tree',
     name: 'Answer Tree',
     kind: 'flora',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['rootwood', 'living'],
@@ -2817,6 +2948,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'greeting_cap',
     name: 'Greeting Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'greeting_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['fungal', 'living'],
@@ -2837,6 +2969,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'relic_tree',
     name: 'Relic Tree',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'relic_fruit', count: 1, fertilizedCount: 1 },
     bonusGrow: {
       biomes: ['bone', 'precursor'],
@@ -2856,6 +2989,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'ironwood',
     name: 'Ironwood',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'ironwood', count: 1, fertilizedCount: 1 },
     bonusGrow: {
       biomes: ['ember', 'storm'],
@@ -2875,6 +3009,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'glare_vine',
     name: 'Glare Vine',
     kind: 'flora',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['saltglass', 'living'],
@@ -2895,6 +3030,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'marrow_vine',
     name: 'Marrow Vine',
     kind: 'flora',
+    propagation: 'marrow_bloom',
     harvest: { item: 'marrow_bloom', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['bone', 'living'],
@@ -2914,6 +3050,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'row_moss',
     name: 'Row Moss',
     kind: 'flora',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['precursor'],
@@ -2931,6 +3068,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'prism_moss',
     name: 'Prism Moss',
     kind: 'flora',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['saltglass'],
@@ -2950,6 +3088,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'gloam_fern',
     name: 'Gloam Fern',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'gloam_frond', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['rootwood'],
@@ -2969,6 +3108,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'flood_fern',
     name: 'Flood Fern',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'flood_ribbon', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['wetland'],
@@ -2987,6 +3127,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'ice_bloom',
     name: 'Ice Bloom',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'ice_bloom', count: 1, fertilizedCount: 1 },
     bonusGrow: {
       biomes: ['precursor', 'frost'],
@@ -3006,6 +3147,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'ripple_bell',
     name: 'Ripple Bell',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'ripple_bell', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['wetland'],
@@ -3032,6 +3174,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'night_candle',
     name: 'Night Candle',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'night_wax', count: 1, fertilizedCount: 2 },
     harvestWindow: { around: 'midnight', closedText: 'By day it is only a promise — the candle blooms at midnight, and the wax renders from the bloom. Come back in the dark.' },
     bonusGrow: {
@@ -3051,6 +3194,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'scar_orchid',
     name: 'Scar Orchid',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'scar_bloom', count: 1, fertilizedCount: 1 },
     bonusGrow: {
       biomes: ['ember'],
@@ -3071,6 +3215,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'ashveil',
     name: 'Ashveil',
     kind: 'flora',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['ember'],
@@ -3089,6 +3234,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'chime_reed',
     name: 'Chime Reed',
     kind: 'flora',
+    propagation: 'chime_straw',
     harvest: { item: 'chime_straw', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['storm'],
@@ -3109,6 +3255,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'sky_lily',
     name: 'Sky Lily',
     kind: 'flora',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['storm'],
@@ -3128,6 +3275,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'fall_orchid',
     name: 'Fall Orchid',
     kind: 'flora',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['rootwood'],
@@ -3146,6 +3294,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'deck_flower',
     name: 'Deck Flower',
     kind: 'flora',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['rootwood'],
@@ -3166,6 +3315,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'feral_rose',
     name: 'Feral Rose',
     kind: 'flora',
+    propagation: 'feral_cutting',
     harvest: { item: 'feral_cutting', count: 1, fertilizedCount: 1 },
     bonusGrow: {
       biomes: ['precursor'],
@@ -3185,6 +3335,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'bone_orchid',
     name: 'Bone Orchid',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'bone_bloom', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['bone'],
@@ -3203,6 +3354,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'marrow_reed',
     name: 'Marrow Reed',
     kind: 'flora',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['bone'],
@@ -3221,6 +3373,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'pale_sedge',
     name: 'Pale Sedge',
     kind: 'flora',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['bone'],
@@ -3240,6 +3393,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'snow_cress',
     name: 'Snow Cress',
     kind: 'flora',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['frost'],
@@ -3268,6 +3422,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'scald_fern',
     name: 'Scald Fern',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'scald_frond', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['wetland', 'ember'],
@@ -3288,6 +3443,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'mulch_rose',
     name: 'Mulch Rose',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'mulch_petal', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['meadow', 'fungal'],
@@ -3306,6 +3462,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'brine_rose',
     name: 'Brine Rose',
     kind: 'flora',
+    propagation: 'seed',
     harvest: { item: 'brine_bloom', count: 1, fertilizedCount: 1 },
     bonusGrow: {
       biomes: ['wetland', 'saltglass'],
@@ -3325,6 +3482,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'frost_reed',
     name: 'Frost Reed',
     kind: 'flora',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['wetland', 'frost'],
@@ -3344,6 +3502,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'snow_shelf',
     name: 'Snow Shelf',
     kind: 'fungus',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['frost', 'rootwood'],
@@ -3364,6 +3523,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'sump_cap',
     name: 'Sump Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'sump_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['wetland', 'fungal'],
@@ -3383,6 +3543,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'grave_puff',
     name: 'Grave Puff',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'grave_puff', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['bone', 'fungal'],
@@ -3402,6 +3563,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'salt_mold',
     name: 'Salt Mold',
     kind: 'fungus',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['saltglass', 'meadow', 'storm', 'ember'],
@@ -3421,6 +3583,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'ash_mold',
     name: 'Ash Mold',
     kind: 'fungus',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['ember', 'meadow', 'storm', 'saltglass'],
@@ -3440,6 +3603,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'nest_cap',
     name: 'Nest Cap',
     kind: 'fungus',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['rootwood'],
@@ -3459,6 +3623,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'frost_mold',
     name: 'Frost Mold',
     kind: 'fungus',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['frost', 'rootwood', 'bone', 'wetland'],
@@ -3478,6 +3643,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'steam_cap',
     name: 'Steam Cap',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'steam_cap', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['ember', 'frost'],
@@ -3506,6 +3672,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'valley_heart',
     name: 'Valley Heart',
     kind: 'flora',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['living'],
@@ -3527,6 +3694,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'mother_grove',
     name: 'Mother Grove',
     kind: 'fungus',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['fungal'],
@@ -3548,6 +3716,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'first_tree',
     name: 'First Tree',
     kind: 'flora',
+    propagation: null, // wild-only: scenery or story — the land regrows it on its own terms
     harvest: null,
     bonusGrow: {
       biomes: ['rootwood'],
@@ -3568,6 +3737,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'lake_jelly',
     name: 'Lake Jelly',
     kind: 'fungus',
+    propagation: 'lake_jelly',
     harvest: { item: 'lake_jelly', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['wetland', 'frost'],
@@ -3691,6 +3861,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'echo_reed',
     name: 'Echo Reed',
     kind: 'flora',
+    propagation: 'resonant_reed',
     harvest: { item: 'resonant_reed', count: 2, fertilizedCount: 4, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },

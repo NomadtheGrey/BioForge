@@ -70,15 +70,14 @@ export const DEFAULT_BUILD_NOTES: BuildNotes = {
  * applied).
  */
 export const BUILD_NOTES: BuildNotes = {
-  // Hostile + the two doors (2026-10-18): the third law
-  // opens — explorers can fight on Hostile worlds, weapons
-  // and shields exactly as they are — and the Donate
-  // button becomes a two-door modal (Ko-fi live, itch at
-  // launch).
-  title: 'Among yourselves',
+  // Cloud-door adoption fix (2026-10-18): a device that
+  // arrived by the words door can now ADOPT those words —
+  // before, the door listed and imported but the typed
+  // words vanished, and TURN ON only dealt fresh ones, so
+  // an imported world could never save back to its own box.
+  title: 'Words that stay',
   lines: [
-    'HOSTILE worlds are open. Start a world under the third law and explorers can fight each other: your weapons work on people exactly as they work on creatures, and a raised shield turns a person\'s blow the way it turns teeth. Death is still the land\'s mercy — you wake at the spawn base, pouch untouched.',
-    'The spawn country stays a refuge under every law, Hostile included: nothing and no one can harm you there. Cross its border on a Hostile world and you are fair game, and so are they.',
-    'The DONATE button now opens two doors: Ko-fi, live today, and the game\'s itch page, which lights the day it stands at launch. Everything in the game is free — support just keeps it growing.',
+    'A fix for travelers: if you brought a world down on a new computer by entering your three words, the door now offers USE THESE WORDS ON THIS DEVICE once your worlds answer. Take it, and this computer saves back to the same cloud box, under the same words — no fresh set dealt, no second box.',
+    'If you already turned cloud saves on here and were dealt new words by mistake: turn them off, enter your original words at the door, and adopt them when your worlds appear.',
   ],
 };

@@ -22,6 +22,7 @@
 
 import React, { useState } from 'react';
 import { Play, Plus, Trash2, Users, Sprout, RefreshCw } from 'lucide-react';
+import { CreditsModal } from './CreditsModal';
 import {
   GameDifficulty,
   SaveMetadata,
@@ -95,6 +96,11 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
   // clicks on purpose: arm with the trash button, confirm with the red one.
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
+  // The credits screen (Adam, 2026-10-18): its one door is
+  // this menu's header, so the state lives here — no App
+  // wiring needed.
+  const [showCredits, setShowCredits] = useState(false);
+
   if (!isOpen) return null;
 
   const handleDeleteClick = (id: string) => {
@@ -119,16 +125,28 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
             <h2 className="text-lg font-tech font-bold text-white tracking-wide">BIOFORGE</h2>
             <p className="text-xs text-slate-400">Choose a world, or grow a new one</p>
           </div>
-          {/* The About door: what this game is, before the
-              first spawn (primer §5 — the start-screen About). */}
-          {onOpenAbout && (
+          <div className="ml-auto flex items-center gap-2">
+            {/* The Credits door (Adam, 2026-10-18): beside
+                About in the menu header — the seat Adam
+                specified, beside Support/donate when that
+                door joins the menu. */}
             <button
-              onClick={onOpenAbout}
-              className="ml-auto px-4 py-2 rounded-2xl text-[11px] font-tech font-bold text-emerald-200 border border-emerald-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+              onClick={() => setShowCredits(true)}
+              className="px-4 py-2 rounded-2xl text-[11px] font-tech font-bold text-cyan-200 border border-cyan-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
             >
-              <Sprout className="w-3.5 h-3.5" /> ABOUT THIS WORLD
+              <Sprout className="w-3.5 h-3.5" /> CREDITS
             </button>
-          )}
+            {/* The About door: what this game is, before the
+                first spawn (primer §5 — the start-screen About). */}
+            {onOpenAbout && (
+              <button
+                onClick={onOpenAbout}
+                className="px-4 py-2 rounded-2xl text-[11px] font-tech font-bold text-emerald-200 border border-emerald-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <Sprout className="w-3.5 h-3.5" /> ABOUT THIS WORLD
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Body */}
@@ -273,6 +291,7 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
           </button>
         </div>
       </div>
+      <CreditsModal isOpen={showCredits} onClose={() => setShowCredits(false)} />
     </div>
   );
 };

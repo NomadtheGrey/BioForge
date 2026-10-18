@@ -70,16 +70,16 @@ export const DEFAULT_BUILD_NOTES: BuildNotes = {
  * applied).
  */
 export const BUILD_NOTES: BuildNotes = {
-  // Hotfix (2026-10-18): the phone black screen — a
-  // hidden panel's empty measurements sent the new
-  // panel-rescue into an endless loop and took the whole
-  // screen with it. The rescue now ignores panels it
-  // cannot measure and stops after two tries, and the
-  // panels sit behind a safety net: if one ever faults,
-  // the panels alone drop — the world keeps running.
-  title: 'Back on your feet',
+  // The commission cure (2026-10-18): the black-screen's
+  // roots, all four — a bad saved panel position can no
+  // longer loop the rescue or survive a load: offsets are
+  // validated wherever they arrive from, the rescue fires
+  // at most once per panel, equal writes are no-ops, and
+  // the safety net's restore also resets the arrangement
+  // so a fault can't ride back in on it.
+  title: 'Set right',
   lines: [
-    'A quick repair: the last build could come up black on phones — a hidden panel confused the new panel-rescue into trying forever, and the whole screen went with it. Fixed, and fixed twice over: the rescue now leaves unmeasurable panels alone and gives up gracefully after two tries, and the panels have their own safety net, so even a future snag costs you the furniture, never the world.',
-    'Sorry for the dark screen — if yours is still black, this is the build that brings it back.',
+    'The follow-through on the black-screen repair: its roots are pulled up, not just trimmed back. A panel position that arrives damaged — from an old save, another screen, anywhere — is now checked on the way in and repaired to the panel\'s home spot if it doesn\'t make sense, instead of being carried.',
+    'The panel-rescue can also only ever fire once per panel now, and if the safety net ever catches a fault, restoring the panels resets their arrangement too — so the same fault can\'t walk back in through the restore.',
   ],
 };

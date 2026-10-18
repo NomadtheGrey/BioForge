@@ -60,7 +60,13 @@ export const HudPanel: React.FC<HudPanelProps> = ({
   const [dragging, setDragging] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [healTick, setHealTick] = useState(0);
-  const healBudgetRef = useRef(0);
+  // HEAL-ONCE (PR #56 commission): the heal may fire at most
+  // ONCE per mount, and once more per resize/rotation (the tick
+  // below). Structurally incapable of looping: after its one
+  // nudge it is silent until the world changes size or a human
+  // drags (a drag ends in a fresh offset, and the silence holds
+  // because the tick hasn't moved).
+  const healedAtTickRef = useRef(-1);
 
   // Rotation / window resize can strand a panel too — re-check.
   React.useEffect(() => {
@@ -81,7 +87,7 @@ export const HudPanel: React.FC<HudPanelProps> = ({
     // forever (the PR #56 phone black-screen). Never heal a
     // zero-size rect.
     if (rect.width === 0 && rect.height === 0) return;
-    if (healBudgetRef.current >= 2) return;
+    if (healedAtTickRef.current === healTick) return;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const MIN_VISIBLE = 56;
@@ -98,7 +104,7 @@ export const HudPanel: React.FC<HudPanelProps> = ({
       dy = rect.height > vh - EDGE * 2 || rect.top < 0 ? EDGE - rect.top : vh - EDGE - rect.bottom;
     }
     if (dx !== 0 || dy !== 0) {
-      healBudgetRef.current += 1;
+      healedAtTickRef.current = healTick;
       onMove(id, { x: offset.x + dx, y: offset.y + dy });
     }
   }, [offset, dragging, id, onMove, healTick]);
@@ -114,8 +120,8 @@ export const HudPanel: React.FC<HudPanelProps> = ({
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     // Left button / touch / pen only.
     if (e.pointerType === 'mouse' && e.button !== 0) return;
-    // A human is driving again — the heal gets its budget back.
-    healBudgetRef.current = 0;
+    // (A human drag changes offsets through the drag path
+    // itself; the heal stays silent until the next resize.)
     const target = e.target as HTMLElement;
     const fromGrip = target.closest('[data-hud-grip]') !== null;
     // Interactive innards keep their clicks: a press that starts on

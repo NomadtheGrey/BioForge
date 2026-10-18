@@ -60,6 +60,7 @@ export const HudPanel: React.FC<HudPanelProps> = ({
   const [dragging, setDragging] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [healTick, setHealTick] = useState(0);
+  const healBudgetRef = useRef(0);
 
   // Rotation / window resize can strand a panel too — re-check.
   React.useEffect(() => {
@@ -73,6 +74,14 @@ export const HudPanel: React.FC<HudPanelProps> = ({
     const el = wrapRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
+    // A CSS-hidden panel (display:none — the zone panel below
+    // its breakpoint) measures as an all-zero rect. That is not
+    // "off-screen", it is UNMEASURABLE: nudging its offset can
+    // never change the measurement, so healing from it loops
+    // forever (the PR #56 phone black-screen). Never heal a
+    // zero-size rect.
+    if (rect.width === 0 && rect.height === 0) return;
+    if (healBudgetRef.current >= 2) return;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const MIN_VISIBLE = 56;
@@ -89,6 +98,7 @@ export const HudPanel: React.FC<HudPanelProps> = ({
       dy = rect.height > vh - EDGE * 2 || rect.top < 0 ? EDGE - rect.top : vh - EDGE - rect.bottom;
     }
     if (dx !== 0 || dy !== 0) {
+      healBudgetRef.current += 1;
       onMove(id, { x: offset.x + dx, y: offset.y + dy });
     }
   }, [offset, dragging, id, onMove, healTick]);
@@ -104,6 +114,8 @@ export const HudPanel: React.FC<HudPanelProps> = ({
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     // Left button / touch / pen only.
     if (e.pointerType === 'mouse' && e.button !== 0) return;
+    // A human is driving again — the heal gets its budget back.
+    healBudgetRef.current = 0;
     const target = e.target as HTMLElement;
     const fromGrip = target.closest('[data-hud-grip]') !== null;
     // Interactive innards keep their clicks: a press that starts on

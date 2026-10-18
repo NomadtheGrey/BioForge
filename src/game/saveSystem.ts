@@ -84,6 +84,20 @@ export function isArmedAt(difficulty: GameDifficulty, zx: number, zz: number): b
   return difficulty !== 'peaceful' && !(zx === 0 && zz === 0);
 }
 
+/**
+ * HOSTILE (Adam, 2026-10-18): the explorer-vs-explorer gate.
+ * Weapons work on explorers exactly as they work on
+ * creatures — but ONLY under the Hostile law, and the Refuge
+ * excepts them exactly as it excepts the creatures (the
+ * armed half of this predicate IS isArmedAt, so the spawn
+ * zone stands down for duels the same way it stands down
+ * for bites). Normal is armed against the land, never
+ * against each other.
+ */
+export function isHostileAt(difficulty: GameDifficulty, zx: number, zz: number): boolean {
+  return difficulty === 'hostile' && isArmedAt(difficulty, zx, zz);
+}
+
 /** Everything in the 3D world that belongs to a save (not to the player). */
 export interface WorldSnapshot {
   flora: FloraEntity[];

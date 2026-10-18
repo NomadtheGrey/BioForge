@@ -26,6 +26,7 @@ import type { WorldSnapshot, GameDifficulty } from '../game/saveSystem';
 import type { BioForgeThreeEngine } from '../game/engine/threeEngine';
 import type { PendingTravel } from './useZoneTravel';
 import { setSkyWorld } from '../game/world/skyCalendar';
+import type { StrikeCtx } from '../game/creatures/shields';
 import type {
   DroppedItemEntity, FaunaEntity, FloraEntity, GameNotification, MultiplayerPeer, StructureEntity, ToolType,
 } from '../types/game';
@@ -57,6 +58,15 @@ export interface MultiplayerSyncDeps {
   /** The host-side getter: this client's own save's
    *  difficulty, broadcast with world sync when hosting. */
   getWorldDifficulty: () => GameDifficulty;
+  // HOSTILE (2026-10-18): two App-owned bags this hook fills.
+  // peerPositionsRef — the same-zone peers' last known
+  // positions (id → {x, z}), kept in step with the avatar
+  // stream: the weapon hook hit-tests swings and shots
+  // against it. explorerStrikesRef — strikes ADDRESSED TO
+  // this player, queued for the game loop to resolve through
+  // the shared shield/health consumer on its next tick.
+  peerPositionsRef: { current: Map<string, { x: number; z: number }> };
+  explorerStrikesRef: { current: { damage: number; ctx: StrikeCtx }[] };
   setSessionSeed: (seed: string) => void;
   zoneStores: () => ZoneStores;
   buildZoneSyncTravel: () => { zone: string; zones: Record<string, WorldSnapshot>; worldSeed: string; worldCreatedAt?: number };
@@ -128,7 +138,7 @@ export function useMultiplayerSync(deps: MultiplayerSyncDeps): UseMultiplayerSyn
   const {
     engineRef, playerPosRef, playerLevelRef, activeToolRef, currentZoneId,
     playerZone, inCavern, inRuin,
-    playerZoneRef, setPlayerZone, visitedZonesRef, worldSeedRef, hostDifficultyRef, getWorldDifficulty, setSessionSeed,
+    playerZoneRef, setPlayerZone, visitedZonesRef, worldSeedRef, hostDifficultyRef, getWorldDifficulty, peerPositionsRef, explorerStrikesRef, setSessionSeed,
     zoneStores, buildZoneSyncTravel, completeTravel, cancelPendingTravel, pendingTravelRef,
     buildWorldSnapshot, latestStateRef, setHasStarted, setDayNightCycle, resetInstanceState,
     postNotification, enterFullscreenOnTouch, setActiveModal,
@@ -214,6 +224,7 @@ export function useMultiplayerSync(deps: MultiplayerSyncDeps): UseMultiplayerSyn
       onPeerLeave: (peerId) => {
         setPeers(multiplayerManager.getConnectedPeers());
         engineRef.current?.removePeerAvatar(peerId);
+        peerPositionsRef.current.delete(peerId);
       },
       onPeerMove: (peerId, px, pz, prot, _tool, level, zone) => {
         // Instances are separate spaces: a peer on the surface is not
@@ -224,10 +235,26 @@ export function useMultiplayerSync(deps: MultiplayerSyncDeps): UseMultiplayerSyn
         const peerTag = zone === undefined || zone === 'surface' ? `zone:${zoneKey(SPAWN_ZONE.zx, SPAWN_ZONE.zz)}` : zone;
         if (peerTag !== currentZoneId()) {
           engineRef.current?.removePeerAvatar(peerId);
+          // HOSTILE: a peer in another country is out of reach
+          // in every sense — out of the hit-test map too.
+          peerPositionsRef.current.delete(peerId);
           return;
         }
         const peer = peers.find((p) => p.id === peerId);
         engineRef.current?.updatePeerAvatar(peerId, peer?.name || 'Explorer', px, pz, prot, peer?.color || '#38bdf8', level ?? 0);
+        // HOSTILE: remember where they stand — the weapon
+        // hook judges swings and shots against these.
+        peerPositionsRef.current.set(peerId, { x: px, z: pz });
+      },
+      onPlayerHit: (senderId, senderName, damage, x, z) => {
+        // HOSTILE (2026-10-18): a strike addressed to me.
+        // Queue it — the game loop resolves it through the
+        // shared shield/health consumer on its next tick, so
+        // an explorer's hit and a creature's bite take the
+        // EXACT same door (block, floor, death latch). The
+        // notice names the hand; the health bar tells the rest.
+        explorerStrikesRef.current.push({ damage, ctx: { faunaId: senderId, x, z } });
+        postNotification('Struck!', `${senderName} struck you — weapons are live between explorers on this world.`, 'alert', '#ef4444');
       },
       onBuildPlaced: (structure) => {
         addStructure(structure);

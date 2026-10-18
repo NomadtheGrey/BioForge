@@ -154,6 +154,11 @@ export interface GameLoopDeps {
   lastHealthSync: { current: number };
   /** Death is armed on Normal/Hostile worlds (Adam's pin). */
   deathArmedRef: { current: boolean };
+  // HOSTILE (2026-10-18): strikes from other explorers,
+  // queued by the multiplayer sync when a player_hit lands
+  // on this client; drained on the sim tick through the
+  // shared strike resolution (see the drain in the tick).
+  explorerStrikesRef: { current: { damage: number; ctx: StrikeCtx }[] };
   /** Latched while a death is being answered (respawn in flight). */
   playerDeadRef: { current: boolean };
   onPlayerDeathRef: { current: (() => void) | null };
@@ -246,7 +251,7 @@ export interface GameLoopDeps {
 export function useGameLoop(deps: GameLoopDeps): void {
   const {
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
-    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, getLiquidAt, getPondSurface, hasEmberSoles, biolumeVisor, sporeFilter, chargeSight, waders, waterTier, waterWalk, onWaterHint, waterHintRef, hasPlumeCharm, windlungTier, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
+    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, getLiquidAt, getPondSurface, hasEmberSoles, biolumeVisor, sporeFilter, chargeSight, waders, waterTier, waterWalk, onWaterHint, waterHintRef, hasPlumeCharm, windlungTier, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, explorerStrikesRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
     sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
@@ -1097,6 +1102,43 @@ export function useGameLoop(deps: GameLoopDeps): void {
               liveGameRefs.current.shield?.growthRef.current
             )
           );
+          // HOSTILE (2026-10-18): explorer strikes drain here,
+          // on the same tick, through the same resolution as a
+          // creature's bite — resolveShieldStrike first (a
+          // raised shield turns an explorer's blow exactly as
+          // it turns teeth; reflect/burst side effects queue
+          // into the sim as usual, where a peer id matches no
+          // fauna in v1), then health under the armed floor,
+          // then the death latch. One door for every strike
+          // that lands on you, whoever swung it.
+          if (explorerStrikesRef.current.length > 0) {
+            const strikes = explorerStrikesRef.current;
+            explorerStrikesRef.current = [];
+            for (const strike of strikes) {
+              let finalDamage = strike.damage;
+              if (shieldCombat && shieldCtl) {
+                finalDamage = resolveShieldStrike(
+                  shieldCombat,
+                  strike.damage,
+                  strike.ctx,
+                  moveResult.x,
+                  moveResult.z,
+                  tickFacing,
+                  (targetId, hitDamage, flinch) =>
+                    shieldCtl.queueShieldSideEffect({ kind: 'hit', targetId, damage: hitDamage, flinch }),
+                  (x, z, grafted) =>
+                    shieldCtl.queueShieldSideEffect({ kind: 'burst', x, z, grafted })
+                ).finalDamage;
+              }
+              const floor = deathArmedRef.current ? 0 : 1;
+              healthRef.current = Math.max(floor, healthRef.current - finalDamage);
+              setHealth(healthRef.current);
+              if (deathArmedRef.current && healthRef.current <= 0 && !playerDeadRef.current) {
+                playerDeadRef.current = true;
+                onPlayerDeathRef.current?.();
+              }
+            }
+          }
         }
 
         // 3. Smooth Sol-Cycle advancement (1 second throttled UI tick, host authority)

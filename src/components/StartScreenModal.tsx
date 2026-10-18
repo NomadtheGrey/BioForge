@@ -70,7 +70,7 @@ interface StartScreenModalProps {
 const DIFFICULTY_OPTIONS: { id: GameDifficulty; label: string; blurb: string; playable: boolean }[] = [
   { id: 'peaceful', label: 'PEACEFUL', blurb: 'Creatures never attack. Tend, tame, build.', playable: true },
   { id: 'normal', label: 'NORMAL', blurb: 'Hunters hunt and the land can kill you — death wakes you at the spawn base. Your weapons are live out there; the spawn zone itself stays a refuge.', playable: true },
-  { id: 'hostile', label: 'HOSTILE', blurb: 'Normal, plus explorers can fight each other.', playable: false },
+  { id: 'hostile', label: 'HOSTILE', blurb: 'Normal, plus explorers can fight each other.', playable: true },
 ];
 
 /** Human label for a save's difficulty, shown in the save list. */

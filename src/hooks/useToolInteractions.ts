@@ -187,6 +187,14 @@ export interface UseToolInteractionsParams {
   /** Which draw the striker slot holds — App owns it ('close' |
    *  'ranged'); the drawn weapon derives from the pouch + this. */
   strikerDrawRef: { current: 'close' | 'ranged' };
+  /** HOSTILE (2026-10-18): the PvP gate + the explorers in
+   *  reach. pvpArmed reads App's law for where the player
+   *  stands (Hostile, outside the Refuge — isHostileAt);
+   *  getPeers returns the same-zone explorers' positions
+   *  (the sync hook's map). Weapons judge their swings and
+   *  shots against these exactly as they judge creatures. */
+  pvpArmed?: () => boolean;
+  getPeers?: () => { id: string; x: number; z: number }[];
   /** Pay stamina for a strike; false when too winded. App owns
    *  stamina (the loop's ref), bridged here. */
   spendStamina: (amount: number) => boolean;
@@ -285,6 +293,8 @@ export function useToolInteractions({
   strikeFauna,
   fireProjectile,
   strikerDrawRef,
+  pvpArmed,
+  getPeers,
   spendStamina,
   triggerShotFx,
   triggerStrikeHitFx,
@@ -1621,7 +1631,12 @@ export function useToolInteractions({
           if (Math.hypot(worldX - player.x, worldZ - player.z) > 42) return;
         }
         if (!tryStrikePace(weapon)) return;
-        if (weapon.kind === 'close') soundEngine.playStrikeSwing();
+        if (weapon.kind === 'close') {
+          soundEngine.playStrikeSwing();
+          // HOSTILE: an air swing still swings — explorers
+          // standing in its reach are struck (see the helper).
+          strikeExplorersInReach(weapon);
+        }
         else strikerShootAt(weapon, worldX, worldZ, '');
         return;
       }
@@ -1727,19 +1742,64 @@ export function useToolInteractions({
   };
   /** Loose the drawn ranged weapon at a point: the shot enters
    *  the sim's ledger with its travel time, and the tracer flies. */
+  // HOSTILE (Adam, 2026-10-18): explorers are targets too —
+  // a close swing is judged against every explorer standing
+  // in its reach, exactly the measure a creature gets
+  // (reach + the half-meter of grace). The hit is reported
+  // to the struck explorer's own client, which resolves it
+  // through the shared shield/health door. Under any other
+  // law — or inside the Refuge — this is a no-op: swings
+  // stay creature-only, as they were.
+  const strikeExplorersInReach = (weapon: WeaponDef): void => {
+    if (!pvpArmed?.() || !getPeers) return;
+    const player = getPlayerPosition();
+    const reach = (weapon.reach ?? 2.4) + 0.6;
+    let landed = false;
+    for (const peer of getPeers()) {
+      if (Math.hypot(peer.x - player.x, peer.z - player.z) <= reach) {
+        multiplayerManager.broadcastPlayerHit(peer.id, weapon.damage, player.x, player.z);
+        landed = true;
+      }
+    }
+    if (landed) soundEngine.playStrikeHit();
+  };
+
   const strikerShootAt = (weapon: WeaponDef, x: number, z: number, targetId: string): void => {
     const player = getPlayerPosition();
     const dist = Math.hypot(x - player.x, z - player.z);
+    const travelSeconds = dist / (weapon.projectileSpeed ?? 16);
     fireProjectile({
       targetId,
       aimX: x,
       aimZ: z,
       damage: weapon.damage,
       burstRadius: weapon.burstRadius,
-      travelSeconds: dist / (weapon.projectileSpeed ?? 16),
+      travelSeconds,
     });
     soundEngine.playStrikeShot();
     triggerShotFx(x, z, weapon.burstRadius !== undefined);
+    // HOSTILE: the shot is judged against explorers when it
+    // ARRIVES, with the sim's own geometry — a burst takes
+    // whoever stands inside it; a plain shot takes whoever
+    // stands at the aim point (the 2 m tolerance a targeted
+    // creature shot gets). Shooting at a creature's feet
+    // with an explorer standing there strikes them both:
+    // the shot never knew the difference, and now neither
+    // does the law.
+    if (pvpArmed?.() && getPeers) {
+      window.setTimeout(() => {
+        let landed = false;
+        for (const peer of getPeers()) {
+          const dAim = Math.hypot(peer.x - x, peer.z - z);
+          const struck = weapon.burstRadius !== undefined ? dAim <= weapon.burstRadius : dAim <= 2.0;
+          if (struck) {
+            multiplayerManager.broadcastPlayerHit(peer.id, weapon.damage, player.x, player.z);
+            landed = true;
+          }
+        }
+        if (landed) soundEngine.playStrikeHit();
+      }, Math.max(50, travelSeconds * 1000));
+    }
   };
 
   const handleFaunaInteract = useCallback(
@@ -1798,6 +1858,10 @@ export function useToolInteractions({
         if (!tryStrikePace(weapon)) return;
         if (weapon.kind === 'close') {
           soundEngine.playStrikeSwing();
+          // HOSTILE: the same swing is judged against the
+          // explorers standing in it — it never knew the
+          // difference between a hide and a coat.
+          strikeExplorersInReach(weapon);
           // Reach, plus a half-meter of grace: a timely hit lands
           // just outside bite range (the table's whole point).
           if (dist <= (weapon.reach ?? 2.4) + 0.6) {

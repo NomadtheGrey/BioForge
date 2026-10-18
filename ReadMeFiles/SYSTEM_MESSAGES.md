@@ -36,11 +36,16 @@ treats any failure as silence.
 ## Build identity and the automation
 
 - Every build bakes a **stamp**: the minute it was built,
-  injected by `vite.config.ts` as a define — zero manual
-  steps; it changes on every build because the clock does.
-  `src/game/buildNotes.ts` unwraps it (`BUILD_ID`), and the
-  deployed bundle contains exactly one stamp-shaped string,
-  so the merge flow reads it back out of the live JS.
+  carried two ways from one value in `vite.config.ts` — a
+  define the running game reads as `BUILD_ID`
+  (`src/game/buildNotes.ts`), and a static **`/build.txt`**
+  emitted beside the bundle. The merge flow reads the stamp
+  from the deployed build.txt: a bundle grep does NOT
+  survive minification (esbuild constant-folds the labeled
+  string down to the bare date — the dev lane's correction,
+  2026-10-18), while the file is exactly what was written.
+  Zero manual steps; the stamp changes on every build
+  because the clock does.
 - Every build also bakes **its own release notes**
   (`BUILD_NOTES` in the same file), player voice,
   spoiler-safe. Notes are part of each landing's review
@@ -88,3 +93,25 @@ treats any failure as silence.
 - Player-facing words (the stale lines, the notes, broadcast
   drafts) are review surface like all copy: tease, never
   name a fate or an ending.
+
+## Slice 4 — the publishing kit (Adam's rulings, 2026-10-18; NOT yet a build order)
+
+Ruled, and built when its turn comes (after slices 1–3 and
+Adam's feed-setup steps):
+
+- **The Playtest Kit gets a lock**: the tilde prompts for a
+  code. Its scrambled fingerprint (hash) is baked in the
+  build; unlock is session-only by default, with a
+  remember-this-device option Adam controls.
+- **The composer lives in the kit's System tab**: write a
+  broadcast, choose panel/notice, send.
+- **Publishing is two-door**: the typed code is forwarded
+  to the feed Worker and checked against a Worker-side
+  secret (instantly rotatable, throttled) — OR a Cloudflare
+  Access email session (Adam is creating a BioForge-specific
+  email for the allow-list; sessions kept short, a few
+  hours, because he plays from library PCs).
+- **No secret of any publish value ever ships in the
+  bundle.** The kit's lock is a courtesy screen for a shared
+  machine; the real doors are the Worker's. A composer
+  without a valid door is furniture.

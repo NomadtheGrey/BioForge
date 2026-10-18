@@ -280,6 +280,11 @@ export class BioForgeThreeEngine {
   // Pooled dynamic lighting: a fixed set of real PointLights fed by
   // grid-merged sources, plus one glow sprite per merged cell.
   private lightPool: THREE.PointLight[] = [];
+  /** The probe snapshot: what the pool actually assigned at
+   * the last refresh (see updateLighting) — the browser-side
+   * instrument for the ground-light dark test, mirrored to
+   * window.__bioforgeLightPool. Read-only by convention. */
+  public lightPoolSnapshot: { color: string; intensity: number; distance: number; heightAboveGround: number; groundLux: number }[] = [];
   private glowSprites: Map<string, THREE.Sprite> = new Map();
   private glowTexture: THREE.Texture | null = null;
   private lastLightUpdate: number = 0;
@@ -1609,29 +1614,57 @@ export class BioForgeThreeEngine {
     this.glowTexture = makeGlowTexture();
   }
 
+  // ------------------------------------------------------------------
+  // THE GROUND-LIGHT FIX (2026-10-18, Adam: "We want the ground
+  // lit — that's about as important as anything.")
+  //
+  // The diagnosis, for whoever reads this next: every physical
+  // thing in this engine rides the terrain — meshes by their
+  // transforms, the camera by eyeHeight + terrainHeightAt,
+  // creatures by the kit's height callback. Light SOURCES were
+  // the one exception: their y was a flat-era constant (the
+  // table's "height the light rides at"), never lifted by the
+  // ground beneath them. On any land standing taller than the
+  // constant — most shaped country — the pooled light sat
+  // UNDERGROUND, and ground whose normal faces up receives
+  // nothing from a light below its horizon: emissive plants
+  // glowed, sprites haloed, and no pool ever landed. The rule
+  // now, for every source: y = the ground it stands on + the
+  // spec's ride height. terrainHeightAt is instance-aware
+  // (0 in caverns/ruins, where floors are flat), so the one
+  // rule is correct in every context. Structures mirror the
+  // placement transform's own ground formula (datum + story).
+  // ------------------------------------------------------------------
   private getFloraLightSpec(flora: FloraEntity): LightSource {
     const id = `flora:${flora.id}`;
+    const groundY = this.terrainHeightAt(flora.x, flora.z);
     if (flora.species === 'lantern_fern') {
       // Growth curve preserved from the per-mesh era: feeble seedling (stage 0)
       // to brilliant mature fern (stage 5). Merging multiplies from here.
       const g = (0.45 + flora.growthStage * 0.14) / 0.45;
-      return { id, x: flora.x, y: 2.2, z: flora.z, color: 0x06b6d4, intensity: 1.8 * g ** 3, distance: 8 * g };
+      return { id, x: flora.x, y: groundY + 2.2, z: flora.z, color: 0x06b6d4, intensity: 1.8 * g ** 3, distance: 8 * g };
     }
     const b = this.floraLightBase[flora.species];
-    return { id, x: flora.x, y: b.y, z: flora.z, color: b.color, intensity: b.intensity, distance: b.distance };
+    return { id, x: flora.x, y: groundY + b.y, z: flora.z, color: b.color, intensity: b.intensity, distance: b.distance };
   }
 
   private getStructureLightSpec(s: StructureEntity): LightSource {
     const id = `struct:${s.id}`;
+    // The placement transform's ground formula, mirrored
+    // (applyTerrainTransform): the build's datum if it has
+    // one, the terrain if not, plus a story per level.
+    const groundY =
+      (this.structureDatums.get(s.id) ?? this.terrainHeightAt(s.worldX, s.worldZ)) +
+      (s.level ?? 0) * STORY_HEIGHT;
     if (s.type === 'lantern_fern_post') {
       // Crafted beats wild (Adam, 2026-10-17): the post is a
       // LAMP, grown on purpose, and must outshine the plant it
       // came from — a mature wild fern peaks near 30 / 20 on
       // the growth curve above, so the post stands at 40 / 26.
-      return { id, x: s.worldX, y: 2.7, z: s.worldZ, color: 0x06b6d4, intensity: 40, distance: 26 };
+      return { id, x: s.worldX, y: groundY + 2.7, z: s.worldZ, color: 0x06b6d4, intensity: 40, distance: 26 };
     }
     const b = this.structureLightBase[s.type];
-    return { id, x: s.worldX, y: b.y, z: s.worldZ, color: b.color, intensity: b.intensity, distance: b.distance };
+    return { id, x: s.worldX, y: groundY + b.y, z: s.worldZ, color: b.color, intensity: b.intensity, distance: b.distance };
   }
 
   private updateLighting(): void {
@@ -1674,7 +1707,10 @@ export class BioForgeThreeEngine {
       sources.push({
         id: 'held:lantern',
         x: sx,
-        y: 1.6,
+        // The ground-light rule (see getFloraLightSpec): the
+        // carried light rides the ground it stands over —
+        // sampled at the (possibly thrown-forward) position.
+        y: this.terrainHeightAt(sx, sz) + 1.6,
         z: sz,
         color: 0x67e8f9,
         // A carried light must do a lamp's work (Adam's play
@@ -1705,7 +1741,7 @@ export class BioForgeThreeEngine {
       sources.push({
         id: 'visor:biolume',
         x: this.cachedPlayerX,
-        y: 1.7,
+        y: this.terrainHeightAt(this.cachedPlayerX, this.cachedPlayerZ) + 1.7,
         z: this.cachedPlayerZ,
         color: 0x8ff5d2,
         intensity: 10,
@@ -1764,6 +1800,29 @@ export class BioForgeThreeEngine {
     });
     for (let i = ranked.length; i < this.lightPool.length; i++) {
       this.lightPool[i].visible = false;
+    }
+
+    // THE PROBE (ground-light fix, 2026-10-18): record what
+    // the pool just did, in the terms the dark test is judged
+    // by — each live light's strength, its height above the
+    // ground it stands on (negative would mean buried: the
+    // old bug, visible at a glance), and the illuminance its
+    // center delivers to the ground directly below it
+    // (physical falloff: intensity / height²). Mirrored to
+    // window.__bioforgeLightPool for devtools reading.
+    this.lightPoolSnapshot = ranked.slice(0, this.lightPool.length).map((entry) => {
+      const heightAboveGround = entry.cy - this.terrainHeightAt(entry.cx, entry.cz);
+      const intensity = entry.mergedI * this.zoneLightIntensityMult;
+      return {
+        color: `#${entry.color.getHexString()}`,
+        intensity: Math.round(intensity * 10) / 10,
+        distance: Math.round(entry.mergedD * this.zoneLightDistanceMult * 10) / 10,
+        heightAboveGround: Math.round(heightAboveGround * 100) / 100,
+        groundLux: Math.round((intensity / Math.max(0.25, heightAboveGround ** 2)) * 10) / 10,
+      };
+    });
+    if (typeof window !== 'undefined') {
+      (window as unknown as { __bioforgeLightPool?: unknown }).__bioforgeLightPool = this.lightPoolSnapshot;
     }
 
     const seen = new Set<string>();

@@ -125,7 +125,7 @@ import { ChapterModal } from './components/ChapterModal';
 import { ScarChoiceModal } from './components/ScarChoiceModal';
 import { bestWeapon } from './game/creatures/weapons';
 import { windlungTierOf, staminaFactors } from './game/creatures/quicksteps';
-import { biolumeVisorWorn } from './game/creatures/helmet';
+import { biolumeVisorWorn, helmetReadTier } from './game/creatures/helmet';
 import type { WeaponDef } from './game/creatures/weapons';
 // The Shield Family (Adam, 2026-10-17): rules, the wield hook, and
 // the Left Hand cycle grammar.
@@ -149,7 +149,7 @@ import { useStorage } from './hooks/useStorage';
 import { useVat } from './hooks/useVat';
 import { useDebugKit } from './hooks/useDebugKit';
 import { usePlaytestKit } from './hooks/usePlaytestKit';
-import { useZoneTravel, ZONE_ID_INSTALLED, WORLD_EDGE_COORD, ZONE_PUSH_SECONDS, ZONE_PUSH_MIN_COMPONENT, type PendingTravel } from './hooks/useZoneTravel';
+import { useZoneTravel, WORLD_EDGE_COORD, ZONE_PUSH_SECONDS, ZONE_PUSH_MIN_COMPONENT, type PendingTravel } from './hooks/useZoneTravel';
 import { useInstances } from './hooks/useInstances';
 import { useSaveSession } from './hooks/useSaveSession';
 /** S6 Movable Vaults: the carry state lives in App, owned here. */
@@ -670,6 +670,10 @@ export default function App() {
     // Lazy: the save session composes below; the getter is only
     // exercised on travel, long after mount (pond gate, P5 move 2).
     getWorldCreatedAt: () => currentSaveRef.current?.createdAt ?? 0,
+    // The helm's zone-read tier, bridged like the other worn
+    // answers (helmet slice 2): the arrival announcement and
+    // the HUD labels read the one derivation.
+    getZoneReadTier: () => helmetReadTier(latestStateRef.current.inventory ?? {}),
     // The World Asks Back (2026-10-16): every crossing stamps a
     // zone-visit into the saga event log — the Director reads
     // these for echo timing and revisit goals.
@@ -2824,7 +2828,7 @@ const {
     playerZone,
     playerPosRef.current.x,
     playerPosRef.current.z,
-    ZONE_ID_INSTALLED,
+    helmetReadTier(inventory),
   );
 
   const hoverHint: string | null = (() => {

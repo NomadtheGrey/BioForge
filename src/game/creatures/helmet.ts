@@ -47,3 +47,21 @@ export function helmetModuleWorn(inventory: Inventory, moduleId: ItemId): boolea
 export function biolumeVisorWorn(inventory: Inventory): boolean {
   return helmetModuleWorn(inventory, 'biolume_visor');
 }
+
+/**
+ * The zone read, tiered by the lens line (helmet slice 2):
+ * naming the land is a sense, and the helm is the sensory
+ * platform. TIER 0 — no lens: the land stays unidentified.
+ * TIER 1 — the Trail Lens: the FAMILY is named, the variant
+ * stays the land's secret. TIER 2 — the Identifier Lens:
+ * family, variant, and all. The consumers are the HUD's
+ * zone labels (world/zones.zoneHudLabels) and the arrival
+ * announcement (hooks/useZoneTravel) — both read this one
+ * derivation, so the two surfaces can never disagree about
+ * what the player's helm can see.
+ */
+export function helmetReadTier(inventory: Inventory): 0 | 1 | 2 {
+  if (helmetModuleWorn(inventory, 'identifier_lens')) return 2;
+  if (helmetModuleWorn(inventory, 'trail_lens')) return 1;
+  return 0;
+}

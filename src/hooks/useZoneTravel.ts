@@ -21,7 +21,7 @@ import { useRef, useState } from 'react';
 import type { BioForgeThreeEngine } from '../game/engine/threeEngine';
 import type { FirstPersonMovementController } from '../game/engine/controller';
 import type { WorldSnapshot } from '../game/saveSystem';
-import { SPAWN_ZONE, zoneBiomeAt, zoneVariantAt, zoneFaceAt, zoneHops, zoneInfo, zoneKey, biomeDisplayName, type ZoneCoords } from '../game/world/zones';
+import { SPAWN_ZONE, zoneBiomeAt, zoneVariantAt, zoneFaceAt, zoneHops, zoneInfo, zoneKey, biomeDisplayName, zoneKindLabel, type ZoneCoords } from '../game/world/zones';
 import { generateSeededWorld } from '../game/world/worldGen';
 import { LANDFORM_EPOCH_MS } from '../game/world/terrain';
 import { multiplayerManager } from '../game/multiplayer';
@@ -34,11 +34,11 @@ import type { AsksBackState } from '../game/quests/asksBackState';
 
 // Zone identification is a HELMET feature (Adam, 2026-10-15):
 // naming the land is a sense, and the helmet is the sensory
-// platform. No such helmet exists yet, so this is false for
-// everyone — labels carry the placeholder + upgrade message,
-// arrivals stay vague. When the helmet lands, this becomes an
-// equipment check and every gated label lights up at once.
-export const ZONE_ID_INSTALLED = false;
+// platform. The read is TIERED by the lens line (helmet
+// slice 2, 2026-10-18): the derivation lives in
+// creatures/helmet (helmetReadTier) and arrives here as the
+// getZoneReadTier dep; the HUD's labels read the same tier,
+// so the arrival word and the zone panel can never disagree.
 
 // Travel tuning: the movement clamp pins the player at ±48 (the
 // engine's WORLD_BOUNDARY in collision.ts); arriving players land
@@ -99,6 +99,12 @@ export interface ZoneTravelDeps {
    *  zones generated on travel belong to the OPEN world, whose
    *  epoch decides whether pond life may be sown in them. */
   getWorldCreatedAt: () => number;
+  /** The helm's zone-read tier (helmet slice 2): 0 no lens,
+   *  1 Trail Lens (family), 2 Identifier Lens (family,
+   *  variant, and all) — creatures/helmet.helmetReadTier,
+   *  bridged from App like the other worn answers. Optional:
+   *  an absent getter reads as tier 0. */
+  getZoneReadTier?: () => 0 | 1 | 2;
   /** The World Asks Back (2026-10-16): stamped on every completed
    *  crossing — the saga engine reads zone-visit history for echo
    *  timing and revisit goals. */
@@ -138,7 +144,7 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
   const {
     engineRef, playerPosRef, movementController, jumpRef, instanceRef,
     replaceWorld, applyPlayerLevel, postNotification,
-    buildWorldSnapshot, getDayNightCycle, saveNowRef, getWorldCreatedAt, onZoneEnter,
+    buildWorldSnapshot, getDayNightCycle, saveNowRef, getWorldCreatedAt, getZoneReadTier, onZoneEnter,
     onPendingCancel,
     asksBackState,
   } = deps;
@@ -289,11 +295,18 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
     //    it the land stays unnamed, but dead reckoning (how far
     //    from home, which zone address) is the player's own.
     const hops = zoneHops(nx, nz);
+    const readTier = getZoneReadTier ? getZoneReadTier() : 0;
     if (nx === SPAWN_ZONE.zx && nz === SPAWN_ZONE.zz) {
       postNotification('Home Again', 'The spawn zone — your homestead country.', 'system', '#38bdf8');
-    } else if (ZONE_ID_INSTALLED) {
+    } else if (readTier === 2) {
+      // The Identifier Lens: family, variant, and all.
       const info = zoneInfo(seed, nx, nz);
-      postNotification(info.name, `${biomeDisplayName(info.biome)} · ${hops} zone${hops === 1 ? '' : 's'} from home`, 'system', '#38bdf8');
+      postNotification(info.name, `${zoneKindLabel(info)} · ${hops} zone${hops === 1 ? '' : 's'} from home`, 'system', '#38bdf8');
+    } else if (readTier === 1) {
+      // The Trail Lens: the family names the country; the
+      // variant stays the land's secret.
+      const info = zoneInfo(seed, nx, nz);
+      postNotification(`${biomeDisplayName(info.biome)} Country`, `${hops} zone${hops === 1 ? '' : 's'} from home — a Trail Lens read: the family, not the variant.`, 'system', '#38bdf8');
     } else {
       postNotification('Unidentified Country', `${hops} zone${hops === 1 ? '' : 's'} from home · Zone ${nx}, ${nz} — a helmet zone identifier would name this land.`, 'system', '#38bdf8');
     }

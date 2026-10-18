@@ -25,6 +25,7 @@ import {
   createSaveMetadata, loadSavedGame, storeSavedGame,
   type GameDifficulty, type SaveMetadata, type SavedGameRecord, type WorldSnapshot,
 } from '../game/saveSystem';
+import { storedPassphrase, cloudPutSave, noteCloudSyncSuccess } from '../game/cloudSaves';
 import type { FieldNotesState } from '../game/knowledge/fieldNotesBook';
 import { EMPTY_ASKS_BACK, type AsksBackState } from '../game/quests/asksBackState';
 import {
@@ -282,6 +283,23 @@ export function useSaveSession(deps: SaveSessionDeps) {
     record.currentZone = { ...playerZoneRef.current };
     currentSaveRef.current = { ...meta, savedAt: record.savedAt };
     void storeSavedGame(record);
+    // THE CLOUD MIRROR (phase 2c, 2026-10-18): saveNow is the
+    // ONE funnel every local save passes through (autosave,
+    // exit, manual, first save), so the mirror rides it: when
+    // the player has turned cloud saves on, the same record
+    // also goes up to the box. Fire-and-forget by law — the
+    // local save is the master and never waits on, or fails
+    // for, the mirror; a dead network is a quiet skip and the
+    // next save carries the current record up. Guests never
+    // reach here (no save attached = saveNow never builds a
+    // record), so a guest's hands never touch the host's —
+    // or their own — cloud.
+    const cloudSecret = storedPassphrase();
+    if (cloudSecret) {
+      void cloudPutSave(cloudSecret, record).then((ok) => {
+        if (ok) noteCloudSyncSuccess();
+      });
+    }
     // buildWorldSnapshot/buildCurrentPlayerState only read refs, so this
     // callback safely stays stable for the interval/pagehide effects.
   }, []);
@@ -539,6 +557,23 @@ export function useSaveSession(deps: SaveSessionDeps) {
         .then(setSaveList);
     };
 
+    // A world brought down from the cloud (the start
+    // screen's door, phase 2c): it lands as a NEW local
+    // save under a fresh id — NEVER over an existing local
+    // world (Adam's no-silent-overwrite law, both
+    // directions). The record's insides key on zone
+    // coordinates, not the save id, so a fresh id is a clean
+    // re-birth; the player tidies duplicate names by hand.
+    const handleImportCloudSave = (record: SavedGameRecord): void => {
+      const landed: SavedGameRecord = {
+        ...record,
+        id: 'save_' + Math.random().toString(36).substring(2, 10),
+      };
+      void storeSavedGame(landed)
+        .then(() => listSaveMetadata())
+        .then(setSaveList);
+    };
+
 
 
     const handleManualSave = (): void => {
@@ -558,6 +593,6 @@ export function useSaveSession(deps: SaveSessionDeps) {
   return {
     hasStarted, setHasStarted, saveList, currentSaveRef, latestStateRef,
     buildWorldSnapshot, buildCurrentPlayerState, saveNow,
-    applySavedGame, handleSelectSave, handleCreateSave, handleDeleteSave, handleManualSave,
+    applySavedGame, handleSelectSave, handleCreateSave, handleDeleteSave, handleImportCloudSave, handleManualSave,
   };
 }

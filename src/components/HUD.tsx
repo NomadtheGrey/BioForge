@@ -19,11 +19,14 @@ import {
   Save,
   Flashlight,
   Shield,
+  Waves,
+  Footprints,
   ChevronLeft,
   ChevronRight,
   ScrollText,
   Settings2,
   Sprout,
+  MessageSquare,
 } from 'lucide-react';
 import {
   ToolType,
@@ -124,6 +127,12 @@ interface HUDProps {
   // popup can speak exactly (see App's crossing watch).
   isRefuge?: boolean;
   leavingSafety?: GameDifficulty | null;
+  // The water module's stance, touch seat (Adam's delegation
+  // to the HUD lane, 2026-10-18): non-null exactly while the
+  // stance matters (in the water, second growth grown — the
+  // same signal that seats the desktop hint). Desktop flips
+  // it with F; touch gets the button below.
+  waterStance?: { mode: 'swim' | 'walk'; onToggle: () => void } | null;
   /** While inside a cavern: where the cave exit is (the radar draws a
    * violet way-out arrow toward it). Null on the surface. */
   caveExitTarget: { x: number; z: number } | null;
@@ -224,6 +233,7 @@ import { HudOptionsPanel } from './HudOptionsPanel';
 import type { GameDifficulty } from '../game/saveSystem';
 import { CreditsModal } from './CreditsModal';
 import { DonateButton } from './DonateButton';
+import { FeedbackModal } from './FeedbackModal';
 import { multiplayerManager, RELAY_BASE_URL } from '../game/multiplayer';
 // Shield faces for the Left Hand tile (shield follow pass,
 // 2026-10-17): which held items are shields, from the rules.
@@ -336,6 +346,7 @@ export const HUD: React.FC<HUDProps> = ({
   zoneCoordsLabel,
   isRefuge,
   leavingSafety,
+  waterStance,
   caveExitTarget,
   radarActive,
   radarTier,
@@ -389,6 +400,7 @@ export const HUD: React.FC<HUDProps> = ({
   // belongs one click from RESUME, not only at the start
   // screen and in Game Info.
   const [showCredits, setShowCredits] = useState<boolean>(false);
+  const [showFeedback, setShowFeedback] = useState<boolean>(false);
 
   // The How to Play pulse (Adam's program, 2026-10-17): the
   // button pulses until the modal has been opened ONCE, then
@@ -1120,6 +1132,18 @@ export const HUD: React.FC<HUDProps> = ({
             <span className="text-[11px] font-mono font-medium hidden md:inline">Credits</span>
           </button>
           <DonateButton variant="session" />
+          {/* FEEDBACK, beside the pair (Adam, 2026-10-18): the
+              player's word to the grower belongs in the same
+              always-visible row — a bug found mid-walk is
+              reported mid-walk, not after a trip to a menu. */}
+          <button
+            onClick={() => setShowFeedback(true)}
+            title="Feedback — report an issue or make a recommendation"
+            className="p-2 rounded-xl text-violet-300 hover:text-violet-200 hover:bg-violet-950/50 transition-colors flex items-center gap-1.5"
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span className="text-[11px] font-mono font-medium hidden md:inline">Feedback</span>
+          </button>
           </div>
 
           {/* Second row: the system toggles and the two list
@@ -1741,6 +1765,45 @@ export const HUD: React.FC<HUDProps> = ({
         </div>
       </div>
 
+      {/* Touch STANCE button — the water module on mobile
+          (Adam's delegation to the HUD lane, 2026-10-18:
+          'let HUD decide what to do about Mobile and
+          swimming/blocking'). The decision: swimming gets a
+          tap toggle in the RAISE button's family — same glass
+          disc, stacked directly above it in one stable column
+          (the column never reshuffles when a shield joins) —
+          present only while the stance matters, which App's
+          waterHint signal already knows. It names the ACTION
+          (tap Swim while walking the water; tap Walk while
+          swimming), the RAISE button's own convention.
+          Blocking, the delegation's other half, needed no new
+          work: the touch RAISE hold below has carried it
+          since the shield follow pass. */}
+      {touchMode && waterStance && (
+        <button
+          onPointerDown={(e) => {
+            e.preventDefault();
+            waterStance.onToggle();
+          }}
+          onContextMenu={(e) => e.preventDefault()}
+          className="absolute right-4 bottom-[12.75rem] z-30 pointer-events-auto glass-panel rounded-full w-16 h-16 flex flex-col items-center justify-center gap-0.5 shadow-2xl transition-all select-none touch-none border-cyan-500/50 text-cyan-300 bg-slate-950/70"
+          title={
+            waterStance.mode === 'walk'
+              ? 'Swim — stop walking the water and swim it'
+              : 'Walk — take the held step on the water'
+          }
+        >
+          {waterStance.mode === 'walk' ? (
+            <Waves className="w-6 h-6" />
+          ) : (
+            <Footprints className="w-6 h-6" />
+          )}
+          <span className="text-[8px] font-tech font-bold tracking-widest uppercase">
+            {waterStance.mode === 'walk' ? 'Swim' : 'Walk'}
+          </span>
+        </button>
+      )}
+
       {/* Touch RAISE hold (shield follow pass, 2026-10-17): on
           touch there is no right-mouse to hold, so the raise is
           a thumb hold — present only while a shield is in the
@@ -1783,6 +1846,13 @@ export const HUD: React.FC<HUDProps> = ({
       )}
       {showCredits && (
         <CreditsModal isOpen={showCredits} onClose={() => setShowCredits(false)} />
+      )}
+      {showFeedback && (
+        <FeedbackModal
+          isOpen={showFeedback}
+          onClose={() => setShowFeedback(false)}
+          contextLine={`${zoneCoordsLabel} · ${currentBiomeName ?? 'Unknown country'} · ${touchMode ? 'touch' : 'desktop'}`}
+        />
       )}
     </div>
   );

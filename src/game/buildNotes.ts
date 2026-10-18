@@ -70,17 +70,14 @@ export const DEFAULT_BUILD_NOTES: BuildNotes = {
  * applied).
  */
 export const BUILD_NOTES: BuildNotes = {
-  // The armed land + the water module (2026-10-18): Normal's
-  // law is fully wired and verified (the host's save rules
-  // the world; zone (0,0) is the Refuge under any law), and
-  // Adam's consolidation folds Webfoots + Stillsteps into
-  // one tiered water module with the F stance. Plus the HUD
-  // lane's session-bar seats for Credits + Donate.
-  title: 'The land has teeth',
+  // Cloud saves arrive (2026-10-18): the start screen's
+  // Saved Worlds panel gains its Cloud Saves row — opt-in,
+  // three words, the mirror on every save — plus the HUD
+  // lane's feedback door and the touch water-stance button.
+  title: 'Worlds that travel',
   lines: [
-    'Normal worlds mean it now: beyond the spawn country, hunters hunt and the land can kill you — and your weapons answer. The spawn zone itself is the Refuge, safe under any law, and the border will tell you when you\'re leaving its peace.',
-    'In co-op, the host\'s world sets the law for everyone in it — the word at the border and the Refuge\'s peace included.',
-    'The Webfoots and Stillsteps are one water module now: the second growth grows on the first, and in the water F switches you between swimming and walking the surface. The Controls Guide names the key too.',
-    'Credits and the donation jar have a fourth seat: the session bar, beside your ping — no alt-tabbing to find them.',
+    'Cloud saves are here — and entirely your choice. On the start screen, at the top of Saved Worlds, turn them on and the game shows you three words. From then on, every save on this device also sends a copy up, and on any other computer those same three words bring your worlds down. The save on your device stays the real one; the cloud is only its mirror.',
+    'Write the words down: they are the only key, and there is no password reset. Lose them and the cloud copies are lost — your worlds at home are never affected.',
+    'Two smaller doors opened too: FEEDBACK now stands in the session bar and the start header — tell the grower what broke or what you wish for — and on touch, the water module gains a thumb button in the water: swim, or walk the surface.',
   ],
 };

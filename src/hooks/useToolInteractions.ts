@@ -158,6 +158,12 @@ export interface UseToolInteractionsParams {
   /** The Departure (D2): a portal station ring was addressed —
    *  App runs the repair bill (finale.ts holds the rules). */
   onPortalRing?: (structure: StructureEntity) => void;
+  /** The Departure (D3): the Presence was addressed — App runs
+   *  the visit (finale.ts holds the rules). */
+  onPresenceAddress?: (structure: StructureEntity) => void;
+  /** The Departure (D3): a Deep BioTunnel mouth was addressed —
+   *  App runs the descent. */
+  onDeepTunnelAddress?: (structure: StructureEntity) => void;
   /** Ask the World line signals: a flora harvest succeeded (the
    * yields are already in the pouch when this fires). */
   onFloraHarvest?: (flora: FloraEntity) => void;
@@ -261,6 +267,8 @@ export function useToolInteractions({
   onGlyphRead,
   onHeartReached,
   onPortalRing,
+  onPresenceAddress,
+  onDeepTunnelAddress,
   onFloraHarvest,
   applyDissolve,
   strikeFauna,
@@ -2199,6 +2207,39 @@ export function useToolInteractions({
         return;
       }
       onEnterRuin(structure);
+      return;
+    }
+    // The Presence (Departure D3): the transformed, met in
+    // their own country. The solvent is refused outright —
+    // these are PEOPLE, as land — the scanner describes, and
+    // every other tool addresses the grove; App runs the
+    // visit through the line callback.
+    if (structure.type === 'the_presence') {
+      if (activeTool === 'solvent_sprayer') {
+        postNotification('You Would Not', 'Whatever else the solvent is for, it is not for them.', 'alert', '#fbbf24');
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onPresenceAddress?.(structure);
+      return;
+    }
+    // The Deep BioTunnel (Departure D3): your own grown way
+    // down. Solvent is refused (it is a living road, and the
+    // game's one un-dissolvable grow), the scanner describes,
+    // and addressing it descends — App runs the act.
+    if (structure.type === 'deep_biotunnel_mouth') {
+      if (activeTool === 'solvent_sprayer') {
+        postNotification('Undissolvable', 'The deep way is a living road — solvent finds no purchase on it.', 'alert', '#fbbf24');
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onDeepTunnelAddress?.(structure);
       return;
     }
     // The portal station (Departure D2): the Follow road's

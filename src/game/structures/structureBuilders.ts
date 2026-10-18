@@ -1072,6 +1072,77 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       }
       return group;
     },
+    // The Presence (Departure D3): where the transformed are
+    // thickest — a grove that watches back. A ring of pale
+    // standing stones under a woven canopy of light-roots,
+    // with a still, figure-suggested growth at its heart:
+    // suggested, never shown — they are the land now, not
+    // statues of people.
+    'the_presence': () => {
+      const group = new THREE.Group();
+      const pale = new THREE.MeshStandardMaterial({ color: 0xd6d3cd, roughness: 0.9 });
+      for (let i = 0; i < 7; i++) {
+        const a = (i / 7) * Math.PI * 2;
+        const stone = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.34, 2.2 + (i % 3) * 0.35, 6), pale);
+        stone.position.set(Math.cos(a) * 2.6, 1.1, Math.sin(a) * 2.6);
+        stone.castShadow = true;
+        group.add(stone);
+      }
+      const heartGrowth = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.3, 0.65, 2.9, 8),
+        new THREE.MeshStandardMaterial({ color: 0x3f6212, emissive: 0x65a30d, emissiveIntensity: 0.35, roughness: 0.8 })
+      );
+      heartGrowth.position.y = 1.45;
+      heartGrowth.castShadow = true;
+      group.add(heartGrowth);
+      const crown = new THREE.Mesh(
+        new THREE.SphereGeometry(1.05, 10, 8),
+        new THREE.MeshStandardMaterial({ color: 0x4d7c0f, emissive: 0x84cc16, emissiveIntensity: 0.4, roughness: 0.75 })
+      );
+      crown.position.y = 3.3;
+      crown.scale.y = 0.75;
+      group.add(crown);
+      for (let i = 0; i < 5; i++) {
+        const a = (i / 5) * Math.PI * 2 + 0.5;
+        const orb = new THREE.Mesh(
+          new THREE.OctahedronGeometry(0.13),
+          new THREE.MeshStandardMaterial({ color: 0x365314, emissive: 0xa3e635, emissiveIntensity: 1.3, roughness: 0.3 })
+        );
+        orb.position.set(Math.cos(a) * 1.5, 2.2 + (i % 2) * 0.5, Math.sin(a) * 1.5);
+        group.add(orb);
+      }
+      return group;
+    },
+    // The Deep BioTunnel mouth (Departure D3): the ordinary
+    // mouth's grown grammar at cosmic scale — a vast ribbed
+    // throat descending into dark, ringed by root buttresses.
+    'deep_biotunnel_mouth': () => {
+      const group = new THREE.Group();
+      const flesh = new THREE.MeshStandardMaterial({ color: 0x365314, roughness: 0.85 });
+      const membrane = new THREE.MeshStandardMaterial({ color: 0x1a2e05, emissive: 0x3f6212, emissiveIntensity: 0.5, roughness: 0.4 });
+      const throat = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.15, 1.5, 12, 1, true), flesh);
+      throat.position.y = 0.75;
+      group.add(throat);
+      const disc = new THREE.Mesh(new THREE.CircleGeometry(1.55, 24), membrane);
+      disc.name = 'deepTunnelDisc';
+      disc.rotation.x = -Math.PI / 2;
+      disc.position.y = 1.42;
+      group.add(disc);
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2;
+        const rib = new THREE.Mesh(new THREE.TorusGeometry(1.62 - i * 0.05, 0.09, 6, 20), flesh);
+        rib.rotation.x = Math.PI / 2;
+        rib.position.y = 0.25 + i * 0.24;
+        group.add(rib);
+        const root = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.3, 1.9, 6), flesh);
+        root.position.set(Math.cos(a) * 2.2, 0.85, Math.sin(a) * 2.2);
+        root.rotation.z = Math.cos(a) * 0.5;
+        root.rotation.x = -Math.sin(a) * 0.5;
+        root.castShadow = true;
+        group.add(root);
+      }
+      return group;
+    },
     // A ruin glyph: a stone tablet on a rubble base, its indigo
     // script-lines still lit. Clicking reads the stone's memory
     // (useToolInteractions serves the fate's lore lines).

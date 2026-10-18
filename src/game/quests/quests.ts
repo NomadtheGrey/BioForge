@@ -247,6 +247,13 @@ export function goalProgressText(
         const marks = PORTAL_BILL.map((p) => `${s.finaleRepair?.[p.id] ? '✓' : '·'} ${p.name.toLowerCase()}`);
         return `The ring's repair — ${PORTAL_BILL.length - missing.length} of ${PORTAL_BILL.length}: ${marks.join(' · ')}`;
       }
+      // Answer's road sharpens at the visit (D3): before it,
+      // the road is the going; after it, the growing.
+      if (s.finaleFamily === 'answer') {
+        return s.finaleVisit
+          ? 'Grow the deep tunnel at the forge, set its mouth, and descend'
+          : 'Go to them — the living valleys, the bright water — and say goodbye';
+      }
       const road = s.finaleFamily ? FINALE_ROADS[s.finaleFamily as FinaleFamilyId] : undefined;
       return road ? road.todo : 'The way out is the one your world’s people took';
     }

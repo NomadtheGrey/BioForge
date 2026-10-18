@@ -2588,6 +2588,32 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 1,
   },
+  // The Presence (Departure D3, Answer worlds): where the
+  // transformed still are — world furniture, dealt by the
+  // land itself in living valleys and bright water.
+  the_presence: {
+    id: 'the_presence',
+    name: 'The Presence',
+    category: 'structure',
+    description: 'They never left. They became — and this is where they are thickest: a grove that watches back. Address it when you know whose it was.',
+    iconName: 'Sparkles',
+    color: '#86efac',
+    rarity: 'rare',
+    maxStack: 1,
+  },
+  // The Super BioTunnel (Departure D3): the first Tier-4
+  // grow — a tunnel mouth that doesn't stop. Its recipe is
+  // a GIFT (finaleGate 'visit'), given at the visit.
+  deep_biotunnel_mouth: {
+    id: 'deep_biotunnel_mouth',
+    name: 'Deep BioTunnel Mouth',
+    category: 'structure',
+    description: 'A BioTunnel that doesn\'t stop: grown down and through the world itself, on a recipe the transformed gave you. Set it down, and descend.',
+    iconName: 'CircleDot',
+    color: '#4ade80',
+    rarity: 'rare',
+    maxStack: 1,
+  },
   ruin_glyph: {
     id: 'ruin_glyph',
     name: 'Ruin Glyph',

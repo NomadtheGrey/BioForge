@@ -96,7 +96,7 @@ import {
   goalProgressText,
 } from './game/quests/asksBack/latch';
 import { recordAsksChoice } from './game/quests/asksBackState';
-import { finaleFamilyOf, portalClickOutcome, portalPartsMissing, type FinaleFamilyId } from './game/quests/finale';
+import { finaleFamilyOf, portalClickOutcome, portalPartsMissing, visitOutcome, descendOutcome, type FinaleFamilyId } from './game/quests/finale';
 // THE WORLD ASKS BACK, S4: a release settles the creature in the
 // zone's consequence record — the Director reads it as an anchor
 // and the zone loader materializes it by name.
@@ -1258,6 +1258,44 @@ export default function App() {
         'system',
         '#a8a29e'
       );
+    },
+    // The Departure, Answer (D3): the visit's executor.
+    // finale.ts decides; this latches and tells.
+    onPresenceAddress: () => {
+      const signals = questProgressRef.current?.signals;
+      const discovered = (questProgressRef.current?.completedIds ?? []).includes('q_aw_happened');
+      const outcome = visitOutcome(signals, discovered);
+      if (outcome === 'gone') {
+        postNotification('The Way Stands Open', 'The grove keeps its watch. The road you grew is yours whenever you want it.', 'discover', '#84cc16');
+        return;
+      }
+      if (outcome === 'notyet') {
+        postNotification('The Presence', 'They are here — thick in this country, watching without alarm. But you do not know them yet, not really. Learn whose they were first: five fragments, and the story they tell.', 'system', '#a8a29e');
+        return;
+      }
+      if (outcome === 'visit') {
+        awMergeRef.current((s) => (s.finaleVisit ? s : { ...s, finaleVisit: true }));
+        postNotification('The Visit', 'It is brief, the way they need it to be. No voices — a grove does not speak — but the regard is unmistakable, and so is the gift left growing in your mind: the way to grow a tunnel that doesn\'t stop. The forge knows it now. Say goodbye; it is the whole of the meeting, and it is enough.', 'discover', '#84cc16');
+        return;
+      }
+      postNotification('The Presence', 'The regard remains, patient as roots. The gift is given; the rest is yours.', 'system', '#84cc16');
+    },
+    // The Departure, Answer (D3): the descent's executor —
+    // the family's one writer of 'departed'.
+    onDeepTunnelAddress: () => {
+      const signals = questProgressRef.current?.signals;
+      const discovered = (questProgressRef.current?.completedIds ?? []).includes('q_aw_happened');
+      const outcome = descendOutcome(signals, discovered);
+      if (outcome === 'gone') {
+        postNotification('The Way Stands Open', 'The deep throat breathes, slow and patient. The road is yours whenever you want it.', 'discover', '#4ade80');
+        return;
+      }
+      if (outcome === 'sealed') {
+        postNotification('Not Yet Yours to Take', 'A road is not yours until you know whose country it crosses. Five fragments, and the story they tell: finish What Happened Here first.', 'system', '#a8a29e');
+        return;
+      }
+      awMergeRef.current((s) => (s.departed ? s : { ...s, departed: true }));
+      postNotification('The Through-Passage', 'Down, then, and through — the tunnel that doesn\'t stop carries you the deep way, the way they taught you to grow. Behind you the mouth breathes on, patient. The road stands.', 'discover', '#4ade80');
     },
     spawnDroppedItem,
     triggerHarvestFx,
@@ -2935,6 +2973,7 @@ const {
         nearForge={craftAccess.nearForge}
         hasSynthesizer={craftAccess.hasSynthesizer}
         shieldGrowth={shieldGrowth}
+        finaleVisit={questProgress?.signals?.finaleVisit ?? false}
         heldItemId={playerState.heldItemId ?? null}
         onCraftRecipe={handleCraftRecipe}
         onGrowPrerequisites={handleGrowPrerequisites}

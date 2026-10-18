@@ -77,6 +77,12 @@ function isCollidingWithStructure(
     // The portal station's ring (Departure D2): a monument —
     // the player addresses it, never stands inside its disc.
     if (s.type === 'portal_ring') obstacleRadius = 1.3;
+    // The Presence (Departure D3): its heart-growth is solid;
+    // the stone ring around it is the room you stand in.
+    if (s.type === 'the_presence') obstacleRadius = 0.9;
+    // The Deep BioTunnel's throat (Departure D3): addressed,
+    // descended by the click — never stood inside.
+    if (s.type === 'deep_biotunnel_mouth') obstacleRadius = 1.5;
     // Furniture footprints (slice E): a bed is a body-length
     // piece; a stool is a small one.
     if (s.type === 'root_bed') obstacleRadius = 0.85;

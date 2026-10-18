@@ -122,6 +122,41 @@ export function portalClickOutcome(
   if (payable.length > 0) return { kind: 'pay', parts: payable };
   return { kind: 'wait', missing };
 }
+
+// ---------------------------------------------------------------------------
+// ANSWER — THE VISIT AND THE DESCENT (D3, 2026-10-18)
+// ---------------------------------------------------------------------------
+// The site may be FOUND early (the grove has always been
+// there), but the visit itself waits for the discovery —
+// you cannot say goodbye to people you cannot name yet
+// (the dev lane's watch, under Adam's seal law). The gift
+// (the deep tunnel's recipe) rides the visit: the forge
+// shelves it only once finaleVisit stands.
+
+/** The Presence's answer to an address:
+ *  - 'gone'    — the departure is already made.
+ *  - 'notyet'  — found, but the discovery is unread: presence only.
+ *  - 'visit'   — the meeting, the goodbye, and the gift.
+ *  - 'after'   — the visit stands made; they have given what they give. */
+export type VisitOutcome = 'gone' | 'notyet' | 'visit' | 'after';
+
+export function visitOutcome(signals: QuestSignals | undefined, discovered: boolean): VisitOutcome {
+  if (signals?.departed) return 'gone';
+  if (!discovered) return 'notyet';
+  if (!signals?.finaleVisit) return 'visit';
+  return 'after';
+}
+
+/** The deep tunnel's answer to an address: descend (the
+ *  act, seal-gated like every family's), already-gone, or
+ *  sealed. Growing and placing the mouth are preparation —
+ *  free, like mending the ring. */
+export type DescendOutcome = 'gone' | 'descend' | 'sealed';
+
+export function descendOutcome(signals: QuestSignals | undefined, discovered: boolean): DescendOutcome {
+  if (signals?.departed) return 'gone';
+  return discovered ? 'descend' : 'sealed';
+}
 export const FINALE_ROADS: Record<FinaleFamilyId, { name: string; todo: string }> = {
   follow: {
     name: 'Repair the Portal',

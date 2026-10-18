@@ -325,5 +325,11 @@ export const STRUCTURE_LIGHT_BASE: Record<Exclude<StructureType, 'lantern_fern_p
     // shine, grand-room scale — the epic note Adam asked the
     // finale's places to carry.
     portal_ring: { color: 0xa78bfa, intensity: 1.5, distance: 10, y: 2.4 },
+    // The Presence (Departure D3): a living green glow, wide
+    // and low — the grove itself is the lamp.
+    the_presence: { color: 0x84cc16, intensity: 1.3, distance: 11, y: 2.6 },
+    // The Deep BioTunnel (Departure D3): a deep green breath
+    // from the throat.
+    deep_biotunnel_mouth: { color: 0x4ade80, intensity: 1.1, distance: 8, y: 1.6 },
     ruin_glyph: { color: 0xa5b4fc, intensity: 0.6, distance: 3, y: 1.1 },
   };

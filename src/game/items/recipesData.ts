@@ -929,6 +929,29 @@ export const RECIPES: CraftingRecipe[] = [
     craftTimeMs: 4000,
   },
   {
+    // THE SUPER BIOTUNNEL (Departure D3) — the game's first
+    // Tier-4 recipe, and a GIFT: finaleGate 'visit' keeps it
+    // off the forge's shelf until the transformed hand it
+    // over at the visit. The bill is a tour of the whole
+    // game at its height (§4): a core, plates, thread,
+    // heart-sap, resin.
+    id: 'craft_deep_biotunnel',
+    outputId: 'deep_biotunnel_mouth',
+    outputCount: 1,
+    name: 'The Deep BioTunnel',
+    description: 'Grow the tunnel that doesn\'t stop: down, and through, and out. Their gift, at Tier 4 — set the mouth down and descend.',
+    category: 'composites',
+    finaleGate: 'visit',
+    ingredients: [
+      { id: 'prismatic_core', count: 1 },
+      { id: 'lodestone_plate', count: 2 },
+      { id: 'living_thread', count: 4 },
+      { id: 'heart_sap', count: 3 },
+      { id: 'resin_sap', count: 6 },
+    ],
+    craftTimeMs: 8000,
+  },
+  {
     id: 'craft_culture_vat',
     outputId: 'culture_vat',
     outputCount: 1,

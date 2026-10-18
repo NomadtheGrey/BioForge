@@ -284,6 +284,8 @@ export type ItemId =
   | 'precursor_cache'
   | 'artifact_heart'
   | 'portal_ring'
+  | 'the_presence'
+  | 'deep_biotunnel_mouth'
   | 'ruin_glyph'
   // Worn Equipment — the two platforms (settled 2026-10-13/14): the
   // GAUNTLET is the action platform (the hotbar tools are its modes);
@@ -976,6 +978,8 @@ export type StructureType =
   | 'precursor_cache'
   | 'artifact_heart'
   | 'portal_ring'
+  | 'the_presence'
+  | 'deep_biotunnel_mouth'
   | 'ruin_glyph';
   // NOTE: worn equipment (the gauntlet and its kin) is NOT a
   // structure — it cannot be built, placed, or stood on. It lives in
@@ -1143,6 +1147,12 @@ export interface StructureEntity {
    * needs no item knowledge). Absent on every other type.
    */
   banner?: { tint?: ItemId; tintColor?: string };
+  /** The Departure, Honor (D4): a memorial's beanstalk —
+   *  planted from seed variety, tended once per world day
+   *  (lastTendDay is the sky-calendar day it last drank, so
+   *  a reload cannot reopen the day's tend). Entity state:
+   *  the stalk is THIS memorial's, and travels with it. */
+  memorial?: { stalkPlanted?: boolean; stalkTends?: number; lastTendDay?: number };
   /** Present only on ruin_landmark structures: fate/variant/tier record. */
   ruin?: RuinLinkData;
 }
@@ -1176,6 +1186,11 @@ export interface CraftingRecipe {
 
   ingredients: { id: ItemId; count: number }[];
   craftTimeMs: number;
+  /** The Departure (D3): a recipe the world GIVES rather than
+   *  the forge simply knowing — 'visit' recipes stay off the
+   *  forge's shelf until the Answer visit is made (the gift
+   *  waits for the discovery, then for the meeting). */
+  finaleGate?: 'visit';
   /**
    * SHIELD GRAFT (2026-10-17): when set, crafting this recipe does not
    * just output an item — it grafts thorn spikes onto the shield named
@@ -1253,6 +1268,13 @@ export interface QuestSignals {
    *  any station ring. The bill is the player's project, so
    *  it rides the signals, not any one ring. */
   finaleRepair?: { heart?: boolean; aim?: boolean; bind?: boolean };
+  /** The Departure, Answer (D3): the visit is made — they
+   *  have been met, the goodbye said, and their gift (the
+   *  deep tunnel's recipe) given. */
+  finaleVisit?: boolean;
+  /** The Departure, Confront (D5): the motive the player
+   *  stepped toward the scar with — latched ONCE, ever. */
+  finaleMotive?: 'revenge' | 'curiosity';
   families?: string[];
   hybrid?: boolean;
   tier3?: boolean;

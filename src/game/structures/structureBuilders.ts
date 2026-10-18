@@ -1188,6 +1188,36 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       }
       return group;
     },
+    // The Scar (Departure D5): a wound in the floor — a
+    // jagged star of black glass around a held-dark center,
+    // its cracks lit red-violet from somewhere that is not
+    // this world. Nothing grown made this.
+    'the_scar': () => {
+      const group = new THREE.Group();
+      const glass = new THREE.MeshStandardMaterial({ color: 0x111014, roughness: 0.25, metalness: 0.4 });
+      const crackMat = new THREE.MeshStandardMaterial({ color: 0x1f0a12, emissive: 0xdc2645, emissiveIntensity: 1.1, roughness: 0.4 });
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        const shard = new THREE.Mesh(new THREE.ConeGeometry(0.16, 1.6 + (i % 3) * 0.5, 4), glass);
+        shard.rotation.x = Math.PI / 2;
+        shard.rotation.z = -a;
+        shard.position.set(Math.cos(a) * 1.05, 0.06, Math.sin(a) * 1.05);
+        group.add(shard);
+        const crack = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.03, 0.09), crackMat);
+        crack.rotation.y = -a;
+        crack.position.set(Math.cos(a) * 0.75, 0.05, Math.sin(a) * 0.75);
+        group.add(crack);
+      }
+      const wound = new THREE.Mesh(
+        new THREE.CircleGeometry(0.62, 20),
+        new THREE.MeshStandardMaterial({ color: 0x050507, emissive: 0x450a1a, emissiveIntensity: 0.7, roughness: 0.2 })
+      );
+      wound.name = 'scarWound';
+      wound.rotation.x = -Math.PI / 2;
+      wound.position.y = 0.07;
+      group.add(wound);
+      return group;
+    },
     // A ruin glyph: a stone tablet on a rubble base, its indigo
     // script-lines still lit. Clicking reads the stone's memory
     // (useToolInteractions serves the fate's lore lines).

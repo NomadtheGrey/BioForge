@@ -96,7 +96,7 @@ import {
   goalProgressText,
 } from './game/quests/asksBack/latch';
 import { recordAsksChoice } from './game/quests/asksBackState';
-import { finaleFamilyOf, portalClickOutcome, portalPartsMissing, visitOutcome, descendOutcome, memorialOutcome, STALK_SEED_IDS, STALK_TEND_COST, STALK_TENDS_TO_GROW, type FinaleFamilyId } from './game/quests/finale';
+import { finaleFamilyOf, portalClickOutcome, portalPartsMissing, visitOutcome, descendOutcome, memorialOutcome, scarOutcome, SCAR_PRICE, STALK_SEED_IDS, STALK_TEND_COST, STALK_TENDS_TO_GROW, type FinaleFamilyId } from './game/quests/finale';
 import { readSkyClock, skyDayFloat } from './game/world/skyCalendar';
 // THE WORLD ASKS BACK, S4: a release settles the creature in the
 // zone's consequence record — the Director reads it as an anchor
@@ -117,6 +117,7 @@ import { BIOMES } from './game/world/biomes';
 import { fateForWorld } from './game/world/ruins';
 import { AW_CHAPTERS, type AwChapter } from './game/quests/awChapters';
 import { ChapterModal } from './components/ChapterModal';
+import { ScarChoiceModal } from './components/ScarChoiceModal';
 import { bestWeapon } from './game/creatures/weapons';
 import { windlungTierOf, staminaFactors } from './game/creatures/quicksteps';
 import type { WeaponDef } from './game/creatures/weapons';
@@ -257,6 +258,8 @@ export default function App() {
   // the start screen, where no world (and no modal union) is
   // live yet. The screen carries its own Esc listener.
   const [showAbout, setShowAbout] = useState(false);
+  // The Departure, Confront (D5): the scar's motive prompt.
+  const [scarChoiceOpen, setScarChoiceOpen] = useState(false);
 
   // How to Play (Adam's program, 2026-10-17): same shape as
   // About — its own boolean, its own Esc listener in the
@@ -1361,6 +1364,45 @@ export default function App() {
       // outcome === 'climb' — Honor's one writer of 'departed'.
       awMergeRef.current((s) => (s.departed ? s : { ...s, departed: true }));
       postNotification('The Climb', 'Up the stalk, hand over leaf, into the sky they emptied — and the higher you climb, the more the world below becomes a garden you once kept. The road stands behind you, green and patient.', 'discover', '#fbbf24');
+    },
+    // The Departure, Confront (D5): the scar's executor.
+    // The motive latches once, ever (the choice opens only
+    // while unset); both descents are this family's act, and
+    // this executor is the family's one writer of 'departed'.
+    onScarAddress: () => {
+      const signals = questProgressRef.current?.signals;
+      const discovered = (questProgressRef.current?.completedIds ?? []).includes('q_aw_happened');
+      const outcome = scarOutcome(signals, discovered, (id, n) => hasItem(id, n));
+      if (outcome === 'gone') {
+        postNotification('The Way Stands Open', 'The tear hangs in the floor, patient as a held breath. The road through it is yours whenever you want it.', 'discover', '#f87171');
+        return;
+      }
+      if (outcome === 'choose') {
+        setScarChoiceOpen(true);
+        return;
+      }
+      if (outcome === 'sealed') {
+        postNotification('Not Yet Yours to Take', 'The road through the scar is chosen — but a passage is not yours until you know whose ending made it. Five fragments, and the story they tell: finish What Happened Here first.', 'system', '#a8a29e');
+        return;
+      }
+      if (outcome === 'wait') {
+        const missing = SCAR_PRICE.filter((c) => !hasItem(c.itemId, c.count));
+        postNotification('Passage Protections', `The way you grew reads the tear and asks its price — grown defenses against a place this world's rules do not cover: ${missing.map((c) => `${ITEMS[c.itemId]?.name ?? c.itemId} ×${c.count}`).join(' · ')}.`, 'system', '#a8a29e');
+        return;
+      }
+      if (outcome === 'pay') {
+        SCAR_PRICE.forEach((c) => deductInventoryItem(c.itemId, c.count));
+        awMergeRef.current((s) => (s.finaleScarPaid ? s : { ...s, finaleScarPaid: true }));
+        postNotification('Warded', 'Scale, cinder, saltglass, thread — the protections knit themselves against the tear, and the way you grew stands open. Address the scar once more, and step through.', 'discover', '#f87171');
+        return;
+      }
+      // 'pursue' and 'descend' — the act, motive-colored.
+      awMergeRef.current((s) => (s.departed ? s : { ...s, departed: true }));
+      if (outcome === 'pursue') {
+        postNotification('The Descent — Pursuit', 'Through the tear, after them — no road grown, no goodbye owed. Whatever ended the Precursors has a head start measured in ages. You are closing it.', 'discover', '#f87171');
+      } else {
+        postNotification('The Descent — The Way You Grew', 'Through the tear, on the road the scar itself taught you — warded, deliberate, and entirely your own. The world behind you keeps its rules. Ahead, they do not apply.', 'discover', '#f87171');
+      }
     },
     spawnDroppedItem,
     triggerHarvestFx,
@@ -2923,6 +2965,21 @@ const {
       {/* The Ask the World chapter (Adam, 2026-10-16): opens once,
           at the moment the fragment set completes. */}
       {awChapter && <ChapterModal chapter={awChapter} onClose={() => setAwChapter(null)} />}
+      <ScarChoiceModal
+        isOpen={scarChoiceOpen}
+        onClose={() => setScarChoiceOpen(false)}
+        onChoose={(motive) => {
+          setScarChoiceOpen(false);
+          // The motive latches ONCE, ever — a second choice
+          // can never overwrite the first (the dev lane's watch).
+          awMergeRef.current((s) => (s.finaleMotive ? s : { ...s, finaleMotive: motive }));
+          if (motive === 'revenge') {
+            postNotification('Revenge', 'The scar will remember. No recipe, no growing: when you know whose ending this was, address the tear and step through after them.', 'discover', '#f87171');
+          } else {
+            postNotification('The Reading', 'You read the tear — the one reading the world has never allowed — and it teaches: a way can be grown here, of your own, if it is warded with passage protections. The scar will remember that you asked instead of avenging.', 'discover', '#c4b5fd');
+          }
+        }}
+      />
       {/* Release confirmation (Adam, 2026-10-15): letting a
           companion go is the one command that always asks. */}
       {pendingRelease && (

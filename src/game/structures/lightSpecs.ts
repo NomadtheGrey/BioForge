@@ -333,5 +333,8 @@ export const STRUCTURE_LIGHT_BASE: Record<Exclude<StructureType, 'lantern_fern_p
     deep_biotunnel_mouth: { color: 0x4ade80, intensity: 1.1, distance: 8, y: 1.6 },
     // The Memorial (Departure D4): a warm remembering glow.
     memorial: { color: 0xfbbf24, intensity: 0.9, distance: 7, y: 1.8 },
+    // The Scar (Departure D5): a wrong red light, low and
+    // close — it does not so much glow as leak.
+    the_scar: { color: 0xdc2645, intensity: 0.8, distance: 6, y: 0.6 },
     ruin_glyph: { color: 0xa5b4fc, intensity: 0.6, distance: 3, y: 1.1 },
   };

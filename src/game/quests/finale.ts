@@ -213,6 +213,58 @@ export function memorialOutcome(
   if (state.lastTendDay >= today) return 'tend-wait';
   return 'tend';
 }
+
+// ---------------------------------------------------------------------------
+// CONFRONT — THE SCAR AND THE MOTIVE (D5, 2026-10-18)
+// ---------------------------------------------------------------------------
+// What the strangers left is DAMAGE: a tear in the deep
+// rooms of taken-out grand ruins, matching no grown weapon.
+// The tear is the only passage that leads where they went.
+// The motive latches ONCE, ever (the dev lane's watch):
+//   REVENGE steps through — no recipe, no growing; the
+//     departure is a pursuit, and the act waits only on the
+//     discovery, like every family's.
+//   CURIOSITY reads the tear — the one reading the world
+//     has never allowed — and grows a way of the grower's
+//     own, scar-taught. Its price is not road materials but
+//     PASSAGE PROTECTIONS: grown defenses against a place
+//     the world's rules do not cover (§7 — priced here at
+//     finale weight, in the absence of the recipe
+//     conversation the doc parks).
+// Choosing the stance is preparation — free at any time.
+// Stepping through is the act — sealed until the discovery.
+
+/** Curiosity's passage protections, paid once at the scar. */
+export const SCAR_PRICE: { itemId: ItemId; count: number }[] = [
+  { itemId: 'carapace_scale', count: 6 },
+  { itemId: 'cinder_scale', count: 4 },
+  { itemId: 'saltglass_shard', count: 3 },
+  { itemId: 'living_thread', count: 2 },
+];
+
+export type ScarOutcome =
+  | 'gone'    // the descent is already made
+  | 'choose'  // no motive latched — the choice is offered
+  | 'pursue'  // revenge, discovered: step through
+  | 'pay'     // curiosity, protections in hand: pay them
+  | 'wait'    // curiosity, protections short
+  | 'descend' // curiosity, paid + discovered: step through
+  | 'sealed'; // the road is chosen/paid — the knowing isn't made
+
+export function scarOutcome(
+  signals: QuestSignals | undefined,
+  discovered: boolean,
+  hasItem: (itemId: ItemId, count: number) => boolean,
+): ScarOutcome {
+  if (signals?.departed) return 'gone';
+  if (!signals?.finaleMotive) return 'choose';
+  if (signals.finaleMotive === 'revenge') return discovered ? 'pursue' : 'sealed';
+  // curiosity
+  if (!signals.finaleScarPaid) {
+    return SCAR_PRICE.every((c) => hasItem(c.itemId, c.count)) ? 'pay' : 'wait';
+  }
+  return discovered ? 'descend' : 'sealed';
+}
 export const FINALE_ROADS: Record<FinaleFamilyId, { name: string; todo: string }> = {
   follow: {
     name: 'Repair the Portal',

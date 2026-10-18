@@ -286,6 +286,7 @@ export type ItemId =
   | 'portal_ring'
   | 'the_presence'
   | 'memorial'
+  | 'the_scar'
   | 'deep_biotunnel_mouth'
   | 'ruin_glyph'
   // Worn Equipment — the two platforms (settled 2026-10-13/14): the
@@ -981,6 +982,7 @@ export type StructureType =
   | 'portal_ring'
   | 'the_presence'
   | 'memorial'
+  | 'the_scar'
   | 'deep_biotunnel_mouth'
   | 'ruin_glyph';
   // NOTE: worn equipment (the gauntlet and its kin) is NOT a
@@ -1277,6 +1279,9 @@ export interface QuestSignals {
   /** The Departure, Confront (D5): the motive the player
    *  stepped toward the scar with — latched ONCE, ever. */
   finaleMotive?: 'revenge' | 'curiosity';
+  /** The Departure, Confront (D5): curiosity's passage
+   *  protections stand paid at the scar. */
+  finaleScarPaid?: boolean;
   families?: string[];
   hybrid?: boolean;
   tier3?: boolean;

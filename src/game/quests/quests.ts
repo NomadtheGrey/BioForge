@@ -254,6 +254,15 @@ export function goalProgressText(
           ? 'Grow the deep tunnel at the forge, set its mouth, and descend'
           : 'Go to them — the living valleys, the bright water — and say goodbye';
       }
+      // Confront's road names the latched motive (D5): the
+      // road knows the difference, as the modal promised.
+      if (s.finaleFamily === 'confront' && s.finaleMotive) {
+        return s.finaleMotive === 'revenge'
+          ? 'Through the scar — as revenge. Address the tear, and pursue'
+          : s.finaleScarPaid
+            ? 'Through the scar — as curiosity, warded. Address the tear, and descend'
+            : 'Through the scar — as curiosity. Ward the way at the tear';
+      }
       const road = s.finaleFamily ? FINALE_ROADS[s.finaleFamily as FinaleFamilyId] : undefined;
       return road ? road.todo : 'The way out is the one your world’s people took';
     }

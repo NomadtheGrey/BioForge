@@ -55,7 +55,7 @@ export interface RuinRoom {
 
 export interface RuinFeature {
   id: string;
-  type: 'clue_shallow' | 'cache' | 'clue_deep' | 'artifact_heart' | 'portal_ring';
+  type: 'clue_shallow' | 'cache' | 'clue_deep' | 'artifact_heart' | 'portal_ring' | 'the_scar';
   cx: number;
   cy: number;
   roomId: string;
@@ -765,6 +765,22 @@ function stageFeatures(
     }
     if (hall && Math.min(hall.w, hall.h) >= 5) {
       add('portal_ring', hall, 'deep');
+    }
+  }
+  // THE SCAR (Departure D5, Confront worlds): what the
+  // strangers left is DAMAGE — a tear in the grand hall's
+  // floor, matching no grown weapon. Dealt only in grand
+  // ruins of a Confront fate, in the same hall the ring
+  // would take in Follow worlds (a fate deals exactly one
+  // family's monument, never both).
+  if (tier === 'grand' && finaleFamilyOf(fate) === 'confront') {
+    let hall: RoomInternal | null = null;
+    for (const r of rooms) {
+      if (r.id === entranceRoom.id) continue;
+      if (!hall || r.w * r.h > hall.w * hall.h || (r.w * r.h === hall.w * hall.h && r.depth > hall.depth)) hall = r;
+    }
+    if (hall && Math.min(hall.w, hall.h) >= 5) {
+      add('the_scar', hall, 'deep');
     }
   }
   return { features, maxDepth };

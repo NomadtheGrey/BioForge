@@ -2601,6 +2601,18 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 1,
   },
+  // The Scar (Departure D5, Confront worlds): world
+  // furniture — the tear the strangers left in a grand hall.
+  the_scar: {
+    id: 'the_scar',
+    name: 'The Scar',
+    category: 'structure',
+    description: 'A tear in the world that matches no grown weapon — the only passage that leads where they went. Address it, and choose how you step through.',
+    iconName: 'Zap',
+    color: '#f87171',
+    rarity: 'rare',
+    maxStack: 1,
+  },
   // The Memorial (Departure D4, Honor worlds): the player's
   // own grown ground for the dead — and the stalk's cradle.
   memorial: {

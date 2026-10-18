@@ -167,6 +167,9 @@ export interface UseToolInteractionsParams {
   /** The Departure (D4): a Memorial was addressed — App runs
    *  the planting, the tending, and the climb. */
   onMemorialAddress?: (structure: StructureEntity) => void;
+  /** The Departure (D5): the Scar was addressed — App runs
+   *  the motive choice and the descent. */
+  onScarAddress?: (structure: StructureEntity) => void;
   /** Ask the World line signals: a flora harvest succeeded (the
    * yields are already in the pouch when this fires). */
   onFloraHarvest?: (flora: FloraEntity) => void;
@@ -273,6 +276,7 @@ export function useToolInteractions({
   onPresenceAddress,
   onDeepTunnelAddress,
   onMemorialAddress,
+  onScarAddress,
   onFloraHarvest,
   applyDissolve,
   strikeFauna,
@@ -2260,6 +2264,23 @@ export function useToolInteractions({
         return;
       }
       onMemorialAddress?.(structure);
+      return;
+    }
+    // The Scar (Departure D5): the strangers' damage. The
+    // solvent finds no purchase (it is not grown, and it is
+    // not the world's to unmake), the scanner describes, and
+    // every other tool addresses the tear; App runs the
+    // motive and the descent.
+    if (structure.type === 'the_scar') {
+      if (activeTool === 'solvent_sprayer') {
+        postNotification('No Purchase', 'Whatever did this is not grown — the solvent beads and runs off, unbitten.', 'alert', '#f87171');
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onScarAddress?.(structure);
       return;
     }
     // The portal station (Departure D2): the Follow road's

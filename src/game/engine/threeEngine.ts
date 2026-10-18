@@ -318,6 +318,42 @@ export class BioForgeThreeEngine {
    * light forward — the bearer sees what the wall faces.
    */
   private heldLightBraced: boolean = false;
+
+  /** Biolume Visor (helmet build, 2026-10-18): the helm's
+   * living-light sight. The game loop drives this per frame
+   * from the worn derivation (creatures/helmet.ts), the same
+   * way it drives the held light above. The treatment is
+   * threefold, all of it gated to genuinely dark country so
+   * daylight never washes: (1) a dim living glow at the
+   * player's brow in updateLighting's source pool — walk-by
+   * light at your feet, far weaker than a carried lantern
+   * (the lantern keeps its job); (2) the cavern's whisper
+   * lifts and its fog thins (applyCavernLighting), so the
+   * cave's own living light — fungus glow, portal light —
+   * reads at distance instead of drowning; (3) ruin gloom
+   * lifts a step. Dead country gets only the brow-glow: the
+   * visor reads LIVING light, it does not invent daylight. */
+  private biolumeVisorActive: boolean = false;
+
+  /** App drives this via the loop from the worn state:
+   * helm owned + visor owned (ownership is installation). */
+  public setBiolumeVisor(active: boolean): void {
+    if (this.biolumeVisorActive === active) return;
+    this.biolumeVisorActive = active;
+    // The static contexts re-apply on the toggle itself; the
+    // pooled brow-glow follows the flag per frame.
+    if (this.cavernMode) this.applyCavernLighting();
+    if (this.ruinMode) this.ambientLight.intensity = active ? 0.42 : 0.3;
+  }
+
+  /** The last surface dayness the day/night pass computed
+   * (1 = full day). The visor's dark gate reads it. */
+  private lastDayness: number = 1;
+  /** The cavern's depth + darkness color, kept so the
+   * visor's toggle can re-apply the cavern lighting
+   * mid-cave (applyCavernLighting). */
+  private cavernDepthLevel: number = 1;
+  private cavernDarkColor = new THREE.Color(0x020208);
   private cachedPlayerZ: number = 0;
 
   // Spore particles
@@ -1653,6 +1689,30 @@ export class BioForgeThreeEngine {
       });
     }
 
+    // The BIOLUME VISOR (helmet build, 2026-10-18): a dim
+    // living glow at the player's brow, fed into the same
+    // pool. It burns ONLY where the world is actually dark —
+    // a cave, a ruin, deep night (dayness under a quarter) —
+    // so daylight never washes and the visor stays a dark-
+    // country instrument. Deliberately far weaker than the
+    // held lantern (10/13 against its 40/26): the visor lets
+    // you walk by living light; the lantern still lights a
+    // room. In dead country this glow is all you get.
+    if (
+      this.biolumeVisorActive &&
+      (this.cavernMode || this.ruinMode || this.lastDayness < 0.25)
+    ) {
+      sources.push({
+        id: 'visor:biolume',
+        x: this.cachedPlayerX,
+        y: 1.7,
+        z: this.cachedPlayerZ,
+        color: 0x8ff5d2,
+        intensity: 10,
+        distance: 13,
+      });
+    }
+
     // Merge sources into grid cells (intensity-weighted centroid per cell).
     const cells = new Map<string, { sx: number; sy: number; sz: number; si: number; r: number; g: number; b: number; count: number; maxDist: number; maxI: number }>();
     sources.forEach((src) => {
@@ -1965,6 +2025,7 @@ export class BioForgeThreeEngine {
     // frame from animate — this pass owns only color + strength.
     const sunSigned = Math.sin((Math.PI * (cycle - 0.25)) / 0.5);
     const dayness = THREE.MathUtils.smoothstep(sunSigned, -0.12, 0.3);
+    this.lastDayness = dayness;
     const twilight = THREE.MathUtils.clamp(1 - Math.abs(sunSigned) / 0.4, 0, 1);
     const sky = this.skyScratch
       .setHex(0x050811)
@@ -2004,21 +2065,21 @@ export class BioForgeThreeEngine {
       // depth level down is darker still (Adam's deeper caves: the
       // darkness itself is the gradient) — fog thickens, the whisper
       // thins, and carried light starts to matter.
-      const sink = Math.max(0, depthLevel - 1);
-      this.dirLight.intensity = Math.max(0.015, 0.03 - sink * 0.008);
-      this.hemiLight.intensity = 0.08;
-      this.ambientLight.intensity = Math.max(0.03, 0.05 - sink * 0.01);
       // Cave resemblance (2026-10-15): the dark itself wears the
       // surface family's color, pre-faded by depth in the cavern's
       // meta (the deep forgets the surface — by L5 the blend is a
       // whisper). Fog + background carry it; the cave's own light
       // sources stay their own colors.
+      // The depth + the computed darkness are KEPT (fields),
+      // and the values themselves are written by
+      // applyCavernLighting — one writer, so the Biolume
+      // Visor's toggle can re-apply them mid-cave.
+      this.cavernDepthLevel = depthLevel;
       const caveDark = new THREE.Color(0x020208);
       const tint = cavern?.meta.biomeTint;
       if (tint) caveDark.lerp(new THREE.Color(tint.color), tint.strength);
-      this.scene.background = caveDark;
-      fog.color.copy(caveDark);
-      fog.density = 0.055 + sink * 0.014;
+      this.cavernDarkColor.copy(caveDark);
+      this.applyCavernLighting();
     } else {
       this.clearCavern();
       // Restore the surface sky: hemisphere back to its built value,
@@ -2031,6 +2092,28 @@ export class BioForgeThreeEngine {
 
   public isInCavern(): boolean {
     return this.cavernMode;
+  }
+
+  /** The cavern's darkness values, written in ONE place:
+   * setCavernMode enters through here, and the Biolume
+   * Visor's toggle re-applies through here. Visor off, the
+   * values are the cave's own (whisper + depth sink). Visor
+   * on, the whisper lifts to a navigable floor and the fog
+   * thins, so the cave's living light carries at distance —
+   * the depths still sink, and dead stretches stay dim: the
+   * lift is a floor, not a flood. */
+  private applyCavernLighting(): void {
+    const sink = Math.max(0, this.cavernDepthLevel - 1);
+    const visor = this.biolumeVisorActive;
+    this.dirLight.intensity = Math.max(0.015, 0.03 - sink * 0.008);
+    this.hemiLight.intensity = visor ? 0.2 : 0.08;
+    this.ambientLight.intensity = visor
+      ? Math.max(0.16, 0.2 - sink * 0.012)
+      : Math.max(0.03, 0.05 - sink * 0.01);
+    this.scene.background = this.cavernDarkColor;
+    const fog = this.scene.fog as THREE.FogExp2;
+    fog.color.copy(this.cavernDarkColor);
+    fog.density = (0.055 + sink * 0.014) * (visor ? 0.6 : 1);
   }
 
   /** The standing cavern Heart's world position (THE
@@ -2239,9 +2322,11 @@ export class BioForgeThreeEngine {
     if (on) {
       // Dim daylight-leak: brighter than a cave (you can navigate
       // by it), dark enough that held light still earns its slot.
+      // The Biolume Visor lifts the gloom a step (its toggle
+      // re-applies this same value while a ruin stands open).
       this.dirLight.intensity = 0.32;
       this.hemiLight.intensity = 0.38;
-      this.ambientLight.intensity = 0.3;
+      this.ambientLight.intensity = this.biolumeVisorActive ? 0.42 : 0.3;
       this.scene.background = new THREE.Color(0x10151c);
       fog.color.setHex(0x10151c);
       fog.density = 0.03;

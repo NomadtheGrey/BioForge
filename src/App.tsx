@@ -73,6 +73,7 @@ import {
   AUTOSAVE_INTERVAL_MS,
   buildSavedGame,
   createSaveMetadata,
+  isArmedAt,
   deleteSavedGame,
   listSaveMetadata,
   loadSavedGame,
@@ -1538,6 +1539,14 @@ export default function App() {
   // library verbs live in the hook now; the destructured names are
   // the ones the rest of App already uses. (The gauntlet grandfather
   // check just below reads currentSaveRef from here.)
+  // The HOST's difficulty while we are a guest in their world
+  // (Adam, 2026-10-18: the host's save determines difficulty
+  // for everyone in it). Declared here, ahead of every hook
+  // that consumes it: useMultiplayerSync writes it on world
+  // sync and clears it on leave; the zone evaluator prefers
+  // it over our own save's difficulty when setting the
+  // armed switch.
+  const hostDifficultyRef = useRef<GameDifficulty | null>(null);
   const {
     hasStarted, setHasStarted, saveList, currentSaveRef, latestStateRef,
     buildWorldSnapshot, buildCurrentPlayerState, saveNow,
@@ -1983,7 +1992,7 @@ const {
 } = useMultiplayerSync({
   engineRef, playerPosRef, playerLevelRef, activeToolRef, currentZoneId,
   playerZone, inCavern, inRuin,
-  playerZoneRef, setPlayerZone, visitedZonesRef, worldSeedRef, setSessionSeed,
+  playerZoneRef, setPlayerZone, visitedZonesRef, worldSeedRef, hostDifficultyRef, getWorldDifficulty: () => currentSaveRef.current?.difficulty ?? 'peaceful', setSessionSeed,
   zoneStores, buildZoneSyncTravel, completeTravel, cancelPendingTravel, pendingTravelRef,
   buildWorldSnapshot, latestStateRef, setHasStarted, setDayNightCycle, resetInstanceState,
   postNotification, enterFullscreenOnTouch, setActiveModal,
@@ -2141,7 +2150,17 @@ const {
       const sky = zoneWeatherAt(sessionSeed, playerZone.zx, playerZone.zz);
       engineRef.current?.setWeather(sky.mode, sky.intensity);
     }
-    deathArmedRef.current = (currentSaveRef.current?.difficulty ?? 'peaceful') !== 'peaceful';
+    // The world's law (Adam, 2026-10-18): the HOST's save
+    // determines difficulty for everyone in the world — a
+    // guest arms by the host's difficulty (adopted on world
+    // sync), never by their own save; solo and hosting, your
+    // own save is the law. THE REFUGE rides the same line:
+    // isArmedAt (saveSystem) stands the switch down in the
+    // spawn zone under any law. This effect re-runs on every
+    // zone change, so crossing the refuge border re-reads
+    // the law in the same pass.
+    const worldDifficulty = hostDifficultyRef.current ?? currentSaveRef.current?.difficulty ?? 'peaceful';
+    deathArmedRef.current = isArmedAt(worldDifficulty, playerZone.zx, playerZone.zz);
     sporeStaminaRef.current = faceEffect === 'spore_stamina';
     marshSluggishRef.current = faceEffect === 'marsh_sluggish';
     scarHeatRef.current = faceEffect === 'scar_heat';

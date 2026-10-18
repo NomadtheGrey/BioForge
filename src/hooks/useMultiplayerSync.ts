@@ -22,7 +22,7 @@ import { soundEngine } from '../audio/soundEngine';
 import { routeForZoneTag, storeEntityEvent, type ZoneStores } from '../game/zoneSync';
 import { generateSeededWorld } from '../game/world/worldGen';
 import { SPAWN_ZONE, zoneBiomeAt, zoneVariantAt, zoneFaceAt, zoneKey, type ZoneCoords } from '../game/world/zones';
-import type { WorldSnapshot } from '../game/saveSystem';
+import type { WorldSnapshot, GameDifficulty } from '../game/saveSystem';
 import type { BioForgeThreeEngine } from '../game/engine/threeEngine';
 import type { PendingTravel } from './useZoneTravel';
 import { setSkyWorld } from '../game/world/skyCalendar';
@@ -47,6 +47,16 @@ export interface MultiplayerSyncDeps {
   setPlayerZone: (zone: ZoneCoords) => void;
   visitedZonesRef: { current: Map<string, WorldSnapshot> };
   worldSeedRef: { current: string };
+  /** The HOST's difficulty, learned from world sync (Adam,
+   *  2026-10-18: the host's save determines difficulty for
+   *  everyone in the world). App owns the ref; this hook
+   *  writes it on sync and clears it on leave. Null = not a
+   *  guest in a synced world (solo, hosting, or a host on an
+   *  older build that sent none). */
+  hostDifficultyRef: { current: GameDifficulty | null };
+  /** The host-side getter: this client's own save's
+   *  difficulty, broadcast with world sync when hosting. */
+  getWorldDifficulty: () => GameDifficulty;
   setSessionSeed: (seed: string) => void;
   zoneStores: () => ZoneStores;
   buildZoneSyncTravel: () => { zone: string; zones: Record<string, WorldSnapshot>; worldSeed: string; worldCreatedAt?: number };
@@ -118,7 +128,7 @@ export function useMultiplayerSync(deps: MultiplayerSyncDeps): UseMultiplayerSyn
   const {
     engineRef, playerPosRef, playerLevelRef, activeToolRef, currentZoneId,
     playerZone, inCavern, inRuin,
-    playerZoneRef, setPlayerZone, visitedZonesRef, worldSeedRef, setSessionSeed,
+    playerZoneRef, setPlayerZone, visitedZonesRef, worldSeedRef, hostDifficultyRef, getWorldDifficulty, setSessionSeed,
     zoneStores, buildZoneSyncTravel, completeTravel, cancelPendingTravel, pendingTravelRef,
     buildWorldSnapshot, latestStateRef, setHasStarted, setDayNightCycle, resetInstanceState,
     postNotification, enterFullscreenOnTouch, setActiveModal,
@@ -194,7 +204,7 @@ export function useMultiplayerSync(deps: MultiplayerSyncDeps): UseMultiplayerSyn
         // (or their own saved one). If it isn't OUR world, it's wrong —
         // send the full snapshot so they play in the same place we do.
         if (multiplayerManager.isHost) {
-          multiplayerManager.broadcastWorldSync(buildWorldSnapshot(), latestStateRef.current.dayNightCycle, buildZoneSyncTravel());
+          multiplayerManager.broadcastWorldSync(buildWorldSnapshot(), latestStateRef.current.dayNightCycle, buildZoneSyncTravel(), getWorldDifficulty());
           // The BioTunnel guest fix (Adam, 2026-10-16): answer the
           // joiner with the pair's truth at once, so a guest at a
           // mouth never has to wait a heartbeat to see it lit.
@@ -368,6 +378,13 @@ export function useMultiplayerSync(deps: MultiplayerSyncDeps): UseMultiplayerSyn
         // our own save file on disk is untouched, and autosave is gated
         // off while we are guests, so their world can never overwrite it.
         resetInstanceState();
+        // The host's law (Adam, 2026-10-18): adopt the host's
+        // difficulty BEFORE the seed lands below, so the zone
+        // evaluator that the seed change wakes reads the
+        // world's law, never our own save's. A host on an
+        // older build sends none — the ref clears and App
+        // falls back to our own save.
+        hostDifficultyRef.current = data.difficulty ?? null;
         // Zone travel (2026-10-15): the sync also lands us in the
         // host's CURRENT zone, adopts the host's visited-zones map
         // (their record of every zone's changes) and the world seed
@@ -503,6 +520,9 @@ export function useMultiplayerSync(deps: MultiplayerSyncDeps): UseMultiplayerSyn
     // The BioTunnel guest fix: the host's pair truth dies with the
     // session — pairing display falls back to the known world.
     guestTunnelPairRef.current = null;
+    // The host's law dies with the session too: our own
+    // save's difficulty governs again from here.
+    hostDifficultyRef.current = null;
     postNotification('Session Disconnected', 'Returned to local single-explorer mode.', 'system', '#64748b');
   };
 

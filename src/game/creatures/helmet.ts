@@ -49,6 +49,25 @@ export function biolumeVisorWorn(inventory: Inventory): boolean {
 }
 
 /**
+ * The Spore Filter (helmet slice 3): the Hollow's spore tax
+ * stops at the filter. The game loop negates its drain line
+ * on this answer (via the sporeFilter getter dep).
+ */
+export function sporeFilterWorn(inventory: Inventory): boolean {
+  return helmetModuleWorn(inventory, 'spore_filter');
+}
+
+/**
+ * The Shade Visor (helmet slice 3): glare country dims to
+ * bearable while worn. The COUNTRY half of the test (the
+ * Flats, the Singing Ice, the Mirror Marsh) is App's zone
+ * read; the engine owns the dimming itself.
+ */
+export function shadeVisorWorn(inventory: Inventory): boolean {
+  return helmetModuleWorn(inventory, 'shade_visor');
+}
+
+/**
  * The zone read, tiered by the lens line (helmet slice 2):
  * naming the land is a sense, and the helm is the sensory
  * platform. TIER 0 — no lens: the land stays unidentified.

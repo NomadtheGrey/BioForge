@@ -89,6 +89,10 @@ export interface GameLoopDeps {
    *  The loop drives the engine's visor treatment from it
    *  per frame, beside the held light's drive. */
   biolumeVisor?: () => boolean;
+  /** True while the Spore Filter is WORN (creatures/helmet):
+   *  the Hollow's spore tax stops at the filter, so the
+   *  drain line below never charges it. */
+  sporeFilter?: () => boolean;
   /** True while the player carries a Plume Charm (Ingredient
    *  Sinks, 2026-10-17): fast falls glide instead of dropping. */
   hasPlumeCharm?: () => boolean;
@@ -215,7 +219,7 @@ export interface GameLoopDeps {
 export function useGameLoop(deps: GameLoopDeps): void {
   const {
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
-    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, getLiquidAt, hasEmberSoles, biolumeVisor, hasPlumeCharm, windlungTier, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
+    jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, sporeStaminaRef, marshSluggishRef, getWaterDepth, getLiquidAt, hasEmberSoles, biolumeVisor, sporeFilter, hasPlumeCharm, windlungTier, scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, lastStaminaSync,
     sprinting, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
@@ -478,7 +482,12 @@ export function useGameLoop(deps: GameLoopDeps): void {
         // planned answer is a helmet + filter upgrade; until it
         // exists, the hollow is a place you cross, not linger in.
         // Surface only — underground is cave air, not hollow air.
-        const sporeTax = sporeStaminaRef.current && activeInstance.kind === 'surface' ? 8 * dt : 0;
+        // The Hollow's spore tax — unless the Spore Filter
+        // is worn (helmet slice 3): the tax stops at the
+        // filter, exactly as the item promises. The country
+        // ref still stands (the evaluator keeps teaching the
+        // land); only the charge is negated.
+        const sporeTax = sporeStaminaRef.current && activeInstance.kind === 'surface' && !(sporeFilter && sporeFilter()) ? 8 * dt : 0;
         // THE SHIELD (2026-10-17): a raised shield is effort —
         // bracing suppresses stamina recovery and drinks it slowly
         // (the braced tax). At empty the guard breaks: the shield

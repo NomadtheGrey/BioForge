@@ -351,6 +351,27 @@ export class BioForgeThreeEngine {
     if (this.ruinMode) this.ambientLight.intensity = active ? 0.42 : 0.3;
   }
 
+  /** Shade Visor (helmet slice 3): glare country — the
+   * salt Flats, the Singing Ice, the Mirror Marsh — "dims
+   * to bearable" (the item's own words). The dimming is an
+   * exposure trim: the constructor's 1.15 is the game's
+   * one exposure and this setter is its only other writer,
+   * so the trim can never drift against the light writers
+   * the way a per-light multiplier would. App drives it
+   * from the zone read + the worn derivation; the trim is
+   * country-wide and context-free (a cave under glare
+   * country is already dark — exposure there is a whisper
+   * off an already-dim scene, and the surface restores the
+   * moment the country or the visor changes). */
+  private shadeVisorActive: boolean = false;
+
+  /** App drives this from the worn state + glare country. */
+  public setShadeVisor(active: boolean): void {
+    if (this.shadeVisorActive === active) return;
+    this.shadeVisorActive = active;
+    this.renderer.toneMappingExposure = active ? 0.9 : 1.15;
+  }
+
   /** The last surface dayness the day/night pass computed
    * (1 = full day). The visor's dark gate reads it. */
   private lastDayness: number = 1;

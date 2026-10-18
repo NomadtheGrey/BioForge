@@ -477,7 +477,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'saltroot',
     name: 'Saltroot',
     kind: 'flora',
-    propagation: 'saltroot_glass',
+    propagation: 'seed',
     harvest: { item: 'saltroot_glass', count: 2, fertilizedCount: 3 },
     bonusGrow: {
       biomes: ['saltglass', 'rootwood'],
@@ -1451,7 +1451,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'tending_vine',
     name: 'Tending Vine',
     kind: 'flora',
-    propagation: 'tending_cutting',
+    propagation: null, // wild-only: 'It cannot be transplanted' — the cuttings are tools, not stock
     harvest: { item: 'tending_cutting', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['precursor'],
@@ -1535,7 +1535,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'smoke_tree',
     name: 'Smoke Tree',
     kind: 'flora',
-    propagation: 'seed',
+    propagation: 'smoke_heart',
     harvest: { item: 'smoke_heart', count: 1, fertilizedCount: 1 },
     bonusGrow: {
       biomes: ['ember', 'rootwood'],
@@ -1578,7 +1578,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'zot_star',
     name: 'Zot Star',
     kind: 'flora',
-    propagation: 'star_glass',
+    propagation: null, // wild-only: it grows only where lightning has been
     harvest: { item: 'star_glass', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['storm'],
@@ -1602,7 +1602,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'grabvine',
     name: 'Grabvine',
     kind: 'flora',
-    propagation: 'seed',
+    propagation: null, // wild-only: 'it is never cultivated twice'
     harvest: { item: 'living_thread', count: 1, fertilizedCount: 1 },
     hazardous: true,
     bonusGrow: {
@@ -3877,7 +3877,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'obsidian_bloom',
     name: 'Obsidian Bloom',
     kind: 'flora',
-    propagation: 'obsidian_shard',
+    propagation: null, // wild-only: a flower of black glass — no living tissue to take
     harvest: { item: 'obsidian_shard', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },
@@ -3893,7 +3893,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'rime_spire',
     name: 'Rime Spire',
     kind: 'flora',
-    propagation: 'nevermelt_ice',
+    propagation: null, // wild-only: a geyser frozen mid-eruption — a standing tooth of ice, not a crop
     harvest: { item: 'nevermelt_ice', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },
@@ -3909,7 +3909,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'dusk_grass',
     name: 'Duskgrass',
     kind: 'flora',
-    propagation: null, // wild-only: the land regrows it; no pouch stock plants it
+    propagation: 'seed',
     harvest: { item: 'soft_fiber', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },
@@ -3933,7 +3933,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'gravebloom',
     name: 'Gravebloom',
     kind: 'flora',
-    propagation: 'bone_meal',
+    propagation: 'seed',
     harvest: { item: 'bone_meal', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },
@@ -3941,7 +3941,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'precursor_bloom',
     name: 'Precursor Bloom',
     kind: 'flora',
-    propagation: 'living_thread',
+    propagation: 'seed',
     harvest: { item: 'living_thread', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },
@@ -3949,7 +3949,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'mirror_lily',
     name: 'Mirror Lily',
     kind: 'flora',
-    propagation: 'dew_essence',
+    propagation: 'seed',
     harvest: { item: 'dew_essence', count: 3, fertilizedCount: 5, extras: [['resonant_reed', 1]] },
     bonusGrow: null,
   },
@@ -3967,7 +3967,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'sunshard_cluster',
     name: 'Sunshard Cluster',
     kind: 'flora',
-    propagation: 'sunshard',
+    propagation: null, // wild-only: amber crystals grow geologically, not by seed or cutting
     harvest: { item: 'sunshard', count: 2, fertilizedCount: 4, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },
@@ -3975,7 +3975,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'prism_cluster',
     name: 'Prism Cluster',
     kind: 'flora',
-    propagation: 'prismatic_core',
+    propagation: null, // wild-only: mineral growth — no seed or cutting exists
     harvest: { item: 'prismatic_core', count: 1, fertilizedCount: 2 },
     bonusGrow: null,
   },

@@ -112,6 +112,23 @@ export const CloudSavesPanel: React.FC<CloudSavesPanelProps> = ({ onImport }) =>
     setNote('Cloud saves are off on this device. The copies already in the box stay there — turning off only forgets the words here.');
   };
 
+  // ADOPT (the blocked-player fix, 2026-10-18): the door's
+  // typed words used to serve one listing and vanish — a
+  // device that arrived by the door could bring worlds down
+  // but could NEVER save back up, because TURN ON only ever
+  // deals fresh words. A listing that ANSWERED is the proof
+  // the typed words are real (the box is silent for words
+  // that own nothing), so from a successful listing the
+  // player can make the typed words THIS device's words —
+  // from then on the save funnel mirrors under them, the
+  // same box the worlds came from.
+  const adoptWords = () => {
+    if (!listSecret) return;
+    storePassphrase(listSecret);
+    setSecret(listSecret);
+    setNote('These are now this device\'s words — worlds you save here will mirror to the same cloud box, under the same three words.');
+  };
+
   const findWorlds = () => {
     const canon = canonicalizePassphrase(doorInput);
     if (!canon) {
@@ -277,6 +294,19 @@ export const CloudSavesPanel: React.FC<CloudSavesPanelProps> = ({ onImport }) =>
                   ))}
                 </div>
               )
+            )}
+            {!secret && listSecret && entries !== null && !listBusy && (
+              <div className="mt-3 p-3 rounded-xl bg-sky-950/40 border border-sky-900/60">
+                <p className="text-xs text-slate-300">
+                  Found your worlds. Make these words this device's words, and worlds you save here will mirror back to the same box.
+                </p>
+                <button
+                  onClick={adoptWords}
+                  className="mt-2 px-3 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-tech font-bold flex items-center gap-1.5 transition-colors"
+                >
+                  <KeyRound className="w-3.5 h-3.5" /> USE THESE WORDS ON THIS DEVICE
+                </button>
+              </div>
             )}
             <button
               onClick={() => setDoorOpen(false)}

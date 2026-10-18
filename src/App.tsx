@@ -96,7 +96,8 @@ import {
   goalProgressText,
 } from './game/quests/asksBack/latch';
 import { recordAsksChoice } from './game/quests/asksBackState';
-import { finaleFamilyOf, portalClickOutcome, portalPartsMissing, visitOutcome, descendOutcome, type FinaleFamilyId } from './game/quests/finale';
+import { finaleFamilyOf, portalClickOutcome, portalPartsMissing, visitOutcome, descendOutcome, memorialOutcome, STALK_SEED_IDS, STALK_TEND_COST, STALK_TENDS_TO_GROW, type FinaleFamilyId } from './game/quests/finale';
+import { readSkyClock, skyDayFloat } from './game/world/skyCalendar';
 // THE WORLD ASKS BACK, S4: a release settles the creature in the
 // zone's consequence record — the Director reads it as an anchor
 // and the zone loader materializes it by name.
@@ -1296,6 +1297,70 @@ export default function App() {
       }
       awMergeRef.current((s) => (s.departed ? s : { ...s, departed: true }));
       postNotification('The Through-Passage', 'Down, then, and through — the tunnel that doesn\'t stop carries you the deep way, the way they taught you to grow. Behind you the mouth breathes on, patient. The road stands.', 'discover', '#4ade80');
+    },
+    // The Departure, Honor (D4): the memorial's executor —
+    // planting, tending, and the climb. The stalk's state
+    // rides the memorial entity itself; the day comes off
+    // the world clock (persisted on the entity at each tend,
+    // so a reload cannot reopen the day — the dev lane's
+    // watch).
+    onMemorialAddress: (structure: StructureEntity) => {
+      const signals = questProgressRef.current?.signals;
+      const discovered = (questProgressRef.current?.completedIds ?? []).includes('q_aw_happened');
+      const clock = readSkyClock();
+      const today = clock ? Math.floor(skyDayFloat(clock.createdAtMs, Date.now())) : 0;
+      const state = {
+        planted: structure.memorial?.stalkPlanted === true,
+        tends: structure.memorial?.stalkTends ?? 0,
+        lastTendDay: structure.memorial?.lastTendDay ?? -1,
+      };
+      const outcome = memorialOutcome(signals, state, discovered, today);
+      if (outcome === 'gone') {
+        postNotification('The Way Stands Open', 'The stalk stands crowned against the sky it emptied. The climb is yours whenever you want it.', 'discover', '#fbbf24');
+        return;
+      }
+      if (outcome === 'plant') {
+        const held = STALK_SEED_IDS.filter((id) => hasItem(id, 1));
+        if (held.length < 3) {
+          postNotification('The Stalk Wants Variety', `A road grown from one garden alone would only lead back to it. Bring seeds of three different kinds — you hold ${held.length} — and the memorial will take one of each.`, 'system', '#a8a29e');
+          return;
+        }
+        const chosen = held.slice(0, 3);
+        chosen.forEach((id) => deductInventoryItem(id, 1));
+        upsertStructure({ ...structure, memorial: { stalkPlanted: true, stalkTends: 0, lastTendDay: -1 } });
+        postNotification('Planted', `${chosen.map((id) => ITEMS[id]?.name ?? id).join(', ')} — one of each, into the remembering ground. The stalk will want tending: compost and dew, once a day.`, 'discover', '#fbbf24');
+        return;
+      }
+      if (outcome === 'tend-wait') {
+        postNotification('It Drinks Deep', 'The stalk has drunk today. Growth turned by the day cannot be hurried — come back tomorrow.', 'system', '#a8a29e');
+        return;
+      }
+      if (outcome === 'tend') {
+        const short = STALK_TEND_COST.filter((c) => !hasItem(c.itemId, c.count));
+        if (short.length > 0) {
+          postNotification('The Stalk Thirsts', `Tending wants: ${STALK_TEND_COST.map((c) => `${ITEMS[c.itemId]?.name ?? c.itemId} ×${c.count}`).join(' · ')}.`, 'system', '#a8a29e');
+          return;
+        }
+        STALK_TEND_COST.forEach((c) => deductInventoryItem(c.itemId, c.count));
+        const tends = state.tends + 1;
+        upsertStructure({ ...structure, memorial: { stalkPlanted: true, stalkTends: tends, lastTendDay: today } });
+        postNotification(
+          tends >= STALK_TENDS_TO_GROW ? 'It Crowns' : 'Tended',
+          tends >= STALK_TENDS_TO_GROW
+            ? 'The stalk crowns — a green ceiling against the sky they emptied. The climb stands ready.'
+            : `Fed and watered. The stalk climbs a little higher — ${tends} of ${STALK_TENDS_TO_GROW} tendings.`,
+          'discover',
+          '#fbbf24'
+        );
+        return;
+      }
+      if (outcome === 'climb-sealed') {
+        postNotification('Not Yet Yours to Take', 'The stalk stands crowned, but a climb is not yours until you know whose sky it climbs into. Five fragments, and the story they tell: finish What Happened Here first.', 'system', '#a8a29e');
+        return;
+      }
+      // outcome === 'climb' — Honor's one writer of 'departed'.
+      awMergeRef.current((s) => (s.departed ? s : { ...s, departed: true }));
+      postNotification('The Climb', 'Up the stalk, hand over leaf, into the sky they emptied — and the higher you climb, the more the world below becomes a garden you once kept. The road stands behind you, green and patient.', 'discover', '#fbbf24');
     },
     spawnDroppedItem,
     triggerHarvestFx,

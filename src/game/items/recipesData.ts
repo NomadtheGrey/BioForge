@@ -929,6 +929,24 @@ export const RECIPES: CraftingRecipe[] = [
     craftTimeMs: 4000,
   },
   {
+    // THE MEMORIAL (Departure D4): Honor's ground. Anyone
+    // may raise one (the recipe is no family's secret — the
+    // ROAD is what the memorial grows, and the climb is
+    // seal-gated in finale.ts, not the planting).
+    id: 'craft_memorial',
+    outputId: 'memorial',
+    outputCount: 1,
+    name: 'The Memorial',
+    description: 'Raise the remembering ground: stones, saltglass, and woven fiber. Plant the beanstalk in it, tend it day by day, and climb.',
+    category: 'composites',
+    ingredients: [
+      { id: 'resin_sap', count: 4 },
+      { id: 'saltglass_shard', count: 2 },
+      { id: 'soft_fiber', count: 4 },
+    ],
+    craftTimeMs: 4000,
+  },
+  {
     // THE SUPER BIOTUNNEL (Departure D3) — the game's first
     // Tier-4 recipe, and a GIFT: finaleGate 'visit' keeps it
     // off the forge's shelf until the transformed hand it

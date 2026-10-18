@@ -285,6 +285,7 @@ export type ItemId =
   | 'artifact_heart'
   | 'portal_ring'
   | 'the_presence'
+  | 'memorial'
   | 'deep_biotunnel_mouth'
   | 'ruin_glyph'
   // Worn Equipment — the two platforms (settled 2026-10-13/14): the
@@ -979,6 +980,7 @@ export type StructureType =
   | 'artifact_heart'
   | 'portal_ring'
   | 'the_presence'
+  | 'memorial'
   | 'deep_biotunnel_mouth'
   | 'ruin_glyph';
   // NOTE: worn equipment (the gauntlet and its kin) is NOT a

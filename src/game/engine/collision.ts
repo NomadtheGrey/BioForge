@@ -83,6 +83,10 @@ function isCollidingWithStructure(
     // The Deep BioTunnel's throat (Departure D3): addressed,
     // descended by the click — never stood inside.
     if (s.type === 'deep_biotunnel_mouth') obstacleRadius = 1.5;
+    // The Memorial (Departure D4): its ring is ground you
+    // stand AMONG — radius 0 leaves only the center point
+    // itself solid, where the stalk grows.
+    if (s.type === 'memorial') obstacleRadius = 0;
     // Furniture footprints (slice E): a bed is a body-length
     // piece; a stool is a small one.
     if (s.type === 'root_bed') obstacleRadius = 0.85;

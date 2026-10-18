@@ -157,6 +157,62 @@ export function descendOutcome(signals: QuestSignals | undefined, discovered: bo
   if (signals?.departed) return 'gone';
   return discovered ? 'descend' : 'sealed';
 }
+
+// ---------------------------------------------------------------------------
+// HONOR — THE MEMORIAL AND THE STALK (D4, 2026-10-18)
+// ---------------------------------------------------------------------------
+// The memorial is the player's own grown ground: raise it,
+// plant the stalk in it from SEED VARIETY (three different
+// seed kinds — the whole garden goes into the road), tend
+// it once per world day (compost and dew), and when it has
+// drunk enough days, CLIMB. The stalk's whole life rides
+// the memorial's entity state (the dev lane's watch): the
+// last-tend day persists on the entity, so a reload can
+// never reopen a day's tend. Tending and planting are
+// preparation — free under the seal law; the CLIMB is the
+// act, and it waits for the discovery like every family's.
+
+/** Tends that raise the stalk to climbing height. */
+export const STALK_TENDS_TO_GROW = 4;
+/** The tend's price: compost and dew, per day. */
+export const STALK_TEND_COST: { itemId: ItemId; count: number }[] = [
+  { itemId: 'basic_compost', count: 2 },
+  { itemId: 'dew_essence', count: 1 },
+];
+/** The seed kinds the garden can give the stalk (the six
+ *  plantables — seeds are never crafted, only harvested). */
+export const STALK_SEED_IDS: ItemId[] = [
+  'seed_lantern_fern', 'seed_sap_weaver', 'seed_petal_mill',
+  'seed_snap_trap', 'seed_bell_bloom', 'seed_bounce_shroom',
+] as ItemId[];
+
+/** The memorial's state, as the executor reads it off the entity. */
+export interface MemorialState {
+  planted: boolean;
+  tends: number;
+  lastTendDay: number;
+}
+
+export type MemorialOutcome =
+  | 'gone'        // the climb is already made
+  | 'plant'       // no stalk yet
+  | 'tend'        // planted, thirsty, a new day
+  | 'tend-wait'   // planted, already drank today
+  | 'climb'       // grown — and the discovery stands
+  | 'climb-sealed'; // grown — but the knowing isn't made
+
+export function memorialOutcome(
+  signals: QuestSignals | undefined,
+  state: MemorialState,
+  discovered: boolean,
+  today: number,
+): MemorialOutcome {
+  if (signals?.departed) return 'gone';
+  if (!state.planted) return 'plant';
+  if (state.tends >= STALK_TENDS_TO_GROW) return discovered ? 'climb' : 'climb-sealed';
+  if (state.lastTendDay >= today) return 'tend-wait';
+  return 'tend';
+}
 export const FINALE_ROADS: Record<FinaleFamilyId, { name: string; todo: string }> = {
   follow: {
     name: 'Repair the Portal',

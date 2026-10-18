@@ -65,6 +65,7 @@ const PLACEABLE_GROUPS: Record<string, string[]> = {
     'bio_forge_station',
     'culture_vat',
     'cultivation_mound',
+    'memorial',
     'sample_rack',
   ],
   home: [

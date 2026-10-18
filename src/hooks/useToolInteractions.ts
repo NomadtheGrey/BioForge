@@ -164,6 +164,9 @@ export interface UseToolInteractionsParams {
   /** The Departure (D3): a Deep BioTunnel mouth was addressed —
    *  App runs the descent. */
   onDeepTunnelAddress?: (structure: StructureEntity) => void;
+  /** The Departure (D4): a Memorial was addressed — App runs
+   *  the planting, the tending, and the climb. */
+  onMemorialAddress?: (structure: StructureEntity) => void;
   /** Ask the World line signals: a flora harvest succeeded (the
    * yields are already in the pouch when this fires). */
   onFloraHarvest?: (flora: FloraEntity) => void;
@@ -269,6 +272,7 @@ export function useToolInteractions({
   onPortalRing,
   onPresenceAddress,
   onDeepTunnelAddress,
+  onMemorialAddress,
   onFloraHarvest,
   applyDissolve,
   strikeFauna,
@@ -2240,6 +2244,22 @@ export function useToolInteractions({
         return;
       }
       onDeepTunnelAddress?.(structure);
+      return;
+    }
+    // The Memorial (Departure D4): your own grown ground for
+    // the dead. The solvent is refused — some ground is not
+    // unmade — the scanner describes, and every other tool
+    // addresses it; App runs the planting/tending/climb.
+    if (structure.type === 'memorial') {
+      if (activeTool === 'solvent_sprayer') {
+        postNotification('Consecrated Ground', 'The memorial is not unmade. Not by solvent, not by anything.', 'alert', '#fbbf24');
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onMemorialAddress?.(structure);
       return;
     }
     // The portal station (Departure D2): the Follow road's

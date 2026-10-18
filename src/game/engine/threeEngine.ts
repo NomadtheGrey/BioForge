@@ -31,7 +31,7 @@ import type { BiomeId } from '../world/biomes';
 import { cavernCellToWorld, type CavernResult } from '../world/cavern';
 import type { RuinResult } from '../world/ruinInterior';
 import { createStructureBuilders, type StructureMaterials } from '../structures/structureBuilders';
-import { updateVatLife, updateTunnelLife, updateHeartLife, updateBannerLife } from '../structures/structureLife';
+import { updateVatLife, updateTunnelLife, updateHeartLife, updateBannerLife, updateBeanstalkLife } from '../structures/structureLife';
 import { createCreatureMeshKit, type CreatureMeshKit } from '../creatures/creatureMeshes';
 import { createLandmarkDressing, type LandmarkDressing } from '../world/landmarkDressing';
 import { FATE_STYLES, type WorldFate } from '../world/ruins';
@@ -594,6 +594,7 @@ export class BioForgeThreeEngine {
     updateTunnelLife(this.structureMeshMap, this.elapsedTime);
     updateHeartLife(this.structureMeshMap, this.elapsedTime);
     updateBannerLife(this.structureMeshMap, this.elapsedTime);
+    updateBeanstalkLife(this.structureMeshMap, this.elapsedTime);
     this.updateDissolveFizz();
   }
 

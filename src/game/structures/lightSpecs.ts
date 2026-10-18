@@ -331,5 +331,7 @@ export const STRUCTURE_LIGHT_BASE: Record<Exclude<StructureType, 'lantern_fern_p
     // The Deep BioTunnel (Departure D3): a deep green breath
     // from the throat.
     deep_biotunnel_mouth: { color: 0x4ade80, intensity: 1.1, distance: 8, y: 1.6 },
+    // The Memorial (Departure D4): a warm remembering glow.
+    memorial: { color: 0xfbbf24, intensity: 0.9, distance: 7, y: 1.8 },
     ruin_glyph: { color: 0xa5b4fc, intensity: 0.6, distance: 3, y: 1.1 },
   };

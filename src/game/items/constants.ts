@@ -2601,6 +2601,18 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 1,
   },
+  // The Memorial (Departure D4, Honor worlds): the player's
+  // own grown ground for the dead — and the stalk's cradle.
+  memorial: {
+    id: 'memorial',
+    name: 'The Memorial',
+    category: 'structure',
+    description: 'A ring of stones and woven light for the ones who cannot be followed, met, or fought — only honored. Plant the stalk here. Tend it. Climb.',
+    iconName: 'Landmark',
+    color: '#fbbf24',
+    rarity: 'rare',
+    maxStack: 1,
+  },
   // The Super BioTunnel (Departure D3): the first Tier-4
   // grow — a tunnel mouth that doesn't stop. Its recipe is
   // a GIFT (finaleGate 'visit'), given at the visit.

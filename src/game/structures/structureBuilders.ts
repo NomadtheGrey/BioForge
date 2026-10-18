@@ -1143,6 +1143,51 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       }
       return group;
     },
+    // The Memorial (Departure D4): a ring of remembrance
+    // stones around a woven-light arch — and, once planted,
+    // the STALK: its height reads the memorial's own tend
+    // count off the entity (the builder receives it), so the
+    // road visibly grows day by tended day. At full tends it
+    // crowns into a canopy — the ladder into the emptied sky.
+    'memorial': (entity?: StructureEntity) => {
+      const group = new THREE.Group();
+      const stoneMat = new THREE.MeshStandardMaterial({ color: 0xd6d3cd, roughness: 0.9 });
+      for (let i = 0; i < 5; i++) {
+        const a = (i / 5) * Math.PI * 2 + 0.3;
+        const stone = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.28, 1.3 + (i % 2) * 0.3, 6), stoneMat);
+        stone.position.set(Math.cos(a) * 1.7, 0.65, Math.sin(a) * 1.7);
+        stone.castShadow = true;
+        group.add(stone);
+      }
+      const tends = entity?.memorial?.stalkPlanted ? (entity.memorial.stalkTends ?? 0) : -1;
+      if (tends >= 0) {
+        const stalkMat = new THREE.MeshStandardMaterial({ color: 0x4d7c0f, emissive: 0x365314, emissiveIntensity: 0.25, roughness: 0.8 });
+        const height = 1.2 + tends * 1.7;
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.42, height, 8), stalkMat);
+        stalk.name = 'beanstalkStem';
+        stalk.position.y = height / 2;
+        stalk.castShadow = true;
+        group.add(stalk);
+        // Leaf platforms spiral up the stalk — the climb reads.
+        const leafMat = new THREE.MeshStandardMaterial({ color: 0x65a30d, roughness: 0.7 });
+        for (let i = 0; i < tends + 1; i++) {
+          const a = i * 1.9;
+          const leaf = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.08, 8), leafMat);
+          leaf.position.set(Math.cos(a) * 0.45, 0.9 + i * 1.6, Math.sin(a) * 0.45);
+          group.add(leaf);
+        }
+        if (tends >= 4) {
+          const crown = new THREE.Mesh(
+            new THREE.SphereGeometry(1.5, 10, 8),
+            new THREE.MeshStandardMaterial({ color: 0x3f6212, emissive: 0x84cc16, emissiveIntensity: 0.35, roughness: 0.75 })
+          );
+          crown.position.y = height + 0.7;
+          crown.scale.y = 0.6;
+          group.add(crown);
+        }
+      }
+      return group;
+    },
     // A ruin glyph: a stone tablet on a rubble base, its indigo
     // script-lines still lit. Clicking reads the stone's memory
     // (useToolInteractions serves the fate's lore lines).

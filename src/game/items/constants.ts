@@ -2575,6 +2575,19 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'rare',
     maxStack: 1,
   },
+  // The portal station (Departure D2): a registry row for
+  // the ruin feature's structure type — the ring is world
+  // furniture, never an item a pouch can hold.
+  portal_ring: {
+    id: 'portal_ring',
+    name: 'Portal Station',
+    category: 'structure',
+    description: 'The grown ring their road home ran through, standing patient in a grand ruin\'s heart room. Broken kindly. Address it to mend it.',
+    iconName: 'Donut',
+    color: '#a78bfa',
+    rarity: 'rare',
+    maxStack: 1,
+  },
   ruin_glyph: {
     id: 'ruin_glyph',
     name: 'Ruin Glyph',

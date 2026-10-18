@@ -283,6 +283,7 @@ export type ItemId =
   | 'ruin_exit'
   | 'precursor_cache'
   | 'artifact_heart'
+  | 'portal_ring'
   | 'ruin_glyph'
   // Worn Equipment — the two platforms (settled 2026-10-13/14): the
   // GAUNTLET is the action platform (the hotbar tools are its modes);
@@ -974,6 +975,7 @@ export type StructureType =
   | 'ruin_exit'
   | 'precursor_cache'
   | 'artifact_heart'
+  | 'portal_ring'
   | 'ruin_glyph';
   // NOTE: worn equipment (the gauntlet and its kin) is NOT a
   // structure — it cannot be built, placed, or stood on. It lives in
@@ -1242,6 +1244,11 @@ export interface QuestSignals {
   /** The Departure: the act itself, latched by whichever
    *  family's set-piece carries the player through. */
   departed?: boolean;
+  /** The Departure, Follow (D2): the portal ring's repair —
+   *  the three parts of the bill, each latched when paid at
+   *  any station ring. The bill is the player's project, so
+   *  it rides the signals, not any one ring. */
+  finaleRepair?: { heart?: boolean; aim?: boolean; bind?: boolean };
   families?: string[];
   hybrid?: boolean;
   tier3?: boolean;

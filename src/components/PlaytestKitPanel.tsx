@@ -24,6 +24,13 @@ import type { FaunaSpecies, ItemId } from '../types/game';
 import { ITEMS } from '../game/items/constants';
 import { SPECIES } from '../game/creatures/species';
 import { filterSearchRows, type SearchRow } from './playtestSearch';
+import {
+  kitUnlocks,
+  loadKitRemembered,
+  publishBroadcast,
+  saveKitRemembered,
+  type BroadcastDraft,
+} from './kitLock';
 
 export interface PlaytestKitPanelProps {
   /** True while the debug kit holds the pouch (useDebugKit). */
@@ -103,10 +110,129 @@ export function PlaytestKitPanel(props: PlaytestKitPanelProps) {
   const [selectedItem, setSelectedItem] = useState<ItemId | null>(null);
   const [speciesQuery, setSpeciesQuery] = useState('');
 
+  // THE LOCK + THE SYSTEM TAB (slice 4, Adam 2026-10-18).
+  // Session-only by default; a remembered device skips the
+  // prompt (a convenience flag — kitLock.ts is honest about
+  // what it is and is not). The publish code is never
+  // stored: sessionCode carries THIS session's typed unlock
+  // to the composer as a prefill, nothing persists it.
+  const [tab, setTab] = useState<'kit' | 'system'>('kit');
+  const [unlocked, setUnlocked] = useState<boolean>(
+    () => typeof localStorage !== 'undefined' && loadKitRemembered(localStorage)
+  );
+  const [codeInput, setCodeInput] = useState('');
+  const [remember, setRemember] = useState<boolean>(
+    () => typeof localStorage !== 'undefined' && loadKitRemembered(localStorage)
+  );
+  const [unlockError, setUnlockError] = useState(false);
+  const [sessionCode, setSessionCode] = useState<string | null>(null);
+  const [draftTitle, setDraftTitle] = useState('');
+  const [draftBody, setDraftBody] = useState('');
+  const [draftPriority, setDraftPriority] = useState<BroadcastDraft['priority']>('panel');
+  const [publishCode, setPublishCode] = useState('');
+  const [publishStatus, setPublishStatus] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+
+  const tryUnlock = () => {
+    if (kitUnlocks(codeInput)) {
+      setUnlocked(true);
+      setSessionCode(codeInput);
+      setCodeInput('');
+      setUnlockError(false);
+      if (typeof localStorage !== 'undefined') saveKitRemembered(localStorage, remember);
+    } else {
+      setUnlockError(true);
+    }
+  };
+
+  const handleSend = async () => {
+    const code = publishCode.trim() || sessionCode || '';
+    if (!draftTitle.trim() || !draftBody.trim()) {
+      setPublishStatus('A broadcast needs a title and a body.');
+      return;
+    }
+    if (!code) {
+      setPublishStatus('Type the publish code — the feed checks it on its side.');
+      return;
+    }
+    setSending(true);
+    setPublishStatus('Sending…');
+    const result = await publishBroadcast(code, {
+      title: draftTitle,
+      body: draftBody,
+      priority: draftPriority,
+    });
+    setSending(false);
+    if (result.ok) {
+      setPublishStatus(`Sent — the feed carries it now (${result.id}). Players meet it within a minute or two.`);
+      setDraftTitle('');
+      setDraftBody('');
+    } else {
+      setPublishStatus(result.error);
+    }
+  };
+
   const itemRows = useMemo(() => filterSearchRows(ITEM_ROWS, itemQuery), [itemQuery]);
   const speciesRows = useMemo(() => filterSearchRows(SPECIES_ROWS, speciesQuery), [speciesQuery]);
 
   const clampCount = (n: number) => Math.max(1, Math.min(999, Math.floor(n) || 1));
+
+  // THE LOCKED FACE. A courtesy screen for shared machines
+  // (kitLock.ts carries the honest framing); the kit behind
+  // it is unchanged. Enter submits, like every door.
+  if (!unlocked) {
+    return (
+      <div className="pointer-events-auto fixed right-4 top-24 z-50 w-[21rem] rounded-2xl border border-emerald-900 bg-[#0c1210]/95 p-4 text-stone-200 shadow-2xl backdrop-blur">
+        <div className="mb-2 flex items-center justify-between">
+          <div className="text-sm font-bold uppercase tracking-widest text-emerald-300">Playtest Kit</div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md px-2 py-0.5 text-lg leading-none text-stone-400 hover:bg-emerald-950 hover:text-stone-100"
+            aria-label="Close Playtest Kit"
+          >
+            ×
+          </button>
+        </div>
+        <p className="text-sm text-stone-400">This kit is locked. Type the dev code to open it.</p>
+        <form
+          className="mt-3 space-y-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            tryUnlock();
+          }}
+        >
+          <input
+            type="password"
+            value={codeInput}
+            onChange={(e) => {
+              setCodeInput(e.target.value);
+              setUnlockError(false);
+            }}
+            placeholder="Dev code"
+            autoFocus
+            className="w-full rounded-md border border-emerald-900 bg-black/40 px-2 py-1.5 text-sm text-stone-200 placeholder:text-stone-600 outline-none focus:border-emerald-600"
+          />
+          {unlockError && <p className="text-[11px] text-rose-300">That code doesn't open it.</p>}
+          <label className="flex items-center gap-2 text-[11px] text-stone-400">
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
+              className="accent-emerald-600"
+            />
+            Remember this device (skips the prompt here; the publish code is still typed per send)
+          </label>
+          <button
+            type="submit"
+            className="w-full rounded-md bg-emerald-800/70 px-2 py-1.5 text-sm font-semibold text-emerald-100 transition-colors hover:bg-emerald-700/70"
+          >
+            Unlock
+          </button>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div className="pointer-events-auto fixed right-4 top-24 z-50 w-[21rem] max-h-[78vh] overflow-y-auto rounded-2xl border border-emerald-900 bg-[#0c1210]/95 p-4 text-stone-200 shadow-2xl backdrop-blur">
@@ -122,6 +248,29 @@ export function PlaytestKitPanel(props: PlaytestKitPanelProps) {
         </button>
       </div>
 
+      {/* Tabs (slice 4): the kit proper, and the System tab —
+          the broadcast composer + the kit-access controls. */}
+      <div className="mb-3 flex gap-1.5">
+        {(
+          [
+            ['kit', 'Kit'],
+            ['system', 'System'],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setTab(id)}
+            className={`flex-1 rounded-md px-2 py-1 text-xs font-bold uppercase tracking-widest transition-colors ${
+              tab === id ? 'bg-emerald-800/70 text-emerald-100' : 'bg-stone-800/60 text-stone-400 hover:text-stone-200'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'kit' ? (
       <div className="space-y-3">
         {/* THE KIT SWAP (dev lane, 2026-10-17): the old
           one-press pouch flip lives first, directly under
@@ -238,6 +387,98 @@ export function PlaytestKitPanel(props: PlaytestKitPanelProps) {
           <p className="mt-1 text-[11px] text-stone-500">Through the normal player-state writers. Nothing else is touched.</p>
         </Section>
       </div>
+      ) : (
+      <div className="space-y-3">
+        {/* THE COMPOSER (slice 4): write a broadcast, choose
+            its weight, send. The feed Worker's door checks
+            the publish code against its own secret — this
+            panel holds no key and grants nothing by itself;
+            without the door configured, the feed answers so
+            and the status line reports it plainly. */}
+        <Section title="Broadcast">
+          <input
+            value={draftTitle}
+            onChange={(e) => setDraftTitle(e.target.value)}
+            placeholder="Title"
+            maxLength={120}
+            className="w-full rounded-md border border-emerald-900 bg-black/40 px-2 py-1.5 text-sm text-stone-200 placeholder:text-stone-600 outline-none focus:border-emerald-600"
+          />
+          <textarea
+            value={draftBody}
+            onChange={(e) => setDraftBody(e.target.value)}
+            placeholder="The word itself — player voice, no spoilers."
+            maxLength={600}
+            rows={4}
+            className="mt-1.5 w-full rounded-md border border-emerald-900 bg-black/40 px-2 py-1.5 text-sm text-stone-200 placeholder:text-stone-600 outline-none focus:border-emerald-600"
+          />
+          <div className="mt-1.5 flex gap-1.5">
+            {(
+              [
+                ['panel', 'Panel — waits in the news'],
+                ['notice', 'Notice — also toasts once'],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setDraftPriority(id)}
+                className={`flex-1 rounded-md px-2 py-1 text-[11px] transition-colors ${
+                  draftPriority === id ? 'bg-sky-800/70 text-sky-100' : 'bg-stone-800/60 text-stone-400 hover:text-stone-200'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <input
+            type="password"
+            value={publishCode}
+            onChange={(e) => setPublishCode(e.target.value)}
+            placeholder={sessionCode ? 'Publish code (your unlock code, unless the feed’s differs)' : 'Publish code'}
+            className="mt-1.5 w-full rounded-md border border-emerald-900 bg-black/40 px-2 py-1.5 text-sm text-stone-200 placeholder:text-stone-600 outline-none focus:border-emerald-600"
+          />
+          <button
+            type="button"
+            disabled={sending}
+            onClick={() => void handleSend()}
+            className="mt-1.5 w-full rounded-md bg-sky-800/70 px-2 py-1.5 text-sm font-semibold text-sky-100 transition-colors hover:bg-sky-700/70 disabled:opacity-40"
+          >
+            {sending ? 'Sending…' : 'Send to every player'}
+          </button>
+          {publishStatus && <p className="mt-1 text-[11px] text-stone-400">{publishStatus}</p>}
+        </Section>
+
+        <Section title="Kit Access">
+          <label className="flex items-center gap-2 text-[11px] text-stone-400">
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(e) => {
+                setRemember(e.target.checked);
+                if (typeof localStorage !== 'undefined') saveKitRemembered(localStorage, e.target.checked);
+              }}
+              className="accent-emerald-600"
+            />
+            Remember this device
+          </label>
+          <button
+            type="button"
+            onClick={() => {
+              setUnlocked(false);
+              setSessionCode(null);
+              setTab('kit');
+            }}
+            className="mt-1.5 w-full rounded-md bg-stone-800/70 px-2 py-1.5 text-sm text-stone-300 transition-colors hover:bg-stone-700/70"
+          >
+            Lock the kit
+          </button>
+          <p className="mt-1 text-[11px] text-stone-500">
+            The lock is a courtesy screen for shared machines. The publishing door is the feed's own —
+            its code lives in the Worker's settings, never in the game.
+          </p>
+        </Section>
+      </div>
+      )}
     </div>
   );
 }

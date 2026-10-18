@@ -8,13 +8,20 @@
  *      OPTIONS button on the pause / Resume overlay), which lists
  *      every panel with an on/off switch.
  *
- * The arrangement is a DISPLAY preference, not world data: it is
- * per-device (Adam plays on his phone and on library PCs, and a
- * layout that suits one screen need not follow him to another), so
- * it persists in localStorage on this device only and never touches
- * the save file. Positions are stored as OFFSETS from each panel's
- * default anchor, so a layout survives resolution changes and the
- * periodic default-layout improvements below.
+ * The arrangement is a DISPLAY preference. It began per-device
+ * (localStorage only), and it still mirrors there — but since
+ * 2026-10-18 it ALSO rides the game save (Adam's pin: 'include
+ * UI positions in the save'), so each WORLD remembers its own
+ * arrangement and loading the world applies it. The hook is
+ * owned by App (hoisted) for exactly that reason: useSaveSession
+ * reads the state at save time and calls hydrate() at load when
+ * the record carries one; a record without one leaves the
+ * device arrangement standing. Positions are stored as OFFSETS
+ * from each panel's default anchor, so a layout survives
+ * resolution changes and the periodic default-layout
+ * improvements below. (When saves optionally move to a DB
+ * later, the layout travels inside the payload for free —
+ * that is the pin's forward half.)
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -31,7 +38,7 @@ export type HudPanelId =
   | 'quicknav'
   | 'hotbar'
   | 'reticle'
-  | 'system';
+;
 
 export interface HudPanelMeta {
   id: HudPanelId;
@@ -62,7 +69,9 @@ export const HUD_PANELS: HudPanelMeta[] = [
   { id: 'quicknav', label: 'Quick Nav', blurb: 'Bio-Forge · Pouch · Codex buttons (bottom bar, left).' },
   { id: 'hotbar', label: 'Tool Hotbar & Left Hand', blurb: 'The 1–7 tool slots and the Left Hand instrument slot (bottom bar, right).' },
   { id: 'reticle', label: 'Center Reticle', blurb: 'The aiming marker at true screen center.', toggleOnly: true },
-  { id: 'system', label: 'System Messages', blurb: 'The system stream: new-build word and rare messages from the grower (bottom of the left stack). Shown by default — a channel that starts hidden announces nothing.' },
+  // (No 'system' row: the stream panel retired 2026-10-18 —
+  // system word rides the co-op chat now. A stored layout
+  // carrying the old id just holds a dead key, harmless.)
 ];
 
 export interface HudOffset {
@@ -70,7 +79,7 @@ export interface HudOffset {
   y: number;
 }
 
-interface HudLayoutState {
+export interface HudLayoutState {
   hidden: Partial<Record<HudPanelId, boolean>>;
   offsets: Partial<Record<HudPanelId, HudOffset>>;
 }
@@ -95,6 +104,11 @@ const loadLayout = (): HudLayoutState => {
 };
 
 export interface HudLayout {
+  /** The raw arrangement — what the save record carries. */
+  state: HudLayoutState;
+  /** Replace the arrangement wholesale (world load: the save's
+   *  layout becomes the standing one). Persists like any change. */
+  hydrate: (next: HudLayoutState) => void;
   isHidden: (id: HudPanelId) => boolean;
   offsetOf: (id: HudPanelId) => HudOffset;
   /** Show or hide one panel (the Options switches and the ✕). */
@@ -109,6 +123,16 @@ export interface HudLayout {
 
 export const useHudLayout = (): HudLayout => {
   const [layout, setLayout] = useState<HudLayoutState>(loadLayout);
+
+  const hydrate = useCallback((next: HudLayoutState) => {
+    // Trust the shape, not the source: a record from another
+    // build could carry anything, so re-run the loader's
+    // tolerance over what arrives.
+    setLayout({
+      hidden: next?.hidden && typeof next.hidden === 'object' ? next.hidden : {},
+      offsets: next?.offsets && typeof next.offsets === 'object' ? next.offsets : {},
+    });
+  }, []);
 
   // Persist on every change. Drags fire this often, but the payload
   // is a few hundred bytes — cheaper than the bookkeeping of a
@@ -149,5 +173,5 @@ export const useHudLayout = (): HudLayout => {
     setLayout((prev) => ({ ...prev, offsets: {} }));
   }, []);
 
-  return { isHidden, offsetOf, setHidden, setOffset, showAll, resetPositions };
+  return { state: layout, hydrate, isHidden, offsetOf, setHidden, setOffset, showAll, resetPositions };
 };

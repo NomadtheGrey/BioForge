@@ -9,6 +9,19 @@ import type { WorldSnapshot } from './saveSystem';
 
 export const RELAY_BASE_URL = 'wss://bioforge-relay.nomadthegrey71.workers.dev';
 const MAX_SEEN_MESSAGE_IDS = 1000;
+
+/**
+ * CHAT VOICES (Adam, 2026-10-18): the two reserved speakers
+ * in the co-op chat. SYSTEM wears the sky blue and ADMIN
+ * the amber — both RESERVED out of the player palette below
+ * (they used to be dealable player colors), so no explorer's
+ * name can ever wear the system's voice or the grower's.
+ */
+export const SYSTEM_CHAT_COLOR = '#38bdf8';
+export const ADMIN_CHAT_COLOR = '#f59e0b';
+
+/** The player palette: six seats, sky and amber reserved. */
+const PLAYER_COLORS = ['#a855f7', '#34d399', '#ec4899', '#06b6d4', '#a3e635', '#fb7185'];
 const RELAY_RECONNECT_DELAY_MS = 3000;
 const PLAYER_NAME_STORAGE_KEY = 'bioforge_player_name';
 const MAX_PLAYER_NAME_LENGTH = 20;
@@ -115,8 +128,27 @@ export class MultiplayerManager {
     this.callbacks = callbacks;
     this.peerId = 'bio_' + Math.random().toString(36).substring(2, 9);
     this.playerName = this.loadPlayerName();
-    const colors = ['#38bdf8', '#a855f7', '#34d399', '#f59e0b', '#ec4899', '#06b6d4'];
-    this.playerColor = colors[Math.floor(Math.random() * colors.length)];
+    // Seat 0 until the roster says otherwise (refreshSeatColor).
+    this.playerColor = PLAYER_COLORS[0];
+  }
+
+  /**
+   * SEAT COLORS (Adam, 2026-10-18): a player's chat color is
+   * their seat at the table — the roster (own id + known peer
+   * ids, sorted) dealt over PLAYER_COLORS. Every client sees
+   * the same roster, so every screen computes the same colors
+   * with no protocol change; the color still rides presence
+   * and chat payloads exactly as before, now as a fact the
+   * room agrees on instead of a dice roll (two players could
+   * collide before). Seats reshuffle when the roster changes
+   * — a message already in the log keeps the color it was
+   * sent with, which is honest: it WAS their color then.
+   * Called wherever this manager learns or loses a peer.
+   */
+  private refreshSeatColor(): void {
+    const ids = [this.peerId, ...this.peers.keys()].sort();
+    const seat = Math.max(0, ids.indexOf(this.peerId));
+    this.playerColor = PLAYER_COLORS[seat % PLAYER_COLORS.length];
   }
 
   public setCallbacks(callbacks: MultiplayerCallbacks) {
@@ -188,6 +220,7 @@ export class MultiplayerManager {
       this.socket = null;
     }
     this.peers.clear();
+    this.refreshSeatColor();
     this.isConnected = false;
     this.isHost = false;
     this.roomCode = '';
@@ -325,6 +358,9 @@ export class MultiplayerManager {
           ping: 15,
         };
         this.peers.set(msg.senderId, peer);
+        // The roster moved: seats (and so chat colors) are
+        // redealt before the announcement below carries mine.
+        this.refreshSeatColor();
         if (alreadyKnown) break;
 
         this.callbacks.onPeerJoin?.(peer);
@@ -342,6 +378,7 @@ export class MultiplayerManager {
 
       case 'peer_leave': {
         this.peers.delete(msg.senderId);
+        this.refreshSeatColor();
         this.callbacks.onPeerLeave?.(msg.senderId);
         break;
       }

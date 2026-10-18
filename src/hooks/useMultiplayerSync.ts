@@ -16,8 +16,8 @@
  * verdicts.
  */
 
-import { useState, useEffect, useRef } from 'react';
-import { multiplayerManager, type EntityKind, type EntitySnapshot, type TunnelPairMouth } from '../game/multiplayer';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { multiplayerManager, ADMIN_CHAT_COLOR, SYSTEM_CHAT_COLOR, type EntityKind, type EntitySnapshot, type TunnelPairMouth } from '../game/multiplayer';
 import { soundEngine } from '../audio/soundEngine';
 import { routeForZoneTag, storeEntityEvent, type ZoneStores } from '../game/zoneSync';
 import { generateSeededWorld } from '../game/world/worldGen';
@@ -104,6 +104,14 @@ export interface UseMultiplayerSyncResult {
   handleJoinSession: (code: string) => void;
   handleLeaveSession: () => void;
   handleSendChatMessage: (text: string) => void;
+  /** The system fold (Adam, 2026-10-18): a system entry —
+   *  SYSTEM (automated) or ADMIN (the grower's broadcast) —
+   *  joins the chat log through the same sink as a player's
+   *  message. Local only: it never crosses the relay, because
+   *  every client derives it from the same feed. `toast`
+   *  false = log only (notice-level lines already raised
+   *  their notification toast upstream). */
+  appendSystemChat: (sender: 'SYSTEM' | 'ADMIN', text: string, opts?: { toast?: boolean }) => void;
 }
 
 export function useMultiplayerSync(deps: MultiplayerSyncDeps): UseMultiplayerSyncResult {
@@ -511,11 +519,33 @@ export function useMultiplayerSync(deps: MultiplayerSyncDeps): UseMultiplayerSyn
     ]);
   };
 
+  // The system fold (Adam, 2026-10-18): SYSTEM / ADMIN
+  // entries join the chat log in their reserved colors —
+  // the same sink a player's message lands in (log + toast),
+  // minus the relay: every client derives the same entries
+  // from the same feed, so sending them anywhere would only
+  // double them.
+  const appendSystemChat = useCallback((sender: 'SYSTEM' | 'ADMIN', text: string, opts?: { toast?: boolean }) => {
+    const color = sender === 'SYSTEM' ? SYSTEM_CHAT_COLOR : ADMIN_CHAT_COLOR;
+    setChatMessages((prev) => [
+      ...prev,
+      { sender, text, color, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
+    ]);
+    if (opts?.toast) {
+      const toastId = Date.now() + Math.random();
+      setChatToasts((prev) => [...prev.slice(-MAX_CHAT_TOASTS), { id: toastId, sender, text, color }]);
+      setTimeout(() => {
+        setChatToasts((prev) => prev.filter((t) => t.id !== toastId));
+      }, CHAT_TOAST_DURATION_MS);
+    }
+  }, []);
+
 
   return {
     roomCode, isHost, isConnected, peers, chatMessages, chatToasts, inviteRoomCode,
     guestTunnelPairRef,
     handleJoinCoopFromStart, handleHostSession, handleJoinSession, handleLeaveSession,
     handleSendChatMessage,
+    appendSystemChat,
   };
 }

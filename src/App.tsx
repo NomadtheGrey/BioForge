@@ -39,6 +39,8 @@ import { FirstPersonMovementController, ControllerInputState } from './game/engi
 import { useInventory } from './hooks/useInventory';
 import { useNotifications } from './hooks/useNotifications';
 import { useSystemFeed } from './hooks/useSystemFeed';
+import { useHudLayout } from './hooks/useHudLayout';
+import { projectSystemLines } from './game/systemChat';
 import { usePlayerState } from './hooks/usePlayerState';
 import { useWorldEntities, INITIAL_STRUCTURES } from './hooks/useWorldEntities';
 import { generateSeededWorld } from './game/world/worldGen';
@@ -210,6 +212,13 @@ export default function App() {
     onNotice: (line) =>
       postNotification(line.title ?? 'System', line.text, 'system', '#38bdf8', `system:${line.id}`),
   });
+
+  // HUD arrangement (Adam, 2026-10-18): the layout hook is
+  // owned HERE, not in HUD, because the arrangement now rides
+  // the game save — useSaveSession reads its state at save
+  // time and hydrates it at load (the shieldGrowth shape).
+  // HUD receives it as a prop, like everything else it shows.
+  const hudLayout = useHudLayout();
 
   const {
     playerState,
@@ -1507,6 +1516,7 @@ export default function App() {
     fieldNotesState,
     asksBackState,
     shieldGrowth,
+    hudLayout: hudLayout.state,
     dayNightCycle,
     restoreInventory,
     restorePlayerState,
@@ -1514,6 +1524,7 @@ export default function App() {
     setFieldNotesState,
     setAsksBackState,
     setShieldGrowth,
+    setHudLayout: hudLayout.hydrate,
     setDayNightCycle,
     setQuestProgress,
     replaceWorld,
@@ -1921,6 +1932,7 @@ const {
   guestTunnelPairRef,
   handleJoinCoopFromStart, handleHostSession, handleJoinSession, handleLeaveSession,
   handleSendChatMessage,
+  appendSystemChat,
 } = useMultiplayerSync({
   engineRef, playerPosRef, playerLevelRef, activeToolRef, currentZoneId,
   playerZone, inCavern, inRuin,
@@ -1948,6 +1960,22 @@ const {
     awMergeRef.current((s) => (s.tunnel ? s : { ...s, tunnel: true }));
   },
 });
+
+  // ------------------------------------------------------------------
+  // The system fold (Adam, 2026-10-18): the system stream's
+  // lines are projected into the co-op chat (SYSTEM / ADMIN)
+  // and forwarded once each, by id. The projection is pure
+  // (game/systemChat); the sink is the chat's own. Wiring
+  // only — the stream panel this replaces is retired.
+  // ------------------------------------------------------------------
+  const forwardedSystemChatRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    for (const entry of projectSystemLines(systemFeed.lines)) {
+      if (forwardedSystemChatRef.current.has(entry.id)) continue;
+      forwardedSystemChatRef.current.add(entry.id);
+      appendSystemChat(entry.sender, entry.text, { toast: !entry.notice });
+    }
+  }, [systemFeed.lines, appendSystemChat]);
 
   // ------------------------------------------------------------------
   // Ask the World — the doorstep remnant (Adam, 2026-10-16)
@@ -2842,7 +2870,7 @@ const {
       {/* Futuristic Botanical Tech HUD */}
       <HUD
         tutorial={tutorial}
-        systemFeed={systemFeed}
+        hudLayout={hudLayout}
         shieldGrowth={shieldGrowth}
         playerState={{
           ...playerState,

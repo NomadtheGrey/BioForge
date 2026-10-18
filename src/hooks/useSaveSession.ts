@@ -18,6 +18,7 @@
  */
 
 import { useRef, useState, useCallback, useEffect } from 'react';
+import type { HudLayoutState } from './useHudLayout';
 import type { BioForgeThreeEngine } from '../game/engine/threeEngine';
 import {
   AUTOSAVE_INTERVAL_MS, listSaveMetadata, deleteSavedGame, buildSavedGame,
@@ -101,6 +102,11 @@ export interface SaveSessionDeps {
    *  2026-10-17), saved under the record's `shieldGrowth` key. */
   shieldGrowth: ShieldGrowthMap;
   setShieldGrowth: (growth: ShieldGrowthMap) => void;
+  /** The HUD arrangement (Adam, 2026-10-18), saved under the
+   *  record's `hudLayout` key: App owns useHudLayout (hoisted)
+   *  and passes its state + hydrate in the shieldGrowth shape. */
+  hudLayout: HudLayoutState;
+  setHudLayout: (layout: HudLayoutState) => void;
   /**
    * S6 Movable Vaults: LAZY carry getter (the save timer's idiom —
    * saveNow reads the live carry at save time). The projection writes
@@ -119,8 +125,8 @@ export function useSaveSession(deps: SaveSessionDeps) {
     playerZoneRef, setPlayerZone, visitedZonesRef, worldSeedRef, setSessionSeed,
     cavePlantingsRef, resetInstanceState,
     floraList, faunaList, structuresList, droppedItems,
-    inventory, playerState, codexList, fieldNotesState, asksBackState, shieldGrowth, dayNightCycle,
-    restoreInventory, restorePlayerState, setCodexList, setFieldNotesState, setAsksBackState, setShieldGrowth, setDayNightCycle, setQuestProgress,
+    inventory, playerState, codexList, fieldNotesState, asksBackState, shieldGrowth, hudLayout, dayNightCycle,
+    restoreInventory, restorePlayerState, setCodexList, setFieldNotesState, setAsksBackState, setShieldGrowth, setHudLayout, setDayNightCycle, setQuestProgress,
     replaceWorld, enterFullscreenOnTouch, postNotification, getDebugStashRef,
     captureCavePlantings, plantingsKey,
     getCarryRef, getPlacementRotation,
@@ -150,12 +156,12 @@ export function useSaveSession(deps: SaveSessionDeps) {
   // one exists purely for save/snapshot assembly.)
   const latestStateRef = useRef({
     floraList, faunaList, structuresList, droppedItems,
-    inventory, playerState, codexList, fieldNotesState, asksBackState, shieldGrowth, dayNightCycle,
+    inventory, playerState, codexList, fieldNotesState, asksBackState, shieldGrowth, hudLayout, dayNightCycle,
   });
   useEffect(() => {
     latestStateRef.current = {
       floraList, faunaList, structuresList, droppedItems,
-      inventory, playerState, codexList, fieldNotesState, asksBackState, shieldGrowth, dayNightCycle,
+      inventory, playerState, codexList, fieldNotesState, asksBackState, shieldGrowth, hudLayout, dayNightCycle,
     };
   });
 
@@ -236,7 +242,7 @@ export function useSaveSession(deps: SaveSessionDeps) {
     // buildCurrentPlayerState is hoisted so the S6 projection below can
     // place the carried vault at the same player feet the record uses.
     const playerForSave = buildCurrentPlayerState();
-    const record = buildSavedGame(meta, buildWorldSnapshot(), getDebugStashRef().current ?? s.inventory, playerForSave, s.dayNightCycle, s.codexList, cavePlantingsRef.current, s.fieldNotesState, s.asksBackState, s.shieldGrowth);
+    const record = buildSavedGame(meta, buildWorldSnapshot(), getDebugStashRef().current ?? s.inventory, playerForSave, s.dayNightCycle, s.codexList, cavePlantingsRef.current, s.fieldNotesState, s.asksBackState, s.shieldGrowth, s.hudLayout);
     // Zone travel (2026-10-15): the record also carries every visited
     // zone's snapshot plus where the player is standing. The `world`
     // field above already holds the CURRENT zone's snapshot (the save
@@ -438,6 +444,11 @@ export function useSaveSession(deps: SaveSessionDeps) {
       // grafted shield loses its graft. restorePlayerState has
       // already stripped the old field from the player.
       setShieldGrowth(bulwarkFold.growth);
+      // The HUD arrangement (Adam, 2026-10-18): a record that
+      // carries one applies it — the world remembers its own
+      // furniture. A record without one leaves the device
+      // arrangement standing (older saves; first visits).
+      if (record.hudLayout) setHudLayout(record.hudLayout);
       setDayNightCycle(record.dayNightCycle);
       // Shelf 1 (sky phenomena): the restored world's clocks
       // include the sky calendar's — seed + creation day zero.

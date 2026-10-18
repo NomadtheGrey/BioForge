@@ -21,8 +21,9 @@
  */
 
 import React, { useState } from 'react';
-import { Play, Plus, Trash2, Users, Sprout, RefreshCw } from 'lucide-react';
+import { Play, Plus, Trash2, Users, Sprout, RefreshCw, Heart } from 'lucide-react';
 import { CreditsModal } from './CreditsModal';
+import { DONATE_URL } from '../game/links';
 import {
   GameDifficulty,
   SaveMetadata,
@@ -126,6 +127,21 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
             <p className="text-xs text-slate-400">Choose a world, or grow a new one</p>
           </div>
           <div className="ml-auto flex items-center gap-2">
+            {/* The Support door (Adam's seating call to the
+                HUD lane, 2026-10-18): the pair sits together —
+                Support beside Credits beside About, in the
+                header where a player browses before playing.
+                It renders only while DONATE_URL stands set
+                (game/links): the itch page lands at wrap, and
+                a donate button never precedes its page. */}
+            {DONATE_URL && (
+              <button
+                onClick={() => { if (DONATE_URL) window.open(DONATE_URL, '_blank', 'noopener'); }}
+                className="px-4 py-2 rounded-2xl text-[11px] font-tech font-bold text-rose-200 border border-rose-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <Heart className="w-3.5 h-3.5" /> SUPPORT
+              </button>
+            )}
             {/* The Credits door (Adam, 2026-10-18): beside
                 About in the menu header — the seat Adam
                 specified, beside Support/donate when that

@@ -25,6 +25,8 @@
 import React from 'react';
 import { X, Sprout, Hand, HardHat, Footprints, Shield, DoorOpen } from 'lucide-react';
 import { DepartureInfoModal, DEPARTURE_TEASER } from './DepartureInfoModal';
+import { CreditsModal } from './CreditsModal';
+import { DONATE_URL } from '../game/links';
 
 interface GameInfoModalProps {
   isOpen: boolean;
@@ -99,6 +101,7 @@ export const GameInfoModal: React.FC<GameInfoModalProps> = ({ isOpen, onClose })
   // not the activeModal union, so it carries its own listener
   // — the same pattern the HUD Options panel uses).
   const [departureOpen, setDepartureOpen] = React.useState(false);
+  const [creditsOpen, setCreditsOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (!isOpen) return;
@@ -240,6 +243,39 @@ export const GameInfoModal: React.FC<GameInfoModalProps> = ({ isOpen, onClose })
             </button>
           </div>
 
+          {/* Credits & Support (Adam's seating call to the
+              HUD lane, 2026-10-18): the Game Info screen is
+              the in-game door to the same pair the start
+              header carries — a returning player shouldn't
+              have to quit to the menu to find either. The
+              Support button renders only while DONATE_URL
+              stands set (game/links). */}
+          <div className="bg-slate-800/30 border border-slate-800 rounded-2xl px-4 py-3.5 space-y-2.5">
+            <h3 className="text-xs font-tech font-bold uppercase tracking-wider text-slate-100">
+              Who Grew This
+            </h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              BioForge was designed and developed by Adam, grown with AI assistance —
+              the whole story, the tools, and the playtesters stand in the credits.
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCreditsOpen(true)}
+                className="text-[11px] font-bold px-3 py-1.5 rounded-xl border border-cyan-500/50 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20 transition-colors"
+              >
+                CREDITS
+              </button>
+              {DONATE_URL && (
+                <button
+                  onClick={() => { if (DONATE_URL) window.open(DONATE_URL, '_blank', 'noopener'); }}
+                  className="text-[11px] font-bold px-3 py-1.5 rounded-xl border border-rose-500/50 bg-rose-500/10 text-rose-200 hover:bg-rose-500/20 transition-colors"
+                >
+                  SUPPORT BIOFORGE
+                </button>
+              )}
+            </div>
+          </div>
+
           <p className="text-center text-[11px] font-tech tracking-[0.25em] text-slate-500 pb-1">
             GROW · TAME · EXPLORE · BELONG
           </p>
@@ -250,6 +286,7 @@ export const GameInfoModal: React.FC<GameInfoModalProps> = ({ isOpen, onClose })
         onClose={() => setDepartureOpen(false)}
         showRoad={false}
       />
+      <CreditsModal isOpen={creditsOpen} onClose={() => setCreditsOpen(false)} />
     </div>
   );
 };

@@ -70,14 +70,14 @@ export const DEFAULT_BUILD_NOTES: BuildNotes = {
  * applied).
  */
 export const BUILD_NOTES: BuildNotes = {
-  // Cloud saves arrive (2026-10-18): the start screen's
-  // Saved Worlds panel gains its Cloud Saves row — opt-in,
-  // three words, the mirror on every save — plus the HUD
-  // lane's feedback door and the touch water-stance button.
-  title: 'Worlds that travel',
+  // Propagation + cave citizens (2026-10-18): every plant
+  // can be planted again — seed-bearers shed seed when
+  // picked, the rest plant from a piece of themselves —
+  // and the deep caves gain their first citizens.
+  title: 'Grow it again',
   lines: [
-    'Cloud saves are here — and entirely your choice. On the start screen, at the top of Saved Worlds, turn them on and the game shows you three words. From then on, every save on this device also sends a copy up, and on any other computer those same three words bring your worlds down. The save on your device stays the real one; the cloud is only its mirror.',
-    'Write the words down: they are the only key, and there is no password reset. Lose them and the cloud copies are lost — your worlds at home are never affected.',
-    'Two smaller doors opened too: FEEDBACK now stands in the session bar and the start header — tell the grower what broke or what you wish for — and on touch, the water module gains a thumb button in the water: swim, or walk the surface.',
+    'Every plant in the world can now be grown again. Pick a plant that bears seed and it sheds a seed or two by luck — a fed plant sheds more surely. Plants that would never seed — reeds, vines, jellies, the crystal growths — plant instead from a piece of themselves, and a piece only comes from dissolving the original: the cutting costs the plant.',
+    'The trowel\'s wheel now walks all your planting stock, seeds and pieces together, and either kind equips for the trowel straight from your pouch. A handful of plants stay the land\'s own — their stories say why, if you read them.',
+    'And the deep caves have citizens now. Something down there is shy of the light, and something else breathes slowly in the dark. Mind what swells.',
   ],
 };

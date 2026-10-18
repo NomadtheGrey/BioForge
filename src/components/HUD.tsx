@@ -670,7 +670,7 @@ export const HUD: React.FC<HUDProps> = ({
   } else if (descriptorTool?.id === 'builder') {
     descriptorExtra = `Selected Blueprint: ${ITEMS[selectedStructureType]?.name || selectedStructureType} — ×${countOf(selectedStructureType)} in pouch`;
   } else if (descriptorTool?.id === 'planter_trowel') {
-    descriptorExtra = `Selected Seed: ${ITEMS[selectedSeedId]?.name || selectedSeedId} — ×${countOf(selectedSeedId)} · Loaded Fertilizer: ${ITEMS[selectedFertilizerId]?.name || selectedFertilizerId} — ×${countOf(selectedFertilizerId)}`;
+    descriptorExtra = `Selected Planting: ${ITEMS[selectedSeedId]?.name || selectedSeedId} — ×${countOf(selectedSeedId)} · Loaded Fertilizer: ${ITEMS[selectedFertilizerId]?.name || selectedFertilizerId} — ×${countOf(selectedFertilizerId)}`;
   } else if (descriptorTool?.id === 'taming_lure') {
     descriptorExtra = `Bait: Sweet Nectar ×${countOf('sweet_nectar')} · Carapace Scale ×${countOf('carapace_scale')}`;
   }
@@ -920,7 +920,7 @@ export const HUD: React.FC<HUDProps> = ({
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-cyan-300 font-bold w-28">Wheel</span>
-                    <span className="text-slate-300">Cycle seed (trowel) / blueprint (builder)</span>
+                    <span className="text-slate-300">Cycle planting stock (trowel) / blueprint (builder)</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-cyan-300 font-bold w-28">↑ ↓</span>
@@ -1481,7 +1481,7 @@ export const HUD: React.FC<HUDProps> = ({
               touchMode ? 'max-w-[74vw] justify-start self-start' : 'max-w-[96vw] justify-center'
             }`}
           >
-            <span className="text-slate-400">Selected Seed:</span>
+            <span className="text-slate-400">Selected Planting:</span>
             <span className="font-tech font-bold text-emerald-300">
               {ITEMS[selectedSeedId]?.name || selectedSeedId}
             </span>

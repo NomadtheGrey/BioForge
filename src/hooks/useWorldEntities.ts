@@ -1857,7 +1857,92 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             }
           }
 
-          if (!isTamed && !hunterAlert && !staffEngaged && !deerBusy && !bearerBusy && !meadowBusy && !hawkBusy) {
+          // -------------------------------------------------------
+          // THE CAVE CITIZENS (creature Part 7, slice C1,
+          // 2026-10-18): the cavern instances' first fauna, dealt
+          // by depth in cavernFauna.ts. Both engines run on the
+          // social slots, and their shared busy flag holds the
+          // generic wander off below: the skitter's locomotion is
+          // its dealt roam, and the husk does not locomote at all.
+          // -------------------------------------------------------
+          let caveBusy = false;
+          let skitterBurst = false;
+          if (fauna.species === 'gloom_skitter' && !isTamed) {
+            caveBusy = true;
+            const roam = fauna.cavernRoam ?? [];
+            if (distToPlayer < 6) {
+              // LIGHT-SHY: the honest v1 of "it flees your
+              // lantern" — down here, the player's approach IS
+              // the light's edge. Bolt for the roam point
+              // farthest from the player, at burst speed; a
+              // skitter with nowhere verified to run cowers.
+              skitterBurst = true;
+              state = 'wandering';
+              let best: { x: number; z: number } | null = null;
+              let bestDist = -1;
+              for (const p of roam) {
+                const d = Math.hypot(p.x - playerX, p.z - playerZ);
+                if (d > bestDist) { bestDist = d; best = p; }
+              }
+              if (best && Math.hypot(best.x - x, best.z - z) > 0.5) {
+                targetX = best.x;
+                targetZ = best.z;
+              } else {
+                state = 'alert';
+                targetX = x;
+                targetZ = z;
+              }
+            } else if (
+              Math.hypot(targetX - x, targetZ - z) <= 0.4 &&
+              roam.length > 1 &&
+              Math.random() < 0.01
+            ) {
+              // At home and calm: now and then, drift to another
+              // point of the roam — cave life, at cave pace.
+              const next = roam[Math.floor(Math.random() * roam.length)];
+              targetX = next.x;
+              targetZ = next.z;
+              state = 'wandering';
+            }
+          }
+          if (fauna.species === 'spore_husk') {
+            caveBusy = true;
+            // THE BURST CYCLE, on the social slots: dormant ->
+            // swelling (the tell — 1.2 s worn openly while the
+            // player stands inside 3.2 m; step out and it
+            // subsides, the tell keeping its promise) -> burst
+            // (harm only where the difficulty arms it; the
+            // scatter pays either way) -> spent (45 s, deflated
+            // and harmless) -> dormant again.
+            state = 'idle';
+            targetX = x;
+            targetZ = z;
+            socialTimer += dt;
+            if (socialState === 'swelling') {
+              state = 'alert';
+              if (distToPlayer > 3.2) {
+                socialState = undefined;
+                socialTimer = 0;
+              } else if (socialTimer >= 1.2) {
+                if (distToPlayer <= 4.5) {
+                  if (attacksArmed) onFaunaAttack?.(fauna.species, 12, { faunaId: fauna.id, x, z });
+                  spawnDroppedItem('husk_spore', 2, x, z);
+                }
+                socialState = 'spent';
+                socialTimer = 0;
+              }
+            } else if (socialState === 'spent') {
+              if (socialTimer >= 45) {
+                socialState = undefined;
+                socialTimer = 0;
+              }
+            } else if (distToPlayer <= 3.2) {
+              socialState = 'swelling';
+              socialTimer = 0;
+            }
+          }
+
+          if (!isTamed && !hunterAlert && !staffEngaged && !deerBusy && !bearerBusy && !meadowBusy && !hawkBusy && !caveBusy) {
             state = 'wandering';
             // Restless wandering: standing at the target re-rolls fast
             // (short pauses, long roams); en route the re-roll stays rare
@@ -1963,7 +2048,9 @@ export function useWorldEntities(): UseWorldEntitiesResult {
                   ? fauna.speed * 1.2
                   : staffEngaged && distToPlayer > 10
                     ? fauna.speed * 1.7 // staff hurry back to heel — the hound does not tire, the usher does not lose you
-                    : fauna.speed;
+                    : skitterBurst
+                      ? fauna.speed * 1.7 // THE DART (Part 7): a light-shy skitter's whole speed budget, spent on elsewhere
+                      : fauna.speed;
             // The Hollow Hermit's schedule (slice 42): by day it
             // is scenery — a husk that does not walk while the
             // light is up, exactly as designed. It walks only in

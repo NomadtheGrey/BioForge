@@ -18,6 +18,7 @@
 
 import { useRef, useCallback, useEffect, useMemo, type Dispatch, type SetStateAction } from 'react';
 import { ITEMS, NON_BUILDABLE_STRUCTURE_IDS } from '../game/items/constants';
+import { isPropaguleItem } from '../game/flora/propagation';
 import { isFloorType } from '../game/structures/placement';
 import { TOOL_NAMES } from '../game/quests/quests';
 import { soundEngine } from '../audio/soundEngine';
@@ -150,10 +151,16 @@ export function useGameInput(deps: GameInputDeps) {
   // WHEEL cycles seeds (planting is its main verb) and ↑/↓ keep cycling
   // fertilizer as they already did. On the builder, both inputs cycle
   // the blueprint.
+  // The wheel carries PLANTING STOCK (propagation, 2026-10-18):
+  // every seed-category item, plus every species' PIECE
+  // propagule (a cutting or tuber is rarely a 'seed' by
+  // category — dew, a shard, the reed itself) — membership is
+  // the propagation data's word, so the wheel and the planter
+  // can never disagree about what plants.
   const seedCycle: ItemId[] = useMemo(
     () =>
       Object.values(ITEMS)
-        .filter((item) => item.category === 'seed')
+        .filter((item) => item.category === 'seed' || isPropaguleItem(item.id))
         .map((item) => item.id),
     []
   );

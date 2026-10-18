@@ -1,5 +1,5 @@
-import { ItemDef, ItemId, CraftingRecipe, CodexEntry, FaunaSpecies } from '../../types/game';
-import { FLORA_CODEX } from '../flora/flora';
+import { ItemDef, ItemId, CraftingRecipe, CodexEntry, FaunaSpecies, FloraSpecies } from '../../types/game';
+import { FLORA, FLORA_CODEX } from '../flora/flora';
 import { SPECIES } from '../creatures/species';
 
 // Creature Samples (Adam, 2026-10-15): one item per species —
@@ -24,7 +24,42 @@ const SAMPLE_ITEM_DEFS = Object.fromEntries(
   ]),
 ) as Record<`sample_${FaunaSpecies}`, ItemDef>;
 
+// Propagule Seeds (Adam's planting ruling, 2026-10-18): one
+// seed item per seed-bearing flora species — GENERATED from
+// the flora table off each def's `propagation: 'seed'` field,
+// the samples pattern, so a species and its seed can never
+// drift apart. Fungi bear spores in name. The six original
+// hand-written seed defs (lantern fern, sap weaver, petal
+// mill, snap trap, bell bloom, bounce shroom) keep their
+// bespoke copy: the hand-written entries sit AFTER this
+// spread in ITEMS and win their keys.
+const SEED_ITEM_DEFS = Object.fromEntries(
+  Object.values(FLORA)
+    .filter((def) => def.propagation === 'seed')
+    .map((def) => [
+      `seed_${def.id}`,
+      {
+        id: `seed_${def.id}` as ItemId,
+        // Fungi and ferns bear spores; everything else, seeds —
+        // the lantern fern's hand-written "Spore" set the taste.
+        name: `${def.name} ${def.kind === 'fungus' || def.id.includes('fern') ? 'Spores' : 'Seeds'}`,
+        category: 'seed',
+        description: def.kind === 'fungus' || def.id.includes('fern')
+          ? `Spores of the ${def.name} — plant them where its kind takes hold, and it rises again.`
+          : `Seeds of the ${def.name} — plant them where its kind takes hold, and it rises again.`,
+        iconName: def.kind === 'fungus' ? 'Sparkles' : 'Sprout',
+        color: '#4ade80',
+        rarity: 'common',
+        maxStack: 99,
+      } as ItemDef,
+    ]),
+) as Record<`seed_${FloraSpecies}`, ItemDef>;
+
 export const ITEMS: Record<ItemId, ItemDef> = {
+  // Generated propagule seeds FIRST: the six hand-written
+  // seed defs below (lantern fern onward) override their
+  // generated twins with bespoke copy.
+  ...SEED_ITEM_DEFS,
   // Raw Botanical Byproducts
   resin_sap: {
     id: 'resin_sap',
@@ -1754,6 +1789,29 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     iconName: 'Shield',
     color: '#8b5cf6',
     rarity: 'rare',
+    maxStack: 99,
+  },
+  // Cave citizens' yield (creatures C1 added the ids + loot;
+  // these defs complete the pair — without them ITEMS failed
+  // its Record<ItemId, ItemDef> completeness).
+  gloom_chitin: {
+    id: 'gloom_chitin',
+    name: 'Gloom Chitin',
+    category: 'raw',
+    description: 'Dark, light-drinking shell plate from the Gloom Skitters of the deep caves — it seems to swallow the lamplight that touches it.',
+    iconName: 'Shell',
+    color: '#4c1d95',
+    rarity: 'uncommon',
+    maxStack: 99,
+  },
+  husk_spore: {
+    id: 'husk_spore',
+    name: 'Husk Spore',
+    category: 'raw',
+    description: 'A heavy spore shed by Spore Husk colonies in the caverns — wept slowly by a living dome, or scattered when one bursts.',
+    iconName: 'Sparkle',
+    color: '#a16207',
+    rarity: 'uncommon',
     maxStack: 99,
   },
   prismatic_core: {

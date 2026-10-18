@@ -37,6 +37,7 @@ import { MOUND_FEED_MAX, MOUND_HARVEST_COST, MOUND_KINDS, resolveKindSpend, type
 import { bestWeapon } from '../game/creatures/weapons';
 import type { WeaponDef } from '../game/creatures/weapons';
 import { floraDef } from '../game/flora/flora';
+import { propaguleItemOf, propagatesBySeed, speciesForPropagule } from '../game/flora/propagation';
 import { GROUND_LAYER_TYPES, isEdgePanel, isLadder, occupancyConflict, placementFor } from '../game/structures/placement';
 /** S6 Movable Vaults: the inert-kit gate reads the live carry state. */
 import type { CarryState } from '../game/structures/movableVaults';
@@ -332,13 +333,13 @@ export function useToolInteractions({
     }
     switch (flora.species) {
       case 'lantern_fern':
-        return { item: 'soft_fiber', count: flora.fertilizedYield ? 5 : 2, extras: [['dew_essence', 1], ['seed_lantern_fern', 1]] };
+        return { item: 'soft_fiber', count: flora.fertilizedYield ? 5 : 2, extras: [['dew_essence', 1]] };
       case 'sap_weaver':
-        return { item: 'resin_sap', count: flora.fertilizedYield ? 6 : 3, extras: [['seed_sap_weaver', 1]] };
+        return { item: 'resin_sap', count: flora.fertilizedYield ? 6 : 3, extras: [] };
       case 'petal_mill':
-        return { item: 'vibrant_petal', count: flora.fertilizedYield ? 6 : 3, extras: [['sweet_nectar', 2], ['seed_petal_mill', 1]] };
+        return { item: 'vibrant_petal', count: flora.fertilizedYield ? 6 : 3, extras: [['sweet_nectar', 2]] };
       case 'snap_trap':
-        return { item: 'carapace_scale', count: 1, extras: [['seed_snap_trap', 1]] };
+        return { item: 'carapace_scale', count: 1, extras: [] };
       case 'bounce_shroom':
         // Harvesting a bounce-shroom gives its spore back (replant it
         // under another hole) plus the dew that collects on the cap.
@@ -474,6 +475,24 @@ export function useToolInteractions({
       };
       collect(yieldItem, yieldCount);
       extras.forEach(([extraId, extraCount]) => collect(extraId, extraCount));
+      // PROPAGATION (Adam's ruling, 2026-10-18): a seed-
+      // bearing species sheds seed on a glove harvest — 0-2
+      // by the land's luck (weighted ¼/½/¼), and a yield-
+      // fertilized plant sheds 1-2. Piece-propagated species
+      // shed nothing here: taking their piece costs the
+      // plant, which is the solvent's bargain, not the
+      // glove's. Species whose crop IS their seed (the
+      // bounce-shroom's spore) already paid out as the yield
+      // itself — never double-counted.
+      if (propagatesBySeed(flora.species)) {
+        const seedItem = propaguleItemOf(flora.species);
+        if (seedItem && seedItem !== yieldItem) {
+          const roll = flora.fertilizedYield
+            ? 1 + Math.floor(Math.random() * 2)
+            : (Math.random() < 0.25 ? 0 : Math.random() < 0.75 ? 1 : 2);
+          if (roll > 0) collect(seedItem, roll);
+        }
+      }
       // The Ask the World line hears about a successful harvest
       // (its garden quest reads the zone from App's side).
       onFloraHarvest?.(flora);
@@ -597,22 +616,22 @@ export function useToolInteractions({
     [setCodexList, postNotification]
   );
 
-  // Which species a seed item grows — the planter's ONE mapping,
-  // shared by the habitat guards and the planting code below, so the
-  // two can never disagree about what a seed becomes.
-  const speciesForSeed = (seedId: ItemId): FloraEntity['species'] => {
-    switch (seedId) {
-      case 'seed_sap_weaver': return 'sap_weaver';
-      case 'seed_petal_mill': return 'petal_mill';
-      case 'seed_snap_trap': return 'snap_trap';
-      case 'seed_bell_bloom': return 'bell_bloom';
-      case 'seed_bounce_shroom': return 'bounce_shroom';
-      case 'glow_spore':
-        // One spore stock, two forms: the cluster that rings surface
-        // cave mouths, and glow fungus in the cavern dark.
-        return instanceKind() === 'cavern' ? 'glow_fungus' : 'glow_spore_cluster';
-      default: return 'lantern_fern';
+  // Which species a planting item grows — the planter's ONE
+  // mapping, shared by the habitat guards and the planting
+  // code below, so the two can never disagree about what a
+  // seed (or piece) becomes. PROPAGATION (2026-10-18): the
+  // old 7-case switch + lantern-fern fallthrough is gone —
+  // the map is the species defs' propagation data (game/
+  // flora/propagation.ts), and an item that plants nothing
+  // resolves null instead of a phantom fern. The glow
+  // family's shared spore stock stays contextual: one stock,
+  // two forms — the cluster that rings surface cave mouths,
+  // and glow fungus in the cavern dark.
+  const speciesForSeed = (seedId: ItemId): FloraEntity['species'] | null => {
+    if (seedId === 'glow_spore') {
+      return instanceKind() === 'cavern' ? 'glow_fungus' : 'glow_spore_cluster';
     }
+    return speciesForPropagule(seedId);
   };
 
   // 3. Planter Trowel & Fertilizers
@@ -707,6 +726,14 @@ export function useToolInteractions({
         return;
       }
 
+      // Resolve BEFORE the pouch is touched: an item that
+      // plants nothing must never be eaten by the attempt.
+      const species: FloraEntity['species'] | null = speciesForSeed(selectedSeedId);
+      if (!species) {
+        postNotification('Nothing to Plant', 'That isn\'t planting stock — cycle the trowel to a seed or a plantable piece.', 'alert', '#ef4444');
+        return;
+      }
+
       if (!hasItem(selectedSeedId, 1)) {
         postNotification('No Seeds in Stock', `You need a ${ITEMS[selectedSeedId]?.name || selectedSeedId} to plant. Craft more in Bio-Forge [B].`, 'alert', '#ef4444');
         return;
@@ -714,8 +741,6 @@ export function useToolInteractions({
 
       deductInventoryItem(selectedSeedId, 1);
       soundEngine.playFertilize();
-
-      const species: FloraEntity['species'] = speciesForSeed(selectedSeedId);
 
       const newFlora: FloraEntity = {
         id: 'flora_' + Math.random().toString(36).substring(2, 9),
@@ -750,11 +775,10 @@ export function useToolInteractions({
         postNotification('Spore Planted', `Successfully cultivated ${ITEMS[selectedSeedId]?.name}. Water with fertilizer to accelerate!`, 'craft', '#4ade80');
       }
       // The World Asks Back (2026-10-16): the planting event for
-      // saga latching. Seed ids are `seed_<species>` — the prefix
-      // strips to the flora the quest text names.
-      if (selectedSeedId.startsWith('seed_')) {
-        recordAsksEvent?.({ kind: 'plant', flora: selectedSeedId.slice(5) });
-      }
+      // saga latching, keyed on the RESOLVED species — since
+      // propagation (2026-10-18) a piece plants as truly as a
+      // seed, and the saga hears both.
+      recordAsksEvent?.({ kind: 'plant', flora: species });
     },
     [selectedSeedId, selectedFertilizerId, hasItem, deductInventoryItem, applyFloraFertilizer, addFlora, postNotification, floraList, recordAsksEvent]
   );
@@ -861,42 +885,17 @@ export function useToolInteractions({
       soundEngine.playSolventSpray();
       triggerSolventFx(flora.x, flora.z);
 
-      // What dissolving reclaims as the plant's propagule. Most
-      // species have a seed_<species> item; the spore/crystal cave
-      // species reclaim their own harvest stock instead — there is
-      // no seed_glow_fungus item, and minting one here would drop a
-      // phantom item into the pouch.
-      const seedId: ItemId =
-        flora.species === 'glow_spore_cluster' || flora.species === 'glow_fungus'
-        || flora.species === 'antenna_shroom' || flora.species === 'visor_shroom' || flora.species === 'shelf_shroom'
-          ? 'glow_spore' // the fungal variant species spore-propagate too
-          : flora.species === 'sunshard_cluster'
-            ? 'sunshard'
-            : flora.species === 'prism_cluster'
-              ? 'prismatic_core'
-              : flora.species === 'mirror_lily'
-                ? 'dew_essence' // lilies spread by rhizome — dew is their stock
-                : flora.species === 'cinder_bloom'
-                  ? 'resin_sap' // no seed survives the vents; sap is the stock
-                  : flora.species === 'obsidian_bloom'
-                    ? 'obsidian_shard' // glass does not seed; a shard is the stock
-                    : flora.species === 'prism_reed'
-                      ? 'saltglass_shard' // crystal does not seed either
-                      : flora.species === 'rime_spire'
-                        ? 'nevermelt_ice' // ice does not seed; a carried piece is the stock
-                        : flora.species === 'heartroot'
-                          ? 'heartwood' // a cut heart is the stock; roots regrow from the giant, not from seed pouches
-                          : flora.species === 'precursor_bloom'
-                            ? 'living_thread' // grown thread is its own propagule
-                            : flora.species === 'gravebloom'
-                              ? 'bone_meal' // the bloom regrows from the country's stock, not a pouch
-                              : flora.species === 'stormcatcher'
-                                ? 'fulgurite_shard' // the storm regrows its glass
-                                : flora.species === 'dusk_grass'
-                                  ? 'soft_fiber' // valley grass regrows from the valley
-                                  : flora.species === 'heartbloom'
-                                    ? 'heart_sap' // and the heart regrows from the valley too
-                    : (`seed_${flora.species}` as ItemId);
+      // What dissolving reclaims as the plant's propagule —
+      // PROPAGATION data now (2026-10-18): the def's field
+      // names it (game/flora/propagation.ts). Seed-bearers
+      // reclaim their seed; the "wouldn't seed" species
+      // reclaim their piece (the rhizome's dew, the crystal's
+      // shard, the ice's carried piece — the old hand-chain's
+      // exceptions, preserved as data); wild-only species
+      // reclaim no propagule at all. A propagule whose item
+      // doesn't exist is skipped by the ITEMS checks below,
+      // exactly as before.
+      const seedId: ItemId | null = propaguleItemOf(flora.species);
       const rawName = flora.species.replace(/_/g, ' ');
       const speciesName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
 
@@ -913,14 +912,14 @@ export function useToolInteractions({
         collect(item, count);
         extras.forEach(([extraId, extraCount]) => collect(extraId, extraCount));
         collect('basic_compost', 1); // trimmings, same as a glove harvest
-        if (ITEMS[seedId]) collect(seedId, 1);
+        if (seedId && ITEMS[seedId]) collect(seedId, 1);
         postNotification(
           'Plant Dissolved',
           `${speciesName} reclaimed: ${formatCollected(collected)}.`,
           'craft',
           '#38bdf8'
         );
-      } else if (ITEMS[seedId]) {
+      } else if (seedId && ITEMS[seedId]) {
         addInventoryItem(seedId, 1);
         postNotification(
           'Plant Dissolved',

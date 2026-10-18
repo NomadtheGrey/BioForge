@@ -37,44 +37,40 @@ class SoundEngine {
     return this.isMuted;
   }
 
+  /**
+   * THE AMBIENT DRONE IS RETIRED (Adam's ruling, 2026-10-18 —
+   * delivered twice: 'get rid of the hum'). What this method
+   * used to start was a constant 110 Hz sine + 165 Hz triangle
+   * through a resonant low-pass, running from world entry to
+   * exit, on its own context, outside every mix the player
+   * controls. It survived the new sound system's own drone
+   * being cut precisely because it lived here, in the old
+   * engine — Adam found it by ear: muting THIS engine (the
+   * HUD's mute button) killed the hum while the new music
+   * played on. The method remains because the game loop
+   * calls it; it now only ever tears a legacy instance down.
+   * (The original stored just one of its two oscillators, so
+   * a hum started by an older build in a long-lived tab ends
+   * at that tab's next refresh — the boundary every update
+   * crosses anyway.)
+   */
   public startAmbient() {
-    if (this.isAmbientPlaying || this.isMuted) return;
+    this.stopAmbient();
+  }
+
+  public stopAmbient() {
     try {
-      this.initCtx();
-      if (!this.ctx) return;
-
-      const osc = this.ctx.createOscillator();
-      const osc2 = this.ctx.createOscillator();
-      const filter = this.ctx.createBiquadFilter();
-      const gain = this.ctx.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(110, this.ctx.currentTime); // A2 deep drone
-
-      osc2.type = 'triangle';
-      osc2.frequency.setValueAtTime(164.81, this.ctx.currentTime); // E3 warm fifth
-
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(450, this.ctx.currentTime);
-      filter.Q.setValueAtTime(3, this.ctx.currentTime);
-
-      gain.gain.setValueAtTime(0.035, this.ctx.currentTime);
-
-      osc.connect(filter);
-      osc2.connect(filter);
-      filter.connect(gain);
-      gain.connect(this.ctx.destination);
-
-      osc.start();
-      osc2.start();
-
-      this.ambientOsc = osc;
-      this.ambientFilter = filter;
-      this.ambientGain = gain;
-      this.isAmbientPlaying = true;
+      this.ambientOsc?.stop();
     } catch {
-      // Audio context may need gesture
+      // Already stopped — teardown is idempotent.
     }
+    this.ambientOsc?.disconnect();
+    this.ambientFilter?.disconnect();
+    this.ambientGain?.disconnect();
+    this.ambientOsc = null;
+    this.ambientFilter = null;
+    this.ambientGain = null;
+    this.isAmbientPlaying = false;
   }
 
   // Harvest Non-Lethal Flora Chime

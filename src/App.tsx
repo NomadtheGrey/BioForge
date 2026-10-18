@@ -39,6 +39,7 @@ import { FirstPersonMovementController, ControllerInputState } from './game/engi
 import { useInventory } from './hooks/useInventory';
 import { useNotifications } from './hooks/useNotifications';
 import { useSystemFeed } from './hooks/useSystemFeed';
+import { loadAudioSettings, setMasterOnExternal } from './hooks/useAudioSettings';
 import { useHudLayout } from './hooks/useHudLayout';
 import { useAudioEngine, type AudioSnapshot } from './hooks/useAudioEngine';
 import { projectSystemLines } from './game/systemChat';
@@ -403,7 +404,12 @@ export default function App() {
     }
   }, [recordAsksEvent]);
   const [dayNightCycle, setDayNightCycle] = useState<number>(0.35);
-  const [isMuted, setIsMuted] = useState(false);
+  // The mute button's truth is the SOUND shelf's Master
+  // switch (2026-10-18): it used to flip a private flag in
+  // the legacy engine, which silenced its ambient hum and
+  // nothing else — Adam caught the incoherence by ear. The
+  // button now flips the Master, and every engine obeys it.
+  const [isMuted, setIsMuted] = useState(() => !loadAudioSettings().master.on);
   const [isPointerLocked, setIsPointerLocked] = useState(false);
   // Touch-first devices (phones, tablets) have NO pointer lock —
   // mouse-look's lock simply doesn't exist there. On such a device
@@ -2975,8 +2981,9 @@ const {
         }}
         isMuted={isMuted}
         onToggleMute={() => {
-          const next = soundEngine.toggleMute();
-          setIsMuted(next);
+          const muted = !isMuted;
+          setIsMuted(muted);
+          setMasterOnExternal(!muted);
         }}
         isPointerLocked={isPointerLocked}
         isReturnPaused={returnPaused}

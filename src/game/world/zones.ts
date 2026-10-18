@@ -325,6 +325,19 @@ export function zoneInfo(seedStr: string, zx: number, zz: number): ZoneInfo {
  * edge label names the country beyond the nearest border within
  * 10 m, under the same tiers.
  */
+/**
+ * DISPLAY Z (Adam, 2026-10-18): under the hood, north is −Z —
+ * the engine's settled convention (see the border table
+ * below), and nothing in generation, travel, or saves moves.
+ * But the SCREEN reads like latitude: north positive, so the
+ * zone one step north of spawn reads "Zone 0, 1", not
+ * "Zone 0, -1". Every player-facing Z readout (the zone
+ * label, the minimap's position line, its hover readout)
+ * negates through this one helper so the numbers on screen
+ * can never disagree with each other.
+ */
+export const displayZ = (z: number): number => -z;
+
 export interface ZoneHudLabels {
   name: string;
   biomeLabel: string | null;
@@ -339,7 +352,7 @@ export function zoneHudLabels(
   playerZ: number,
   readTier: 0 | 1 | 2,
 ): ZoneHudLabels {
-  const coordsLabel = `Zone ${zone.zx}, ${zone.zz}`;
+  const coordsLabel = `Zone ${zone.zx}, ${displayZ(zone.zz)}`;
   if (!seed) {
     return { name: 'Starting Zone', biomeLabel: null, coordsLabel, edgeLabel: null };
   }

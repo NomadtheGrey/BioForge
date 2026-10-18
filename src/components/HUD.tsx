@@ -76,6 +76,9 @@ const CycleButtons: React.FC<{
 };
 
 interface HUDProps {
+  /** The HUD arrangement, owned by App (it rides the save —
+   *  see useHudLayout). This component only reads/writes it. */
+  hudLayout: HudLayout;
   playerState: PlayerState;
   /** The shields' own growth record (Adam's relocation,
    *  2026-10-17) — the Left Hand tile names the held shield's
@@ -199,7 +202,7 @@ interface HUDProps {
 import { QuestTracker } from './QuestTracker';
 import type { QuestProgressView } from '../game/quests/quests';
 import { MODULE_FOR_TOOL, gearTierOf } from '../game/quests/quests';
-import { useHudLayout, type HudPanelId } from '../hooks/useHudLayout';
+import { type HudLayout, type HudPanelId } from '../hooks/useHudLayout';
 import { useAudioSettings } from '../hooks/useAudioSettings';
 import { HudPanel } from './HudPanel';
 import { TutorialChrome } from './TutorialChrome';
@@ -295,6 +298,7 @@ const SessionStats: React.FC = () => {
 };
 
 export const HUD: React.FC<HUDProps> = ({
+  hudLayout,
   playerState,
   shieldGrowth,
   onSelectTool,
@@ -355,11 +359,9 @@ export const HUD: React.FC<HUDProps> = ({
   fauna = [],
   flora = [],
 }) => {
-  // HUD arrangement (Adam, 2026-10-16): which panels are shown and
-  // where the player has dragged them. Owned by useHudLayout and
-  // persisted per-device; the pause overlay's OPTIONS button opens
-  // the HudOptionsPanel that restores anything hidden from here.
-  const hudLayout = useHudLayout();
+  // The HUD arrangement (which panels show, where they were
+  // dragged) arrives as the hudLayout prop — App owns the hook
+  // since the arrangement rides the game save (2026-10-18).
   // The mix shelf (Adam, 2026-10-17): the Options screen's SOUND
   // section reads and writes it; the audio engine will read it.
   const audioSettings = useAudioSettings();

@@ -25,6 +25,7 @@ import { WORLD_GEN_VERSION } from './world/worldGen';
 import type { FieldNotesState } from './knowledge/fieldNotesBook';
 import { EMPTY_ASKS_BACK, type AsksBackState } from './quests/asksBackState';
 import type { ShieldGrowthMap } from './creatures/shields';
+import type { HudLayoutState } from '../hooks/useHudLayout';
 import type { ZoneCoords } from './world/zones';
 import {
   CodexEntry,
@@ -132,6 +133,16 @@ export interface SavedGameRecord extends SaveMetadata {
    *  in and the old field is never written again. NO
    *  version bump. */
   shieldGrowth?: ShieldGrowthMap;
+  /** The HUD arrangement (Adam, 2026-10-18: 'include UI
+   *  positions in the save'): which panels are hidden and the
+   *  drag offsets, exactly the shape useHudLayout keeps. Each
+   *  world remembers its own furniture; loading applies it,
+   *  and the device mirror in localStorage remains the
+   *  start-screen fallback. Optional: older records carry
+   *  none and the device arrangement stands. NO version bump
+   *  — and when saves optionally move to a DB later, this
+   *  rides inside the payload untouched. */
+  hudLayout?: HudLayoutState;
   /** Flora the PLAYER planted inside cavern instances, keyed by the
    * cavern's instanceId (Adam, 2026-10-14: planted cave plants persist
    * per-cave). The wild instance flora is NOT stored — instances
@@ -286,7 +297,8 @@ export function buildSavedGame(
   cavePlantings?: Record<string, FloraEntity[]>,
   fieldNotes?: FieldNotesState,
   asksBack?: AsksBackState,
-  shieldGrowth?: ShieldGrowthMap
+  shieldGrowth?: ShieldGrowthMap,
+  hudLayout?: HudLayoutState
 ): SavedGameRecord {
   return {
     ...metadata,
@@ -306,5 +318,8 @@ export function buildSavedGame(
     asksBack: asksBack ?? EMPTY_ASKS_BACK,
     // The shields' growth records ride their own key (2026-10-17).
     shieldGrowth: shieldGrowth ?? {},
+    // The HUD arrangement rides its own key (2026-10-18): as
+    // given — the record simply lacks it when never supplied.
+    hudLayout,
   };
 }

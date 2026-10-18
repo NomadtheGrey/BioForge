@@ -39,6 +39,7 @@ import { FirstPersonMovementController, ControllerInputState } from './game/engi
 import { useInventory } from './hooks/useInventory';
 import { useNotifications } from './hooks/useNotifications';
 import { useSystemFeed } from './hooks/useSystemFeed';
+import { useHudLayout } from './hooks/useHudLayout';
 import { projectSystemLines } from './game/systemChat';
 import { usePlayerState } from './hooks/usePlayerState';
 import { useWorldEntities, INITIAL_STRUCTURES } from './hooks/useWorldEntities';
@@ -211,6 +212,13 @@ export default function App() {
     onNotice: (line) =>
       postNotification(line.title ?? 'System', line.text, 'system', '#38bdf8', `system:${line.id}`),
   });
+
+  // HUD arrangement (Adam, 2026-10-18): the layout hook is
+  // owned HERE, not in HUD, because the arrangement now rides
+  // the game save — useSaveSession reads its state at save
+  // time and hydrates it at load (the shieldGrowth shape).
+  // HUD receives it as a prop, like everything else it shows.
+  const hudLayout = useHudLayout();
 
   const {
     playerState,
@@ -1508,6 +1516,7 @@ export default function App() {
     fieldNotesState,
     asksBackState,
     shieldGrowth,
+    hudLayout: hudLayout.state,
     dayNightCycle,
     restoreInventory,
     restorePlayerState,
@@ -1515,6 +1524,7 @@ export default function App() {
     setFieldNotesState,
     setAsksBackState,
     setShieldGrowth,
+    setHudLayout: hudLayout.hydrate,
     setDayNightCycle,
     setQuestProgress,
     replaceWorld,
@@ -2860,6 +2870,7 @@ const {
       {/* Futuristic Botanical Tech HUD */}
       <HUD
         tutorial={tutorial}
+        hudLayout={hudLayout}
         shieldGrowth={shieldGrowth}
         playerState={{
           ...playerState,

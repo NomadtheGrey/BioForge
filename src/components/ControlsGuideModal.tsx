@@ -78,6 +78,15 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({
                 <span className="text-slate-300">Sprint</span>
                 <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold">Double-tap W</span>
               </div>
+              {/* The water module's stance key (background lane's
+                  consolidation, 2026-10-18): Quicksteps' second
+                  growth holds the step on water; F trades it for
+                  the swim, and back — only in the water, where
+                  the in-game hint also names it. */}
+              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex justify-between items-center">
+                <span className="text-slate-300">Water Module — switch between swimming and walking the water (second growth, in the water)</span>
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold">F</span>
+              </div>
               <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex justify-between items-center">
                 <span className="text-slate-300">Cycle Seed / Blueprint (wheel) · Fertilizer / Blueprint (arrows, with the trowel or builder in hand)</span>
                 <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold">Mouse Wheel · ↑ ↓</span>

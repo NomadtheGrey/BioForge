@@ -94,24 +94,38 @@ treats any failure as silence.
   drafts) are review surface like all copy: tease, never
   name a fate or an ending.
 
-## Slice 4 — the publishing kit (Adam's rulings, 2026-10-18; NOT yet a build order)
+## Slice 4 — the publishing kit (Adam's rulings, 2026-10-18; BUILT 2026-10-18)
 
-Ruled, and built when its turn comes (after slices 1–3 and
-Adam's feed-setup steps):
+Built the day it was ordered, once slices 1–3 and the feed
+stood live. As built:
 
-- **The Playtest Kit gets a lock**: the tilde prompts for a
-  code. Its scrambled fingerprint (hash) is baked in the
-  build; unlock is session-only by default, with a
-  remember-this-device option Adam controls.
-- **The composer lives in the kit's System tab**: write a
-  broadcast, choose panel/notice, send.
-- **Publishing is two-door**: the typed code is forwarded
-  to the feed Worker and checked against a Worker-side
-  secret (instantly rotatable, throttled) — OR a Cloudflare
-  Access email session (Adam is creating a BioForge-specific
-  email for the allow-list; sessions kept short, a few
-  hours, because he plays from library PCs).
+- **The Playtest Kit gets a lock** (`kitLock.ts` +
+  the panel's locked face): the backquote prompts for a
+  code. Its fingerprint — an iterated FNV-1a hash — is
+  baked in the build; the code itself appears nowhere in
+  the game. Unlock is session-only by default;
+  remember-this-device is a localStorage flag Adam
+  controls (a convenience, documented in the code as
+  exactly that). The shipped fingerprint is a
+  PLACEHOLDER's until Adam's real dev code is relayed —
+  the swap is a one-line commit.
+- **The composer lives in the kit's System tab**: title,
+  body, panel/notice, a publish-code field (prefilled from
+  this session's unlock; the code itself is never stored),
+  send — with the feed's verdict reported plainly.
+- **Publishing is two-door**: door one is BUILT — the
+  typed code is forwarded to the feed Worker
+  (`POST /publish`) and checked against the Worker's
+  PUBLISH_CODE secret (Adam sets it in the dashboard; it
+  never travels through a repo or a chat; rotatable in
+  seconds; KV-throttled at 15 s / 10-per-hour; broadcasts
+  stored newest-first, capped at 20). Door two — a
+  Cloudflare Access email session (bioforge.game@gmail.com
+  is the allow-list identity) — remains the recorded
+  spare, unbuilt.
 - **No secret of any publish value ever ships in the
   bundle.** The kit's lock is a courtesy screen for a shared
-  machine; the real doors are the Worker's. A composer
-  without a valid door is furniture.
+  machine; the real door is the Worker's. A composer
+  without a valid door is furniture — and right now the
+  door stands shut (503, honestly worded) until Adam sets
+  the secret.

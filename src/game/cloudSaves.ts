@@ -42,6 +42,19 @@ export const CLOUD_SAVES_URL = 'https://bioforge-saves.nomadthegrey71.workers.de
  *  and only ever as the request's secret header). */
 export const CLOUD_WORDS_STORAGE_KEY = 'bioforge.cloudWords.v1';
 
+/** The mirror's last successful trip up (epoch ms), kept in
+ *  localStorage so the start screen's row can say "last
+ *  copy up: …" as a fact rather than a promise. */
+export const CLOUD_LAST_SYNC_KEY = 'bioforge.cloudLastSync.v1';
+
+/** Stamp a successful mirror trip (called by the save
+ *  funnel's mirror line; failure to stamp is harmless). */
+export function noteCloudSyncSuccess(): void {
+  try {
+    window.localStorage.setItem(CLOUD_LAST_SYNC_KEY, String(Date.now()));
+  } catch { /* the stamp is a courtesy, never a gate */ }
+}
+
 /**
  * The canonical passphrase: lowercase, single spaces,
  * exactly three list-shaped words (3–8 letters each). The

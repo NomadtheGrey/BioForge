@@ -29,9 +29,11 @@ import type { UseSystemFeedResult } from '../hooks/useSystemFeed';
 import { activeBroadcasts } from '../game/systemFeed';
 import { DonateButton } from './DonateButton';
 import { FeedbackModal } from './FeedbackModal';
+import { CloudSavesPanel } from './CloudSavesPanel';
 import {
   GameDifficulty,
   SaveMetadata,
+  SavedGameRecord,
   MAX_SAVE_NAME_LENGTH,
   MAX_WORLD_SEED_LENGTH,
   generateWorldSeed,
@@ -43,6 +45,11 @@ interface StartScreenModalProps {
   onSelectSave: (id: string) => void;
   onCreateSave: (name: string, difficulty: GameDifficulty, worldSeed: string) => void;
   onDeleteSave: (id: string) => void;
+  /** Cloud saves (phase 2c): lands a downloaded record as
+   *  a NEW local save. Optional in the established pattern —
+   *  the Cloud Saves panel heads Saved Worlds only once
+   *  App wires the importer. */
+  onCloudImport?: (record: SavedGameRecord) => void;
   onJoinCoop: () => void;
   // The About screen's first door (info screen work order,
   // 2026-10-17): a new player meets the primer before spawn.
@@ -89,6 +96,7 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
   onSelectSave,
   onCreateSave,
   onDeleteSave,
+  onCloudImport,
   onJoinCoop,
   onOpenAbout,
   systemFeed,
@@ -207,6 +215,10 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
 
         {/* Body */}
         <div className="flex-1 p-6 space-y-6 overflow-y-auto">
+          {/* Cloud saves (phase 2c): the panel heads Saved
+              Worlds by Adam's ruling — worlds are chosen
+              here, so their traveling papers live here. */}
+          {onCloudImport && <CloudSavesPanel onImport={onCloudImport} />}
           {/* ------------------------------------------------------------ */}
           {/* Saved worlds                                                  */}
           {/* ------------------------------------------------------------ */}

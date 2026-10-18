@@ -1572,7 +1572,7 @@ export default function App() {
   const {
     hasStarted, setHasStarted, saveList, currentSaveRef, latestStateRef,
     buildWorldSnapshot, buildCurrentPlayerState, saveNow,
-    applySavedGame, handleSelectSave, handleCreateSave, handleDeleteSave, handleManualSave,
+    applySavedGame, handleSelectSave, handleCreateSave, handleDeleteSave, handleImportCloudSave, handleManualSave,
   } = useSaveSession({
     engineRef,
     playerPosRef,
@@ -3345,6 +3345,7 @@ const {
         onSelectSave={handleSelectSave}
         onCreateSave={handleCreateSave}
         onDeleteSave={handleDeleteSave}
+        onCloudImport={handleImportCloudSave}
         onJoinCoop={handleJoinCoopFromStart}
         onOpenAbout={() => setShowAbout(true)}
         systemFeed={systemFeed}

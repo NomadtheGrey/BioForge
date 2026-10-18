@@ -202,7 +202,13 @@ const FIGURE_BEATS = [1, 1, 2, 1, 1, 2, 3, 4];
 // ---------------------------------------------------------------------------
 
 const LOOKAHEAD = 0.8; // schedule this far ahead of the clock
-const G = { drone: 0.05, pad: 0.042, motif: 0.085, glass: 0.065, guest: 0.05, hearth: 0.04 };
+// First-pass levels were a WHISPER at real speakers (field
+// report, day one: 'day 3, noon, unmuted — and nothing'): the
+// peaks below are the ear-tuned second pass — motif and glass
+// roughly doubled, pads likewise, the drone still the floor.
+// The quiet end stays honest: sparse families stay sparse in
+// TIME (long rests), not in loudness (inaudible notes).
+const G = { drone: 0.08, pad: 0.085, motif: 0.15, glass: 0.12, guest: 0.08, hearth: 0.07 };
 
 export class MusicDirector {
   private mc: MusicContext | null = null;
@@ -334,7 +340,7 @@ export class MusicDirector {
       if (mc.biome === 'wetland' && (mc.comet || mc.shower) && mc.night > 0.3) {
         scheduleTone({
           bus: 'music', voice: 'breath', freq: 300, at, dur: 12,
-          gain: 0.05, bright: 0.5,
+          gain: 0.09, bright: 0.5,
         });
       }
     }
@@ -492,20 +498,62 @@ export class MusicDirector {
       for (const deg of [0, 7, third]) {
         scheduleTone({
           bus: 'music', voice: 'reed', freq: midiHz(spec.root + 12 + deg),
-          at, dur: 13, gain: 0.05 * gainMul, bright: 0.4,
+          at, dur: 13, gain: 0.085 * gainMul, bright: 0.4,
         });
       }
       scheduleTone({
         bus: 'music', voice: 'thrum', freq: midiHz(spec.root),
-        at, dur: 12, gain: 0.045 * gainMul, bright: 0.25,
+        at, dur: 12, gain: 0.07 * gainMul, bright: 0.25,
       });
       scheduleTone({
         bus: 'music', voice: 'breath', freq: 240, at: at + 2, dur: 9,
-        gain: 0.028 * gainMul, bright: 0.4,
+        gain: 0.05 * gainMul, bright: 0.4,
       });
       if (swell) this.swellNight = mc.dayIndex;
-      // Minutes per breath; slower at night.
-      this.nextBreath = at + 24 + night * 10;
+      // Minutes per breath; slower at night. (Second pass:
+      // the first pass's breaths stood so far apart that the
+      // valley could read as silent — closer together now.)
+      this.nextBreath = at + 18 + night * 8;
     }
   }
+}
+
+
+// ---------------------------------------------------------------------------
+// The live readout — the Options SOUND section (and any future
+// kit surface) asks the standing director how the music is.
+// A silent world should be able to say why: wrong posture
+// (the scar), a sparse family resting, or a dead context are
+// three different silences with three different fixes.
+// ---------------------------------------------------------------------------
+
+let activeDirector: MusicDirector | null = null;
+export function setActiveDirector(d: MusicDirector | null): void {
+  activeDirector = d;
+}
+
+export interface DirectorDebug {
+  family: string;
+  secondary: string | null;
+  posture: string;
+  zone: string;
+  nextPhraseInSec: number | null;
+  night: number;
+}
+
+export function directorDebug(): DirectorDebug | null {
+  const d = activeDirector;
+  if (!d) return null;
+  const mc = (d as unknown as { mc: MusicContext | null }).mc;
+  if (!mc) return null;
+  const now = audioCtx()?.currentTime ?? 0;
+  const next = (d as unknown as { nextPhrase: number }).nextPhrase;
+  return {
+    family: mc.biome,
+    secondary: mc.secondary,
+    posture: (d as unknown as { posture: string }).posture,
+    zone: `${mc.zx},${mc.zz}`,
+    nextPhraseInSec: next > 0 ? Math.max(0, Math.round(next - now)) : null,
+    night: Math.round(mc.night * 100) / 100,
+  };
 }

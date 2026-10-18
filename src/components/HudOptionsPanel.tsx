@@ -18,10 +18,49 @@
  * shelf the generative audio program will read when it lands.
  */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { LayoutPanelTop, RotateCcw, Eye, Volume2, X } from 'lucide-react';
 import { HUD_PANELS, type HudLayout } from '../hooks/useHudLayout';
-import { AUDIO_CHANNELS, type AudioSettings } from '../hooks/useAudioSettings';
+import { AUDIO_CHANNELS, effectiveGain, type AudioSettings } from '../hooks/useAudioSettings';
+import { audioCtxState, musicBusLevel } from '../game/engine/synthCore';
+import { directorDebug } from '../game/engine/musicDirector';
+
+/**
+ * The SOUND section's live readout (2026-10-18, after the
+ * day-one field report — noon, unmuted, and silence): the
+ * engine states its own facts once a second, so 'I hear
+ * nothing' becomes a diagnosis instead of a guessing chain.
+ * A context that never woke, a posture holding the scar's
+ * silence, and a sparse family mid-rest are three different
+ * silences — this line tells them apart.
+ */
+const AudioReadout: React.FC<{ audio: AudioSettings }> = ({ audio }) => {
+  const [, setBeat] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setBeat((b) => b + 1), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  const state = audioCtxState();
+  const dbg = directorDebug();
+  const busPct = Math.round(musicBusLevel() * 100);
+  const mixPct = Math.round(effectiveGain(audio.state, 'music') * 100);
+  return (
+    <div className="px-2 pb-1.5 font-mono text-[10px] leading-relaxed text-slate-500">
+      {state === 'not created'
+        ? 'Engine: asleep — it wakes on your first click or keypress.'
+        : `Engine: ${state} · Music path: shelf ${mixPct}% × country fader ${busPct}%`}
+      {state !== 'not created' &&
+        (dbg
+          ? ` · Country: ${dbg.family}${dbg.secondary ? ` (+${dbg.secondary} visiting)` : ''} at ${dbg.zone}` +
+            (dbg.posture === 'scar'
+              ? ' · THE SCAR — the silence here is the design.'
+              : dbg.posture === 'duck'
+                ? ' · Ducked under a breaking sky.'
+                : ` · Next phrase ~${dbg.nextPhraseInSec ?? '—'}s`)
+          : ' · No country yet — the music starts with a world.')}
+    </div>
+  );
+};
 
 interface HudOptionsPanelProps {
   layout: HudLayout;
@@ -105,9 +144,10 @@ export const HudOptionsPanel: React.FC<HudOptionsPanelProps> = ({ layout, audio,
             <Volume2 className="w-4 h-4 text-cyan-300" />
             <span className="font-tech text-xs tracking-widest text-cyan-200 font-bold">SOUND</span>
             <span className="text-[11px] text-slate-500">
-              Settings wait ready — the grown music and voices are on their way.
+              The mix is live — the country and its creatures read this shelf as they sound.
             </span>
           </div>
+          <AudioReadout audio={audio} />
           {AUDIO_CHANNELS.map((channel) => {
             const on = audio.isOn(channel.id);
             const pct = Math.round(audio.levelOf(channel.id) * 100);

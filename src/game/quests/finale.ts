@@ -93,22 +93,31 @@ export function portalPartsMissing(signals: QuestSignals | undefined): PortalPar
 
 /** The ring's answer to a click, as pure decision:
  *  - 'open'   — the departure is already made; the way stands.
- *  - 'depart' — the bill stands paid in full; this click goes through.
+ *  - 'depart' — the bill stands paid in full AND the discovery
+ *               stands read; this click goes through.
+ *  - 'sealed' — the bill is paid, but the discovery (What
+ *               Happened Here) is not yet made: the departure
+ *               is available only after the discovery (Adam,
+ *               2026-10-18) — the knowing binds the stone as
+ *               well as the quest. Paying the bill early is
+ *               still allowed; mending is not leaving.
  *  - 'pay'    — these parts can be paid from the pouch right now.
  *  - 'wait'   — nothing payable; these parts (and their costs) remain. */
 export type PortalOutcome =
   | { kind: 'open' }
   | { kind: 'depart' }
+  | { kind: 'sealed' }
   | { kind: 'pay'; parts: PortalPart[] }
   | { kind: 'wait'; missing: PortalPart[] };
 
 export function portalClickOutcome(
   signals: QuestSignals | undefined,
   hasItem: (itemId: ItemId, count: number) => boolean,
+  discovered: boolean,
 ): PortalOutcome {
   if (signals?.departed) return { kind: 'open' };
   const missing = portalPartsMissing(signals);
-  if (missing.length === 0) return { kind: 'depart' };
+  if (missing.length === 0) return discovered ? { kind: 'depart' } : { kind: 'sealed' };
   const payable = missing.filter((part) => hasItem(part.itemId, part.count));
   if (payable.length > 0) return { kind: 'pay', parts: payable };
   return { kind: 'wait', missing };

@@ -1223,7 +1223,8 @@ export default function App() {
     // and tell the story of what the click did.
     onPortalRing: () => {
       const signals = questProgressRef.current?.signals;
-      const outcome = portalClickOutcome(signals, (id, n) => hasItem(id, n));
+      const discovered = (questProgressRef.current?.completedIds ?? []).includes('q_aw_happened');
+      const outcome = portalClickOutcome(signals, (id, n) => hasItem(id, n), discovered);
       if (outcome.kind === 'open') {
         postNotification('The Way Stands Open', 'The ring hums, patient as its makers left it. The road is yours whenever you want it.', 'discover', '#a78bfa');
         return;
@@ -1231,6 +1232,10 @@ export default function App() {
       if (outcome.kind === 'depart') {
         awMergeRef.current((s) => (s.departed ? s : { ...s, departed: true }));
         postNotification('The Departure', 'The ring wakes around you — and you step through the road your world left standing. Behind you it stays open, the way its makers intended.', 'discover', '#a78bfa');
+        return;
+      }
+      if (outcome.kind === 'sealed') {
+        postNotification('Not Yet Yours to Take', 'The ring stands whole and humming — but a road is not yours until you know whose it was. Five fragments, and the story they tell: finish What Happened Here first.', 'system', '#a8a29e');
         return;
       }
       if (outcome.kind === 'pay') {

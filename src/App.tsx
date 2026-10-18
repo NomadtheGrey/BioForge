@@ -38,6 +38,7 @@ import { FirstPersonMovementController, ControllerInputState } from './game/engi
 // Modular Domain Hooks (Enforces CODE_MANIFESTO.md Rule 8)
 import { useInventory } from './hooks/useInventory';
 import { useNotifications } from './hooks/useNotifications';
+import { useSystemFeed } from './hooks/useSystemFeed';
 import { usePlayerState } from './hooks/usePlayerState';
 import { useWorldEntities, INITIAL_STRUCTURES } from './hooks/useWorldEntities';
 import { generateSeededWorld } from './game/world/worldGen';
@@ -198,6 +199,17 @@ export default function App() {
     notifications,
     postNotification,
   } = useNotifications();
+
+  // The system channel (system messages, Adam 2026-10-18):
+  // the feed reader + stream. Notice-level lines also toast
+  // once (type 'system', keyed per line so distinct notices
+  // never coalesce into one another). Wiring only — the
+  // hook owns the logic; the start screen and the HUD panel
+  // read its return.
+  const systemFeed = useSystemFeed({
+    onNotice: (line) =>
+      postNotification(line.title ?? 'System', line.text, 'system', '#38bdf8', `system:${line.id}`),
+  });
 
   const {
     playerState,
@@ -2830,6 +2842,7 @@ const {
       {/* Futuristic Botanical Tech HUD */}
       <HUD
         tutorial={tutorial}
+        systemFeed={systemFeed}
         shieldGrowth={shieldGrowth}
         playerState={{
           ...playerState,
@@ -3136,6 +3149,7 @@ const {
         onDeleteSave={handleDeleteSave}
         onJoinCoop={handleJoinCoopFromStart}
         onOpenAbout={() => setShowAbout(true)}
+        systemFeed={systemFeed}
       />
 
       <GameInfoModal isOpen={showAbout} onClose={() => setShowAbout(false)} />

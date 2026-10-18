@@ -158,15 +158,15 @@ function makeStreakTexture(): THREE.Texture {
 // A floating name tag (Adam, 2026-10-17): canvas text on a dark
 // pill, drawn once per label. Used first for the cavern Heart —
 // a destination should announce itself.
-function makeLabelSprite(text: string, accent = '#f9a8d4'): THREE.Sprite {
+function makeLabelSprite(text: string, accent = '#f9a8d4', sub?: string): THREE.Sprite {
   const c = document.createElement('canvas');
   c.width = 512;
-  c.height = 128;
+  c.height = sub ? 176 : 128;
   const ctx = c.getContext('2d');
   if (ctx) {
     ctx.fillStyle = 'rgba(10, 8, 14, 0.72)';
     ctx.beginPath();
-    ctx.roundRect(56, 28, 400, 72, 36);
+    ctx.roundRect(56, 28, 400, sub ? 120 : 72, 36);
     ctx.fill();
     ctx.strokeStyle = accent;
     ctx.lineWidth = 3;
@@ -175,12 +175,20 @@ function makeLabelSprite(text: string, accent = '#f9a8d4'): THREE.Sprite {
     ctx.font = '600 40px Georgia, serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(text, 256, 66);
+    ctx.fillText(text, 256, sub ? 70 : 66);
+    // The optional second line (P1, 2026-10-18): a purpose
+    // line under the name, smaller and plainer — the mound's
+    // tag teaches its two jobs at a glance.
+    if (sub) {
+      ctx.fillStyle = '#d9f99d';
+      ctx.font = '500 26px system-ui, sans-serif';
+      ctx.fillText(sub, 256, 116);
+    }
   }
   const tex = new THREE.CanvasTexture(c);
   const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
   const sprite = new THREE.Sprite(mat);
-  sprite.scale.set(3.4, 0.85, 1);
+  sprite.scale.set(3.4, sub ? 1.17 : 0.85, 1);
   return sprite;
 }
 
@@ -1394,6 +1402,18 @@ export class BioForgeThreeEngine {
     // stone at the gate), so rubble never reports the wrong name.
     if (structure.type === 'ruin_landmark' && structure.ruin) {
       group.add(this.landmarkDressing.buildRuinDressing(structure));
+    }
+    // The Mound's tag (Adam, 2026-10-18): a floating label
+    // naming the cultivation mound's DUAL purpose — plant in
+    // it, and feed it scraps for compost (P1). Same label
+    // family as the cavern Heart's tag; the sprite never
+    // answers the raycaster (the mound itself speaks).
+    if (structure.type === 'cultivation_mound') {
+      const tag = makeLabelSprite('Cultivation Mound', '#84cc16', 'Plant here · Feed it scraps → Compost');
+      tag.name = 'moundTag';
+      tag.position.y = 1.8;
+      tag.raycast = () => {};
+      group.add(tag);
     }
     return group;
   }

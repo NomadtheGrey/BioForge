@@ -16,6 +16,7 @@ import { useState, useCallback, useRef } from 'react';
 import { ItemId, CraftingRecipe } from '../types/game';
 import { INITIAL_INVENTORY, ITEMS, RECIPES } from '../game/items/constants';
 import { pouchTierOf, stackCapFor } from '../game/items/pouch';
+import { resolveKindSpend, type ItemKindId } from '../game/items/itemKinds';
 
 /** One line of a Grow Prerequisites result: a recipe that was
  *  crafted, and how many times. */
@@ -111,6 +112,21 @@ export function useInventory(): UseInventoryResult {
   const craftRecipe = useCallback((recipe: CraftingRecipe): boolean => {
     const hasAll = recipe.ingredients.every((ing) => (inventory[ing.id] || 0) >= ing.count);
     if (!hasAll) return false;
+    // Category ingredients (P1): ONE resolution per craft
+    // (the dev lane's atomicity watch). Every kind slot
+    // resolves whole against this snapshot BEFORE anything
+    // is written, and the plans computed here are the exact
+    // lines the write below deducts — no second resolution
+    // exists anywhere in the craft path. The forge's preview
+    // reads the same resolver (itemKinds.ts).
+    const kindPlans: { itemId: ItemId; count: number }[] = [];
+    if (recipe.kindIngredients) {
+      for (const slot of recipe.kindIngredients) {
+        const plan = resolveKindSpend(inventory, slot.kind as ItemKindId, slot.count);
+        if (!plan.satisfied) return false;
+        kindPlans.push(...plan.lines);
+      }
+    }
 
     // GRAFT (shield slice, 2026-10-17): a graft recipe grows thorn
     // spikes ONTO a shield the player already owns — the shield is
@@ -130,6 +146,12 @@ export function useInventory(): UseInventoryResult {
         if (isGraft && ing.id === recipe.graftShield) return;
         nextInv[ing.id] = Math.max(0, (nextInv[ing.id] || 0) - ing.count);
       });
+      // Category ingredients (P1): deduct THE resolution —
+      // the plans computed at the gate above, exact items,
+      // exact counts, in this same single write.
+      for (const line of kindPlans) {
+        nextInv[line.itemId] = Math.max(0, (nextInv[line.itemId] || 0) - line.count);
+      }
       if (!isGraft && fits > 0) {
         nextInv[recipe.outputId] = (nextInv[recipe.outputId] || 0) + fits;
       }

@@ -20,8 +20,13 @@
  * through callbacks and lets App do the loading, creating, and deleting.
  */
 
-import React, { useState } from 'react';
-import { Play, Plus, Trash2, Users, Sprout, RefreshCw } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Play, Plus, Trash2, Users, Sprout, RefreshCw, Heart, Newspaper } from 'lucide-react';
+import { CreditsModal } from './CreditsModal';
+import { NewsModal } from './NewsModal';
+import type { UseSystemFeedResult } from '../hooks/useSystemFeed';
+import { activeBroadcasts } from '../game/systemFeed';
+import { DONATE_URL } from '../game/links';
 import {
   GameDifficulty,
   SaveMetadata,
@@ -41,6 +46,11 @@ interface StartScreenModalProps {
   // 2026-10-17): a new player meets the primer before spawn.
   // Optional so the button renders only once App wires it.
   onOpenAbout?: () => void;
+  // The NEWS seat (system messages, Adam 2026-10-18): App
+  // composes useSystemFeed and passes its return down. The
+  // seat renders beside SUPPORT/CREDITS/ABOUT in the header;
+  // optional in the established pattern.
+  systemFeed?: UseSystemFeedResult | null;
 }
 
 /**
@@ -79,6 +89,7 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
   onDeleteSave,
   onJoinCoop,
   onOpenAbout,
+  systemFeed,
 }) => {
   // New Game form state. The name may stay blank — saveSystem substitutes
   // "Unnamed World" — so the button is never disabled over a name.
@@ -94,6 +105,25 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
   // Which save (if any) is mid-delete-confirmation. Deleting takes two
   // clicks on purpose: arm with the trash button, confirm with the red one.
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  // The credits screen (Adam, 2026-10-18): its one door is
+  // this menu's header, so the state lives here — no App
+  // wiring needed.
+  const [showCredits, setShowCredits] = useState(false);
+
+  // The news seat (system messages, Adam 2026-10-18): same
+  // local-state pattern as the credits. A NOTICE-priority
+  // broadcast may open the news ONCE on first load — the
+  // one auto-open the channel is allowed; closing it marks
+  // everything seen, so it never nags twice.
+  const [showNews, setShowNews] = useState(false);
+  const autoOpenedRef = useRef(false);
+  useEffect(() => {
+    if (!autoOpenedRef.current && systemFeed?.firstNotice) {
+      autoOpenedRef.current = true;
+      setShowNews(true);
+    }
+  }, [systemFeed?.firstNotice]);
 
   if (!isOpen) return null;
 
@@ -119,16 +149,58 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
             <h2 className="text-lg font-tech font-bold text-white tracking-wide">BIOFORGE</h2>
             <p className="text-xs text-slate-400">Choose a world, or grow a new one</p>
           </div>
-          {/* The About door: what this game is, before the
-              first spawn (primer §5 — the start-screen About). */}
-          {onOpenAbout && (
+          <div className="ml-auto flex items-center gap-2">
+            {/* The NEWS seat (system messages, Adam 2026-10-18):
+                first in the cluster — it is the time-sensitive
+                door, carrying the unread dot. The screen's
+                other doors keep their seats untouched. */}
+            {systemFeed && (
+              <button
+                onClick={() => setShowNews(true)}
+                className="relative px-4 py-2 rounded-2xl text-[11px] font-tech font-bold text-sky-200 border border-sky-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <Newspaper className="w-3.5 h-3.5" /> NEWS
+                {systemFeed.unread > 0 && (
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-sky-400 animate-pulse" />
+                )}
+              </button>
+            )}
+            {/* The Support door (Adam's seating call to the
+                HUD lane, 2026-10-18): the pair sits together —
+                Support beside Credits beside About, in the
+                header where a player browses before playing.
+                It renders only while DONATE_URL stands set
+                (game/links): the itch page lands at wrap, and
+                a donate button never precedes its page. */}
+            {DONATE_URL && (
+              <button
+                onClick={() => { if (DONATE_URL) window.open(DONATE_URL, '_blank', 'noopener'); }}
+                className="px-4 py-2 rounded-2xl text-[11px] font-tech font-bold text-rose-200 border border-rose-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <Heart className="w-3.5 h-3.5" /> SUPPORT
+              </button>
+            )}
+            {/* The Credits door (Adam, 2026-10-18): beside
+                About in the menu header — the seat Adam
+                specified, beside Support/donate when that
+                door joins the menu. */}
             <button
-              onClick={onOpenAbout}
-              className="ml-auto px-4 py-2 rounded-2xl text-[11px] font-tech font-bold text-emerald-200 border border-emerald-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+              onClick={() => setShowCredits(true)}
+              className="px-4 py-2 rounded-2xl text-[11px] font-tech font-bold text-cyan-200 border border-cyan-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
             >
-              <Sprout className="w-3.5 h-3.5" /> ABOUT THIS WORLD
+              <Sprout className="w-3.5 h-3.5" /> CREDITS
             </button>
-          )}
+            {/* The About door: what this game is, before the
+                first spawn (primer §5 — the start-screen About). */}
+            {onOpenAbout && (
+              <button
+                onClick={onOpenAbout}
+                className="px-4 py-2 rounded-2xl text-[11px] font-tech font-bold text-emerald-200 border border-emerald-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <Sprout className="w-3.5 h-3.5" /> ABOUT THIS WORLD
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Body */}
@@ -273,6 +345,19 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
           </button>
         </div>
       </div>
+      <CreditsModal isOpen={showCredits} onClose={() => setShowCredits(false)} />
+      <NewsModal
+        isOpen={showNews}
+        onClose={() => {
+          setShowNews(false);
+          systemFeed?.markSeen();
+        }}
+        broadcasts={
+          systemFeed?.feed
+            ? activeBroadcasts(systemFeed.feed, new Date().toISOString().slice(0, 10))
+            : []
+        }
+      />
     </div>
   );
 };

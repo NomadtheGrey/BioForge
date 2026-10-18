@@ -36,6 +36,7 @@ import { isShieldItem, graftOf, lodestoneOf, SHIELD_GRAFTS, type ShieldGrowthMap
 // full crafting tree. The math + sources are pure and
 // lab-checked (game/items/craftingTree.ts).
 import { buildCraftPlan, itemSources } from '../game/items/craftingTree';
+import { ITEM_KINDS, kindHeld, resolveKindSpend, type ItemKindId } from '../game/items/itemKinds';
 import { CraftTreeModal } from './CraftTreeModal';
 
 interface BioForgeModalProps {
@@ -192,7 +193,16 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     : inventory;
 
   const hasIngredients = (recipe: CraftingRecipe) => {
-    return recipe.ingredients.every((ing) => (pouchWithHeld[ing.id] || 0) >= ing.count);
+    if (!recipe.ingredients.every((ing) => (pouchWithHeld[ing.id] || 0) >= ing.count)) return false;
+    // Category ingredients (P1): kind slots preview through
+    // the SAME resolver the craft burns with (itemKinds.ts)
+    // — what this check sees is what craftRecipe will take.
+    if (recipe.kindIngredients) {
+      return recipe.kindIngredients.every(
+        (slot) => resolveKindSpend(pouchWithHeld, slot.kind as ItemKindId, slot.count).satisfied,
+      );
+    }
+    return true;
   };
 
   const canCraft = (recipe: CraftingRecipe) => {
@@ -698,6 +708,48 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                         );
                       })()}
                       </React.Fragment>
+                    );
+                  })}
+                  {/* Category ingredients (P1): kind rows —
+                      the label, the count held across the whole
+                      kind, and the resolver's own preview of
+                      exactly which items will burn. The preview
+                      calls the same resolveKindSpend the craft
+                      uses (one resolver, itemKinds.ts). */}
+                  {(selectedRecipe.kindIngredients ?? []).map((slot) => {
+                    const kind = ITEM_KINDS[slot.kind as ItemKindId];
+                    if (!kind) return null;
+                    const heldTotal = kindHeld(pouchWithHeld, kind.id);
+                    const plan = resolveKindSpend(pouchWithHeld, kind.id, slot.count);
+                    const hasEnough = plan.satisfied;
+                    return (
+                      <div
+                        key={slot.kind}
+                        className={`p-3 rounded-xl border flex items-center justify-between text-xs transition-colors ${
+                          hasEnough
+                            ? 'bg-slate-800/40 border-slate-700/60 text-slate-200'
+                            : 'bg-red-950/20 border-red-900/40 text-red-300'
+                        }`}
+                      >
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-medium">{kind.label}</span>
+                          {plan.lines.length > 0 && (
+                            <span className="text-[10px] text-slate-400">
+                              Will take: {plan.lines.map((l) => `${ITEMS[l.itemId]?.name ?? l.itemId} ×${l.count}`).join(', ')}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 font-mono font-semibold">
+                          <span>{heldTotal}</span>
+                          <span className="text-slate-500">/</span>
+                          <span>{slot.count}</span>
+                          {hasEnough ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-400 ml-1" />
+                          ) : (
+                            <AlertCircle className="w-3.5 h-3.5 text-red-400 ml-1" />
+                          )}
+                        </div>
+                      </div>
                     );
                   })}
                 </div>

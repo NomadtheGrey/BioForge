@@ -1102,6 +1102,24 @@ export const HUD: React.FC<HUDProps> = ({
               <SessionStats />
             </>
           )}
+
+          {/* CREDITS + DONATE, beside Ping (Adam, 2026-10-18):
+              the pause-popup doors work, but a player shouldn't
+              have to alt-tab to learn they exist — the Session
+              bar is on screen the whole session, so the roll
+              and the jar live here too, in the bar's own ghost
+              dress. That's four seats for the credits now; the
+              DonateButton carries its capped-jar rule itself. */}
+          <div className="w-px h-6 bg-slate-700/60" />
+          <button
+            onClick={() => setShowCredits(true)}
+            title="Credits — who grew this"
+            className="p-2 rounded-xl text-amber-300 hover:text-amber-200 hover:bg-amber-950/50 transition-colors flex items-center gap-1.5"
+          >
+            <ScrollText className="w-4 h-4" />
+            <span className="text-[11px] font-mono font-medium hidden md:inline">Credits</span>
+          </button>
+          <DonateButton variant="session" />
           </div>
 
           {/* Second row: the system toggles and the two list

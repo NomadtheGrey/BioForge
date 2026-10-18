@@ -24,7 +24,7 @@
  * mouse first — the same way every other HUD click already works.
  */
 
-import React, { useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { Move, X } from 'lucide-react';
 import type { HudOffset, HudPanelId } from '../hooks/useHudLayout';
 
@@ -58,6 +58,40 @@ export const HudPanel: React.FC<HudPanelProps> = ({
   children,
 }) => {
   const [dragging, setDragging] = useState(false);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const [healTick, setHealTick] = useState(0);
+
+  // Rotation / window resize can strand a panel too — re-check.
+  React.useEffect(() => {
+    const onResize = () => setHealTick((t) => t + 1);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (dragging) return;
+    const el = wrapRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const MIN_VISIBLE = 56;
+    const EDGE = 8;
+    const visW = Math.min(rect.right, vw) - Math.max(rect.left, 0);
+    const visH = Math.min(rect.bottom, vh) - Math.max(rect.top, 0);
+    if (visW >= MIN_VISIBLE && visH >= MIN_VISIBLE) return;
+    let dx = 0;
+    let dy = 0;
+    if (visW < MIN_VISIBLE) {
+      dx = rect.width > vw - EDGE * 2 || rect.left < 0 ? EDGE - rect.left : vw - EDGE - rect.right;
+    }
+    if (visH < MIN_VISIBLE) {
+      dy = rect.height > vh - EDGE * 2 || rect.top < 0 ? EDGE - rect.top : vh - EDGE - rect.bottom;
+    }
+    if (dx !== 0 || dy !== 0) {
+      onMove(id, { x: offset.x + dx, y: offset.y + dy });
+    }
+  }, [offset, dragging, id, onMove, healTick]);
   const dragRef = useRef<{
     pointerId: number;
     startX: number;
@@ -110,10 +144,11 @@ export const HudPanel: React.FC<HudPanelProps> = ({
   };
 
   const badgeClass =
-    'absolute z-40 flex h-5 w-5 items-center justify-center rounded-full border border-slate-500/70 bg-slate-900/90 text-slate-300 shadow-md opacity-0 transition-opacity duration-150 group-hover/hud:opacity-100 [@media(hover:none)]:opacity-60';
+    'absolute z-40 flex h-5 w-5 items-center justify-center rounded-full border border-slate-500/70 bg-slate-900/90 text-slate-300 shadow-md opacity-0 transition-opacity duration-150 group-hover/hud:opacity-100 [@media(hover:none)]:opacity-60 [@media(hover:none)]:h-7 [@media(hover:none)]:w-7';
 
   return (
     <div
+      ref={wrapRef}
       // The panel's registry id IS its DOM id (How to Play
       // tutorial, 2026-10-17): the tutorial's highlight ring
       // resolves a step's target with getElementById, and the
@@ -123,9 +158,18 @@ export const HudPanel: React.FC<HudPanelProps> = ({
       className={`group/hud relative pointer-events-auto ${dragging ? 'z-30' : ''} ${className}`}
       style={{
         transform: `translate(${offset.x}px, ${offset.y}px)`,
-        // While dragging, the panel must not be grabbed by the
-        // browser as a text selection / touch scroll gesture.
-        touchAction: dragging ? 'none' : undefined,
+        // TOUCH-ACTION IS 'none' ALWAYS (phone playtest find,
+        // 2026-10-18): the browser decides at POINTERDOWN whether
+        // a touch becomes a scroll/pan gesture. This used to be
+        // set only once `dragging` flipped true — one move too
+        // late: on a phone the browser claimed every touch for
+        // scrolling and cancelled the pointer, so panels were
+        // impossible to drag by finger while the mouse worked
+        // perfectly. HUD panels are chrome — nothing inside one
+        // needs a native scroll gesture — so the claim is off
+        // for good. (Buttons inside still click normally;
+        // touch-action governs gestures, not taps.)
+        touchAction: 'none',
         userSelect: dragging ? 'none' : undefined,
       }}
       onPointerDown={handlePointerDown}

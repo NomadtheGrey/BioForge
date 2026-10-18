@@ -682,7 +682,9 @@ export const HUD: React.FC<HUDProps> = ({
         touchMode ? 'p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]' : 'p-4'
       }`}
     >
-      <HudErrorBoundary>
+      <HudErrorBoundary
+        onResetLayout={() => hudLayout.hydrate({ hidden: {}, offsets: {} })}
+      >
       {/* Top Bar: Vitals, Biome, Room, Atmosphere, Quick Actions.
           Touch mode gets a narrower vitals card and tighter gaps:
           Tailwind supplies the responsive tools, but the HUD still

@@ -88,16 +88,53 @@ const STORAGE_KEY = 'bioforge.hudLayout.v1';
 
 const EMPTY_LAYOUT: HudLayoutState = { hidden: {}, offsets: {} };
 
+/** One offset, proven safe: both components finite numbers.
+ *  Anything else — a missing component, a string, NaN, Infinity —
+ *  is not an offset at all. (The PR #56 black-screen, second
+ *  mechanism: a malformed offset produced a NaN transform, the
+ *  panel's rect never moved, and the reachability heal recomputed
+ *  the same nudge forever.) */
+const isUsableOffset = (v: unknown): v is HudOffset => {
+  if (!v || typeof v !== 'object') return false;
+  const o = v as Partial<HudOffset>;
+  return (
+    typeof o.x === 'number' && Number.isFinite(o.x) &&
+    typeof o.y === 'number' && Number.isFinite(o.y)
+  );
+};
+
+/**
+ * Validate an arrangement arriving from ANY source — localStorage
+ * or a save record written by another build on another machine.
+ * Good entries pass through untouched; BAD OFFSET ENTRIES ARE
+ * REPAIRED BY DROPPING THEM, so the panel falls back to its
+ * default anchor instead of carrying a poisoned position. The
+ * shape alone is never trusted — values are proven, entry by
+ * entry.
+ */
+export const sanitizeHudLayout = (raw: unknown): HudLayoutState => {
+  if (!raw || typeof raw !== 'object') return EMPTY_LAYOUT;
+  const parsed = raw as Partial<HudLayoutState>;
+  const offsets: Partial<Record<HudPanelId, HudOffset>> = {};
+  if (parsed.offsets && typeof parsed.offsets === 'object') {
+    for (const [id, off] of Object.entries(parsed.offsets)) {
+      if (isUsableOffset(off)) {
+        offsets[id as HudPanelId] = { x: off.x, y: off.y };
+      }
+    }
+  }
+  return {
+    hidden: parsed.hidden && typeof parsed.hidden === 'object' ? parsed.hidden : {},
+    offsets,
+  };
+};
+
 /** Read the saved arrangement once, tolerating anything malformed. */
 const loadLayout = (): HudLayoutState => {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return EMPTY_LAYOUT;
-    const parsed = JSON.parse(raw) as Partial<HudLayoutState>;
-    return {
-      hidden: parsed.hidden && typeof parsed.hidden === 'object' ? parsed.hidden : {},
-      offsets: parsed.offsets && typeof parsed.offsets === 'object' ? parsed.offsets : {},
-    };
+    return sanitizeHudLayout(JSON.parse(raw));
   } catch {
     return EMPTY_LAYOUT;
   }
@@ -125,13 +162,12 @@ export const useHudLayout = (): HudLayout => {
   const [layout, setLayout] = useState<HudLayoutState>(loadLayout);
 
   const hydrate = useCallback((next: HudLayoutState) => {
-    // Trust the shape, not the source: a record from another
-    // build could carry anything, so re-run the loader's
-    // tolerance over what arrives.
-    setLayout({
-      hidden: next?.hidden && typeof next.hidden === 'object' ? next.hidden : {},
-      offsets: next?.offsets && typeof next.offsets === 'object' ? next.offsets : {},
-    });
+    // Trust nothing about the source: a record from another
+    // build on another machine could carry anything, so every
+    // arriving arrangement passes the same validator the
+    // localStorage loader uses — bad offsets are dropped
+    // (repaired to the panel's default anchor), never carried.
+    setLayout(sanitizeHudLayout(next));
   }, []);
 
   // Persist on every change. Drags fire this often, but the payload
@@ -162,7 +198,20 @@ export const useHudLayout = (): HudLayout => {
   }, []);
 
   const setOffset = useCallback((id: HudPanelId, offset: HudOffset) => {
-    setLayout((prev) => ({ ...prev, offsets: { ...prev.offsets, [id]: offset } }));
+    // THE EQUALITY BAIL (PR #56 commission): a write with the
+    // values already standing returns the SAME state object, so
+    // nothing re-renders and no effect refires. Without it, a
+    // caller recomputing the same instruction every render (a
+    // measure-and-nudge effect above all) feeds itself forever —
+    // fresh object, fresh render, same instruction, forever.
+    // Non-finite values are refused outright: a NaN offset can
+    // never be a resting place.
+    if (!Number.isFinite(offset.x) || !Number.isFinite(offset.y)) return;
+    setLayout((prev) => {
+      const cur = prev.offsets[id];
+      if (cur && cur.x === offset.x && cur.y === offset.y) return prev;
+      return { ...prev, offsets: { ...prev.offsets, [id]: offset } };
+    });
   }, []);
 
   const showAll = useCallback(() => {

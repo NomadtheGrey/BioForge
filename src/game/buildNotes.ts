@@ -70,4 +70,16 @@ export const DEFAULT_BUILD_NOTES: BuildNotes = {
  * quietly; the next player-facing landing writes its own
  * lines here again.
  */
-export const BUILD_NOTES: BuildNotes = DEFAULT_BUILD_NOTES;
+export const BUILD_NOTES: BuildNotes = {
+  // The chat fold build (Adam, 2026-10-18): system word —
+  // automated lines and the grower's broadcasts alike —
+  // moved INTO the co-op chat (SYSTEM / ADMIN, reserved
+  // colors), the stream's own panel retired, and player
+  // chat colors became seat-dealt so no two explorers in a
+  // room wear the same voice. Player-facing: it greets.
+  title: 'One room, many voices',
+  lines: [
+    'System word now arrives in the co-op chat — SYSTEM for the world\'s own notices, ADMIN for word from the grower. The separate system panel has retired; the NEWS seat still keeps the record.',
+    'Every explorer\'s chat wears a color of its own now, dealt by seat — and the sky blue and amber belong to SYSTEM and ADMIN alone.',
+  ],
+};

@@ -31,7 +31,7 @@ export type HudPanelId =
   | 'quicknav'
   | 'hotbar'
   | 'reticle'
-  | 'system';
+;
 
 export interface HudPanelMeta {
   id: HudPanelId;
@@ -62,7 +62,9 @@ export const HUD_PANELS: HudPanelMeta[] = [
   { id: 'quicknav', label: 'Quick Nav', blurb: 'Bio-Forge · Pouch · Codex buttons (bottom bar, left).' },
   { id: 'hotbar', label: 'Tool Hotbar & Left Hand', blurb: 'The 1–7 tool slots and the Left Hand instrument slot (bottom bar, right).' },
   { id: 'reticle', label: 'Center Reticle', blurb: 'The aiming marker at true screen center.', toggleOnly: true },
-  { id: 'system', label: 'System Messages', blurb: 'The system stream: new-build word and rare messages from the grower (bottom of the left stack). Shown by default — a channel that starts hidden announces nothing.' },
+  // (No 'system' row: the stream panel retired 2026-10-18 —
+  // system word rides the co-op chat now. A stored layout
+  // carrying the old id just holds a dead key, harmless.)
 ];
 
 export interface HudOffset {

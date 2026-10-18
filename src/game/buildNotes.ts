@@ -59,15 +59,15 @@ export const DEFAULT_BUILD_NOTES: BuildNotes = {
 
 /**
  * THIS build's notes. Review surface: read them like a
- * player meeting them cold. (Written for the stack this
- * build carries: the credits screen, kind crafting and the
- * eating Mound, and the system messages themselves.)
+ * player meeting them cold.
+ *
+ * CURRENT BUILD (the slice-4 merge, 2026-10-18): the notes
+ * stand at the HONEST DEFAULT, deliberately. This build
+ * carries operator furniture — the kit's lock and the
+ * broadcast composer — nothing a player meets, and the
+ * previous build's greeting ('Word travels now', the News
+ * Stack) has already fired for it. A quiet build greets
+ * quietly; the next player-facing landing writes its own
+ * lines here again.
  */
-export const BUILD_NOTES: BuildNotes = {
-  title: 'Word travels now',
-  lines: [
-    'The world can reach you: news from the grower — new builds, rare word — arrives on the start screen and in a quiet system stream in-game.',
-    'The forge has learned kinds: some recipes now ask for any cap, any gel — and the Cultivation Mound will eat your scraps and pay you back in compost.',
-    'There is a credits screen on the start menu now. It was earned.',
-  ],
-};
+export const BUILD_NOTES: BuildNotes = DEFAULT_BUILD_NOTES;

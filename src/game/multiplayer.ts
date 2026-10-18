@@ -5,7 +5,7 @@ import {
   FaunaEntity,
   DroppedItemEntity,
 } from '../types/game';
-import type { WorldSnapshot } from './saveSystem';
+import type { WorldSnapshot, GameDifficulty } from './saveSystem';
 
 export const RELAY_BASE_URL = 'wss://bioforge-relay.nomadthegrey71.workers.dev';
 const MAX_SEEN_MESSAGE_IDS = 1000;
@@ -67,7 +67,7 @@ export interface MultiplayerCallbacks {
   onBuildRemoved?: (structureId: string) => void;
   onFloraHarvested?: (floraId: string) => void;
   onFaunaTamed?: (faunaId: string, tamedBy: string) => void;
-  onWorldSync?: (data: { structures: StructureEntity[]; flora: FloraEntity[]; fauna: FaunaEntity[]; drops: DroppedItemEntity[]; dayNightCycle: number; zone?: string; zones?: Record<string, WorldSnapshot>; worldSeed?: string; worldCreatedAt?: number }) => void;
+  onWorldSync?: (data: { structures: StructureEntity[]; flora: FloraEntity[]; fauna: FaunaEntity[]; drops: DroppedItemEntity[]; dayNightCycle: number; zone?: string; zones?: Record<string, WorldSnapshot>; worldSeed?: string; worldCreatedAt?: number; difficulty?: GameDifficulty }) => void;
   onChatMessage?: (senderName: string, text: string, color: string) => void;
   // Entity events carry the SENDER's zone tag (zone travel,
   // 2026-10-15): with players wandering different zones of the same
@@ -443,6 +443,7 @@ export class MultiplayerManager {
               zones?: Record<string, WorldSnapshot>;
               worldSeed?: string;
               worldCreatedAt?: number;
+              difficulty?: GameDifficulty;
             }
           );
         }
@@ -553,7 +554,8 @@ export class MultiplayerManager {
   public broadcastWorldSync(
     world: WorldSnapshot,
     dayNightCycle: number,
-    travel?: { zone: string; zones: Record<string, WorldSnapshot>; worldSeed: string; worldCreatedAt?: number }
+    travel?: { zone: string; zones: Record<string, WorldSnapshot>; worldSeed: string; worldCreatedAt?: number },
+    difficulty?: GameDifficulty
   ) {
     this.broadcastMessage('world_sync', {
       structures: world.structures,
@@ -562,6 +564,12 @@ export class MultiplayerManager {
       drops: world.drops,
       dayNightCycle,
       ...(travel ? { zone: travel.zone, zones: travel.zones, worldSeed: travel.worldSeed, worldCreatedAt: travel.worldCreatedAt } : {}),
+      // The host's law (Adam, 2026-10-18): the HOST's save
+      // determines difficulty for everyone in the world, so
+      // the sync carries it and guests arm by it. Optional:
+      // hosts on older builds send none, and a guest then
+      // falls back to its own save (today's behavior).
+      ...(difficulty ? { difficulty } : {}),
     });
   }
 

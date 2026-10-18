@@ -826,15 +826,20 @@ export const RECIPES: CraftingRecipe[] = [
     craftTimeMs: 2000,
   },
   {
+    // The water module's second growth (Adam's consolidation,
+    // 2026-10-18): grown ON the Webfoots, so the recipe
+    // CONSUMES them — the ladder pattern, as the Windlung
+    // bellows consume the sprig.
     id: 'craft_stillsteps',
     outputId: 'stillsteps',
     outputCount: 1,
     name: 'Stillsteps',
-    description: 'A tension film of dew and resin under the sole: walk the water.',
+    description: 'The Webfoots grown further — a tension film of dew and resin under the sole: walk the water.',
     category: 'composites',
     ingredients: [
-      { id: 'dew_essence', count: 3 },
-      { id: 'resin_sap', count: 2 },
+      { id: 'webfoots', count: 1 },
+      { id: 'dew_essence', count: 2 },
+      { id: 'resin_sap', count: 1 },
     ],
     craftTimeMs: 2500,
   },

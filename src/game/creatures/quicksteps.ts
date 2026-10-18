@@ -71,6 +71,25 @@ export function stillstepsGrown(inventory: Partial<Record<ItemId, number>>): boo
   return (inventory['stillsteps'] ?? 0) > 0;
 }
 
+/**
+ * THE WATER MODULE (Adam's consolidation ruling, 2026-10-18):
+ * Webfoots and Stillsteps are ONE module with tiers, the way
+ * he always pictured it — the second growth grows ON the
+ * first (its recipe consumes the Webfoots). Tier 1 = the
+ * stroke; tier 2 = the held step, tier 1 implied. Ownership
+ * folds honestly: holding either piece today counts it —
+ * stillsteps alone reads tier 2 (the growth contains the
+ * base watercraft). At tier 2 the player carries a STANCE
+ * (swim / walk the water, F in the water — the loop reads
+ * it through its getters); the stance is a runtime posture,
+ * never saved, like the shield's raise.
+ */
+export function waterModuleTier(inventory: Partial<Record<ItemId, number>>): 0 | 1 | 2 {
+  if (stillstepsGrown(inventory)) return 2;
+  if (webfootsGrown(inventory)) return 1;
+  return 0;
+}
+
 /** Which rung the pouch holds (0 = none). The ladder consumes
  *  upward, so at most one rung is ever held; the highest wins
  *  regardless. */

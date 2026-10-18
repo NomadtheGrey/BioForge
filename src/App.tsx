@@ -73,6 +73,7 @@ import {
   AUTOSAVE_INTERVAL_MS,
   buildSavedGame,
   createSaveMetadata,
+  isArmedAt,
   deleteSavedGame,
   listSaveMetadata,
   loadSavedGame,
@@ -124,7 +125,7 @@ import { AW_CHAPTERS, type AwChapter } from './game/quests/awChapters';
 import { ChapterModal } from './components/ChapterModal';
 import { ScarChoiceModal } from './components/ScarChoiceModal';
 import { bestWeapon } from './game/creatures/weapons';
-import { windlungTierOf, staminaFactors, emberSolesGrown, wadersGrown, webfootsGrown, stillstepsGrown } from './game/creatures/quicksteps';
+import { windlungTierOf, staminaFactors, emberSolesGrown, wadersGrown, waterModuleTier } from './game/creatures/quicksteps';
 import { biolumeVisorWorn, helmetReadTier, sporeFilterWorn, shadeVisorWorn, glyphLensWorn, chargeSightWorn } from './game/creatures/helmet';
 import type { WeaponDef } from './game/creatures/weapons';
 // The Shield Family (Adam, 2026-10-17): rules, the wield hook, and
@@ -1538,6 +1539,26 @@ export default function App() {
   // library verbs live in the hook now; the destructured names are
   // the ones the rest of App already uses. (The gauntlet grandfather
   // check just below reads currentSaveRef from here.)
+  // The HOST's difficulty while we are a guest in their world
+  // (Adam, 2026-10-18: the host's save determines difficulty
+  // for everyone in it). Declared here, ahead of every hook
+  // that consumes it: useMultiplayerSync writes it on world
+  // sync and clears it on leave; the zone evaluator prefers
+  // it over our own save's difficulty when setting the
+  // armed switch.
+  const hostDifficultyRef = useRef<GameDifficulty | null>(null);
+  // The WATER MODULE's stance (Adam's consolidation,
+  // 2026-10-18): 'walk' the water or 'swim' it, at the
+  // module's second tier; F flips it (useGameInput). A
+  // runtime posture — it opens on 'walk', so the held step
+  // greets a new tier-2 owner first — and it is never
+  // saved, like the shield's raise. The loop reads it
+  // through getters; the loop also owns the in-water hint
+  // text, whose edge guard (waterHintRef) and seated state
+  // (waterHint) live here with it.
+  const waterModeRef = useRef<'swim' | 'walk'>('walk');
+  const waterHintRef = useRef<string | null>(null);
+  const [waterHint, setWaterHint] = useState<string | null>(null);
   const {
     hasStarted, setHasStarted, saveList, currentSaveRef, latestStateRef,
     buildWorldSnapshot, buildCurrentPlayerState, saveNow,
@@ -1878,6 +1899,7 @@ export default function App() {
     // opens the panel; the pouch swap lives INSIDE it as its
     // first control, one click from where the key used to be.
     onToggleDebugKit: () => setShowPlaytestKit((v) => !v),
+    onWaterStanceToggle: () => { waterModeRef.current = waterModeRef.current === 'walk' ? 'swim' : 'walk'; },
     // The striker draw swap (weapons build): defined just below —
     // ref-driven, fires on the 7 key / wheel / tile click only.
     onToggleStrikerDraw: () => toggleStrikerDraw(),
@@ -1983,7 +2005,7 @@ const {
 } = useMultiplayerSync({
   engineRef, playerPosRef, playerLevelRef, activeToolRef, currentZoneId,
   playerZone, inCavern, inRuin,
-  playerZoneRef, setPlayerZone, visitedZonesRef, worldSeedRef, setSessionSeed,
+  playerZoneRef, setPlayerZone, visitedZonesRef, worldSeedRef, hostDifficultyRef, getWorldDifficulty: () => currentSaveRef.current?.difficulty ?? 'peaceful', setSessionSeed,
   zoneStores, buildZoneSyncTravel, completeTravel, cancelPendingTravel, pendingTravelRef,
   buildWorldSnapshot, latestStateRef, setHasStarted, setDayNightCycle, resetInstanceState,
   postNotification, enterFullscreenOnTouch, setActiveModal,
@@ -2128,6 +2150,15 @@ const {
     healthRef.current = playerState.health;
   }, [playerState.health]);
   const variantAlertedRef = useRef<Set<string>>(new Set());
+  // The WORLD's difficulty, resolved once per render (Adam,
+  // 2026-10-18: the host's save determines difficulty for
+  // everyone in the world): a guest reads the host's law
+  // (adopted on world sync); solo and hosting, your own
+  // save is the law. The zone evaluator's armed switch, the
+  // border-word watch, and the Refuge panel line all read
+  // THIS — a guest in an armed world is under its law in
+  // every surface, never their own save's.
+  const worldDifficulty: GameDifficulty = hostDifficultyRef.current ?? currentSaveRef.current?.difficulty ?? 'peaceful';
   useEffect(() => {
     // The margin check comes FIRST (2026-10-15): a hybrid zone's
     // face is its hybrid def — variant suppressed, effects read
@@ -2141,7 +2172,17 @@ const {
       const sky = zoneWeatherAt(sessionSeed, playerZone.zx, playerZone.zz);
       engineRef.current?.setWeather(sky.mode, sky.intensity);
     }
-    deathArmedRef.current = (currentSaveRef.current?.difficulty ?? 'peaceful') !== 'peaceful';
+    // The world's law (Adam, 2026-10-18): the HOST's save
+    // determines difficulty for everyone in the world — a
+    // guest arms by the host's difficulty (adopted on world
+    // sync), never by their own save; solo and hosting, your
+    // own save is the law. THE REFUGE rides the same line:
+    // isArmedAt (saveSystem) stands the switch down in the
+    // spawn zone under any law. This effect re-runs on every
+    // zone change, so crossing the refuge border re-reads
+    // the law in the same pass. (worldDifficulty itself is
+    // resolved once per render, above the evaluator.)
+    deathArmedRef.current = isArmedAt(worldDifficulty, playerZone.zx, playerZone.zz);
     sporeStaminaRef.current = faceEffect === 'spore_stamina';
     marshSluggishRef.current = faceEffect === 'marsh_sluggish';
     scarHeatRef.current = faceEffect === 'scar_heat';
@@ -2516,7 +2557,7 @@ const {
   useGameLoop({
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
     jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, lastStaminaSync,
-    sprinting, sporeStaminaRef, marshSluggishRef, getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0, getPondSurface: (x: number, z: number) => engineRef.current?.pondSurfaceAt(x, z) ?? null, hasPlumeCharm: () => (latestStateRef.current.inventory?.plume_charm ?? 0) > 0, windlungTier: () => windlungTierOf(latestStateRef.current.inventory ?? {}), hasEmberSoles: () => emberSolesGrown(latestStateRef.current.inventory ?? {}), waders: () => wadersGrown(latestStateRef.current.inventory ?? {}), webfoots: () => webfootsGrown(latestStateRef.current.inventory ?? {}), stillsteps: () => stillstepsGrown(latestStateRef.current.inventory ?? {}), biolumeVisor: () => biolumeVisorWorn(latestStateRef.current.inventory ?? {}), sporeFilter: () => sporeFilterWorn(latestStateRef.current.inventory ?? {}), chargeSight: () => chargeSightWorn(latestStateRef.current.inventory ?? {}), scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
+    sprinting, sporeStaminaRef, marshSluggishRef, getWaterDepth: (x: number, z: number) => engineRef.current?.waterDepthAt(x, z) ?? 0, getPondSurface: (x: number, z: number) => engineRef.current?.pondSurfaceAt(x, z) ?? null, hasPlumeCharm: () => (latestStateRef.current.inventory?.plume_charm ?? 0) > 0, windlungTier: () => windlungTierOf(latestStateRef.current.inventory ?? {}), hasEmberSoles: () => emberSolesGrown(latestStateRef.current.inventory ?? {}), waders: () => wadersGrown(latestStateRef.current.inventory ?? {}), waterTier: () => waterModuleTier(latestStateRef.current.inventory ?? {}), waterWalk: () => waterModeRef.current === 'walk', onWaterHint: setWaterHint, waterHintRef, biolumeVisor: () => biolumeVisorWorn(latestStateRef.current.inventory ?? {}), sporeFilter: () => sporeFilterWorn(latestStateRef.current.inventory ?? {}), chargeSight: () => chargeSightWorn(latestStateRef.current.inventory ?? {}), scarHeatRef, thawColdRef, stillColdRef, stormZotRef, onZotWarningRef, zotStateRef, livingWelcomeRef, livingHungerRef, livingTwomindedRef, livingHeartRef, grabStateRef, grabSnareUntilRef, valleySatiatedUntilRef, onGrabWarningRef, healthRef, lastHealthSync, deathArmedRef, playerDeadRef, onPlayerDeathRef, edgePushRef, pendingTravelRef, travelToZoneRef, cancelPendingTravel,
     instanceRef, toolHandlersRef, liveGameRefs,
     accumulatedTickTime, accumulatedDayTime, selectedStructureRef,
     touchModeRef, isPointerLockedRef, activeModalRef, returnPausedRef,
@@ -2860,6 +2901,40 @@ const {
     helmetReadTier(inventory),
   );
 
+  // LEAVING SAFETY — the border watch (Adam, 2026-10-18).
+  // The spawn zone (0,0) is the REFUGE: it keeps Peaceful's
+  // peace on every world (the background lane's refuge rule).
+  // When the player's zone steps OUT of it on an armed world,
+  // everything the difficulty governs arms at that border —
+  // so the HUD speaks once, at the crossing, in the mode's
+  // exact words. Edge-triggered only: the first zone observed
+  // in a session merely sets the baseline (loading a save
+  // outside the refuge is not a crossing), and stepping back
+  // in re-arms the watch for the next exit. Peaceful worlds
+  // never speak — nothing arms there.
+  const prevZoneRef = useRef<{ zx: number; zz: number } | null>(null);
+  const [leavingSafety, setLeavingSafety] = useState<GameDifficulty | null>(null);
+  useEffect(() => {
+    if (!hasStarted) {
+      prevZoneRef.current = null;
+      return;
+    }
+    const prev = prevZoneRef.current;
+    prevZoneRef.current = playerZone;
+    if (!prev) return;
+    const wasRefuge = prev.zx === 0 && prev.zz === 0;
+    const isRefugeNow = playerZone.zx === 0 && playerZone.zz === 0;
+    if (wasRefuge && !isRefugeNow) {
+      // The WORLD's law, not the player's own save (a guest
+      // in an armed world gets the word too).
+      if (worldDifficulty !== 'peaceful') {
+        setLeavingSafety(worldDifficulty);
+        const id = window.setTimeout(() => setLeavingSafety(null), 5200);
+        return () => window.clearTimeout(id);
+      }
+    }
+  }, [playerZone, hasStarted]);
+
   const hoverHint: string | null = (() => {
     if (playerState.activeTool !== 'planter_trowel' || hoverInfo?.type !== 'flora') return null;
     const flora = hoverInfo.entity;
@@ -3000,6 +3075,12 @@ const {
         currentBiomeType={inCavern ? 'Cavern' : inRuin ? 'Ruin Interior' : currentZoneBiomeLabel}
         edgeZoneLabel={inCavern || inRuin ? null : edgeZoneLabel}
         zoneCoordsLabel={inCavern || inRuin ? 'Instanced Zone' : zoneCoordsLabel}
+        isRefuge={
+          playerZone.zx === 0 &&
+          playerZone.zz === 0 &&
+          worldDifficulty !== 'peaceful'
+        }
+        leavingSafety={leavingSafety}
         inventory={inventory}
         caveExitTarget={caveExitTarget}
         radarActive={radarTier >= 1}
@@ -3027,7 +3108,7 @@ const {
         onToggleFullscreen={toggleGameFullscreen}
         onRequestLock={() => { if (!touchMode) engineRef.current?.requestPointerLock(); }}
         hoverInfo={hoverInfo}
-        hoverHint={hoverHint}
+        hoverHint={hoverHint ?? waterHint}
         notifications={notifications}
         onDismissNotification={clearNotification}
         roomCode={roomCode}

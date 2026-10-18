@@ -5,15 +5,29 @@
  * modal"): the wrap-week screen that names everyone and
  * everything the game stands on — designed to match itch's
  * AI-disclosure tagging at publish, so the assistance line
- * is plain and unhidden. Placement: the start screen's
- * header, beside About (the main menu seat Adam specified,
- * beside Support/donate when that door joins the menu).
+ * is plain and unhidden. Seats: the start screen's header,
+ * Game Info's Who Grew This, and the pause popup's standing
+ * row — wherever a player browses, the roll is one click off.
  *
- * Pure props — no hooks at all, so nothing can violate the
- * hooks-above-the-early-return lesson; it renders null
- * while closed.
+ * THE CLOSE THAT WOULDN'T (Adam's live report, same day:
+ * "the Credits screen refuses to close on ESC and clicking
+ * the X"): two plain causes. (1) This modal owns NO Escape
+ * handler — it was born "pure props, no hooks," and nothing
+ * else in the game closes it for it. It listens now, while
+ * open. (2) One of its seats (the pause popup) lives inside
+ * the HUD's root, which is pointer-events-none by design —
+ * clicks fell THROUGH the modal there, X included. The
+ * overlay now declares pointer-events-auto itself, so the
+ * modal is clickable in every seat it will ever occupy.
+ * The backdrop closes it too, the house pattern.
+ *
+ * CONTENT (Adam's corrections, same day): he is credited as
+ * Adam Bailey, a.k.a. Nomad the Grey; and there is NO model
+ * pipeline line — the game uses no Meshy models yet, so
+ * Meshy, Mixamo, and Alex are not a thing here until models
+ * actually land. When they do, the line returns, earned.
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Sprout, X } from 'lucide-react';
 
 interface CreditsModalProps {
@@ -30,10 +44,28 @@ const Block: React.FC<{ heading: string; children: React.ReactNode }> = ({ headi
 );
 
 export const CreditsModal: React.FC<CreditsModalProps> = ({ isOpen, onClose }) => {
+  // Escape closes the roll while it's open (the fix above).
+  // Capture phase, so the modal's word stands even where a
+  // host screen keeps its own Escape habits.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-      <div className="glass-panel-biolum w-full max-w-md rounded-3xl overflow-hidden border border-cyan-500/30 shadow-2xl">
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md pointer-events-auto"
+      onClick={onClose}
+    >
+      <div
+        className="glass-panel-biolum w-full max-w-md rounded-3xl overflow-hidden border border-cyan-500/30 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="px-6 py-4 flex items-center gap-3 border-b border-slate-800 bg-slate-900/60">
           <div className="w-10 h-10 rounded-2xl bg-cyan-950/70 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
             <Sprout className="w-5 h-5" />
@@ -52,7 +84,7 @@ export const CreditsModal: React.FC<CreditsModalProps> = ({ isOpen, onClose }) =
         </div>
         <div className="p-6 space-y-5">
           <Block heading="Design & Development">
-            Adam
+            Adam Bailey <span className="text-slate-400">— a.k.a. Nomad the Grey</span>
           </Block>
           <Block heading="AI Assistance">
             Marlowe · Google AI Studio
@@ -63,9 +95,6 @@ export const CreditsModal: React.FC<CreditsModalProps> = ({ isOpen, onClose }) =
           </Block>
           <Block heading="Built With">
             Vite · React · Three.js · Cloudflare Workers
-          </Block>
-          <Block heading="Model Pipeline">
-            Meshy → Mixamo — with thanks to Alex
           </Block>
           <Block heading="Playtesters">
             Clarissa — first through the door, and the first to break it honestly

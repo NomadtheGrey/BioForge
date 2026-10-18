@@ -19,7 +19,7 @@ import React from 'react';
 import { Heart } from 'lucide-react';
 import { DONATE_URL } from '../game/links';
 
-export type DonateButtonVariant = 'header' | 'section' | 'popup';
+export type DonateButtonVariant = 'header' | 'section' | 'popup' | 'session';
 
 const CLASSES: Record<DonateButtonVariant, string> = {
   // Start-screen header pill (the old SUPPORT seat's dress).
@@ -31,6 +31,11 @@ const CLASSES: Record<DonateButtonVariant, string> = {
   // The pause popup's standing-row pill (beside RESUME kin).
   popup:
     'px-5 py-2 rounded-2xl text-xs font-tech font-bold text-rose-200 border border-rose-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5',
+  // The session bar's ghost button (Adam, 2026-10-18: the
+  // doors belong on the always-visible Session UI, next to
+  // Ping — not only behind an alt-tab).
+  session:
+    'p-2 rounded-xl text-rose-300 hover:text-rose-200 hover:bg-rose-950/50 transition-colors cursor-pointer flex items-center gap-1.5',
 };
 
 const CAPPED_WORD =
@@ -38,13 +43,23 @@ const CAPPED_WORD =
 
 export const DonateButton: React.FC<{ variant: DonateButtonVariant }> = ({ variant }) => {
   const url = DONATE_URL;
+  // The session bar speaks in its own casing and hides labels
+  // on small screens, like every other button in that bar.
+  const inner =
+    variant === 'session' ? (
+      <>
+        <Heart className="w-4 h-4" />
+        <span className="text-[11px] font-mono font-medium hidden md:inline">Donate</span>
+      </>
+    ) : (
+      <>
+        <Heart className="w-3.5 h-3.5" /> DONATE
+      </>
+    );
   if (url) {
     return (
-      <button
-        onClick={() => window.open(url, '_blank', 'noopener')}
-        className={CLASSES[variant]}
-      >
-        <Heart className="w-3.5 h-3.5" /> DONATE
+      <button onClick={() => window.open(url, '_blank', 'noopener')} className={CLASSES[variant]}>
+        {inner}
       </button>
     );
   }
@@ -55,7 +70,7 @@ export const DonateButton: React.FC<{ variant: DonateButtonVariant }> = ({ varia
       aria-label={`Donate — ${CAPPED_WORD}`}
       className={`${CLASSES[variant]} opacity-90`}
     >
-      <Heart className="w-3.5 h-3.5" /> DONATE
+      {inner}
     </button>
   );
 };

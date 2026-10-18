@@ -70,6 +70,20 @@ const SAVE_STORE_NAME = 'saves';
  */
 export type GameDifficulty = 'peaceful' | 'normal' | 'hostile';
 
+/**
+ * Whether the world is ARMED at a zone (Adam, 2026-10-18).
+ * The difficulty here is the WORLD's law — the host's save
+ * decides for everyone in it (a guest's own save never arms
+ * or disarms the host's world) — and THE REFUGE stands
+ * outside the law: the spawn zone (0,0) is safe as if it
+ * were Peaceful under any difficulty. This one predicate
+ * governs creature bites, player-side harm, and the hazard
+ * death-floor together (all three read the switch it sets).
+ */
+export function isArmedAt(difficulty: GameDifficulty, zx: number, zz: number): boolean {
+  return difficulty !== 'peaceful' && !(zx === 0 && zz === 0);
+}
+
 /** Everything in the 3D world that belongs to a save (not to the player). */
 export interface WorldSnapshot {
   flora: FloraEntity[];

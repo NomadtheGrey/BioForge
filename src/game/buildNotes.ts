@@ -70,16 +70,17 @@ export const DEFAULT_BUILD_NOTES: BuildNotes = {
  * applied).
  */
 export const BUILD_NOTES: BuildNotes = {
-  // The platform stack (2026-10-18): the helmet's remaining
-  // modules (Spore Filter, Shade Visor, Glyph Lens, Charge
-  // Sight) and the Quicksteps growths (Ember Soles, Waders,
-  // Webfoots, Stillsteps) all gain their working effects —
-  // every lens and growth now does what its card promises.
-  // Plus the HUD lane's credits third door (the pause popup).
-  title: 'The platform wakes',
+  // The armed land + the water module (2026-10-18): Normal's
+  // law is fully wired and verified (the host's save rules
+  // the world; zone (0,0) is the Refuge under any law), and
+  // Adam's consolidation folds Webfoots + Stillsteps into
+  // one tiered water module with the F stance. Plus the HUD
+  // lane's session-bar seats for Credits + Donate.
+  title: 'The land has teeth',
   lines: [
-    'Every lens on your helm now does what its card promises: the Spore Filter stills the Hollow\'s tax, the Shade Visor dims the glare country, the Glyph Lens reads the deep line in ruin stones and finds the caches glowing through their walls, and the Charge Sight paints the ground where a strike is about to fall.',
-    'Your Quicksteps have grown sure: Ember Soles make lava slow ground instead of a burn, Waders stride the Mirror Marsh unhindered, Webfoots turn a swim into a stroke — and Stillsteps let you step out onto still pond water and walk it. Rivers still run, though. Still water only.',
-    'The credits roll has a third door now: pause the game and it\'s there in the popup, beside Resume and Options.',
+    'Normal worlds mean it now: beyond the spawn country, hunters hunt and the land can kill you — and your weapons answer. The spawn zone itself is the Refuge, safe under any law, and the border will tell you when you\'re leaving its peace.',
+    'In co-op, the host\'s world sets the law for everyone in it — the word at the border and the Refuge\'s peace included.',
+    'The Webfoots and Stillsteps are one water module now: the second growth grows on the first, and in the water F switches you between swimming and walking the surface. The Controls Guide names the key too.',
+    'Credits and the donation jar have a fourth seat: the session bar, beside your ping — no alt-tabbing to find them.',
   ],
 };

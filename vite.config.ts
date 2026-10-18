@@ -6,6 +6,18 @@ import {defineConfig} from 'vite';
 export default defineConfig(() => {
   return {
     plugins: [react(), tailwindcss()],
+    define: {
+      // THE BUILD STAMP (system messages, Adam 2026-10-18):
+      // every build bakes the minute it was built, labeled so
+      // the merge flow can read it back out of the deployed
+      // bundle (grep 'bioforge-build:') and write it into the
+      // system feed as latestBuild. Zero manual steps — the
+      // stamp changes on EVERY build because the clock does.
+      // buildNotes.ts unwraps it into BUILD_ID.
+      __BIOFORGE_BUILD_ID__: JSON.stringify(
+        `bioforge-build:${new Date().toISOString().slice(0, 16)}Z`
+      ),
+    },
     resolve: {
       alias: {
         // `import.meta.dirname` replaces `__dirname` here: Vite's native

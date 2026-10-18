@@ -1025,6 +1025,53 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       }
       return group;
     },
+    // The portal station (Departure D2): a monument ring in a
+    // grand heart room — two root-stone pillars shouldering a
+    // great grown torus, its disc a held darkness. Built at
+    // the epic scale Adam asked the finale's places to carry:
+    // the tallest thing a ruin interior holds.
+    'portal_ring': () => {
+      const group = new THREE.Group();
+      const stone = new THREE.MeshStandardMaterial({ color: 0x44403c, roughness: 0.9 });
+      const rootwood = new THREE.MeshStandardMaterial({ color: 0x5b4632, roughness: 0.85 });
+      for (const side of [-1, 1]) {
+        const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.48, 3.4, 8), stone);
+        pillar.position.set(side * 1.85, 1.7, 0);
+        pillar.castShadow = true;
+        group.add(pillar);
+        const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.78, 0.35, 8), stone);
+        foot.position.set(side * 1.85, 0.18, 0);
+        group.add(foot);
+      }
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(1.6, 0.17, 10, 36),
+        new THREE.MeshStandardMaterial({ color: 0x6d5bd0, emissive: 0x7c6ff0, emissiveIntensity: 0.55, roughness: 0.35 })
+      );
+      ring.position.y = 2.1;
+      ring.castShadow = true;
+      group.add(ring);
+      const disc = new THREE.Mesh(
+        new THREE.CircleGeometry(1.5, 32),
+        new THREE.MeshStandardMaterial({ color: 0x070510, emissive: 0x1b1440, emissiveIntensity: 0.7, roughness: 0.15 })
+      );
+      disc.name = 'portalDisc';
+      disc.position.y = 2.1;
+      group.add(disc);
+      const lintel = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.4, 0.7), rootwood);
+      lintel.position.y = 3.85;
+      lintel.castShadow = true;
+      group.add(lintel);
+      for (let i = 0; i < 5; i++) {
+        const a = (i / 5) * Math.PI * 2 + 0.3;
+        const stonelet = new THREE.Mesh(
+          new THREE.OctahedronGeometry(0.14),
+          new THREE.MeshStandardMaterial({ color: 0x312e81, emissive: 0x818cf8, emissiveIntensity: 1.1, roughness: 0.3 })
+        );
+        stonelet.position.set(Math.cos(a) * 1.05, 0.16, Math.sin(a) * 1.05);
+        group.add(stonelet);
+      }
+      return group;
+    },
     // A ruin glyph: a stone tablet on a rubble base, its indigo
     // script-lines still lit. Clicking reads the stone's memory
     // (useToolInteractions serves the fate's lore lines).

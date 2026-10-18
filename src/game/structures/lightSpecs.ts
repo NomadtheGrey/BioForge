@@ -321,5 +321,9 @@ export const STRUCTURE_LIGHT_BASE: Record<Exclude<StructureType, 'lantern_fern_p
     ruin_exit: { color: 0x2dd4bf, intensity: 0.9, distance: 4.5, y: 1.4 },
     precursor_cache: { color: 0x67e8f9, intensity: 0.55, distance: 3, y: 0.8 },
     artifact_heart: { color: 0xfb7185, intensity: 1.1, distance: 5.5, y: 1.5 },
+    // The portal station (Departure D2): a station's violet
+    // shine, grand-room scale — the epic note Adam asked the
+    // finale's places to carry.
+    portal_ring: { color: 0xa78bfa, intensity: 1.5, distance: 10, y: 2.4 },
     ruin_glyph: { color: 0xa5b4fc, intensity: 0.6, distance: 3, y: 1.1 },
   };

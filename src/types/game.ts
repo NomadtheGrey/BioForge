@@ -337,7 +337,12 @@ export type ItemId =
   | 'spore_puffer'
   | 'glass_sting'
   | 'storm_lance'
-  | `sample_${FaunaSpecies}`;
+  | `sample_${FaunaSpecies}`
+  // Propagule seeds (2026-10-18): one seed_<species> item per
+  // seed-bearing flora species, GENERATED from the flora
+  // table (items/constants) off the def's propagation field —
+  // the template keeps the union honest as species land.
+  | `seed_${FloraSpecies}`;
 
 export type ToolType =
   | 'harvest_glove'

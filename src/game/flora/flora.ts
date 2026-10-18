@@ -85,6 +85,22 @@ export interface FloraDef {
   /** Which kingdom: plant or fungus. (The codex files both under
    *  'flora'; this field is the design-facing distinction.) */
   kind: 'flora' | 'fungus';
+  /** PROPAGATION (Adam's ruling, 2026-10-18 — the planting
+   *  economy): how a player plants this species again.
+   *  'seed' = the species bears seed (or spores, for fungi):
+   *  its seed_<species> item exists (generated in items/
+   *  constants from this very field), a glove harvest rolls
+   *  0-2 of them (1-2 fertilized), dissolving reclaims 1.
+   *  Any other ItemId = the species "wouldn't" seed — it is
+   *  planted WITH A PIECE of itself: that item (a cutting,
+   *  a tuber, its own stock), reclaimed by dissolving, never
+   *  by the glove — taking the piece costs the plant.
+   *  null = wild-only: the land regrows it; no pouch stock
+   *  plants it. Absent = not yet classified (behaves as
+   *  wild-only until the classification pass reaches it).
+   *  The planter, the solvent, and the harvest roll all read
+   *  THIS field (game/flora/propagation.ts) — one truth. */
+  propagation?: 'seed' | ItemId | null;
   /** Harvest yields as data; null = not harvestable (scenery,
    *  hazards you endure rather than pick, the not-yet-built). */
   harvest: FloraHarvest | null;
@@ -1611,6 +1627,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'noonflower',
     name: 'Noonflower',
     kind: 'flora',
+    propagation: 'noon_seed',
     harvest: { item: 'noon_seed', count: 1, fertilizedCount: 2 },
     harvestWindow: { around: 'noon', closedText: 'The head is shut fast — it opens for one hour at true noon, in all weathers, and the meadow keeps the appointment. Come back at midday.' },
     bonusGrow: {
@@ -1746,6 +1763,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'rib_grass',
     name: 'Rib Grass',
     kind: 'flora',
+    propagation: 'rib_seed',
     harvest: { item: 'rib_seed', count: 1, fertilizedCount: 2 },
     bonusGrow: {
       biomes: ['bone'],
@@ -3590,35 +3608,40 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'lantern_fern',
     name: 'Lantern Fern',
     kind: 'flora',
-    harvest: { item: 'soft_fiber', count: 2, fertilizedCount: 5, extras: [['dew_essence', 1], ['seed_lantern_fern', 1]] },
+    propagation: 'seed',
+    harvest: { item: 'soft_fiber', count: 2, fertilizedCount: 5, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },
   bell_bloom: {
     id: 'bell_bloom',
     name: 'Bell-Bloom',
     kind: 'flora',
-    harvest: { item: 'dew_essence', count: 2, fertilizedCount: 4, extras: [['soft_fiber', 1], ['seed_bell_bloom', 1]] },
+    propagation: 'seed',
+    harvest: { item: 'dew_essence', count: 2, fertilizedCount: 4, extras: [['soft_fiber', 1]] },
     bonusGrow: null,
   },
   petal_mill: {
     id: 'petal_mill',
     name: 'Petal-Mill',
     kind: 'flora',
-    harvest: { item: 'vibrant_petal', count: 3, fertilizedCount: 6, extras: [['sweet_nectar', 2], ['seed_petal_mill', 1]] },
+    propagation: 'seed',
+    harvest: { item: 'vibrant_petal', count: 3, fertilizedCount: 6, extras: [['sweet_nectar', 2]] },
     bonusGrow: null,
   },
   sap_weaver: {
     id: 'sap_weaver',
     name: 'Sap-Weaver',
     kind: 'flora',
-    harvest: { item: 'resin_sap', count: 3, fertilizedCount: 6, extras: [['seed_sap_weaver', 1]] },
+    propagation: 'seed',
+    harvest: { item: 'resin_sap', count: 3, fertilizedCount: 6,  },
     bonusGrow: null,
   },
   snap_trap: {
     id: 'snap_trap',
     name: 'Chittering Snap-Trap',
     kind: 'flora',
-    harvest: { item: 'carapace_scale', count: 1, fertilizedCount: 1, extras: [['seed_snap_trap', 1]] },
+    propagation: 'seed',
+    harvest: { item: 'carapace_scale', count: 1, fertilizedCount: 1, extras: [] },
     hazardous: true,
     bonusGrow: null,
   },
@@ -3628,6 +3651,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'antenna_shroom',
     name: 'Antenna Shroom',
     kind: 'fungus',
+    propagation: 'glow_spore',
     harvest: { item: 'glow_spore', count: 2, fertilizedCount: 4, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },
@@ -3635,6 +3659,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'visor_shroom',
     name: 'Visor Shroom',
     kind: 'fungus',
+    propagation: 'glow_spore',
     harvest: { item: 'basic_compost', count: 2, fertilizedCount: 3, extras: [['glow_spore', 1]] },
     bonusGrow: null,
   },
@@ -3642,6 +3667,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'shelf_shroom',
     name: 'Shelf Shroom',
     kind: 'fungus',
+    propagation: 'glow_spore',
     harvest: { item: 'soft_fiber', count: 2, fertilizedCount: 4, extras: [['basic_compost', 1]] },
     bonusGrow: null,
   },
@@ -3649,6 +3675,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'glow_fungus',
     name: 'Glow Fungus',
     kind: 'fungus',
+    propagation: 'glow_spore',
     harvest: { item: 'glow_spore', count: 2, fertilizedCount: 4, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },
@@ -3656,6 +3683,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'glow_spore_cluster',
     name: 'Glow Spore Cluster',
     kind: 'fungus',
+    propagation: 'glow_spore',
     harvest: { item: 'glow_spore', count: 2, fertilizedCount: 4, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },
@@ -3670,6 +3698,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'cinder_bloom',
     name: 'Cinder Bloom',
     kind: 'flora',
+    propagation: 'resin_sap',
     harvest: { item: 'resin_sap', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },
@@ -3677,6 +3706,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'obsidian_bloom',
     name: 'Obsidian Bloom',
     kind: 'flora',
+    propagation: 'obsidian_shard',
     harvest: { item: 'obsidian_shard', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },
@@ -3684,6 +3714,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'prism_reed',
     name: 'Prism Reed',
     kind: 'flora',
+    propagation: 'saltglass_shard',
     harvest: { item: 'saltglass_shard', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },
@@ -3691,6 +3722,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'rime_spire',
     name: 'Rime Spire',
     kind: 'flora',
+    propagation: 'nevermelt_ice',
     harvest: { item: 'nevermelt_ice', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },
@@ -3698,6 +3730,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'heartroot',
     name: 'Heartroot',
     kind: 'flora',
+    propagation: 'heartwood',
     harvest: { item: 'heartwood', count: 2, fertilizedCount: 3, extras: [['soft_fiber', 1]] },
     bonusGrow: null,
   },
@@ -3705,6 +3738,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'dusk_grass',
     name: 'Duskgrass',
     kind: 'flora',
+    propagation: null, // wild-only: the land regrows it; no pouch stock plants it
     harvest: { item: 'soft_fiber', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },
@@ -3712,6 +3746,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'heartbloom',
     name: 'Heartbloom',
     kind: 'flora',
+    propagation: null, // wild-only: the land regrows it; no pouch stock plants it
     harvest: { item: 'heart_sap', count: 1, fertilizedCount: 2, extras: [['dew_essence', 2]] },
     bonusGrow: null,
   },
@@ -3719,6 +3754,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'stormcatcher',
     name: 'Stormcatcher',
     kind: 'flora',
+    propagation: 'fulgurite_shard',
     harvest: { item: 'fulgurite_shard', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },
@@ -3726,6 +3762,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'gravebloom',
     name: 'Gravebloom',
     kind: 'flora',
+    propagation: 'bone_meal',
     harvest: { item: 'bone_meal', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },
@@ -3733,6 +3770,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'precursor_bloom',
     name: 'Precursor Bloom',
     kind: 'flora',
+    propagation: 'living_thread',
     harvest: { item: 'living_thread', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },
@@ -3740,6 +3778,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'mirror_lily',
     name: 'Mirror Lily',
     kind: 'flora',
+    propagation: 'dew_essence',
     harvest: { item: 'dew_essence', count: 3, fertilizedCount: 5, extras: [['resonant_reed', 1]] },
     bonusGrow: null,
   },
@@ -3749,6 +3788,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'bounce_shroom',
     name: 'Bounce-Shroom',
     kind: 'fungus',
+    propagation: 'seed',
     harvest: { item: 'seed_bounce_shroom', count: 1, fertilizedCount: 2, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },
@@ -3756,6 +3796,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'sunshard_cluster',
     name: 'Sunshard Cluster',
     kind: 'flora',
+    propagation: 'sunshard',
     harvest: { item: 'sunshard', count: 2, fertilizedCount: 4, extras: [['dew_essence', 1]] },
     bonusGrow: null,
   },
@@ -3763,6 +3804,7 @@ export const FLORA: Record<string, FloraDef> = {
     id: 'prism_cluster',
     name: 'Prism Cluster',
     kind: 'flora',
+    propagation: 'prismatic_core',
     harvest: { item: 'prismatic_core', count: 1, fertilizedCount: 2 },
     bonusGrow: null,
   },

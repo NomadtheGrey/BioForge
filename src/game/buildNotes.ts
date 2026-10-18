@@ -69,14 +69,17 @@ export const DEFAULT_BUILD_NOTES: BuildNotes = {
  * time (the dev lane's slice-4 lesson, applied).
  */
 export const BUILD_NOTES: BuildNotes = {
-  // The sound system (the tunes map, built; HUD lane,
-  // 2026-10-18): generative music family by family, creature
-  // voices by the pinned law, the SOUND shelf gone live.
-  // Player-facing in every line: it greets.
-  title: 'The world finds its voice',
+  // The day-one stack (2026-10-18): the sound field fix +
+  // the hum's retirement (HUD lane's ear-led passes), the
+  // Left Hand's move to Ctrl (Adam's ruling), and the chat
+  // pair — the solo transmissions pane and the un-blurred
+  // co-op window (background lane). The sound build's own
+  // notes fired with its merge; this build speaks for
+  // itself, per the standing discipline.
+  title: 'Clearer air, a surer hand',
   lines: [
-    'The country has a sound now. Every family of land sings in its own scale and temper, a place keeps its tune from visit to visit, and night changes the mix rather than the music. One deep kind of place is silent on purpose — you will know it when you hear it.',
-    'Creatures have their voices, grown from what they are: a greeting when a companion comes into earshot, a sharp tell when something startles, an answer when a neighbor calls back. Nothing nearby dies quietly anymore.',
-    'The SOUND shelf in Options now runs a real mix — Master, Background Music, Creatures, Plants, and Interface, each with its own switch and slider. Set the world as loud as you like it.',
+    'The music sits at its true level now — the first mix was a whisper, and it has been set right. The low hum underneath it has retired for good; the country plays in two clean layers, and the SOUND shelf in Options will tell you what it is doing.',
+    'The Left Hand cycles on Ctrl now — Ctrl and the arrow keys, or Ctrl and the scroll wheel — and every guide and card that names the key names the new one.',
+    'The co-op window no longer blurs the world behind it, and its log stands open before you ever join a session: word from the system is readable even when you wander alone.',
   ],
 };

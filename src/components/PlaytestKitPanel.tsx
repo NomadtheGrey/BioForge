@@ -235,7 +235,7 @@ export function PlaytestKitPanel(props: PlaytestKitPanelProps) {
   }
 
   return (
-    <div className="pointer-events-auto fixed right-4 top-24 z-50 w-[21rem] max-h-[78vh] overflow-y-auto rounded-2xl border border-emerald-900 bg-[#0c1210]/95 p-4 text-stone-200 shadow-2xl backdrop-blur">
+    <div className="pointer-events-auto fixed right-4 top-24 z-50 w-[21rem] max-h-[78dvh] overflow-y-auto rounded-2xl border border-emerald-900 bg-[#0c1210]/95 p-4 text-stone-200 shadow-2xl backdrop-blur">
       <div className="mb-2 flex items-center justify-between">
         <div className="text-sm font-bold uppercase tracking-widest text-emerald-300">Playtest Kit</div>
         <button

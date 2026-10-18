@@ -443,7 +443,7 @@ const renderArsenalRow = (e: FamilyEntry) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-      <div className="glass-panel-biolum w-full max-w-4xl h-[620px] rounded-3xl flex flex-col overflow-hidden border border-purple-500/30 shadow-2xl">
+      <div className="glass-panel-biolum w-full max-w-4xl h-[min(620px,94dvh)] rounded-3xl flex flex-col overflow-hidden border border-purple-500/30 shadow-2xl">
         {/* Header */}
         <div className="px-6 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-900/60">
           <div className="flex items-center gap-3">

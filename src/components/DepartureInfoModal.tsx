@@ -92,7 +92,7 @@ export const DepartureInfoModal: React.FC<DepartureInfoModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-      <div className="glass-panel-biolum w-full max-w-2xl max-h-[88vh] rounded-3xl flex flex-col overflow-hidden border border-violet-400/40 shadow-2xl">
+      <div className="glass-panel-biolum w-full max-w-2xl max-h-[88dvh] rounded-3xl flex flex-col overflow-hidden border border-violet-400/40 shadow-2xl">
         {/* Header: the door, and the choice it names. */}
         <div className="px-6 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-900/60 shrink-0">
           <div className="flex items-center gap-3">

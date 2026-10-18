@@ -72,12 +72,30 @@ function greetingLines(): SystemLine[] {
 
 export function useSystemFeed(opts?: { onNotice?: (line: SystemLine) => void }): UseSystemFeedResult {
   const [feed, setFeed] = useState<SystemFeed | null>(null);
+  // In-memory seen starts AS LOADED, deliberately one step
+  // behind the greeting's persist (below): on the greeting
+  // load the unread dot still counts this build — the prompt
+  // to read the notes — while the persisted stamp ensures
+  // no later load re-greets or re-dots it. markSeen syncs
+  // the two whenever the player reads.
   const [seen, setSeen] = useState<SeenState>(() =>
     typeof localStorage !== 'undefined' ? loadSeen(localStorage) : { lastSeenBuild: '', seenBroadcasts: [] }
   );
   const [lines, setLines] = useState<SystemLine[]>(() => {
     const initial = typeof localStorage !== 'undefined' ? loadSeen(localStorage) : { lastSeenBuild: '', seenBroadcasts: [] };
-    return initial.lastSeenBuild === BUILD_ID ? [] : greetingLines();
+    if (initial.lastSeenBuild === BUILD_ID) return [];
+    // THE GREETING FIRES ONCE PER BUILD (the dev lane's
+    // watch): the moment it seeds, the build's seen-stamp is
+    // persisted — the next load does not re-announce. Nothing
+    // is lost by this: the NewsModal ALWAYS carries the
+    // running build's notes, read or not; the stream greeting
+    // is the announcement, not the archive. Broadcasts keep
+    // their own seen tracking (they clear when read).
+    if (typeof localStorage !== 'undefined') {
+      const greeted: SeenState = { ...initial, lastSeenBuild: BUILD_ID };
+      saveSeen(localStorage, greeted);
+    }
+    return greetingLines();
   });
 
   const seenRef = useRef(seen);

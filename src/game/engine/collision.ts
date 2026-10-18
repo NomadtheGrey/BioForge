@@ -99,7 +99,15 @@ function isCollidingWithStructure(
 }
 
 /**
- * Checks if a candidate position collides with dense plants (Snap-Traps, Sap-Weavers)
+ * Flora collision: NONE (Adam's ruling, 2026-10-18). Two
+ * species (snap-trap, sap-weaver) used to gain a collision
+ * disc at growth stage 2 — which trapped a player the
+ * plant grew around, since the resolver can refuse entry
+ * but had no way out. Adam's call: plants are plants —
+ * every species is walk-through, like the rest of the
+ * flora always was. The plants' BEHAVIORS are untouched
+ * (the snap fires on proximity in the sim, not contact),
+ * so nothing else depends on this returning true.
  */
 function isCollidingWithFlora(
   candidateX: number,
@@ -107,20 +115,8 @@ function isCollidingWithFlora(
   floraList: FloraEntity[],
   playerLevel: number = 0
 ): boolean {
-  // Plants live on the ground story; a player crossing an upper floor
-  // passes over them, not through them.
-  if (playerLevel > 0) {
-    return false;
-  }
-  return floraList.some((f) => {
-    // Only mature dense or hazardous flora have physical collision
-    if (f.growthStage < 2) return false;
-    if (f.species !== 'snap_trap' && f.species !== 'sap_weaver') return false;
-
-    const plantRadius = f.species === 'snap_trap' ? 0.65 : 0.7;
-    const distSq = (candidateX - f.x) ** 2 + (candidateZ - f.z) ** 2;
-    return distSq < (plantRadius + PLAYER_RADIUS) ** 2;
-  });
+  void candidateX; void candidateZ; void floraList; void playerLevel;
+  return false;
 }
 
 /** The active cavern grid while the player is inside an instance. */
@@ -170,37 +166,7 @@ export function resolveMovementWithCollision(
   playerLevel: number = 0,
   cavern: CavernGridRef | null = null
 ): { x: number; z: number } {
-  // DEPENETRATION (Adam's live find, 2026-10-18): a snap-trap
-  // or sap-weaver that GROWS to stage 2+ under a standing
-  // player leaves the player's current position inside its
-  // collision disc — and every candidate check below then
-  // refuses every move, because a single step still lands
-  // inside the disc. The player is stuck for good. So: if
-  // the CURRENT position already stands inside a flora
-  // disc, walk the player straight out to its rim first
-  // (the plant grew; the ground politely makes room),
-  // whatever this frame's input was. One disc per frame —
-  // an overlapping second plant resolves next frame.
-  if (playerLevel <= 0) {
-    for (const f of floraList) {
-      if (f.growthStage < 2) continue;
-      if (f.species !== 'snap_trap' && f.species !== 'sap_weaver') continue;
-      const plantRadius = f.species === 'snap_trap' ? 0.65 : 0.7;
-      const rim = plantRadius + PLAYER_RADIUS;
-      const dx = currentX - f.x;
-      const dz = currentZ - f.z;
-      const distSq = dx * dx + dz * dz;
-      if (distSq >= rim * rim) continue;
-      const dist = Math.sqrt(distSq);
-      // Dead center has no exit direction; step east.
-      const ux = dist > 0.0001 ? dx / dist : 1;
-      const uz = dist > 0.0001 ? dz / dist : 0;
-      return {
-        x: Math.max(-WORLD_BOUNDARY, Math.min(WORLD_BOUNDARY, f.x + ux * (rim + 0.05))),
-        z: Math.max(-WORLD_BOUNDARY, Math.min(WORLD_BOUNDARY, f.z + uz * (rim + 0.05))),
-      };
-    }
-  }
+
   // 1. Check full displacement
   const targetX = Math.max(-WORLD_BOUNDARY, Math.min(WORLD_BOUNDARY, currentX + desiredDeltaX));
   const targetZ = Math.max(-WORLD_BOUNDARY, Math.min(WORLD_BOUNDARY, currentZ + desiredDeltaZ));

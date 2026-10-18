@@ -88,7 +88,7 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({
                 <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold">F</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex justify-between items-center">
-                <span className="text-slate-300">Cycle Seed / Blueprint (wheel) · Fertilizer / Blueprint (arrows, with the trowel or builder in hand)</span>
+                <span className="text-slate-300">Cycle Planting Stock / Blueprint (wheel) · Fertilizer / Blueprint (arrows, with the trowel or builder in hand) — the wheel walks every seed and plantable piece you carry</span>
                 <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-bold">Mouse Wheel · ↑ ↓</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex justify-between items-center">

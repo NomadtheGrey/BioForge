@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Backpack, Sprout, Hammer, ArrowUpRight, Search } from 'lucide-react';
 import { ItemId, StructureType, ToolType } from '../types/game';
 import { ITEMS, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../game/items/constants';
+import { isPropaguleItem } from '../game/flora/propagation';
 import { isGauntletUpgrade, isGearItem, gearTierOf } from '../game/quests/quests';
 import { BASE_SUPPLY_GROUPS, baseSupplyGroupOf, isBaseSupply } from '../game/items/baseSupplies';
 import { POUCH_TIER_CAPS, POUCH_TIER_NAMES, pouchTierOf } from '../game/items/pouch';
@@ -153,7 +154,12 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
       onClose();
       return;
     }
-    if (activeItem.category === 'seed') {
+    // Planting stock equips for the trowel (propagation slice,
+    // 2026-10-18): 'seed'-category items AND every piece
+    // propagule — a cutting is 'raw' by category but is the
+    // trowel's business exactly as a seed is. One flag decides
+    // (game/flora/propagation), the same one the wheel reads.
+    if (activeItem.category === 'seed' || isPropaguleItem(activeItem.id)) {
       onSelectSeed(activeItem.id);
       onSelectTool('planter_trowel');
       onClose();
@@ -568,7 +574,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
                     </button>
                   )}
 
-                  {activeItem.category === 'seed' && (
+                  {(activeItem.category === 'seed' || isPropaguleItem(activeItem.id)) && (
                     <button
                       onClick={handleEquip}
                       className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 font-tech font-bold text-xs tracking-wider text-white flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all"

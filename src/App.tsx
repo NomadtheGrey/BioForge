@@ -1559,6 +1559,16 @@ export default function App() {
   const waterModeRef = useRef<'swim' | 'walk'>('walk');
   const waterHintRef = useRef<string | null>(null);
   const [waterHint, setWaterHint] = useState<string | null>(null);
+  // The stance's reactive mirror (HUD lane's mobile decision,
+  // Adam's delegation 2026-10-18): the loop reads the ref, but
+  // the touch stance BUTTON reads a label — so the toggle
+  // below flips both, and they can never disagree.
+  const [waterMode, setWaterMode] = useState<'swim' | 'walk'>('walk');
+  const toggleWaterStance = useCallback(() => {
+    const next = waterModeRef.current === 'walk' ? 'swim' : 'walk';
+    waterModeRef.current = next;
+    setWaterMode(next);
+  }, []);
   const {
     hasStarted, setHasStarted, saveList, currentSaveRef, latestStateRef,
     buildWorldSnapshot, buildCurrentPlayerState, saveNow,
@@ -1899,7 +1909,7 @@ export default function App() {
     // opens the panel; the pouch swap lives INSIDE it as its
     // first control, one click from where the key used to be.
     onToggleDebugKit: () => setShowPlaytestKit((v) => !v),
-    onWaterStanceToggle: () => { waterModeRef.current = waterModeRef.current === 'walk' ? 'swim' : 'walk'; },
+    onWaterStanceToggle: toggleWaterStance,
     // The striker draw swap (weapons build): defined just below —
     // ref-driven, fires on the 7 key / wheel / tile click only.
     onToggleStrikerDraw: () => toggleStrikerDraw(),
@@ -3109,6 +3119,7 @@ const {
         onRequestLock={() => { if (!touchMode) engineRef.current?.requestPointerLock(); }}
         hoverInfo={hoverInfo}
         hoverHint={hoverHint ?? waterHint}
+        waterStance={waterHint ? { mode: waterMode, onToggle: toggleWaterStance } : null}
         notifications={notifications}
         onDismissNotification={clearNotification}
         roomCode={roomCode}

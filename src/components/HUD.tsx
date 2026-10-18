@@ -19,6 +19,8 @@ import {
   Save,
   Flashlight,
   Shield,
+  Waves,
+  Footprints,
   ChevronLeft,
   ChevronRight,
   ScrollText,
@@ -124,6 +126,12 @@ interface HUDProps {
   // popup can speak exactly (see App's crossing watch).
   isRefuge?: boolean;
   leavingSafety?: GameDifficulty | null;
+  // The water module's stance, touch seat (Adam's delegation
+  // to the HUD lane, 2026-10-18): non-null exactly while the
+  // stance matters (in the water, second growth grown — the
+  // same signal that seats the desktop hint). Desktop flips
+  // it with F; touch gets the button below.
+  waterStance?: { mode: 'swim' | 'walk'; onToggle: () => void } | null;
   /** While inside a cavern: where the cave exit is (the radar draws a
    * violet way-out arrow toward it). Null on the surface. */
   caveExitTarget: { x: number; z: number } | null;
@@ -336,6 +344,7 @@ export const HUD: React.FC<HUDProps> = ({
   zoneCoordsLabel,
   isRefuge,
   leavingSafety,
+  waterStance,
   caveExitTarget,
   radarActive,
   radarTier,
@@ -1740,6 +1749,45 @@ export const HUD: React.FC<HUDProps> = ({
           )}
         </div>
       </div>
+
+      {/* Touch STANCE button — the water module on mobile
+          (Adam's delegation to the HUD lane, 2026-10-18:
+          'let HUD decide what to do about Mobile and
+          swimming/blocking'). The decision: swimming gets a
+          tap toggle in the RAISE button's family — same glass
+          disc, stacked directly above it in one stable column
+          (the column never reshuffles when a shield joins) —
+          present only while the stance matters, which App's
+          waterHint signal already knows. It names the ACTION
+          (tap Swim while walking the water; tap Walk while
+          swimming), the RAISE button's own convention.
+          Blocking, the delegation's other half, needed no new
+          work: the touch RAISE hold below has carried it
+          since the shield follow pass. */}
+      {touchMode && waterStance && (
+        <button
+          onPointerDown={(e) => {
+            e.preventDefault();
+            waterStance.onToggle();
+          }}
+          onContextMenu={(e) => e.preventDefault()}
+          className="absolute right-4 bottom-[12.75rem] z-30 pointer-events-auto glass-panel rounded-full w-16 h-16 flex flex-col items-center justify-center gap-0.5 shadow-2xl transition-all select-none touch-none border-cyan-500/50 text-cyan-300 bg-slate-950/70"
+          title={
+            waterStance.mode === 'walk'
+              ? 'Swim — stop walking the water and swim it'
+              : 'Walk — take the held step on the water'
+          }
+        >
+          {waterStance.mode === 'walk' ? (
+            <Waves className="w-6 h-6" />
+          ) : (
+            <Footprints className="w-6 h-6" />
+          )}
+          <span className="text-[8px] font-tech font-bold tracking-widest uppercase">
+            {waterStance.mode === 'walk' ? 'Swim' : 'Walk'}
+          </span>
+        </button>
+      )}
 
       {/* Touch RAISE hold (shield follow pass, 2026-10-17): on
           touch there is no right-mouse to hold, so the raise is

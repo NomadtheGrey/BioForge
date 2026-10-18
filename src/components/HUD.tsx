@@ -226,6 +226,7 @@ import { MODULE_FOR_TOOL, gearTierOf } from '../game/quests/quests';
 import { type HudLayout, type HudPanelId } from '../hooks/useHudLayout';
 import { useAudioSettings } from '../hooks/useAudioSettings';
 import { HudPanel } from './HudPanel';
+import { HudErrorBoundary } from './HudErrorBoundary';
 import { TutorialChrome } from './TutorialChrome';
 import type { UseTutorialResult } from '../hooks/useTutorial';
 
@@ -681,6 +682,7 @@ export const HUD: React.FC<HUDProps> = ({
         touchMode ? 'p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]' : 'p-4'
       }`}
     >
+      <HudErrorBoundary>
       {/* Top Bar: Vitals, Biome, Room, Atmosphere, Quick Actions.
           Touch mode gets a narrower vitals card and tighter gaps:
           Tailwind supplies the responsive tools, but the HUD still
@@ -1854,6 +1856,7 @@ export const HUD: React.FC<HUDProps> = ({
           contextLine={`${zoneCoordsLabel} · ${currentBiomeName ?? 'Unknown country'} · ${touchMode ? 'touch' : 'desktop'}`}
         />
       )}
+      </HudErrorBoundary>
     </div>
   );
 };

@@ -70,16 +70,16 @@ export const DEFAULT_BUILD_NOTES: BuildNotes = {
  * applied).
  */
 export const BUILD_NOTES: BuildNotes = {
-  // The small-screen build (2026-10-18): HUD panels drag
-  // properly on touch (the browser used to claim every
-  // touch as a scroll before the drag could start), panels
-  // that arrive off-screen on a narrow phone rescue
-  // themselves, grip/close targets grow for fingers, the
-  // session bar fits the viewport — and the coordinates on
-  // screen now read like a map: north is positive.
-  title: 'In your pocket',
+  // Hotfix (2026-10-18): the phone black screen — a
+  // hidden panel's empty measurements sent the new
+  // panel-rescue into an endless loop and took the whole
+  // screen with it. The rescue now ignores panels it
+  // cannot measure and stops after two tries, and the
+  // panels sit behind a safety net: if one ever faults,
+  // the panels alone drop — the world keeps running.
+  title: 'Back on your feet',
   lines: [
-    'The game travels better now. On a phone, the HUD panels finally drag where your finger takes them — and if an arrangement saved on a big monitor lands a panel off the edge of a small screen, it nudges itself back into reach on its own. The little grip and close badges grow for touch, and the session bar fits the screen it\'s on.',
-    'And the coordinates read like a map at last: walk north and the zone number climbs. The world under the hood is unchanged — only the numbers on screen turned to face the way you do.',
+    'A quick repair: the last build could come up black on phones — a hidden panel confused the new panel-rescue into trying forever, and the whole screen went with it. Fixed, and fixed twice over: the rescue now leaves unmeasurable panels alone and gives up gracefully after two tries, and the panels have their own safety net, so even a future snag costs you the furniture, never the world.',
+    'Sorry for the dark screen — if yours is still black, this is the build that brings it back.',
   ],
 };

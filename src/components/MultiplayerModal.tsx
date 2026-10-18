@@ -186,6 +186,38 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
                   Multiple tabs or browser windows immediately synchronize when connected with the same session code. All base modifications, planted crops, and tamed fauna reflect in real-time.
                 </div>
               </div>
+
+              {/* Transmissions — the chat log, readable SOLO
+                  (Adam, 2026-10-18): SYSTEM and ADMIN word
+                  lands in this same log whether or not a
+                  session is running, and until this pane
+                  stood here the log only existed inside the
+                  connected view — a solo grower could be
+                  spoken to and never read it back. Read-only
+                  on this side of the door: there is nobody
+                  to transmit to until a session joins, and
+                  the moment one does, this same log is the
+                  one the session view carries (it is never
+                  cleared on leave). */}
+              <div className="p-4 rounded-2xl bg-slate-900/40 border border-slate-800">
+                <span className="text-[10px] text-slate-400 font-mono uppercase block mb-2">Transmissions</span>
+                <div className="h-48 overflow-y-auto space-y-2 pr-1">
+                  {chatMessages.length === 0 ? (
+                    <div className="h-full flex items-center justify-center text-slate-500 text-xs text-center px-4">
+                      No transmissions yet. Word from the system — and your team's chat, once you join them — will land here.
+                    </div>
+                  ) : (
+                    chatMessages.map((msg, idx) => (
+                      <div key={idx} className="text-xs">
+                        <span className="font-bold mr-1" style={{ color: msg.color }}>
+                          {msg.sender}:
+                        </span>
+                        <span className="text-slate-200">{msg.text}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
           ) : (
             <div className="space-y-4 flex-1 flex flex-col">

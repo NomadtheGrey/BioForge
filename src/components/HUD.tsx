@@ -129,8 +129,8 @@ interface HUDProps {
    * them). Forwarded to the Minimap, which tiers its pings. */
   radarTier: number;
   /** Click on the Left Hand slot: cycle the hand (lantern ↔
-   *  shields ↔ empty, as owned — the same cycle Alt+wheel /
-   *  Alt+↑ drives). */
+   *  shields ↔ empty, as owned — the same cycle Ctrl+wheel /
+   *  Ctrl+↑ drives). */
   onToggleHeldItem: () => void;
   /** The shield's raised state + its setter (shield slice,
    *  2026-10-17): the Left Hand tile wears BRACED/LOWERED on a
@@ -539,7 +539,7 @@ export const HUD: React.FC<HUDProps> = ({
   // tooltip while every gauntlet tile used the game's own
   // panel. Now the hand has hover + flash states mirroring
   // the tools': hover raises its descriptor, and CYCLING the
-  // hand (click / Alt+wheel / Alt+arrows) flashes it for ~3s
+  // hand (click / Ctrl+wheel / Ctrl+arrows) flashes it for ~3s
   // — which is also how touch players, who have no hover,
   // ever see it. The held/graft facts are hoisted here
   // because the descriptor and the tile both read them.
@@ -575,10 +575,10 @@ export const HUD: React.FC<HUDProps> = ({
     icon: heldIsShield ? '🛡️' : heldItemIdNow ? '🔦' : '✋',
     color: heldIsShield ? '#fb7185' : heldItemIdNow ? '#22d3ee' : '#94a3b8',
     desc: heldIsShield
-      ? `${heldGraftKind ? `${SHIELD_GRAFTS[heldGraftKind].name} graft · ` : ''}${heldLodestone ? 'Lodestone set · ' : ''}${shieldRaised ? 'BRACED — the wall is up' : 'Lowered — worn blunting is live'} · hold right-mouse to raise · click or Alt+wheel to cycle the hand`
+      ? `${heldGraftKind ? `${SHIELD_GRAFTS[heldGraftKind].name} graft · ` : ''}${heldLodestone ? 'Lodestone set · ' : ''}${shieldRaised ? 'BRACED — the wall is up' : 'Lowered — worn blunting is live'} · hold right-mouse to raise · click or Ctrl+wheel to cycle the hand`
       : heldItemIdNow
-        ? 'Click or Alt+wheel to cycle the hand'
-        : 'Click or Alt+wheel to cycle the hand — the lantern and grown shields ride here',
+        ? 'Click or Ctrl+wheel to cycle the hand'
+        : 'Click or Ctrl+wheel to cycle the hand — the lantern and grown shields ride here',
   };
   // Precedence, gentlest first: a hovered TOOL beats the
   // hand's flash; the hovered HAND beats everything (the
@@ -1538,7 +1538,7 @@ export const HUD: React.FC<HUDProps> = ({
                 The radar left it in the 2026-10-16 conversion
                 (helmet gear, never held); the SHIELD family
                 joined it in 2026-10-17. The hand now cycles —
-                click, Alt+wheel, or Alt+↑ — through what the
+                click, Ctrl+wheel, or Ctrl+↑ — through what the
                 player owns: lantern ↔ Scute Shield ↔ Lantern
                 Shield ↔ Fenback Shield, wrapping among what's
                 owned — the hand fills itself and stands empty

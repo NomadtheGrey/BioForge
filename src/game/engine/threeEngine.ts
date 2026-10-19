@@ -545,7 +545,7 @@ export class BioForgeThreeEngine {
     // The builders record is a factory over these shared materials
     // (game/structures/structureBuilders.ts) — built once, here, where they exist.
     this.structureBuilders = createStructureBuilders(this.materials);
-    this.creatureKit = createCreatureMeshKit(this.materials, (x, z) => this.terrainHeightAt(x, z), (x, z) => this.waterSurfaceAt(x, z), () => this.lastDayCycle);
+    this.creatureKit = createCreatureMeshKit(this.materials, (x, z) => this.terrainHeightAt(x, z), (x, z) => this.waterSurfaceAt(x, z), () => this.lastDayCycle, (x, z) => this.landSwimSurfaceAt(x, z));
     this.landmarkDressing = createLandmarkDressing(this.materials);
 
     // Lights
@@ -949,6 +949,18 @@ export class BioForgeThreeEngine {
    *  point is dry land. The creature kit's swim branch reads this
    *  (pond build, 2026-10-16) to ride swimmers at their surface. */
   public waterSurfaceAt(x: number, z: number): number | null {
+    return waterSurfaceFromLists(this.zonePondsLocal, this.zoneRiverSegsLocal, x, z);
+  }
+
+  /** The surface a LAND animal swims on at a LOCAL point
+   *  (Adam, 2026-10-19): plain water's surface, ponds and
+   *  rivers — null on dry land, and null over lava or brine.
+   *  The swim-spec citizens ride those liquids by their own
+   *  branch (brine jellies live in brine); a land animal in a
+   *  lava lake is the lava rules' business, not a swimmer. */
+  public landSwimSurfaceAt(x: number, z: number): number | null {
+    const here = this.liquidAt(x, z);
+    if (!here || here.liquid !== 'water') return null;
     return waterSurfaceFromLists(this.zonePondsLocal, this.zoneRiverSegsLocal, x, z);
   }
 

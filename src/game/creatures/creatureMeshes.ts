@@ -47,6 +47,13 @@ export function createCreatureMeshKit(
   // read live so night-rising swimmers can ease toward the
   // surface as midnight nears. Optional: no clock, no rising.
   dayPhaseAt?: () => number,
+  // Land-swim surface (Adam, 2026-10-19): the surface of PLAIN
+  // WATER only at a point, for the generic land-swim ride in
+  // updateFaunaMesh — kept separate from waterSurfaceAt above
+  // because the swim-spec citizens ride any liquid they live in
+  // (brine jellies ride brine), while a land animal is only
+  // ever swimming in water. Optional: no callback, no ride.
+  landSwimSurfaceAt?: (x: number, z: number) => number | null,
 ): CreatureMeshKit {
   // Idle-life wiggle state per fauna (render-only; see motion.ts).
   const wiggleMap = new Map<string, { wiggle: BrownianWiggle; species: FaunaEntity['species'] }>();
@@ -2703,6 +2710,26 @@ export function createCreatureMeshKit(
         const wingR = mesh.getObjectByName('wingR');
         if (wingL) wingL.rotation.z = -0.08 - flap;
         if (wingR) wingR.rotation.z = 0.08 + flap;
+      }
+    }
+
+    // LAND SWIM (Adam, 2026-10-19): land animals swim on the
+    // surface — an elephant does, so do these. A species with
+    // no swim spec (the pond citizens ride by theirs, above)
+    // and no flight, crossing water deeper than wading depth,
+    // rides the surface less a draft instead of strolling the
+    // bed with its head under. Shallow water still wades on the
+    // ground line — this only takes over where the water is
+    // honestly over the legs (0.45 m). The surface callback is
+    // water-only (the engine's side of the seam): a bear in a
+    // brine pan or a lava lake is not swimming, and the liquid
+    // rules already own those cases. Render-only, like
+    // everything here: the simulation stays 2D, no drag, no
+    // new state — the body simply floats where it should.
+    if (!swim && !flight && landSwimSurfaceAt) {
+      const swimSurfaceY = landSwimSurfaceAt(fauna.x, fauna.z);
+      if (swimSurfaceY !== null && swimSurfaceY - groundY >= 0.45) {
+        mesh.position.y = swimSurfaceY - 0.28 + Math.sin(fauna.animTime * 1.4) * 0.04;
       }
     }
 

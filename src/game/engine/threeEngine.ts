@@ -25,6 +25,14 @@ import { SkyRig } from '../world/skyRig';
 import { MoteField } from '../world/moteField';
 import { updateHearthTag } from '../creatures/hearthTag';
 import { FLORA_LIGHT_BASE, STRUCTURE_LIGHT_BASE } from '../structures/lightSpecs';
+import {
+  gestureForFlora,
+  gestureForStructure,
+  gestureIntensityMod,
+  gestureHueShift,
+  gesturePhaseFor,
+  type LightGesture,
+} from '../structures/lightGestures';
 import { isFloorType, BUILDING_TYPES, isDoorType } from '../structures/placement';
 import { dropShapeForId, type DropShape } from '../items/dropShapes';
 import { ITEMS } from '../items/constants';
@@ -129,6 +137,8 @@ export interface ThreeEngineCallbacks {
 }
 
 // One light-emitting source gathered from live entities each lighting tick.
+// gesture rides with the source so the merged cell can take its brightest
+// member's motion (THE MERGE RULE, wave 2 slice 5).
 interface LightSource {
   id: string;
   x: number;
@@ -137,6 +147,7 @@ interface LightSource {
   color: number;
   intensity: number;
   distance: number;
+  gesture: LightGesture;
 }
 
 
@@ -289,6 +300,15 @@ export class BioForgeThreeEngine {
    * window.__bioforgeLightPool. Read-only by convention. */
   public lightPoolSnapshot: { color: string; intensity: number; distance: number; heightAboveGround: number; groundLux: number }[] = [];
   private glowSprites: Map<string, THREE.Sprite> = new Map();
+  /**
+   * LIGHT GESTURES (wave 2, slice 5): the per-frame motion of each pooled
+   * light. updateLighting captures baseI / color / gesture at refresh
+   * (4 Hz); the frame loop below applies gestureIntensityMod around the
+   * base each frame, so pulses stay smooth without re-gathering sources.
+   * phase is hashed from the cell key (ripple: offset by world position).
+   */
+  private poolGesture: { gesture: LightGesture; phase: number; baseI: number; color: THREE.Color }[] = [];
+  private gestureScratchColor: THREE.Color = new THREE.Color();
   private glowTexture: THREE.Texture | null = null;
   private lastLightUpdate: number = 0;
   private readonly lightPoolSize: number = 12;
@@ -1901,6 +1921,7 @@ export class BioForgeThreeEngine {
       pl.visible = false;
       this.scene.add(pl);
       this.lightPool.push(pl);
+      this.poolGesture.push({ gesture: 'none', phase: 0, baseI: 0, color: new THREE.Color(0xffffff) });
     }
     this.glowTexture = makeGlowTexture();
   }
@@ -1933,10 +1954,11 @@ export class BioForgeThreeEngine {
       // Growth curve preserved from the per-mesh era: feeble seedling (stage 0)
       // to brilliant mature fern (stage 5). Merging multiplies from here.
       const g = (0.45 + flora.growthStage * 0.14) / 0.45;
-      return { id, x: flora.x, y: groundY + 2.2, z: flora.z, color: 0x06b6d4, intensity: 1.8 * g ** 3, distance: 8 * g };
+      // LIGHT GESTURE: lantern ferns sway like a flame in a draft.
+      return { id, x: flora.x, y: groundY + 2.2, z: flora.z, color: 0x06b6d4, intensity: 1.8 * g ** 3, distance: 8 * g, gesture: 'sway' as LightGesture };
     }
     const b = this.floraLightBase[flora.species];
-    return { id, x: flora.x, y: groundY + b.y, z: flora.z, color: b.color, intensity: b.intensity, distance: b.distance };
+    return { id, x: flora.x, y: groundY + b.y, z: flora.z, color: b.color, intensity: b.intensity, distance: b.distance, gesture: gestureForFlora(flora.species, b.gesture) };
   }
 
   private getStructureLightSpec(s: StructureEntity): LightSource {
@@ -1952,7 +1974,7 @@ export class BioForgeThreeEngine {
       // LAMP, grown on purpose, and must outshine the plant it
       // came from — a mature wild fern peaks near 30 / 20 on
       // the growth curve above, so the post stands at 40 / 26.
-      return { id, x: s.worldX, y: groundY + 2.7, z: s.worldZ, color: 0x06b6d4, intensity: 40, distance: 26 };
+      return { id, x: s.worldX, y: groundY + 2.7, z: s.worldZ, color: 0x06b6d4, intensity: 40, distance: 26, gesture: 'sway' as LightGesture };
     }
     // THE MYCOLOGIST'S WALL (BioForge wave 2, 2026-10-19): the
     // glow family's mounts make the wall genuinely shed more
@@ -1961,10 +1983,11 @@ export class BioForgeThreeEngine {
     // gloom cap does. The law is fungusWall.wallLightOf.
     if (s.type === 'mycologist_wall') {
       const w = wallLightOf(s.wall?.mounted ?? []);
-      return { id, x: s.worldX, y: groundY + w.y, z: s.worldZ, color: 0x7fe3c8, intensity: w.intensity, distance: w.distance };
+      // The glow family's mounts pulse — fungal glow, not lamplight.
+      return { id, x: s.worldX, y: groundY + w.y, z: s.worldZ, color: 0x7fe3c8, intensity: w.intensity, distance: w.distance, gesture: 'pulse' as LightGesture };
     }
     const b = this.structureLightBase[s.type];
-    return { id, x: s.worldX, y: groundY + b.y, z: s.worldZ, color: b.color, intensity: b.intensity, distance: b.distance };
+    return { id, x: s.worldX, y: groundY + b.y, z: s.worldZ, color: b.color, intensity: b.intensity, distance: b.distance, gesture: gestureForStructure(s.type, b.gesture) };
   }
 
   private updateLighting(): void {
@@ -2006,6 +2029,11 @@ export class BioForgeThreeEngine {
       }
       sources.push({
         id: 'held:lantern',
+        // LIGHT GESTURE (wave 2, slice 5): the carried lantern sways in
+        // INTENSITY only — its position already rides the player's walk,
+        // and doubling the motion would read as seasickness. Its sway is
+        // the same flame-in-draft as the post it was grown from.
+        gesture: 'sway' as LightGesture,
         x: sx,
         // The ground-light rule (see getFloraLightSpec): the
         // carried light rides the ground it stands over —
@@ -2043,6 +2071,9 @@ export class BioForgeThreeEngine {
     ) {
       sources.push({
         id: 'visor:biolume',
+        // LIGHT GESTURE (wave 2, slice 5): none, deliberately — the visor
+        // is an instrument, not a creature. Its glow stays characterless.
+        gesture: 'none' as LightGesture,
         x: this.cachedPlayerX,
         y: this.terrainHeightAt(this.cachedPlayerX, this.cachedPlayerZ) + 1.7,
         z: this.cachedPlayerZ,
@@ -2053,12 +2084,12 @@ export class BioForgeThreeEngine {
     }
 
     // Merge sources into grid cells (intensity-weighted centroid per cell).
-    const cells = new Map<string, { sx: number; sy: number; sz: number; si: number; r: number; g: number; b: number; count: number; maxDist: number; maxI: number }>();
+    const cells = new Map<string, { sx: number; sy: number; sz: number; si: number; r: number; g: number; b: number; count: number; maxDist: number; maxI: number; gGesture: LightGesture; gI: number }>();
     sources.forEach((src) => {
       const key = `${Math.floor(src.x / this.lightCellSize)},${Math.floor(src.z / this.lightCellSize)}`;
       let cell = cells.get(key);
       if (!cell) {
-        cell = { sx: 0, sy: 0, sz: 0, si: 0, r: 0, g: 0, b: 0, count: 0, maxDist: 0, maxI: 0 };
+        cell = { sx: 0, sy: 0, sz: 0, si: 0, r: 0, g: 0, b: 0, count: 0, maxDist: 0, maxI: 0, gGesture: 'none', gI: -1 };
         cells.set(key, cell);
       }
       cell.sx += src.x * src.intensity;
@@ -2072,6 +2103,11 @@ export class BioForgeThreeEngine {
       cell.count += 1;
       cell.maxDist = Math.max(cell.maxDist, src.distance);
       cell.maxI = Math.max(cell.maxI, src.intensity);
+      // THE MERGE RULE: the cell wears its brightest member's gesture.
+      if (src.intensity > cell.gI) {
+        cell.gI = src.intensity;
+        cell.gGesture = src.gesture;
+      }
     });
 
     // Nearest cells win the real-light pool; every cell gets a glow sprite.
@@ -2091,7 +2127,7 @@ export class BioForgeThreeEngine {
         // from throwing light across the map.
         const mergedD = Math.min(48, cell.maxDist + 0.6 * (cell.count - 1));
         const color = new THREE.Color(cell.r / cell.si, cell.g / cell.si, cell.b / cell.si);
-        return { key, cx, cy, cz, d2, mergedI, mergedD, color };
+        return { key, cx, cy, cz, d2, mergedI, mergedD, color, gesture: cell.gGesture };
       })
       .sort((a, b) => a.d2 - b.d2);
 
@@ -2105,6 +2141,13 @@ export class BioForgeThreeEngine {
       pl.color.copy(entry.color);
       pl.intensity = entry.mergedI * this.zoneLightIntensityMult;
       pl.distance = entry.mergedD * this.zoneLightDistanceMult;
+      // Capture the gesture state: base intensity + base color now, phase
+      // stable per cell (ripple takes its phase from world position).
+      const st = this.poolGesture[i];
+      st.gesture = entry.gesture;
+      st.phase = entry.gesture === 'ripple' ? (entry.cx + entry.cz) * 0.7 : gesturePhaseFor(entry.key);
+      st.baseI = entry.mergedI * this.zoneLightIntensityMult;
+      st.color.copy(entry.color);
     });
     for (let i = ranked.length; i < this.lightPool.length; i++) {
       this.lightPool[i].visible = false;
@@ -2152,7 +2195,12 @@ export class BioForgeThreeEngine {
       }
       sprite.position.set(entry.cx, entry.cy, entry.cz);
       const sc = entry.mergedD * this.zoneLightDistanceMult * 0.85;
-      sprite.scale.set(sc, sc, 1);
+      // Coarse sprite breathing at refresh cadence: the halo swells with
+      // the same gesture the pooled light wears (square-rooted — halos are
+      // suggestive, not literal).
+      const spritePhase = entry.gesture === 'ripple' ? (entry.cx + entry.cz) * 0.7 : gesturePhaseFor(entry.key);
+      const spriteMod = Math.sqrt(gestureIntensityMod(entry.gesture, this.elapsedTime, spritePhase));
+      sprite.scale.set(sc * spriteMod, sc * spriteMod, 1);
       (sprite.material as THREE.SpriteMaterial).color.copy(entry.color);
     });
     this.glowSprites.forEach((sprite, key) => {
@@ -3106,6 +3154,27 @@ private initEventListeners() {
     if (now - this.lastLightUpdate > 250) {
       this.lastLightUpdate = now;
       this.updateLighting();
+    }
+
+    // LIGHT GESTURES (wave 2, slice 5): smooth per-frame motion on the
+    // pooled lights. The refresh captured each light's gesture, base
+    // intensity and base color; here the curves evaluate every frame —
+    // a dozen cheap closed-form curves, no allocations. The engine's own
+    // elapsed-time clock drives them, so gestures freeze under pause with
+    // everything else living.
+    for (let i = 0; i < this.lightPool.length; i += 1) {
+      const pl = this.lightPool[i];
+      const st = this.poolGesture[i];
+      if (!pl.visible || st.gesture === 'none') {
+        continue;
+      }
+      pl.intensity = st.baseI * gestureIntensityMod(st.gesture, this.elapsedTime, st.phase);
+      const hueShift = gestureHueShift(st.gesture, this.elapsedTime);
+      if (hueShift !== 0) {
+        this.gestureScratchColor.copy(st.color);
+        this.gestureScratchColor.offsetHSL(hueShift, 0, 0);
+        pl.color.copy(this.gestureScratchColor);
+      }
     }
 
     // Animate botanical pollen / spore motes with gentle drift (throttled to ~15 Hz / every 4 frames)

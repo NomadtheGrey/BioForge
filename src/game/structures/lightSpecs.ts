@@ -20,13 +20,25 @@
 // nothing here outshines the post's 40. And y is the height
 // the light rides ABOVE ITS GROUND (the engine adds the
 // terrain/datum height itself — see getFloraLightSpec).
+//
+// MOTION (wave 2, slice 5): this table is still. Motion lives in
+// ./lightGestures.ts — one gesture per family of light, read at the
+// engine's pool level. Rows stay gesture-free unless a species must
+// move against its family's nature (LightBase.gesture).
 import type { FloraSpecies, StructureType } from '../../types/game';
+import type { LightGesture } from './lightGestures';
 
 export interface LightBase {
   color: number;
   intensity: number;
   distance: number;
   y: number;
+  // LIGHT GESTURES (wave 2, slice 5): an explicit motion override for
+  // this row. Almost no row sets this — the family's rule in
+  // lightGestures.ts (gestureForFlora / gestureForStructure) is the
+  // default, and 'none' is the default's default. Set one only when a
+  // row must move against its family's nature.
+  gesture?: LightGesture;
 }
 
 // Every structure gets a small halo (~2m, enough to see by);

@@ -76,20 +76,26 @@ export function applyZoneConsequences(
   // it is the ledger's memory of an extinction the player already
   // caused.
   //
-  // THE LAW (dev chair, 2026-10-19): a removal means "gone for good"
-  // for the zone's wild census, but a tamed individual is the
-  // PLAYER's, not the zone's — it was never in the ledger's sights
-  // (a removal is recorded at saga resolution, about a species in a
-  // zone; individuals tamed later cannot have been part of it). So
-  // the filter spares every tamed animal, in both modes, by the one
-  // rule. Per-entity-id removals were considered and rejected —
-  // rewriting the record's shape buys nothing this exemption
-  // doesn't. Settled individuals are untouched by this change.
+  // THE LAW (dev chair, 2026-10-19): the ledger governs the wild
+  // census; what is the PLAYER's is spared, in both modes, by the
+  // one rule. A tamed animal is the player's, not the zone's — and
+  // so is a planting. Neither was ever in the ledger's sights: a
+  // removal is recorded at saga resolution, about a species in a
+  // zone; an animal tamed or a seed planted later cannot have been
+  // part of it. The flora exemption reads the isPlayerPlanted
+  // stamp (stamped by the one planting flow, useToolInteractions;
+  // wild constructions carry nothing). A planting from before the
+  // stamp existed carries nothing either, and a record that never
+  // stamped it cannot be read as anything but wild — we do not
+  // retroactively invent plantings. Per-entity-id removals were
+  // considered and rejected — rewriting the record's shape buys
+  // nothing the exemption doesn't. Settled individuals are
+  // untouched by this change.
   let fauna: FaunaEntity[] = removed.size
     ? lists.fauna.filter((f) => !removed.has(f.species) || f.isTamed === true)
     : lists.fauna;
   let flora: FloraEntity[] = removed.size
-    ? lists.flora.filter((f) => !removed.has(f.species))
+    ? lists.flora.filter((f) => !removed.has(f.species) || f.isPlayerPlanted === true)
     : lists.flora;
 
   // Abundance (generation only): scale the DEALT census, never the

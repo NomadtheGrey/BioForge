@@ -66,9 +66,17 @@ interface HudOptionsPanelProps {
   layout: HudLayout;
   audio: AudioSettings;
   onClose: () => void;
+  /** The tracker's LIVE truth, composed by the HUD (which can
+   *  see every gate): why it is showing, or why — despite this
+   *  row's switch reading on — it is not. A switch must never
+   *  contradict the screen in silence (Adam's demo find,
+   *  2026-10-18). Only the tracker needs it; it is the one
+   *  panel with other owners (the quest log's tick, the
+   *  card's own dismiss). */
+  trackerStatus?: string | null;
 }
 
-export const HudOptionsPanel: React.FC<HudOptionsPanelProps> = ({ layout, audio, onClose }) => {
+export const HudOptionsPanel: React.FC<HudOptionsPanelProps> = ({ layout, audio, onClose, trackerStatus }) => {
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/50 pointer-events-auto p-4">
       <div className="glass-panel-biolum w-full max-w-2xl max-h-[92dvh] rounded-2xl flex flex-col border border-cyan-500/50 shadow-2xl overflow-hidden">
@@ -111,6 +119,9 @@ export const HudOptionsPanel: React.FC<HudOptionsPanelProps> = ({ layout, audio,
                     {panel.label}
                   </span>
                   <span className="text-[11px] text-slate-400 leading-snug">{panel.blurb}</span>
+                  {panel.id === 'tracker' && trackerStatus && shown && (
+                    <span className="text-[11px] text-amber-200/90 leading-snug">{trackerStatus}</span>
+                  )}
                 </div>
                 <button
                   type="button"

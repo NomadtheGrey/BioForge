@@ -76,9 +76,11 @@ export const BUILD_NOTES: BuildNotes = {
   // time) so the world starts clear on a small screen;
   // and the carried lantern's light reaches much farther
   // — held and braced alike — per the maker's dark walks.
-  title: 'Room to see',
+  title: 'Promises kept',
   lines: [
-    'On a phone, the screen starts clear now: your vitals, the zone card, and the quest tracker rest as small chips at the edge — three slim bars, a zone pill, one line of quest. Tap any chip to open its full card; opening one folds the others away. The desktop screen is untouched.',
-    'And the lantern throws farther — by a lot, as requested. The carried fern now lights a proper clearing around you, and a braced lamp-shield reaches further still. Take a dark walk and see.',
+    'The Codex tells the truth now — its facts are read from the land itself: how a creature is won, how hard it bites, what it sheds, what a kill leaves behind. No more numbers copied by hand; what the book says, the world does.',
+    'And three creatures the book described but the world didn\'t keep are out there now: a hearth dog won by offerings, a burrow mouse that sheds what it promised, and a great bear standing in the deep glades — gentle, unless provoked.',
+    'Things on the ground have shapes of their own now, so a dropped treasure reads as itself from a distance.',
+    'Smaller honesties: the quest tracker says why when it\'s resting and how to wake it; co-op tells it straight (one host, one world, joined through the relay); storage kits read their true sizes; and the Left Hand answers to Ctrl, as the tutorial now correctly teaches.',
   ],
 };

@@ -255,6 +255,7 @@ export default function App() {
     removeFlora,
     resetFloraHarvest,
     applyFloraFertilizer,
+    pacifyFlora,
     addStructure,
     upsertStructure,
     removeStructure,
@@ -1183,6 +1184,7 @@ export default function App() {
     hasItem,
     resetFloraHarvest,
     applyFloraFertilizer,
+    pacifyFlora,
     valleySatiatedUntilRef,
     addFlora,
     addStructure,
@@ -1694,7 +1696,7 @@ export default function App() {
     };
   })();
 
-  const { unlockedTools, questViews, trackedView, showQuestHud, updateQuestProgress } =
+  const { unlockedTools, questViews, trackedView, trackerResting, showQuestHud, updateQuestProgress } =
     useQuests({
       inventory,
       grandfathered: modulesGrandfathered,
@@ -3065,6 +3067,7 @@ const {
         strikerDrawKind={drawnWeapon?.kind}
         onOpenQuests={() => setActiveModal('quests')}
         questView={trackedView}
+        trackerResting={trackerResting}
         onDismissQuest={
           trackedView
             ? () =>

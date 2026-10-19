@@ -215,7 +215,7 @@ export interface SpeciesDef {
   profile: SpeciesProfile;
   /** Per-attempt taming probability (design doc spectra). null = the
    *  species cannot be tamed (the mirror moth is fully timid by
-   *  design; the scale-bear is codex-only legacy and never spawns). */
+   *  design). */
   tameChance: number | null;
   /** Which shipped taming flow serves this species:
    *  'nectar'  = 1x Sweet Nectar, the standard lure flow;
@@ -278,7 +278,15 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
     tameChance: 0.6,
     bait: 'nectar',
     petName: 'Burrow Scout',
-    byproduct: null, // codex copy mentions pellets; no shed was ever wired
+    // The dig-shed (wired 2026-10-19, unwired-three W1): the
+    // codex promised pellets since the Studio era and the def
+    // confessed for just as long that none was wired. A KEPT
+    // mouse digs around the homestead and leaves Bio-Pellets
+    // where its person can gather them — the second honest
+    // door to the fertilizer recipe's critter half (the
+    // Soft-Puff excretes the same item; the mouse digs up
+    // cached and dormant stores, per its description).
+    byproduct: { item: 'bio_pellet', seconds: 90, tamedOnly: true },
     bonusSpawn: null, // census species (affinity 'all')
   },
   chitin_stalker: {
@@ -331,11 +339,41 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
     id: 'scale_bear',
     name: 'Scale-Bear Guardian',
     profile: 'grazer',
-    tameChance: null,
-    bait: null,
+    // THE GUARDIAN, GIVEN A BODY (2026-10-19, unwired-three W2):
+    // for the game's whole life this def was a codex-only legacy
+    // shell — never dealt, never tamable, its entry promising a
+    // gentle giant nobody could meet. Adam's expand-over-cut
+    // ruling wires the promise instead of retiring it:
+    //  - HOME: one bear to a Rootwood zone (the codex's 'Deep
+    //    Glade' made true), dealt by bonusSpawn like the other
+    //    emblem-class rarities; the census stays untouched.
+    //  - COURTSHIP: the oversize floor — one offering in ten,
+    //    on Sweet Nectar, over days. A won guardian follows.
+    //  - SHEDS: plates rubbed off against the glade trees,
+    //    gatherable without harm (the Winter Mother's wool
+    //    precedent) — carapace_scale, the existing plate
+    //    material; no new item for the bear's back.
+    //  - DIGNITY: a provokedOnly hunt spec (slice 32's tier):
+    //    'gentle unless provoked' as mechanics — it never
+    //    initiates, and provoked it is a mountain deciding.
+    //    Exempt from the distance gradient, as all provoked
+    //    oversize are. A kill (the oversize exemption permits
+    //    it) yields plates beside the sample.
+    tameChance: 0.1,
+    bait: 'nectar',
     petName: 'Scale-Bear Guardian',
-    byproduct: null,
-    bonusSpawn: null, // codex-only legacy species; never spawns
+    byproduct: { item: 'carapace_scale', seconds: 420, tamedOnly: false },
+    hunt: { aggroRange: 14, damage: 30, biteRange: 2.8, biteCooldownSeconds: 2.0, provokedOnly: true },
+    killLoot: [['carapace_scale', 4]],
+    bonusSpawn: {
+      biomes: ['rootwood'],
+      count: 1,
+      minRadius: 16,
+      spacing: 12,
+      speed: 0.8,
+      speedJitter: 0.05,
+      health: 420,
+    },
   },
 
   // ------------------------------------------------------------------

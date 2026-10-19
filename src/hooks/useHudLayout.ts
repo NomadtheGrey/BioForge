@@ -61,8 +61,8 @@ export interface HudPanelMeta {
 export const HUD_PANELS: HudPanelMeta[] = [
   { id: 'vitals', label: 'Bio-Suit Vitals', blurb: 'Health, stamina, and synthesizer energy bars (top-left).' },
   { id: 'radar', label: 'Radar / Minimap', blurb: 'The tactical minimap under the vitals card. Appears only while the Prismatic Field Radar is installed in your helmet.' },
-  { id: 'zone', label: 'Zone Name & Sol-Cycle', blurb: 'Current country, biome, and the day / night toggle (top-center).' },
-  { id: 'session', label: 'Session Bar', blurb: 'Save, P2P Co-Op, sound, map, full screen, quests, and the guide (top-right).' },
+  { id: 'zone', label: 'Zone Name & Sol-Cycle', blurb: 'Current country, biome, and the day / night clock (top-center).' },
+  { id: 'session', label: 'Session Bar', blurb: 'Save, Co-Op, sound, map, full screen, quests, and the guide (top-right).' },
   { id: 'tracker', label: 'Mini-Quest Tracker', blurb: 'The little quest card that follows your tracked mini-quest.' },
   { id: 'controls', label: 'Controls Card', blurb: 'The glanceable everyday-keys card (left side).' },
   { id: 'notifications', label: 'Notifications', blurb: 'Toast messages that slide in at the top-right.' },

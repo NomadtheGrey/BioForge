@@ -196,6 +196,65 @@ export function buildFloraMesh(
         break;
       }
 
+      case 'mouth_vine': {
+        // Ghost #1's body (Part 8, slice G3): a root crown at
+        // ankle height and corded tendrils radiating flat along
+        // the ground, each ending in a small jawed leaf-pair —
+        // porcelain jaw tips, like its cousin the snap-trap's.
+        // The mesh is still; the TELL is the sim's warning, and
+        // the tensing lives in the wind-up the hazard keeps.
+        const crown = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), materials.woodRoot);
+        crown.scale.set(1, 0.6, 1);
+        crown.position.y = 0.1;
+        crown.castShadow = true;
+        group.add(crown);
+        for (let i = 0; i < 6; i++) {
+          const a = (i / 6) * Math.PI * 2 + 0.5;
+          const len = 0.85 + ((i * 53) % 35) / 100;
+          const tendril = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.05, len, 6), materials.woodRoot);
+          tendril.position.set(Math.sin(a) * (len / 2 + 0.1), 0.05, Math.cos(a) * (len / 2 + 0.1));
+          tendril.rotation.z = Math.PI / 2;
+          tendril.rotation.y = -a;
+          group.add(tendril);
+          const jawA = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.22, 6), materials.porcelainWhite);
+          jawA.position.set(Math.sin(a) * (len + 0.18), 0.08, Math.cos(a) * (len + 0.18));
+          jawA.rotation.z = Math.PI / 2 - 0.5;
+          jawA.rotation.y = -a;
+          group.add(jawA);
+          const jawB = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.22, 6), materials.porcelainWhite);
+          jawB.position.set(Math.sin(a) * (len + 0.18), 0.03, Math.cos(a) * (len + 0.18));
+          jawB.rotation.z = Math.PI / 2 + 0.5;
+          jawB.rotation.y = -a;
+          group.add(jawB);
+        }
+        break;
+      }
+
+      case 'ribbon_moss': {
+        // The silent ghost's body (Part 8, slice G2): a dark
+        // ground-mat with long flat ribbons lying along the
+        // earth, lifting at their tips and lit teal at the ends —
+        // the light table described it years before it existed
+        // (teal, intensity 4, y 0.4: a glow that hugs the floor).
+        const mat = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.65, 0.07, 10), materials.woodRoot);
+        mat.position.y = 0.035;
+        mat.castShadow = true;
+        group.add(mat);
+        for (let i = 0; i < 7; i++) {
+          const a = (i / 7) * Math.PI * 2 + 0.35;
+          const len = 0.7 + ((i * 37) % 40) / 100;
+          const ribbon = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.02, len), materials.woodRoot);
+          ribbon.position.set(Math.sin(a) * (0.45 + len / 2), 0.06, Math.cos(a) * (0.45 + len / 2));
+          ribbon.rotation.y = a;
+          group.add(ribbon);
+          const tip = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.03, 0.16), materials.biolumCyan);
+          tip.position.set(Math.sin(a) * (0.45 + len), 0.09, Math.cos(a) * (0.45 + len));
+          tip.rotation.y = a;
+          group.add(tip);
+        }
+        break;
+      }
+
       case 'bounce_shroom': {
         // Squat springy stem + a wide violet cap: the trampoline. The
         // cap is named so the render loop can squash it when bounced on.

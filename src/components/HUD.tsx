@@ -173,6 +173,11 @@ interface HUDProps {
    * wants the tracker card shown (the list's checkbox). Null view =
    * chain finished or not applicable; the card rests. */
   questView: QuestProgressView | null;
+  /** The tracker is RESTING (its card's own ✕ dismissed the
+   *  quest) — computed by useQuests; the HUD Options tracker
+   *  row speaks it, so an ON switch never contradicts an
+   *  empty screen in silence (Adam's demo find, 2026-10-18). */
+  trackerResting?: boolean;
   /** Close the tracked quest's card (its X) — App records the
    * dismissal; the quest stays in the log for re-tracking. */
   onDismissQuest?: () => void;
@@ -362,6 +367,7 @@ export const HUD: React.FC<HUDProps> = ({
   strikerDrawKind,
   onOpenQuests,
   questView,
+  trackerResting,
   onDismissQuest,
   sagaView,
   onDismissSaga,
@@ -509,7 +515,7 @@ export const HUD: React.FC<HUDProps> = ({
       label: 'Planter Trowel',
       key: '3',
       icon: '🌱',
-      desc: 'Plant seeds and apply growth fertilizers',
+      desc: 'Plants your planting stock and applies growth fertilizers',
       color: '#4ade80',
     },
     {
@@ -517,7 +523,7 @@ export const HUD: React.FC<HUDProps> = ({
       label: 'Solvent Sprayer',
       key: '4',
       icon: '💧',
-      desc: 'Dissolves structures back into 100% raw seeds',
+      desc: 'Dissolves structures back into their kit, plants into planting stock',
       color: '#f43f5e',
     },
     {
@@ -1210,7 +1216,7 @@ export const HUD: React.FC<HUDProps> = ({
             {/* Touch keeps the session button icon-only; the room
                 code itself lives in the co-op window it opens. */}
             <span className={touchMode ? 'hidden' : undefined}>
-              {roomCode ? `Room: ${roomCode} (${peerCount + 1})` : 'P2P Co-Op'}
+              {roomCode ? `Room: ${roomCode} (${peerCount + 1})` : 'Co-Op'}
             </span>
           </button>
 
@@ -1473,7 +1479,9 @@ export const HUD: React.FC<HUDProps> = ({
       )}
 
       {/* Pointer Lock Invitation + Hover Inspector, parked just below the reticle */}
-      <div className="absolute inset-x-0 top-1/2 mt-10 flex flex-col items-center gap-2 pointer-events-none">
+      <div className={`absolute inset-x-0 flex flex-col items-center gap-2 pointer-events-none ${
+        touchMode ? 'bottom-[12.5rem]' : 'top-1/2 mt-10'
+      }`}>
         {/* Pointer Lock Invitation (mouse devices, while unlocked;
             touch devices have no lock to invite into) */}
         {!isPointerLocked && !touchMode && (
@@ -1955,7 +1963,22 @@ export const HUD: React.FC<HUDProps> = ({
       {tutorial?.active && tutorial.step && <TutorialChrome tutorial={tutorial} />}
 
       {showHudOptions && (
-        <HudOptionsPanel layout={hudLayout} audio={audioSettings} onClose={() => setShowHudOptions(false)} />
+        <HudOptionsPanel
+          layout={hudLayout}
+          audio={audioSettings}
+          onClose={() => setShowHudOptions(false)}
+          trackerStatus={
+            hudLayout.isHidden('tracker')
+              ? null
+              : !showQuestHud
+                ? "On here — but the Quests screen's own tick, 'Show the quest HUD', is off, and the tracker follows that tick."
+                : trackerResting
+                  ? 'On — resting. You closed the tracker card itself; open Quests and tap TRACK on its quest to bring it back.'
+                  : questView || sagaView
+                    ? 'On — showing on screen now.'
+                    : 'On — nothing to follow right now; the chain rests.'
+          }
+        />
       )}
       {showCredits && (
         <CreditsModal isOpen={showCredits} onClose={() => setShowCredits(false)} />

@@ -53,7 +53,7 @@ import type { PendingTravel } from './useZoneTravel';
 /** S6 Movable Vaults: the ghost driver renders the carried vault. */
 import type { CarryState } from '../game/structures/movableVaults';
 import type {
-  DroppedItemEntity, FaunaEntity, FaunaSpecies, FloraEntity, GameNotification, HoverTarget,
+  DroppedItemEntity, FaunaEntity, FaunaSpecies, FloraEntity, FloraSpecies, GameNotification, HoverTarget,
   ItemId, PlayerState, StructureEntity, StructureType, ToolType,
 } from '../types/game';
 import type { TouchMoveInput } from '../components/TouchControls';
@@ -179,7 +179,7 @@ export interface GameLoopDeps {
   liveGameRefs: { current: {
     hasItem: (itemId: ItemId, quantity: number) => boolean;
     addInventoryItem: (itemId: ItemId, quantity: number) => number;
-    updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number, ctx?: StrikeCtx) => void, attacksArmed?: boolean, dayPhase?: number, onFieldWitness?: (noteId: string) => void, onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void, onAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void, dropMagnet?: { radius: number; speed: number }) => void;
+    updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number, ctx?: StrikeCtx) => void, attacksArmed?: boolean, dayPhase?: number, onFieldWitness?: (noteId: string) => void, onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void, onAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void, dropMagnet?: { radius: number; speed: number }, onFloraHazard?: (species: FloraSpecies, event: 'warn' | 'bite' | 'snare', damage: number, ctx: { floraId: string; x: number; z: number }) => void) => void;
     postNotification: (title: string, message: string, type?: GameNotification["type"], iconColor?: string, key?: string) => void;
     // The Field Notes witness sink (App's recordFieldWitness,
     // fieldNotesBook.ts) — optional so the loop never hard-depends
@@ -1108,7 +1108,43 @@ export function useGameLoop(deps: GameLoopDeps): void {
               shieldOf(latestStateRef.current.playerState.heldItemId ?? null) ?? undefined,
               liveGameRefs.current.shield?.raisedRef.current ?? false,
               liveGameRefs.current.shield?.growthRef.current
-            )
+            ),
+            // FLORA HAZARDS (ghost slice G3, 2026-10-19): the
+            // sim reports a hazardous plant's tell, hold and
+            // bite; the loop owns the consequences. The WARN is
+            // the readable tell (a keyed toast per plant, so a
+            // patch of vines speaks once, not per tendril). The
+            // SNARE writes the shared snare deadline — the same
+            // hold the Valley's grabs use, at the same 40% — for
+            // as long as the constrictor heartbeats. The BITE is
+            // an ankle bite: it goes AROUND a held shield (the
+            // shield wards strikes at the body; the vine is
+            // already past it), so health takes it directly, on
+            // the house pattern (armed floor, death latch) — the
+            // sim only fires it on armed worlds at all.
+            (species, event, damage, ctx) => {
+              if (event === 'warn') {
+                liveGameRefs.current.postNotification(
+                  species === 'mouth_vine' ? 'Tendrils Tense' : 'Jaws Lift',
+                  species === 'mouth_vine'
+                    ? 'The vine underfoot is tensing around your ankles — step clear of its reach, or feed it Sweet Nectar and take your time.'
+                    : 'The snap-trap at your feet is lifting its jaws — step clear of its reach.',
+                  'alert',
+                  '#84cc16',
+                  `florahazard_${ctx.floraId}`
+                );
+              } else if (event === 'snare') {
+                grabSnareUntilRef.current = Math.max(grabSnareUntilRef.current, performance.now() + 350);
+              } else {
+                const floor = deathArmedRef.current ? 0 : 1;
+                healthRef.current = Math.max(floor, healthRef.current - damage);
+                setHealth(healthRef.current);
+                if (deathArmedRef.current && healthRef.current <= 0 && !playerDeadRef.current) {
+                  playerDeadRef.current = true;
+                  onPlayerDeathRef.current?.();
+                }
+              }
+            }
           );
           // HOSTILE (2026-10-18): explorer strikes drain here,
           // on the same tick, through the same resolution as a

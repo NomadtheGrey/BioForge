@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { X, Sparkles, Check, AlertCircle, ArrowRight, Search, Sprout, HelpCircle } from 'lucide-react';
+import { X, Sparkles, Check, AlertCircle, ArrowRight, Search, Sprout, HelpCircle, ChevronDown, ChevronRight } from 'lucide-react';
 import { CraftingRecipe, ItemId, StructureType } from '../types/game';
 import { ITEMS, RECIPES, HELMET_GEAR_ITEM_IDS, BOOTS_GEAR_ITEM_IDS } from '../game/items/constants'
 import { isGauntletUpgrade, isGearItem, gearTierOf, accessTierOf } from '../game/quests/quests';
-import { BASE_SUPPLY_GROUPS, baseSupplyGroupOf, isBaseSupply } from '../game/items/baseSupplies';
+import { isBaseSupply, isDefenseStructure } from '../game/items/baseSupplies';
+import { partitionForgeSubgroups, defaultOpenSubgroup, forgeSubgroupOf } from '../game/items/forgeSubgroups';
 import { soundEngine } from '../audio/soundEngine';
 import { RecipeFlowchart } from './RecipeFlowchart';
 // Arsenal kind chips on weapon recipes (work order, 2026-10-17):
@@ -76,7 +77,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   onGrowPrerequisites,
   onSelectStructureBlueprint,
 }) => {
-  const [activeCategory, setActiveCategory] = useState<'all' | 'seeds' | 'fertilizers' | 'composites' | 'defenses' | 'gauntlet' | 'helmet' | 'boots' | 'shield' | 'storage' | 'base'>('all');
+  const [activeCategory, setActiveCategory] = useState<'all' | 'seeds' | 'fertilizers' | 'composites' | 'gauntlet' | 'helmet' | 'boots' | 'shield' | 'storage' | 'base'>('all');
   const [selectedRecipe, setSelectedRecipe] = useState<CraftingRecipe>(RECIPES[0]);
   // The ingredient inspector: which row is hovered (its card
   // shows below the row), and which item's tree is open.
@@ -90,6 +91,13 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   // B-key bug, found 2026-10-16 — this filter's first home was
   // under that return in both tabbed screens).
   const [tierFilter, setTierFilter] = useState<'all' | 'raw' | 1 | 2 | 3>('all');
+  // The Structures view's accordion (Adam's subgroup ruling,
+  // 2026-10-19): which subgroups stand open in the Base
+  // Supplies listing. Session-only, like the touch chips —
+  // null until the player's first toggle, when the default
+  // (the first subgroup holding a craftable-now recipe)
+  // is computed at render in the body below.
+  const [openForgeGroups, setOpenForgeGroups] = useState<Set<string> | null>(null);
   // Search (Adam, 2026-10-16): three or more letters, matched as
   // a consecutive substring of the item's name, case-blind —
   // "vat", "Cul" and "ulture" all find the Culture Vat. While a
@@ -112,7 +120,13 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     // Base Supplies (Adam, 2026-10-16): everything you'd build
     // the base with — the classifier lives in game/baseSupplies
     // and is shared with the pouch, so the shelf never drifts.
-    if (activeCategory === 'base') return isBaseSupply(r.outputId);
+    // The Structures view (Adam's subgroup ruling, 2026-10-19):
+    // the shelf gathers base supplies AND the defenses subgroup
+    // (defenses-category recipes + named defense structures) —
+    // the Bio-Defenses tab is retired; this view is defenses'
+    // one top-level home, as a subgroup among the families.
+    if (activeCategory === 'base')
+      return isBaseSupply(r.outputId) || r.category === 'defenses' || isDefenseStructure(r.outputId);
     // Gear-line tabs (Adam, 2026-10-15) filter by what a recipe
     // MAKES, not by its recipe category: the Gauntlet tab gathers
     // the one-time gauntlet upgrades (modules + Field Synthesizer),
@@ -158,20 +172,21 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     { id: 'raw', label: 'Raw Materials' },
   ];
   type ListEntry =
-    | { kind: 'heading'; label: string }
+    | { kind: 'heading'; label: string; groupId?: string; count?: number }
     | { kind: 'recipe'; recipe: CraftingRecipe };
   const listEntries: ListEntry[] = [];
   if (searchActive || (tierFilter === 'all' && activeCategory !== 'base')) {
     visibleRecipes.forEach((recipe) => listEntries.push({ kind: 'recipe', recipe }));
   } else if (activeCategory === 'base') {
-    // The Base Supplies shelf groups by what a piece is FOR in
-    // the base (game/baseSupplies), with the tier row still
-    // filtering which pieces show.
-    for (const g of BASE_SUPPLY_GROUPS) {
-      const rs = visibleRecipes.filter((r) => baseSupplyGroupOf(r.outputId) === g.id);
-      if (rs.length === 0) continue;
-      listEntries.push({ kind: 'heading', label: g.label });
-      rs.forEach((recipe) => listEntries.push({ kind: 'recipe', recipe }));
+    // The Structures view's subgroups (items/forgeSubgroups):
+    // the shelf's families with Defenses among them, as a
+    // partition — a recipe shelves exactly once, defenses
+    // membership winning over its supply family. The tier row
+    // still filters which pieces show (visibleRecipes already
+    // carries it). Headings render as accordion folds below.
+    for (const shelf of partitionForgeSubgroups(visibleRecipes)) {
+      listEntries.push({ kind: 'heading', label: shelf.group.label, groupId: shelf.group.id, count: shelf.recipes.length });
+      shelf.recipes.forEach((recipe) => listEntries.push({ kind: 'recipe', recipe }));
     }
   } else {
     for (const g of TYPE_GROUPS) {
@@ -230,6 +245,39 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     if (accessTierOf(recipe) >= 3) return false;
     return hasSynthesizer;
   };
+
+  // ── The Structures view's accordion (Adam's subgroup
+  // ruling, 2026-10-19) ─────────────────────────────────────
+  // In the Base Supplies listing, recipes render only when
+  // their subgroup stands open. Until the player's first
+  // toggle the open set is the DEFAULT: the first subgroup
+  // holding a recipe they can craft right now (else the
+  // first non-empty subgroup) — computed here, where canCraft
+  // exists, over the same visible list the entries were
+  // built from. Session-only state; nothing persists.
+  const inSubgroupView = !searchActive && activeCategory === 'base';
+  const forgeShelves = inSubgroupView ? partitionForgeSubgroups(visibleRecipes) : [];
+  const defaultOpenForgeGroup = inSubgroupView
+    ? defaultOpenSubgroup(forgeShelves, canCraft)
+    : null;
+  const openForgeGroupsEffective: Set<string> =
+    openForgeGroups ??
+    (defaultOpenForgeGroup ? new Set([defaultOpenForgeGroup]) : new Set());
+  const toggleForgeGroup = (id: string): void => {
+    setOpenForgeGroups((prev) => {
+      const next = new Set(prev ?? openForgeGroupsEffective);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const displayEntries: ListEntry[] = inSubgroupView
+    ? listEntries.filter(
+        (e) =>
+          e.kind === 'heading' ||
+          openForgeGroupsEffective.has(forgeSubgroupOf(e.recipe)),
+      )
+    : listEntries;
 
   const craftBlockReason = (recipe: CraftingRecipe): string | null => {
     // The owned-upgrade lock speaks first — it is the stable fact
@@ -349,7 +397,6 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
             { id: 'seeds', label: 'Spore & Seeds' },
             { id: 'fertilizers', label: 'Fertilizers' },
             { id: 'composites', label: 'Living Composites' },
-            { id: 'defenses', label: 'Bio-Defenses' },
             { id: 'base', label: 'Base Supplies' },
           ].map((cat) => (
             <button
@@ -473,8 +520,31 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                       : 'Nothing here yet.'}
                   </div>
                 )}
-                {listEntries.map((entry) => {
+                {displayEntries.map((entry) => {
               if (entry.kind === 'heading') {
+                if (entry.groupId) {
+                  // A subgroup fold (Structures view): the
+                  // heading is the handle — chevron, name,
+                  // and the count behind the fold.
+                  const open = openForgeGroupsEffective.has(entry.groupId);
+                  return (
+                    <button
+                      key={entry.groupId}
+                      type="button"
+                      onClick={() => toggleForgeGroup(entry.groupId!)}
+                      aria-expanded={open}
+                      className="w-full flex items-center gap-1.5 pt-2.5 pb-1 text-[10px] font-tech font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200 transition-colors"
+                    >
+                      {open ? (
+                        <ChevronDown className="w-3.5 h-3.5 text-cyan-400" />
+                      ) : (
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                      )}
+                      <span>{entry.label}</span>
+                      <span className="text-slate-600 normal-case font-medium">({entry.count})</span>
+                    </button>
+                  );
+                }
                 return (
                   <div key={entry.label} className="pt-2 pb-0.5 text-[10px] font-tech font-bold uppercase tracking-wider text-slate-500">
                     {entry.label}

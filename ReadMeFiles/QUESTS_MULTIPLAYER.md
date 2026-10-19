@@ -1,5 +1,16 @@
 # Quests in Multiplayer — the design take
 
+*Sweep addendum (2026-10-18): what has SHIPPED since this take
+was recorded. Co-op runs on the **host's law**: the host's save
+carries the session difficulty (world_sync transports it), and
+guests play under it — including Hostile, where explorer harm is
+live (WEAPONS.md). Guests attach no save of their own and their
+autosave stays disarmed in-session. The Asks Back sagas (§3)
+shipped S1–S6, including the BioTunnel guest fix and Movable
+Vaults; the party-native sagas (§4) remain design. The open
+questions in §6 stand as written — they are Adam's calls, and
+the shipped law above does not presume them.*
+
 *Recorded 2026-10-17 by the dev lane. Status: DESIGN TAKE —
 delivered to Adam 2026-10-16 in answer to his question, and
 carried as the working design since. It is NOT a pinned build

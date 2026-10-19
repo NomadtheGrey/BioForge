@@ -76,13 +76,9 @@ export const BUILD_NOTES: BuildNotes = {
   // time) so the world starts clear on a small screen;
   // and the carried lantern's light reaches much farther
   // — held and braced alike — per the maker's dark walks.
-  title: 'Put to work',
+  title: 'Yours for good',
   lines: [
-    'Your garden gains a workforce. The Bone Chime Sentinel stands at the camp\'s edge and listens: when something with a hunter\'s nature crosses near, it knocks — bone and straw, a warning, never an alarm — and then holds its peace. It never fights. It tells you to look up.',
-    'The Culture Vat takes a broth now: pour in one gel and let it ferment beside the growing — no fire; the culture warms itself, and its warmth is its strength. A ripe broth leans on the hatch: tougher, quicker, more generous in what it sheds, or gentler when it goes home to the wild. The hatchling drinks it dry.',
-    'Beds and walls: the Root Bed grows on into the Slumber Husk — gel-flesh, fiber skin, warm and faintly damp and better than it sounds; click it at night to sleep the world to dawn. The Mycologist\'s Wall mounts one of every cap kind, alive: its glow caps light your camp, its rot kinds digest scraps into compost. Even the Mound\'s fungus eats bone and shell now.',
-    'A plant with an address: the Planter holds one living plant as furniture — it grows there, and a glowing tenant lights the room with its own species\' light. Which reminds us: every light has a gesture now. Moss pulses like a heartbeat, lantern ferns sway, cave glow ripples past in a wave. You\'ll learn to read your lights like faces.',
-    'Land animals swim — a bear crossing a deep pond rides the surface now (brine too; lava, still no). And the world keeps growing while you\'re away: vats ripen, broths warm, planters grow by the clock, not by your presence. Come back to a garden that didn\'t wait for you.',
-    'At the Bio-Forge, structures fold into subgroups now — Defenses among them, where the chime and the turret keep company — and on phones the big screens stack properly instead of squeezing.',
+    'A fix, plainly told. The World Asks Back keeps a ledger: when a finished saga removes a species from a zone, the wild of that kind are gone for good — that part is by design, and it stands. But the ledger was reading names, not faces. A creature you had tamed, or a planting you had raised with your own hands, could be swept out with its wild kin when you left and came back.',
+    'No longer. What is yours is yours: a tamed companion and a planted garden stand outside the wild census now, in every zone, on every return. The removals keep their teeth — the wild still answer for what the sagas decided — but your companions and your plantings are yours for good.',
   ],
 };

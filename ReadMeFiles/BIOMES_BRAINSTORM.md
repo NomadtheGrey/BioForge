@@ -575,3 +575,11 @@ inverted; darkness is its tax, no stamina drain), **the Obsidian
 Garden** ✓ (black glass flowers; harvest yields the OBSIDIAN
 SHARD crafting material, 2 per bloom). The ember family now has
 its full four faces: plain, Scar, Drift, Garden.
+
+---
+
+*Sweep note (2026-10-18): the graph this file grows toward is
+complete — 11 families, 27 variants, 55 hybrid cells — and
+WORLD_GEN_VERSION stands at 67. The version numbers in the log
+above are the historical build record. Cave citizens
+(CREATURES_BRAINSTORM_7) and propagation have their own papers.*

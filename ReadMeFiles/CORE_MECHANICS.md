@@ -1,7 +1,7 @@
 # BioForge — Core Gameplay Mechanics & Systems Specification
 
 > **Status:** Living Document  
-> **Last Updated:** October 14, 2026
+> **Last Updated:** October 18, 2026 (the catch-up sweep: modes, the worn platform, propagation, cloud saves, and display coordinates added; §4.7's transport facts corrected)
 > **Game Version:** v0.1.0  
 > **Aesthetic:** Prismatic Botanical Tech (High-contrast, vibrant, porcelain synthetics, neon bioluminescence)
 
@@ -73,6 +73,13 @@ The player's bio-suit is equipped with six specialized botanical tech tools mapp
 * **No Soil Depletion:** Plants do not degrade ground nutrients. Instead, players enrich plots with additive fertilizers:
   * **Growth Fertilizer** *(Organic Compost + Bio-Pellets)*: Accelerates maturation speed by 250%–300%.
   * **Yield Fertilizer** *(Animal Secretions + Resin Sap + Dew Essence)*: Doubles byproduct drop counts and unlocks rare prismatic color variants.
+
+#### 4.1.1. Propagation — How Plants Are Planted Again (shipped 2026-10-18)
+* **One truth:** every flora species carries a `propagation` field in its definition — `'seed'`, a piece item, or `null` (wild-only). All 197 species are classified explicitly; every reader (planter, solvent, trowel wheel, quest events) resolves through the one module (`src/game/flora/propagation.ts`).
+* **Seed-bearers** (flowers, grasses, ferns, harvest-bearing fungi): a glove harvest rolls **0–2 seeds** (¼ / ½ / ¼); a yield-fertilized plant rolls 1–2. There is no guaranteed seed anywhere. Seed items are generated from the field (`Seeds`, or `Spores` for fungi and ferns).
+* **Piece species** (vines, reeds, mosses by their own stock; jellies by their gel; the stormcatcher by fulgurite): planted with a piece of the original plant, and a piece is reclaimed **only by dissolving the plant** — the cutting costs the plant.
+* **Wild-only:** exactly eight harvest-bearing species are the land's own (heartbloom, tending_vine, grabvine, obsidian_bloom, rime_spire, sunshard_cluster, prism_cluster, zot_star), plus all scenery with no harvest. Their stories say why.
+* The trowel's wheel walks all planting stock — seeds and pieces together; the glow_spore pair (surface cluster / cavern fungus) is the one designed sharing of a propagule.
 
 ### 4.2. Living Kinetic Base Construction
 * **Root-Tile Floors:** Interlocking woven bio-cellulose foundations that provide flat building surfaces and eliminate movement penalties.
@@ -265,15 +272,37 @@ Fauna are categorized into two behavioral classes:
   What the player plants in a cave **persists per-cave**: the save
   record keeps each cavern's planted flora (keyed by instance) and
   restores it on the next delve, even though the wild cave regrows.
+* **Display coordinates (2026-10-18):** under the hood, north is **−Z** — the engine's settled convention, and generation, travel, and saves all run on it. But every number the player sees reads like latitude — **north positive**: the zone one step north of spawn displays "Zone 0, 1". All player-facing Z readouts (zone label, minimap position and hover) negate through one helper (`displayZ` in zones.ts) so the screen can never disagree with itself.
 
-### 4.7. Browser-Native P2P Multiplayer Architecture
-* **Host-Driven Sessions:** One browser acts as host authority; no external game servers required for casual play.
-* **Zero-Setup Room Codes:** Hosts share a 6-letter room code (e.g. `BIO77X`).
+### 4.7. Co-Op Multiplayer Architecture (corrected 2026-10-18)
+* **Transport:** a Cloudflare Durable Object relay (`bioforge-relay`); the **host is authoritative** for the world. (The earlier BroadcastChannel/WebRTC description was AI-Studio-era and never described the shipped game.)
+* **Zero-Setup Room Codes:** Hosts share a room code; guests join by code and receive the host's full world snapshot. A guest never attaches a save of their own.
 * **State Synchronization:**
   * Real-time position & avatar orientation.
   * Synchronized structure placement and solvent deconstruction.
   * Shared flora harvesting timers and wildlife taming events.
-  * In-game sector text communications.
+  * In-game sector text communications — including the **SYSTEM / ADMIN** seats of the system-messages channel (see ReadMeFiles/SYSTEM_MESSAGES.md).
+* **The host's law:** the host's save carries the session's difficulty; guests play under it (see §4.8).
+
+### 4.8. Modes of the World — Difficulty Law (shipped 2026-10-18)
+Every world is created under one law, recorded on its save:
+* **PEACEFUL:** nothing can harm the player, and the player can harm nothing. Health floors at 1.
+* **NORMAL:** the land has teeth. Wild hunters notice the player in every mode (the alert theater is universal), but only on an armed world do they commit — chase and bite for real damage. Player weapons likewise bite.
+* **HOSTILE:** Normal's law, plus **explorers can harm explorers**: weapons work on other players exactly as they work on creatures — no special buttons, no separate arsenal. A strike is judged on the attacker's client with the weapon's own geometry and resolved on the victim's through the same shield/health path as a creature's bite.
+* **THE REFUGE:** the spawn zone (0, 0) is safe as if it were Peaceful under any law — no bites, no player harm, no hazard deaths. The arming rule is one pure function (`isArmedAt`); Hostile is that rule plus the hostile flag (`isHostileAt`).
+* **Death** is the same mercy in every mode: "Taken by the Land" — wake at the spawn base's Heart Tile, pouch untouched, nothing dropped.
+* A world border warning speaks when a player steps out of the Refuge onto armed ground.
+
+### 4.9. The Worn Platform — Helmet & Quicksteps (shipped 2026-10-18)
+Equipment-state doctrine: every platform piece is **worn**; per-piece state lives in the piece; module effects key off **ownership** (these are maxStack-1 equipment — owned = installed), never off loose pouch possession and never off a player-level map.
+* **The Homestead Helm's growths:** Trail Lens (names country by family) → Identifier Lens (proper names); Spore Filter (the Hollow's spore tax does not bite); Shade Visor (glare country sits at a gentler exposure); Glyph Lens (ruin reads give the deep line; precursor caches glow through walls); Charge Sight (the ground shows the zot's reach and the coming charge); **Biolume Visor** (living-light sight for caves, ruins, and deep night — the helm's brow-glow is deliberately weaker than a carried lantern).
+* **The Quicksteps' growths:** Windlung (the stamina ladder: drain and recovery factors by tier); Ember Soles (lava is slow ground, no burn, while grown).
+* **THE WATER MODULE is one module** (Webfoots + Stillsteps consolidated): tier 1 (Webfoots) improves swimming; tier 2 (Stillsteps, crafted by consuming Webfoots) adds standing and walking on still pond water. The **F key** — and the touch stance button — flips between swimming and water-walking, and the current choice is hinted on screen while in water. The stance is a posture, never saved. Stillsteps hold only on ponds, never rivers.
+
+### 4.10. Cloud Saves (shipped 2026-10-18)
+* **Opt-in only, forever; the local save is the master; the cloud is a mirror.** No accounts, no database: a Cloudflare KV box addressed by the SHA-256 fingerprint of a secret the game shows as **exactly three plain words**. The secret itself is never stored server-side.
+* The seat is the start screen's **Saved Worlds** panel: turn on (words are dealt — write them down; there is no reset), bring a world down on another device by entering the words at the door, and **adopt** the typed words on that device so it saves back to the same box.
+* Every overwrite parks the displaced copy first — a world is never silently overwritten. Guess-throttling (per-address + global budgets, residents exempt) is the security model in place of passphrase entropy. Design + proof record: `~/workspace/bioforge-saves/`.
 
 ---
 
@@ -284,7 +313,9 @@ Fauna are categorized into two behavioral classes:
 | Move Explorer | `W`, `A`, `S`, `D` | Collision-Resolved Smooth Sliding |
 | Look & Aim (Mouse-Look) | Screen Click (`PointerLockControls`) | Press `ESC` to release cursor for UI |
 | Use Active Tool | Left Click | Viewmodel Recoil & Particle FX |
-| Select Tools | Keys `1` – `6` | HUD Bottom Hotbar Click |
+| Select Tools | Keys `1` – `7` (7 = Striker; tap again / wheel to swap its draw) | HUD Bottom Hotbar Click |
+| Cycle the Left Hand | `Ctrl` + `↑` / `↓`, or `Ctrl` + wheel | Left Hand tile click |
+| Water Stance (tier-2 water module) | `F` | Touch stance button |
 | Bio-Forge Workstation | `B` | Interacting with Workstation Structure |
 | Inventory Pouch | `I` | HUD Bottom Button |
 | Ecosystem Codex | `C` | HUD Bottom Button |

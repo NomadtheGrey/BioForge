@@ -1,8 +1,11 @@
 # Lore & Artifacts — Brainstorm + Settled Rules
 
-**Status: MIXED (2026-10-13).** The requirement and the "Settled rules" are
-decided. The fate list and mechanics are BRAINSTORM ONLY — unpinned, to be
-sorted later.
+**Status: MIXED (2026-10-13; sweep note 2026-10-18).** The requirement and
+the "Settled rules" are decided. The fate list and mechanics were
+BRAINSTORM ONLY when written — since then the fates have been
+**settled and shipped** through the Departure program; where this
+file and ReadMeFiles/THE_DEPARTURE.md differ, the Departure
+record governs.
 
 ## The requirement (Adam, 2026-10-13)
 

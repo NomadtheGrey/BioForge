@@ -1,10 +1,15 @@
 # The Departure — the finale design note
 
 *Recorded 2026-10-17 by the dev lane, from Adam's sketch the
-morning the Autumn Stack went live. Status: DESIGN IN PROGRESS —
-Adam's idea, written up at his word; not a pin, not a build plan.
-One whole side of it (section 5) is deliberately left blank at
-his instruction: "that's a convo for another hour."*
+morning the Autumn Stack went live. Status (updated 2026-10-18,
+the docs sweep): **D1–D5 BUILT AND LIVE** (the spine, the Follow
+portal, the Answer visit, the Honor memorial, the Confront scar —
+merged 2026-10-18). D6 (the crossing + atlas) remains parked
+behind section 5, which is still deliberately blank at Adam's
+instruction: "that's a convo for another hour." The D5 price
+conversation (§7) is still open — fate → method → recipe is the
+steering on the table, unpinned. This file remains the design
+record; §5 and §7 are its living parts.*
 
 ## 1. The shape: knowing, then answering
 

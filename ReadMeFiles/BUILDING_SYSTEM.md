@@ -87,6 +87,18 @@ playtest session (corner gaps, stacking, traversal).
    hole, with a brief grace window to step onto a tile. The cap ONLY
    fires on a jump — dropping through the hole onto it never rebounds.
 
+## Addendum — storage (2026-10-18, the docs sweep)
+
+Written before storage existed, so it isn't above: storage is
+**slotted** (kinds per tier: 16 / 32 / 64 across the pouch-adjacent
+tiers), grown from **storage kits** (Hutch, Vault), and containers
+**cluster** — adjacent storage reads as one cluster for the
+container panels (`storageClusterOf`). The Sample Rack is its own
+24 × 25. Movable Vaults (ReadMeFiles/MOVABLE_VAULTS.md) extend the
+story: a container can be carried, and a carried vault drops where
+its bearer falls. The pouch itself has no limit on distinct kinds;
+per-item stack caps run by pouch tier (10 / 25 / 50 / 100).
+
 ## Saves and multiplayer
 
 - Levels ride the normal entity/save/world-sync paths; peer_move

@@ -76,11 +76,13 @@ export const BUILD_NOTES: BuildNotes = {
   // time) so the world starts clear on a small screen;
   // and the carried lantern's light reaches much farther
   // — held and braced alike — per the maker's dark walks.
-  title: 'Promises kept',
+  title: 'Put to work',
   lines: [
-    'The Codex tells the truth now — its facts are read from the land itself: how a creature is won, how hard it bites, what it sheds, what a kill leaves behind. No more numbers copied by hand; what the book says, the world does.',
-    'And three creatures the book described but the world didn\'t keep are out there now: a hearth dog won by offerings, a burrow mouse that sheds what it promised, and a great bear standing in the deep glades — gentle, unless provoked.',
-    'Things on the ground have shapes of their own now, so a dropped treasure reads as itself from a distance.',
-    'Smaller honesties: the quest tracker says why when it\'s resting and how to wake it; co-op tells it straight (one host, one world, joined through the relay); storage kits read their true sizes; and the Left Hand answers to Ctrl, as the tutorial now correctly teaches.',
+    'Your garden gains a workforce. The Bone Chime Sentinel stands at the camp\'s edge and listens: when something with a hunter\'s nature crosses near, it knocks — bone and straw, a warning, never an alarm — and then holds its peace. It never fights. It tells you to look up.',
+    'The Culture Vat takes a broth now: pour in one gel and let it ferment beside the growing — no fire; the culture warms itself, and its warmth is its strength. A ripe broth leans on the hatch: tougher, quicker, more generous in what it sheds, or gentler when it goes home to the wild. The hatchling drinks it dry.',
+    'Beds and walls: the Root Bed grows on into the Slumber Husk — gel-flesh, fiber skin, warm and faintly damp and better than it sounds; click it at night to sleep the world to dawn. The Mycologist\'s Wall mounts one of every cap kind, alive: its glow caps light your camp, its rot kinds digest scraps into compost. Even the Mound\'s fungus eats bone and shell now.',
+    'A plant with an address: the Planter holds one living plant as furniture — it grows there, and a glowing tenant lights the room with its own species\' light. Which reminds us: every light has a gesture now. Moss pulses like a heartbeat, lantern ferns sway, cave glow ripples past in a wave. You\'ll learn to read your lights like faces.',
+    'Land animals swim — a bear crossing a deep pond rides the surface now (brine too; lava, still no). And the world keeps growing while you\'re away: vats ripen, broths warm, planters grow by the clock, not by your presence. Come back to a garden that didn\'t wait for you.',
+    'At the Bio-Forge, structures fold into subgroups now — Defenses among them, where the chime and the turret keep company — and on phones the big screens stack properly instead of squeezing.',
   ],
 };

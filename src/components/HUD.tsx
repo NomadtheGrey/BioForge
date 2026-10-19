@@ -23,6 +23,7 @@ import {
   Footprints,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   ScrollText,
   Settings2,
   Sprout,
@@ -226,6 +227,7 @@ import { MODULE_FOR_TOOL, gearTierOf } from '../game/quests/quests';
 import { type HudLayout, type HudPanelId } from '../hooks/useHudLayout';
 import { useAudioSettings } from '../hooks/useAudioSettings';
 import { HudPanel } from './HudPanel';
+import { useChipExpansion, trackerChipText } from '../hooks/useChipExpansion';
 import { HudErrorBoundary } from './HudErrorBoundary';
 import { TutorialChrome } from './TutorialChrome';
 import type { UseTutorialResult } from '../hooks/useTutorial';
@@ -401,6 +403,10 @@ export const HUD: React.FC<HUDProps> = ({
   // belongs one click from RESUME, not only at the start
   // screen and in Game Info.
   const [showCredits, setShowCredits] = useState<boolean>(false);
+  // THE CHIPS (Adam's brainstorm pick, 2026-10-18): on touch,
+  // the text-heavy panels rest as one-line chips; this accordion
+  // state says which one — if any — is open as a full card.
+  const chips = useChipExpansion();
   const [showFeedback, setShowFeedback] = useState<boolean>(false);
 
   // The How to Play pulse (Adam's program, 2026-10-17): the
@@ -755,6 +761,31 @@ export const HUD: React.FC<HUDProps> = ({
               onMove={hudLayout.setOffset}
               onClose={hideHudPanel}
             >
+          {chips.form(touchMode, 'vitals') === 'chip' ? (
+            // THE VITALS CHIP: three bare bars and their numbers —
+            // the one panel whose VALUES are glance-critical, so
+            // its chip still carries them; it is the card's title
+            // and framing that rest. Tap opens the full card.
+            <button
+              type="button"
+              aria-label="Expand the Bio-Suit vitals"
+              onClick={() => chips.toggle('vitals')}
+              className="glass-panel rounded-2xl px-2.5 py-1.5 w-32 flex flex-col gap-[3px] text-left active:scale-95 transition-transform"
+            >
+              {[
+                { v: playerState.health, m: playerState.maxHealth, bar: 'bg-gradient-to-r from-emerald-500 to-teal-400', tx: 'text-emerald-400' },
+                { v: playerState.stamina, m: playerState.maxStamina, bar: 'bg-gradient-to-r from-cyan-500 to-blue-400', tx: 'text-cyan-400' },
+                { v: playerState.energy, m: playerState.maxEnergy, bar: 'bg-gradient-to-r from-purple-500 to-pink-400', tx: 'text-purple-400' },
+              ].map((r, i) => (
+                <span key={i} className="flex items-center gap-1.5">
+                  <span className="h-1 flex-1 rounded-full bg-slate-900/80 overflow-hidden">
+                    <span className={`block h-full rounded-full ${r.bar}`} style={{ width: `${Math.max(0, Math.min(100, (r.v / r.m) * 100))}%` }} />
+                  </span>
+                  <span className={`text-[9px] font-mono w-5 text-right ${r.tx}`}>{Math.round(r.v)}</span>
+                </span>
+              ))}
+            </button>
+          ) : (
           <div
             className={`flex flex-col glass-panel rounded-2xl ${
               touchMode ? 'w-52 gap-1.5 p-2.5' : 'w-72 gap-2 p-3.5'
@@ -765,6 +796,16 @@ export const HUD: React.FC<HUDProps> = ({
                 <Zap className="w-3.5 h-3.5 text-cyan-400 animate-pulse" /> BIO-SUIT INTEGRITY
               </span>
               {!touchMode && <span className="text-xs text-slate-400 font-mono">VER 2.4.0</span>}
+              {touchMode && (
+                <button
+                  type="button"
+                  aria-label="Fold the vitals back to a chip"
+                  onClick={() => chips.toggle('vitals')}
+                  className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-800/80 border border-slate-600/60 text-slate-300 active:scale-95"
+                >
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
 
             {/* Health Bar */}
@@ -809,6 +850,7 @@ export const HUD: React.FC<HUDProps> = ({
               </div>
             </div>
           </div>
+          )}
 
             </HudPanel>
           )}
@@ -863,15 +905,48 @@ export const HUD: React.FC<HUDProps> = ({
               onMove={hudLayout.setOffset}
               onClose={hideHudPanel}
             >
-              {/* S3: a pinned saga takes the tracker's slot while
-                  set — the authored tracked quest rests in the log,
-                  untouched, and returns when the saga unpins. */}
-              {sagaView ? (
-                <QuestTracker saga={sagaView} onDismiss={onDismissSaga} />
+              {chips.form(touchMode, 'tracker') === 'chip' ? (
+                // THE TRACKER CHIP: the quest's name and its NEXT
+                // piece of work, one glance (the derivation is
+                // trackerChipText — pure, lab-proven). Tap opens
+                // the full checklist card.
+                (() => {
+                  const chipText = trackerChipText(questView, sagaView, (id) => ITEMS[id as keyof typeof ITEMS]?.name ?? id);
+                  return chipText ? (
+                    <button
+                      type="button"
+                      aria-label="Expand the quest tracker"
+                      onClick={() => chips.toggle('tracker')}
+                      className={`glass-panel rounded-full pl-3 pr-2.5 py-1.5 w-48 flex items-center gap-1.5 text-left active:scale-95 transition-transform ${sagaView ? 'border-violet-400/40' : 'border-emerald-400/30'}`}
+                    >
+                      <span className="text-[11px] font-bold text-slate-100 truncate min-w-0">{chipText.title}</span>
+                      <span className={`text-[10px] font-semibold whitespace-nowrap ${sagaView ? 'text-violet-300' : 'text-emerald-300'}`}>· {chipText.line}</span>
+                    </button>
+                  ) : null;
+                })()
               ) : (
-                questView && (
-                  <QuestTracker view={questView} onDismiss={onDismissQuest} />
-                )
+                <>
+                  {/* S3: a pinned saga takes the tracker's slot while
+                      set — the authored tracked quest rests in the log,
+                      untouched, and returns when the saga unpins. */}
+                  {sagaView ? (
+                    <QuestTracker saga={sagaView} onDismiss={onDismissSaga} />
+                  ) : (
+                    questView && (
+                      <QuestTracker view={questView} onDismiss={onDismissQuest} />
+                    )
+                  )}
+                  {touchMode && (
+                    <button
+                      type="button"
+                      aria-label="Fold the tracker back to a chip"
+                      onClick={() => chips.toggle('tracker')}
+                      className="absolute bottom-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-slate-800/80 border border-slate-600/60 text-slate-300 active:scale-95"
+                    >
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </>
               )}
             </HudPanel>
           )}
@@ -972,7 +1047,38 @@ export const HUD: React.FC<HUDProps> = ({
             onClose={hideHudPanel}
             className="mx-auto shrink-0"
           >
-        <div className={`glass-panel rounded-2xl flex flex-col shadow-lg ${touchMode ? 'w-44 px-2.5 py-2 gap-1' : 'w-52 px-3 py-2.5 gap-1.5'}`}>
+        {chips.form(touchMode, 'zone') === 'chip' ? (
+          // THE ZONE CHIP: where you are and when it is, in one
+          // pill — coords (the steering readout), the phase icon,
+          // the clock, and the Refuge dot when the ground is safe.
+          // The name, the flavor, and the toggle live in the card.
+          <button
+            type="button"
+            aria-label="Expand the zone panel"
+            onClick={() => chips.toggle('zone')}
+            className="glass-panel rounded-full pl-2 pr-2.5 py-1.5 flex items-center gap-1.5 active:scale-95 transition-transform"
+          >
+            <Compass className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+            <span className="font-tech font-extrabold text-[13px] text-cyan-200 whitespace-nowrap">{zoneCoordsLabel}</span>
+            {isDay ? (
+              <Sun className="w-3 h-3 text-amber-400 shrink-0" />
+            ) : (
+              <Moon className="w-3 h-3 text-purple-400 shrink-0" />
+            )}
+            {isRefuge && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" title="Refuge — nothing here can harm you" />}
+          </button>
+        ) : (
+        <div className={`relative glass-panel rounded-2xl flex flex-col shadow-lg ${touchMode ? 'w-44 px-2.5 py-2 gap-1' : 'w-52 px-3 py-2.5 gap-1.5'}`}>
+          {touchMode && (
+            <button
+              type="button"
+              aria-label="Fold the zone panel back to a chip"
+              onClick={() => chips.toggle('zone')}
+              className="absolute top-1.5 right-1.5 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-slate-800/80 border border-slate-600/60 text-slate-300 active:scale-95"
+            >
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
+          )}
           <div className="flex items-start gap-2">
             <Compass className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
             <div className="flex flex-col min-w-0">
@@ -1039,6 +1145,7 @@ export const HUD: React.FC<HUDProps> = ({
             </span>
           </button>
         </div>
+        )}
           </HudPanel>
         )}
 

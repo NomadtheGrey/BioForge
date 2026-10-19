@@ -70,16 +70,15 @@ export const DEFAULT_BUILD_NOTES: BuildNotes = {
  * applied).
  */
 export const BUILD_NOTES: BuildNotes = {
-  // Phone round 2 (2026-10-18): the zone card returns on
-  // touch, the hotbar's scroller (a second gesture-thief)
-  // is gone and the row simply fits, panel arrangements
-  // are remembered per orientation — landscape and
-  // portrait each keep their own — and no modal can stand
-  // taller than the screen it's on, so the close button
-  // is never clipped off the top again.
-  title: 'Fits the hand',
+  // The chips + the lantern's radius (2026-10-18): on
+  // touch, the vitals, zone, and tracker panels rest as
+  // small chips (tap to open the full card, one at a
+  // time) so the world starts clear on a small screen;
+  // and the carried lantern's light reaches much farther
+  // — held and braced alike — per the maker's dark walks.
+  title: 'Room to see',
   lines: [
-    'More phone manners: the zone card shows on touch again (slimmer, so it earns its space), the hotbar row fits without the scroller that kept stealing your drags, and your panel arrangement is now remembered separately for landscape and portrait — turn the phone and each shape keeps its own furniture.',
-    'And no window in the game can stand taller than your screen anymore: on a sideways phone the big panels cap themselves to the display, so the close button is always on screen where it belongs.',
+    'On a phone, the screen starts clear now: your vitals, the zone card, and the quest tracker rest as small chips at the edge — three slim bars, a zone pill, one line of quest. Tap any chip to open its full card; opening one folds the others away. The desktop screen is untouched.',
+    'And the lantern throws farther — by a lot, as requested. The carried fern now lights a proper clearing around you, and a braced lamp-shield reaches further still. Take a dark walk and see.',
   ],
 };

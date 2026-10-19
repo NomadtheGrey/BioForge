@@ -25,6 +25,7 @@ import {
 } from '../game/world/cavern';
 import { dealCavernFauna } from '../game/creatures/cavernFauna';
 import { generateGameRuin, ruinEntryYaw, ruinCollisionGrid, type RuinResult } from '../game/world/ruinInterior';
+import { findClearGround } from '../game/structures/clearGround';
 import { FATE_STYLES, type RuinVariantId, type WorldFate } from '../game/world/ruins';
 import { zoneCoordsAt, zoneHops, zoneBiomeAt } from '../game/world/zones';
 import type { BiomeId } from '../game/world/biomes';
@@ -387,16 +388,25 @@ export function useInstances(deps: InstancesDeps): UseInstancesResult {
       // The return address is the anchor stored on the mouth at
       // world creation: 2 m out from the mouth, so the player lands
       // OUTSIDE the portal and never instantly re-triggers it.
+      // CLEAR-GROUND GUARD (Adam, 2026-10-19): the resolver has no
+      // ejector, so a placement written inside a solid footprint is
+      // a permanent trap — the anchor is asked against the restored
+      // surface's real collision before it is ever written. A cave
+      // mouth's own disc is honest today (1.72 m < 2 m), but a
+      // player-built wall at the doorstep is not the dealing's
+      // business to foresee; the guard is.
       const exitX = mouth?.cave?.exitX ?? 0;
       const exitZ = mouth?.cave?.exitZ ?? 0;
-      const facing = mouth ? Math.atan2(exitX - mouth.worldX, exitZ - mouth.worldZ) : 0;
+      const clear = findClearGround(exitX, exitZ, inst.parked.structures, 0, { maxRadius: 20 })
+        ?? { x: exitX, z: exitZ };
+      const facing = mouth ? Math.atan2(clear.x - mouth.worldX, clear.z - mouth.worldZ) : 0;
       replaceWorld(inst.parked);
       engineRef.current?.setCavernMode(false);
       instanceRef.current = { kind: 'surface' };
       caveStackRef.current = [];
       applyPlayerLevel(0);
-      playerPosRef.current = { x: exitX, z: exitZ, rotation: facing };
-      engineRef.current?.setPlayerPosition(exitX, exitZ, 0);
+      playerPosRef.current = { x: clear.x, z: clear.z, rotation: facing };
+      engineRef.current?.setPlayerPosition(clear.x, clear.z, 0);
       setInCavern(false);
       setCavernDepth(0);
       postNotification(note.title, note.body, 'system', '#38bdf8');
@@ -565,19 +575,29 @@ export function useInstances(deps: InstancesDeps): UseInstancesResult {
   // Step back out of a ruin: restore the parked surface world and
   // land the player at the landmark's stored exit anchor (2 m out
   // along its facing — outside the portal, never re-triggering it).
+  // CLEAR-GROUND GUARD (Adam, 2026-10-19 — the stuck-at-the-exit
+  // bug): that 2 m anchor sits INSIDE a medium/grand landmark's own
+  // collision disc (2.52 m solid), and the resolver has no ejector —
+  // writing it raw trapped the player at the doorstep forever. The
+  // anchor is asked against the restored surface's real collision
+  // before it is ever written; the nearest clear spot wins. (The
+  // dealing keeps writing the 2 m anchor — old saves carry it too —
+  // because the guard, not the number, is the fix.)
   const handleExitRuin = useCallback((): void => {
     const inst = instanceRef.current;
     if (inst.kind !== 'ruin') return;
     const landmark = inst.parked.structures.find((s) => s.id === inst.landmarkId);
     const exitX = landmark?.ruin?.exitX ?? 0;
     const exitZ = landmark?.ruin?.exitZ ?? 0;
-    const facing = landmark ? Math.atan2(exitX - landmark.worldX, exitZ - landmark.worldZ) : 0;
+    const clear = findClearGround(exitX, exitZ, inst.parked.structures, 0, { maxRadius: 20 })
+      ?? { x: exitX, z: exitZ };
+    const facing = landmark ? Math.atan2(clear.x - landmark.worldX, clear.z - landmark.worldZ) : 0;
     replaceWorld(inst.parked);
     engineRef.current?.setRuinMode(false);
     instanceRef.current = { kind: 'surface' };
     applyPlayerLevel(0);
-    playerPosRef.current = { x: exitX, z: exitZ, rotation: facing };
-    engineRef.current?.setPlayerPosition(exitX, exitZ, 0);
+    playerPosRef.current = { x: clear.x, z: clear.z, rotation: facing };
+    engineRef.current?.setPlayerPosition(clear.x, clear.z, 0);
     setInRuin(false);
     postNotification('Surface', 'You step back out into the open air, the ruin\'s silence behind you.', 'system', '#38bdf8');
   }, [replaceWorld, applyPlayerLevel, postNotification]);

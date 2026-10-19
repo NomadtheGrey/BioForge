@@ -76,9 +76,9 @@ export const BUILD_NOTES: BuildNotes = {
   // direct-site players the second home exists — and that
   // their three cloud words bridge the two, so no world is
   // stranded on either side.
-  title: 'A second door',
+  title: 'A way out',
   lines: [
-    'BioForge now stands on itch.io as well — the same living world through a second door, for the folks who find their games there.',
-    'In the support window, the itch door is lit now, beside Ko-fi. And if you play in both places, your three cloud words carry your worlds between them — nothing is stranded on either side.',
+    'A critical fix, plainly told. Leaving a ruin could set you down inside the landmark\'s own stone — the exit stood closer to the ruin than the stone is wide, and a player placed inside it could not step free in any direction, on any difficulty, ever. One of our own was caught there. The exits are guarded now: ruin and cave doors both check their ground before setting you down, and shift you to clear ground beside the door if the threshold is occupied.',
+    'And so it can never hold anyone again, anywhere, for any reason: there is a Stuck button now — on the session bar, and in the pause menu. One tap moves you a few meters to the nearest safe ground the game can find: never inside a wall, never into lava or deep water. If the whole neighborhood is hopeless, it carries you home instead, and tells you so.',
   ],
 };

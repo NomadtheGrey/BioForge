@@ -196,6 +196,40 @@ export function buildFloraMesh(
         break;
       }
 
+      case 'mouth_vine': {
+        // Ghost #1's body (Part 8, slice G3): a root crown at
+        // ankle height and corded tendrils radiating flat along
+        // the ground, each ending in a small jawed leaf-pair —
+        // porcelain jaw tips, like its cousin the snap-trap's.
+        // The mesh is still; the TELL is the sim's warning, and
+        // the tensing lives in the wind-up the hazard keeps.
+        const crown = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), materials.woodRoot);
+        crown.scale.set(1, 0.6, 1);
+        crown.position.y = 0.1;
+        crown.castShadow = true;
+        group.add(crown);
+        for (let i = 0; i < 6; i++) {
+          const a = (i / 6) * Math.PI * 2 + 0.5;
+          const len = 0.85 + ((i * 53) % 35) / 100;
+          const tendril = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.05, len, 6), materials.woodRoot);
+          tendril.position.set(Math.sin(a) * (len / 2 + 0.1), 0.05, Math.cos(a) * (len / 2 + 0.1));
+          tendril.rotation.z = Math.PI / 2;
+          tendril.rotation.y = -a;
+          group.add(tendril);
+          const jawA = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.22, 6), materials.porcelainWhite);
+          jawA.position.set(Math.sin(a) * (len + 0.18), 0.08, Math.cos(a) * (len + 0.18));
+          jawA.rotation.z = Math.PI / 2 - 0.5;
+          jawA.rotation.y = -a;
+          group.add(jawA);
+          const jawB = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.22, 6), materials.porcelainWhite);
+          jawB.position.set(Math.sin(a) * (len + 0.18), 0.03, Math.cos(a) * (len + 0.18));
+          jawB.rotation.z = Math.PI / 2 + 0.5;
+          jawB.rotation.y = -a;
+          group.add(jawB);
+        }
+        break;
+      }
+
       case 'ribbon_moss': {
         // The silent ghost's body (Part 8, slice G2): a dark
         // ground-mat with long flat ribbons lying along the

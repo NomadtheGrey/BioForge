@@ -1824,6 +1824,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'uncommon',
     maxStack: 99,
   },
+  mouth_vine: {
+    id: 'mouth_vine',
+    name: 'Mouth-Vine Cutting',
+    category: 'raw',
+    description: 'A corded length of the vine, jawed leaves and all, cut while it slept off a meal. Plant it and it roots as a guard vine — mind your own ankles until it knows the garden; feed it nectar when you need to pass or prune.',
+    iconName: 'Leaf',
+    color: '#84cc16',
+    rarity: 'uncommon',
+    maxStack: 99,
+  },
   prismatic_core: {
     id: 'prismatic_core',
     name: 'Prismatic Core',

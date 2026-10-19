@@ -103,6 +103,8 @@ export interface UseToolInteractionsParams {
   hasItem: (itemId: ItemId, minCount?: number) => boolean;
   resetFloraHarvest: (floraId: string, regrowthDuration: number) => void;
   applyFloraFertilizer: (floraId: string, type: 'growth' | 'yield') => void;
+  /** FLORA HAZARDS (G3): stamp a plant pacified (the Mouth-Vine's nectar door). */
+  pacifyFlora: (floraId: string, untilMs: number) => void;
   // Feeding the valley (Living, 2026-10-15): App owns the
   // satiation deadline; feeding a heartbloom pushes it forward.
   valleySatiatedUntilRef: { current: number };
@@ -258,6 +260,7 @@ export function useToolInteractions({
   hasItem,
   resetFloraHarvest,
   applyFloraFertilizer,
+  pacifyFlora,
   valleySatiatedUntilRef,
   addFlora,
   addStructure,
@@ -1669,6 +1672,52 @@ export function useToolInteractions({
     [activeTool, handleBuildPlacement, handlePlanterAction, selectedStructureType, fireProjectile, triggerShotFx, spendStamina, inventory, strikerDrawRef, getPlayerPosition, carryRef, putDownCarryAt]
   );
 
+  /**
+   * FEEDING THE VINE (ghost slice G3, 2026-10-19): the lure is
+   * the offering tool, and the Mouth-Vine is the one plant that
+   * takes an offering. Sweet Nectar in the pouch + the lure in
+   * hand + a click on a grown vine = a fed vine: pacifiedUntil
+   * is stamped a minute out, the hazard pass lets it rest, and
+   * the harvest is free. The refusal lines teach the door the
+   * way the game's refusals teach everything — by naming what
+   * is missing. Other flora ignore the lure, as they always have.
+   */
+  const handleFeedFlora = useCallback(
+    (flora: FloraEntity): void => {
+      if (flora.species !== 'mouth_vine') return;
+      if (flora.growthStage < 3) {
+        postNotification('Too Young to Hunt', 'This vine is a seedling still — it has no jaws to feed, and none to fear.', 'system', '#84cc16');
+        return;
+      }
+      const now = performance.now();
+      if ((flora.pacifiedUntil ?? 0) > now) {
+        postNotification('Already Slack', 'The vine is still sweet-drunk on the last offering — pick what you need and go.', 'system', '#84cc16');
+        return;
+      }
+      if (!hasItem('sweet_nectar', 1)) {
+        postNotification(
+          'It Wants Sweetness',
+          'The Mouth-Vine hunts what brushes it — but it can be FED: Sweet Nectar, offered with the lure, makes it slack for a minute. You have none in your pouch.',
+          'alert',
+          '#fbbf24'
+        );
+        return;
+      }
+      deductInventoryItem('sweet_nectar', 1);
+      const until = now + 60_000;
+      pacifyFlora(flora.id, until);
+      multiplayerManager.broadcastEntityUpsert('flora', { ...flora, pacifiedUntil: until });
+      soundEngine.playFertilize();
+      postNotification(
+        'Fed and Slack',
+        'The tendrils unfold and the whole vine sags, sweet-drunk. For the next minute it will not snap — harvest, pass, prune in peace.',
+        'craft',
+        '#84cc16'
+      );
+    },
+    [hasItem, deductInventoryItem, pacifyFlora, postNotification]
+  );
+
   const handleFloraInteract = useCallback(
     (flora: FloraEntity): void => {
       // S6 MOVABLE VAULTS: hands full — the carry leaves the player
@@ -1683,6 +1732,10 @@ export function useToolInteractions({
       }
       if (activeTool === 'bio_scanner') {
         handleScanTarget({ type: 'flora', entity: flora, name: flora.species, details: '' });
+        return;
+      }
+      if (activeTool === 'taming_lure') {
+        handleFeedFlora(flora);
         return;
       }
       if (activeTool === 'planter_trowel') {
@@ -1705,7 +1758,7 @@ export function useToolInteractions({
         return;
       }
     },
-    [activeTool, handleHarvestFlora, handleScanTarget, handlePlanterAction, handleSolventFlora, fireProjectile, triggerShotFx, spendStamina, inventory, strikerDrawRef, carryRef, postNotification]
+    [activeTool, handleHarvestFlora, handleScanTarget, handlePlanterAction, handleSolventFlora, handleFeedFlora, fireProjectile, triggerShotFx, spendStamina, inventory, strikerDrawRef, carryRef, postNotification]
   );
 
   /**

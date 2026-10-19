@@ -7,6 +7,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   FloraEntity,
+  FloraSpecies,
   FaunaEntity,
   FaunaSpecies,
   StructureEntity,
@@ -33,6 +34,8 @@ import { sampleItemId, SAMPLE_SHED_SECONDS_TAMED, SAMPLE_SHED_SECONDS_WILD } fro
 import type { ItemId } from '../types/game';
 import type { WorldSnapshot } from '../game/saveSystem';
 import type { AsksEventInput } from '../game/quests/asksBackState';
+import { FLORA_HAZARD_SPECS, stepFloraHazard, FLORA_HAZARD_REST } from '../game/flora/floraHazards';
+import type { FloraHazardEvent, FloraHazardState } from '../game/flora/floraHazards';
 
 
 // Base time for a plant to go from planted to harvest-ready. Slowed
@@ -406,6 +409,10 @@ export interface UseWorldEntitiesResult {
   removeFlora: (floraId: string) => void;
   resetFloraHarvest: (floraId: string, regrowthDuration: number) => void;
   applyFloraFertilizer: (floraId: string, type: 'growth' | 'yield') => void;
+  /** FLORA HAZARDS (G3): set a plant's pacified-until stamp
+   *  (a performance.now() millisecond deadline — session-scoped
+   *  like the Valley's satiation; the hazard pass reads it). */
+  pacifyFlora: (floraId: string, untilMs: number) => void;
   addStructure: (structure: StructureEntity) => void;
   upsertStructure: (structure: StructureEntity) => void;
   removeStructure: (structureId: string) => void;
@@ -518,6 +525,11 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   // seconds a committed hound has held its hunt — the Field
   // Note witnesses the pursuit, not the meeting.
   const hushPursuitRef = useRef<Map<string, number>>(new Map());
+  // FLORA HAZARDS (ghost slice G3, 2026-10-19): per-plant
+  // wind-up/cooldown state for the hazardous flora whose specs
+  // live in flora/floraHazards.ts. Session-transient like the
+  // stare map: a plant left mid-wind-up simply re-tenses.
+  const floraHazardRef = useRef<Map<string, FloraHazardState>>(new Map());
   // THE SHIELD (Adam, 2026-10-17): the strike side-effect queue.
   // The shared onFaunaAttack consumer (game loop) resolves a
   // strike and queues its sim-side effects here — thorn-spike
@@ -604,6 +616,15 @@ export function useWorldEntities(): UseWorldEntitiesResult {
         }
         return { ...f, fertilizedYield: true };
       })
+    );
+  }, []);
+
+  // FLORA HAZARDS (G3): the pacify stamp — the Mouth-Vine fed on
+  // Sweet Nectar goes slack until this deadline. A plain field
+  // write through the list, like the fertilizer writes beside it.
+  const pacifyFlora = useCallback((floraId: string, untilMs: number): void => {
+    setFloraList((prev) =>
+      prev.map((f) => (f.id === floraId ? { ...f, pacifiedUntil: untilMs } : f))
     );
   }, []);
 
@@ -883,7 +904,10 @@ export function useWorldEntities(): UseWorldEntitiesResult {
        *  2026-10-17): the drop pass's reach this tick, dealt
        *  by shields.dropMagnetFor at the loop's call site.
        *  Absent = the standing numbers (5 m at 3.5 m/s). */
-      dropMagnet?: { radius: number; speed: number }
+      dropMagnet?: { radius: number; speed: number },
+      /** FLORA HAZARDS (G3): a hazardous plant's tell, snare or
+       *  bite, reported to the loop, which owns the player. */
+      onFloraHazard?: (species: FloraSpecies, event: FloraHazardEvent, damage: number, ctx: { floraId: string; x: number; z: number }) => void
     ): void => {
       const simulateWorld = !multiplayerManager.isConnected || multiplayerManager.isHost;
       combatArmedRef.current = !!attacksArmed;
@@ -2350,6 +2374,48 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           if (bell) witness('note_puffbell');
         }
       }
+      // ---------------------------------------------------------------
+      // FLORA HAZARDS (ghost slice G3, 2026-10-19): the hazardous
+      // flora finally bite. The flag (FloraDef.hazardous /
+      // FloraEntity.isHazardous) was stamped at dealing for the
+      // game's whole life and read by NOTHING — the Snap-Trap's
+      // codex promised jaws that never closed. The specs and the
+      // per-plant state machine live in flora/floraHazards.ts
+      // (pure, tested); this pass is the thin adapter: grown
+      // plants only (a seedling is all promise), pacified plants
+      // rest (the Mouth-Vine's nectar door), and every event —
+      // the warn (the tell), the snare heartbeat, the bite —
+      // goes to the loop, which owns the player. Host-simulated
+      // like everything else in this tick.
+      // ---------------------------------------------------------------
+      if (simulateWorld && onFloraHazard) {
+        const nowMs = performance.now();
+        for (const fl of floraRef.current) {
+          const spec = FLORA_HAZARD_SPECS[fl.species];
+          if (!spec) continue;
+          if (fl.growthStage < 3) {
+            floraHazardRef.current.delete(fl.id);
+            continue;
+          }
+          const dist = Math.hypot(fl.x - playerX, fl.z - playerZ);
+          if (dist > spec.radius && !floraHazardRef.current.has(fl.id)) continue;
+          const prev = floraHazardRef.current.get(fl.id) ?? FLORA_HAZARD_REST;
+          const stepped = stepFloraHazard(prev, spec, {
+            dt,
+            dist,
+            pacified: (fl.pacifiedUntil ?? 0) > nowMs,
+            armed: !!attacksArmed,
+          });
+          if (stepped.state.windup === 0 && stepped.state.cooldown === 0) {
+            floraHazardRef.current.delete(fl.id);
+          } else {
+            floraHazardRef.current.set(fl.id, stepped.state);
+          }
+          for (const ev of stepped.events) {
+            onFloraHazard(fl.species, ev, ev === 'bite' ? spec.bite : 0, { floraId: fl.id, x: fl.x, z: fl.z });
+          }
+        }
+      }
       setFloraList((prevFlora) =>
         prevFlora.map((flora) => {
           // ---------------------------------------------------------------
@@ -2533,6 +2599,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
     removeFlora,
     resetFloraHarvest,
     applyFloraFertilizer,
+    pacifyFlora,
     addStructure,
     upsertStructure,
     removeStructure,

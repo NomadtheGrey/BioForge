@@ -2094,4 +2094,16 @@ export const FLORA_CODEX: CodexEntry[] = [
     biome: 'Rootwood and Wetland country (the shade)',
     iconColor: '#2dd4bf',
   },
+  {
+    species: 'mouth_vine',
+    name: 'Mouth-Vine',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A ground-creeping vine whose corded tendrils end in small jawed leaf-pairs, radiating from a root crown the way a held breath radiates from a chest. It hunts by touch: brush its reach and the tendrils tense — that tensing is its courtesy, a breath long — then snap to the ankle and CONSTRICT, holding what they caught the way the whole Living country wishes it could.',
+    byproducts: ['Mouth-Vine Cutting', 'Ribbon Fiber'],
+    tamingOrCraftNotes: 'It can be FED, and feeding is the door: offer Sweet Nectar with the taming lure in hand and the whole plant goes slack and sweet-drunk for a minute — no snap, no hold, and the harvest is free. Unfed, take its cutting quickly and step out; it bites what lingers, on any world where teeth are real.',
+    biome: 'Wetland and Fungal country',
+    iconColor: '#84cc16',
+  },
 ];

@@ -3839,6 +3839,32 @@ export const FLORA: Record<string, FloraDef> = {
     },
   },
 
+  // GHOST #1 (Part 8, slice G3, 2026-10-19): the Mouth-Vine —
+  // promised by the Studio codex, the union, the light table
+  // (lime, low) and even a dedicated entity field
+  // (FloraEntity.pacifiedUntil) that sat unused for the game's
+  // whole life. Now dealt, hazardous in FACT (floraHazards.ts:
+  // it constricts), and feedable — Sweet Nectar on the lure
+  // makes it slack for a minute, the only safe way to take its
+  // cutting. Its harvest IS its cutting (the vine grammar:
+  // plant a piece, grow a guard), with ribbon fiber in the
+  // stems. Home: its census kin the Snap-Trap's country.
+  mouth_vine: {
+    id: 'mouth_vine',
+    name: 'Mouth-Vine',
+    kind: 'flora',
+    propagation: 'mouth_vine',
+    harvest: { item: 'mouth_vine', count: 2, fertilizedCount: 3, extras: [['soft_fiber', 1]] },
+    hazardous: true,
+    bonusGrow: {
+      biomes: ['wetland', 'fungal'],
+      count: 2,
+      minRadius: 10,
+      spacing: 5,
+      scale: 1.1,
+    },
+  },
+
   // The variant-dressing set (worldGen's hand-placed blocks).
   antenna_shroom: {
     id: 'antenna_shroom',

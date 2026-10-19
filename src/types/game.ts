@@ -185,6 +185,7 @@ export type ItemId =
   | 'gloom_chitin'
   | 'husk_spore'
   | 'ribbon_moss'
+  | 'mouth_vine'
   | 'hollow_heart_spore'
   | 'sedge_egg'
   | 'clean_bone'

@@ -77,7 +77,7 @@ export const INITIAL_CODEX: CodexEntry[] = [
   },
   {
     species: 'soft_puff',
-    name: 'Soft-Puff Critter',
+    name: 'Soft-Puff',
     type: 'fauna',
     discovered: true,
     scannedCount: 1,
@@ -89,7 +89,7 @@ export const INITIAL_CODEX: CodexEntry[] = [
   },
   {
     species: 'burrow_mouse',
-    name: 'Burrow-Mouse',
+    name: 'Burrow Mouse',
     type: 'fauna',
     discovered: false,
     scannedCount: 0,

@@ -256,7 +256,7 @@ export const CODEX_LATE: CodexEntry[] = [
     discovered: false,
     scannedCount: 0,
     description: 'HUGE: a segmented worm at the scale the word starts to fail — fulgurite-lined, burrowing the Charged Flats\' wild country, plowing lightning\'s leavings into tunnels the flats\' miners inherit. Its abandoned tunnels are the economy\'s existing fulgurite door at geology\'s rates: the worm is not the mine\'s owner, only its previous tenant at continental scale.',
-    byproducts: ['None — its tunnels are the flats\' mines (the existing fulgurite door)'],
+    byproducts: ['Fulgurite Shard', 'Carapace Scale'],
     tamingOrCraftNotes: 'Untamable — 0%. — and it is CHILL until provoked: hurt it and the mine defends itself. A kill yields Fulgurite Shards and Carapace Scales beside the sample.',
     biome: 'Storm (the Charged Flats\' wild country)',
     iconColor: '#78716c',

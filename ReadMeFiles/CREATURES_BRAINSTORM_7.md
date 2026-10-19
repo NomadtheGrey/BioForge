@@ -1,5 +1,10 @@
 # CREATURES BRAINSTORM — PART 7: THE CAVE CITIZENS
 
+*SHIP STATE (2026-10-18): Slice C1 is SHIPPED LIVE (PR #48) —
+the depth-banded dealer, the Gloom Skitter, the Spore Husk.
+Slices C2 (the Pale Stalker) and C3 (the Deep Maw) remain open,
+as designed below.*
+
 *Filed 2026-10-18, the creatures lane. Adam's assignment, verbatim:
 "Let's have Creatures work on the cave creatures." Caves were parked
 2026-10-15 behind two gates — the overworld roster finishing, and

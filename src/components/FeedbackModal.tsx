@@ -54,6 +54,12 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, c
   // message and the mailto door opens as the fallback.
   const [phase, setPhase] = useState<SendPhase>('compose');
   const [replyEmail, setReplyEmail] = useState('');
+  // The failure's substance (Adam's pin, 2026-10-19): the
+  // failed state SHOWS why — the transport's reason, and the
+  // HTTP status when the service answered with one — in
+  // player words, never a vague 'something went wrong'.
+  const [failInfo, setFailInfo] = useState<{ reason: string; status?: number } | null>(null);
+  const [noteCopied, setNoteCopied] = useState(false);
   const directSend = feedbackSendConfigured();
 
   // Escape closes it (the credits lesson, applied from birth).
@@ -99,12 +105,33 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, c
   const handleDirectSend = async () => {
     if (!message.trim() || phase === 'sending') return;
     setPhase('sending');
+    setFailInfo(null);
     const result = await sendFeedback({
       subject,
       message: message.trim() + footer,
       fromEmail: replyEmail.trim() || undefined,
     });
-    setPhase(result.ok ? 'sent' : 'failed');
+    if (result.ok) {
+      setPhase('sent');
+    } else {
+      setFailInfo({ reason: result.reason, status: result.status });
+      setPhase('failed');
+    }
+  };
+
+  // The failure's other escape (Adam's pin, 2026-10-19): copy
+  // the FULL composed note — subject and body, footer and
+  // all — so the player can paste it into any mail program
+  // or page themselves. A failed send never traps the words.
+  const handleCopyNote = async () => {
+    try {
+      await navigator.clipboard.writeText(`${subject}\n\n${message.trim() + footer}`);
+      setNoteCopied(true);
+      window.setTimeout(() => setNoteCopied(false), 2000);
+    } catch {
+      // Clipboard refused — the words still stand in the
+      // form above, selectable by hand; nothing else to do.
+    }
   };
 
   const handleCopy = async () => {
@@ -263,8 +290,29 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, c
                   <>
                     <p className="text-[11px] leading-relaxed text-amber-200/90">
                       The direct send didn&apos;t go through — your words are still here, nothing was
-                      lost. Send them through your mail app instead:
+                      lost.
+                      {failInfo && (
+                        <>
+                          {' '}
+                          <span className="text-amber-100 font-semibold">
+                            {failInfo.reason === 'network'
+                              ? 'Why: the note never reached the mail service — the connection failed, or took too long (it gives up after 10 seconds).'
+                              : failInfo.reason === 'rejected'
+                                ? `Why: the mail service answered but refused the note${failInfo.status ? ` (HTTP ${failInfo.status})` : ''} — the sending service itself said no.`
+                                : 'Why: the direct send is not set up on this build.'}
+                          </span>
+                        </>
+                      )}{' '}
+                      Two ways out: copy your note and paste it anywhere, or send it through your mail
+                      app instead:
                     </p>
+                    <button
+                      onClick={handleCopyNote}
+                      className="w-full px-4 py-2.5 rounded-xl text-xs font-tech font-bold text-slate-200 border border-slate-500/60 hover:bg-slate-800/60 transition-colors cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      {noteCopied ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
+                      {noteCopied ? 'COPIED — PASTE IT ANYWHERE' : 'COPY MY NOTE'}
+                    </button>
                     <button
                       onClick={handleSend}
                       className="w-full px-4 py-2.5 rounded-xl text-xs font-tech font-bold text-slate-200 border border-slate-500/60 hover:bg-slate-800/60 transition-colors cursor-pointer"

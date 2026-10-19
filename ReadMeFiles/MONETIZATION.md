@@ -1,7 +1,24 @@
 # BioForge — Monetization Strategy & Revenue Architecture
 
-> **Status:** Living Document  
-> **Last Updated:** October 7, 2026  
+> **Status: SUPERSEDED (2026-10-18, the docs sweep).** The plan
+> below is AI-Studio-era (in-app purchases, a bio-pass, a
+> marketplace) and was never adopted. **The pinned plan**
+> (Adam, 2026-10-18): the game is **free**. Its first home is
+> **itch.io** ($0-or-donate pricing, donation button on); a
+> **Donate** door in the game opens two doors — **Ko-fi**
+> (live, via `KOFI_URL` in src/game/links.ts) and the itch page
+> itself (lit when the page stands, via `DONATE_URL`). Sequence:
+> wrap → itch page → beta test → **CrazyGames** second (ad
+> revenue; the donate button is toggled OFF in the portal build)
+> → a real domain after beta. Poki is skipped (5-year web
+> exclusivity); Steam only if the numbers ever argue for it.
+> Adam's stance, verbatim: "I don't expect to make my riches
+> with this, but it was fun, and no harm in trying to get this
+> where people can find it." The decision brief lives at
+> `~/workspace/goals/bioforge-debugging/files/bioforge-future-decision-brief.md`.
+> Everything below this note is the unadopted draft, kept for
+> the record.
+> **Last Updated:** October 7, 2026 (superseded October 18, 2026)
 > **Game Version:** v0.1.0  
 > **Core Ethos:** Fair-Play, Zero Pay-to-Win, Expression & Community-First
 

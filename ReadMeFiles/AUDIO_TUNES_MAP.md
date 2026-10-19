@@ -41,7 +41,7 @@ the SOUND shelf (Options → Background Music), already landed.
   bone country's ground tone went with the layer.)*
 - **Day and night are mixes, not tracks.** Night drops the
   register, thins the motif (roughly half the phrases), and
-  warms the drone. The layers crossfade at dawn and dusk with
+  warms the pad. The layers crossfade at dawn and dusk with
   the light; nothing ever switches.
 - **Zone borders crossfade** over a few seconds — travel should
   sound like weather moving, not a record changing.
@@ -50,10 +50,10 @@ the SOUND shelf (Options → Background Music), already landed.
   secondary lends ONE instrument — its signature voice — at low
   weight. The other country is visiting.
 - **Underground is a treatment, not a family.** Below the
-  surface the motif thins to single notes with long echoes, the
-  pad falls away, and the drone drops an octave. Deeper strata,
-  sparser still. The fifth stratum is nearly the designed
-  silence's neighbor.
+  surface the motif thins to single notes with long echoes, and
+  the pad falls away an octave down. Deeper strata, sparser
+  still. The fifth stratum is nearly the designed silence's
+  neighbor.
 - **The scar-complex is silent by design.** In the Confront
   finale's scar rooms the music does not thin — it STOPS, all
   channels of the tune, so the silence lands as a place and not
@@ -215,3 +215,19 @@ the SOUND shelf (Options → Background Music), already landed.
 - Motif density master curve — how literally flora/fauna
   density numbers map to phrase rates; tuned in the core's
   first playtest, not on paper.
+
+## Field corrections (2026-10-18, the docs sweep)
+
+- **The hum had a second half.** The drone amendment above
+  retired the new system's layer; the hum Adam heard also ran
+  from the LEGACY engine (`src/audio/soundEngine.ts`), whose
+  ambient drone lived outside the new mix entirely — and whose
+  mute was the one the options screen drove, which is why
+  muting killed the hum and not the music. Both are retired at
+  the source; there is now **one mute authority** over the one
+  system.
+- **FIGURES NOT FOG.** The core's first mix leaned on pads;
+  the shipped pass thinned them, shaped the phrases, and gave
+  the Living breath air — motifs read as figures against the
+  pad, not fog over it. The tunes in this map are unchanged;
+  this is the mix they are played in.

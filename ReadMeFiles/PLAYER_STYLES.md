@@ -12,8 +12,10 @@ one artful listing players can chase whatever calls to them.
 3. **Explorers** — seeing the world. Currently thin: the world is 100×100m
    (~30s to cross), so this lane needs a bigger world or hidden points of
    interest before it feels real.
-4. **Hunters** — tracking and taking down creatures. Parked behind peaceful
-   mode; needs hostile fauna and combat before it exists.
+4. **Hunters** — tracking and taking down creatures. *(Unparked
+   2026-10-18: hostile fauna and combat exist — Normal arms the
+   hunt, Hostile arms explorers against each other. See
+   CORE_MECHANICS §4.8.)*
 5. **Builders** — raising a base. Structures, floors, mounds, doors,
    layout as self-expression.
 6. **Socializers** — playing together. The multiplayer lane: co-op sessions,

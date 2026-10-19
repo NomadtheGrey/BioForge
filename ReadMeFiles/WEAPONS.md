@@ -57,6 +57,26 @@ weapons later").
   speed, and a first-person model per weapon that re-grows in
   your hand when the draw changes.
 
+## Armed worlds, and Hostile (added 2026-10-18, the docs sweep)
+
+- Strikers bite only where the world is **armed** (CORE_MECHANICS
+  §4.8): on Peaceful, and inside the Refuge (zone 0,0) under any
+  law, they are safe both ways.
+- **HOSTILE** adds the other explorers as lawful targets — Adam's
+  ruling, verbatim in substance: *weapons work on explorers as
+  is; no special buttons.* A close swing tests every same-zone
+  explorer inside its reach; a shot is judged where it lands, so
+  shooting at a creature's feet strikes the explorer standing
+  there. Damage numbers are the weapons' own, unchanged.
+- Strikes travel the relay as `player_hit`, addressed to the
+  victim alone, and resolve on the victim's client through the
+  same shield/health consumer as a creature's bite — a raised
+  shield turns an explorer's blow exactly as it turns teeth.
+- Two v1 seams, named: shield reflect/burst side effects do not
+  yet counter-hit an explorer (blocking itself is whole), and
+  the gauntlet's automatic zot stays creature-only — duels are
+  deliberate.
+
 ## The harm doctrine (shared with the solvent)
 
 - **Companions are immune.** Your strikers never harm your own —

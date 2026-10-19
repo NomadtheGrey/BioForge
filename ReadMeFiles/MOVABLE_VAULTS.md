@@ -1,10 +1,10 @@
 # Movable Vaults — the move verb for containers
 
-Design record, Adam's rulings verbatim where he ruled. Build slot: Slice S6
-of The World Asks Back build stack, staged on `wip` after S5 (BioTunnel
-guest fix) and after the file-reorganization window. Sequenced last because
-App, placement, travel, and the container panels are all inside the Asks
-Back claim — one owner throughout.
+Design record, Adam's rulings verbatim where he ruled. **SHIPPED:**
+Slice S6 of The World Asks Back, live since 2026-10-17 (the stack's
+merge). It was sequenced last in its stack because App, placement,
+travel, and the container panels were all inside the Asks Back
+claim — one owner throughout.
 
 ## Ruling history (read in order — the latest governs)
 

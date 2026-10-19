@@ -61,24 +61,24 @@ export const DEFAULT_BUILD_NOTES: BuildNotes = {
  * THIS build's notes. Review surface: read them like a
  * player meeting them cold.
  *
- * CURRENT BUILD (the light-and-lenses stack, 2026-10-18):
- * the lines below — written for the landing, in the file's
+ * CURRENT BUILD (the itch door lights, 2026-10-19): the
+ * lines below — written for the landing, in the file's
  * standing discipline (whoever composes a landing writes
- * its notes). The previous build's greeting ('Clearer air,
- * a surer hand') has already fired; this build must not
- * wear it a second time (the dev lane's slice-4 lesson,
- * applied).
+ * its notes). The previous build's greeting ('Yours for
+ * good') has already fired; this build must not wear it a
+ * second time (the dev lane's slice-4 lesson, applied).
  */
 export const BUILD_NOTES: BuildNotes = {
-  // The chips + the lantern's radius (2026-10-18): on
-  // touch, the vitals, zone, and tracker panels rest as
-  // small chips (tap to open the full card, one at a
-  // time) so the world starts clear on a small screen;
-  // and the carried lantern's light reaches much farther
-  // — held and braced alike — per the maker's dark walks.
-  title: 'Yours for good',
+  // The itch door lights (2026-10-19): Adam published the
+  // game's itch.io page today, so DONATE_URL in links.ts
+  // carries its real address and the DonateModal's second
+  // door stands open beside Ko-fi. The notes also tell
+  // direct-site players the second home exists — and that
+  // their three cloud words bridge the two, so no world is
+  // stranded on either side.
+  title: 'A second door',
   lines: [
-    'A fix, plainly told. The World Asks Back keeps a ledger: when a finished saga removes a species from a zone, the wild of that kind are gone for good — that part is by design, and it stands. But the ledger was reading names, not faces. A creature you had tamed, or a planting you had raised with your own hands, could be swept out with its wild kin when you left and came back.',
-    'No longer. What is yours is yours: a tamed companion and a planted garden stand outside the wild census now, in every zone, on every return. The removals keep their teeth — the wild still answer for what the sagas decided — but your companions and your plantings are yours for good.',
+    'BioForge now stands on itch.io as well — the same living world through a second door, for the folks who find their games there.',
+    'In the support window, the itch door is lit now, beside Ko-fi. And if you play in both places, your three cloud words carry your worlds between them — nothing is stranded on either side.',
   ],
 };

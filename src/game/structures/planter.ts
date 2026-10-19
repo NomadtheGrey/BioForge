@@ -54,6 +54,7 @@ import type { FloraSpecies, ItemId, StructureEntity } from '../../types/game';
 import { FLORA_LIGHT_BASE } from './lightSpecs';
 import { gestureForFlora, type LightGesture } from './lightGestures';
 import { speciesForPropagule } from '../flora/propagation';
+import { ITEMS } from '../items/constants';
 
 /** A Sol-cycle of the world's own seconds — the planter's maturation. */
 export const PLANTER_MATURATION_SECONDS = 500;
@@ -168,7 +169,10 @@ export function planterGrowthLabel(growth: number): string {
 /**
  * The picker's list: DISTINCT propagule items held in the pouch
  * that name a species. propagation.ts is the only truth consulted
- * (see the module header for the glow_spore exclusion).
+ * (see the module header for the glow_spore exclusion). Sorted by
+ * item display name (stable alphabetical) — the picker's canonical
+ * order, data-side, so every consumer of the law lists the same
+ * way regardless of pouch order (UI sorting audit, 2026-10-19).
  */
 export function plantablePropagules(inventory: Record<ItemId, number>): ItemId[] {
   const seen = new Set<ItemId>();
@@ -180,6 +184,11 @@ export function plantablePropagules(inventory: Record<ItemId, number>): ItemId[]
     seen.add(itemId);
     out.push(itemId);
   }
+  out.sort((a, b) => {
+    const na = ITEMS[a]?.name ?? a;
+    const nb = ITEMS[b]?.name ?? b;
+    return na.localeCompare(nb);
+  });
   return out;
 }
 

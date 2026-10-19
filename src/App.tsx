@@ -1999,9 +1999,10 @@ const { handleStorageDeposit, handleStorageWithdraw, handleStorageUpgrade } =
   });
 
 // Culture-vat behaviors: hooks/useVat.
-const { handleVatStart, handleVatUpgrade, handleVatHatch } = useVat({
+const { handleVatStart, handleVatUpgrade, handleVatHatch, handleVatBrothLoad, handleVatBrothRemove } = useVat({
   getInventory: () => latestStateRef.current.inventory,
   deductInventoryItem,
+  addInventoryItem,
   upsertStructure,
   upsertFauna,
   getCurrentBiome: () => {
@@ -3288,6 +3289,8 @@ const {
           onStart={handleVatStart}
           onHatch={handleVatHatch}
           onUpgrade={handleVatUpgrade}
+          onBrothLoad={handleVatBrothLoad}
+          onBrothRemove={handleVatBrothRemove}
           onMove={handleMoveVault}
         />
       )}

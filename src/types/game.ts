@@ -916,6 +916,14 @@ export interface FaunaEntity {
   // everywhere; their bargain does not scale).
   wildDmg?: number;
   wildAggro?: number;
+  /**
+   * Broth stamps (wave 2, slice 2): GENTLENESS is consumed by the
+   * wild hunt when released (provokedOnly behavior); the shed
+   * multiplier is read by the shed sweep. Both stamp once at
+   * hatch and ride the snapshot with the creature.
+   */
+  brothGentle?: boolean;
+  shedCadenceMul?: number;
   // The cavern roam (creature slice C1, Part 7, 2026-10-18):
   // floor-verified patrol points dealt WITH a cavern citizen by
   // cavernFauna.ts — every point is a cavern floor cell and every
@@ -1153,6 +1161,14 @@ export interface StructureEntity {
   vat?: {
     tier: number;
     gestating?: { species: FaunaSpecies; progress: number; total: number };
+    /**
+     * Vat broths (Adam, 2026-10-19, wave 2): ONE gel, fermenting
+     * beside the gestation. fermented counts SECONDS of loaded-zone
+     * time (advanced in the world tick); the broth's strength is
+     * pure function of it (game/structures/broths.ts). Optional —
+     * old saves load without it, and no save version changes.
+     */
+    broth?: { gelId: ItemId; fermented: number };
   };
   /**
    * Present only on biotunnel_mouth structures: the derived

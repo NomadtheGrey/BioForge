@@ -32,6 +32,7 @@ import {
   type StrikeCtx,
 } from '../game/creatures/shields';
 import { sampleItemId, SAMPLE_SHED_SECONDS_TAMED, SAMPLE_SHED_SECONDS_WILD } from '../game/structures/vat';
+import { brothPaceMul, brothWarmth } from '../game/structures/broths';
 import type { ItemId } from '../types/game';
 import type { WorldSnapshot } from '../game/saveSystem';
 import type { AsksEventInput } from '../game/quests/asksBackState';
@@ -1357,7 +1358,12 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // Provoked-only hunts (slice 32 — the oversize tier):
           // proximity never alerts them; the provocation clock
           // does. An unprovoked giant is scenery with a pulse.
-          const provoked = !hunt?.provokedOnly || provokedTimer > 0;
+          // The broth-gentle stamp (wave 2): a hatchling gentled
+          // by a ripe lake or hush broth behaves provokedOnly back
+          // in the wild — released, it will not start what nobody
+          // started. The stamp is optional; un-stamped fauna read
+          // exactly as before.
+          const provoked = !(hunt?.provokedOnly || fauna.brothGentle) || provokedTimer > 0;
           // THE DISTANCE GRADIENT (slice 50): wild-country hunters
           // carry spawn stamps (wildAggro / wildDmg on the entity;
           // absent = 1 = the table's word, which is also every
@@ -2137,14 +2143,19 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // LIVING things or the dead; the living come first,
           // and a guardian's kill (above) is the dead's door.
           sampleTimer += dt;
-          const sampleThreshold = isTamed ? SAMPLE_SHED_SECONDS_TAMED : SAMPLE_SHED_SECONDS_WILD;
+          // The shed-cadence stamp (wave 2): a gloom-brothed
+          // hatchling sheds sooner and more often — the multiplier
+          // rides on the entity and scales BOTH thresholds. Un-stamped
+          // fauna read exactly as before.
+          const shedCadenceMul = fauna.shedCadenceMul ?? 1;
+          const sampleThreshold = (isTamed ? SAMPLE_SHED_SECONDS_TAMED : SAMPLE_SHED_SECONDS_WILD) * shedCadenceMul;
           if (sampleTimer >= sampleThreshold) {
             sampleTimer = 0;
             spawnDroppedItem(sampleItemId(fauna.species), 1, x, z);
           }
 
           const shed = speciesDef(fauna.species).byproduct;
-          if (shed && byproductTimer > shed.seconds && (!shed.tamedOnly || isTamed)) {
+          if (shed && byproductTimer > shed.seconds * shedCadenceMul && (!shed.tamedOnly || isTamed)) {
             byproductTimer = 0;
             spawnDroppedItem(shed.item, 1, x, z);
             onCritterExcrete?.(fauna.species);
@@ -2325,18 +2336,37 @@ export function useWorldEntities(): UseWorldEntitiesResult {
         // the structure record into the world snapshot, so a
         // gestation survives saving, travel, and sleep. Written at
         // most once a second (see vatClockRef).
+        // 1c. Vat broths (wave 2): the loaded gel ferments on the
+        // same clock — fermented seconds ride the record too — and
+        // a bog_jelly broth sets the culture: the gestation's pace
+        // rises as the broth warms (a ripe bog broth paces 1.43× —
+        // the creatures chair's ×0.7 approached, never exceeded).
+        // NO fire anywhere: the warmth is the broth's own work.
         vatClockRef.current += dt;
         if (vatClockRef.current >= 1) {
           const wholeSeconds = Math.floor(vatClockRef.current);
           vatClockRef.current -= wholeSeconds;
           const vats = structuresRef.current;
-          if (vats.some((st) => st.type === 'culture_vat' && st.vat?.gestating && st.vat.gestating.progress < st.vat.gestating.total)) {
+          if (vats.some((st) => st.type === 'culture_vat' && (st.vat?.broth || (st.vat?.gestating && st.vat.gestating.progress < st.vat.gestating.total)))) {
             setStructuresList((prev) =>
               prev.map((st) => {
-                if (st.type !== 'culture_vat' || !st.vat?.gestating) return st;
+                if (st.type !== 'culture_vat' || !st.vat) return st;
                 const g = st.vat.gestating;
-                if (g.progress >= g.total) return st;
-                return { ...st, vat: { ...st.vat, gestating: { ...g, progress: Math.min(g.total, g.progress + wholeSeconds) } } };
+                const b = st.vat.broth;
+                if (!b && (!g || g.progress >= g.total)) return st;
+                const w = b ? brothWarmth(b.fermented) : 0;
+                const pace = b?.gelId === 'bog_jelly' && g && g.progress < g.total ? brothPaceMul(w) : 1;
+                return {
+                  ...st,
+                  vat: {
+                    ...st.vat,
+                    gestating:
+                      g && g.progress < g.total
+                        ? { ...g, progress: Math.min(g.total, g.progress + wholeSeconds * pace) }
+                        : g,
+                    broth: b ? { ...b, fermented: b.fermented + wholeSeconds } : b,
+                  },
+                };
               }),
             );
           }

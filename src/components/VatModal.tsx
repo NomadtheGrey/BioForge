@@ -19,6 +19,13 @@ import type { FaunaSpecies, ItemId, StructureEntity } from '../types/game';
 import { ITEMS } from '../game/items/constants';
 import { speciesDef } from '../game/creatures/species';
 import { VAT_TIER_NAMES, vatKitFor, vatPlanFor, type VatBand } from '../game/structures/vat';
+import {
+  BROTH_GELS,
+  BROTH_PROMISE,
+  BROTH_STAGE_COPY,
+  brothStageOf,
+  brothWarmth,
+} from '../game/structures/broths';
 
 interface VatModalProps {
   /** The vat being viewed (live entity from the structures list). */
@@ -28,6 +35,13 @@ interface VatModalProps {
   onStart: (structure: StructureEntity, species: FaunaSpecies) => void;
   onHatch: (structure: StructureEntity) => void;
   onUpgrade: (structure: StructureEntity) => void;
+  /**
+   * The broth slot (wave 2): optional callbacks for pouring a gel in
+   * and pouring one out. Optional so the panel renders standalone
+   * without the broth wired.
+   */
+  onBrothLoad?: (structure: StructureEntity, gelId: ItemId) => void;
+  onBrothRemove?: (structure: StructureEntity) => void;
   /**
    * S6 Movable Vaults: lift the WHOLE vat — tier and any running
    * gestation ride inside, mid-count. Optional so the panel renders
@@ -55,6 +69,8 @@ export const VatModal: React.FC<VatModalProps> = ({
   onStart,
   onHatch,
   onUpgrade,
+  onBrothLoad,
+  onBrothRemove,
   onMove,
 }) => {
   const vat = structure.vat ?? { tier: 1 };
@@ -63,6 +79,13 @@ export const VatModal: React.FC<VatModalProps> = ({
   const hasKit = kitId ? (inventory[kitId] ?? 0) > 0 : false;
   const g = vat.gestating;
   const ready = !!g && g.progress >= g.total;
+  // The broth slot: gels the pouch holds, in the slot's idiom. The
+  // loaded broth's stage is pure function of its fermented time —
+  // the panel reads it, never stores it.
+  const broth = vat.broth;
+  const brothWarmthNow = broth ? brothWarmth(broth.fermented) : 0;
+  const brothStage = BROTH_STAGE_COPY[brothStageOf(brothWarmthNow)];
+  const pouchGels = BROTH_GELS.filter((id) => (inventory[id] ?? 0) > 0);
 
   // Every species the pouch holds a sample of, band order first.
   const startable = (Object.keys(inventory) as ItemId[])
@@ -125,6 +148,72 @@ export const VatModal: React.FC<VatModalProps> = ({
         </div>
 
         <div className="max-h-[55vh] overflow-y-auto px-5 py-4">
+          {/* The broth slot (wave 2): one gel, fermenting beside the
+              gestation — no fire, it warms itself, and the warmth IS
+              the strength. Visible in every face; the load chips
+              show what the pouch holds. The panel promises honestly:
+              a gentleness gel for a non-hunter is said to change
+              little right here, before the gel is ever spent. */}
+          {(onBrothLoad || onBrothRemove) && (
+            <div className="mb-4 rounded-2xl border border-cyan-400/30 bg-cyan-950/30 px-4 py-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="font-tech text-[11px] font-bold tracking-widest text-cyan-200">
+                  THE BROTH
+                </div>
+                {broth && onBrothRemove && (
+                  <button
+                    onClick={() => onBrothRemove(structure)}
+                    className="rounded-xl border border-slate-600/50 px-2.5 py-1 text-[11px] font-tech font-bold text-slate-400 hover:text-slate-200 cursor-pointer"
+                  >
+                    POUR OUT
+                  </button>
+                )}
+              </div>
+              {broth ? (
+                <div className="mt-1.5">
+                  <div className="text-sm font-bold text-slate-100">{ITEMS[broth.gelId]?.name ?? broth.gelId}</div>
+                  <div className="text-[11px] text-cyan-300">
+                    {brothStage.label} — {brothStage.line}
+                  </div>
+                  <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-800">
+                    <div
+                      className="h-full rounded-full bg-cyan-400/80 transition-all"
+                      style={{ width: `${Math.floor(brothWarmthNow * 100)}%` }}
+                    />
+                  </div>
+                  <p className="mt-1.5 text-[11px] leading-relaxed text-slate-400">
+                    {BROTH_PROMISE[broth.gelId] ?? 'It ferments beside the growing thing.'}{' '}
+                    The hatchling will drink it dry at the hatching.
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-1.5">
+                  <p className="text-[11px] leading-relaxed text-slate-400">
+                    The side dish stands empty. Pour a gel and it will ferment on its own warmth —
+                    no fire. It keeps working between gestations, so pour early and let it think.
+                  </p>
+                  {onBrothLoad && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {pouchGels.length === 0 && (
+                        <span className="text-[11px] text-slate-500">No gels in the pouch.</span>
+                      )}
+                      {pouchGels.map((gelId) => (
+                        <button
+                          key={gelId}
+                          onClick={() => onBrothLoad(structure, gelId)}
+                          className="rounded-full border border-cyan-500/40 px-2.5 py-0.5 text-[11px] text-cyan-200 hover:scale-105 active:scale-95 cursor-pointer"
+                          title={BROTH_PROMISE[gelId] ?? ''}
+                        >
+                          {ITEMS[gelId]?.name ?? gelId} ×{inventory[gelId]}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* WORKING / READY face */}
           {g && (
             <div className="flex flex-col items-center gap-3 py-2 text-center">

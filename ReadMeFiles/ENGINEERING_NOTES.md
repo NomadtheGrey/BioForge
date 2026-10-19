@@ -16,12 +16,15 @@ or cave — invisible by day, total in the dark). The same frozen
 read fed the shield viewmodel/graft/ward and the Lodestone
 drop-magnet.
 
-**The rule:** inside a mount-only effect, anything needed LIVE
-comes through a ref (`latestStateRef` is the standing mirror —
-it carries the save-session bundle, refreshed every render).
-A bare prop read inside `}, [])` is a bug whether or not it has
-fired yet. When a feature "never works, anywhere, for anyone,"
-suspect this class before tuning numbers.
+**The rule:** per-frame drives read through REFS, always;
+props are for renders, never for loops. Any value a loop
+consumes must be one it can watch change (`latestStateRef` is
+the standing mirror — it carries the save-session bundle,
+refreshed every render). A bare prop read inside `}, [])` is
+a bug whether or not it has fired yet. When a feature "never
+works, anywhere, for anyone," suspect this class before
+tuning numbers. *(Rules as enumerated by the HUD lane, which
+co-owns this file.)*
 
 ## The heal loop (2026-10-18) — a rescue that can't converge is a bomb
 
@@ -35,19 +38,20 @@ ignition waited behind it: a malformed saved offset (a NaN
 component) makes the transform invalid, the rect never moves,
 and the same nudge recomputes forever.
 
-**The guards, all load-bearing** (HudPanel + useHudLayout):
-zero-size rects are *unmeasurable* and never healed; the heal
-fires **at most once** per panel per mount and once more per
-resize; `setOffset` has an **equality bail** and refuses
-non-finite writes; every offset from every source passes
-`sanitizeHudLayout` on load. And the **HudErrorBoundary** wraps
-the panels: a HUD fault now drops the furniture (tap restores,
-and the restore resets the layout), never the world.
-
-**The rule:** any self-correcting UI loop must be *incapable*
-of iterating — bounded by construction, not by hoping the
-correction converges — and must treat "cannot measure" as a
-stop, not as a zero.
+**The rules it bought** (HudPanel + useHudLayout, enumerated
+by the HUD lane): (i) any measure-and-correct effect must be
+a TOTAL function — unmeasurable inputs (zero-size rects)
+return at once; (ii) state writers BAIL ON EQUALITY — the same
+values return the same object, so a caller re-issuing an
+instruction cannot feed itself; (iii) self-correction fires
+at most ONCE per external change (per mount, per resize) —
+a loop impossible by construction, not by budget; (iv) data
+arriving from storage is VALIDATED value-by-value (finite or
+dropped), never trusted for its shape. And the boundary that
+came with it: the **HudErrorBoundary** drops the panels on a
+fault (tap restores, and the restore resets the layout) —
+a fault in the furniture must never again take the game; the
+world keeps running.
 
 ## Light rides the ground (2026-10-18) — the pooled light rules
 

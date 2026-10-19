@@ -69,7 +69,7 @@ export const NewsModal: React.FC<NewsModalProps> = ({ isOpen, onClose, broadcast
             {broadcasts.length === 0 ? (
               <p className="text-sm text-slate-400 leading-relaxed">
                 Nothing posted right now. When there is word — a new build worth your attention, a note
-                from Adam — it will arrive here and in the system stream in-game.
+                from Adam — it will arrive here and in the co-op chat in-game.
               </p>
             ) : (
               <div className="space-y-4">

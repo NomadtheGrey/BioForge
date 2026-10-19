@@ -66,7 +66,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
   {
     id: 'tools',
     title: 'Your tools',
-    body: 'Keys 1 to 7 pick your tool. Right now you have a harvesting glove and a scanner. The small tile beside them is your LEFT HAND. It can hold a lamp or a shield. Hold Alt and roll the mouse wheel to change what it holds.',
+    body: 'Keys 1 to 7 pick your tool. Right now you have a harvesting glove and a scanner. The small tile beside them is your LEFT HAND. It can hold a lamp or a shield. Hold Ctrl and roll the mouse wheel to change what it holds.',
     target: 'hotbar',
     gate: 'manual',
   },

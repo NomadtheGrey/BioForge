@@ -102,7 +102,7 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
             </div>
             <div>
               <h2 className="text-lg font-tech font-bold text-white tracking-wide">
-                BROWSER-NATIVE P2P MULTIPLAYER
+                CO-OP MULTIPLAYER
               </h2>
               <p className="text-xs text-slate-400">
                 Co-Op Base Building, Joint Fauna Taming & Shared Harvesting
@@ -184,12 +184,14 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
                 </div>
               </div>
 
-              {/* In-Browser P2P explanation */}
+              {/* How co-op connects (the relay truth, 2026-10-19 —
+                  this box previously claimed a serverless P2P
+                  connection the game has never used). */}
               <div className="p-4 rounded-2xl bg-slate-900/40 border border-slate-800/80 text-xs text-slate-400 flex items-start gap-3">
                 <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-slate-200 block mb-0.5">Instant Zero-Server Browser Connection:</strong>
-                  Multiple tabs or browser windows immediately synchronize when connected with the same session code. All base modifications, planted crops, and tamed fauna reflect in real-time.
+                  <strong className="text-slate-200 block mb-0.5">One host, one world — joined through the BioForge relay:</strong>
+                  The host's world is the world everyone plays in, and the host's difficulty is the law for everyone in it. All base modifications, planted crops, and tamed fauna reflect in real-time.
                 </div>
               </div>
 

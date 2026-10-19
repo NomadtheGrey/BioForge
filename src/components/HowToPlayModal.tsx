@@ -174,11 +174,11 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({
               reads creatures, plants, and ruins into your Codex. Knowledge is gear here.
             </Tool>
             <Tool k="3" name="Planter Trowel">
-              grafted, not given (see the Forge). It does two jobs: it plants seeds, and it
+              grafted, not given (see the Forge). It does two jobs: it plants your planting stock — seeds, spores, and plantable pieces — and it
               applies fertilizer — the same trowel sows and feeds.
             </Tool>
             <Tool k="4" name="Solvent Sprayer">
-              un-grows things gently: plants give back their seed, structures give back their
+              un-grows things gently: plants give back their planting stock, structures give back their
               kit, whole.
             </Tool>
             <Tool k="5" name="Taming Lure">
@@ -284,7 +284,7 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({
           <Section title="Your hands">
             <Tool k="1" name="Harvest Glove">pick ripe plants.</Tool>
             <Tool k="2" name="Bio-Scanner">read creatures and plants into your Codex.</Tool>
-            <Tool k="3" name="Planter Trowel">plant seeds AND spread fertilizer.</Tool>
+            <Tool k="3" name="Planter Trowel">plant your planting stock AND spread fertilizer.</Tool>
             <Tool k="4" name="Solvent Sprayer">un-grow things, whole — nothing is wasted.</Tool>
             <Tool k="5" name="Taming Lure">offer treats; make companions.</Tool>
             <Tool k="6" name="Bio-Builder">place walls, hearths, storage.</Tool>

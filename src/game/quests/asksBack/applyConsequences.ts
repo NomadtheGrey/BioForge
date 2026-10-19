@@ -71,11 +71,22 @@ export function applyZoneConsequences(
   const removed = new Set(zc.removed);
 
   // Removals ("gone for good", both modes): the species is filtered
-  // out of whatever the zone holds. On a fresh roll this is the
-  // deal; on a lived-in zone it is the ledger's memory of an
-  // extinction the player already caused.
+  // out of whatever the zone holds — but only the zone's WILD
+  // census. On a fresh roll this is the deal; on a lived-in zone
+  // it is the ledger's memory of an extinction the player already
+  // caused.
+  //
+  // THE LAW (dev chair, 2026-10-19): a removal means "gone for good"
+  // for the zone's wild census, but a tamed individual is the
+  // PLAYER's, not the zone's — it was never in the ledger's sights
+  // (a removal is recorded at saga resolution, about a species in a
+  // zone; individuals tamed later cannot have been part of it). So
+  // the filter spares every tamed animal, in both modes, by the one
+  // rule. Per-entity-id removals were considered and rejected —
+  // rewriting the record's shape buys nothing this exemption
+  // doesn't. Settled individuals are untouched by this change.
   let fauna: FaunaEntity[] = removed.size
-    ? lists.fauna.filter((f) => !removed.has(f.species))
+    ? lists.fauna.filter((f) => !removed.has(f.species) || f.isTamed === true)
     : lists.fauna;
   let flora: FloraEntity[] = removed.size
     ? lists.flora.filter((f) => !removed.has(f.species))

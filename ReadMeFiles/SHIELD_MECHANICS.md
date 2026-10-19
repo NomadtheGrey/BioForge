@@ -1,12 +1,18 @@
 # The Scute Shield — mechanics (PREPARED 2026-10-17, dev lane)
 
-Status: design prepared on Adam's word ("let's create the mechanics
-for the shield"), build queued behind the reorganization window.
-Grep-verified starting point: there is NO shield item, model, or
-mechanic in the game today. What exists is the material — Field Scute
-(shed by the Boneback Tortoise on the Bonefields circuit) and, per its
-description, a distinct Fen Scute from the Scaldback. The shield below
-is built from those.
+Status: SHIPPED (updated 2026-10-18, the docs sweep). The shield
+family below was built the same weekend and restructured once since:
+shields are a pure three-rung ladder (Scute → Lantern → Fenback),
+each tier an upgrade consumed into the next; the Lodestone Bulwark
+item was abolished and its pull became the **Lodestone Slot** in the
+per-shield **ShieldGrowth** record (per-piece state lives in the
+piece). The Left Hand fills itself — the shield the player owns,
+else the lantern; every shield is **worn** (the Fenback on the left
+arm), and BRACED is its raised stance. Strikes — a creature's bite
+or, on Hostile worlds, an explorer's weapon — resolve through the
+one consumer (`resolveShieldStrike`). The design text below is the
+record the build was made from; where it speaks of a single shield,
+read the ladder.
 
 ## The item
 

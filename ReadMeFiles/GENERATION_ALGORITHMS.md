@@ -1,13 +1,16 @@
 # GENERATION ALGORITHMS — INDEX
 
-> **Status: MIXED (2026-10-14).** P1, P2, P3, and P4 have been promoted
-> from the standalone lab (`~/workspace/bioforge-gen-lab/`) into the
-> game and are marked **SHIPPED** below — P4 is COMPLETE (surface
-> landmarks and enterable interiors). P5 (terrain) is future work,
-> gated on a design discussion with Adam. The families are listed
-> **in integration priority order** — per the standing rule,
-> algorithms enter the game one at a time, each proven before the
-> next.
+> **Status: MIXED (updated 2026-10-18, the docs sweep).** P1, P2,
+> P3, and P4 have been promoted from the standalone lab
+> (`~/workspace/bioforge-gen-lab/`) into the game and are marked
+> **SHIPPED** below — P4 is COMPLETE (surface landmarks and
+> enterable interiors). **P5 (terrain) has since SHIPPED in
+> large part**: landforms, ponds, rivers, lava + brine are in the
+> live generator (WORLD_GEN_VERSION stands at 67); only steepness
+> mechanics remains parked, awaiting Adam's word. The families
+> are listed **in integration priority order** — per the standing
+> rule, algorithms enter the game one at a time, each proven
+> before the next.
 
 ## Shared contract (all generators)
 

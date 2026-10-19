@@ -7,6 +7,12 @@ ingredient list." Grounded in the shipped registry, read
 first: no idea below names a material that does not exist
 in `src/game/items/constants.ts`.*
 
+*Sweep note (2026-10-18): **P1 has SHIPPED from this file** —
+category ingredients (`src/game/items/itemKinds.ts`: CAP / GEL /
+WOOL / DOWN / GREENERY, spent most-abundant-first through the one
+resolver) and **the Mound** (item 12 below), live 2026-10-18.
+The rest of this file remains brainstorm, unpinned.*
+
 ## The census (why this sheet exists)
 
 The registry holds **273 items: 192 raw materials** — and

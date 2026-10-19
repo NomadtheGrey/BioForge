@@ -1,5 +1,11 @@
 # BioForge Creatures — Part 6: Wild Country Teeth
 
+*Sweep note (2026-10-18): the hunt this part specifies has
+SHIPPED — the armed circuit is live on Normal worlds (hunters
+notice in every mode; they commit only where the world is
+armed), with the distance-gradient spawn stamps and the
+provoked-only giants as pinned here.*
+
 *Pinned by Adam, 2026-10-17 (creatures chat). The question that opened it:
 "Do we have enough truly dangerous creatures out far away to challenge the
 player?" The audit's honest answer: enough dangerous SPECIES, but the far

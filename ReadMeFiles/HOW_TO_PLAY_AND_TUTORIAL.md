@@ -1,8 +1,13 @@
 # HOW TO PLAY + THE TUTORIAL — design (Adam's ask, 2026-10-17)
 
-Status: DESIGN for Adam's ratification. Drafted by the background chat
-(the words + the step logic); the HUD lane owns the button, the modal
-shell, and the highlight chrome. Nothing here is built yet.
+Status: SHIPPED and iterated live (updated 2026-10-18, the docs
+sweep). Drafted by the background chat (the words + the step logic);
+the HUD lane owns the button, the modal shell, and the highlight
+chrome. The design below was built the day it was drafted and has
+been revised in play repeatedly since (the Controls Guide and the
+How to Play screen are separate surfaces tonight; the guide carries
+the full keymap incl. Q, the Left Hand's Ctrl cycle, and F). This
+file remains the design record of the tutorial's words and steps.
 
 Adam's framing, verbatim in substance: a "How to Play" button in the
 top-right HUD, obvious, glowing, pulsing. It opens a modal of basic

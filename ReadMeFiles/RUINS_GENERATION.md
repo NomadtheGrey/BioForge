@@ -190,3 +190,13 @@ have run.
 
 *Lab source of truth: `~/workspace/bioforge-gen-lab/FINDINGS.md`
 (ruins section) and `output/ruins/report.md` + SVG maps.*
+
+**Addendum — the Departure's ruins (2026-10-18, the docs sweep).**
+Since this record closed, grand ruins (6+ hops) gained the finale
+monuments: a **portal_ring** in Follow-fate worlds, **the_scar**
+in Confront worlds — one fate deals exactly one, never both.
+**Artifact fragments come only from grand ruins' artifact hearts**
+(Adam's gate); lesser hearts still pay treasure. Interiors still
+regenerate pristine on every entry and are never persisted. The
+Glyph Lens (a helm growth) flips a ruin read to its deep line and
+lights precursor caches through walls. See THE_DEPARTURE.md.

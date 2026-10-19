@@ -10,6 +10,7 @@ import {
   BookOpen,
   Users,
   HelpCircle,
+  LifeBuoy,
   Sun,
   Moon,
   FolderArchive,
@@ -205,6 +206,13 @@ interface HUDProps {
    * button renders only when App wires the toggle. */
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
+  /** STUCK (Adam, 2026-10-19 — the rescue door): step the local
+   *  player a few meters to clear ground. Wired by App to the
+   *  safe-move seam (background lane); the buttons render only
+   *  when it is provided. One tap, no confirmation — the move
+   *  is small, and walking back undoes it. Local player only;
+   *  no save change rides along. */
+  onStuck?: () => void;
   onRequestLock: () => void;
   hoverInfo: HoverTarget;
   hoverHint?: string | null;
@@ -382,6 +390,7 @@ export const HUD: React.FC<HUDProps> = ({
   touchMode,
   isFullscreen = false,
   onToggleFullscreen,
+  onStuck,
   onRequestLock,
   hoverInfo,
   hoverHint,
@@ -1369,6 +1378,26 @@ export const HUD: React.FC<HUDProps> = ({
           >
             <HelpCircle className="w-4 h-4 text-slate-300" />
           </button>
+
+          {/* STUCK (Adam, 2026-10-19): the rescue door, seated
+              with the lost-player doors (How to Play, Quests) in
+              the bar that is on screen the whole session. The
+              word always shows — even on touch, where this bar
+              runs icon-only — because a stuck player should not
+              have to guess an icon. Amber, so it reads as the
+              emergency door among the ghost buttons. One tap:
+              the safe-move seam steps the player to clear
+              ground a few meters off. */}
+          {onStuck && (
+            <button
+              onClick={onStuck}
+              title="Stuck? Step to clear ground nearby"
+              className="p-2 rounded-xl text-amber-300 bg-amber-950/50 hover:bg-amber-900/50 transition-colors flex items-center gap-1.5"
+            >
+              <LifeBuoy className="w-4 h-4 text-amber-300" />
+              <span className="text-[11px] font-mono font-bold">Stuck</span>
+            </button>
+          )}
           </div>
         </div>
           </HudPanel>
@@ -1448,6 +1477,18 @@ export const HUD: React.FC<HUDProps> = ({
               {/* DONATE rides beside CREDITS here too (Adam,
                   2026-10-18) — capped until the page stands. */}
               <DonateButton variant="popup" />
+              {/* STUCK rides the pause overlay too (Adam,
+                  2026-10-19): this overlay can never itself be
+                  hidden, so the rescue survives even a session
+                  bar the player folded away. */}
+              {onStuck && (
+                <button
+                  onClick={onStuck}
+                  className="px-5 py-2 rounded-2xl text-xs font-tech font-bold text-amber-200 border border-amber-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  <LifeBuoy className="w-3.5 h-3.5" /> STUCK
+                </button>
+              )}
             </div>
           </div>
         </div>

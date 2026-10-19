@@ -953,14 +953,15 @@ export class BioForgeThreeEngine {
   }
 
   /** The surface a LAND animal swims on at a LOCAL point
-   *  (Adam, 2026-10-19): plain water's surface, ponds and
-   *  rivers — null on dry land, and null over lava or brine.
-   *  The swim-spec citizens ride those liquids by their own
-   *  branch (brine jellies live in brine); a land animal in a
-   *  lava lake is the lava rules' business, not a swimmer. */
+   *  (Adam, 2026-10-19): the surface of water AND of brine —
+   *  brine is salt water, and things swim in salt water at
+   *  least as well as fresh (Adam's correction: 'aren't we
+   *  talking about salt'). Null on dry land, and null over
+   *  lava alone: a land animal in a lava lake is the lava
+   *  rules' business, not a swimmer. */
   public landSwimSurfaceAt(x: number, z: number): number | null {
     const here = this.liquidAt(x, z);
-    if (!here || here.liquid !== 'water') return null;
+    if (!here || here.liquid === 'lava') return null;
     return waterSurfaceFromLists(this.zonePondsLocal, this.zoneRiverSegsLocal, x, z);
   }
 

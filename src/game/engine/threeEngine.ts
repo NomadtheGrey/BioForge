@@ -33,7 +33,8 @@ import type { BiomeId } from '../world/biomes';
 import { cavernCellToWorld, type CavernResult } from '../world/cavern';
 import type { RuinResult } from '../world/ruinInterior';
 import { createStructureBuilders, type StructureMaterials } from '../structures/structureBuilders';
-import { updateVatLife, updateTunnelLife, updateHeartLife, updateBannerLife, updateBeanstalkLife, updateChimeLife, updateSlumberLife } from '../structures/structureLife';
+import { updateVatLife, updateTunnelLife, updateHeartLife, updateBannerLife, updateBeanstalkLife, updateChimeLife, updateSlumberLife, updateFungusWallLife } from '../structures/structureLife';
+import { wallLightOf } from '../structures/fungusWall';
 import { createCreatureMeshKit, type CreatureMeshKit } from '../creatures/creatureMeshes';
 import { createLandmarkDressing, type LandmarkDressing } from '../world/landmarkDressing';
 import { FATE_STYLES, type WorldFate } from '../world/ruins';
@@ -681,6 +682,7 @@ export class BioForgeThreeEngine {
     updateBeanstalkLife(this.structureMeshMap, this.elapsedTime);
     updateChimeLife(this.structureMeshMap, this.elapsedTime);
     updateSlumberLife(this.structureMeshMap, this.elapsedTime);
+    updateFungusWallLife(this.structureMeshMap, this.elapsedTime);
     this.updateDissolveFizz();
   }
 
@@ -1951,6 +1953,15 @@ export class BioForgeThreeEngine {
       // came from — a mature wild fern peaks near 30 / 20 on
       // the growth curve above, so the post stands at 40 / 26.
       return { id, x: s.worldX, y: groundY + 2.7, z: s.worldZ, color: 0x06b6d4, intensity: 40, distance: 26 };
+    }
+    // THE MYCOLOGIST'S WALL (BioForge wave 2, 2026-10-19): the
+    // glow family's mounts make the wall genuinely shed more
+    // light — the getter reads the wall's own mounted record,
+    // so a mounted gloom cap lights the camp like a mounted
+    // gloom cap does. The law is fungusWall.wallLightOf.
+    if (s.type === 'mycologist_wall') {
+      const w = wallLightOf(s.wall?.mounted ?? []);
+      return { id, x: s.worldX, y: groundY + w.y, z: s.worldZ, color: 0x7fe3c8, intensity: w.intensity, distance: w.distance };
     }
     const b = this.structureLightBase[s.type];
     return { id, x: s.worldX, y: groundY + b.y, z: s.worldZ, color: b.color, intensity: b.intensity, distance: b.distance };

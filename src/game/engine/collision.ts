@@ -76,6 +76,9 @@ function isCollidingWithStructure(
     if (s.type === 'banner_post') obstacleRadius = 0.3;
     // The chime stands on the same slim post as the banner.
     if (s.type === 'bone_chime_sentinel') obstacleRadius = 0.3;
+    // The mycologist's wall is a wall: solid, like the rootweave
+    // walls — the camp walks around it, not through it.
+    if (s.type === 'mycologist_wall') obstacleRadius = 0.9;
     // The slumber husk is a low fleshy mound — the rim keeps
     // the player from standing inside the hollow; the mound
     // itself is not a wall to walk around.

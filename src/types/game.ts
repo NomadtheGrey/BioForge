@@ -257,6 +257,7 @@ export type ItemId =
   | 'pen_gate'
   | 'iris_slit_door'
   | 'bone_chime_sentinel'
+  | 'mycologist_wall'
   | 'slumber_husk'
   | 'lantern_fern_post'
   | 'spore_canopy'
@@ -980,6 +981,7 @@ export type StructureType =
   | 'pen_gate'
   | 'iris_slit_door'
   | 'bone_chime_sentinel'
+  | 'mycologist_wall'
   | 'slumber_husk'
   | 'lantern_fern_post'
   | 'spore_canopy'
@@ -1198,6 +1200,17 @@ export interface StructureEntity {
    * never warned — ready). NO save-version change.
    */
   chime?: { lastWarnAt: number };
+  /**
+   * Present only on mycologist_wall structures (BioForge wave 2,
+   * 2026-10-19; Adam: give fungus a purpose). The wall's own
+   * working record: the mounted cap ids (one per id, insertion
+   * order), the bin's banked stock, its ready compost, and the
+   * digestion clock in loaded-zone seconds. Per-piece state
+   * doctrine — the wall keeps its own books. Optional, so old
+   * saves load with it absent (treated as empty). NO
+   * save-version change.
+   */
+  wall?: { mounted: ItemId[]; binStock: number; binDone: number; binClock: number };
   /** The Departure, Honor (D4): a memorial's beanstalk —
    *  planted from seed variety, tended once per world day
    *  (lastTendDay is the sky-calendar day it last drank, so

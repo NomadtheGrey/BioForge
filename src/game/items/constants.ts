@@ -2422,6 +2422,20 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'uncommon',
     maxStack: 10,
   },
+  mycologist_wall: {
+    id: 'mycologist_wall',
+    name: 'Mycologist\'s Wall',
+    // A placeable grown structure (BioForge wave 2, 2026-10-19;
+    // Adam: give fungus a purpose). The kit item's id IS the
+    // StructureType, like every other placed piece. The copy
+    // states the contract: a workplace, not a shelf.
+    category: 'structure',
+    description: 'A grown lattice wall for mounting fungus caps — one of each kind, up to thirty-seven. They stay alive on it: glow caps light the camp brighter with every one you mount, and the rot-eaters run a compost bin at its foot, digesting fiber, bone, and chitin into compost while you work. Unmounting returns a living cutting, unharmed. They keep working.',
+    iconName: 'Grid3x3',
+    color: '#7fe3c8',
+    rarity: 'uncommon',
+    maxStack: 10,
+  },
   hearthpod: {
     id: 'hearthpod',
     name: 'Hearthpod',

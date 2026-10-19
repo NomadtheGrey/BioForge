@@ -215,6 +215,23 @@ export const RECIPES: CraftingRecipe[] = [
     craftTimeMs: 2400,
   },
   {
+    id: 'craft_mycologist_wall',
+    outputId: 'mycologist_wall',
+    outputCount: 1,
+    name: 'Mycologist\'s Wall',
+    // The Bio-Forge grows the lattice whole — fiber lattice,
+    // resin joints, a thread to stitch the bin at its foot —
+    // and the builder plants it like any other structure.
+    description: 'Grow a lattice wall that mounts fungus caps — thirty-seven kinds, one of each — and keeps them working: glow caps light the camp, rot-eaters compost at its foot.',
+    category: 'composites',
+    ingredients: [
+      { id: 'soft_fiber', count: 4 },
+      { id: 'resin_sap', count: 2 },
+      { id: 'living_thread', count: 1 },
+    ],
+    craftTimeMs: 3000,
+  },
+  {
     id: 'craft_vine_ladder',
     outputId: 'vine_ladder',
     outputCount: 1,

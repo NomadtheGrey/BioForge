@@ -77,6 +77,7 @@ const PLACEABLE_GROUPS: Record<string, string[]> = {
     'hearthpod',
     'banner_post',
     'slumber_husk',
+    'mycologist_wall',
   ],
   light: [
     'lantern_fern_post',

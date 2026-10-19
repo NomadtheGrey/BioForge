@@ -16,6 +16,11 @@
 import * as THREE from 'three';
 import type { StructureEntity } from '../../types/game';
 import { pulseHeartbeat, phaseForId } from './lifePulse';
+import { ITEMS } from '../items/constants';
+import { GLOW_CAPS } from './fungusWall';
+
+/** The glow family's ids, for the emissive dress pass. */
+const GLOW_CAP_SET = new Set(GLOW_CAPS);
 
 /**
  * The culture vat's life (Adam, 2026-10-15; grotesque pass 2026-10-17):
@@ -260,5 +265,49 @@ export function updateSlumberLife(
     // a heartbeat — the rise slower than the fall.
     const breath = Math.sin((elapsedTime * Math.PI * 2) / 12 + phase * Math.PI * 2);
     flesh.scale.set(1 + 0.018 * breath, 1 + 0.035 * breath, 1 + 0.018 * breath);
+  });
+}
+
+/**
+ * The Mycologist's Wall's life (BioForge wave 2, 2026-10-19;
+ * Adam: give fungus a purpose — a workplace, not a shelf). The
+ * builder only builds twelve named pegs ('wallCap0'..'wallCap11');
+ * this pass dresses the first M from the wall's own mounted
+ * record and hides the rest. A mount/unmount never costs a mesh
+ * rebuild — meshes are built once. Each dressed cap wears its
+ * item def's color; glow-family caps smolder with emissive
+ * light, so the wall LOOKS like its own lamp as well as
+ * shedding one.
+ */
+export function updateFungusWallLife(
+  structureMeshMap: Map<string, THREE.Group>,
+  elapsedTime: number,
+): void {
+  structureMeshMap.forEach((mesh) => {
+    const entity = mesh.userData.entity as StructureEntity | undefined;
+    if (!entity || entity.type !== 'mycologist_wall') return;
+    const mounted = entity.wall?.mounted ?? [];
+    const phase = phaseForId(entity.id);
+    for (let i = 0; i < 12; i++) {
+      const peg = mesh.getObjectByName(`wallCap${i}`);
+      if (!peg) continue;
+      const id = mounted[i];
+      peg.visible = id !== undefined;
+      if (!id) continue;
+      const capMesh = peg.children[1] as THREE.Mesh | undefined;
+      const mat = capMesh?.material as THREE.MeshStandardMaterial | undefined;
+      if (!mat) continue;
+      // The def's color — the caps wear their own item colors,
+      // so the collection reads as itself at a glance.
+      mat.color.set(ITEMS[id]?.color ?? '#b8a88f');
+      // Glow-family mounts breathe: a slow emissive swell,
+      // phased per wall — the wall's own heartbeat.
+      if (GLOW_CAP_SET.has(id)) {
+        mat.emissive.set(mat.color);
+        mat.emissiveIntensity = 0.55 + 0.3 * Math.sin(elapsedTime * 1.4 + phase + i * 0.7);
+      } else {
+        mat.emissiveIntensity = 0;
+      }
+    }
   });
 }

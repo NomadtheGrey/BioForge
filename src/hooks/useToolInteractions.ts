@@ -35,6 +35,7 @@ import { glyphLensWorn } from '../game/creatures/helmet';
 import { sampleItemId, vatKitFor } from '../game/structures/vat';
 import { storageKitFor } from '../game/items/pouch';
 import { MOUND_FEED_MAX, MOUND_HARVEST_COST, MOUND_KINDS, resolveKindSpend, type KindSpendLine } from '../game/items/itemKinds';
+import { MOUND_DECOMPOSER_FEED } from '../game/structures/fungusWall';
 import { bestWeapon } from '../game/creatures/weapons';
 import type { WeaponDef } from '../game/creatures/weapons';
 import { floraDef } from '../game/flora/flora';
@@ -230,6 +231,8 @@ export interface UseToolInteractionsParams {
   /** Open a storage pod's panel (App shows StorageModal). */
   onOpenStorage: (structure: StructureEntity) => void;
   onOpenVat: (structure: StructureEntity) => void;
+  /** Open the mycologist wall's panel (App shows WallModal). */
+  onOpenWall: (structure: StructureEntity) => void;
   /** BioTunnel mouth click (Adam, 2026-10-16): App runs the
    *  transit to the other mouth (or explains a dormant one). */
   onTunnelTransit: (structure: StructureEntity) => void;
@@ -322,6 +325,7 @@ export function useToolInteractions({
   onOpenBioForgeModal,
   onOpenStorage,
   onOpenVat,
+  onOpenWall,
   onTunnelTransit,
   getTunnelMouthCount,
   spawnDroppedItem,
@@ -1611,6 +1615,13 @@ export function useToolInteractions({
         ...(selectedStructureType === 'bone_chime_sentinel'
           ? { chime: { lastWarnAt: 0 } }
           : {}),
+        // A mycologist's wall is born bare (BioForge wave 2,
+        // 2026-10-19): no caps mounted, the bin empty and its
+        // clock at zero. (Readers treat a missing wall record
+        // as empty anyway, for walls that predate the field.)
+        ...(selectedStructureType === 'mycologist_wall'
+          ? { wall: { mounted: [] as ItemId[], binStock: 0, binDone: 0, binClock: 0 } }
+          : {}),
         // A cultivation mound is born hungry (P1, 2026-10-18):
         // its stock of banked kind-matter starts empty. (The
         // starting-base mound predates the field — readers
@@ -2251,11 +2262,36 @@ export function useToolInteractions({
           room -= line.count;
         }
       }
+      // THE DECOMPOSER FEED (BioForge wave 2, 2026-10-19): the
+      // fungus in the mound eats what nothing else eats — bone
+      // and chitin scrap feed it too, consulted AFTER the kind
+      // tables and into the same room budget (a notch below kind
+      // feed by priority; the copy names the crew doing the
+      // work). Kind-feed behavior and rates above are untouched.
+      if (room > 0) {
+        for (const itemId of MOUND_DECOMPOSER_FEED) {
+          if (room <= 0) break;
+          const held = working[itemId] ?? 0;
+          if (held <= 0) continue;
+          const take = Math.min(held, room);
+          fedLines.push({ itemId, count: take });
+          working[itemId] = held - take;
+          room -= take;
+        }
+      }
       const fed = fedLines.reduce((sum, l) => sum + l.count, 0);
       if (fed > 0) {
         fedLines.forEach((l) => deductInventoryItem(l.itemId, l.count));
         upsertStructure({ ...structure, mound: { stock: stock + fed } });
-        postNotification('The Mound Eats', `Banked ${fed} scrap${fed === 1 ? '' : 's'} — the mound holds ${stock + fed}. Every ${MOUND_HARVEST_COST} pays out a compost.`, 'craft', '#84cc16');
+        const bone = fedLines.some((l) => MOUND_DECOMPOSER_FEED.includes(l.itemId));
+        postNotification(
+          'The Mound Eats',
+          bone
+            ? `The mound's fungus takes the bone apart — banked ${fed} scrap${fed === 1 ? '' : 's'}, the mound holds ${stock + fed}. Every ${MOUND_HARVEST_COST} pays out a compost.`
+            : `Banked ${fed} scrap${fed === 1 ? '' : 's'} — the mound holds ${stock + fed}. Every ${MOUND_HARVEST_COST} pays out a compost.`,
+          'craft',
+          '#84cc16'
+        );
         return;
       }
       if (stock >= MOUND_HARVEST_COST) {
@@ -2264,7 +2300,7 @@ export function useToolInteractions({
         postNotification('Compost Gathered', `The mound gives up a compost. ${stock - MOUND_HARVEST_COST} scrap${stock - MOUND_HARVEST_COST === 1 ? '' : 's'} still banked.`, 'craft', '#84cc16');
         return;
       }
-      postNotification('The Cultivation Mound', `Plant any seed here with the trowel — or feed it caps, gels, and greenery and it will pay compost back. Banked: ${stock} of ${MOUND_HARVEST_COST} toward one.`, 'system', '#a8a29e');
+      postNotification('The Cultivation Mound', `Plant any seed here with the trowel — or feed it caps, gels, and greenery (bone and chitin scrap too — its fungus takes them apart) and it will pay compost back. Banked: ${stock} of ${MOUND_HARVEST_COST} toward one.`, 'system', '#a8a29e');
       return;
     }
     // THE SLUMBER HUSK (BioForge wave 2, 2026-10-19; Adam's bed
@@ -2674,6 +2710,23 @@ export function useToolInteractions({
         return;
       }
       onOpenVat(structure);
+      return;
+    }
+    // The Mycologist's Wall (BioForge wave 2, 2026-10-19; Adam:
+    // give fungus a purpose): the vat's exact grammar — any tool
+    // except the builder opens the wall's panel; solvent and
+    // scanner keep their meanings. The builder falls through so
+    // the wall still works as a build surface.
+    if (structure.type === 'mycologist_wall' && activeTool !== 'builder') {
+      if (activeTool === 'solvent_sprayer') {
+        handleSolventSprayer(structure);
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onOpenWall(structure);
       return;
     }
     // BioTunnel mouths (Adam, 2026-10-16): the pod's grammar with

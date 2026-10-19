@@ -1465,6 +1465,79 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
 
       return group;
     },
+    // THE MYCOLOGIST'S WALL (BioForge wave 2, 2026-10-19; Adam:
+    // give fungus a purpose). A grown lattice wall — two rooted
+    // posts, a woven fiber lattice, a bin box at its foot — with
+    // TWELVE named cap pegs ('wallCap0'..'wallCap11'). The builder
+    // only builds the pegs; the wall's life pass
+    // (updateFungusWallLife) dresses them from the wall's own
+    // mounted record, because meshes are built once and never
+    // rebuilt — a mount/unmount must not cost a rebuild.
+    'mycologist_wall': (entity) => {
+      const group = new THREE.Group();
+      const rng = mulberry32(hashId(entity?.id ?? 'ghost-wall'));
+
+      // Two rooted posts, the same furniture stance as the lamp
+      // and chime posts: wide, planted, immovable-looking.
+      const postGeom = new THREE.CylinderGeometry(0.11, 0.17, 2.4, 8);
+      for (const px of [-1.5, 1.5]) {
+        const post = new THREE.Mesh(postGeom, materials.woodRoot);
+        post.position.set(px, 1.2, 0);
+        post.rotation.z = (rng() - 0.5) * 0.04;
+        post.castShadow = true;
+        group.add(post);
+      }
+      // The lattice panel between them: a fiber-woven sheet.
+      const lattice = new THREE.Mesh(
+        new THREE.BoxGeometry(3.0, 1.9, 0.08),
+        new THREE.MeshStandardMaterial({ map: wovenTexture(2), roughness: 0.95 }),
+      );
+      lattice.position.y = 1.35;
+      lattice.castShadow = true;
+      group.add(lattice);
+      // A crossbar, grown proud of the panel — the caps' rail.
+      const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 3.0, 8), materials.woodRoot);
+      rail.rotation.z = Math.PI / 2;
+      rail.position.y = 2.35;
+      group.add(rail);
+      // The bin box at the foot — the rot crew's workplace.
+      const bin = new THREE.Mesh(
+        new THREE.BoxGeometry(1.1, 0.5, 0.6),
+        new THREE.MeshStandardMaterial({ color: 0x6b5b3e, roughness: 0.95 }),
+      );
+      bin.position.set(0, 0.25, 0.55);
+      bin.castShadow = true;
+      bin.name = 'wallBin';
+      group.add(bin);
+
+      // Twelve pegs in three rows of four: small stems with a
+      // cap seat. Each peg group is named 'wallCapN'; the life
+      // pass dresses the first M from the mounted record and
+      // hides the rest. Materials are per-peg so the pass can
+      // tint them without shared-material bleed.
+      const stemGeom = new THREE.CylinderGeometry(0.02, 0.025, 0.16, 6);
+      const capGeom = new THREE.SphereGeometry(0.11, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+      const stemMat = new THREE.MeshStandardMaterial({ color: 0x8a7a5c, roughness: 1 });
+      for (let i = 0; i < 12; i++) {
+        const peg = new THREE.Group();
+        const col = i % 4;
+        const row = Math.floor(i / 4);
+        peg.position.set(-1.12 + col * 0.75, 0.95 + row * 0.52, 0.12);
+        const stem = new THREE.Mesh(stemGeom, stemMat);
+        stem.position.y = 0.08;
+        peg.add(stem);
+        const cap = new THREE.Mesh(
+          capGeom,
+          new THREE.MeshStandardMaterial({ color: 0xb8a88f, roughness: 0.85 }),
+        );
+        cap.position.y = 0.17;
+        cap.castShadow = true;
+        peg.add(cap);
+        peg.name = `wallCap${i}`;
+        group.add(peg);
+      }
+      return group;
+    },
     'lantern_fern_post': () => {
       // A LAMP, not a plant (Adam, 2026-10-17): the old build was
       // the wild fern's own silhouette — a stalk with a glowing

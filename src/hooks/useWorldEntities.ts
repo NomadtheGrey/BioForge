@@ -16,6 +16,7 @@ import {
 import { multiplayerManager } from '../game/multiplayer';
 import { speciesDef } from '../game/creatures/species';
 import { shouldChimeWarn, chimeLastWarnAt } from '../game/structures/chimeWatch';
+import { wallBinTick } from '../game/structures/fungusWall';
 // THE SHIELD (Adam, 2026-10-17): the strike side-effect queue
 // drained in the post-map sweep — thorn-spike reflects, braced
 // staggers, and the Fenback's Spore Answer. Block RESOLUTION
@@ -565,6 +566,10 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   // 2026-10-19): the watch runs at most once per sim second —
   // per-frame would be a waste on a 25 m proximity law.
   const chimeClockRef = useRef(0);
+  // The mycologist wall's bin cadence (BioForge wave 2,
+  // 2026-10-19): digestion accrues at most once per sim
+  // second — the same cadence as the vat's and the chime's.
+  const wallClockRef = useRef(0);
 
   // Solvent dissolve (Adam, 2026-10-16): the sprayer's emergency
   // harm, as damage over time — a spray buys DISSOLVE_SECONDS of
@@ -2367,6 +2372,43 @@ export function useWorldEntities(): UseWorldEntitiesResult {
                     broth: b ? { ...b, fermented: b.fermented + wholeSeconds } : b,
                   },
                 };
+              }),
+            );
+          }
+        }
+
+        // 1d. The Mycologist's Wall's bin (BioForge wave 2,
+        // 2026-10-19; Adam: give fungus a purpose): the rot
+        // crew digests banked stock into ready compost on the
+        // same loaded-zone clock, gated on simulateWorld — a
+        // guest's client must not digest too, or the bin would
+        // digest twice under the host's law. Pure law in
+        // game/structures/fungusWall.ts (wallBinTick); this pass
+        // applies it through setStructuresList — the bin has a
+        // HUD surface (WallModal reads it live), so the tick
+        // writes like the vat's, not in place like the chime's.
+        // Its own clock (the chime's pattern), not the vat's —
+        // a bin should not borrow another structure's patience.
+        wallClockRef.current += dt;
+        if (wallClockRef.current >= 1 && simulateWorld) {
+          const wholeSeconds = Math.floor(wallClockRef.current);
+          wallClockRef.current -= wholeSeconds;
+          const walls = structuresRef.current;
+          if (walls.some((st) => st.type === 'mycologist_wall' && (st.wall?.binStock ?? 0) > 0)) {
+            setStructuresList((prev) =>
+              prev.map((st) => {
+                if (st.type !== 'mycologist_wall' || !st.wall) return st;
+                const next = wallBinTick(
+                  {
+                    binStock: st.wall.binStock,
+                    binDone: st.wall.binDone,
+                    binClock: st.wall.binClock,
+                    mounted: st.wall.mounted,
+                  },
+                  wholeSeconds,
+                );
+                if (next.binStock === st.wall.binStock && next.binDone === st.wall.binDone) return st;
+                return { ...st, wall: { ...st.wall, ...next } };
               }),
             );
           }

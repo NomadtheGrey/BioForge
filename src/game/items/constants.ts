@@ -115,7 +115,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     id: 'bio_pellet',
     name: 'Bio-Pellets',
     category: 'raw',
-    description: 'Nutrient-dense pellets excreted by tamed Soft-Puffs. Crucial for high-grade Growth Fertilizer.',
+    description: 'Nutrient-dense pellets excreted by tamed Soft-Puffs and dug up by kept Burrow Mice. Crucial for high-grade Growth Fertilizer.',
     iconName: 'CircleDot',
     color: '#10b981',
     rarity: 'uncommon',

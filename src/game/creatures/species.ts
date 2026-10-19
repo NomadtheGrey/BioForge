@@ -278,7 +278,15 @@ const SPECIES_BASE: Record<string, SpeciesDef> = {
     tameChance: 0.6,
     bait: 'nectar',
     petName: 'Burrow Scout',
-    byproduct: null, // codex copy mentions pellets; no shed was ever wired
+    // The dig-shed (wired 2026-10-19, unwired-three W1): the
+    // codex promised pellets since the Studio era and the def
+    // confessed for just as long that none was wired. A KEPT
+    // mouse digs around the homestead and leaves Bio-Pellets
+    // where its person can gather them — the second honest
+    // door to the fertilizer recipe's critter half (the
+    // Soft-Puff excretes the same item; the mouse digs up
+    // cached and dormant stores, per its description).
+    byproduct: { item: 'bio_pellet', seconds: 90, tamedOnly: true },
     bonusSpawn: null, // census species (affinity 'all')
   },
   chitin_stalker: {

@@ -94,9 +94,9 @@ export const INITIAL_CODEX: CodexEntry[] = [
     discovered: false,
     scannedCount: 0,
     description: 'Agile rodent-like creature with crystalline whiskers. Digs up dormant spores and roots.',
-    byproducts: ['Bio-Pellets', 'Compost Nodules'],
-    tamingOrCraftNotes: 'Approaches curious explorers carrying Sweet Nectar or Dew Essence.',
-    biome: 'Amber Thicket',
+    byproducts: ['Bio-Pellets'],
+    tamingOrCraftNotes: 'Tame with the Taming Lure on Sweet Nectar — it comes readily, being curious by profession. A kept mouse digs: the pellets it turns up are left where you can gather them.',
+    biome: 'Everywhere (ubiquitous census cast)',
     iconColor: '#f97316',
   },
   {

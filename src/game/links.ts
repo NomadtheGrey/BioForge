@@ -33,3 +33,28 @@ export const KOFI_URL = 'https://ko-fi.com/nomadthegrey';
  * address still stands as the destination of record.
  */
 export const FEEDBACK_EMAIL = 'bioforge.game@gmail.com';
+
+/**
+ * EMAILJS_*: the feedback door's sending service (Adam,
+ * 2026-10-19 — his choice for replacing the mailto handoff
+ * with a real in-page send). The FeedbackModal composes the
+ * note exactly as before; feedbackSend.ts sends it through
+ * EmailJS's REST endpoint addressed here. All three stand
+ * `null` today — and per this file's law the direct-send
+ * door stays dark until they don't. Where Adam gets them
+ * (the EmailJS dashboard):
+ *   EMAILJS_SERVICE_ID  — Email Services → the Gmail service
+ *     connected to FEEDBACK_EMAIL (bioforge.game@gmail.com)
+ *   EMAILJS_TEMPLATE_ID — Email Templates → the template
+ *     whose subject is {{subject}}, whose body is
+ *     {{message}}, and whose Reply To is {{reply_to}}
+ *   EMAILJS_PUBLIC_KEY  — Account → API Keys → Public Key
+ * The public key is DESIGNED to ship in client code; its
+ * safety lives in EmailJS's Allowed Domains restriction,
+ * which Adam sets to the game's own addresses (see the
+ * anti-abuse note in feedbackSend.ts). Until all three are
+ * set, the modal keeps its mailto door: nothing half-lights.
+ */
+export const EMAILJS_SERVICE_ID: string | null = null;
+export const EMAILJS_TEMPLATE_ID: string | null = null;
+export const EMAILJS_PUBLIC_KEY: string | null = null;

@@ -92,7 +92,7 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
   // blur; chat alone goes without, and the panel's own
   // background carries readability.
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 max-sm:p-2 bg-slate-950/80 animate-fade-in">
       <div className="glass-panel-biolum w-full max-w-2xl h-[min(560px,94dvh)] rounded-3xl flex flex-col overflow-hidden border border-cyan-500/30 shadow-2xl">
         {/* Header */}
         <div className="px-6 py-4 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:py-2 flex items-center justify-between border-b border-slate-800 bg-slate-900/60">
@@ -287,9 +287,9 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
               </div>
 
               {/* Explorers List & Chat in Split View */}
-              <div className="flex-1 flex gap-3 overflow-hidden">
+              <div className="flex-1 flex max-sm:flex-col gap-3 overflow-hidden">
                 {/* Peer List */}
-                <div className="w-1/3 bg-slate-900/40 rounded-2xl border border-slate-800 p-3 overflow-y-auto">
+                <div className="w-1/3 max-sm:w-full max-sm:max-h-[24%] max-sm:shrink-0 bg-slate-900/40 rounded-2xl border border-slate-800 p-3 overflow-y-auto">
                   <h4 className="text-[11px] font-tech text-slate-400 uppercase tracking-wider mb-2">
                     In Sector ({peers.length + 1})
                   </h4>
@@ -314,7 +314,7 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
                 </div>
 
                 {/* In-Session Chat Log */}
-                <div className="w-2/3 bg-slate-900/40 rounded-2xl border border-slate-800 p-3 flex flex-col justify-between">
+                <div className="w-2/3 max-sm:w-full max-sm:flex-1 max-sm:min-h-0 bg-slate-900/40 rounded-2xl border border-slate-800 p-3 flex flex-col justify-between">
                   <div className="flex-1 overflow-y-auto space-y-2 pr-1 mb-2">
                     {chatMessages.length === 0 ? (
                       <div className="h-full flex items-center justify-center text-slate-500 text-xs">

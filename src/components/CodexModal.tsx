@@ -177,7 +177,7 @@ const renderArsenalRow = (e: FamilyEntry) => {
   const renderArsenalBody = () => (
     <>
       {/* Left: the shelves, by kind */}
-      <div className="w-5/12 border-r border-slate-800/80 overflow-y-auto p-4 space-y-5">
+      <div className="w-5/12 max-sm:w-full max-sm:flex-1 max-sm:min-h-0 max-sm:border-r-0 border-r border-slate-800/80 overflow-y-auto p-4 space-y-5">
         <p className="text-[11px] leading-relaxed text-slate-400">
           The grown gear, shelved by kind: strikers climb, shields branch, and the
           helm's and Quicksteps' growths mount their platforms.
@@ -200,7 +200,7 @@ const renderArsenalRow = (e: FamilyEntry) => {
       </div>
 
       {/* Right: the selected entry's dossier */}
-      <div className="w-7/12 p-6 flex flex-col justify-between overflow-y-auto bg-slate-900/20">
+      <div className="w-7/12 max-sm:w-full max-sm:max-h-[38%] max-sm:p-4 max-sm:border-t max-sm:border-slate-800/80 p-6 flex flex-col justify-between overflow-y-auto bg-slate-900/20">
         {selWeapon && selItem ? (
           <div className="space-y-5">
             <div className="flex items-start gap-4">
@@ -442,7 +442,7 @@ const renderArsenalRow = (e: FamilyEntry) => {
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 max-sm:p-2 bg-slate-950/80 backdrop-blur-md animate-fade-in">
       <div className="glass-panel-biolum w-full max-w-4xl h-[min(620px,94dvh)] rounded-3xl flex flex-col overflow-hidden border border-purple-500/30 shadow-2xl">
         {/* Header */}
         <div className="px-6 py-4 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:py-2 flex items-center justify-between border-b border-slate-800 bg-slate-900/60">
@@ -499,11 +499,11 @@ const renderArsenalRow = (e: FamilyEntry) => {
         </div>
 
         {/* Content Body */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex max-sm:flex-col overflow-hidden">
           {activeFilter === 'arsenal' ? renderArsenalBody() : (
           <>
           {/* Left: Species List */}
-          <div className="w-5/12 border-r border-slate-800/80 overflow-y-auto p-4 [@media(max-height:540px)]:p-2 space-y-2">
+          <div className="w-5/12 max-sm:w-full max-sm:flex-1 max-sm:min-h-0 max-sm:border-r-0 border-r border-slate-800/80 overflow-y-auto p-4 [@media(max-height:540px)]:p-2 space-y-2">
             {filtered.map((entry) => {
               const isSelected = selectedEntry.species === entry.species;
               return (
@@ -550,7 +550,7 @@ const renderArsenalRow = (e: FamilyEntry) => {
           </div>
 
           {/* Right: Detailed Ecological dossier */}
-          <div className="w-7/12 p-6 flex flex-col justify-between overflow-y-auto bg-slate-900/20">
+          <div className="w-7/12 max-sm:w-full max-sm:max-h-[38%] max-sm:p-4 max-sm:border-t max-sm:border-slate-800/80 p-6 flex flex-col justify-between overflow-y-auto bg-slate-900/20">
             {selectedEntry.discovered ? (
               <div className="space-y-5">
                 <div className="flex items-start gap-4">

@@ -177,7 +177,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 max-sm:p-2 bg-slate-950/80 backdrop-blur-md animate-fade-in">
       <div className="glass-panel-biolum w-full max-w-4xl h-[min(600px,94dvh)] rounded-3xl flex flex-col overflow-hidden border border-emerald-500/30 shadow-2xl">
         {/* Header */}
         <div className="px-6 py-4 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:py-2 flex items-center justify-between border-b border-slate-800 bg-slate-900/60">
@@ -289,9 +289,9 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex max-sm:flex-col overflow-hidden">
           {/* Left Grid */}
-          <div className="w-7/12 border-r border-slate-800/80 overflow-y-auto p-4 [@media(max-height:540px)]:p-2">
+          <div className="w-7/12 max-sm:w-full max-sm:flex-1 max-sm:min-h-0 max-sm:border-r-0 border-r border-slate-800/80 overflow-y-auto p-4 [@media(max-height:540px)]:p-2">
             {/* The upgrade ENTRIES (Adam, 2026-10-17): a platform's
                 own tab opens with what the platform can carry —
                 the shield's graft slot and branch gifts, the
@@ -402,7 +402,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
           </div>
 
           {/* Right Inspector */}
-          <div className="w-5/12 p-6 flex flex-col justify-between overflow-y-auto bg-slate-900/20">
+          <div className="w-5/12 max-sm:w-full max-sm:max-h-[38%] max-sm:p-4 max-sm:border-t max-sm:border-slate-800/80 p-6 flex flex-col justify-between overflow-y-auto bg-slate-900/20">
             {activeItem ? (
               <>
                 <div>

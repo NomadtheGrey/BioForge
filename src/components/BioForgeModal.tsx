@@ -330,7 +330,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
   const outputItem = ITEMS[selectedRecipe.outputId];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 max-sm:p-2 bg-slate-950/80 backdrop-blur-md animate-fade-in">
       <div className="glass-panel-biolum w-full max-w-4xl h-[min(640px,94dvh)] rounded-3xl flex flex-col overflow-hidden border border-cyan-500/30 shadow-2xl">
         {/* Header */}
         <div className="px-6 py-4 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:py-2 flex items-center justify-between border-b border-slate-800 bg-slate-900/60">
@@ -453,9 +453,9 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
         </div>
 
         {/* Content Body */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex max-sm:flex-col overflow-hidden">
           {/* Left: Recipe List / Tree */}
-          <div className="w-1/2 border-r border-slate-800/80 overflow-hidden">
+          <div className="w-1/2 max-sm:w-full max-sm:flex-1 max-sm:min-h-0 max-sm:border-r-0 border-r border-slate-800/80 overflow-hidden">
             {viewMode === 'tree' && !searchActive ? (
               <RecipeFlowchart
                 inventory={pouchWithHeld}
@@ -625,7 +625,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
           </div>
 
           {/* Right: Synthesis Details & Action */}
-          <div className="w-1/2 p-6 flex flex-col justify-between overflow-y-auto bg-slate-900/20">
+          <div className="w-1/2 max-sm:w-full max-sm:max-h-[38%] max-sm:p-4 max-sm:border-t max-sm:border-slate-800/80 p-6 flex flex-col justify-between overflow-y-auto bg-slate-900/20">
             <div>
               {/* Output Preview */}
               <div className="flex items-start gap-4 p-4 rounded-2xl bg-slate-800/40 border border-slate-700/50 mb-6">

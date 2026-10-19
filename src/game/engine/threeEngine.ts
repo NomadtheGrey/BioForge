@@ -26,6 +26,8 @@ import { MoteField } from '../world/moteField';
 import { updateHearthTag } from '../creatures/hearthTag';
 import { FLORA_LIGHT_BASE, STRUCTURE_LIGHT_BASE } from '../structures/lightSpecs';
 import { isFloorType, BUILDING_TYPES, isDoorType } from '../structures/placement';
+import { dropShapeForId, type DropShape } from '../items/dropShapes';
+import { ITEMS } from '../items/constants';
 import { BIOME_TINTS } from '../world/biomes';
 import type { BiomeId } from '../world/biomes';
 import { cavernCellToWorld, type CavernResult } from '../world/cavern';
@@ -1681,9 +1683,7 @@ export class BioForgeThreeEngine {
     items.forEach((item) => {
       let mesh = this.droppedItemMeshMap.get(item.id);
       if (!mesh) {
-        mesh = new THREE.Group();
-        const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.2, 0), this.materials.biolumCyan);
-        mesh.add(gem);
+        mesh = this.buildDropMesh(item.itemId);
         this.droppedItemsGroup.add(mesh);
         this.droppedItemMeshMap.set(item.id, mesh);
       }
@@ -1692,6 +1692,116 @@ export class BioForgeThreeEngine {
       mesh.position.set(item.x, this.terrainHeightAt(item.x, item.z) + 0.35 + Math.sin(item.bobTime * 4) * 0.1, item.z);
       mesh.rotation.y += 0.04;
     });
+  }
+
+  // --------------------------------------------------------------------------
+  // Drop shapes (Adam, 2026-10-19): a handful of representative
+  // procedural forms, grouped intelligently by the classifier in
+  // items/dropShapes.ts and tinted with each item's own color —
+  // a plate falls flat, a gel falls round, a sample falls as a
+  // vial. Geometries are built once and shared; materials are
+  // cached per color. The hover, bob and spin above are
+  // unchanged: the SHAPE carries the identity now; the motion
+  // still says "pick me up".
+  // --------------------------------------------------------------------------
+  private dropGeometryCache = new Map<string, THREE.BufferGeometry>();
+  private dropMaterialCache = new Map<string, THREE.MeshStandardMaterial>();
+
+  private dropGeometry(key: string, make: () => THREE.BufferGeometry): THREE.BufferGeometry {
+    let g = this.dropGeometryCache.get(key);
+    if (!g) {
+      g = make();
+      this.dropGeometryCache.set(key, g);
+    }
+    return g;
+  }
+
+  private dropMaterial(colorHex: string): THREE.MeshStandardMaterial {
+    let m = this.dropMaterialCache.get(colorHex);
+    if (!m) {
+      const color = new THREE.Color(colorHex);
+      m = new THREE.MeshStandardMaterial({
+        color,
+        emissive: color,
+        emissiveIntensity: 0.45,
+        roughness: 0.45,
+      });
+      this.dropMaterialCache.set(colorHex, m);
+    }
+    return m;
+  }
+
+  private buildDropMesh(itemId: ItemId): THREE.Group {
+    const shape: DropShape = dropShapeForId(itemId);
+    const mat = this.dropMaterial(ITEMS[itemId]?.color ?? '#22d3ee');
+    const group = new THREE.Group();
+    const add = (key: string, make: () => THREE.BufferGeometry, x = 0, y = 0, z = 0): THREE.Mesh => {
+      const part = new THREE.Mesh(this.dropGeometry(key, make), mat);
+      part.position.set(x, y, z);
+      group.add(part);
+      return part;
+    };
+    switch (shape) {
+      case 'vial': {
+        // A specimen vial: slim cylinder, rounded cap.
+        add('vial-body', () => new THREE.CylinderGeometry(0.09, 0.09, 0.3, 10));
+        add('vial-cap', () => new THREE.SphereGeometry(0.1, 10, 8), 0, 0.17, 0);
+        break;
+      }
+      case 'seed': {
+        // A seed capsule, tilted like it just fell.
+        const seed = add('seed', () => new THREE.CapsuleGeometry(0.09, 0.16, 4, 8));
+        seed.rotation.z = 0.6;
+        break;
+      }
+      case 'kit': {
+        // A crafted-goods crate with a lid lip.
+        add('kit-box', () => new THREE.BoxGeometry(0.3, 0.2, 0.3));
+        add('kit-lid', () => new THREE.BoxGeometry(0.34, 0.06, 0.34), 0, 0.13, 0);
+        break;
+      }
+      case 'cap': {
+        // A fungus cap: dome on a stub stem.
+        add('cap-dome', () => new THREE.SphereGeometry(0.24, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2), 0, 0.02, 0);
+        add('cap-stem', () => new THREE.CylinderGeometry(0.06, 0.08, 0.14, 8), 0, -0.08, 0);
+        break;
+      }
+      case 'plate': {
+        // A flat hex plate, tipped slightly where it landed.
+        const plate = add('plate', () => new THREE.CylinderGeometry(0.26, 0.26, 0.06, 6));
+        plate.rotation.z = 0.12;
+        break;
+      }
+      case 'gem': {
+        // The classic drop crystal, stretched tall.
+        const gem = add('gem', () => new THREE.OctahedronGeometry(0.22, 0));
+        gem.scale.y = 1.35;
+        break;
+      }
+      case 'orb': {
+        add('orb', () => new THREE.SphereGeometry(0.2, 14, 10));
+        break;
+      }
+      case 'coil': {
+        // A coil of thread/fiber/vine, lying flat.
+        const coil = add('coil', () => new THREE.TorusGeometry(0.15, 0.055, 8, 20));
+        coil.rotation.x = Math.PI / 2;
+        break;
+      }
+      case 'puff': {
+        // A soft cluster: three knobbly lobes.
+        add('puff-a', () => new THREE.IcosahedronGeometry(0.13, 0), 0, 0.02, 0);
+        add('puff-b', () => new THREE.IcosahedronGeometry(0.1, 0), 0.13, -0.03, 0.06);
+        add('puff-c', () => new THREE.IcosahedronGeometry(0.09, 0), -0.12, -0.04, -0.05);
+        break;
+      }
+      default: {
+        // chunk — the honest remainder: a rough lump.
+        add('chunk', () => new THREE.IcosahedronGeometry(0.22, 0));
+        break;
+      }
+    }
+    return group;
   }
 
   // --------------------------------------------------------------------------

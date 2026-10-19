@@ -24,6 +24,7 @@ import { hashId, mulberry32 } from './lifePulse';
 import { rootGrainTexture, barkTexture, wovenTexture, jitterVertices } from './grownTextures';
 import { buildFloraMesh } from '../flora/floraMeshes';
 import { planterGrowthEffective, planterTenantScale } from './planter';
+import { WALL_PEG_COUNT } from './fungusWall';
 
 /** The engine's shared material palette, as the builders use it. */
 export interface StructureMaterials {
@@ -1470,8 +1471,10 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
     // THE MYCOLOGIST'S WALL (BioForge wave 2, 2026-10-19; Adam:
     // give fungus a purpose). A grown lattice wall — two rooted
     // posts, a woven fiber lattice, a bin box at its foot — with
-    // TWELVE named cap pegs ('wallCap0'..'wallCap11'). The builder
-    // only builds the pegs; the wall's life pass
+    // WALL_PEG_COUNT named cap pegs ('wallCap0'..'wallCap39'):
+    // forty seats for the thirty-seven CAP kinds (gap fix
+    // 2026-10-19 — mounts past the twelfth finally show). The
+    // builder only builds the pegs; the wall's life pass
     // (updateFungusWallLife) dresses them from the wall's own
     // mounted record, because meshes are built once and never
     // rebuilt — a mount/unmount must not cost a rebuild.
@@ -1512,27 +1515,30 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       bin.name = 'wallBin';
       group.add(bin);
 
-      // Twelve pegs in three rows of four: small stems with a
-      // cap seat. Each peg group is named 'wallCapN'; the life
-      // pass dresses the first M from the mounted record and
-      // hides the rest. Materials are per-peg so the pass can
-      // tint them without shared-material bleed.
-      const stemGeom = new THREE.CylinderGeometry(0.02, 0.025, 0.16, 6);
-      const capGeom = new THREE.SphereGeometry(0.11, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+      // Forty pegs in five rows of eight (WALL_PEG_COUNT): small
+      // stems with a cap seat. Each peg group is named 'wallCapN';
+      // the life pass dresses the first M from the mounted record
+      // and hides the rest. Materials are per-peg so the pass can
+      // tint them without shared-material bleed. The pegs shrank a
+      // step to fit the wider census (cap r 0.11 -> 0.085) — the
+      // frame's proportions stay exactly as grown: same posts,
+      // same panel, same rail.
+      const stemGeom = new THREE.CylinderGeometry(0.016, 0.02, 0.13, 6);
+      const capGeom = new THREE.SphereGeometry(0.085, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2);
       const stemMat = new THREE.MeshStandardMaterial({ color: 0x8a7a5c, roughness: 1 });
-      for (let i = 0; i < 12; i++) {
+      for (let i = 0; i < WALL_PEG_COUNT; i++) {
         const peg = new THREE.Group();
-        const col = i % 4;
-        const row = Math.floor(i / 4);
-        peg.position.set(-1.12 + col * 0.75, 0.95 + row * 0.52, 0.12);
+        const col = i % 8;
+        const row = Math.floor(i / 8);
+        peg.position.set(-1.26 + col * 0.36, 0.62 + row * 0.4, 0.12);
         const stem = new THREE.Mesh(stemGeom, stemMat);
-        stem.position.y = 0.08;
+        stem.position.y = 0.065;
         peg.add(stem);
         const cap = new THREE.Mesh(
           capGeom,
           new THREE.MeshStandardMaterial({ color: 0xb8a88f, roughness: 0.85 }),
         );
-        cap.position.y = 0.17;
+        cap.position.y = 0.14;
         cap.castShadow = true;
         peg.add(cap);
         peg.name = `wallCap${i}`;

@@ -175,6 +175,16 @@ export function wallLightOf(mounted: ItemId[]): { intensity: number; distance: n
   };
 }
 
+/**
+ * The lattice's peg count (gap fix, 2026-10-19): FIVE rows of
+ * EIGHT pegs — forty seats for the thirty-seven CAP kinds, with
+ * three spare for the collection's future. The builder and the
+ * life pass both read this one number, so a wider collection can
+ * never outgrow the mesh again. (The pegs shrank a step to fit —
+ * a wall stays a wall; the frame's proportions are untouched.)
+ */
+export const WALL_PEG_COUNT = 40;
+
 /** The wall's record always reads the same way to callers. */
 export function readWall(entity: StructureEntity): {
   mounted: ItemId[];

@@ -17,7 +17,7 @@ import * as THREE from 'three';
 import type { StructureEntity } from '../../types/game';
 import { pulseHeartbeat, phaseForId } from './lifePulse';
 import { ITEMS } from '../items/constants';
-import { GLOW_CAPS } from './fungusWall';
+import { GLOW_CAPS, WALL_PEG_COUNT } from './fungusWall';
 import { planterGrowthEffective, planterTenantScale } from './planter';
 import { gestationProgressEffective } from './vat';
 
@@ -278,13 +278,13 @@ export function updateSlumberLife(
 /**
  * The Mycologist's Wall's life (BioForge wave 2, 2026-10-19;
  * Adam: give fungus a purpose — a workplace, not a shelf). The
- * builder only builds twelve named pegs ('wallCap0'..'wallCap11');
- * this pass dresses the first M from the wall's own mounted
- * record and hides the rest. A mount/unmount never costs a mesh
- * rebuild — meshes are built once. Each dressed cap wears its
- * item def's color; glow-family caps smolder with emissive
- * light, so the wall LOOKS like its own lamp as well as
- * shedding one.
+ * builder builds WALL_PEG_COUNT named pegs ('wallCap0'..) — forty
+ * seats for the thirty-seven CAP kinds (gap fix 2026-10-19); this
+ * pass dresses the first M from the wall's own mounted record and
+ * hides the rest. A mount/unmount never costs a mesh rebuild —
+ * meshes are built once. Each dressed cap wears its item def's
+ * color; glow-family caps smolder with emissive light, so the
+ * wall LOOKS like its own lamp as well as shedding one.
  */
 export function updateFungusWallLife(
   structureMeshMap: Map<string, THREE.Group>,
@@ -295,7 +295,7 @@ export function updateFungusWallLife(
     if (!entity || entity.type !== 'mycologist_wall') return;
     const mounted = entity.wall?.mounted ?? [];
     const phase = phaseForId(entity.id);
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < WALL_PEG_COUNT; i++) {
       const peg = mesh.getObjectByName(`wallCap${i}`);
       if (!peg) continue;
       const id = mounted[i];

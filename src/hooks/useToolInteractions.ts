@@ -1591,6 +1591,14 @@ export function useToolInteractions({
         ...(selectedStructureType === 'banner_post'
           ? { banner: {} }
           : {}),
+        // A bone chime sentinel is born ready (BioForge wave 2,
+        // 2026-10-19): its warning clock starts at zero — a fresh
+        // chime has never warned, and the first hunter it hears
+        // gets answered. (Readers treat a missing stamp as never
+        // warned anyway, for chimes that predate the field.)
+        ...(selectedStructureType === 'bone_chime_sentinel'
+          ? { chime: { lastWarnAt: 0 } }
+          : {}),
         // A cultivation mound is born hungry (P1, 2026-10-18):
         // its stock of banked kind-matter starts empty. (The
         // starting-base mound predates the field — readers

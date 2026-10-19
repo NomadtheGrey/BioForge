@@ -198,6 +198,23 @@ export const RECIPES: CraftingRecipe[] = [
     craftTimeMs: 1200,
   },
   {
+    id: 'craft_bone_chime_sentinel',
+    outputId: 'bone_chime_sentinel',
+    outputCount: 1,
+    name: 'Bone Chime Sentinel',
+    // The Bio-Forge grows the sentinel whole — bone, silk, straw,
+    // skull — and the builder plants it like any other structure.
+    description: 'Grow a bone-frame warning sentinel: it chimes when hunters walk within its regard, so the camp is never ambush country again.',
+    category: 'composites',
+    ingredients: [
+      { id: 'clean_bone', count: 2 },
+      { id: 'rib_silk', count: 2 },
+      { id: 'chime_straw', count: 3 },
+      { id: 'worn_skull', count: 1 },
+    ],
+    craftTimeMs: 2400,
+  },
+  {
     id: 'craft_vine_ladder',
     outputId: 'vine_ladder',
     outputCount: 1,

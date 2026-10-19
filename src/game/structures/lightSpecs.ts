@@ -293,6 +293,10 @@ export const STRUCTURE_LIGHT_BASE: Record<Exclude<StructureType, 'lantern_fern_p
     pen_gate: { color: 0xa3e635, intensity: 3.5, distance: 2.2, y: 1.2 },
     sample_rack: { color: 0x4ade80, intensity: 4, distance: 2.4, y: 1.0 },
     banner_post: { color: 0xc2b49a, intensity: 3, distance: 2.0, y: 2.0 },
+    // The chime is bone and straw in the sun — a faint warm halo,
+    // nothing more. It is a sentinel, not a lamp (the physical
+    // scale: halo 1-3).
+    bone_chime_sentinel: { color: 0xffe8c0, intensity: 1.6, distance: 2.2, y: 2.4 },
     root_table: { color: 0xfbbf24, intensity: 2.5, distance: 2.0, y: 0.9 },
     root_stool: { color: 0xfbbf24, intensity: 2, distance: 1.8, y: 0.6 },
     woven_rug: { color: 0xa3e635, intensity: 1.2, distance: 1.5, y: 0.3 },

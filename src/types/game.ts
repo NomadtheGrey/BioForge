@@ -256,6 +256,7 @@ export type ItemId =
   | 'pen_fence'
   | 'pen_gate'
   | 'iris_slit_door'
+  | 'bone_chime_sentinel'
   | 'lantern_fern_post'
   | 'spore_canopy'
   | 'bio_forge_station'
@@ -969,6 +970,7 @@ export type StructureType =
   | 'pen_fence'
   | 'pen_gate'
   | 'iris_slit_door'
+  | 'bone_chime_sentinel'
   | 'lantern_fern_post'
   | 'spore_canopy'
   | 'bio_forge_station'
@@ -1169,6 +1171,15 @@ export interface StructureEntity {
    * needs no item knowledge). Absent on every other type.
    */
   banner?: { tint?: ItemId; tintColor?: string };
+  /**
+   * Present only on bone_chime_sentinel structures (BioForge wave 2,
+   * 2026-10-19): the sentinel's own warning clock, in sim seconds —
+   * the last sim-clock moment it cried out. Per-piece state doctrine:
+   * the cooldown lives in the chime's own record, not a hook-level
+   * map. Optional, so old saves load with it absent (treated as
+   * never warned — ready). NO save-version change.
+   */
+  chime?: { lastWarnAt: number };
   /** The Departure, Honor (D4): a memorial's beanstalk —
    *  planted from seed variety, tended once per world day
    *  (lastTendDay is the sky-calendar day it last drank, so

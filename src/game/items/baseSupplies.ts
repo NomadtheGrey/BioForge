@@ -80,6 +80,7 @@ const PLACEABLE_GROUPS: Record<string, string[]> = {
   light: [
     'lantern_fern_post',
     'tamed_snap_trap_turret',
+    'bone_chime_sentinel',
   ],
 };
 

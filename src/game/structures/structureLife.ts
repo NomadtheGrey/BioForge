@@ -207,3 +207,32 @@ export function updateBeanstalkLife(
     stem.rotation.x = 0.015 * Math.sin(elapsedTime * 0.37 + phase * 1.3);
   });
 }
+
+/**
+ * The chime's life (BioForge wave 2, 2026-10-19): the silk strands
+ * never hang perfectly still — a slow wind-stir, phased per chime
+ * like every other living pass. This is presentation only: the
+ * WARNING itself is the sim's chime pass (chimeWatch.ts +
+ * useWorldEntities), never the mesh. The strands' swing here stays
+ * gentle because the warning's own moment is the notification's.
+ */
+export function updateChimeLife(
+  structureMeshMap: Map<string, THREE.Group>,
+  elapsedTime: number,
+): void {
+  structureMeshMap.forEach((mesh) => {
+    const entity = mesh.userData.entity as StructureEntity | undefined;
+    if (!entity || entity.type !== 'bone_chime_sentinel') return;
+    const strands = mesh.getObjectByName('chimeStrands');
+    if (!strands) return;
+    const phase = phaseForId(entity.id);
+    // A wind-stir: the strands swing as one, barely — this is a
+    // sentinel at rest, not a bell being rung.
+    strands.rotation.z = 0.04 * Math.sin(elapsedTime * 0.9 + phase);
+    strands.rotation.x = 0.03 * Math.sin(elapsedTime * 0.63 + phase * 1.7);
+    // The skull keeps watch: a slower, wider drift than the
+    // strands, as if the crown scans the country.
+    const skull = mesh.getObjectByName('chimeSkull');
+    if (skull) skull.rotation.y = phase + 0.35 * Math.sin(elapsedTime * 0.21 + phase * 0.6);
+  });
+}

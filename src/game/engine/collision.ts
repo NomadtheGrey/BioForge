@@ -74,6 +74,8 @@ function isCollidingWithStructure(
     if (s.type === 'tamed_snap_trap_turret') obstacleRadius = 0.6;
     if (s.type === 'lantern_fern_post') obstacleRadius = 0.35;
     if (s.type === 'banner_post') obstacleRadius = 0.3;
+    // The chime stands on the same slim post as the banner.
+    if (s.type === 'bone_chime_sentinel') obstacleRadius = 0.3;
     // The portal station's ring (Departure D2): a monument —
     // the player addresses it, never stands inside its disc.
     if (s.type === 'portal_ring') obstacleRadius = 1.3;

@@ -1313,6 +1313,84 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       group.add(cloth);
       return group;
     },
+    // THE BONE CHIME SENTINEL (BioForge wave 2, 2026-10-19; Adam's
+    // camp-defense entry from the sinks sheet). It warns; it never
+    // fights — so nothing about it reads as a weapon. A bone-frame
+    // garden sentinel: rooted base, a lean bone pole with a
+    // crossarm, silk strands hanging hollow chime straws, and the
+    // worn skull worn as a crown — the dead keeping watch over
+    // the living, in the game's plain register.
+    'bone_chime_sentinel': (entity) => {
+      const group = new THREE.Group();
+      const rng = mulberry32(hashId(entity?.id ?? 'ghost-chime'));
+
+      // Rooted base flare — the same furniture stance as the lamp
+      // and banner posts: wide, planted, immovable-looking.
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.46, 0.34, 10), materials.porcelainWhite);
+      base.position.y = 0.17;
+      base.castShadow = true;
+      group.add(base);
+
+      // The bone pole: pale like the frame it is, grown with the
+      // same seeded lean the banners wear (no two chimes stand
+      // exactly alike).
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.14, 2.5, 8), materials.porcelainWhite);
+      pole.position.y = 1.55;
+      pole.rotation.z = (rng() - 0.5) * 0.05;
+      pole.castShadow = true;
+      group.add(pole);
+
+      // The crossarm the strands hang from.
+      const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.5, 6), materials.woodRoot);
+      bar.rotation.z = Math.PI / 2;
+      bar.position.y = 2.7;
+      bar.castShadow = true;
+      group.add(bar);
+
+      // The chime strands (named: the life pass stirs this group).
+      // Silk threads with hollow straw bells — lengths and phases
+      // seeded per chime so every sentinel's voice is its own.
+      const strands = new THREE.Group();
+      strands.name = 'chimeStrands';
+      const strandCount = 5;
+      for (let i = 0; i < strandCount; i++) {
+        const sx = -0.62 + (i / (strandCount - 1)) * 1.24;
+        const len = 0.5 + rng() * 0.45;
+        const thread = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, len, 5), materials.woodRoot);
+        thread.position.set(sx, 2.7 - len / 2, 0);
+        strands.add(thread);
+        // The straw bell: a hollow cone, mouth down, bone-pale —
+        // the part that does the talking when the wind (or a
+        // warning) moves it.
+        const bell = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.22, 8, 1, true), materials.porcelainWhite);
+        bell.position.set(sx, 2.7 - len - 0.1, 0);
+        // The cone's open mouth faces down, like a bell's.
+        strands.add(bell);
+      }
+      group.add(strands);
+
+      // The crown: a worn skull, kept honest — a pale dome with
+      // two dark hollows where the watching was. It is the
+      // sentinel's face and its promise: the dead keep watch.
+      const skull = new THREE.Group();
+      skull.name = 'chimeSkull';
+      const dome = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 10), materials.porcelainWhite);
+      dome.scale.set(1, 0.82, 0.95);
+      skull.add(dome);
+      [-0.09, 0.09].forEach((ex) => {
+        const socket = new THREE.Mesh(
+          new THREE.SphereGeometry(0.05, 8, 8),
+          new THREE.MeshStandardMaterial({ color: 0x1a1611, roughness: 1 }),
+        );
+        socket.position.set(ex, 0.02, 0.17);
+        skull.add(socket);
+      });
+      skull.position.y = 3.0;
+      skull.rotation.y = rng() * Math.PI * 2;
+      group.add(skull);
+
+      return group;
+    },
     'lantern_fern_post': () => {
       // A LAMP, not a plant (Adam, 2026-10-17): the old build was
       // the wild fern's own silhouette — a stalk with a glowing

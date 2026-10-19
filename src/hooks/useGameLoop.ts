@@ -27,6 +27,7 @@ import { isSampleItem } from '../game/structures/vat';
 import type { AsksEventInput } from '../game/quests/asksBackState';
 import { multiplayerManager } from '../game/multiplayer';
 import { soundEngine } from '../audio/soundEngine';
+import { CHIME_WARN_TITLE, CHIME_WARN_BODY } from '../game/structures/chimeWatch';
 import { ITEMS } from '../game/items/constants';
 import { WORLD_EDGE_COORD, ZONE_PUSH_SECONDS, ZONE_PUSH_MIN_COMPONENT } from './useZoneTravel';
 import { JUMP_GRAVITY, STORY_HEIGHT_METERS } from './useGameInput';
@@ -179,7 +180,7 @@ export interface GameLoopDeps {
   liveGameRefs: { current: {
     hasItem: (itemId: ItemId, quantity: number) => boolean;
     addInventoryItem: (itemId: ItemId, quantity: number) => number;
-    updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number, ctx?: StrikeCtx) => void, attacksArmed?: boolean, dayPhase?: number, onFieldWitness?: (noteId: string) => void, onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void, onAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void, dropMagnet?: { radius: number; speed: number }, onFloraHazard?: (species: FloraSpecies, event: 'warn' | 'bite' | 'snare', damage: number, ctx: { floraId: string; x: number; z: number }) => void) => void;
+    updateTick: (dt: number, playerX: number, playerZ: number, onPickupItem: (item: DroppedItemEntity) => void, onCritterExcrete?: (species: string) => void, onFaunaAttack?: (species: FaunaSpecies, damage: number, ctx?: StrikeCtx) => void, attacksArmed?: boolean, dayPhase?: number, onFieldWitness?: (noteId: string) => void, onSentinelBell?: (species: FaunaSpecies, kind: 'threat' | 'visitor') => void, onAsksEvent?: (input: AsksEventInput | AsksEventInput[]) => void, dropMagnet?: { radius: number; speed: number }, onFloraHazard?: (species: FloraSpecies, event: 'warn' | 'bite' | 'snare', damage: number, ctx: { floraId: string; x: number; z: number }) => void, onChimeWarning?: (structureId: string, x: number, z: number) => void) => void;
     postNotification: (title: string, message: string, type?: GameNotification["type"], iconColor?: string, key?: string) => void;
     // The Field Notes witness sink (App's recordFieldWitness,
     // fieldNotesBook.ts) — optional so the loop never hard-depends
@@ -1144,6 +1145,23 @@ export function useGameLoop(deps: GameLoopDeps): void {
                   onPlayerDeathRef.current?.();
                 }
               }
+            },
+            // THE BONE CHIME SENTINEL'S VOICE (BioForge wave 2,
+            // 2026-10-19): the sim listened; the loop announces.
+            // A keyed notification, so two chimes cry out in
+            // turn but one chime never stacks — and the
+            // sentinel's own note, via the named hook. For now
+            // that hook leans on the craft arpeggio's soft rise;
+            // the HUD lane will give the chime its real voice.
+            (structureId, _x, _z) => {
+              liveGameRefs.current.postNotification(
+                CHIME_WARN_TITLE,
+                CHIME_WARN_BODY,
+                'alert',
+                '#e7e0cf',
+                `chime_warning_${structureId}`
+              );
+              soundEngine.playChimeWarning();
             }
           );
           // HOSTILE (2026-10-18): explorer strikes drain here,

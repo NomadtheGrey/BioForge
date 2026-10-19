@@ -2407,6 +2407,21 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'common',
     maxStack: 10,
   },
+  bone_chime_sentinel: {
+    id: 'bone_chime_sentinel',
+    name: 'Bone Chime Sentinel',
+    // A placeable grown structure (BioForge wave 2, 2026-10-19):
+    // the kit item's id IS the StructureType, like every other
+    // placed piece (lantern_fern_post, banner_post).
+    category: 'structure',
+    // It warns; it never fights. The copy says so up front, and the
+    // game honors it — no placed chime has ever harmed anything.
+    description: 'A bone-frame garden sentinel hung with silk strands and hollow chime straw, crowned with a worn skull. Plant it at the camp\'s edge: when something with teeth walks within a day\'s warning of it, the chime stirs and tells you. It warns — it never fights.',
+    iconName: 'Bell',
+    color: '#e7e0cf',
+    rarity: 'uncommon',
+    maxStack: 10,
+  },
   hearthpod: {
     id: 'hearthpod',
     name: 'Hearthpod',

@@ -333,16 +333,16 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
       <div className="glass-panel-biolum w-full max-w-4xl h-[min(640px,94dvh)] rounded-3xl flex flex-col overflow-hidden border border-cyan-500/30 shadow-2xl">
         {/* Header */}
-        <div className="px-6 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-900/60">
+        <div className="px-6 py-4 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:py-2 flex items-center justify-between border-b border-slate-800 bg-slate-900/60">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-cyan-950/70 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
+            <div className="w-10 h-10 [@media(max-height:540px)]:w-8 [@media(max-height:540px)]:h-8 rounded-2xl bg-cyan-950/70 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
               <Sparkles className="w-5 h-5 animate-pulse" />
             </div>
             <div>
               <h2 className="text-lg font-tech font-bold text-white tracking-wide">
                 BIO-FORGE WORKSTATION
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-400 [@media(max-height:540px)]:hidden">
                 Molecular Synthesis of Living Seeds, Fertilizers & Bio-Composites
               </p>
             </div>
@@ -359,7 +359,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
             tab rows. Three letters or more and the list becomes
             every recipe whose product's name holds those letters
             in a row — tabs and tiers stand down until it clears. */}
-        <div className="px-6 pt-3 pb-1 flex items-center gap-2">
+        <div className="px-6 pt-3 pb-1 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:pt-1.5 [@media(max-height:540px)]:pb-0.5 flex items-center gap-2">
           <div className="relative flex-1 max-w-sm">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
             <input
@@ -386,7 +386,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
         </div>
 
         {/* Categories Bar */}
-        <div className="px-6 py-3 border-b border-slate-800/70 bg-slate-900/30 flex flex-wrap items-center gap-2">
+        <div className="px-6 py-3 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:py-1.5 border-b border-slate-800/70 bg-slate-900/30 flex flex-wrap [@media(max-height:540px)]:flex-nowrap [@media(max-height:540px)]:overflow-x-auto [@media(max-height:540px)]:[&>button]:flex-none items-center gap-2">
           {[
             { id: 'all', label: 'All Synthetics' },
             { id: 'gauntlet', label: 'Gauntlet' },
@@ -429,7 +429,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
         </div>
 
         {/* Tier Row — the second tab row (Adam, 2026-10-15) */}
-        <div className="px-6 py-2 border-b border-slate-800/70 bg-slate-900/20 flex items-center gap-2 overflow-x-auto">
+        <div className="px-6 py-2 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:py-1 border-b border-slate-800/70 bg-slate-900/20 flex items-center gap-2 overflow-x-auto">
           <span className="text-[10px] font-tech uppercase tracking-wider text-slate-500 mr-1">Tier</span>
           {[
             { id: 'all', label: 'All Tiers' },
@@ -465,7 +465,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                 onSelectRecipe={setSelectedRecipe}
               />
             ) : (
-              <div className="h-full overflow-y-auto p-4 space-y-2">
+              <div className="h-full overflow-y-auto p-4 [@media(max-height:540px)]:p-2 space-y-2">
                 {/* The upgrade ENTRIES at the forge (Adam,
                     2026-10-17): a platform tab opens by naming
                     the upgrades it gathers, so the Shield tab
@@ -533,7 +533,7 @@ export const BioForgeModal: React.FC<BioForgeModalProps> = ({
                       type="button"
                       onClick={() => toggleForgeGroup(entry.groupId!)}
                       aria-expanded={open}
-                      className="w-full flex items-center gap-1.5 pt-2.5 pb-1 text-[10px] font-tech font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200 transition-colors"
+                      className="w-full flex items-center gap-1.5 pt-2.5 pb-1 [@media(max-height:540px)]:pt-1.5 [@media(max-height:540px)]:pb-0.5 text-[10px] font-tech font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200 transition-colors"
                     >
                       {open ? (
                         <ChevronDown className="w-3.5 h-3.5 text-cyan-400" />

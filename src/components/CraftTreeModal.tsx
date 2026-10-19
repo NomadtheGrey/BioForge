@@ -80,7 +80,7 @@ export const CraftTreeModal: React.FC<CraftTreeModalProps> = ({ itemId, need, in
         className="glass-panel rounded-3xl w-full max-w-lg max-h-[85dvh] flex flex-col shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between p-5 pb-3">
+        <div className="flex items-start justify-between p-5 pb-3 [@media(max-height:540px)]:p-3 [@media(max-height:540px)]:pb-2">
           <div>
             <p className="text-[10px] font-tech font-bold tracking-widest text-cyan-300/80">THE CRAFTING TREE</p>
             <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2 mt-0.5">
@@ -88,7 +88,7 @@ export const CraftTreeModal: React.FC<CraftTreeModalProps> = ({ itemId, need, in
               {rootItem?.name ?? itemId}
               <span className="text-xs font-mono font-medium text-slate-400">× {Math.max(1, need)}</span>
             </h3>
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[11px] text-slate-400 mt-1 [@media(max-height:540px)]:hidden">
               Everything it takes, level by level — what you hold, what to grow, what to go and find.
             </p>
           </div>

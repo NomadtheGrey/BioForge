@@ -180,21 +180,21 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
       <div className="glass-panel-biolum w-full max-w-4xl h-[min(600px,94dvh)] rounded-3xl flex flex-col overflow-hidden border border-emerald-500/30 shadow-2xl">
         {/* Header */}
-        <div className="px-6 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-900/60">
+        <div className="px-6 py-4 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:py-2 flex items-center justify-between border-b border-slate-800 bg-slate-900/60">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-950/70 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+            <div className="w-10 h-10 [@media(max-height:540px)]:w-8 [@media(max-height:540px)]:h-8 rounded-2xl bg-emerald-950/70 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
               <Backpack className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-lg font-tech font-bold text-white tracking-wide">
                 BIO-STORAGE POUCH
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-400 [@media(max-height:540px)]:hidden">
                 Botanical Specimens, Bio-Seeds & Living Composite Inventory
               </p>
               {/* The carrying ladder, at a glance (Adam, 2026-10-15):
                   your pouch tier and what a full stack means today. */}
-              <p className="text-[11px] font-mono text-amber-300/90 mt-0.5">
+              <p className="text-[11px] font-mono text-amber-300/90 mt-0.5 [@media(max-height:540px)]:hidden">
                 {POUCH_TIER_NAMES[pouchTier]} · stacks hold {POUCH_TIER_CAPS[pouchTier]}
               </p>
             </div>
@@ -210,7 +210,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
         {/* Search (Adam, 2026-10-16): near the top, over both
             tab rows — 3+ letters and the grid becomes every
             owned item whose name holds those letters in a row. */}
-        <div className="px-6 pt-3 pb-1 flex items-center gap-2">
+        <div className="px-6 pt-3 pb-1 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:pt-1.5 [@media(max-height:540px)]:pb-0.5 flex items-center gap-2">
           <div className="relative flex-1 max-w-sm">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
             <input
@@ -237,7 +237,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
         </div>
 
         {/* Categories Bar */}
-        <div className="px-6 py-3 border-b border-slate-800/70 bg-slate-900/30 flex items-center gap-2 overflow-x-auto">
+        <div className="px-6 py-3 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:py-1.5 border-b border-slate-800/70 bg-slate-900/30 flex items-center gap-2 overflow-x-auto">
           {[
             { id: 'all', label: 'All Items' },
             { id: 'gauntlet', label: 'Gauntlet' },
@@ -265,7 +265,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
         </div>
 
         {/* Tier Row — the second tab row (Adam, 2026-10-15) */}
-        <div className="px-6 py-2 border-b border-slate-800/70 bg-slate-900/20 flex items-center gap-2 overflow-x-auto">
+        <div className="px-6 py-2 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:py-1 border-b border-slate-800/70 bg-slate-900/20 flex items-center gap-2 overflow-x-auto">
           <span className="text-[10px] font-tech uppercase tracking-wider text-slate-500 mr-1">Tier</span>
           {[
             { id: 'all', label: 'All Tiers' },
@@ -291,7 +291,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
         {/* Main Content */}
         <div className="flex-1 flex overflow-hidden">
           {/* Left Grid */}
-          <div className="w-7/12 border-r border-slate-800/80 overflow-y-auto p-4">
+          <div className="w-7/12 border-r border-slate-800/80 overflow-y-auto p-4 [@media(max-height:540px)]:p-2">
             {/* The upgrade ENTRIES (Adam, 2026-10-17): a platform's
                 own tab opens with what the platform can carry —
                 the shield's graft slot and branch gifts, the

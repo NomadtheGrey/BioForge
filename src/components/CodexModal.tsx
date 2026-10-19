@@ -445,7 +445,7 @@ const renderArsenalRow = (e: FamilyEntry) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
       <div className="glass-panel-biolum w-full max-w-4xl h-[min(620px,94dvh)] rounded-3xl flex flex-col overflow-hidden border border-purple-500/30 shadow-2xl">
         {/* Header */}
-        <div className="px-6 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-900/60">
+        <div className="px-6 py-4 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:py-2 flex items-center justify-between border-b border-slate-800 bg-slate-900/60">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-purple-950/70 border border-purple-500/40 flex items-center justify-center text-purple-400">
               <BookOpen className="w-5 h-5" />
@@ -454,14 +454,14 @@ const renderArsenalRow = (e: FamilyEntry) => {
               <h2 className="text-lg font-tech font-bold text-white tracking-wide">
                 ECOSYSTEM CODEX & BIO-SCANNER
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-400 [@media(max-height:540px)]:hidden">
                 Cataloged Alien Flora, Domestication Records & Bio-Composites
               </p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <span className="text-[10px] text-slate-400 uppercase font-mono block">Scanned Mastery</span>
+              <span className="text-[10px] text-slate-400 uppercase font-mono block [@media(max-height:540px)]:hidden">Scanned Mastery</span>
               <span className="font-tech font-bold text-cyan-400 text-sm">
                 {discoveredCount} / {totalCount} ({Math.round((discoveredCount / totalCount) * 100)}%)
               </span>
@@ -476,7 +476,7 @@ const renderArsenalRow = (e: FamilyEntry) => {
         </div>
 
         {/* Filter Bar */}
-        <div className="px-6 py-3 border-b border-slate-800/70 bg-slate-900/30 flex items-center gap-2">
+        <div className="px-6 py-3 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:py-1.5 border-b border-slate-800/70 bg-slate-900/30 flex items-center gap-2 [@media(max-height:540px)]:overflow-x-auto [@media(max-height:540px)]:flex-nowrap [@media(max-height:540px)]:[&>button]:flex-none">
           {[
             { id: 'all', label: 'All Catalog' },
             { id: 'flora', label: 'Flora & Fungi' },
@@ -503,7 +503,7 @@ const renderArsenalRow = (e: FamilyEntry) => {
           {activeFilter === 'arsenal' ? renderArsenalBody() : (
           <>
           {/* Left: Species List */}
-          <div className="w-5/12 border-r border-slate-800/80 overflow-y-auto p-4 space-y-2">
+          <div className="w-5/12 border-r border-slate-800/80 overflow-y-auto p-4 [@media(max-height:540px)]:p-2 space-y-2">
             {filtered.map((entry) => {
               const isSelected = selectedEntry.species === entry.species;
               return (

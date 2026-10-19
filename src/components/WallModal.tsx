@@ -72,7 +72,7 @@ export function WallModal(props: WallModalProps) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-xl border border-emerald-800 bg-[#0c1410] p-5 text-emerald-50 shadow-2xl"
+        className="w-full max-w-lg max-h-[94dvh] overflow-y-auto rounded-xl border border-emerald-800 bg-[#0c1410] p-5 text-emerald-50 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-1 flex items-start justify-between">

@@ -116,7 +116,7 @@ export const VatModal: React.FC<VatModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header: what this vat is, and how deep its culture runs. */}
-        <div className="flex items-start justify-between gap-3 border-b border-emerald-500/20 px-5 py-4">
+        <div className="flex items-start justify-between gap-3 border-b border-emerald-500/20 px-5 py-4 [@media(max-height:540px)]:py-2.5">
           <div>
             <div className="flex items-center gap-2">
               <FlaskConical className="h-5 w-5 text-emerald-300" />
@@ -162,7 +162,7 @@ export const VatModal: React.FC<VatModalProps> = ({
           </button>
         </div>
 
-        <div className="max-h-[55vh] overflow-y-auto px-5 py-4">
+        <div className="max-h-[55dvh] [@media(max-height:540px)]:max-h-[64dvh] overflow-y-auto px-5 py-4 [@media(max-height:540px)]:py-2.5">
           {/* The broth slot (wave 2): one gel, fermenting beside the
               gestation — no fire, it warms itself, and the warmth IS
               the strength. Visible in every face; the load chips

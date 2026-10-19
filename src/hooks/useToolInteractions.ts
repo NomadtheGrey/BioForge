@@ -1636,17 +1636,18 @@ export function useToolInteractions({
           : {}),
         // A mycologist's wall is born bare (BioForge wave 2,
         // 2026-10-19): no caps mounted, the bin empty and its
-        // clock at zero. (Readers treat a missing wall record
-        // as empty anyway, for walls that predate the field.)
+        // clock at zero, anchored NOW (wall clock — the timestamp
+        // law). (Readers treat a missing wall record as empty
+        // anyway, for walls that predate the field.)
         ...(selectedStructureType === 'mycologist_wall'
-          ? { wall: { mounted: [] as ItemId[], binStock: 0, binDone: 0, binClock: 0 } }
+          ? { wall: { mounted: [] as ItemId[], binStock: 0, binDone: 0, binClock: 0, binAnchorMs: Date.now() } }
           : {}),
         // A planter is born empty (BioForge wave 2, 2026-10-19):
-        // no tenant, the planting clock unstamped (the sim's
-        // planter pass stamps plantedAt on the first tick it
-        // sees), growth at zero. (Readers treat a missing
-        // planter record as empty anyway, for planters that
-        // predate the field.)
+        // no tenant, growth at zero. The tenant's anchor is
+        // stamped at PLANT time (planter.applyPlant), not at
+        // birth — an empty pot has nothing to grow. (Readers
+        // treat a missing planter record as empty anyway, for
+        // planters that predate the field.)
         ...(selectedStructureType === 'planter'
           ? { planter: { species: null, plantedAt: 0, growth: 0 } }
           : {}),

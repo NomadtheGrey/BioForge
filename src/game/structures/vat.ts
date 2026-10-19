@@ -14,6 +14,7 @@
 import type { FaunaSpecies, ItemId } from '../../types/game';
 import { BIOMES } from '../world/biomes';
 import { speciesDef, type SpeciesDef } from '../creatures/species';
+import { brothFermentedEffective, brothPaceMul, brothWarmth, touchBroth } from './broths';
 
 /** The three soup bands, in vat-tier order (band N needs vat tier N+1). */
 export type VatBand = 'common' | 'wild' | 'strange';
@@ -157,5 +158,66 @@ export function vatPlanFor(species: FaunaSpecies) {
     ingredients: vatIngredientsFor(def),
     seconds: VAT_GESTATION_SECONDS[band],
     vatTier: vatTierForBand(band),
+  };
+}
+
+/**
+ * TIMESTAMPS, NOT TICKERS (Adam, 2026-10-19 gap fix; the dev
+ * chair's phrasing, worth keeping: 'A tick timer is a promise the
+ * zone must stay loaded to keep; a timestamp is a promise the
+ * world keeps on its own.'). A gestation's progress is a BASE
+ * banked at anchorMs (wall clock — the same basis as the save's
+ * createdAt/savedAt and the sky calendar's day count, so the vat
+ * and the sky can never disagree); the effective progress is
+ * computed wherever it is read, and a touch re-anchors it
+ * (base := effective, anchor := now). No standing timer: an
+ * unloaded zone's culture grows on, lazily caught up. A pre-gap-fix
+ * record has no anchor — the first read banks NOW with the carried
+ * progress: a mid-gestation vat wakes up intact, no jump, no loss.
+ *
+ * The bog pace, honestly: a bog_jelly broth sets the culture —
+ * pace rises with its warmth, which itself rises over the span.
+ * Within one span the pace is LINEAR in elapsed time, so the
+ * span's integral is exactly the pace at the span's MIDPOINT —
+ * no approximation, no drift from the old per-second tick.
+ */
+export function gestationProgressEffective(
+  g: { progress: number; total: number; anchorMs?: number },
+  broth: { gelId: ItemId; fermented: number; anchorMs?: number } | undefined,
+  nowMs: number,
+): number {
+  if (g.progress >= g.total) return g.total;
+  const anchor = g.anchorMs ?? nowMs;
+  const elapsedMs = Math.max(0, nowMs - anchor);
+  let pace = 1;
+  if (broth?.gelId === 'bog_jelly') {
+    // Mid-span warmth: the span's integral of a linear pace.
+    const midFermented = brothFermentedEffective(broth, anchor + elapsedMs / 2);
+    pace = brothPaceMul(brothWarmth(midFermented));
+  }
+  return Math.min(g.total, g.progress + (elapsedMs / 1000) * pace);
+}
+
+/**
+ * Re-anchor a vat's whole working record: the broth's effective
+ * fermented time and the gestation's effective progress become
+ * the new bases, banked NOW. The gestation's pace for the new
+ * span is whatever the broth's warmth says at this moment —
+ * loading or pouring out a broth mid-gestation closes the old
+ * span honestly and opens the new one. Call it wherever the vat
+ * is disturbed (start, broth load/remove, hatch); every other
+ * read is pure-effective and writes nothing.
+ */
+export function touchVat<T extends {
+  gestating?: { species: FaunaSpecies; progress: number; total: number; anchorMs?: number };
+  broth?: { gelId: ItemId; fermented: number; anchorMs?: number };
+}>(vat: T, nowMs: number): T {
+  const broth = vat.broth ? touchBroth(vat.broth, nowMs) : undefined;
+  const g = vat.gestating;
+  if (!g) return broth === vat.broth ? vat : { ...vat, broth };
+  return {
+    ...vat,
+    broth,
+    gestating: { ...g, progress: gestationProgressEffective(g, broth, nowMs), anchorMs: nowMs },
   };
 }

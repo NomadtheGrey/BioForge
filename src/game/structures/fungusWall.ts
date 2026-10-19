@@ -120,11 +120,19 @@ export function unmountCap(mounted: ItemId[], itemId: ItemId): ItemId[] {
 }
 
 /**
- * The bin's digestion tick (pure — lab-tested). Loaded-zone
- * seconds only, like the vat's clocks. mount-seconds accrue on
- * the wall's own clock; every WALL_DIGEST_SECONDS digests one
- * stock unit into one ready compost. Capacity is shared:
- * binStock + binDone never exceed WALL_BIN_MAX.
+ * The bin's digestion tick (pure — lab-tested). mount-seconds
+ * accrue on the wall's own clock; every WALL_DIGEST_SECONDS
+ * digests one stock unit into one ready compost. Capacity is
+ * shared: binStock + binDone never exceed WALL_BIN_MAX.
+ *
+ * TIMESTAMPS, NOT TICKERS (Adam, 2026-10-19 gap fix; the dev
+ * chair's phrasing, worth keeping: 'A tick timer is a promise the
+ * zone must stay loaded to keep; a timestamp is a promise the
+ * world keeps on its own.'). The seconds this tick consumes come
+ * from wallBinCatchup below — honest elapsed wall-clock time
+ * since the bin's anchor, the same basis as the save's
+ * createdAt/savedAt and the sky calendar's day count. No standing
+ * timer: an unloaded wall's crew digests on, lazily caught up.
  */
 export function wallBinTick(
   wall: { binStock: number; binDone: number; binClock: number; mounted: ItemId[] },
@@ -173,11 +181,35 @@ export function readWall(entity: StructureEntity): {
   binStock: number;
   binDone: number;
   binClock: number;
+  binAnchorMs?: number;
 } {
   return {
     mounted: entity.wall?.mounted ?? [],
     binStock: entity.wall?.binStock ?? 0,
     binDone: entity.wall?.binDone ?? 0,
     binClock: entity.wall?.binClock ?? 0,
+    binAnchorMs: entity.wall?.binAnchorMs,
   };
+}
+
+/**
+ * The bin's lazy catch-up (pure — lab-tested): run the digestion
+ * tick over the honest elapsed time since the bin's anchor, then
+ * re-anchor NOW. A wall with no anchor (pre-gap-fix record) is
+ * anchored on first sight with its carried stock/done/clock —
+ * a mid-digestion bin wakes up intact, no jump, no loss. Calling
+ * it twice at the same moment changes nothing but the bookkeeping,
+ * so every touch may call it freely before doing its own work.
+ */
+export function wallBinCatchup(
+  wall: { mounted: ItemId[]; binStock: number; binDone: number; binClock: number; binAnchorMs?: number },
+  nowMs: number,
+): { mounted: ItemId[]; binStock: number; binDone: number; binClock: number; binAnchorMs: number } {
+  const anchor = wall.binAnchorMs ?? nowMs;
+  const elapsedSeconds = Math.max(0, (nowMs - anchor) / 1000);
+  const next = wallBinTick(
+    { binStock: wall.binStock, binDone: wall.binDone, binClock: wall.binClock, mounted: wall.mounted },
+    elapsedSeconds,
+  );
+  return { ...next, mounted: wall.mounted, binAnchorMs: nowMs };
 }

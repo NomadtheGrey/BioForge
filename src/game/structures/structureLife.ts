@@ -18,7 +18,8 @@ import type { StructureEntity } from '../../types/game';
 import { pulseHeartbeat, phaseForId } from './lifePulse';
 import { ITEMS } from '../items/constants';
 import { GLOW_CAPS } from './fungusWall';
-import { planterTenantScale } from './planter';
+import { planterGrowthEffective, planterTenantScale } from './planter';
+import { gestationProgressEffective } from './vat';
 
 /** The glow family's ids, for the emissive dress pass. */
 const GLOW_CAP_SET = new Set(GLOW_CAPS);
@@ -48,8 +49,13 @@ export function updateVatLife(
       sac.scale.set(b, 1.12 * b, b);
     }
     // The vein heartbeat: rate and strength scale with gestation.
+    // Effective, not stored (the timestamp law): the heartbeat
+    // quickens even for a vat maturing in an unloaded zone.
     const g = entity.vat?.gestating;
-    const f = g && g.total > 0 ? Math.min(1, g.progress / g.total) : 0;
+    const f =
+      g && g.total > 0
+        ? Math.min(1, gestationProgressEffective(g, entity.vat?.broth, Date.now()) / g.total)
+        : 0;
     const veins = mesh.getObjectByName('vatVeins');
     if (veins) {
       const first = veins.children[0] as THREE.Mesh | undefined;
@@ -318,13 +324,13 @@ export function updateFungusWallLife(
  *
  * The builder dresses the tenant once (plant/take rebuilds the
  * mesh via the planter kind key in syncStructures); this pass only
- * GROWS it. Every frame it reads the entity's stored growth —
- * advanced by the sim's planter pass on loaded-zone time — and
- * scales the named dressing group to match, so the plant swells
- * toward pot size without a single rebuild. A planted tenant also
- * gets the house's gentle sway, phased per planter like every
- * other living pass. Presentation only: the GROWTH law is the
- * sim's (planter.planterGrowth01), never the mesh's.
+ * GROWS it. Every frame it reads the tenant's EFFECTIVE growth
+ * (the timestamp law — planterGrowthEffective) and scales the
+ * named dressing group to match, so the plant swells toward pot
+ * size without a single rebuild. A planted tenant also gets the
+ * house's gentle sway, phased per planter like every other living
+ * pass. Presentation only: the GROWTH law is the module's
+ * (planter.planterGrowthEffective), never the mesh's.
  */
 export function updatePlanterLife(
   structureMeshMap: Map<string, THREE.Group>,
@@ -336,10 +342,14 @@ export function updatePlanterLife(
     const dressing = mesh.getObjectByName('planterDressing');
     if (!dressing) return;
     const tenant = entity.planter?.species;
-    // The tenant's pot scale at its stored growth. (The builder
-    // seats the same scale at dress time; this keeps it honest
-    // across the growth ticks without rebuilding.)
-    dressing.scale.setScalar(planterTenantScale(entity.planter?.growth ?? 0));
+    // The tenant's pot scale at its EFFECTIVE growth (the
+    // timestamp law): a tenant maturing in an unloaded zone is
+    // already bigger when you walk back in. (The builder seats
+    // the same scale at dress time; this keeps it honest without
+    // rebuilding.)
+    dressing.scale.setScalar(
+      planterTenantScale(entity.planter ? planterGrowthEffective(entity.planter, Date.now()) : 0),
+    );
     if (!tenant) {
       dressing.rotation.z = 0;
       return;

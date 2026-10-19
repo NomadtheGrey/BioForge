@@ -173,7 +173,7 @@ import { PlanterModal } from './components/PlanterModal';
 import { readPlanter, applyPlant, applyTake } from './game/structures/planter';
 import { speciesForPropagule, propaguleItemOf } from './game/flora/propagation';
 import { floraDef } from './game/flora/flora';
-import { readWall, mountCap, unmountCap, WALL_BIN_MAX, WALL_BIN_FEED, WALL_BIN_HARVEST_COST } from './game/structures/fungusWall';
+import { readWall, mountCap, unmountCap, wallBinCatchup, WALL_BIN_MAX, WALL_BIN_FEED, WALL_BIN_HARVEST_COST } from './game/structures/fungusWall';
 import { POUCH_TIER_CAPS, POUCH_UPGRADE_ITEMS, pouchTierOf, storageClusterOf } from './game/items/pouch';
 import { CodexModal } from './components/CodexModal';
 import { MultiplayerModal } from './components/MultiplayerModal';
@@ -3341,7 +3341,10 @@ const {
           onMount={(structure, itemId) => {
             const live = structuresList.find((s) => s.id === structure.id);
             if (!live || !hasItem(itemId, 1)) return;
-            const w = readWall(live);
+            // Catch the bin up FIRST under the OLD crew (mounting
+            // changes the digester count — the old span closes
+            // honestly before the new mount joins it).
+            const w = wallBinCatchup(readWall(live), Date.now());
             if (w.mounted.includes(itemId)) return;
             deductInventoryItem(itemId, 1);
             upsertStructure({ ...live, wall: { ...w, mounted: mountCap(w.mounted, itemId) } });
@@ -3350,7 +3353,9 @@ const {
           onUnmount={(structure, itemId) => {
             const live = structuresList.find((s) => s.id === structure.id);
             if (!live) return;
-            const w = readWall(live);
+            // Same honesty in reverse: the old crew's span closes
+            // before the mount leaves it.
+            const w = wallBinCatchup(readWall(live), Date.now());
             if (!w.mounted.includes(itemId)) return;
             addInventoryItem(itemId, 1);
             upsertStructure({ ...live, wall: { ...w, mounted: unmountCap(w.mounted, itemId) } });
@@ -3359,7 +3364,9 @@ const {
           onFeedBin={(structure) => {
             const live = structuresList.find((s) => s.id === structure.id);
             if (!live) return;
-            const w = readWall(live);
+            // Catch up before the math: the bin may have digested
+            // while its zone was unloaded (the timestamp law).
+            const w = wallBinCatchup(readWall(live), Date.now());
             const room = WALL_BIN_MAX - w.binStock;
             if (room <= 0) return;
             let fed = 0;
@@ -3377,7 +3384,8 @@ const {
           onHarvestBin={(structure) => {
             const live = structuresList.find((s) => s.id === structure.id);
             if (!live) return;
-            const w = readWall(live);
+            // Catch up before the math — same law as the feed.
+            const w = wallBinCatchup(readWall(live), Date.now());
             if (w.binDone < WALL_BIN_HARVEST_COST) return;
             const paid = Math.floor(w.binDone / WALL_BIN_HARVEST_COST);
             addInventoryItem('basic_compost', paid);
@@ -3405,9 +3413,9 @@ const {
             const p = readPlanter(live);
             if (p.species) return;
             deductInventoryItem(itemId, 1);
-            // plantedAt stays 0 — the sim's planter pass stamps
-            // the first tick it sees (App never touches the sim
-            // clock); the tenant arrives a seedling.
+            // The tenant is born anchored NOW (wall clock — the
+            // timestamp law, planter.applyPlant); no tick stamps it.
+            // The tenant arrives a seedling.
             upsertStructure({ ...live, planter: applyPlant(p, species) });
             const name = floraDef(species)?.name ?? species;
             postNotification('Planted', `The ${name} settles into its pot — a plant with an address.`, 'craft', '#a3e635');

@@ -18,11 +18,12 @@ import { X, Sprout, FlaskConical, Egg, ArrowUpCircle, Move } from 'lucide-react'
 import type { FaunaSpecies, ItemId, StructureEntity } from '../types/game';
 import { ITEMS } from '../game/items/constants';
 import { speciesDef } from '../game/creatures/species';
-import { VAT_TIER_NAMES, vatKitFor, vatPlanFor, type VatBand } from '../game/structures/vat';
+import { VAT_TIER_NAMES, gestationProgressEffective, vatKitFor, vatPlanFor, type VatBand } from '../game/structures/vat';
 import {
   BROTH_GELS,
   BROTH_PROMISE,
   BROTH_STAGE_COPY,
+  brothFermentedEffective,
   brothStageOf,
   brothWarmth,
 } from '../game/structures/broths';
@@ -77,13 +78,27 @@ export const VatModal: React.FC<VatModalProps> = ({
   const tier = Math.min(Math.max(vat.tier, 1), VAT_TIER_NAMES.length);
   const kitId = vatKitFor(tier);
   const hasKit = kitId ? (inventory[kitId] ?? 0) > 0 : false;
+  // A cosmetic heartbeat while the panel stands open (1 s): the
+  // game no longer ticks these values into the record — reads are
+  // pure-effective from the timestamp law — so the panel re-reads
+  // them itself. This timer writes nothing and dies with the modal.
+  const [, setUiTick] = React.useState(0);
+  React.useEffect(() => {
+    const id = setInterval(() => setUiTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
   const g = vat.gestating;
-  const ready = !!g && g.progress >= g.total;
-  // The broth slot: gels the pouch holds, in the slot's idiom. The
-  // loaded broth's stage is pure function of its fermented time —
-  // the panel reads it, never stores it.
   const broth = vat.broth;
-  const brothWarmthNow = broth ? brothWarmth(broth.fermented) : 0;
+  const nowMs = Date.now();
+  // Effective, not stored: the gestation may have matured while
+  // its zone was unloaded (the timestamp law) — the record holds
+  // only the base.
+  const progressNow = g ? gestationProgressEffective(g, broth, nowMs) : 0;
+  const ready = !!g && progressNow >= g.total;
+  // The broth slot: gels the pouch holds, in the slot's idiom. The
+  // loaded broth's stage is pure function of its EFFECTIVE
+  // fermented time — the panel reads it, never stores it.
+  const brothWarmthNow = broth ? brothWarmth(brothFermentedEffective(broth, nowMs)) : 0;
   const brothStage = BROTH_STAGE_COPY[brothStageOf(brothWarmthNow)];
   const pouchGels = BROTH_GELS.filter((id) => (inventory[id] ?? 0) > 0);
 
@@ -226,7 +241,7 @@ export const VatModal: React.FC<VatModalProps> = ({
                   <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-800">
                     <div
                       className="h-full rounded-full bg-emerald-400/80 transition-all"
-                      style={{ width: `${Math.floor((g.progress / g.total) * 100)}%` }}
+                      style={{ width: `${Math.floor((progressNow / g.total) * 100)}%` }}
                     />
                   </div>
                   <p className="text-xs text-slate-400">

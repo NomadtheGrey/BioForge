@@ -23,7 +23,7 @@ import type { StructureType, StructureEntity } from '../../types/game';
 import { hashId, mulberry32 } from './lifePulse';
 import { rootGrainTexture, barkTexture, wovenTexture, jitterVertices } from './grownTextures';
 import { buildFloraMesh } from '../flora/floraMeshes';
-import { planterTenantScale } from './planter';
+import { planterGrowthEffective, planterTenantScale } from './planter';
 
 /** The engine's shared material palette, as the builders use it. */
 export interface StructureMaterials {
@@ -1634,7 +1634,12 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
         );
         tenant.position.set(0, 0, 0);
         tenant.userData = {};
-        tenant.scale.setScalar(planterTenantScale(entity!.planter?.growth ?? 0));
+        // Seated at EFFECTIVE growth (the timestamp law): a tenant
+        // that matured in an unloaded zone arrives full-sized on
+        // first paint — the life pass keeps it honest after.
+        tenant.scale.setScalar(
+          planterTenantScale(entity!.planter ? planterGrowthEffective(entity!.planter, Date.now()) : 0),
+        );
         dressing.add(tenant);
       }
       return group;

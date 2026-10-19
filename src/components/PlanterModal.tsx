@@ -25,6 +25,7 @@ import { propaguleItemOf } from '../game/flora/propagation';
 import {
   readPlanter,
   plantablePropagules,
+  planterGrowthEffective,
   planterGrowthLabel,
 } from '../game/structures/planter';
 
@@ -39,7 +40,20 @@ interface PlanterModalProps {
 
 export function PlanterModal(props: PlanterModalProps) {
   const { structure, inventory, onClose, onPlant, onTake } = props;
+  // A cosmetic heartbeat while the panel stands open (1 s): the
+  // game no longer ticks growth into the record — reads are
+  // pure-effective from the timestamp law — so the panel re-reads
+  // it itself. This timer writes nothing and dies with the modal.
+  const [, setUiTick] = React.useState(0);
+  React.useEffect(() => {
+    const id = setInterval(() => setUiTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
   const planter = readPlanter(structure);
+  // Effective, not stored: the tenant may have grown while its
+  // zone was unloaded (the timestamp law) — the record holds only
+  // the base.
+  const growthNow = planter.species ? planterGrowthEffective(planter, Date.now()) : 0;
   const plantable = plantablePropagules(inventory);
   const tenantName = planter.species ? floraDef(planter.species)?.name ?? planter.species : null;
   const tenantBack = planter.species ? propaguleItemOf(planter.species) : null;
@@ -105,7 +119,7 @@ export function PlanterModal(props: PlanterModalProps) {
                 <Sprout size={14} className="text-lime-400" />
                 {tenantName}
               </p>
-              <p className="mt-1 text-xs text-lime-200/70">{planterGrowthLabel(planter.growth)}</p>
+              <p className="mt-1 text-xs text-lime-200/70">{planterGrowthLabel(growthNow)}</p>
               <div className="mt-2">
                 <button
                   onClick={() => onTake(structure)}

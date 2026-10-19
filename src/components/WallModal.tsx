@@ -21,6 +21,7 @@ import {
   glowMountCount,
   decomposerMountCount,
   readWall,
+  wallBinCatchup,
   WALL_BIN_MAX,
   WALL_BIN_FEED,
   WALL_BIN_HARVEST_COST,
@@ -46,7 +47,19 @@ const FEED_NAMES: Partial<Record<ItemId, string>> = {
 
 export function WallModal(props: WallModalProps) {
   const { structure, inventory, onClose, onMount, onUnmount, onFeedBin, onHarvestBin } = props;
-  const wall = readWall(structure);
+  // A cosmetic heartbeat while the panel stands open (1 s): the
+  // game no longer ticks the bin into the record — reads are
+  // pure-effective from the timestamp law — so the panel re-reads
+  // it itself. This timer writes nothing and dies with the modal.
+  const [, setUiTick] = React.useState(0);
+  React.useEffect(() => {
+    const id = setInterval(() => setUiTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+  // Effective, not stored: the crew may have digested while the
+  // zone was unloaded (the timestamp law) — the record holds only
+  // the base. Mounts are untouched by time.
+  const wall = wallBinCatchup(readWall(structure), Date.now());
   const total = capKindMembers().length;
   const mountable = capKindMembers().filter(
     (id) => (inventory[id] ?? 0) > 0 && !wall.mounted.includes(id),

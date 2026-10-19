@@ -42,12 +42,31 @@
  * honestly rather than pretending.
  *
  * NOTHING here keeps state. Fermentation time rides the vat's own
- * record (vat.broth.fermented, seconds of loaded-zone time,
- * advanced in the world tick); biases are pure functions of the
- * broth + its warmth, computed once at hatch. The broth is DRUNK by
+ * record (vat.broth.fermented as the BASE, seconds banked at
+ * vat.broth.anchorMs); biases are pure functions of the broth +
+ * its warmth, computed once at hatch. The broth is DRUNK by
  * the hatch (consumed at hatch — say so in copy). A removed broth is
  * poured out, warmth and all — the unload returns the gel, not the
  * culture.
+ *
+ * TIMESTAMPS, NOT TICKERS (Adam, 2026-10-19 gap fix; the dev
+ * chair's phrasing, worth keeping: 'A tick timer is a promise the
+ * zone must stay loaded to keep; a timestamp is a promise the
+ * world keeps on its own.'). Fermentation advances on WALL CLOCK
+ * (Date.now) — the same basis as the save's createdAt/savedAt and
+ * the sky calendar's day count (skyCalendar.ts: 'the world keeps
+ * its own time, with or without a witness'), so the broth and the
+ * sky can never disagree. Effective fermented = base + (now -
+ * anchor), computed wherever it is read; a touch re-anchors it
+ * (base := effective, anchor := now). No standing timer: an
+ * unloaded zone's broth ferments on, lazily caught up. Honest
+ * consequence, named: the culture also ferments while the game
+ * is closed between sessions — the way a comet passes while you
+ * are away. A pre-gap-fix broth has no anchor: the first read
+ * banks NOW with its carried fermented seconds — no jump, no
+ * loss. Guests read their own Date.now() against the host's
+ * anchor (the record rides the snapshot); the skew is seconds,
+ * and every write still happens on the host's side.
  */
 
 import type { FaunaSpecies, ItemId } from '../../types/game';
@@ -61,11 +80,12 @@ export function isBrothGel(id: ItemId): boolean {
 }
 
 /**
- * Fermentation time to full ripeness, in seconds of loaded-zone time.
- * A strange gestation is 500; a broth loaded with the sample is
- * warm at the end and ripe if it started a little early. Loading the
- * broth into an empty vat and letting it think is the gardener's
- * move — it keeps fermenting between gestations.
+ * Fermentation time to full ripeness, in seconds of the world's
+ * own time (wall clock — the timestamp law above). A strange
+ * gestation is 500; a broth loaded with the sample is warm at the
+ * end and ripe if it started a little early. Loading the broth
+ * into an empty vat and letting it think is the gardener's
+ * move — it keeps fermenting between gestations, zone or no zone.
  */
 export const BROTH_RIPE_SECONDS = 300;
 
@@ -76,6 +96,34 @@ export const BROTH_RIPE_SECONDS = 300;
 export function brothWarmth(fermentedSeconds: number): number {
   if (fermentedSeconds <= 0) return 0;
   return Math.min(1, fermentedSeconds / BROTH_RIPE_SECONDS);
+}
+
+/**
+ * The broth's EFFECTIVE fermented time at a wall-clock moment:
+ * base banked at the anchor, plus the honest elapsed since.
+ * Migration: a broth with no anchor (pre-gap-fix record) reads
+ * its carried seconds with no jump — the first touch banks the
+ * anchor (touchBroth). Pure — lab-tested.
+ */
+export function brothFermentedEffective(
+  broth: { fermented: number; anchorMs?: number },
+  nowMs: number,
+): number {
+  const anchor = broth.anchorMs ?? nowMs;
+  return Math.max(0, broth.fermented + (nowMs - anchor) / 1000);
+}
+
+/**
+ * Re-anchor a broth: the effective fermented time becomes the new
+ * base, banked NOW. Idempotent across repeated touches at the same
+ * moment. Call it wherever the broth is disturbed — load is born
+ * anchored, a touch before any other write keeps the books honest.
+ */
+export function touchBroth<T extends { gelId: ItemId; fermented: number; anchorMs?: number }>(
+  broth: T,
+  nowMs: number,
+): T {
+  return { ...broth, fermented: brothFermentedEffective(broth, nowMs), anchorMs: nowMs };
 }
 
 /** Fermentation stages, in the game's voice. */

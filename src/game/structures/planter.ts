@@ -6,23 +6,22 @@
 // planted flora as a living table piece. "A plant with an address."
 //
 // THE SHAPE OF THE RECORD (types/game.ts):
-//   planter?: { species: FloraSpecies | null; plantedAt: number; growth: number }
+//   planter?: { species: FloraSpecies | null; plantedAt: number; growth: number; anchorMs?: number }
 // Per-piece state doctrine (Adam, 2026-10-17): the tenant lives in
 // the planter's own record, never a hook-level map. Optional, so
 // old saves load with it absent (read as empty). NO save-version
 // change.
 //
-// THE CLOCKS:
-// - plantedAt is SIM SECONDS (the world tick's clock — the same
-//   clock the chime's lastWarnAt keeps). App never stamps it: a
-//   fresh planting arrives with plantedAt 0, and the sim's planter
-//   pass (hooks/useWorldEntities) stamps the first tick it sees,
-//   so App never needs the sim clock.
-// - growth (0..1) is the mesh and the modal's working value,
-//   advanced by that same sim pass on LOADED-ZONE time (the house
-//   time — vat gestation, the wall's bin). It is quantized to
-//   PLANTER_GROWTH_STEPS so the pass writes at most that many
-//   times per plant per maturation, not once per second.
+// THE CLOCK (timestamp law, Adam 2026-10-19 gap fix — 'A tick
+// timer is a promise the zone must stay loaded to keep; a
+// timestamp is a promise the world keeps on its own.'): growth is
+// the BASE banked at anchorMs (wall clock — the save's
+// createdAt/savedAt basis, the sky calendar's day count); the
+// EFFECTIVE growth is pure (planterGrowthEffective), computed
+// wherever it is read, re-anchored wherever the tenant is
+// disturbed. No standing timer: an unloaded pot grows on, lazily
+// caught up. plantedAt is legacy (sim seconds from the tick era) —
+// kept so old records still parse, ignored by every reader.
 //
 // MATURATION: no species growth-duration constant exists anywhere
 // in the flora tables (checked 2026-10-19 — wild flora carry a
@@ -56,10 +55,16 @@ import { FLORA_LIGHT_BASE } from './lightSpecs';
 import { gestureForFlora, type LightGesture } from './lightGestures';
 import { speciesForPropagule } from '../flora/propagation';
 
-/** A Sol-cycle of loaded-zone sim seconds — the planter's maturation. */
+/** A Sol-cycle of the world's own seconds — the planter's maturation. */
 export const PLANTER_MATURATION_SECONDS = 500;
 
-/** Growth is stored quantized to this many steps (writes are rare). */
+/**
+ * Growth STEPS (legacy of the tick era, when the sim quantized
+ * writes to bound re-renders). No standing timer writes anymore —
+ * the timestamp law reads effective growth straight — so this is
+ * kept only for readers that still import it, and new code should
+ * prefer the continuous effective value.
+ */
 export const PLANTER_GROWTH_STEPS = 24;
 
 /**
@@ -72,11 +77,17 @@ export const PLANTER_POT_SCALE = 0.45;
 /** The house dimming for a potted light: a pot is not a wild bed. */
 export const PLANTER_LIGHT_SCALE = 0.6;
 
-/** The planter's own record, as the sim and the panel read it. */
+/**
+ * The planter's own record, as the sim and the panel read it.
+ * growth is the BASE banked at anchorMs (wall clock — the
+ * timestamp law); plantedAt is legacy from the tick era (sim
+ * seconds), kept so old records still parse, ignored by readers.
+ */
 export interface PlanterState {
   species: FloraSpecies | null;
   plantedAt: number;
   growth: number;
+  anchorMs?: number;
 }
 
 /**
@@ -89,14 +100,48 @@ export function readPlanter(entity: StructureEntity): PlanterState {
     species: entity.planter?.species ?? null,
     plantedAt: entity.planter?.plantedAt ?? 0,
     growth: entity.planter?.growth ?? 0,
+    anchorMs: entity.planter?.anchorMs,
   };
 }
 
 /**
+ * TIMESTAMPS, NOT TICKERS (Adam, 2026-10-19 gap fix; the dev
+ * chair's phrasing, worth keeping: 'A tick timer is a promise the
+ * zone must stay loaded to keep; a timestamp is a promise the
+ * world keeps on its own.'). The tenant's EFFECTIVE growth at a
+ * wall-clock moment: base banked at the anchor, plus the honest
+ * elapsed over the maturation span. Same curve the tick drew
+ * (planterGrowth01, linear to full) — only the clock changed, from
+ * the zone's loaded seconds to the world's own time (the save's
+ * createdAt/savedAt basis, the sky calendar's day count). No
+ * standing timer: an unloaded pot grows on, lazily caught up.
+ * A pre-gap-fix tenant has no anchor — the first read banks NOW
+ * with its carried growth: no jump, no loss. Pure — lab-tested.
+ */
+export function planterGrowthEffective(
+  p: { growth: number; anchorMs?: number },
+  nowMs: number,
+): number {
+  const anchor = p.anchorMs ?? nowMs;
+  const elapsed = Math.max(0, (nowMs - anchor) / 1000);
+  return Math.min(1, p.growth + elapsed / PLANTER_MATURATION_SECONDS);
+}
+
+/**
+ * Re-anchor a planter: the effective growth becomes the new base,
+ * banked NOW. Call it wherever the tenant is disturbed (plant,
+ * take-back writes its own empty record). Every other read is
+ * pure-effective and writes nothing.
+ */
+export function touchPlanterGrowth<T extends PlanterState>(p: T, nowMs: number): T {
+  return { ...p, growth: planterGrowthEffective(p, nowMs), anchorMs: nowMs };
+}
+
+/**
  * The growth fraction 0..1 for a planting of the given age. Pure —
- * the sim tick feeds it (simNow - plantedAt) and stores the
- * quantized result; the mesh and the modal only ever read the
- * stored growth.
+ * kept as the curve's one definition (linear to full over the
+ * maturation span); the timestamp law (planterGrowthEffective)
+ * is what readers call now.
  */
 export function planterGrowth01(plantedAt: number, nowSimSeconds: number): number {
   const age = Math.max(0, nowSimSeconds - plantedAt);
@@ -139,14 +184,14 @@ export function plantablePropagules(inventory: Record<ItemId, number>): ItemId[]
 }
 
 /**
- * Plant a species into an empty planter record. plantedAt stays 0
- * — the sim's planter pass stamps the first tick it sees (App
- * never touches the sim clock). Idempotent: planting into an
- * occupied record is a no-op, never a clobber.
+ * Plant a species into an empty planter record. The tenant is
+ * born anchored NOW (wall clock) at growth 0 — no tick needs to
+ * stamp it; the timestamp law carries it from here. Idempotent:
+ * planting into an occupied record is a no-op, never a clobber.
  */
 export function applyPlant(state: PlanterState, species: FloraSpecies): PlanterState {
   if (state.species) return state;
-  return { species, plantedAt: 0, growth: 0 };
+  return { species, plantedAt: 0, growth: 0, anchorMs: Date.now() };
 }
 
 /**

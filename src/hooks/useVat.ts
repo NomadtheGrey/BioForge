@@ -14,10 +14,11 @@ import type { FaunaEntity, FaunaSpecies, GameNotification, ItemId, StructureEnti
 import type { BiomeId } from '../game/world/biomes';
 import { ITEMS } from '../game/items/constants';
 import { speciesDef } from '../game/creatures/species';
-import { vatKitFor, vatPlanFor } from '../game/structures/vat';
+import { gestationProgressEffective, vatKitFor, vatPlanFor } from '../game/structures/vat';
 import {
   BROTH_STAGE_COPY,
   brothBias,
+  brothFermentedEffective,
   isBrothGel,
 } from '../game/structures/broths';
 import { soundEngine } from '../audio/soundEngine';
@@ -117,9 +118,12 @@ export function useVat({
       return;
     }
     for (const ing of plan.ingredients) deductInventoryItem(ing.id, ing.count);
+    // The gestation is born anchored NOW (wall clock — the
+    // timestamp law): progress accrues from this moment, and an
+    // unloaded zone's culture grows on, lazily caught up.
     upsertStructure({
       ...structure,
-      vat: { ...vat, gestating: { species, progress: 0, total: plan.seconds } },
+      vat: { ...vat, gestating: { species, progress: 0, total: plan.seconds, anchorMs: Date.now() } },
     });
     postNotification(
       'Gestation Begins',
@@ -174,7 +178,11 @@ export function useVat({
     }
     if (!isBrothGel(gelId)) return;
     if (!deductInventoryItem(gelId, 1)) return;
-    upsertStructure({ ...structure, vat: { ...vat, broth: { gelId, fermented: 0 } } });
+    // Cold at loading — the culture is asleep — and anchored NOW:
+    // fermentation runs on wall clock from this moment (the
+    // timestamp law), so a broth poured early ferments while the
+    // vat stands in an unvisited zone.
+    upsertStructure({ ...structure, vat: { ...vat, broth: { gelId, fermented: 0, anchorMs: Date.now() } } });
     const stage = BROTH_STAGE_COPY.cold;
     postNotification(
       'The Broth Is Poured',
@@ -213,9 +221,15 @@ export function useVat({
   const handleVatHatch = useCallback((structure: StructureEntity): void => {
     const vat = structure.vat ?? { tier: 1 };
     const g = vat.gestating;
-    if (!g || g.progress < g.total) return;
+    // Effective, not stored: the gestation may have matured in an
+    // unloaded zone (the timestamp law) — the record only holds
+    // the base. The hatch clears the record, so no re-anchor.
+    const nowMs = Date.now();
+    const progressNow = g ? gestationProgressEffective(g, vat.broth, nowMs) : 0;
+    if (!g || progressNow < g.total) return;
     const def = speciesDef(g.species);
-    const bias = vat.broth ? brothBias(g.species, vat.broth.gelId, vat.broth.fermented) : null;
+    const fermentedNow = vat.broth ? brothFermentedEffective(vat.broth, nowMs) : 0;
+    const bias = vat.broth ? brothBias(g.species, vat.broth.gelId, fermentedNow) : null;
     const baseHealth = def.bonusSpawn?.health ?? 60;
     const baseSpeed = def.bonusSpawn?.speed ?? 1.4;
     const brothName = vat.broth ? ITEMS[vat.broth.gelId]?.name ?? vat.broth.gelId : null;

@@ -16,11 +16,6 @@ import {
 import { multiplayerManager } from '../game/multiplayer';
 import { speciesDef } from '../game/creatures/species';
 import { shouldChimeWarn, chimeLastWarnAt } from '../game/structures/chimeWatch';
-import { wallBinTick } from '../game/structures/fungusWall';
-import {
-  PLANTER_GROWTH_STEPS,
-  planterGrowth01,
-} from '../game/structures/planter';
 // THE SHIELD (Adam, 2026-10-17): the strike side-effect queue
 // drained in the post-map sweep — thorn-spike reflects, braced
 // staggers, and the Fenback's Spore Answer. Block RESOLUTION
@@ -37,7 +32,6 @@ import {
   type StrikeCtx,
 } from '../game/creatures/shields';
 import { sampleItemId, SAMPLE_SHED_SECONDS_TAMED, SAMPLE_SHED_SECONDS_WILD } from '../game/structures/vat';
-import { brothPaceMul, brothWarmth } from '../game/structures/broths';
 import type { ItemId } from '../types/game';
 import type { WorldSnapshot } from '../game/saveSystem';
 import type { AsksEventInput } from '../game/quests/asksBackState';
@@ -561,23 +555,10 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   const prevPhaseRef = useRef(0.35);
   const lastPlayerPosRef = useRef<{ x: number; z: number } | null>(null);
 
-  // Culture-vat gestation clock (2026-10-16): progress accrues in
-  // the tick every frame, but the structures list is only WRITTEN
-  // when a whole second has accrued — a per-frame write would
-  // re-render the app at sim rate for the sake of a patience bar.
-  const vatClockRef = useRef(0);
   // The chime sentinel's listening cadence (BioForge wave 2,
   // 2026-10-19): the watch runs at most once per sim second —
   // per-frame would be a waste on a 25 m proximity law.
   const chimeClockRef = useRef(0);
-  // The mycologist wall's bin cadence (BioForge wave 2,
-  // 2026-10-19): digestion accrues at most once per sim
-  // second — the same cadence as the vat's and the chime's.
-  const wallClockRef = useRef(0);
-  // The planter's growth cadence (BioForge wave 2, slice 5,
-  // 2026-10-19): tenants grow at most once per sim second —
-  // its own clock, like the wall's bin.
-  const planterClockRef = useRef(0);
 
   // Solvent dissolve (Adam, 2026-10-16): the sprayer's emergency
   // harm, as damage over time — a spray buys DISSOLVE_SECONDS of
@@ -2343,123 +2324,18 @@ export function useWorldEntities(): UseWorldEntitiesResult {
         });
       }
 
-        // 1b. Culture Vat Gestations (Adam, 2026-10-15): a vat's
-        // culture works in loaded-zone time — this zone's structures
-        // are the loaded ones by construction — and progress rides
-        // the structure record into the world snapshot, so a
-        // gestation survives saving, travel, and sleep. Written at
-        // most once a second (see vatClockRef).
-        // 1c. Vat broths (wave 2): the loaded gel ferments on the
-        // same clock — fermented seconds ride the record too — and
-        // a bog_jelly broth sets the culture: the gestation's pace
-        // rises as the broth warms (a ripe bog broth paces 1.43× —
-        // the creatures chair's ×0.7 approached, never exceeded).
-        // NO fire anywhere: the warmth is the broth's own work.
-        vatClockRef.current += dt;
-        if (vatClockRef.current >= 1) {
-          const wholeSeconds = Math.floor(vatClockRef.current);
-          vatClockRef.current -= wholeSeconds;
-          const vats = structuresRef.current;
-          if (vats.some((st) => st.type === 'culture_vat' && (st.vat?.broth || (st.vat?.gestating && st.vat.gestating.progress < st.vat.gestating.total)))) {
-            setStructuresList((prev) =>
-              prev.map((st) => {
-                if (st.type !== 'culture_vat' || !st.vat) return st;
-                const g = st.vat.gestating;
-                const b = st.vat.broth;
-                if (!b && (!g || g.progress >= g.total)) return st;
-                const w = b ? brothWarmth(b.fermented) : 0;
-                const pace = b?.gelId === 'bog_jelly' && g && g.progress < g.total ? brothPaceMul(w) : 1;
-                return {
-                  ...st,
-                  vat: {
-                    ...st.vat,
-                    gestating:
-                      g && g.progress < g.total
-                        ? { ...g, progress: Math.min(g.total, g.progress + wholeSeconds * pace) }
-                        : g,
-                    broth: b ? { ...b, fermented: b.fermented + wholeSeconds } : b,
-                  },
-                };
-              }),
-            );
-          }
-        }
-
-        // 1d. The Mycologist's Wall's bin (BioForge wave 2,
-        // 2026-10-19; Adam: give fungus a purpose): the rot
-        // crew digests banked stock into ready compost on the
-        // same loaded-zone clock, gated on simulateWorld — a
-        // guest's client must not digest too, or the bin would
-        // digest twice under the host's law. Pure law in
-        // game/structures/fungusWall.ts (wallBinTick); this pass
-        // applies it through setStructuresList — the bin has a
-        // HUD surface (WallModal reads it live), so the tick
-        // writes like the vat's, not in place like the chime's.
-        // Its own clock (the chime's pattern), not the vat's —
-        // a bin should not borrow another structure's patience.
-        wallClockRef.current += dt;
-        if (wallClockRef.current >= 1 && simulateWorld) {
-          const wholeSeconds = Math.floor(wallClockRef.current);
-          wallClockRef.current -= wholeSeconds;
-          const walls = structuresRef.current;
-          if (walls.some((st) => st.type === 'mycologist_wall' && (st.wall?.binStock ?? 0) > 0)) {
-            setStructuresList((prev) =>
-              prev.map((st) => {
-                if (st.type !== 'mycologist_wall' || !st.wall) return st;
-                const next = wallBinTick(
-                  {
-                    binStock: st.wall.binStock,
-                    binDone: st.wall.binDone,
-                    binClock: st.wall.binClock,
-                    mounted: st.wall.mounted,
-                  },
-                  wholeSeconds,
-                );
-                if (next.binStock === st.wall.binStock && next.binDone === st.wall.binDone) return st;
-                return { ...st, wall: { ...st.wall, ...next } };
-              }),
-            );
-          }
-        }
-
-        // 1e. The Planter's growth (BioForge wave 2, slice 5,
-        // 2026-10-19): a planted tenant grows on the loaded-zone
-        // clock — the house time (vat gestation, the wall's bin),
-        // gated on simulateWorld like the rest. Pure law in
-        // game/structures/planter.ts (planterGrowth01); this pass
-        // applies it through setStructuresList — the planter has
-        // a HUD surface (PlanterModal reads growth live) and the
-        // mesh scales from the stored growth, so the tick writes
-        // like the vat's, not in place like the chime's.
-        //
-        // A fresh planting arrives with plantedAt 0 (App never
-        // touches the sim clock); the first tick it sees stamps
-        // it. Growth is quantized to PLANTER_GROWTH_STEPS, so a
-        // plant costs at most that many writes per maturation —
-        // not one per second for a day's turning.
-        planterClockRef.current += dt;
-        if (planterClockRef.current >= 1 && simulateWorld) {
-          planterClockRef.current = 0;
-          const now = simClockRef.current;
-          if (
-            structuresRef.current.some(
-              (st) => st.type === 'planter' && st.planter?.species && (st.planter.growth ?? 0) < 1,
-            )
-          ) {
-            setStructuresList((prev) =>
-              prev.map((st) => {
-                if (st.type !== 'planter' || !st.planter?.species) return st;
-                const p = st.planter;
-                const plantedAt = p.plantedAt > 0 ? p.plantedAt : now;
-                const q =
-                  Math.round(planterGrowth01(plantedAt, now) * PLANTER_GROWTH_STEPS) /
-                  PLANTER_GROWTH_STEPS;
-                if (q === (p.growth ?? 0) && p.plantedAt === plantedAt) return st;
-                return { ...st, planter: { ...p, plantedAt, growth: q } };
-              }),
-            );
-          }
-        }
+        // 1b-1e. GROWN THINGS, ON TIMESTAMPS (Adam, 2026-10-19
+        // gap fix): the vat's gestation, the broth's fermentation,
+        // the wall's bin digestion, and the planter's tenant growth
+        // no longer advance on this tick. Each keeps a base + a
+        // wall-clock anchor on its own record (the timestamp law —
+        // 'A tick timer is a promise the zone must stay loaded to
+        // keep; a timestamp is a promise the world keeps on its
+        // own.'); reads compute the effective value, touches
+        // re-anchor it. The per-second writers are gone on purpose:
+        // an unloaded zone's grown things grow on, lazily caught up
+        // (pure laws: game/structures/vat.ts, broths.ts,
+        // fungusWall.ts, planter.ts).
 
       }
 

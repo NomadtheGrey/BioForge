@@ -1216,7 +1216,7 @@ export const HUD: React.FC<HUDProps> = ({
             {/* Touch keeps the session button icon-only; the room
                 code itself lives in the co-op window it opens. */}
             <span className={touchMode ? 'hidden' : undefined}>
-              {roomCode ? `Room: ${roomCode} (${peerCount + 1})` : 'P2P Co-Op'}
+              {roomCode ? `Room: ${roomCode} (${peerCount + 1})` : 'Co-Op'}
             </span>
           </button>
 

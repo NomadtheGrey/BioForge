@@ -68,6 +68,7 @@ import { LANDFORM_EPOCH_MS } from './game/world/terrain';
 import { setSkyZone } from './game/world/skyCalendar';
 import { routeForZoneTag, storeEntityEvent, snapshotOf, buildZoneSyncTravel as buildZoneSyncTravelPayload, type ZoneStores } from './game/zoneSync';
 import { occupancyConflict, placementFor } from './game/structures/placement';
+import { findClearGround } from './game/structures/clearGround';
 import { useToolInteractions } from './hooks/useToolInteractions';
 import {
   AUTOSAVE_INTERVAL_MS,
@@ -2606,6 +2607,66 @@ const {
     if (!touchMode) engineRef.current?.requestPointerLock();
   };
 
+  // The Stuck button's seam (Adam, 2026-10-19 — the ruin-exit trap):
+  // relocate the LOCAL player a few meters to safe ground. The UI
+  // labels it "Stuck" and decides where the button lives; this is
+  // the move it calls. Position only — no world-state writes — so a
+  // guest unsticking never touches the host's world; the existing
+  // movement sync carries the new position like any step. Inside a
+  // cave/ruin the search reads that instance's live structures plus
+  // its rock grid; on the surface it reads the zone's. Lava and deep
+  // water are refused as rescue ground. The search widens once, then
+  // falls back: the instance's (guarded) exit while inside one, the
+  // spawn Heart Tile on the surface. No save-format change.
+  const handleStuck = useCallback((): void => {
+    const inst = instanceRef.current;
+    const pos = playerPosRef.current;
+    const level = playerLevelRef.current ?? 0;
+    const cavern =
+      inst.kind === 'cavern'
+        ? { grid: inst.cavern.grid, width: inst.cavern.width, height: inst.cavern.height }
+        : inst.kind === 'ruin'
+          ? { grid: inst.collisionGrid, width: inst.ruin.width, height: inst.ruin.height }
+          : null;
+    // The live list IS the current context's structures — the hook
+    // swapped the instance's in on entry, the surface's on exit.
+    const structures = structuresListRef.current;
+    const isHazard = (x: number, z: number): boolean => {
+      const l = engineRef.current?.liquidAt(x, z);
+      if (!l) return false;
+      return l.liquid === 'lava' || l.depth > 1.0;
+    };
+    const search = (maxRadius: number) =>
+      findClearGround(pos.x, pos.z, structures, level, {
+        firstRing: 3,
+        skipIdentity: true,
+        maxRadius,
+        isHazard,
+        cavern,
+      });
+    const spot = search(10) ?? search(25);
+    if (spot) {
+      playerPosRef.current = { x: spot.x, z: spot.z, rotation: pos.rotation };
+      engineRef.current?.setPlayerPosition(spot.x, spot.z, level);
+      postNotification('Unstuck', 'You find your footing a few meters on, on solid ground.', 'system', '#38bdf8');
+      return;
+    }
+    // Pathological fallback — a 25 m solid disc around the player:
+    // take the honest way out. Inside an instance that is the
+    // (placement-guarded) exit; on the surface it is the spawn
+    // Heart Tile, the game's designed wake point.
+    if (inst.kind === 'ruin') {
+      handleExitRuin();
+      return;
+    }
+    if (inst.kind === 'cavern') {
+      handleExitCave();
+      return;
+    }
+    respawnAtSpawn();
+    postNotification('Carried Home', 'No safe ground within reach — you wake at the spawn base, on the heart tile at its center.', 'system', '#38bdf8');
+  }, [postNotification, handleExitRuin, handleExitCave, respawnAtSpawn]);
+
   useGameLoop({
     containerRef, engineRef, movementController, playerPosRef, playerLevelRef,
     jumpRef, bounceGraceUntil, keysPressed, touchInputRef, staminaRef, lastStaminaSync,
@@ -3168,6 +3229,7 @@ const {
         isPointerLocked={isPointerLocked}
         isReturnPaused={returnPaused}
         onResumeFromReturn={resumeFromReturn}
+        onStuck={handleStuck}
         touchMode={touchMode}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleGameFullscreen}

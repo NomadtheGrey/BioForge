@@ -20,6 +20,27 @@ const PLAYER_RADIUS = 0.42;
 const WORLD_BOUNDARY = 48.0;
 
 /**
+ * Placement-time twin of the movement check: is this exact point
+ * blocked for a standing player? The movement resolver
+ * (resolveMovementWithCollision) refuses entry but has NO ejector —
+ * a player teleported INSIDE a solid disc can never walk out (every
+ * candidate step collides, and the controller zeroes the velocity
+ * on top). So every placement the game WRITES — instance exits,
+ * rescues, spawns — must ask this FIRST and never write a blocked
+ * point. Flora never blocks (Adam's ruling); cavern walls are
+ * instance-interior business, so the surface placement path does
+ * not ask them here.
+ */
+export function isPositionBlocked(
+  x: number,
+  z: number,
+  structures: StructureEntity[],
+  playerLevel: number = 0
+): boolean {
+  return isCollidingWithStructure(x, z, structures, playerLevel);
+}
+
+/**
  * Checks if a candidate position collides with any solid structure
  */
 function isCollidingWithStructure(

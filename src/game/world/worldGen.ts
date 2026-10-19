@@ -319,7 +319,7 @@ import type { PondDef, RiverSeg } from './terrain';
  *     duck's dive, the crab's venting). The quest-log
  *     wiring is the dev chat's lane, specced in the file.
  */
-export const WORLD_GEN_VERSION = 69; // v69 (2026-10-19): ghost slice G3 — Mouth-Vine dealt (wetland/fungal bonusGrow) and the flora hazard engine wired (floraHazards.ts). v68 (2026-10-19): ghost slice G2 — Ribbon Moss dealt (the silent ghost gains a body: bonusGrow flora, rootwood/wetland). v67 (2026-10-18): Departure D3 — the Presence dealt into Answer worlds (living hearts of living zones in becoming worlds; bright-pond shores in return-to-water worlds). v66 was creature slice 51 (the Three Wild Predators); v65 was creature slice 50 (the Distance Gradient)
+export const WORLD_GEN_VERSION = 70; // v69 (2026-10-19): ghost slice G3 — Mouth-Vine dealt (wetland/fungal bonusGrow) and the flora hazard engine wired (floraHazards.ts). v68 (2026-10-19): ghost slice G2 — Ribbon Moss dealt (the silent ghost gains a body: bonusGrow flora, rootwood/wetland). v67 (2026-10-18): Departure D3 — the Presence dealt into Answer worlds (living hearts of living zones in becoming worlds; bright-pond shores in return-to-water worlds). v66 was creature slice 51 (the Three Wild Predators); v65 was creature slice 50 (the Distance Gradient)
 
 // ---------------------------------------------------------------------------
 // World shape + density (named constants — Tenet 10)

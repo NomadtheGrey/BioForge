@@ -118,9 +118,9 @@ export const INITIAL_CODEX: CodexEntry[] = [
     discovered: false,
     scannedCount: 0,
     description: 'Massive apex herbivore encased in heavy bio-plating. Gentle unless provoked.',
-    byproducts: ['Heavy Chitin Plates', 'Pure Animal Secretions'],
-    tamingOrCraftNotes: 'Requires substantial offering of Sweet Nectar and Petals.',
-    biome: 'Deep Glade',
+    byproducts: ['Carapace Scale'],
+    tamingOrCraftNotes: 'A substantial courtship: Sweet Nectar on the lure, offered over days — most offerings are refused, and it never hurries. It sheds plates where it rubs against the glade trees; gather those freely. Gentle unless provoked — and provoked, it is a mountain deciding.',
+    biome: 'Rootwood (the deep glades)',
     iconColor: '#6366f1',
   },
   {

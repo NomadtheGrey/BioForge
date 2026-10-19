@@ -657,6 +657,48 @@ export function createCreatureMeshKit(
         break;
       }
 
+      case 'scale_bear': {
+        // The Scale-Bear Guardian (unwired-three W2, 2026-10-19):
+        // a mountain that grazes — a huge slate body under
+        // overlapping indigo back plates (what it sheds, shown at
+        // home), head carried low, in no hurry whatsoever.
+        const hideMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9 });
+        const plateMat = new THREE.MeshStandardMaterial({ color: 0x6366f1, roughness: 0.45, metalness: 0.15 });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.78, 1.25, 8, 14), hideMat);
+        body.rotation.x = Math.PI / 2;
+        body.position.y = 1.25;
+        body.castShadow = true;
+        group.add(body);
+        // The plates: three rows of flattened scales down the
+        // back, overlapping like shingles.
+        for (let rowIdx = 0; rowIdx < 3; rowIdx++) {
+          for (let colIdx = 0; colIdx < 3; colIdx++) {
+            const plate = new THREE.Mesh(new THREE.SphereGeometry(0.34, 10, 6), plateMat);
+            plate.scale.set(1.1, 0.32, 1.3);
+            plate.position.set((colIdx - 1) * 0.42, 1.92 - Math.abs(colIdx - 1) * 0.08, 0.55 - rowIdx * 0.55);
+            group.add(plate);
+          }
+        }
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.44, 12, 10), hideMat);
+        head.position.set(0, 1.15, 1.3);
+        group.add(head);
+        const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.24, 10, 8), hideMat);
+        muzzle.scale.set(0.9, 0.75, 1.1);
+        muzzle.position.set(0, 1.02, 1.66);
+        group.add(muzzle);
+        for (const sx of [-1, 1]) {
+          const ear = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), plateMat);
+          ear.position.set(sx * 0.28, 1.52, 1.22);
+          group.add(ear);
+          for (const sz of [-1, 1]) {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.2, 1.0, 8), hideMat);
+            leg.position.set(sx * 0.48, 0.5, sz * 0.62);
+            group.add(leg);
+          }
+        }
+        break;
+      }
+
       case 'mulch_beetle': {
         // The Mulchwood's farmer (slice 3): a dome-backed beetle
         // with a tended fungus comb riding its back.

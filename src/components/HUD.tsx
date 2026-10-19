@@ -515,7 +515,7 @@ export const HUD: React.FC<HUDProps> = ({
       label: 'Planter Trowel',
       key: '3',
       icon: '🌱',
-      desc: 'Plant seeds and apply growth fertilizers',
+      desc: 'Plants your planting stock and applies growth fertilizers',
       color: '#4ade80',
     },
     {
@@ -523,7 +523,7 @@ export const HUD: React.FC<HUDProps> = ({
       label: 'Solvent Sprayer',
       key: '4',
       icon: '💧',
-      desc: 'Dissolves structures back into 100% raw seeds',
+      desc: 'Dissolves structures back into their kit, plants into planting stock',
       color: '#f43f5e',
     },
     {

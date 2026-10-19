@@ -292,7 +292,8 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({
             <p>
               <span className="font-semibold text-slate-100">Left Hand</span>
               <span className="text-slate-400">
-                {' '}— lantern or shield. <span className="text-slate-200 font-medium">Ctrl + wheel</span> cycles it.
+                {' '}— lantern or shield. <span className="text-slate-200 font-medium">Ctrl + wheel</span> or{' '}
+                <span className="text-slate-200 font-medium">Ctrl + ↑/↓</span> cycles it — or tap its tile.
               </span>
             </p>
           </Section>

@@ -60,7 +60,7 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({
               </div>
               <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex justify-between items-center">
                 <span className="text-slate-300">Collision Physics</span>
-                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-emerald-300 font-bold">Solid Walls & Dense Flora</span>
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-emerald-300 font-bold">Solid Walls & Structures</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex justify-between items-center">
                 <span className="text-slate-300">Jump</span>

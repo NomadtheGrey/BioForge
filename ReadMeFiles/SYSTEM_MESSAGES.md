@@ -73,13 +73,14 @@ treats any failure as silence.
   the grower", the build stamp in the footer. A
   notice-priority broadcast may open the news ONCE on first
   load; closing marks everything seen.
-- **In-game**: the system stream — a HUD_PANELS panel at the
-  BOTTOM of the left stack (the HUD lane's placement call:
-  the column reads urgency-descending), default shown,
-  height-capped with its own internal scroll. System lines
-  land live; notice-level lines ALSO toast once (type
-  'system'). The stream is a record: lines stay re-readable
-  for the session. Clicking the panel marks seen.
+- **In-game** (amended same day — THE CHAT FOLD): the stream
+  panel described in the first draft was retired within hours
+  (Adam: the system word is the less common voice; one panel
+  too many). System lines now land **in the co-op chat** —
+  **SYSTEM** (automated, sky) and **ADMIN** (Adam's broadcasts,
+  amber), projected once each by `src/game/systemChat.ts`. The
+  solo player reads the same record in the lobby's Transmissions
+  pane. The start-screen NEWS seat above remains the archive.
 
 ## Discipline
 

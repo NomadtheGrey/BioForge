@@ -1,8 +1,12 @@
 # World Generation — Algorithms & Player Extras (Brainstorm)
 
-**Status: BRAINSTORM / RECOMMENDATIONS (2026-10-13).** Nothing here is
-pinned except where it points at settled rules in BIOMES_BRAINSTORM.md
-(host generates zones; instanced interiors; biome = rules).
+**Status: BRAINSTORM / RECOMMENDATIONS (2026-10-13; sweep note
+2026-10-18).** Nothing here is pinned except where it points at
+settled rules in BIOMES_BRAINSTORM.md (host generates zones;
+instanced interiors; biome = rules). Much of what this file
+recommends has since shipped — the shipped truth lives in
+GENERATION_ALGORITHMS.md (P1–P5) and BIOMES_BRAINSTORM.md's
+sweep note; this file is the era's thinking, kept as history.
 
 Caves and ruins want *different* generators: one is grown by geology, the
 other was grown on purpose.

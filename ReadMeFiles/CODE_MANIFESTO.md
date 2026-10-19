@@ -1,6 +1,20 @@
 BioForge — Code Manifesto & Engineering Guidelines
 Status: Mandatory Engineering Specification
-Last Updated: October 12, 2026
+Last Updated: October 12, 2026 (layout note added 2026-10-18)
+
+**Layout note (2026-10-18, the docs sweep).** Since this spec was
+written, the source has been reorganized (2026-10-17) into domain
+folders under `src/game/` — creatures, engine, flora, items,
+knowledge, quests, structures, world — with the platform layer at
+the root (saveSystem, multiplayer, zoneSync, cloudSaves,
+cloudWords). Two standing pins govern future change: **types stay
+whole** (`src/types/game.ts` is one canonical registry, never
+split by domain), and **App.tsx is never refactored as a campaign**
+— any landing that touches it leaves it smaller, its edits wiring
+rather than logic. New modules are born as their own files in
+their domain folder. The incident lessons a maintainer needs
+(frozen closures, heal loops, light pooling) live in
+ReadMeFiles/ENGINEERING_NOTES.md.
 Scope: All Code Generation, Features, Refactoring, and Architecture
 This document defines the strict architectural, style, and performance rules governing all code contributions and refactors in the BioForge codebase. Every developer, agent, and reviewer must adhere strictly to these 10 tenets:
 

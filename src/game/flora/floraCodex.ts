@@ -2082,4 +2082,16 @@ export const FLORA_CODEX: CodexEntry[] = [
     biome: 'Wetland / Frost (the great ponds\' deeps)',
     iconColor: '#4ade80',
   },
+  {
+    species: 'ribbon_moss',
+    name: 'Ribbon Moss',
+    type: 'flora',
+    discovered: false,
+    scannedCount: 0,
+    description: 'A moss that shines upward: a dark ground-mat in the shaded country, its long flat ribbons lying along the earth and lifting at their tips, lit teal at the ends like the last inch of a cut cable. Nothing eats it and it eats nothing; it simply makes the dark floor of the rootwood legible, one ribbon at a time.',
+    byproducts: ['Ribbon Moss (the cutting itself)', 'Dew Essence'],
+    tamingOrCraftNotes: 'Cut with the glove; the cutting is the planting stock — press a ribbon into shaded ground and it takes. A grown floor of it is a night path you can move house with.',
+    biome: 'Rootwood and Wetland country (the shade)',
+    iconColor: '#2dd4bf',
+  },
 ];

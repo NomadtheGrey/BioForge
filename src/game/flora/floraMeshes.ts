@@ -196,6 +196,31 @@ export function buildFloraMesh(
         break;
       }
 
+      case 'ribbon_moss': {
+        // The silent ghost's body (Part 8, slice G2): a dark
+        // ground-mat with long flat ribbons lying along the
+        // earth, lifting at their tips and lit teal at the ends —
+        // the light table described it years before it existed
+        // (teal, intensity 4, y 0.4: a glow that hugs the floor).
+        const mat = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.65, 0.07, 10), materials.woodRoot);
+        mat.position.y = 0.035;
+        mat.castShadow = true;
+        group.add(mat);
+        for (let i = 0; i < 7; i++) {
+          const a = (i / 7) * Math.PI * 2 + 0.35;
+          const len = 0.7 + ((i * 37) % 40) / 100;
+          const ribbon = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.02, len), materials.woodRoot);
+          ribbon.position.set(Math.sin(a) * (0.45 + len / 2), 0.06, Math.cos(a) * (0.45 + len / 2));
+          ribbon.rotation.y = a;
+          group.add(ribbon);
+          const tip = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.03, 0.16), materials.biolumCyan);
+          tip.position.set(Math.sin(a) * (0.45 + len), 0.09, Math.cos(a) * (0.45 + len));
+          tip.rotation.y = a;
+          group.add(tip);
+        }
+        break;
+      }
+
       case 'bounce_shroom': {
         // Squat springy stem + a wide violet cap: the trampoline. The
         // cap is named so the render loop can squash it when bounced on.

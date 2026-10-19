@@ -3816,6 +3816,29 @@ export const FLORA: Record<string, FloraDef> = {
     bonusGrow: null,
   },
 
+  // THE SILENT GHOST (Part 8, slice G2, 2026-10-19): ribbon_moss
+  // sat in the FloraSpecies union and the light table (teal, low)
+  // for the whole life of the game with no def, no codex entry,
+  // and no mention in any design doc — a light in search of a
+  // plant. The light table was the only testimony: LOW, TEAL,
+  // GROUND-HUGGING. A moss, then, that shines faintly upward.
+  // It plants by its own cutting, per the propagation grammar
+  // for mosses: take a ribbon, plant a ribbon.
+  ribbon_moss: {
+    id: 'ribbon_moss',
+    name: 'Ribbon Moss',
+    kind: 'flora',
+    propagation: 'ribbon_moss',
+    harvest: { item: 'ribbon_moss', count: 2, fertilizedCount: 3, extras: [['dew_essence', 1]] },
+    bonusGrow: {
+      biomes: ['rootwood', 'wetland'],
+      count: 3,
+      minRadius: 10,
+      spacing: 4,
+      scale: 1.0,
+    },
+  },
+
   // The variant-dressing set (worldGen's hand-placed blocks).
   antenna_shroom: {
     id: 'antenna_shroom',

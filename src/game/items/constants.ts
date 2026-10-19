@@ -1814,6 +1814,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'uncommon',
     maxStack: 99,
   },
+  ribbon_moss: {
+    id: 'ribbon_moss',
+    name: 'Ribbon Moss',
+    category: 'raw',
+    description: 'A cutting of the teal-lit moss — a dark ribbon of it, still faintly shining at the tip. Press it into shaded ground and it takes: take a ribbon, plant a ribbon.',
+    iconName: 'Leaf',
+    color: '#2dd4bf',
+    rarity: 'uncommon',
+    maxStack: 99,
+  },
   prismatic_core: {
     id: 'prismatic_core',
     name: 'Prismatic Core',

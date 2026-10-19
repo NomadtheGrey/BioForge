@@ -169,6 +169,10 @@ import { InventoryModal } from './components/InventoryModal';
 import { StorageModal } from './components/StorageModal';
 import { VatModal } from './components/VatModal';
 import { WallModal } from './components/WallModal';
+import { PlanterModal } from './components/PlanterModal';
+import { readPlanter, applyPlant, applyTake } from './game/structures/planter';
+import { speciesForPropagule, propaguleItemOf } from './game/flora/propagation';
+import { floraDef } from './game/flora/flora';
 import { readWall, mountCap, unmountCap, WALL_BIN_MAX, WALL_BIN_FEED, WALL_BIN_HARVEST_COST } from './game/structures/fungusWall';
 import { POUCH_TIER_CAPS, POUCH_UPGRADE_ITEMS, pouchTierOf, storageClusterOf } from './game/items/pouch';
 import { CodexModal } from './components/CodexModal';
@@ -281,7 +285,7 @@ export default function App() {
 
   // 2. Modals & UI States
   const [activeModal, setActiveModal] = useState<
-    'bioforge' | 'inventory' | 'codex' | 'multiplayer' | 'controls' | 'devtools' | 'quests' | 'storage' | 'vat' | 'wall' | null
+    'bioforge' | 'inventory' | 'codex' | 'multiplayer' | 'controls' | 'devtools' | 'quests' | 'storage' | 'vat' | 'wall' | 'planter' | null
   >(null);
 
   // The About screen (info screen work order, 2026-10-17): its
@@ -340,6 +344,8 @@ export default function App() {
   const [vatTargetId, setVatTargetId] = useState<string | null>(null);
   // Which mycologist's wall the WallModal shows (id; entity re-read live).
   const [wallTargetId, setWallTargetId] = useState<string | null>(null);
+  // Which planter the PlanterModal shows (id; entity re-read live).
+  const [planterTargetId, setPlanterTargetId] = useState<string | null>(null);
   // The companion whose RELEASE is being confirmed (Adam,
   // 2026-10-15: release always asks first). The fauna rides
   // along so the dialog can say its name.
@@ -1236,6 +1242,10 @@ export default function App() {
     onOpenWall: (structure) => {
       setWallTargetId(structure.id);
       setActiveModal('wall');
+    },
+    onOpenPlanter: (structure) => {
+      setPlanterTargetId(structure.id);
+      setActiveModal('planter');
     },
     onTunnelTransit,
     getTunnelMouthCount,
@@ -3013,6 +3023,12 @@ const {
       ? structuresList.find((s) => s.id === wallTargetId && s.type === 'mycologist_wall')
       : undefined;
 
+  // The planter the panel is showing, if it still stands.
+  const planterStructure =
+    activeModal === 'planter' && planterTargetId
+      ? structuresList.find((s) => s.id === planterTargetId && s.type === 'planter')
+      : undefined;
+
   // The radar's tier (Adam's taxonomy, 2026-10-16): the helm
   // carries the radar track — TIER 1 wayfinding when helm +
   // radar are owned, TIER 2 creature location when the
@@ -3367,6 +3383,55 @@ const {
             addInventoryItem('basic_compost', paid);
             upsertStructure({ ...live, wall: { ...w, binDone: w.binDone - paid * WALL_BIN_HARVEST_COST } });
             postNotification('Compost Gathered', `The wall's rot crew gives up ${paid} compost${paid === 1 ? '' : 's'} — digested slow and honest.`, 'craft', '#d6a05c');
+          }}
+        />
+      )}
+      {/* The planter (entity re-read live from the list). */}
+      {activeModal === 'planter' && planterStructure && (
+        <PlanterModal
+          structure={planterStructure}
+          inventory={inventory}
+          onClose={() => {
+            setActiveModal(null);
+            setPlanterTargetId(null);
+          }}
+          onPlant={(structure, itemId) => {
+            const live = structuresList.find((s) => s.id === structure.id);
+            if (!live || !hasItem(itemId, 1)) return;
+            // The picker's truth (planter.plantablePropagules):
+            // the item names a species, or it plants nothing.
+            const species = speciesForPropagule(itemId);
+            if (!species) return;
+            const p = readPlanter(live);
+            if (p.species) return;
+            deductInventoryItem(itemId, 1);
+            // plantedAt stays 0 — the sim's planter pass stamps
+            // the first tick it sees (App never touches the sim
+            // clock); the tenant arrives a seedling.
+            upsertStructure({ ...live, planter: applyPlant(p, species) });
+            const name = floraDef(species)?.name ?? species;
+            postNotification('Planted', `The ${name} settles into its pot — a plant with an address.`, 'craft', '#a3e635');
+          }}
+          onTake={(structure) => {
+            const live = structuresList.find((s) => s.id === structure.id);
+            if (!live) return;
+            const p = readPlanter(live);
+            if (!p.species) return;
+            // The take-back rule (mirrors the field-dissolve rule):
+            // seed-bearers return their seed, piece species their
+            // piece — propagation.ts is the one truth.
+            const back = propaguleItemOf(p.species);
+            const name = floraDef(p.species)?.name ?? p.species;
+            if (back) addInventoryItem(back, 1);
+            upsertStructure({ ...live, planter: applyTake(p) });
+            postNotification(
+              'Plant Taken',
+              back
+                ? `The ${name} comes out of its pot whole — its ${ITEMS[back]?.name ?? back} back in your pouch.`
+                : `The ${name} comes out of its pot whole. The pot stands empty.`,
+              'system',
+              '#a3e635',
+            );
           }}
         />
       )}

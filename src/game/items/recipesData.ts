@@ -215,6 +215,24 @@ export const RECIPES: CraftingRecipe[] = [
     craftTimeMs: 2400,
   },
   {
+    id: 'craft_planter',
+    outputId: 'planter',
+    outputCount: 1,
+    name: 'Planter',
+    // The Bio-Forge grows the planter whole — a pot with soil
+    // already in it and roots for feet — and the builder plants
+    // it like any other structure. Resin and fiber are the pot's
+    // grown walls; the compost is the soil it arrives holding.
+    description: 'Grow a handsome pot with soil already in it: plant one seed or cutting and it grows where you put it — a plant with an address.',
+    category: 'composites',
+    ingredients: [
+      { id: 'resin_sap', count: 2 },
+      { id: 'soft_fiber', count: 2 },
+      { id: 'basic_compost', count: 1 },
+    ],
+    craftTimeMs: 2400,
+  },
+  {
     id: 'craft_mycologist_wall',
     outputId: 'mycologist_wall',
     outputCount: 1,

@@ -17,6 +17,10 @@ import { multiplayerManager } from '../game/multiplayer';
 import { speciesDef } from '../game/creatures/species';
 import { shouldChimeWarn, chimeLastWarnAt } from '../game/structures/chimeWatch';
 import { wallBinTick } from '../game/structures/fungusWall';
+import {
+  PLANTER_GROWTH_STEPS,
+  planterGrowth01,
+} from '../game/structures/planter';
 // THE SHIELD (Adam, 2026-10-17): the strike side-effect queue
 // drained in the post-map sweep — thorn-spike reflects, braced
 // staggers, and the Fenback's Spore Answer. Block RESOLUTION
@@ -570,6 +574,10 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   // 2026-10-19): digestion accrues at most once per sim
   // second — the same cadence as the vat's and the chime's.
   const wallClockRef = useRef(0);
+  // The planter's growth cadence (BioForge wave 2, slice 5,
+  // 2026-10-19): tenants grow at most once per sim second —
+  // its own clock, like the wall's bin.
+  const planterClockRef = useRef(0);
 
   // Solvent dissolve (Adam, 2026-10-16): the sprayer's emergency
   // harm, as damage over time — a spray buys DISSOLVE_SECONDS of
@@ -2409,6 +2417,45 @@ export function useWorldEntities(): UseWorldEntitiesResult {
                 );
                 if (next.binStock === st.wall.binStock && next.binDone === st.wall.binDone) return st;
                 return { ...st, wall: { ...st.wall, ...next } };
+              }),
+            );
+          }
+        }
+
+        // 1e. The Planter's growth (BioForge wave 2, slice 5,
+        // 2026-10-19): a planted tenant grows on the loaded-zone
+        // clock — the house time (vat gestation, the wall's bin),
+        // gated on simulateWorld like the rest. Pure law in
+        // game/structures/planter.ts (planterGrowth01); this pass
+        // applies it through setStructuresList — the planter has
+        // a HUD surface (PlanterModal reads growth live) and the
+        // mesh scales from the stored growth, so the tick writes
+        // like the vat's, not in place like the chime's.
+        //
+        // A fresh planting arrives with plantedAt 0 (App never
+        // touches the sim clock); the first tick it sees stamps
+        // it. Growth is quantized to PLANTER_GROWTH_STEPS, so a
+        // plant costs at most that many writes per maturation —
+        // not one per second for a day's turning.
+        planterClockRef.current += dt;
+        if (planterClockRef.current >= 1 && simulateWorld) {
+          planterClockRef.current = 0;
+          const now = simClockRef.current;
+          if (
+            structuresRef.current.some(
+              (st) => st.type === 'planter' && st.planter?.species && (st.planter.growth ?? 0) < 1,
+            )
+          ) {
+            setStructuresList((prev) =>
+              prev.map((st) => {
+                if (st.type !== 'planter' || !st.planter?.species) return st;
+                const p = st.planter;
+                const plantedAt = p.plantedAt > 0 ? p.plantedAt : now;
+                const q =
+                  Math.round(planterGrowth01(plantedAt, now) * PLANTER_GROWTH_STEPS) /
+                  PLANTER_GROWTH_STEPS;
+                if (q === (p.growth ?? 0) && p.plantedAt === plantedAt) return st;
+                return { ...st, planter: { ...p, plantedAt, growth: q } };
               }),
             );
           }

@@ -18,6 +18,7 @@ import type { StructureEntity } from '../../types/game';
 import { pulseHeartbeat, phaseForId } from './lifePulse';
 import { ITEMS } from '../items/constants';
 import { GLOW_CAPS } from './fungusWall';
+import { planterTenantScale } from './planter';
 
 /** The glow family's ids, for the emissive dress pass. */
 const GLOW_CAP_SET = new Set(GLOW_CAPS);
@@ -309,5 +310,43 @@ export function updateFungusWallLife(
         mat.emissiveIntensity = 0;
       }
     }
+  });
+}
+
+/**
+ * The Planter's life (BioForge wave 2, slice 5, 2026-10-19).
+ *
+ * The builder dresses the tenant once (plant/take rebuilds the
+ * mesh via the planter kind key in syncStructures); this pass only
+ * GROWS it. Every frame it reads the entity's stored growth —
+ * advanced by the sim's planter pass on loaded-zone time — and
+ * scales the named dressing group to match, so the plant swells
+ * toward pot size without a single rebuild. A planted tenant also
+ * gets the house's gentle sway, phased per planter like every
+ * other living pass. Presentation only: the GROWTH law is the
+ * sim's (planter.planterGrowth01), never the mesh's.
+ */
+export function updatePlanterLife(
+  structureMeshMap: Map<string, THREE.Group>,
+  elapsedTime: number,
+): void {
+  structureMeshMap.forEach((mesh) => {
+    const entity = mesh.userData.entity as StructureEntity | undefined;
+    if (!entity || entity.type !== 'planter') return;
+    const dressing = mesh.getObjectByName('planterDressing');
+    if (!dressing) return;
+    const tenant = entity.planter?.species;
+    // The tenant's pot scale at its stored growth. (The builder
+    // seats the same scale at dress time; this keeps it honest
+    // across the growth ticks without rebuilding.)
+    dressing.scale.setScalar(planterTenantScale(entity.planter?.growth ?? 0));
+    if (!tenant) {
+      dressing.rotation.z = 0;
+      return;
+    }
+    // A potted plant still moves a little — a slow lean, phased
+    // per planter, gentler than the wild sway (it is sheltered).
+    const phase = phaseForId(entity.id);
+    dressing.rotation.z = 0.03 * Math.sin(elapsedTime * 0.8 + phase);
   });
 }

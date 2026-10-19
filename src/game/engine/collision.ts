@@ -76,6 +76,8 @@ function isCollidingWithStructure(
     if (s.type === 'banner_post') obstacleRadius = 0.3;
     // The chime stands on the same slim post as the banner.
     if (s.type === 'bone_chime_sentinel') obstacleRadius = 0.3;
+    // The planter is a pot, a little wider than a post — 0.4 is honest.
+    if (s.type === 'planter') obstacleRadius = 0.4;
     // The mycologist's wall is a wall: solid, like the rootweave
     // walls — the camp walks around it, not through it.
     if (s.type === 'mycologist_wall') obstacleRadius = 0.9;

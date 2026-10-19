@@ -22,6 +22,8 @@ import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferG
 import type { StructureType, StructureEntity } from '../../types/game';
 import { hashId, mulberry32 } from './lifePulse';
 import { rootGrainTexture, barkTexture, wovenTexture, jitterVertices } from './grownTextures';
+import { buildFloraMesh } from '../flora/floraMeshes';
+import { planterTenantScale } from './planter';
 
 /** The engine's shared material palette, as the builders use it. */
 export interface StructureMaterials {
@@ -1535,6 +1537,105 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
         peg.add(cap);
         peg.name = `wallCap${i}`;
         group.add(peg);
+      }
+      return group;
+    },
+    // THE PLANTER (BioForge wave 2, slice 5, 2026-10-19; Adam's
+    // "plants as furniture" — a plant with an address). A handsome
+    // grown pot: root feet, a flared grown-wood body, a rim, soil
+    // already in it. The tenant (ONE planted flora) is dressed by
+    // the builder from the entity's own planter record via the
+    // flora mesh factory at pot scale — a pot is not a wild bed,
+    // so the tenant never reaches wild size (planterTenantScale).
+    // Planting / taking a plant changes the mesh KIND key (see
+    // syncStructures), so the tenant rebuilds from the builder;
+    // growth itself is only dressing scale in the life pass, never
+    // a rebuild.
+    'planter': (entity) => {
+      const group = new THREE.Group();
+      const rng = mulberry32(hashId(entity?.id ?? 'ghost-planter'));
+      const soilY = 0.52;
+
+      // Root feet — the pot stands on grown roots, not a kiln ring.
+      const footGeom = new THREE.ConeGeometry(0.09, 0.22, 7);
+      const footCount = 3 + Math.floor(rng() * 2);
+      for (let i = 0; i < footCount; i++) {
+        const a = (i / footCount) * Math.PI * 2 + rng() * 0.5;
+        const foot = new THREE.Mesh(footGeom, materials.woodRoot);
+        foot.position.set(Math.cos(a) * 0.3, 0.11, Math.sin(a) * 0.3);
+        foot.rotation.z = Math.cos(a) * 0.35;
+        foot.rotation.x = -Math.sin(a) * 0.35;
+        foot.castShadow = true;
+        group.add(foot);
+      }
+
+      // The pot body: flared grown wood, jittered so no two pots
+      // are exactly alike.
+      const bodyGeom = new THREE.CylinderGeometry(0.44, 0.32, 0.42, 12);
+      jitterVertices(bodyGeom, 0.012, hashId(entity?.id ?? 'ghost-planter'));
+      const body = new THREE.Mesh(bodyGeom, materials.woodRoot);
+      body.position.y = 0.32;
+      body.castShadow = true;
+      group.add(body);
+
+      // The rim: a grown lip the tenant's soil sits under.
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.43, 0.055, 8, 16), materials.woodRoot);
+      rim.rotation.x = Math.PI / 2;
+      rim.position.y = soilY;
+      rim.castShadow = true;
+      group.add(rim);
+
+      // The soil: dark, matte, already in the pot — the recipe's
+      // compost, visible. It reads as plantable at a glance.
+      const soil = new THREE.Mesh(
+        new THREE.CircleGeometry(0.4, 14),
+        new THREE.MeshStandardMaterial({ color: 0x2e2118, roughness: 1 }),
+      );
+      soil.rotation.x = -Math.PI / 2;
+      soil.position.y = soilY - 0.02;
+      group.add(soil);
+
+      // The tenant's seat (named: the life pass scales this group
+      // as the plant grows). Built empty; dressed below when the
+      // entity carries a tenant.
+      const dressing = new THREE.Group();
+      dressing.name = 'planterDressing';
+      dressing.position.y = soilY;
+      group.add(dressing);
+
+      // Dress the tenant from the entity's own record. The flora
+      // mesh factory builds the species' wild silhouette; the pot
+      // keeps it small. userData is scrubbed — this is NOT a wild
+      // flora, and the hover walk-up must reach the planter group
+      // (a potted fern is furniture, not a harvest target).
+      const species = entity?.planter?.species;
+      if (species) {
+        const tenant = buildFloraMesh(
+          {
+            id: `planter-tenant-${entity!.id}`,
+            species,
+            x: 0,
+            z: 0,
+            rotation: rng() * Math.PI * 2,
+            scale: 1,
+            growthStage: 5,
+            growthProgress: 1,
+            fertilizedGrowth: false,
+            fertilizedYield: false,
+            harvestReady: false,
+            harvestTimer: 0,
+            isHazardous: false,
+            swayOffset: rng() * Math.PI * 2,
+          },
+          materials,
+          // The factory seats the mesh by terrain height; the pot
+          // seats it instead — position is overridden below.
+          () => 0,
+        );
+        tenant.position.set(0, 0, 0);
+        tenant.userData = {};
+        tenant.scale.setScalar(planterTenantScale(entity!.planter?.growth ?? 0));
+        dressing.add(tenant);
       }
       return group;
     },

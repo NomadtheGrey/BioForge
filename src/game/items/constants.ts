@@ -2422,6 +2422,23 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'uncommon',
     maxStack: 10,
   },
+  planter: {
+    id: 'planter',
+    name: 'Planter',
+    // A placeable grown structure (BioForge wave 2, 2026-10-19):
+    // the kit item's id IS the StructureType, like every other
+    // placed piece (lantern_fern_post, banner_post).
+    category: 'structure',
+    // The game's voice: "a plant with an address." A handsome
+    // grown pot that holds ONE planted flora as a living table
+    // piece — it grows where you put it, over about a day's
+    // turning, and gives its propagule back whole if you take it.
+    description: 'A handsome grown pot with soil already in it, roots for feet. Plant one seed or cutting and it grows where you put it — a plant with an address. Take the plant back any time; its propagule comes home whole.',
+    iconName: 'Sprout',
+    color: '#a3a86b',
+    rarity: 'uncommon',
+    maxStack: 10,
+  },
   mycologist_wall: {
     id: 'mycologist_wall',
     name: 'Mycologist\'s Wall',

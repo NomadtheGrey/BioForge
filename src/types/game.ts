@@ -257,6 +257,7 @@ export type ItemId =
   | 'pen_gate'
   | 'iris_slit_door'
   | 'bone_chime_sentinel'
+  | 'planter'
   | 'mycologist_wall'
   | 'slumber_husk'
   | 'lantern_fern_post'
@@ -981,6 +982,7 @@ export type StructureType =
   | 'pen_gate'
   | 'iris_slit_door'
   | 'bone_chime_sentinel'
+  | 'planter'
   | 'mycologist_wall'
   | 'slumber_husk'
   | 'lantern_fern_post'
@@ -1200,6 +1202,19 @@ export interface StructureEntity {
    * never warned — ready). NO save-version change.
    */
   chime?: { lastWarnAt: number };
+  /**
+   * Present only on planter structures (BioForge wave 2, 2026-10-19;
+   * Adam's "plants as furniture" — a plant with an address). The
+   * pot's one tenant: the planted species (null = the pot stands
+   * empty), plantedAt in sim seconds (stamped by the sim's planter
+   * pass on the first tick it sees — App never touches the sim
+   * clock), and growth 0..1, quantized, advanced on loaded-zone
+   * time. Per-piece state doctrine: the tenant lives in the
+   * planter's own record, not a hook-level map. Optional, so old
+   * saves load with it absent (read as empty). NO save-version
+   * change.
+   */
+  planter?: { species: FloraSpecies | null; plantedAt: number; growth: number };
   /**
    * Present only on mycologist_wall structures (BioForge wave 2,
    * 2026-10-19; Adam: give fungus a purpose). The wall's own

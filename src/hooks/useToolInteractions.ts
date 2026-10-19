@@ -233,6 +233,8 @@ export interface UseToolInteractionsParams {
   onOpenVat: (structure: StructureEntity) => void;
   /** Open the mycologist wall's panel (App shows WallModal). */
   onOpenWall: (structure: StructureEntity) => void;
+  /** Open the planter's panel (App shows PlanterModal). */
+  onOpenPlanter: (structure: StructureEntity) => void;
   /** BioTunnel mouth click (Adam, 2026-10-16): App runs the
    *  transit to the other mouth (or explains a dormant one). */
   onTunnelTransit: (structure: StructureEntity) => void;
@@ -326,6 +328,7 @@ export function useToolInteractions({
   onOpenStorage,
   onOpenVat,
   onOpenWall,
+  onOpenPlanter,
   onTunnelTransit,
   getTunnelMouthCount,
   spawnDroppedItem,
@@ -846,6 +849,22 @@ export function useToolInteractions({
       if (structure.type === 'culture_vat' && structure.vat?.gestating) {
         addInventoryItem(sampleItemId(structure.vat.gestating.species), 1);
         returnedContents = true;
+      }
+
+      // THE PLANTER (BioForge wave 2, slice 5): a dissolved planter
+      // gives its tenant back FIRST — the field-dissolve rule,
+      // mirrored (propagation.ts is the one truth: seed-bearers
+      // return their seed, piece species their piece). A missing
+      // propagule (wild-only tenants can't exist — the picker
+      // excludes them — but cheap to guard) simply returns
+      // nothing. Then the generic reclaim below returns the
+      // planter kit itself, as for every structure.
+      if (structure.type === 'planter' && structure.planter?.species) {
+        const tenantBack = propaguleItemOf(structure.planter.species);
+        if (tenantBack) {
+          addInventoryItem(tenantBack, 1);
+          returnedContents = true;
+        }
       }
 
       if ((structure.type === 'storage_pod' || structure.type === 'sample_rack') && structure.storage) {
@@ -1621,6 +1640,15 @@ export function useToolInteractions({
         // as empty anyway, for walls that predate the field.)
         ...(selectedStructureType === 'mycologist_wall'
           ? { wall: { mounted: [] as ItemId[], binStock: 0, binDone: 0, binClock: 0 } }
+          : {}),
+        // A planter is born empty (BioForge wave 2, 2026-10-19):
+        // no tenant, the planting clock unstamped (the sim's
+        // planter pass stamps plantedAt on the first tick it
+        // sees), growth at zero. (Readers treat a missing
+        // planter record as empty anyway, for planters that
+        // predate the field.)
+        ...(selectedStructureType === 'planter'
+          ? { planter: { species: null, plantedAt: 0, growth: 0 } }
           : {}),
         // A cultivation mound is born hungry (P1, 2026-10-18):
         // its stock of banked kind-matter starts empty. (The
@@ -2727,6 +2755,24 @@ export function useToolInteractions({
         return;
       }
       onOpenWall(structure);
+      return;
+    }
+    // The Planter (BioForge wave 2, slice 5, 2026-10-19): the
+    // wall's exact grammar — any tool except the builder opens
+    // the planter's panel; solvent keeps dissolving (and returns
+    // the tenant's propagule first — see handleSolventSprayer);
+    // the scanner keeps reading. The builder falls through so
+    // the planter still works as a build surface.
+    if (structure.type === 'planter' && activeTool !== 'builder') {
+      if (activeTool === 'solvent_sprayer') {
+        handleSolventSprayer(structure);
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onOpenPlanter(structure);
       return;
     }
     // BioTunnel mouths (Adam, 2026-10-16): the pod's grammar with

@@ -309,6 +309,12 @@ export const STRUCTURE_LIGHT_BASE: Record<Exclude<StructureType, 'lantern_fern_p
     // nothing more. It is a sentinel, not a lamp (the physical
     // scale: halo 1-3).
     bone_chime_sentinel: { color: 0xffe8c0, intensity: 1.6, distance: 2.2, y: 2.4 },
+    // The planter, EMPTY: a minimal warm halo off the soil — a
+    // pot reads as tended, not as a lamp. Intensity stays NONZERO
+    // (the merge math divides by total intensity). A PLANTED
+    // planter never reads this row — the engine's special-case
+    // sheds the tenant's own light instead (planter.planterLightOf).
+    planter: { color: 0xd9c9a8, intensity: 1, distance: 1.5, y: 0.5 },
     // THE MYCOLOGIST'S WALL (BioForge wave 2, 2026-10-19): the
     // bare wall's halo only. Every glow mount's lamp rides the
     // engine's special-case (wallLightOf), so this row never

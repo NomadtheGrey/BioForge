@@ -41,8 +41,9 @@ import type { BiomeId } from '../world/biomes';
 import { cavernCellToWorld, type CavernResult } from '../world/cavern';
 import type { RuinResult } from '../world/ruinInterior';
 import { createStructureBuilders, type StructureMaterials } from '../structures/structureBuilders';
-import { updateVatLife, updateTunnelLife, updateHeartLife, updateBannerLife, updateBeanstalkLife, updateChimeLife, updateSlumberLife, updateFungusWallLife } from '../structures/structureLife';
+import { updateVatLife, updateTunnelLife, updateHeartLife, updateBannerLife, updateBeanstalkLife, updateChimeLife, updateSlumberLife, updateFungusWallLife, updatePlanterLife } from '../structures/structureLife';
 import { wallLightOf } from '../structures/fungusWall';
+import { planterLightOf } from '../structures/planter';
 import { createCreatureMeshKit, type CreatureMeshKit } from '../creatures/creatureMeshes';
 import { createLandmarkDressing, type LandmarkDressing } from '../world/landmarkDressing';
 import { FATE_STYLES, type WorldFate } from '../world/ruins';
@@ -703,6 +704,7 @@ export class BioForgeThreeEngine {
     updateChimeLife(this.structureMeshMap, this.elapsedTime);
     updateSlumberLife(this.structureMeshMap, this.elapsedTime);
     updateFungusWallLife(this.structureMeshMap, this.elapsedTime);
+    updatePlanterLife(this.structureMeshMap, this.elapsedTime);
     this.updateDissolveFizz();
   }
 
@@ -1499,7 +1501,9 @@ export class BioForgeThreeEngine {
           ? `cave_mouth:${s.cave?.instanceId ?? ''}`
           : s.type === 'ruin_landmark'
             ? `ruin_landmark:${s.ruin?.instanceId ?? ''}`
-            : s.type;
+            : s.type === 'planter'
+              ? `planter:${s.planter?.species ?? 'empty'}`
+              : s.type;
       const mesh = this.ensureBoundMesh(this.structureMeshMap, this.structuresGroup, s, kindKey, (e) => this.createStructureMesh(e));
       this.updateStructureMesh(mesh, s);
     });
@@ -1998,6 +2002,16 @@ export class BioForgeThreeEngine {
       const w = wallLightOf(s.wall?.mounted ?? []);
       // The glow family's mounts pulse — fungal glow, not lamplight.
       return { id, x: s.worldX, y: groundY + w.y, z: s.worldZ, color: 0x7fe3c8, intensity: w.intensity, distance: w.distance, gesture: 'pulse' as LightGesture };
+    }
+    // THE PLANTER (BioForge wave 2, slice 5, 2026-10-19): a planted
+    // planter sheds its tenant's own light — the law is
+    // planter.planterLightOf (the species' flora light at the house
+    // 0.6 scale, its own gesture; lantern ferns take the explicit
+    // branch since FLORA_LIGHT_BASE excludes them). An EMPTY
+    // planter falls through to the table's bare-pot halo.
+    if (s.type === 'planter' && s.planter?.species) {
+      const pl = planterLightOf(s.planter.species);
+      return { id, x: s.worldX, y: groundY + pl.y, z: s.worldZ, color: pl.color, intensity: pl.intensity, distance: pl.distance, gesture: pl.gesture };
     }
     const b = this.structureLightBase[s.type];
     return { id, x: s.worldX, y: groundY + b.y, z: s.worldZ, color: b.color, intensity: b.intensity, distance: b.distance, gesture: gestureForStructure(s.type, b.gesture) };

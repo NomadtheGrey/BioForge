@@ -65,6 +65,9 @@ export interface UseQuestsResult {
   unlockedTools: ToolType[];
   questViews: QuestProgressView[];
   trackedView: QuestProgressView | null;
+  /** The tracker rests because its card's own dismiss closed
+   *  its quest (see the computation beside trackedView). */
+  trackerResting: boolean;
   showQuestHud: boolean;
   updateQuestProgress: (patch: Partial<QuestProgressState>) => void;
 }
@@ -106,6 +109,25 @@ export function useQuests({
     questViews,
     questProgress?.dismissedId ?? null,
   );
+  // THE RESTING STATE, NAMED (Adam's demo find, 2026-10-18):
+  // the tracker's own little ✕ DISMISSES its quest — the tracker
+  // then rests even though every switch everywhere still reads
+  // ON, and a player hunting for it finds no explanation. The
+  // resting state is real state, so it is computed here beside
+  // trackedView and handed to the HUD: the tracker is resting
+  // when nothing is tracked BECAUSE the dismissed quest is
+  // still the chain's unfinished business (tracking it again
+  // from the quest log — onTrack — is what wakes it).
+  const dismissedId = questProgress?.dismissedId ?? null;
+  const trackerResting =
+    trackedView === null &&
+    dismissedId !== null &&
+    questViews.some(
+      (v) =>
+        v.def.id === dismissedId &&
+        !v.complete &&
+        !(questProgress?.completedIds ?? []).includes(dismissedId),
+    );
   // The tracker shows at first (Adam, via the HUD lane, 2026-10-16):
   // a new player's quest tracker is visible until they turn it off
   // in the quest log — the default lives here and in the adoption
@@ -170,5 +192,5 @@ export function useQuests({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [latchQuestKey, hasStarted]);
 
-  return { unlockedTools, questViews, trackedView, showQuestHud, updateQuestProgress };
+  return { unlockedTools, questViews, trackedView, trackerResting, showQuestHud, updateQuestProgress };
 }

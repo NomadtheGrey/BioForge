@@ -715,16 +715,16 @@ export const QuestLogModal = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
       <div className="glass-panel-biolum w-full max-w-4xl max-h-[88dvh] rounded-3xl flex flex-col overflow-hidden border border-emerald-500/30 shadow-2xl">
         {/* Header */}
-        <div className="px-6 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-900/60">
+        <div className="px-6 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-900/60 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:py-2">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-950/70 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+            <div className="w-10 h-10 [@media(max-height:540px)]:w-8 [@media(max-height:540px)]:h-8 rounded-2xl bg-emerald-950/70 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
               <ScrollText className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-base font-black tracking-wide text-slate-100">
                 MINI-QUESTS
               </h2>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-slate-400 [@media(max-height:540px)]:hidden">
                 The game, taught in the order it deepens. Finish one to open the next.
               </p>
             </div>
@@ -740,7 +740,7 @@ export const QuestLogModal = ({
 
         {/* The tracker HUD's switch lives here (Adam's model: this
             panel is where you choose to display the quest HUD). */}
-        <label className="mx-6 mt-4 flex items-center gap-3 rounded-2xl border border-slate-700/80 bg-slate-900/60 px-4 py-3 cursor-pointer">
+        <label className="mx-6 mt-4 flex items-center gap-3 rounded-2xl border border-slate-700/80 bg-slate-900/60 px-4 py-3 cursor-pointer [@media(max-height:540px)]:mx-4 [@media(max-height:540px)]:mt-2 [@media(max-height:540px)]:py-2">
           <input
             type="checkbox"
             checked={showHud}
@@ -750,7 +750,7 @@ export const QuestLogModal = ({
           <span className="text-sm text-slate-200 font-semibold">
             Show the quest HUD
           </span>
-          <span className="text-[11px] text-slate-400">
+          <span className="text-[11px] text-slate-400 [@media(max-height:540px)]:hidden">
             the little tracker card with the checkmarks, on screen while you play
           </span>
         </label>
@@ -761,8 +761,8 @@ export const QuestLogModal = ({
             second row at this width by design. Each tab carries
             its progress count, and the active tab's promise line
             sits under the bar. */}
-        <div className="mx-6 mt-4">
-          <div className="flex flex-wrap gap-1.5">
+        <div className="mx-6 mt-4 [@media(max-height:540px)]:mx-4 [@media(max-height:540px)]:mt-2">
+          <div className="flex flex-wrap gap-1.5 [@media(max-height:540px)]:flex-nowrap [@media(max-height:540px)]:overflow-x-auto [@media(max-height:540px)]:pb-1 [@media(max-height:540px)]:[&>button]:flex-none">
             {PLAYSTYLE_TABS.map((tab) => {
               const total = tabViews(tab.id).length;
               const doneCount = tabDoneCount(tab.id);
@@ -811,7 +811,7 @@ export const QuestLogModal = ({
               )}
             </button>
           </div>
-          <p className="mt-2 text-[11px] text-slate-400 leading-snug">
+          <p className="mt-2 text-[11px] text-slate-400 leading-snug [@media(max-height:540px)]:hidden">
             <span className="text-slate-200 font-semibold">{activeTabMeta.label}.</span>{' '}
             {activeTabMeta.promise}
             {isLineTab ? (
@@ -830,7 +830,7 @@ export const QuestLogModal = ({
 
         {/* Content — the chapter ledger for All / Completionists,
             or the active style's shelf in chain order. */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:py-3 [@media(max-height:540px)]:space-y-4">
           {isLineTab ? (
             <>
               {renderLineSections()}

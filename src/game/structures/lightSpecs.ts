@@ -302,6 +302,9 @@ export const STRUCTURE_LIGHT_BASE: Record<Exclude<StructureType, 'lantern_fern_p
     woven_rug: { color: 0xa3e635, intensity: 1.2, distance: 1.5, y: 0.3 },
     root_shelf: { color: 0xfbbf24, intensity: 2.5, distance: 2.0, y: 1.1 },
     root_bed: { color: 0xf9a8d4, intensity: 3, distance: 2.2, y: 0.7 },
+    // The husk is alive — a very faint warm halo at the rim,
+    // the heat of a sleeping body. (Physical scale: halo 1-3.)
+    slumber_husk: { color: 0xffb4a2, intensity: 1.4, distance: 2.2, y: 0.5 },
     iris_slit_door: { color: 0xf0abfc, intensity: 5.5, distance: 2.5, y: 1.2 },
     spore_canopy: { color: 0xa78bfa, intensity: 9, distance: 3.5, y: 2.6 },
     bio_forge_station: { color: 0x22d3ee, intensity: 9, distance: 3.5, y: 1.4 },

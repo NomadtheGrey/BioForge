@@ -1206,6 +1206,11 @@ export default function App() {
     loadHeartbearer,
     hearthFeed,
     getDayNightCycle: () => latestStateRef.current.dayNightCycle,
+    // The Slumber Husk (wave 2): App's cycle + stamina writers —
+    // the sleep jump's only seam into the clock.
+    setDayNightCycle,
+    setStamina,
+    maxStamina: playerState.maxStamina,
     setFaunaCommand,
     setCodexList,
     fieldNotesState,

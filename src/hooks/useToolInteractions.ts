@@ -28,6 +28,7 @@ import { ruinLoreLine } from '../game/world/ruinInterior';
 import { heartBearsFragment } from '../game/world/ruins';
 import { soundEngine } from '../audio/soundEngine';
 import { multiplayerManager } from '../game/multiplayer';
+import { isSleepHour, nextDawnPhase } from '../game/structures/slumber';
 import { FLORA_MATURE_SECONDS, FERTILIZER_DURATION_SECONDS } from './useWorldEntities';
 import { speciesDef } from '../game/creatures/species';
 import { glyphLensWorn } from '../game/creatures/helmet';
@@ -149,6 +150,14 @@ export interface UseToolInteractionsParams {
    *  cycle via its latest-state mirror — 0.25 sunrise, 0.5 noon,
    *  0.75 sunset, 0 midnight. */
   getDayNightCycle: () => number;
+  /** The cycle's writer (Slumber Husk, wave 2): App's setter —
+   *  the same writer the host's once-a-second tick uses, so a
+   *  sleep jump is a known motion of the sim. */
+  setDayNightCycle: (phase: number) => void;
+  /** Stamina's writer (Slumber Husk): waking restores the body. */
+  setStamina: (stamina: number) => void;
+  /** The pool's ceiling (Slumber Husk): what waking refills to. */
+  maxStamina: number;
   setFaunaCommand: (faunaId: string, cmd: 'follow' | 'stay' | 'guard') => void;
   /** Ask App to confirm a RELEASE (Adam, 2026-10-15): the cycle's
    *  guarded fourth stop — never applied by the click itself. */
@@ -282,6 +291,9 @@ export function useToolInteractions({
   hearthFeed,
   loadHeartbearer,
   getDayNightCycle,
+  setDayNightCycle,
+  setStamina,
+  maxStamina,
   setFaunaCommand,
   onRequestRelease,
   onGlyphRead,
@@ -2255,6 +2267,68 @@ export function useToolInteractions({
       postNotification('The Cultivation Mound', `Plant any seed here with the trowel — or feed it caps, gels, and greenery and it will pay compost back. Banked: ${stock} of ${MOUND_HARVEST_COST} toward one.`, 'system', '#a8a29e');
       return;
     }
+    // THE SLUMBER HUSK (BioForge wave 2, 2026-10-19; Adam's bed
+    // ruling: not down — "a fleshy soft, gross but comfy
+    // place"). The flesh bed's one act: at night, sleep the
+    // world until dawn. The mound branch's lesson applies —
+    // the builder and trowel keep their routing above; any
+    // OTHER tool addresses the husk itself.
+    if (structure.type === 'slumber_husk') {
+      if (activeTool === 'solvent_sprayer') {
+        handleSolventSprayer(structure);
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      // CO-OP LAW (the standing shape — the host's save
+      // determines the world, and the host's loop tick is the
+      // Sol-cycle's one writer): the sky belongs to the host.
+      // A guest's client must not put the world to sleep —
+      // the same condition the advancing tick guards on.
+      if (multiplayerManager.isConnected && !multiplayerManager.isHost) {
+        postNotification(
+          'The Host\'s Sky',
+          'Only the host can sleep the world through the night — this sky belongs to them.',
+          'alert',
+          '#f59e0b'
+        );
+        return;
+      }
+      const phase = getDayNightCycle();
+      if (!isSleepHour(phase)) {
+        postNotification(
+          'Too Early For The Husk',
+          'The husk is for sleeping through the dark — come back at dusk or in the night, once the sky has closed.',
+          'system',
+          '#a78bfa'
+        );
+        return;
+      }
+      // The sleep itself: one forward jump to the next dawn,
+      // through App's own writer plus the broadcast the host
+      // tick would have sent a second later anyway. Instant —
+      // the night passes like a blink. The vat's clocks ride
+      // loaded-zone seconds, not the phase (slumber.ts), so
+      // nothing fast-forwards; and the dawn-crossing watcher
+      // needs a continuous crossing, so dawn's small gifts
+      // pass unwitnessed, coherent with the trade: sleep
+      // through a meteor shower, miss the shower.
+      const dawn = nextDawnPhase();
+      setDayNightCycle(dawn);
+      multiplayerManager.broadcastDayNight(dawn);
+      // Waking restores stamina fully — the body's bargain.
+      // Health is untouched: sleep is rest, not medicine.
+      setStamina(maxStamina);
+      postNotification(
+        'Dawn',
+        'You sink into the husk\'s warm dark and wake at first light, whole and unhurried. The night — its comets, its showers, its small dawn gifts — passed without you. Stamina restored.',
+        'system',
+        '#fbbf24'
+      );
+      return;
+    }
     // Planter on a floor: floors are paved, and only lantern-ferns root on
     // them — they are the house-lighting plant. Other seeds get a hint
     // instead of the old silent nothing.
@@ -2632,7 +2706,7 @@ export function useToolInteractions({
       return;
     }
   },
-  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, onOpenStorage, handleGroundClick, handlePlanterAction, selectedSeedId, selectedStructureType, handleBuilderOnPanel, handleBuilderOnBaseBlock, handleGrowCeiling, handlePlaceLadder, handleExtendLadder, handleClimbLadder, postNotification, onEnterCave, onExitCave, carryRef]
+  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, onOpenStorage, handleGroundClick, handlePlanterAction, selectedSeedId, selectedStructureType, handleBuilderOnPanel, handleBuilderOnBaseBlock, handleGrowCeiling, handlePlaceLadder, handleExtendLadder, handleClimbLadder, postNotification, onEnterCave, onExitCave, carryRef, getDayNightCycle, setDayNightCycle, setStamina, maxStamina]
 );
 
   return {

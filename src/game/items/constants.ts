@@ -3083,6 +3083,20 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'common',
     maxStack: 10,
   },
+  slumber_husk: {
+    id: 'slumber_husk',
+    name: 'Slumber Husk',
+    // A placeable grown structure (BioForge wave 2, 2026-10-19;
+    // Adam's ruling: not down — "a fleshy soft, gross but
+    // comfy place"). The kit item's id IS the StructureType,
+    // like every other placed piece.
+    category: 'structure',
+    description: 'A low hollow of living flesh — quivering gel under a fiber skin, stitched shut with living thread and kept alive with dew. It breathes, slowly, whether you are in it or not. Click it at night to sink into its warm dark and sleep until dawn. Gross. Comfy. Yours.',
+    iconName: 'Moon',
+    color: '#f0a6b8',
+    rarity: 'uncommon',
+    maxStack: 10,
+  },
   sample_rack: {
     id: 'sample_rack',
     name: 'Sample Rack',

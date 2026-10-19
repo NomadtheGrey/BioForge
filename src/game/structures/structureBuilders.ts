@@ -651,6 +651,80 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       group.add(headSlat);
       return group;
     },
+    // THE SLUMBER HUSK (BioForge wave 2, 2026-10-19; Adam's bed
+    // ruling: not down — "a fleshy soft, gross but comfy
+    // place"). The root bed's grown-up: a low hollow of living
+    // flesh — quivering gel body under a fiber skin, stitched
+    // with living thread. Nothing in it is furniture-sharp;
+    // everything is round, damp-looking, and faintly warm.
+    // The breathing pass (updateSlumberLife) stirs the named
+    // 'slumberFlesh' group — the mesh below just holds the shape.
+    'slumber_husk': (entity) => {
+      const group = new THREE.Group();
+      const rng = mulberry32(hashId(entity?.id ?? 'ghost-husk'));
+
+      // The skin: a fleshy matte membrane, fiber-pink, slightly
+      // translucent-looking (emissive does the damp warmth; real
+      // subsurface scattering is beyond a pooled-light engine).
+      const skinMat = new THREE.MeshStandardMaterial({
+        color: 0xd98a94,
+        roughness: 0.55,
+        emissive: 0x7c2d3e,
+        emissiveIntensity: 0.35,
+      });
+      // The flesh body (named: the life pass breathes this group):
+      // a low mound, long as a body, with the hollow pressed in.
+      const flesh = new THREE.Group();
+      flesh.name = 'slumberFlesh';
+      const mound = new THREE.Mesh(new THREE.SphereGeometry(1.15, 18, 14), skinMat);
+      mound.scale.set(1.05, 0.42, 1.5);
+      mound.position.y = 0.32;
+      mound.castShadow = true;
+      flesh.add(mound);
+
+      // The hollow: a darker, damper inset sunk into the top —
+      // the body-shaped trough you sink into. Slightly off-axis
+      // per husk (seeded), so no two cradle exactly alike.
+      const hollowMat = new THREE.MeshStandardMaterial({
+        color: 0x8f2f42,
+        roughness: 0.35,
+        emissive: 0x4c1220,
+        emissiveIntensity: 0.5,
+      });
+      const hollow = new THREE.Mesh(new THREE.SphereGeometry(0.72, 16, 12), hollowMat);
+      hollow.scale.set(0.62, 0.22, 1.02);
+      hollow.position.set((rng() - 0.5) * 0.14, 0.62, (rng() - 0.5) * 0.1);
+      flesh.add(hollow);
+
+      // The stitching: living-thread seams arc over the mound —
+      // thin pale lines holding the skin shut, slightly proud.
+      const threadMat = new THREE.MeshStandardMaterial({ color: 0xd9f99d, roughness: 0.6 });
+      for (let i = 0; i < 5; i++) {
+        // The half-torus lives in the XY plane, arc upper — an
+        // arch spanning the mound's width (the body's ribs).
+        // No rotation: successive ribs sit along the body axis.
+        const seam = new THREE.Mesh(new THREE.TorusGeometry(1.02 - i * 0.09, 0.022, 6, 22, Math.PI), threadMat);
+        seam.position.set(0, 0.18, -0.75 + i * 0.36);
+        flesh.add(seam);
+      }
+
+      // Dew beads: small bright droplets beaded along the rim —
+      // the dew that keeps it alive, made visible.
+      const dewMat = new THREE.MeshStandardMaterial({
+        color: 0xbfe9ff,
+        roughness: 0.1,
+        emissive: 0x38bdf8,
+        emissiveIntensity: 0.55,
+      });
+      for (let i = 0; i < 7; i++) {
+        const drop = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), dewMat);
+        const a = (i / 7) * Math.PI * 2 + rng() * 0.5;
+        drop.position.set(Math.cos(a) * 1.12, 0.42 + rng() * 0.1, Math.sin(a) * 1.55);
+        flesh.add(drop);
+      }
+      group.add(flesh);
+      return group;
+    },
     // Vine ladder: two springy rails + rungs, standing in the wall's
     // plane so it reads from either face. One segment spans one story.
     'vine_ladder': () => {

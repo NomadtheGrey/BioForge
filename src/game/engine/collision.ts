@@ -76,6 +76,10 @@ function isCollidingWithStructure(
     if (s.type === 'banner_post') obstacleRadius = 0.3;
     // The chime stands on the same slim post as the banner.
     if (s.type === 'bone_chime_sentinel') obstacleRadius = 0.3;
+    // The slumber husk is a low fleshy mound — the rim keeps
+    // the player from standing inside the hollow; the mound
+    // itself is not a wall to walk around.
+    if (s.type === 'slumber_husk') obstacleRadius = 0.6;
     // The portal station's ring (Departure D2): a monument —
     // the player addresses it, never stands inside its disc.
     if (s.type === 'portal_ring') obstacleRadius = 1.3;

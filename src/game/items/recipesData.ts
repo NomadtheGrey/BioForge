@@ -571,6 +571,31 @@ export const RECIPES: CraftingRecipe[] = [
     craftTimeMs: 2500,
   },
   {
+    id: 'craft_slumber_husk',
+    outputId: 'slumber_husk',
+    outputCount: 1,
+    name: 'Slumber Husk',
+    // The bed rung above the Root Bed (BioForge wave 2,
+    // 2026-10-19; Adam's ruling: not down — "a fleshy soft,
+    // gross but comfy place"). A rung's recipe consumes the
+    // rung below, in the game's upgrade idiom — the root
+    // bed is grown INTO the husk, not left behind.
+    //   bog_jelly for the flesh: the marsh cousin, quivering
+    //   and abundant — the soft body the husk is made of.
+    //   The lake's abyssal grade is too rare and too proud
+    //   for a mattress.
+    description: 'Grow the root bed INTO a living hollow: quivering gel-flesh under a fiber skin, stitched with living thread, kept alive with dew. It breathes whether you are in it or not — and it sleeps you through the night, straight to dawn.',
+    category: 'composites',
+    ingredients: [
+      { id: 'root_bed', count: 1 },
+      { id: 'bog_jelly', count: 2 },
+      { id: 'soft_fiber', count: 3 },
+      { id: 'dew_essence', count: 2 },
+      { id: 'living_thread', count: 1 },
+    ],
+    craftTimeMs: 3000,
+  },
+  {
     id: 'craft_sample_rack',
     outputId: 'sample_rack',
     outputCount: 1,

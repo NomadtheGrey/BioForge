@@ -236,3 +236,29 @@ export function updateChimeLife(
     if (skull) skull.rotation.y = phase + 0.35 * Math.sin(elapsedTime * 0.21 + phase * 0.6);
   });
 }
+
+/**
+ * The husk's life (BioForge wave 2, 2026-10-19): it breathes. A
+ * slow twelve-second breath — the mound swells and settles on
+ * the named 'slumberFlesh' group, the dew beads catching the
+ * light as it moves. Presentation only: the SLEEP is the
+ * interaction's cycle jump (useToolInteractions), never the
+ * mesh. A husk breathes whether you sleep in it or not —
+ * that is the point of a thing that is alive.
+ */
+export function updateSlumberLife(
+  structureMeshMap: Map<string, THREE.Group>,
+  elapsedTime: number,
+): void {
+  structureMeshMap.forEach((mesh) => {
+    const entity = mesh.userData.entity as StructureEntity | undefined;
+    if (!entity || entity.type !== 'slumber_husk') return;
+    const flesh = mesh.getObjectByName('slumberFlesh');
+    if (!flesh) return;
+    const phase = phaseForId(entity.id);
+    // One breath every twelve seconds: a sleeper's breath, not
+    // a heartbeat — the rise slower than the fall.
+    const breath = Math.sin((elapsedTime * Math.PI * 2) / 12 + phase * Math.PI * 2);
+    flesh.scale.set(1 + 0.018 * breath, 1 + 0.035 * breath, 1 + 0.018 * breath);
+  });
+}

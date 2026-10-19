@@ -42,6 +42,27 @@ export interface CodexFact {
 
 const itemName = (id: ItemId): string => ITEMS[id]?.name ?? id;
 
+/**
+ * BESPOKE TAMING — flows the def fields cannot express (the
+ * verify-pass correction, 2026-10-19). Some courtships are wired
+ * OUTSIDE tameChance/bait: the Hearth Dog's is a bespoke branch
+ * in useToolInteractions (slice 39's hearthFeed) — three meals on
+ * the lure, at the dog's pace — while its def fields read null.
+ * The null default below ("Cannot be lured") is the truth for
+ * everything else, but printing it for the dog was the strip's
+ * one false statement: the dog is the game's most winnable
+ * heart. So species with a bespoke flow are keyed here, and this
+ * map is consulted BEFORE the field derivation. Texts are
+ * certified by the creatures chair (the truth source for what
+ * is wired); this map is where future bespoke flows (the
+ * census's mouse/bear class) get their honest line the day
+ * they wire.
+ */
+const BESPOKE_TAMING: Record<string, string> = {
+  hearth_dog:
+    'Won by offerings — three meals on the lure, at its pace; then it decides',
+};
+
 /** The fauna def of record for a species id, across both tables. */
 export function faunaDefOf(species: string): SpeciesDef | null {
   return (
@@ -74,10 +95,12 @@ function baitWords(def: SpeciesDef): string | null {
 function faunaFacts(def: SpeciesDef): CodexFact[] {
   const facts: CodexFact[] = [];
   // Taming — the chance and the bait are the two facts a tamer
-  // plans around; an unlureable species says so plainly (the
-  // census's hearth_dog lesson: prose once taught a lure flow
-  // its def never had — the strip cannot make that mistake).
-  if (def.tameChance != null) {
+  // plans around. A bespoke flow (above) speaks first; then the
+  // fields; an unlureable species says so plainly.
+  const bespoke = BESPOKE_TAMING[def.id];
+  if (bespoke) {
+    facts.push({ label: 'Taming', value: bespoke });
+  } else if (def.tameChance != null) {
     const pct = Math.round(def.tameChance * 100);
     const bait = baitWords(def);
     facts.push({

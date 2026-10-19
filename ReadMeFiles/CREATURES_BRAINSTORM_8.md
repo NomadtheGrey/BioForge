@@ -1,5 +1,13 @@
 # CREATURES BRAINSTORM — PART 8: THE GHOSTS, GIVEN BODIES
 
+*SHIP STATE (2026-10-19): G1 landed (Bell-Bloom codex entry +
+Snap-Trap turret correction), G2 landed 0d9e2b2 (Ribbon Moss,
+WORLD_GEN_VERSION 68), G3 landed b4950e5 (Mouth-Vine + the
+flora hazard engine, WORLD_GEN_VERSION 69) — all on wip,
+smoke-tested, awaiting Adam's merge. The ghost program is
+COMPLETE: every ghost the census found is alive, completed,
+or acquitted; the burial list was empty.*
+
 *Filed 2026-10-19, the creatures lane. Adam's commission, on the
 Mouth-Vine's grave: "If these ghost creatures and plants and
 fungus are interesting, have creatures chat create them and put

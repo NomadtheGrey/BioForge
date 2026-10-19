@@ -27,10 +27,17 @@
  *               agent, setting).
  *
  * FAKE — never wired (creatures chair's truth): species change;
- * flight/swim grants; size; and 'pond-true' as an affinity (pond life
- * is a def property; soup cannot teach a land animal). The design
- * list's salt→pond-true is DISSOLVED: salt's truth is brine =
- * preservation = VIGOR. GENTLE for a tamed companion has no seam —
+ * flight/swim grants; size; and 'pond-true' as an affinity. On land
+ * fauna pond-true would be a no-op for the OPPOSITE of the obvious
+ * reason: land animals swim fine already — the sim models no water
+ * behavior for land fauna at all (no drag, no hesitation; a land
+ * follower crosses a pond by walking its bed), so there is NOTHING
+ * TO TEACH — the competence is already universal. The fake
+ * direction is the reverse: promising a pond creature land-ease
+ * (the fish-walking problem). If fauna ever gain the player's wading
+ * drag, pond-true gains a real consumer and should be re-certified
+ * then. The design list's salt→pond-true is DISSOLVED: salt's truth
+ * is brine = preservation = VIGOR, on its own merits. GENTLE for a tamed companion has no seam —
  * it is recorded as designed-but-unwired, and the panel says so
  * honestly rather than pretending.
  *
@@ -103,13 +110,24 @@ export function brothStageOf(warmth: number): BrothStage {
 /**
  * Gel-material fauna (creatures chair's KINSHIP law): species made of
  * the medium take any broth at FULL strength — for them the broth is
- * never foreign. Derived by name token (gel/jelly) because the
- * species table carries no material registry yet; a real material
- * field would replace this derivation. Current members:
- * sky_jelly, mirror_jelly, brine_jelly.
+ * never foreign. The set is CERTIFIED, from the design record — not
+ * derived by name: a name regex caught only the three jellies and
+ * missed four, including the hush gel's own source animal. A future
+ * species joins this set in the same landing that builds it
+ * (deep_maw is the named next candidate — NOT yet, do not add it).
  */
+const GEL_MATERIAL_SPECIES: ReadonlySet<FaunaSpecies> = new Set([
+  'gloom_skitter',
+  'spore_husk',
+  'gloom_slug',
+  'hush_hound',
+  'sky_jelly',
+  'mirror_jelly',
+  'brine_jelly',
+]);
+
 export function isGelMaterial(species: FaunaSpecies): boolean {
-  return /(gel|jelly)/.test(species);
+  return GEL_MATERIAL_SPECIES.has(species);
 }
 
 /**

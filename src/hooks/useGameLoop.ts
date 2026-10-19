@@ -27,6 +27,7 @@ import { isSampleItem } from '../game/structures/vat';
 import type { AsksEventInput } from '../game/quests/asksBackState';
 import { multiplayerManager } from '../game/multiplayer';
 import { soundEngine } from '../audio/soundEngine';
+import { playBoneChime, chimeGainAt } from '../game/engine/chime';
 import { CHIME_WARN_TITLE, CHIME_WARN_BODY } from '../game/structures/chimeWatch';
 import { ITEMS } from '../game/items/constants';
 import { WORLD_EDGE_COORD, ZONE_PUSH_SECONDS, ZONE_PUSH_MIN_COMPONENT } from './useZoneTravel';
@@ -1150,10 +1151,12 @@ export function useGameLoop(deps: GameLoopDeps): void {
             // 2026-10-19): the sim listened; the loop announces.
             // A keyed notification, so two chimes cry out in
             // turn but one chime never stacks — and the
-            // sentinel's own note, via the named hook. For now
-            // that hook leans on the craft arpeggio's soft rise;
-            // the HUD lane will give the chime its real voice.
-            (structureId, _x, _z) => {
+            // sentinel's real note, via the HUD lane's chime
+            // synth (game/engine/chime.ts): a bone-and-straw
+            // knock, pitched per chime (the key is the chime's
+            // own id), panned toward the post and brightened
+            // by nearness. Fire and forget, like every call.
+            (structureId, x, z) => {
               liveGameRefs.current.postNotification(
                 CHIME_WARN_TITLE,
                 CHIME_WARN_BODY,
@@ -1161,7 +1164,30 @@ export function useGameLoop(deps: GameLoopDeps): void {
                 '#e7e0cf',
                 `chime_warning_${structureId}`
               );
-              soundEngine.playChimeWarning();
+              // The spatial read: the distance drives the gain
+              // law, the camera's right vector drives the pan —
+              // a one-shot allocation at most once per chime per
+              // minute, so the tick never notices.
+              const pp = playerPosRef.current;
+              const dx = x - pp.x;
+              const dz = z - pp.z;
+              const dist = Math.hypot(dx, dz);
+              let pan = 0;
+              const cam = engineRef.current?.camera;
+              if (cam) {
+                const camDir = new THREE.Vector3();
+                cam.getWorldDirection(camDir);
+                const camLen = Math.hypot(camDir.x, camDir.z) || 1;
+                const rX = -camDir.z / camLen;
+                const rZ = camDir.x / camLen;
+                const dLen = dist || 1;
+                pan = Math.max(-1, Math.min(1, (dx / dLen) * rX + (dz / dLen) * rZ));
+              }
+              playBoneChime(structureId, {
+                gain: chimeGainAt(dist),
+                pan,
+                bright: Math.max(0, Math.min(1, 1 - dist / 32)),
+              });
             }
           );
           // HOSTILE (2026-10-18): explorer strikes drain here,

@@ -332,17 +332,6 @@ class SoundEngine {
   }
 
   // Crafting Complete Bloom
-  /**
-   * THE CHIME'S VOICE (BioForge wave 2, 2026-10-19): the Bone Chime
-   * Sentinel's warning note. For now this delegates to the craft
-   * arpeggio's soft rising tones — the closest existing gentle
-   * alert — as a deliberate placeholder. The HUD lane owns the
-   * synth and will give the chime its own real note; the call
-   * sites stay untouched because they call THIS name.
-   */
-  public playChimeWarning() {
-    this.playCraftSuccess();
-  }
   public playCraftSuccess() {
     if (this.isMuted) return;
     this.initCtx();

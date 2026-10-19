@@ -4,15 +4,18 @@
  * so players can report issues and recommendations to the
  * bioforge.game@gmail.com address").
  *
- * THE DELIVERY, honestly: the game has no mail server (the
- * database future is parked), so the note travels by the
- * player's OWN mail program — the modal composes it and the
- * send button opens a pre-addressed, pre-written message
- * (mailto:). For players with no mail program set up, the
- * address stands on the screen with a copy button, so the
- * word can still be sent from anywhere. When a real backend
- * ever lands, this component's compose half survives; only
- * the send changes.
+ * THE DELIVERY, honestly — TWO DOORS, chosen by whether the
+ * direct send is lit (game/feedbackSend: the EMAILJS_*
+ * constants in game/links). LIT: the note sends straight
+ * from this page through EmailJS to the game's Gmail — no
+ * mail program needed; the player may leave an email for a
+ * reply. DARK (the constants unset, as shipped): the
+ * original door — the note travels by the player's OWN mail
+ * program (mailto:), with the address on screen and a copy
+ * button for players with no mail program set up. And if a
+ * lit send FAILS, the mailto door is offered as the
+ * fallback — the player's words are never eaten by a dead
+ * transport.
  *
  * Built with today's lessons in from birth: it declares
  * pointer-events-auto itself (one of its seats lives inside
@@ -23,9 +26,10 @@
  * always-visible row) and the start screen's header.
  */
 import React, { useEffect, useState } from 'react';
-import { Mail, X, Copy, Check, Bug, Lightbulb } from 'lucide-react';
+import { Mail, X, Copy, Check, Bug, Lightbulb, Send, CheckCircle2 } from 'lucide-react';
 import { FEEDBACK_EMAIL } from '../game/links';
 import { BUILD_ID } from '../game/buildNotes';
+import { feedbackSendConfigured, sendFeedback } from '../game/feedbackSend';
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -36,6 +40,7 @@ interface FeedbackModalProps {
 }
 
 type FeedbackKind = 'issue' | 'recommendation';
+type SendPhase = 'compose' | 'sending' | 'sent' | 'failed';
 
 export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, contextLine }) => {
   const [kind, setKind] = useState<FeedbackKind>('issue');
@@ -43,6 +48,13 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, c
   const [includeContext, setIncludeContext] = useState(true);
   const [sent, setSent] = useState(false);
   const [copied, setCopied] = useState(false);
+  // The direct send's phase machine (only reachable while
+  // the EmailJS door is lit): compose → sending → sent |
+  // failed. Failed never eats the words — the form keeps the
+  // message and the mailto door opens as the fallback.
+  const [phase, setPhase] = useState<SendPhase>('compose');
+  const [replyEmail, setReplyEmail] = useState('');
+  const directSend = feedbackSendConfigured();
 
   // Escape closes it (the credits lesson, applied from birth).
   useEffect(() => {
@@ -53,6 +65,17 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, c
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
   }, [isOpen, onClose]);
+
+  // A sent note is spent: reopening the modal after a send
+  // starts a fresh form rather than the old thank-you.
+  useEffect(() => {
+    if (isOpen && phase === 'sent') {
+      setPhase('compose');
+      setMessage('');
+      setReplyEmail('');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -69,6 +92,21 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, c
     setSent(true);
   };
 
+  // The direct door (lit EmailJS only): one call with the
+  // composed strings, per the feedbackSend contract — it
+  // never throws; a refusal lands in 'failed' with the words
+  // intact and the mailto door offered below.
+  const handleDirectSend = async () => {
+    if (!message.trim() || phase === 'sending') return;
+    setPhase('sending');
+    const result = await sendFeedback({
+      subject,
+      message: message.trim() + footer,
+      fromEmail: replyEmail.trim() || undefined,
+    });
+    setPhase(result.ok ? 'sent' : 'failed');
+  };
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(FEEDBACK_EMAIL);
@@ -79,6 +117,23 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, c
       // screen in plain text regardless; nothing else to do.
     }
   };
+
+  // The address row is shared: it is the dark door's standing
+  // help AND the lit door's failure fallback.
+  const addressRow = (
+    <div className="flex items-center gap-2">
+      <span className="flex-1 font-mono text-xs text-slate-300 bg-slate-900/70 border border-slate-700/60 rounded-lg px-3 py-2 select-all">
+        {FEEDBACK_EMAIL}
+      </span>
+      <button
+        onClick={handleCopy}
+        className="px-3 py-2 rounded-lg text-[11px] font-tech font-bold text-slate-200 border border-slate-600/60 hover:bg-slate-800/70 transition-colors cursor-pointer flex items-center gap-1.5"
+      >
+        {copied ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
+        {copied ? 'COPIED' : 'COPY'}
+      </button>
+    </div>
+  );
 
   return (
     <div
@@ -106,80 +161,144 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, c
           </button>
         </div>
 
-        <div className="p-6 space-y-4">
-          {/* What kind of word is this? */}
-          <div className="flex items-center gap-2">
+        {directSend && phase === 'sent' ? (
+          /* ── SENT (the direct door): the words are away. ── */
+          <div className="p-6 space-y-4 flex flex-col items-center text-center">
+            <CheckCircle2 className="w-10 h-10 text-emerald-300" />
+            <p className="text-sm text-slate-200 font-semibold">Your words are on their way to the grower.</p>
+            <p className="text-[11px] leading-relaxed text-slate-500">
+              {replyEmail.trim()
+                ? `You left an address for a reply: ${replyEmail.trim()} — if your note needs an answer, watch that inbox.`
+                : 'No reply address was left, so this one travels one way — thank you all the same.'}
+            </p>
             <button
-              onClick={() => setKind('issue')}
-              className={`flex-1 px-3 py-2 rounded-xl text-[11px] font-tech font-bold flex items-center justify-center gap-1.5 border transition-colors cursor-pointer ${
+              onClick={onClose}
+              className="w-full px-4 py-2.5 rounded-xl text-xs font-tech font-bold text-violet-100 border border-violet-400/60 bg-violet-950/60 hover:bg-violet-900/60 transition-colors cursor-pointer"
+            >
+              CLOSE
+            </button>
+          </div>
+        ) : (
+          <div className="p-6 space-y-4">
+            {/* What kind of word is this? */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setKind('issue')}
+                disabled={phase === 'sending'}
+                className={`flex-1 px-3 py-2 rounded-xl text-[11px] font-tech font-bold flex items-center justify-center gap-1.5 border transition-colors cursor-pointer ${
+                  kind === 'issue'
+                    ? 'text-amber-200 border-amber-500/60 bg-amber-950/50'
+                    : 'text-slate-400 border-slate-700/60 hover:bg-slate-800/60'
+                }`}
+              >
+                <Bug className="w-3.5 h-3.5" /> REPORT AN ISSUE
+              </button>
+              <button
+                onClick={() => setKind('recommendation')}
+                disabled={phase === 'sending'}
+                className={`flex-1 px-3 py-2 rounded-xl text-[11px] font-tech font-bold flex items-center justify-center gap-1.5 border transition-colors cursor-pointer ${
+                  kind === 'recommendation'
+                    ? 'text-cyan-200 border-cyan-500/60 bg-cyan-950/50'
+                    : 'text-slate-400 border-slate-700/60 hover:bg-slate-800/60'
+                }`}
+              >
+                <Lightbulb className="w-3.5 h-3.5" /> RECOMMENDATION
+              </button>
+            </div>
+
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={6}
+              autoFocus
+              disabled={phase === 'sending'}
+              placeholder={
                 kind === 'issue'
-                  ? 'text-amber-200 border-amber-500/60 bg-amber-950/50'
-                  : 'text-slate-400 border-slate-700/60 hover:bg-slate-800/60'
-              }`}
-            >
-              <Bug className="w-3.5 h-3.5" /> REPORT AN ISSUE
-            </button>
-            <button
-              onClick={() => setKind('recommendation')}
-              className={`flex-1 px-3 py-2 rounded-xl text-[11px] font-tech font-bold flex items-center justify-center gap-1.5 border transition-colors cursor-pointer ${
-                kind === 'recommendation'
-                  ? 'text-cyan-200 border-cyan-500/60 bg-cyan-950/50'
-                  : 'text-slate-400 border-slate-700/60 hover:bg-slate-800/60'
-              }`}
-            >
-              <Lightbulb className="w-3.5 h-3.5" /> RECOMMENDATION
-            </button>
-          </div>
-
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            rows={6}
-            autoFocus
-            placeholder={
-              kind === 'issue'
-                ? 'What happened? What were you doing when it happened?'
-                : 'What would make the world better?'
-            }
-            className="w-full rounded-xl bg-slate-900/70 border border-slate-700/60 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-violet-400/60 resize-y"
-          />
-
-          <label className="flex items-start gap-2 text-xs text-slate-400 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={includeContext}
-              onChange={(e) => setIncludeContext(e.target.checked)}
-              className="mt-0.5 accent-violet-400"
+                  ? 'What happened? What were you doing when it happened?'
+                  : 'What would make the world better?'
+              }
+              className="w-full rounded-xl bg-slate-900/70 border border-slate-700/60 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-violet-400/60 resize-y"
             />
-            Include where I am and which build I&apos;m on — it helps fix things.
-          </label>
 
-          <button
-            onClick={handleSend}
-            disabled={!message.trim()}
-            className="w-full px-4 py-2.5 rounded-xl text-xs font-tech font-bold text-violet-100 border border-violet-400/60 bg-violet-950/60 hover:bg-violet-900/60 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-          >
-            OPEN IN MY MAIL APP
-          </button>
+            {/* The reply door (direct send only): an email is
+                OPTIONAL — the note travels fine without one;
+                it only decides whether the grower can answer. */}
+            {directSend && (
+              <input
+                type="email"
+                value={replyEmail}
+                onChange={(e) => setReplyEmail(e.target.value)}
+                disabled={phase === 'sending'}
+                placeholder="Your email, if you'd like a reply (optional)"
+                className="w-full rounded-xl bg-slate-900/70 border border-slate-700/60 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-violet-400/60"
+              />
+            )}
 
-          <p className="text-[11px] leading-relaxed text-slate-500">
-            {sent
-              ? 'Your mail app should be opening with the note addressed and written — just press send there. Nothing arrived? Write us directly:'
-              : 'This opens your own mail program with the note addressed to us. No mail program set up? Copy the address and write from anywhere:'}
-          </p>
-          <div className="flex items-center gap-2">
-            <span className="flex-1 font-mono text-xs text-slate-300 bg-slate-900/70 border border-slate-700/60 rounded-lg px-3 py-2 select-all">
-              {FEEDBACK_EMAIL}
-            </span>
-            <button
-              onClick={handleCopy}
-              className="px-3 py-2 rounded-lg text-[11px] font-tech font-bold text-slate-200 border border-slate-600/60 hover:bg-slate-800/70 transition-colors cursor-pointer flex items-center gap-1.5"
-            >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
-              {copied ? 'COPIED' : 'COPY'}
-            </button>
+            <label className="flex items-start gap-2 text-xs text-slate-400 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={includeContext}
+                onChange={(e) => setIncludeContext(e.target.checked)}
+                className="mt-0.5 accent-violet-400"
+              />
+              Include where I am and which build I&apos;m on — it helps fix things.
+            </label>
+
+            {directSend ? (
+              <>
+                <button
+                  onClick={handleDirectSend}
+                  disabled={!message.trim() || phase === 'sending'}
+                  className="w-full px-4 py-2.5 rounded-xl text-xs font-tech font-bold text-violet-100 border border-violet-400/60 bg-violet-950/60 hover:bg-violet-900/60 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  {phase === 'sending' ? 'SENDING…' : phase === 'failed' ? 'TRY SENDING AGAIN' : 'SEND'}
+                </button>
+
+                {phase === 'failed' ? (
+                  /* ── FAILED: the honest fallback. The words
+                      stay in the form above; the mailto door
+                      opens beneath, exactly as the dark door
+                      works today. ── */
+                  <>
+                    <p className="text-[11px] leading-relaxed text-amber-200/90">
+                      The direct send didn&apos;t go through — your words are still here, nothing was
+                      lost. Send them through your mail app instead:
+                    </p>
+                    <button
+                      onClick={handleSend}
+                      className="w-full px-4 py-2.5 rounded-xl text-xs font-tech font-bold text-slate-200 border border-slate-500/60 hover:bg-slate-800/60 transition-colors cursor-pointer"
+                    >
+                      OPEN IN MY MAIL APP
+                    </button>
+                    {addressRow}
+                  </>
+                ) : (
+                  <p className="text-[11px] leading-relaxed text-slate-500">
+                    Sends straight from this page to the grower — no mail app needed.
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={handleSend}
+                  disabled={!message.trim()}
+                  className="w-full px-4 py-2.5 rounded-xl text-xs font-tech font-bold text-violet-100 border border-violet-400/60 bg-violet-950/60 hover:bg-violet-900/60 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                >
+                  OPEN IN MY MAIL APP
+                </button>
+
+                <p className="text-[11px] leading-relaxed text-slate-500">
+                  {sent
+                    ? 'Your mail app should be opening with the note addressed and written — just press send there. Nothing arrived? Write us directly:'
+                    : 'This opens your own mail program with the note addressed to us. No mail program set up? Copy the address and write from anywhere:'}
+                </p>
+                {addressRow}
+              </>
+            )}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

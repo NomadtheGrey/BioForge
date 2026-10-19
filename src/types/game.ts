@@ -256,6 +256,10 @@ export type ItemId =
   | 'pen_fence'
   | 'pen_gate'
   | 'iris_slit_door'
+  | 'bone_chime_sentinel'
+  | 'planter'
+  | 'mycologist_wall'
+  | 'slumber_husk'
   | 'lantern_fern_post'
   | 'spore_canopy'
   | 'bio_forge_station'
@@ -915,6 +919,14 @@ export interface FaunaEntity {
   // everywhere; their bargain does not scale).
   wildDmg?: number;
   wildAggro?: number;
+  /**
+   * Broth stamps (wave 2, slice 2): GENTLENESS is consumed by the
+   * wild hunt when released (provokedOnly behavior); the shed
+   * multiplier is read by the shed sweep. Both stamp once at
+   * hatch and ride the snapshot with the creature.
+   */
+  brothGentle?: boolean;
+  shedCadenceMul?: number;
   // The cavern roam (creature slice C1, Part 7, 2026-10-18):
   // floor-verified patrol points dealt WITH a cavern citizen by
   // cavernFauna.ts — every point is a cavern floor cell and every
@@ -969,6 +981,10 @@ export type StructureType =
   | 'pen_fence'
   | 'pen_gate'
   | 'iris_slit_door'
+  | 'bone_chime_sentinel'
+  | 'planter'
+  | 'mycologist_wall'
+  | 'slumber_husk'
   | 'lantern_fern_post'
   | 'spore_canopy'
   | 'bio_forge_station'
@@ -1150,7 +1166,33 @@ export interface StructureEntity {
    */
   vat?: {
     tier: number;
-    gestating?: { species: FaunaSpecies; progress: number; total: number };
+    /**
+     * TIMESTAMPS, NOT TICKERS (Adam, 2026-10-19 gap fix; the dev
+     * chair's phrasing, worth keeping: 'A tick timer is a promise
+     * the zone must stay loaded to keep; a timestamp is a promise
+     * the world keeps on its own.'). progress is the BASE —
+     * seconds banked at the anchor — and anchorMs is the wall-clock
+     * (Date.now) moment it was banked, the same clock the save's
+     * createdAt/savedAt and the sky calendar's day count ride, so
+     * the vat and the sky can never disagree. Effective progress =
+     * progress + (now - anchorMs)/1000 (× the bog pace law, pure in
+     * game/structures/vat.ts). A save from before the gap fix has
+     * no anchor: first read treats it as anchored NOW, base kept —
+     * a mid-gestation vat wakes up intact, no jump, no loss.
+     * Optional — old saves load without it, no save version change.
+     */
+    gestating?: { species: FaunaSpecies; progress: number; total: number; anchorMs?: number };
+    /**
+     * Vat broths (Adam, 2026-10-19, wave 2): ONE gel, fermenting
+     * beside the gestation. fermented is the BASE — seconds banked
+     * at anchorMs (wall clock, the vat's own sky-true clock); the
+     * broth's strength is pure function of the EFFECTIVE fermented
+     * time (game/structures/broths.ts). Pre-gap-fix saves have no
+     * anchor: first read banks NOW with the carried fermented time
+     * — a mid-ferment broth wakes up intact. Optional — old saves
+     * load without it, and no save version changes.
+     */
+    broth?: { gelId: ItemId; fermented: number; anchorMs?: number };
   };
   /**
    * Present only on biotunnel_mouth structures: the derived
@@ -1169,6 +1211,47 @@ export interface StructureEntity {
    * needs no item knowledge). Absent on every other type.
    */
   banner?: { tint?: ItemId; tintColor?: string };
+  /**
+   * Present only on bone_chime_sentinel structures (BioForge wave 2,
+   * 2026-10-19): the sentinel's own warning clock, in sim seconds —
+   * the last sim-clock moment it cried out. Per-piece state doctrine:
+   * the cooldown lives in the chime's own record, not a hook-level
+   * map. Optional, so old saves load with it absent (treated as
+   * never warned — ready). NO save-version change.
+   */
+  chime?: { lastWarnAt: number };
+  /**
+   * Present only on planter structures (BioForge wave 2, 2026-10-19;
+   * Adam's "plants as furniture" — a plant with an address). The
+   * pot's one tenant: the planted species (null = the pot stands
+   * empty), growth 0..1 as the BASE banked at anchorMs (wall
+   * clock — the timestamp law, see the vat's comment above;
+   * effective growth = growth + (now - anchorMs)/500s, pure in
+   * game/structures/planter.ts). plantedAt is legacy (sim seconds
+   * from the tick era) — kept so old records still parse, ignored
+   * by every reader. A pre-gap-fix tenant keeps its stored growth
+   * as base with a fresh anchor: no jump, no loss. Per-piece state
+   * doctrine: the tenant lives in the planter's own record, not a
+   * hook-level map. Optional, so old saves load with it absent
+   * (read as empty). NO save-version change.
+   */
+  planter?: { species: FloraSpecies | null; plantedAt: number; growth: number; anchorMs?: number };
+  /**
+   * Present only on mycologist_wall structures (BioForge wave 2,
+   * 2026-10-19; Adam: give fungus a purpose). The wall's own
+   * working record: the mounted cap ids (one per id, insertion
+   * order), the bin's banked stock, its ready compost, and the
+   * digestion clock — binClock is the fractional BASE banked at
+   * binAnchorMs (wall clock — the timestamp law, see the vat's
+   * comment above; effective digestion runs pure in
+   * game/structures/fungusWall.ts). Pre-gap-fix bins carry only
+   * binClock: first read anchors NOW with binStock/binDone kept —
+   * a mid-digestion bin wakes up intact. Per-piece state
+   * doctrine — the wall keeps its own books. Optional, so old
+   * saves load with it absent (treated as empty). NO
+   * save-version change.
+   */
+  wall?: { mounted: ItemId[]; binStock: number; binDone: number; binClock: number; binAnchorMs?: number };
   /** The Departure, Honor (D4): a memorial's beanstalk —
    *  planted from seed variety, tended once per world day
    *  (lastTendDay is the sky-calendar day it last drank, so

@@ -142,9 +142,9 @@ export const StorageModal: React.FC<StorageModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4">
-      <div className="w-full max-w-2xl max-h-[85dvh] flex flex-col rounded-3xl border border-slate-800 bg-slate-950/95 shadow-2xl overflow-hidden">
+      <div className="w-full max-w-2xl h-[min(560px,94dvh)] flex flex-col rounded-3xl border border-slate-800 bg-slate-950/95 shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-900/60">
+        <div className="px-6 py-4 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:py-2 flex items-center justify-between border-b border-slate-800 bg-slate-900/60">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-amber-950/70 border border-amber-500/40 flex items-center justify-center text-amber-400">
               <Package className="w-5 h-5" />
@@ -170,7 +170,7 @@ export const StorageModal: React.FC<StorageModalProps> = ({
             it. While carrying, the whole kit is inert: tool-less and
             defenseless for the haul. */}
         {onMove && (
-          <div className="px-6 py-2.5 border-b border-slate-800/70 bg-slate-900/30 flex items-center gap-3">
+          <div className="px-6 py-2.5 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:py-1.5 border-b border-slate-800/70 bg-slate-900/30 flex items-center gap-3">
             <Move className="w-4 h-4 text-purple-400 shrink-0" />
             <p className="flex-1 text-xs text-slate-400">
               Carry this {structure.type === 'sample_rack' ? 'rack' : 'pod'} somewhere better — everything inside rides along.
@@ -186,7 +186,7 @@ export const StorageModal: React.FC<StorageModalProps> = ({
 
         {/* Upgrade strip */}
         {nextCaps && (
-          <div className="px-6 py-3 border-b border-slate-800/70 bg-slate-900/30 flex items-center gap-3">
+          <div className="px-6 py-3 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:py-1.5 border-b border-slate-800/70 bg-slate-900/30 flex items-center gap-3">
             <Sprout className="w-4 h-4 text-amber-400 shrink-0" />
             <p className="flex-1 text-xs text-slate-400">
               Grow into a <span className="text-slate-200 font-semibold">{nextCaps.name}</span> — {nextCaps.slots} kinds,{' '}

@@ -168,6 +168,12 @@ import { findTunnelMouths, type TunnelMouthRef } from './game/world/tunnel';
 import { InventoryModal } from './components/InventoryModal';
 import { StorageModal } from './components/StorageModal';
 import { VatModal } from './components/VatModal';
+import { WallModal } from './components/WallModal';
+import { PlanterModal } from './components/PlanterModal';
+import { readPlanter, applyPlant, applyTake } from './game/structures/planter';
+import { speciesForPropagule, propaguleItemOf } from './game/flora/propagation';
+import { floraDef } from './game/flora/flora';
+import { readWall, mountCap, unmountCap, wallBinCatchup, WALL_BIN_MAX, WALL_BIN_FEED, WALL_BIN_HARVEST_COST } from './game/structures/fungusWall';
 import { POUCH_TIER_CAPS, POUCH_UPGRADE_ITEMS, pouchTierOf, storageClusterOf } from './game/items/pouch';
 import { CodexModal } from './components/CodexModal';
 import { MultiplayerModal } from './components/MultiplayerModal';
@@ -279,7 +285,7 @@ export default function App() {
 
   // 2. Modals & UI States
   const [activeModal, setActiveModal] = useState<
-    'bioforge' | 'inventory' | 'codex' | 'multiplayer' | 'controls' | 'devtools' | 'quests' | 'storage' | 'vat' | null
+    'bioforge' | 'inventory' | 'codex' | 'multiplayer' | 'controls' | 'devtools' | 'quests' | 'storage' | 'vat' | 'wall' | 'planter' | null
   >(null);
 
   // The About screen (info screen work order, 2026-10-17): its
@@ -336,6 +342,10 @@ export default function App() {
   const [storageTargetId, setStorageTargetId] = useState<string | null>(null);
   // Which culture vat the VatModal shows (id; entity re-read live).
   const [vatTargetId, setVatTargetId] = useState<string | null>(null);
+  // Which mycologist's wall the WallModal shows (id; entity re-read live).
+  const [wallTargetId, setWallTargetId] = useState<string | null>(null);
+  // Which planter the PlanterModal shows (id; entity re-read live).
+  const [planterTargetId, setPlanterTargetId] = useState<string | null>(null);
   // The companion whose RELEASE is being confirmed (Adam,
   // 2026-10-15: release always asks first). The fauna rides
   // along so the dialog can say its name.
@@ -1206,6 +1216,11 @@ export default function App() {
     loadHeartbearer,
     hearthFeed,
     getDayNightCycle: () => latestStateRef.current.dayNightCycle,
+    // The Slumber Husk (wave 2): App's cycle + stamina writers —
+    // the sleep jump's only seam into the clock.
+    setDayNightCycle,
+    setStamina,
+    maxStamina: playerState.maxStamina,
     setFaunaCommand,
     setCodexList,
     fieldNotesState,
@@ -1223,6 +1238,14 @@ export default function App() {
     onOpenVat: (structure) => {
       setVatTargetId(structure.id);
       setActiveModal('vat');
+    },
+    onOpenWall: (structure) => {
+      setWallTargetId(structure.id);
+      setActiveModal('wall');
+    },
+    onOpenPlanter: (structure) => {
+      setPlanterTargetId(structure.id);
+      setActiveModal('planter');
     },
     onTunnelTransit,
     getTunnelMouthCount,
@@ -1999,9 +2022,10 @@ const { handleStorageDeposit, handleStorageWithdraw, handleStorageUpgrade } =
   });
 
 // Culture-vat behaviors: hooks/useVat.
-const { handleVatStart, handleVatUpgrade, handleVatHatch } = useVat({
+const { handleVatStart, handleVatUpgrade, handleVatHatch, handleVatBrothLoad, handleVatBrothRemove } = useVat({
   getInventory: () => latestStateRef.current.inventory,
   deductInventoryItem,
+  addInventoryItem,
   upsertStructure,
   upsertFauna,
   getCurrentBiome: () => {
@@ -2993,6 +3017,18 @@ const {
       ? structuresList.find((s) => s.id === vatTargetId && s.type === 'culture_vat')
       : undefined;
 
+  // The mycologist's wall the panel is showing, if it still stands.
+  const wallStructure =
+    activeModal === 'wall' && wallTargetId
+      ? structuresList.find((s) => s.id === wallTargetId && s.type === 'mycologist_wall')
+      : undefined;
+
+  // The planter the panel is showing, if it still stands.
+  const planterStructure =
+    activeModal === 'planter' && planterTargetId
+      ? structuresList.find((s) => s.id === planterTargetId && s.type === 'planter')
+      : undefined;
+
   // The radar's tier (Adam's taxonomy, 2026-10-16): the helm
   // carries the radar track — TIER 1 wayfinding when helm +
   // radar are owned, TIER 2 creature location when the
@@ -3288,7 +3324,123 @@ const {
           onStart={handleVatStart}
           onHatch={handleVatHatch}
           onUpgrade={handleVatUpgrade}
+          onBrothLoad={handleVatBrothLoad}
+          onBrothRemove={handleVatBrothRemove}
           onMove={handleMoveVault}
+        />
+      )}
+      {/* The mycologist's wall (entity re-read live from the list). */}
+      {activeModal === 'wall' && wallStructure && (
+        <WallModal
+          structure={wallStructure}
+          inventory={inventory}
+          onClose={() => {
+            setActiveModal(null);
+            setWallTargetId(null);
+          }}
+          onMount={(structure, itemId) => {
+            const live = structuresList.find((s) => s.id === structure.id);
+            if (!live || !hasItem(itemId, 1)) return;
+            // Catch the bin up FIRST under the OLD crew (mounting
+            // changes the digester count — the old span closes
+            // honestly before the new mount joins it).
+            const w = wallBinCatchup(readWall(live), Date.now());
+            if (w.mounted.includes(itemId)) return;
+            deductInventoryItem(itemId, 1);
+            upsertStructure({ ...live, wall: { ...w, mounted: mountCap(w.mounted, itemId) } });
+            postNotification('Cap Mounted', `The ${ITEMS[itemId]?.name ?? itemId} takes to the lattice — alive, and already at work.`, 'craft', '#7fe3c8');
+          }}
+          onUnmount={(structure, itemId) => {
+            const live = structuresList.find((s) => s.id === structure.id);
+            if (!live) return;
+            // Same honesty in reverse: the old crew's span closes
+            // before the mount leaves it.
+            const w = wallBinCatchup(readWall(live), Date.now());
+            if (!w.mounted.includes(itemId)) return;
+            addInventoryItem(itemId, 1);
+            upsertStructure({ ...live, wall: { ...w, mounted: unmountCap(w.mounted, itemId) } });
+            postNotification('Cutting Returned', `The ${ITEMS[itemId]?.name ?? itemId} comes off the lattice as a living cutting — unharmed.`, 'system', '#7fe3c8');
+          }}
+          onFeedBin={(structure) => {
+            const live = structuresList.find((s) => s.id === structure.id);
+            if (!live) return;
+            // Catch up before the math: the bin may have digested
+            // while its zone was unloaded (the timestamp law).
+            const w = wallBinCatchup(readWall(live), Date.now());
+            const room = WALL_BIN_MAX - w.binStock;
+            if (room <= 0) return;
+            let fed = 0;
+            for (const id of WALL_BIN_FEED) {
+              while (fed < room && hasItem(id, 1)) {
+                deductInventoryItem(id, 1);
+                fed += 1;
+              }
+            }
+            if (fed > 0) {
+              upsertStructure({ ...live, wall: { ...w, binStock: w.binStock + fed } });
+              postNotification('The Bin Is Fed', `The rot crew takes ${fed} scrap${fed === 1 ? '' : 's'} — fiber, bone, chitin, all of it digestible now.`, 'craft', '#d6a05c');
+            }
+          }}
+          onHarvestBin={(structure) => {
+            const live = structuresList.find((s) => s.id === structure.id);
+            if (!live) return;
+            // Catch up before the math — same law as the feed.
+            const w = wallBinCatchup(readWall(live), Date.now());
+            if (w.binDone < WALL_BIN_HARVEST_COST) return;
+            const paid = Math.floor(w.binDone / WALL_BIN_HARVEST_COST);
+            addInventoryItem('basic_compost', paid);
+            upsertStructure({ ...live, wall: { ...w, binDone: w.binDone - paid * WALL_BIN_HARVEST_COST } });
+            postNotification('Compost Gathered', `The wall's rot crew gives up ${paid} compost${paid === 1 ? '' : 's'} — digested slow and honest.`, 'craft', '#d6a05c');
+          }}
+        />
+      )}
+      {/* The planter (entity re-read live from the list). */}
+      {activeModal === 'planter' && planterStructure && (
+        <PlanterModal
+          structure={planterStructure}
+          inventory={inventory}
+          onClose={() => {
+            setActiveModal(null);
+            setPlanterTargetId(null);
+          }}
+          onPlant={(structure, itemId) => {
+            const live = structuresList.find((s) => s.id === structure.id);
+            if (!live || !hasItem(itemId, 1)) return;
+            // The picker's truth (planter.plantablePropagules):
+            // the item names a species, or it plants nothing.
+            const species = speciesForPropagule(itemId);
+            if (!species) return;
+            const p = readPlanter(live);
+            if (p.species) return;
+            deductInventoryItem(itemId, 1);
+            // The tenant is born anchored NOW (wall clock — the
+            // timestamp law, planter.applyPlant); no tick stamps it.
+            // The tenant arrives a seedling.
+            upsertStructure({ ...live, planter: applyPlant(p, species) });
+            const name = floraDef(species)?.name ?? species;
+            postNotification('Planted', `The ${name} settles into its pot — a plant with an address.`, 'craft', '#a3e635');
+          }}
+          onTake={(structure) => {
+            const live = structuresList.find((s) => s.id === structure.id);
+            if (!live) return;
+            const p = readPlanter(live);
+            if (!p.species) return;
+            // The take-back rule (mirrors the field-dissolve rule):
+            // seed-bearers return their seed, piece species their
+            // piece — propagation.ts is the one truth.
+            const back = propaguleItemOf(p.species);
+            const name = floraDef(p.species)?.name ?? p.species;
+            if (back) addInventoryItem(back, 1);
+            upsertStructure({ ...live, planter: applyTake(p) });
+            postNotification(
+              'Plant Taken',
+              back
+                ? `The ${name} comes out of its pot whole — its ${ITEMS[back]?.name ?? back} back in your pouch.`
+                : `The ${name} comes out of its pot whole. The pot stands empty.`,
+              'system',
+              '#a3e635',
+            );
+          }}
         />
       )}
       {/* The open storage pod (entity re-read live from the list). */}

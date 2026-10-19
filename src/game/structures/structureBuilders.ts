@@ -22,6 +22,9 @@ import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferG
 import type { StructureType, StructureEntity } from '../../types/game';
 import { hashId, mulberry32 } from './lifePulse';
 import { rootGrainTexture, barkTexture, wovenTexture, jitterVertices } from './grownTextures';
+import { buildFloraMesh } from '../flora/floraMeshes';
+import { planterGrowthEffective, planterTenantScale } from './planter';
+import { WALL_PEG_COUNT } from './fungusWall';
 
 /** The engine's shared material palette, as the builders use it. */
 export interface StructureMaterials {
@@ -649,6 +652,80 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       const headSlat = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.09, 0.05), (new THREE.MeshStandardMaterial({ map: rootGrainTexture(1), roughness: 0.92 })));
       headSlat.position.set(0, 0.72, -0.95);
       group.add(headSlat);
+      return group;
+    },
+    // THE SLUMBER HUSK (BioForge wave 2, 2026-10-19; Adam's bed
+    // ruling: not down — "a fleshy soft, gross but comfy
+    // place"). The root bed's grown-up: a low hollow of living
+    // flesh — quivering gel body under a fiber skin, stitched
+    // with living thread. Nothing in it is furniture-sharp;
+    // everything is round, damp-looking, and faintly warm.
+    // The breathing pass (updateSlumberLife) stirs the named
+    // 'slumberFlesh' group — the mesh below just holds the shape.
+    'slumber_husk': (entity) => {
+      const group = new THREE.Group();
+      const rng = mulberry32(hashId(entity?.id ?? 'ghost-husk'));
+
+      // The skin: a fleshy matte membrane, fiber-pink, slightly
+      // translucent-looking (emissive does the damp warmth; real
+      // subsurface scattering is beyond a pooled-light engine).
+      const skinMat = new THREE.MeshStandardMaterial({
+        color: 0xd98a94,
+        roughness: 0.55,
+        emissive: 0x7c2d3e,
+        emissiveIntensity: 0.35,
+      });
+      // The flesh body (named: the life pass breathes this group):
+      // a low mound, long as a body, with the hollow pressed in.
+      const flesh = new THREE.Group();
+      flesh.name = 'slumberFlesh';
+      const mound = new THREE.Mesh(new THREE.SphereGeometry(1.15, 18, 14), skinMat);
+      mound.scale.set(1.05, 0.42, 1.5);
+      mound.position.y = 0.32;
+      mound.castShadow = true;
+      flesh.add(mound);
+
+      // The hollow: a darker, damper inset sunk into the top —
+      // the body-shaped trough you sink into. Slightly off-axis
+      // per husk (seeded), so no two cradle exactly alike.
+      const hollowMat = new THREE.MeshStandardMaterial({
+        color: 0x8f2f42,
+        roughness: 0.35,
+        emissive: 0x4c1220,
+        emissiveIntensity: 0.5,
+      });
+      const hollow = new THREE.Mesh(new THREE.SphereGeometry(0.72, 16, 12), hollowMat);
+      hollow.scale.set(0.62, 0.22, 1.02);
+      hollow.position.set((rng() - 0.5) * 0.14, 0.62, (rng() - 0.5) * 0.1);
+      flesh.add(hollow);
+
+      // The stitching: living-thread seams arc over the mound —
+      // thin pale lines holding the skin shut, slightly proud.
+      const threadMat = new THREE.MeshStandardMaterial({ color: 0xd9f99d, roughness: 0.6 });
+      for (let i = 0; i < 5; i++) {
+        // The half-torus lives in the XY plane, arc upper — an
+        // arch spanning the mound's width (the body's ribs).
+        // No rotation: successive ribs sit along the body axis.
+        const seam = new THREE.Mesh(new THREE.TorusGeometry(1.02 - i * 0.09, 0.022, 6, 22, Math.PI), threadMat);
+        seam.position.set(0, 0.18, -0.75 + i * 0.36);
+        flesh.add(seam);
+      }
+
+      // Dew beads: small bright droplets beaded along the rim —
+      // the dew that keeps it alive, made visible.
+      const dewMat = new THREE.MeshStandardMaterial({
+        color: 0xbfe9ff,
+        roughness: 0.1,
+        emissive: 0x38bdf8,
+        emissiveIntensity: 0.55,
+      });
+      for (let i = 0; i < 7; i++) {
+        const drop = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), dewMat);
+        const a = (i / 7) * Math.PI * 2 + rng() * 0.5;
+        drop.position.set(Math.cos(a) * 1.12, 0.42 + rng() * 0.1, Math.sin(a) * 1.55);
+        flesh.add(drop);
+      }
+      group.add(flesh);
       return group;
     },
     // Vine ladder: two springy rails + rungs, standing in the wall's
@@ -1311,6 +1388,266 @@ export function createStructureBuilders(materials: StructureMaterials): Record<S
       cloth.position.y = 2.6;
       cloth.castShadow = true;
       group.add(cloth);
+      return group;
+    },
+    // THE BONE CHIME SENTINEL (BioForge wave 2, 2026-10-19; Adam's
+    // camp-defense entry from the sinks sheet). It warns; it never
+    // fights — so nothing about it reads as a weapon. A bone-frame
+    // garden sentinel: rooted base, a lean bone pole with a
+    // crossarm, silk strands hanging hollow chime straws, and the
+    // worn skull worn as a crown — the dead keeping watch over
+    // the living, in the game's plain register.
+    'bone_chime_sentinel': (entity) => {
+      const group = new THREE.Group();
+      const rng = mulberry32(hashId(entity?.id ?? 'ghost-chime'));
+
+      // Rooted base flare — the same furniture stance as the lamp
+      // and banner posts: wide, planted, immovable-looking.
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.46, 0.34, 10), materials.porcelainWhite);
+      base.position.y = 0.17;
+      base.castShadow = true;
+      group.add(base);
+
+      // The bone pole: pale like the frame it is, grown with the
+      // same seeded lean the banners wear (no two chimes stand
+      // exactly alike).
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.14, 2.5, 8), materials.porcelainWhite);
+      pole.position.y = 1.55;
+      pole.rotation.z = (rng() - 0.5) * 0.05;
+      pole.castShadow = true;
+      group.add(pole);
+
+      // The crossarm the strands hang from.
+      const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.5, 6), materials.woodRoot);
+      bar.rotation.z = Math.PI / 2;
+      bar.position.y = 2.7;
+      bar.castShadow = true;
+      group.add(bar);
+
+      // The chime strands (named: the life pass stirs this group).
+      // Silk threads with hollow straw bells — lengths and phases
+      // seeded per chime so every sentinel's voice is its own.
+      const strands = new THREE.Group();
+      strands.name = 'chimeStrands';
+      const strandCount = 5;
+      for (let i = 0; i < strandCount; i++) {
+        const sx = -0.62 + (i / (strandCount - 1)) * 1.24;
+        const len = 0.5 + rng() * 0.45;
+        const thread = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, len, 5), materials.woodRoot);
+        thread.position.set(sx, 2.7 - len / 2, 0);
+        strands.add(thread);
+        // The straw bell: a hollow cone, mouth down, bone-pale —
+        // the part that does the talking when the wind (or a
+        // warning) moves it.
+        const bell = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.22, 8, 1, true), materials.porcelainWhite);
+        bell.position.set(sx, 2.7 - len - 0.1, 0);
+        // The cone's open mouth faces down, like a bell's.
+        strands.add(bell);
+      }
+      group.add(strands);
+
+      // The crown: a worn skull, kept honest — a pale dome with
+      // two dark hollows where the watching was. It is the
+      // sentinel's face and its promise: the dead keep watch.
+      const skull = new THREE.Group();
+      skull.name = 'chimeSkull';
+      const dome = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 10), materials.porcelainWhite);
+      dome.scale.set(1, 0.82, 0.95);
+      skull.add(dome);
+      [-0.09, 0.09].forEach((ex) => {
+        const socket = new THREE.Mesh(
+          new THREE.SphereGeometry(0.05, 8, 8),
+          new THREE.MeshStandardMaterial({ color: 0x1a1611, roughness: 1 }),
+        );
+        socket.position.set(ex, 0.02, 0.17);
+        skull.add(socket);
+      });
+      skull.position.y = 3.0;
+      skull.rotation.y = rng() * Math.PI * 2;
+      group.add(skull);
+
+      return group;
+    },
+    // THE MYCOLOGIST'S WALL (BioForge wave 2, 2026-10-19; Adam:
+    // give fungus a purpose). A grown lattice wall — two rooted
+    // posts, a woven fiber lattice, a bin box at its foot — with
+    // WALL_PEG_COUNT named cap pegs ('wallCap0'..'wallCap39'):
+    // forty seats for the thirty-seven CAP kinds (gap fix
+    // 2026-10-19 — mounts past the twelfth finally show). The
+    // builder only builds the pegs; the wall's life pass
+    // (updateFungusWallLife) dresses them from the wall's own
+    // mounted record, because meshes are built once and never
+    // rebuilt — a mount/unmount must not cost a rebuild.
+    'mycologist_wall': (entity) => {
+      const group = new THREE.Group();
+      const rng = mulberry32(hashId(entity?.id ?? 'ghost-wall'));
+
+      // Two rooted posts, the same furniture stance as the lamp
+      // and chime posts: wide, planted, immovable-looking.
+      const postGeom = new THREE.CylinderGeometry(0.11, 0.17, 2.4, 8);
+      for (const px of [-1.5, 1.5]) {
+        const post = new THREE.Mesh(postGeom, materials.woodRoot);
+        post.position.set(px, 1.2, 0);
+        post.rotation.z = (rng() - 0.5) * 0.04;
+        post.castShadow = true;
+        group.add(post);
+      }
+      // The lattice panel between them: a fiber-woven sheet.
+      const lattice = new THREE.Mesh(
+        new THREE.BoxGeometry(3.0, 1.9, 0.08),
+        new THREE.MeshStandardMaterial({ map: wovenTexture(2), roughness: 0.95 }),
+      );
+      lattice.position.y = 1.35;
+      lattice.castShadow = true;
+      group.add(lattice);
+      // A crossbar, grown proud of the panel — the caps' rail.
+      const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 3.0, 8), materials.woodRoot);
+      rail.rotation.z = Math.PI / 2;
+      rail.position.y = 2.35;
+      group.add(rail);
+      // The bin box at the foot — the rot crew's workplace.
+      const bin = new THREE.Mesh(
+        new THREE.BoxGeometry(1.1, 0.5, 0.6),
+        new THREE.MeshStandardMaterial({ color: 0x6b5b3e, roughness: 0.95 }),
+      );
+      bin.position.set(0, 0.25, 0.55);
+      bin.castShadow = true;
+      bin.name = 'wallBin';
+      group.add(bin);
+
+      // Forty pegs in five rows of eight (WALL_PEG_COUNT): small
+      // stems with a cap seat. Each peg group is named 'wallCapN';
+      // the life pass dresses the first M from the mounted record
+      // and hides the rest. Materials are per-peg so the pass can
+      // tint them without shared-material bleed. The pegs shrank a
+      // step to fit the wider census (cap r 0.11 -> 0.085) — the
+      // frame's proportions stay exactly as grown: same posts,
+      // same panel, same rail.
+      const stemGeom = new THREE.CylinderGeometry(0.016, 0.02, 0.13, 6);
+      const capGeom = new THREE.SphereGeometry(0.085, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+      const stemMat = new THREE.MeshStandardMaterial({ color: 0x8a7a5c, roughness: 1 });
+      for (let i = 0; i < WALL_PEG_COUNT; i++) {
+        const peg = new THREE.Group();
+        const col = i % 8;
+        const row = Math.floor(i / 8);
+        peg.position.set(-1.26 + col * 0.36, 0.62 + row * 0.4, 0.12);
+        const stem = new THREE.Mesh(stemGeom, stemMat);
+        stem.position.y = 0.065;
+        peg.add(stem);
+        const cap = new THREE.Mesh(
+          capGeom,
+          new THREE.MeshStandardMaterial({ color: 0xb8a88f, roughness: 0.85 }),
+        );
+        cap.position.y = 0.14;
+        cap.castShadow = true;
+        peg.add(cap);
+        peg.name = `wallCap${i}`;
+        group.add(peg);
+      }
+      return group;
+    },
+    // THE PLANTER (BioForge wave 2, slice 5, 2026-10-19; Adam's
+    // "plants as furniture" — a plant with an address). A handsome
+    // grown pot: root feet, a flared grown-wood body, a rim, soil
+    // already in it. The tenant (ONE planted flora) is dressed by
+    // the builder from the entity's own planter record via the
+    // flora mesh factory at pot scale — a pot is not a wild bed,
+    // so the tenant never reaches wild size (planterTenantScale).
+    // Planting / taking a plant changes the mesh KIND key (see
+    // syncStructures), so the tenant rebuilds from the builder;
+    // growth itself is only dressing scale in the life pass, never
+    // a rebuild.
+    'planter': (entity) => {
+      const group = new THREE.Group();
+      const rng = mulberry32(hashId(entity?.id ?? 'ghost-planter'));
+      const soilY = 0.52;
+
+      // Root feet — the pot stands on grown roots, not a kiln ring.
+      const footGeom = new THREE.ConeGeometry(0.09, 0.22, 7);
+      const footCount = 3 + Math.floor(rng() * 2);
+      for (let i = 0; i < footCount; i++) {
+        const a = (i / footCount) * Math.PI * 2 + rng() * 0.5;
+        const foot = new THREE.Mesh(footGeom, materials.woodRoot);
+        foot.position.set(Math.cos(a) * 0.3, 0.11, Math.sin(a) * 0.3);
+        foot.rotation.z = Math.cos(a) * 0.35;
+        foot.rotation.x = -Math.sin(a) * 0.35;
+        foot.castShadow = true;
+        group.add(foot);
+      }
+
+      // The pot body: flared grown wood, jittered so no two pots
+      // are exactly alike.
+      const bodyGeom = new THREE.CylinderGeometry(0.44, 0.32, 0.42, 12);
+      jitterVertices(bodyGeom, 0.012, hashId(entity?.id ?? 'ghost-planter'));
+      const body = new THREE.Mesh(bodyGeom, materials.woodRoot);
+      body.position.y = 0.32;
+      body.castShadow = true;
+      group.add(body);
+
+      // The rim: a grown lip the tenant's soil sits under.
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.43, 0.055, 8, 16), materials.woodRoot);
+      rim.rotation.x = Math.PI / 2;
+      rim.position.y = soilY;
+      rim.castShadow = true;
+      group.add(rim);
+
+      // The soil: dark, matte, already in the pot — the recipe's
+      // compost, visible. It reads as plantable at a glance.
+      const soil = new THREE.Mesh(
+        new THREE.CircleGeometry(0.4, 14),
+        new THREE.MeshStandardMaterial({ color: 0x2e2118, roughness: 1 }),
+      );
+      soil.rotation.x = -Math.PI / 2;
+      soil.position.y = soilY - 0.02;
+      group.add(soil);
+
+      // The tenant's seat (named: the life pass scales this group
+      // as the plant grows). Built empty; dressed below when the
+      // entity carries a tenant.
+      const dressing = new THREE.Group();
+      dressing.name = 'planterDressing';
+      dressing.position.y = soilY;
+      group.add(dressing);
+
+      // Dress the tenant from the entity's own record. The flora
+      // mesh factory builds the species' wild silhouette; the pot
+      // keeps it small. userData is scrubbed — this is NOT a wild
+      // flora, and the hover walk-up must reach the planter group
+      // (a potted fern is furniture, not a harvest target).
+      const species = entity?.planter?.species;
+      if (species) {
+        const tenant = buildFloraMesh(
+          {
+            id: `planter-tenant-${entity!.id}`,
+            species,
+            x: 0,
+            z: 0,
+            rotation: rng() * Math.PI * 2,
+            scale: 1,
+            growthStage: 5,
+            growthProgress: 1,
+            fertilizedGrowth: false,
+            fertilizedYield: false,
+            harvestReady: false,
+            harvestTimer: 0,
+            isHazardous: false,
+            swayOffset: rng() * Math.PI * 2,
+          },
+          materials,
+          // The factory seats the mesh by terrain height; the pot
+          // seats it instead — position is overridden below.
+          () => 0,
+        );
+        tenant.position.set(0, 0, 0);
+        tenant.userData = {};
+        // Seated at EFFECTIVE growth (the timestamp law): a tenant
+        // that matured in an unloaded zone arrives full-sized on
+        // first paint — the life pass keeps it honest after.
+        tenant.scale.setScalar(
+          planterTenantScale(entity!.planter ? planterGrowthEffective(entity!.planter, Date.now()) : 0),
+        );
+        dressing.add(tenant);
+      }
       return group;
     },
     'lantern_fern_post': () => {

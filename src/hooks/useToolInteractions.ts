@@ -28,12 +28,14 @@ import { ruinLoreLine } from '../game/world/ruinInterior';
 import { heartBearsFragment } from '../game/world/ruins';
 import { soundEngine } from '../audio/soundEngine';
 import { multiplayerManager } from '../game/multiplayer';
+import { isSleepHour, nextDawnPhase } from '../game/structures/slumber';
 import { FLORA_MATURE_SECONDS, FERTILIZER_DURATION_SECONDS } from './useWorldEntities';
 import { speciesDef } from '../game/creatures/species';
 import { glyphLensWorn } from '../game/creatures/helmet';
 import { sampleItemId, vatKitFor } from '../game/structures/vat';
 import { storageKitFor } from '../game/items/pouch';
 import { MOUND_FEED_MAX, MOUND_HARVEST_COST, MOUND_KINDS, resolveKindSpend, type KindSpendLine } from '../game/items/itemKinds';
+import { MOUND_DECOMPOSER_FEED } from '../game/structures/fungusWall';
 import { bestWeapon } from '../game/creatures/weapons';
 import type { WeaponDef } from '../game/creatures/weapons';
 import { floraDef } from '../game/flora/flora';
@@ -149,6 +151,14 @@ export interface UseToolInteractionsParams {
    *  cycle via its latest-state mirror — 0.25 sunrise, 0.5 noon,
    *  0.75 sunset, 0 midnight. */
   getDayNightCycle: () => number;
+  /** The cycle's writer (Slumber Husk, wave 2): App's setter —
+   *  the same writer the host's once-a-second tick uses, so a
+   *  sleep jump is a known motion of the sim. */
+  setDayNightCycle: (phase: number) => void;
+  /** Stamina's writer (Slumber Husk): waking restores the body. */
+  setStamina: (stamina: number) => void;
+  /** The pool's ceiling (Slumber Husk): what waking refills to. */
+  maxStamina: number;
   setFaunaCommand: (faunaId: string, cmd: 'follow' | 'stay' | 'guard') => void;
   /** Ask App to confirm a RELEASE (Adam, 2026-10-15): the cycle's
    *  guarded fourth stop — never applied by the click itself. */
@@ -221,6 +231,10 @@ export interface UseToolInteractionsParams {
   /** Open a storage pod's panel (App shows StorageModal). */
   onOpenStorage: (structure: StructureEntity) => void;
   onOpenVat: (structure: StructureEntity) => void;
+  /** Open the mycologist wall's panel (App shows WallModal). */
+  onOpenWall: (structure: StructureEntity) => void;
+  /** Open the planter's panel (App shows PlanterModal). */
+  onOpenPlanter: (structure: StructureEntity) => void;
   /** BioTunnel mouth click (Adam, 2026-10-16): App runs the
    *  transit to the other mouth (or explains a dormant one). */
   onTunnelTransit: (structure: StructureEntity) => void;
@@ -282,6 +296,9 @@ export function useToolInteractions({
   hearthFeed,
   loadHeartbearer,
   getDayNightCycle,
+  setDayNightCycle,
+  setStamina,
+  maxStamina,
   setFaunaCommand,
   onRequestRelease,
   onGlyphRead,
@@ -310,6 +327,8 @@ export function useToolInteractions({
   onOpenBioForgeModal,
   onOpenStorage,
   onOpenVat,
+  onOpenWall,
+  onOpenPlanter,
   onTunnelTransit,
   getTunnelMouthCount,
   spawnDroppedItem,
@@ -830,6 +849,22 @@ export function useToolInteractions({
       if (structure.type === 'culture_vat' && structure.vat?.gestating) {
         addInventoryItem(sampleItemId(structure.vat.gestating.species), 1);
         returnedContents = true;
+      }
+
+      // THE PLANTER (BioForge wave 2, slice 5): a dissolved planter
+      // gives its tenant back FIRST — the field-dissolve rule,
+      // mirrored (propagation.ts is the one truth: seed-bearers
+      // return their seed, piece species their piece). A missing
+      // propagule (wild-only tenants can't exist — the picker
+      // excludes them — but cheap to guard) simply returns
+      // nothing. Then the generic reclaim below returns the
+      // planter kit itself, as for every structure.
+      if (structure.type === 'planter' && structure.planter?.species) {
+        const tenantBack = propaguleItemOf(structure.planter.species);
+        if (tenantBack) {
+          addInventoryItem(tenantBack, 1);
+          returnedContents = true;
+        }
       }
 
       if ((structure.type === 'storage_pod' || structure.type === 'sample_rack') && structure.storage) {
@@ -1591,6 +1626,31 @@ export function useToolInteractions({
         ...(selectedStructureType === 'banner_post'
           ? { banner: {} }
           : {}),
+        // A bone chime sentinel is born ready (BioForge wave 2,
+        // 2026-10-19): its warning clock starts at zero — a fresh
+        // chime has never warned, and the first hunter it hears
+        // gets answered. (Readers treat a missing stamp as never
+        // warned anyway, for chimes that predate the field.)
+        ...(selectedStructureType === 'bone_chime_sentinel'
+          ? { chime: { lastWarnAt: 0 } }
+          : {}),
+        // A mycologist's wall is born bare (BioForge wave 2,
+        // 2026-10-19): no caps mounted, the bin empty and its
+        // clock at zero, anchored NOW (wall clock — the timestamp
+        // law). (Readers treat a missing wall record as empty
+        // anyway, for walls that predate the field.)
+        ...(selectedStructureType === 'mycologist_wall'
+          ? { wall: { mounted: [] as ItemId[], binStock: 0, binDone: 0, binClock: 0, binAnchorMs: Date.now() } }
+          : {}),
+        // A planter is born empty (BioForge wave 2, 2026-10-19):
+        // no tenant, growth at zero. The tenant's anchor is
+        // stamped at PLANT time (planter.applyPlant), not at
+        // birth — an empty pot has nothing to grow. (Readers
+        // treat a missing planter record as empty anyway, for
+        // planters that predate the field.)
+        ...(selectedStructureType === 'planter'
+          ? { planter: { species: null, plantedAt: 0, growth: 0 } }
+          : {}),
         // A cultivation mound is born hungry (P1, 2026-10-18):
         // its stock of banked kind-matter starts empty. (The
         // starting-base mound predates the field — readers
@@ -2231,11 +2291,36 @@ export function useToolInteractions({
           room -= line.count;
         }
       }
+      // THE DECOMPOSER FEED (BioForge wave 2, 2026-10-19): the
+      // fungus in the mound eats what nothing else eats — bone
+      // and chitin scrap feed it too, consulted AFTER the kind
+      // tables and into the same room budget (a notch below kind
+      // feed by priority; the copy names the crew doing the
+      // work). Kind-feed behavior and rates above are untouched.
+      if (room > 0) {
+        for (const itemId of MOUND_DECOMPOSER_FEED) {
+          if (room <= 0) break;
+          const held = working[itemId] ?? 0;
+          if (held <= 0) continue;
+          const take = Math.min(held, room);
+          fedLines.push({ itemId, count: take });
+          working[itemId] = held - take;
+          room -= take;
+        }
+      }
       const fed = fedLines.reduce((sum, l) => sum + l.count, 0);
       if (fed > 0) {
         fedLines.forEach((l) => deductInventoryItem(l.itemId, l.count));
         upsertStructure({ ...structure, mound: { stock: stock + fed } });
-        postNotification('The Mound Eats', `Banked ${fed} scrap${fed === 1 ? '' : 's'} — the mound holds ${stock + fed}. Every ${MOUND_HARVEST_COST} pays out a compost.`, 'craft', '#84cc16');
+        const bone = fedLines.some((l) => MOUND_DECOMPOSER_FEED.includes(l.itemId));
+        postNotification(
+          'The Mound Eats',
+          bone
+            ? `The mound's fungus takes the bone apart — banked ${fed} scrap${fed === 1 ? '' : 's'}, the mound holds ${stock + fed}. Every ${MOUND_HARVEST_COST} pays out a compost.`
+            : `Banked ${fed} scrap${fed === 1 ? '' : 's'} — the mound holds ${stock + fed}. Every ${MOUND_HARVEST_COST} pays out a compost.`,
+          'craft',
+          '#84cc16'
+        );
         return;
       }
       if (stock >= MOUND_HARVEST_COST) {
@@ -2244,7 +2329,69 @@ export function useToolInteractions({
         postNotification('Compost Gathered', `The mound gives up a compost. ${stock - MOUND_HARVEST_COST} scrap${stock - MOUND_HARVEST_COST === 1 ? '' : 's'} still banked.`, 'craft', '#84cc16');
         return;
       }
-      postNotification('The Cultivation Mound', `Plant any seed here with the trowel — or feed it caps, gels, and greenery and it will pay compost back. Banked: ${stock} of ${MOUND_HARVEST_COST} toward one.`, 'system', '#a8a29e');
+      postNotification('The Cultivation Mound', `Plant any seed here with the trowel — or feed it caps, gels, and greenery (bone and chitin scrap too — its fungus takes them apart) and it will pay compost back. Banked: ${stock} of ${MOUND_HARVEST_COST} toward one.`, 'system', '#a8a29e');
+      return;
+    }
+    // THE SLUMBER HUSK (BioForge wave 2, 2026-10-19; Adam's bed
+    // ruling: not down — "a fleshy soft, gross but comfy
+    // place"). The flesh bed's one act: at night, sleep the
+    // world until dawn. The mound branch's lesson applies —
+    // the builder and trowel keep their routing above; any
+    // OTHER tool addresses the husk itself.
+    if (structure.type === 'slumber_husk') {
+      if (activeTool === 'solvent_sprayer') {
+        handleSolventSprayer(structure);
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      // CO-OP LAW (the standing shape — the host's save
+      // determines the world, and the host's loop tick is the
+      // Sol-cycle's one writer): the sky belongs to the host.
+      // A guest's client must not put the world to sleep —
+      // the same condition the advancing tick guards on.
+      if (multiplayerManager.isConnected && !multiplayerManager.isHost) {
+        postNotification(
+          'The Host\'s Sky',
+          'Only the host can sleep the world through the night — this sky belongs to them.',
+          'alert',
+          '#f59e0b'
+        );
+        return;
+      }
+      const phase = getDayNightCycle();
+      if (!isSleepHour(phase)) {
+        postNotification(
+          'Too Early For The Husk',
+          'The husk is for sleeping through the dark — come back at dusk or in the night, once the sky has closed.',
+          'system',
+          '#a78bfa'
+        );
+        return;
+      }
+      // The sleep itself: one forward jump to the next dawn,
+      // through App's own writer plus the broadcast the host
+      // tick would have sent a second later anyway. Instant —
+      // the night passes like a blink. The vat's clocks ride
+      // loaded-zone seconds, not the phase (slumber.ts), so
+      // nothing fast-forwards; and the dawn-crossing watcher
+      // needs a continuous crossing, so dawn's small gifts
+      // pass unwitnessed, coherent with the trade: sleep
+      // through a meteor shower, miss the shower.
+      const dawn = nextDawnPhase();
+      setDayNightCycle(dawn);
+      multiplayerManager.broadcastDayNight(dawn);
+      // Waking restores stamina fully — the body's bargain.
+      // Health is untouched: sleep is rest, not medicine.
+      setStamina(maxStamina);
+      postNotification(
+        'Dawn',
+        'You sink into the husk\'s warm dark and wake at first light, whole and unhurried. The night — its comets, its showers, its small dawn gifts — passed without you. Stamina restored.',
+        'system',
+        '#fbbf24'
+      );
       return;
     }
     // Planter on a floor: floors are paved, and only lantern-ferns root on
@@ -2594,6 +2741,41 @@ export function useToolInteractions({
       onOpenVat(structure);
       return;
     }
+    // The Mycologist's Wall (BioForge wave 2, 2026-10-19; Adam:
+    // give fungus a purpose): the vat's exact grammar — any tool
+    // except the builder opens the wall's panel; solvent and
+    // scanner keep their meanings. The builder falls through so
+    // the wall still works as a build surface.
+    if (structure.type === 'mycologist_wall' && activeTool !== 'builder') {
+      if (activeTool === 'solvent_sprayer') {
+        handleSolventSprayer(structure);
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onOpenWall(structure);
+      return;
+    }
+    // The Planter (BioForge wave 2, slice 5, 2026-10-19): the
+    // wall's exact grammar — any tool except the builder opens
+    // the planter's panel; solvent keeps dissolving (and returns
+    // the tenant's propagule first — see handleSolventSprayer);
+    // the scanner keeps reading. The builder falls through so
+    // the planter still works as a build surface.
+    if (structure.type === 'planter' && activeTool !== 'builder') {
+      if (activeTool === 'solvent_sprayer') {
+        handleSolventSprayer(structure);
+        return;
+      }
+      if (activeTool === 'bio_scanner') {
+        handleScanTarget({ type: 'structure', entity: structure, name: structure.type, details: '' });
+        return;
+      }
+      onOpenPlanter(structure);
+      return;
+    }
     // BioTunnel mouths (Adam, 2026-10-16): the pod's grammar with
     // a journey at the end of it. Solvent dissolves (the pouch gets
     // the mouth back; the survivor goes dormant on its own), the
@@ -2624,7 +2806,7 @@ export function useToolInteractions({
       return;
     }
   },
-  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, onOpenStorage, handleGroundClick, handlePlanterAction, selectedSeedId, selectedStructureType, handleBuilderOnPanel, handleBuilderOnBaseBlock, handleGrowCeiling, handlePlaceLadder, handleExtendLadder, handleClimbLadder, postNotification, onEnterCave, onExitCave, carryRef]
+  [activeTool, handleSolventSprayer, handleScanTarget, onOpenBioForgeModal, onOpenStorage, handleGroundClick, handlePlanterAction, selectedSeedId, selectedStructureType, handleBuilderOnPanel, handleBuilderOnBaseBlock, handleGrowCeiling, handlePlaceLadder, handleExtendLadder, handleClimbLadder, postNotification, onEnterCave, onExitCave, carryRef, getDayNightCycle, setDayNightCycle, setStamina, maxStamina]
 );
 
   return {

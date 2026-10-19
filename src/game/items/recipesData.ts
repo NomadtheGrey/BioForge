@@ -198,6 +198,58 @@ export const RECIPES: CraftingRecipe[] = [
     craftTimeMs: 1200,
   },
   {
+    id: 'craft_bone_chime_sentinel',
+    outputId: 'bone_chime_sentinel',
+    outputCount: 1,
+    name: 'Bone Chime Sentinel',
+    // The Bio-Forge grows the sentinel whole — bone, silk, straw,
+    // skull — and the builder plants it like any other structure.
+    description: 'Grow a bone-frame warning sentinel: it chimes when hunters walk within its regard, so the camp is never ambush country again.',
+    category: 'composites',
+    ingredients: [
+      { id: 'clean_bone', count: 2 },
+      { id: 'rib_silk', count: 2 },
+      { id: 'chime_straw', count: 3 },
+      { id: 'worn_skull', count: 1 },
+    ],
+    craftTimeMs: 2400,
+  },
+  {
+    id: 'craft_planter',
+    outputId: 'planter',
+    outputCount: 1,
+    name: 'Planter',
+    // The Bio-Forge grows the planter whole — a pot with soil
+    // already in it and roots for feet — and the builder plants
+    // it like any other structure. Resin and fiber are the pot's
+    // grown walls; the compost is the soil it arrives holding.
+    description: 'Grow a handsome pot with soil already in it: plant one seed or cutting and it grows where you put it — a plant with an address.',
+    category: 'composites',
+    ingredients: [
+      { id: 'resin_sap', count: 2 },
+      { id: 'soft_fiber', count: 2 },
+      { id: 'basic_compost', count: 1 },
+    ],
+    craftTimeMs: 2400,
+  },
+  {
+    id: 'craft_mycologist_wall',
+    outputId: 'mycologist_wall',
+    outputCount: 1,
+    name: 'Mycologist\'s Wall',
+    // The Bio-Forge grows the lattice whole — fiber lattice,
+    // resin joints, a thread to stitch the bin at its foot —
+    // and the builder plants it like any other structure.
+    description: 'Grow a lattice wall that mounts fungus caps — thirty-seven kinds, one of each — and keeps them working: glow caps light the camp, rot-eaters compost at its foot.',
+    category: 'composites',
+    ingredients: [
+      { id: 'soft_fiber', count: 4 },
+      { id: 'resin_sap', count: 2 },
+      { id: 'living_thread', count: 1 },
+    ],
+    craftTimeMs: 3000,
+  },
+  {
     id: 'craft_vine_ladder',
     outputId: 'vine_ladder',
     outputCount: 1,
@@ -552,6 +604,31 @@ export const RECIPES: CraftingRecipe[] = [
       { id: 'dew_essence', count: 1 },
     ],
     craftTimeMs: 2500,
+  },
+  {
+    id: 'craft_slumber_husk',
+    outputId: 'slumber_husk',
+    outputCount: 1,
+    name: 'Slumber Husk',
+    // The bed rung above the Root Bed (BioForge wave 2,
+    // 2026-10-19; Adam's ruling: not down — "a fleshy soft,
+    // gross but comfy place"). A rung's recipe consumes the
+    // rung below, in the game's upgrade idiom — the root
+    // bed is grown INTO the husk, not left behind.
+    //   bog_jelly for the flesh: the marsh cousin, quivering
+    //   and abundant — the soft body the husk is made of.
+    //   The lake's abyssal grade is too rare and too proud
+    //   for a mattress.
+    description: 'Grow the root bed INTO a living hollow: quivering gel-flesh under a fiber skin, stitched with living thread, kept alive with dew. It breathes whether you are in it or not — and it sleeps you through the night, straight to dawn.',
+    category: 'composites',
+    ingredients: [
+      { id: 'root_bed', count: 1 },
+      { id: 'bog_jelly', count: 2 },
+      { id: 'soft_fiber', count: 3 },
+      { id: 'dew_essence', count: 2 },
+      { id: 'living_thread', count: 1 },
+    ],
+    craftTimeMs: 3000,
   },
   {
     id: 'craft_sample_rack',

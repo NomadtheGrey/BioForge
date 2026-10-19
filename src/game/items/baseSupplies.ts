@@ -76,10 +76,14 @@ const PLACEABLE_GROUPS: Record<string, string[]> = {
     'root_bed',
     'hearthpod',
     'banner_post',
+    'slumber_husk',
+    'mycologist_wall',
+    'planter',
   ],
   light: [
     'lantern_fern_post',
     'tamed_snap_trap_turret',
+    'bone_chime_sentinel',
   ],
 };
 
@@ -122,3 +126,24 @@ export const baseSupplyGroupOf = (itemId: ItemId): string | null => {
 
 export const isBaseSupply = (itemId: ItemId): boolean =>
   baseSupplyGroupOf(itemId) !== null;
+
+/** DEFENSE STRUCTURES — placeable structures whose nature is
+ *  defense (they warn or fight for the camp) but whose recipes
+ *  ride the composites category like every other structure's.
+ *  Membership is NAMED here, never pattern-guessed: a future
+ *  defense structure joins by being added to this set in the
+ *  landing that builds it. The Bio-Forge listing derives its
+ *  Defenses subgroup as: recipe.category === 'defenses' OR
+ *  the output is in this set — and membership is a PARTITION:
+ *  a defense structure shelves under Defenses, not also under
+ *  its base group. (Adam's ruling, 2026-10-19: defenses fold
+ *  under Structures as an accordion subgroup.) The turret is
+ *  deliberately absent: its recipe already carries the
+ *  'defenses' category, so it derives by category alone. */
+export const DEFENSE_STRUCTURE_IDS: ReadonlySet<ItemId> = new Set<ItemId>([
+  'bone_chime_sentinel',
+]);
+
+/** Is this item a defense-natured placeable structure? */
+export const isDefenseStructure = (itemId: ItemId): boolean =>
+  DEFENSE_STRUCTURE_IDS.has(itemId);

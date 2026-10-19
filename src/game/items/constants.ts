@@ -2407,6 +2407,52 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     rarity: 'common',
     maxStack: 10,
   },
+  bone_chime_sentinel: {
+    id: 'bone_chime_sentinel',
+    name: 'Bone Chime Sentinel',
+    // A placeable grown structure (BioForge wave 2, 2026-10-19):
+    // the kit item's id IS the StructureType, like every other
+    // placed piece (lantern_fern_post, banner_post).
+    category: 'structure',
+    // It warns; it never fights. The copy says so up front, and the
+    // game honors it — no placed chime has ever harmed anything.
+    description: 'A bone-frame garden sentinel hung with silk strands and hollow chime straw, crowned with a worn skull. Plant it at the camp\'s edge: when something with teeth walks within a day\'s warning of it, the chime stirs and tells you. It warns — it never fights.',
+    iconName: 'Bell',
+    color: '#e7e0cf',
+    rarity: 'uncommon',
+    maxStack: 10,
+  },
+  planter: {
+    id: 'planter',
+    name: 'Planter',
+    // A placeable grown structure (BioForge wave 2, 2026-10-19):
+    // the kit item's id IS the StructureType, like every other
+    // placed piece (lantern_fern_post, banner_post).
+    category: 'structure',
+    // The game's voice: "a plant with an address." A handsome
+    // grown pot that holds ONE planted flora as a living table
+    // piece — it grows where you put it, over about a day's
+    // turning, and gives its propagule back whole if you take it.
+    description: 'A handsome grown pot with soil already in it, roots for feet. Plant one seed or cutting and it grows where you put it — a plant with an address. Take the plant back any time; its propagule comes home whole.',
+    iconName: 'Sprout',
+    color: '#a3a86b',
+    rarity: 'uncommon',
+    maxStack: 10,
+  },
+  mycologist_wall: {
+    id: 'mycologist_wall',
+    name: 'Mycologist\'s Wall',
+    // A placeable grown structure (BioForge wave 2, 2026-10-19;
+    // Adam: give fungus a purpose). The kit item's id IS the
+    // StructureType, like every other placed piece. The copy
+    // states the contract: a workplace, not a shelf.
+    category: 'structure',
+    description: 'A grown lattice wall for mounting fungus caps — one of each kind, up to thirty-seven. They stay alive on it: glow caps light the camp brighter with every one you mount, and the rot-eaters run a compost bin at its foot, digesting fiber, bone, and chitin into compost while you work. Unmounting returns a living cutting, unharmed. They keep working.',
+    iconName: 'Grid3x3',
+    color: '#7fe3c8',
+    rarity: 'uncommon',
+    maxStack: 10,
+  },
   hearthpod: {
     id: 'hearthpod',
     name: 'Hearthpod',
@@ -3066,6 +3112,20 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     iconName: 'Moon',
     color: '#f472b6',
     rarity: 'common',
+    maxStack: 10,
+  },
+  slumber_husk: {
+    id: 'slumber_husk',
+    name: 'Slumber Husk',
+    // A placeable grown structure (BioForge wave 2, 2026-10-19;
+    // Adam's ruling: not down — "a fleshy soft, gross but
+    // comfy place"). The kit item's id IS the StructureType,
+    // like every other placed piece.
+    category: 'structure',
+    description: 'A low hollow of living flesh — quivering gel under a fiber skin, stitched shut with living thread and kept alive with dew. It breathes, slowly, whether you are in it or not. Click it at night to sink into its warm dark and sleep until dawn. Gross. Comfy. Yours.',
+    iconName: 'Moon',
+    color: '#f0a6b8',
+    rarity: 'uncommon',
     maxStack: 10,
   },
   sample_rack: {

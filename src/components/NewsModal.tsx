@@ -29,9 +29,9 @@ export const NewsModal: React.FC<NewsModalProps> = ({ isOpen, onClose, broadcast
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-      <div className="glass-panel-biolum w-full max-w-xl max-h-[85dvh] rounded-3xl flex flex-col overflow-hidden border border-sky-500/30 shadow-2xl">
+      <div className="glass-panel-biolum w-full max-w-xl max-h-[94dvh] rounded-3xl flex flex-col overflow-hidden border border-sky-500/30 shadow-2xl">
         {/* Header */}
-        <div className="px-6 py-4 flex items-center gap-3 border-b border-slate-800 bg-slate-900/60">
+        <div className="px-6 py-4 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:py-2 flex items-center gap-3 border-b border-slate-800 bg-slate-900/60">
           <div>
             <h3 className="text-base font-tech font-bold text-white tracking-wide">NEWS</h3>
             <p className="text-[11px] text-slate-400">Word from the grower, and from the build itself</p>

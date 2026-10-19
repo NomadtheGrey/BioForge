@@ -16,6 +16,13 @@
 import * as THREE from 'three';
 import type { StructureEntity } from '../../types/game';
 import { pulseHeartbeat, phaseForId } from './lifePulse';
+import { ITEMS } from '../items/constants';
+import { GLOW_CAPS, WALL_PEG_COUNT } from './fungusWall';
+import { planterGrowthEffective, planterTenantScale } from './planter';
+import { gestationProgressEffective } from './vat';
+
+/** The glow family's ids, for the emissive dress pass. */
+const GLOW_CAP_SET = new Set(GLOW_CAPS);
 
 /**
  * The culture vat's life (Adam, 2026-10-15; grotesque pass 2026-10-17):
@@ -42,8 +49,13 @@ export function updateVatLife(
       sac.scale.set(b, 1.12 * b, b);
     }
     // The vein heartbeat: rate and strength scale with gestation.
+    // Effective, not stored (the timestamp law): the heartbeat
+    // quickens even for a vat maturing in an unloaded zone.
     const g = entity.vat?.gestating;
-    const f = g && g.total > 0 ? Math.min(1, g.progress / g.total) : 0;
+    const f =
+      g && g.total > 0
+        ? Math.min(1, gestationProgressEffective(g, entity.vat?.broth, Date.now()) / g.total)
+        : 0;
     const veins = mesh.getObjectByName('vatVeins');
     if (veins) {
       const first = veins.children[0] as THREE.Mesh | undefined;
@@ -205,5 +217,146 @@ export function updateBeanstalkLife(
     const phase = phaseForId(entity.id);
     stem.rotation.z = 0.02 * Math.sin(elapsedTime * 0.5 + phase);
     stem.rotation.x = 0.015 * Math.sin(elapsedTime * 0.37 + phase * 1.3);
+  });
+}
+
+/**
+ * The chime's life (BioForge wave 2, 2026-10-19): the silk strands
+ * never hang perfectly still — a slow wind-stir, phased per chime
+ * like every other living pass. This is presentation only: the
+ * WARNING itself is the sim's chime pass (chimeWatch.ts +
+ * useWorldEntities), never the mesh. The strands' swing here stays
+ * gentle because the warning's own moment is the notification's.
+ */
+export function updateChimeLife(
+  structureMeshMap: Map<string, THREE.Group>,
+  elapsedTime: number,
+): void {
+  structureMeshMap.forEach((mesh) => {
+    const entity = mesh.userData.entity as StructureEntity | undefined;
+    if (!entity || entity.type !== 'bone_chime_sentinel') return;
+    const strands = mesh.getObjectByName('chimeStrands');
+    if (!strands) return;
+    const phase = phaseForId(entity.id);
+    // A wind-stir: the strands swing as one, barely — this is a
+    // sentinel at rest, not a bell being rung.
+    strands.rotation.z = 0.04 * Math.sin(elapsedTime * 0.9 + phase);
+    strands.rotation.x = 0.03 * Math.sin(elapsedTime * 0.63 + phase * 1.7);
+    // The skull keeps watch: a slower, wider drift than the
+    // strands, as if the crown scans the country.
+    const skull = mesh.getObjectByName('chimeSkull');
+    if (skull) skull.rotation.y = phase + 0.35 * Math.sin(elapsedTime * 0.21 + phase * 0.6);
+  });
+}
+
+/**
+ * The husk's life (BioForge wave 2, 2026-10-19): it breathes. A
+ * slow twelve-second breath — the mound swells and settles on
+ * the named 'slumberFlesh' group, the dew beads catching the
+ * light as it moves. Presentation only: the SLEEP is the
+ * interaction's cycle jump (useToolInteractions), never the
+ * mesh. A husk breathes whether you sleep in it or not —
+ * that is the point of a thing that is alive.
+ */
+export function updateSlumberLife(
+  structureMeshMap: Map<string, THREE.Group>,
+  elapsedTime: number,
+): void {
+  structureMeshMap.forEach((mesh) => {
+    const entity = mesh.userData.entity as StructureEntity | undefined;
+    if (!entity || entity.type !== 'slumber_husk') return;
+    const flesh = mesh.getObjectByName('slumberFlesh');
+    if (!flesh) return;
+    const phase = phaseForId(entity.id);
+    // One breath every twelve seconds: a sleeper's breath, not
+    // a heartbeat — the rise slower than the fall.
+    const breath = Math.sin((elapsedTime * Math.PI * 2) / 12 + phase * Math.PI * 2);
+    flesh.scale.set(1 + 0.018 * breath, 1 + 0.035 * breath, 1 + 0.018 * breath);
+  });
+}
+
+/**
+ * The Mycologist's Wall's life (BioForge wave 2, 2026-10-19;
+ * Adam: give fungus a purpose — a workplace, not a shelf). The
+ * builder builds WALL_PEG_COUNT named pegs ('wallCap0'..) — forty
+ * seats for the thirty-seven CAP kinds (gap fix 2026-10-19); this
+ * pass dresses the first M from the wall's own mounted record and
+ * hides the rest. A mount/unmount never costs a mesh rebuild —
+ * meshes are built once. Each dressed cap wears its item def's
+ * color; glow-family caps smolder with emissive light, so the
+ * wall LOOKS like its own lamp as well as shedding one.
+ */
+export function updateFungusWallLife(
+  structureMeshMap: Map<string, THREE.Group>,
+  elapsedTime: number,
+): void {
+  structureMeshMap.forEach((mesh) => {
+    const entity = mesh.userData.entity as StructureEntity | undefined;
+    if (!entity || entity.type !== 'mycologist_wall') return;
+    const mounted = entity.wall?.mounted ?? [];
+    const phase = phaseForId(entity.id);
+    for (let i = 0; i < WALL_PEG_COUNT; i++) {
+      const peg = mesh.getObjectByName(`wallCap${i}`);
+      if (!peg) continue;
+      const id = mounted[i];
+      peg.visible = id !== undefined;
+      if (!id) continue;
+      const capMesh = peg.children[1] as THREE.Mesh | undefined;
+      const mat = capMesh?.material as THREE.MeshStandardMaterial | undefined;
+      if (!mat) continue;
+      // The def's color — the caps wear their own item colors,
+      // so the collection reads as itself at a glance.
+      mat.color.set(ITEMS[id]?.color ?? '#b8a88f');
+      // Glow-family mounts breathe: a slow emissive swell,
+      // phased per wall — the wall's own heartbeat.
+      if (GLOW_CAP_SET.has(id)) {
+        mat.emissive.set(mat.color);
+        mat.emissiveIntensity = 0.55 + 0.3 * Math.sin(elapsedTime * 1.4 + phase + i * 0.7);
+      } else {
+        mat.emissiveIntensity = 0;
+      }
+    }
+  });
+}
+
+/**
+ * The Planter's life (BioForge wave 2, slice 5, 2026-10-19).
+ *
+ * The builder dresses the tenant once (plant/take rebuilds the
+ * mesh via the planter kind key in syncStructures); this pass only
+ * GROWS it. Every frame it reads the tenant's EFFECTIVE growth
+ * (the timestamp law — planterGrowthEffective) and scales the
+ * named dressing group to match, so the plant swells toward pot
+ * size without a single rebuild. A planted tenant also gets the
+ * house's gentle sway, phased per planter like every other living
+ * pass. Presentation only: the GROWTH law is the module's
+ * (planter.planterGrowthEffective), never the mesh's.
+ */
+export function updatePlanterLife(
+  structureMeshMap: Map<string, THREE.Group>,
+  elapsedTime: number,
+): void {
+  structureMeshMap.forEach((mesh) => {
+    const entity = mesh.userData.entity as StructureEntity | undefined;
+    if (!entity || entity.type !== 'planter') return;
+    const dressing = mesh.getObjectByName('planterDressing');
+    if (!dressing) return;
+    const tenant = entity.planter?.species;
+    // The tenant's pot scale at its EFFECTIVE growth (the
+    // timestamp law): a tenant maturing in an unloaded zone is
+    // already bigger when you walk back in. (The builder seats
+    // the same scale at dress time; this keeps it honest without
+    // rebuilding.)
+    dressing.scale.setScalar(
+      planterTenantScale(entity.planter ? planterGrowthEffective(entity.planter, Date.now()) : 0),
+    );
+    if (!tenant) {
+      dressing.rotation.z = 0;
+      return;
+    }
+    // A potted plant still moves a little — a slow lean, phased
+    // per planter, gentler than the wild sway (it is sheltered).
+    const phase = phaseForId(entity.id);
+    dressing.rotation.z = 0.03 * Math.sin(elapsedTime * 0.8 + phase);
   });
 }

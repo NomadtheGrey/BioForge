@@ -74,6 +74,17 @@ function isCollidingWithStructure(
     if (s.type === 'tamed_snap_trap_turret') obstacleRadius = 0.6;
     if (s.type === 'lantern_fern_post') obstacleRadius = 0.35;
     if (s.type === 'banner_post') obstacleRadius = 0.3;
+    // The chime stands on the same slim post as the banner.
+    if (s.type === 'bone_chime_sentinel') obstacleRadius = 0.3;
+    // The planter is a pot, a little wider than a post — 0.4 is honest.
+    if (s.type === 'planter') obstacleRadius = 0.4;
+    // The mycologist's wall is a wall: solid, like the rootweave
+    // walls — the camp walks around it, not through it.
+    if (s.type === 'mycologist_wall') obstacleRadius = 0.9;
+    // The slumber husk is a low fleshy mound — the rim keeps
+    // the player from standing inside the hollow; the mound
+    // itself is not a wall to walk around.
+    if (s.type === 'slumber_husk') obstacleRadius = 0.6;
     // The portal station's ring (Departure D2): a monument —
     // the player addresses it, never stands inside its disc.
     if (s.type === 'portal_ring') obstacleRadius = 1.3;

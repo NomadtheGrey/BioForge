@@ -30,7 +30,7 @@ import type {
 import type { InventoryMap } from './useSaveSession';
 
 export type ActiveModal =
-  | 'bioforge' | 'inventory' | 'codex' | 'multiplayer' | 'controls' | 'devtools' | 'quests' | 'storage' | 'vat' | null;
+  | 'bioforge' | 'inventory' | 'codex' | 'multiplayer' | 'controls' | 'devtools' | 'quests' | 'storage' | 'vat' | 'wall' | 'planter' | null;
 
 // Jump tuning (module level: the game loop in App reads JUMP_GRAVITY
 // and STORY_HEIGHT_METERS for its per-frame integration).

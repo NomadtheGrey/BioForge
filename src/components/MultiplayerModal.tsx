@@ -92,10 +92,10 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
   // blur; chat alone goes without, and the panel's own
   // background carries readability.
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 max-sm:p-2 bg-slate-950/80 animate-fade-in">
       <div className="glass-panel-biolum w-full max-w-2xl h-[min(560px,94dvh)] rounded-3xl flex flex-col overflow-hidden border border-cyan-500/30 shadow-2xl">
         {/* Header */}
-        <div className="px-6 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-900/60">
+        <div className="px-6 py-4 [@media(max-height:540px)]:px-4 [@media(max-height:540px)]:py-2 flex items-center justify-between border-b border-slate-800 bg-slate-900/60">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-cyan-950/70 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
               <Users className="w-5 h-5" />
@@ -104,7 +104,7 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
               <h2 className="text-lg font-tech font-bold text-white tracking-wide">
                 CO-OP MULTIPLAYER
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-400 [@media(max-height:540px)]:hidden">
                 Co-Op Base Building, Joint Fauna Taming & Shared Harvesting
               </p>
             </div>
@@ -118,11 +118,11 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
         </div>
 
         {/* Content Body */}
-        <div className="flex-1 p-6 flex flex-col justify-between overflow-y-auto">
+        <div className="flex-1 p-6 [@media(max-height:540px)]:p-3 flex flex-col justify-between overflow-y-auto">
           {/* Connection Status & Setup */}
           {!isConnected ? (
-            <div className="space-y-6">
-              <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
+            <div className="space-y-6 [@media(max-height:540px)]:space-y-3">
+              <div className="p-4 [@media(max-height:540px)]:p-2.5 rounded-2xl bg-slate-900/60 border border-slate-800">
                 <label className="text-[11px] font-tech text-slate-400 uppercase tracking-wider block mb-2">
                   Your Explorer Name
                 </label>
@@ -187,7 +187,7 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
               {/* How co-op connects (the relay truth, 2026-10-19 —
                   this box previously claimed a serverless P2P
                   connection the game has never used). */}
-              <div className="p-4 rounded-2xl bg-slate-900/40 border border-slate-800/80 text-xs text-slate-400 flex items-start gap-3">
+              <div className="p-4 rounded-2xl bg-slate-900/40 border border-slate-800/80 text-xs text-slate-400 flex items-start gap-3 [@media(max-height:540px)]:hidden">
                 <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
                 <div>
                   <strong className="text-slate-200 block mb-0.5">One host, one world — joined through the BioForge relay:</strong>
@@ -207,9 +207,9 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
                   the moment one does, this same log is the
                   one the session view carries (it is never
                   cleared on leave). */}
-              <div className="p-4 rounded-2xl bg-slate-900/40 border border-slate-800">
+              <div className="p-4 [@media(max-height:540px)]:p-2.5 rounded-2xl bg-slate-900/40 border border-slate-800">
                 <span className="text-[10px] text-slate-400 font-mono uppercase block mb-2">Transmissions</span>
-                <div className="h-48 overflow-y-auto space-y-2 pr-1">
+                <div className="h-48 [@media(max-height:540px)]:h-64 overflow-y-auto space-y-2 pr-1">
                   {chatMessages.length === 0 ? (
                     <div className="h-full flex items-center justify-center text-slate-500 text-xs text-center px-4">
                       No transmissions yet. Word from the system — and your team's chat, once you join them — will land here.
@@ -228,13 +228,13 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
               </div>
             </div>
           ) : (
-            <div className="space-y-4 flex-1 flex flex-col">
+            <div className="space-y-4 [@media(max-height:540px)]:space-y-2 flex-1 flex flex-col">
               {/* Connected Header */}
-              <div className="p-4 rounded-2xl bg-slate-900/60 border border-cyan-500/40 flex items-center justify-between">
+              <div className="p-4 [@media(max-height:540px)]:p-2.5 rounded-2xl bg-slate-900/60 border border-cyan-500/40 flex items-center justify-between">
                 <div>
                   <span className="text-[10px] text-slate-400 font-mono uppercase block">Active Session Code</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-2xl font-bold tracking-widest text-cyan-300">
+                    <span className="font-mono text-2xl [@media(max-height:540px)]:text-xl font-bold tracking-widest text-cyan-300">
                       {roomCode}
                     </span>
                     <button
@@ -245,7 +245,7 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
                       {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                     </button>
                   </div>
-                  <span className="text-[10px] text-slate-500">Copy button copies a join link — friends just tap it and type their name.</span>
+                  <span className="text-[10px] text-slate-500 [@media(max-height:540px)]:hidden">Copy button copies a join link — friends just tap it and type their name.</span>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -264,8 +264,8 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
               {/* Invite Link — visible, selectable, one-tap copy. This is
                   the row the host pastes into Discord / Messenger / a
                   text so a friend can tap straight into the session. */}
-              <div className="p-3 rounded-2xl bg-slate-900/60 border border-slate-800">
-                <span className="text-[10px] text-slate-400 font-mono uppercase block mb-1.5">
+              <div className="p-3 [@media(max-height:540px)]:p-2 rounded-2xl bg-slate-900/60 border border-slate-800">
+                <span className="text-[10px] text-slate-400 font-mono uppercase block mb-1.5 [@media(max-height:540px)]:hidden">
                   Invite Link — send it to your crew
                 </span>
                 <div className="flex items-center gap-2">
@@ -287,9 +287,9 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
               </div>
 
               {/* Explorers List & Chat in Split View */}
-              <div className="flex-1 flex gap-3 overflow-hidden">
+              <div className="flex-1 flex max-sm:flex-col gap-3 overflow-hidden">
                 {/* Peer List */}
-                <div className="w-1/3 bg-slate-900/40 rounded-2xl border border-slate-800 p-3 overflow-y-auto">
+                <div className="w-1/3 max-sm:w-full max-sm:max-h-[24%] max-sm:shrink-0 bg-slate-900/40 rounded-2xl border border-slate-800 p-3 overflow-y-auto">
                   <h4 className="text-[11px] font-tech text-slate-400 uppercase tracking-wider mb-2">
                     In Sector ({peers.length + 1})
                   </h4>
@@ -314,7 +314,7 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
                 </div>
 
                 {/* In-Session Chat Log */}
-                <div className="w-2/3 bg-slate-900/40 rounded-2xl border border-slate-800 p-3 flex flex-col justify-between">
+                <div className="w-2/3 max-sm:w-full max-sm:flex-1 max-sm:min-h-0 bg-slate-900/40 rounded-2xl border border-slate-800 p-3 flex flex-col justify-between">
                   <div className="flex-1 overflow-y-auto space-y-2 pr-1 mb-2">
                     {chatMessages.length === 0 ? (
                       <div className="h-full flex items-center justify-center text-slate-500 text-xs">

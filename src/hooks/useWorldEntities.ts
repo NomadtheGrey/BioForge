@@ -15,6 +15,7 @@ import {
 } from '../types/game';
 import { multiplayerManager } from '../game/multiplayer';
 import { speciesDef } from '../game/creatures/species';
+import { shouldChimeWarn, chimeLastWarnAt } from '../game/structures/chimeWatch';
 // THE SHIELD (Adam, 2026-10-17): the strike side-effect queue
 // drained in the post-map sweep — thorn-spike reflects, braced
 // staggers, and the Fenback's Spore Answer. Block RESOLUTION
@@ -554,11 +555,10 @@ export function useWorldEntities(): UseWorldEntitiesResult {
   const prevPhaseRef = useRef(0.35);
   const lastPlayerPosRef = useRef<{ x: number; z: number } | null>(null);
 
-  // Culture-vat gestation clock (2026-10-16): progress accrues in
-  // the tick every frame, but the structures list is only WRITTEN
-  // when a whole second has accrued — a per-frame write would
-  // re-render the app at sim rate for the sake of a patience bar.
-  const vatClockRef = useRef(0);
+  // The chime sentinel's listening cadence (BioForge wave 2,
+  // 2026-10-19): the watch runs at most once per sim second —
+  // per-frame would be a waste on a 25 m proximity law.
+  const chimeClockRef = useRef(0);
 
   // Solvent dissolve (Adam, 2026-10-16): the sprayer's emergency
   // harm, as damage over time — a spray buys DISSOLVE_SECONDS of
@@ -907,7 +907,11 @@ export function useWorldEntities(): UseWorldEntitiesResult {
       dropMagnet?: { radius: number; speed: number },
       /** FLORA HAZARDS (G3): a hazardous plant's tell, snare or
        *  bite, reported to the loop, which owns the player. */
-      onFloraHazard?: (species: FloraSpecies, event: FloraHazardEvent, damage: number, ctx: { floraId: string; x: number; z: number }) => void
+      onFloraHazard?: (species: FloraSpecies, event: FloraHazardEvent, damage: number, ctx: { floraId: string; x: number; z: number }) => void,
+      /** The Bone Chime Sentinel's warning (BioForge wave 2,
+       *  2026-10-19): the loop announces — notification plus
+       *  the sentinel's note — when a chime finds teeth. */
+      onChimeWarning?: (structureId: string, x: number, z: number) => void
     ): void => {
       const simulateWorld = !multiplayerManager.isConnected || multiplayerManager.isHost;
       combatArmedRef.current = !!attacksArmed;
@@ -1348,7 +1352,12 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // Provoked-only hunts (slice 32 — the oversize tier):
           // proximity never alerts them; the provocation clock
           // does. An unprovoked giant is scenery with a pulse.
-          const provoked = !hunt?.provokedOnly || provokedTimer > 0;
+          // The broth-gentle stamp (wave 2): a hatchling gentled
+          // by a ripe lake or hush broth behaves provokedOnly back
+          // in the wild — released, it will not start what nobody
+          // started. The stamp is optional; un-stamped fauna read
+          // exactly as before.
+          const provoked = !(hunt?.provokedOnly || fauna.brothGentle) || provokedTimer > 0;
           // THE DISTANCE GRADIENT (slice 50): wild-country hunters
           // carry spawn stamps (wildAggro / wildDmg on the entity;
           // absent = 1 = the table's word, which is also every
@@ -2128,14 +2137,19 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           // LIVING things or the dead; the living come first,
           // and a guardian's kill (above) is the dead's door.
           sampleTimer += dt;
-          const sampleThreshold = isTamed ? SAMPLE_SHED_SECONDS_TAMED : SAMPLE_SHED_SECONDS_WILD;
+          // The shed-cadence stamp (wave 2): a gloom-brothed
+          // hatchling sheds sooner and more often — the multiplier
+          // rides on the entity and scales BOTH thresholds. Un-stamped
+          // fauna read exactly as before.
+          const shedCadenceMul = fauna.shedCadenceMul ?? 1;
+          const sampleThreshold = (isTamed ? SAMPLE_SHED_SECONDS_TAMED : SAMPLE_SHED_SECONDS_WILD) * shedCadenceMul;
           if (sampleTimer >= sampleThreshold) {
             sampleTimer = 0;
             spawnDroppedItem(sampleItemId(fauna.species), 1, x, z);
           }
 
           const shed = speciesDef(fauna.species).byproduct;
-          if (shed && byproductTimer > shed.seconds && (!shed.tamedOnly || isTamed)) {
+          if (shed && byproductTimer > shed.seconds * shedCadenceMul && (!shed.tamedOnly || isTamed)) {
             byproductTimer = 0;
             spawnDroppedItem(shed.item, 1, x, z);
             onCritterExcrete?.(fauna.species);
@@ -2310,28 +2324,18 @@ export function useWorldEntities(): UseWorldEntitiesResult {
         });
       }
 
-        // 1b. Culture Vat Gestations (Adam, 2026-10-15): a vat's
-        // culture works in loaded-zone time — this zone's structures
-        // are the loaded ones by construction — and progress rides
-        // the structure record into the world snapshot, so a
-        // gestation survives saving, travel, and sleep. Written at
-        // most once a second (see vatClockRef).
-        vatClockRef.current += dt;
-        if (vatClockRef.current >= 1) {
-          const wholeSeconds = Math.floor(vatClockRef.current);
-          vatClockRef.current -= wholeSeconds;
-          const vats = structuresRef.current;
-          if (vats.some((st) => st.type === 'culture_vat' && st.vat?.gestating && st.vat.gestating.progress < st.vat.gestating.total)) {
-            setStructuresList((prev) =>
-              prev.map((st) => {
-                if (st.type !== 'culture_vat' || !st.vat?.gestating) return st;
-                const g = st.vat.gestating;
-                if (g.progress >= g.total) return st;
-                return { ...st, vat: { ...st.vat, gestating: { ...g, progress: Math.min(g.total, g.progress + wholeSeconds) } } };
-              }),
-            );
-          }
-        }
+        // 1b-1e. GROWN THINGS, ON TIMESTAMPS (Adam, 2026-10-19
+        // gap fix): the vat's gestation, the broth's fermentation,
+        // the wall's bin digestion, and the planter's tenant growth
+        // no longer advance on this tick. Each keeps a base + a
+        // wall-clock anchor on its own record (the timestamp law —
+        // 'A tick timer is a promise the zone must stay loaded to
+        // keep; a timestamp is a promise the world keeps on its
+        // own.'); reads compute the effective value, touches
+        // re-anchor it. The per-second writers are gone on purpose:
+        // an unloaded zone's grown things grow on, lazily caught up
+        // (pure laws: game/structures/vat.ts, broths.ts,
+        // fungusWall.ts, planter.ts).
 
       }
 
@@ -2585,6 +2589,69 @@ export function useWorldEntities(): UseWorldEntitiesResult {
         });
         return remaining;
       });
+
+      // THE BONE CHIME SENTINEL'S WATCH (BioForge wave 2,
+      // 2026-10-19): once per sim second, every placed chime
+      // listens for wild teeth in its regard. The detection LAW
+      // is the pure rule in game/structures/chimeWatch.ts (hunt
+      // profile + 25 m + 60 s per-chime cooldown + companion
+      // exclusion); this pass applies it and performs the
+      // warning through the loop's onChimeWarning. The sim owns
+      // the LISTENING, the loop owns the TELLING (notification
+      // and sound) — the house split behind every other
+      // cross-boundary report (onSentinelBell et al.).
+      //
+      // Coordinate law (verified 2026-10-19): fauna x/z and
+      // structure worldX/worldZ are both zone-local in the
+      // current zone's entity lists, so the plain hypot is
+      // correct — same zone is automatic in this tick.
+      //
+      // DELIBERATE v1 NON-INTERPLAY: the chime does NOT ring
+      // onSentinelBell. The bell is the Meadowback herd's own
+      // throat, keyed to the explorer's companion; the chime is
+      // a placeable post with its own voice, and ringing the
+      // companion's bell for a post's warning would teach the
+      // player a false friendship. If a later Adam wants them
+      // layered, the seam is this pass, and it is named.
+      chimeClockRef.current += dt;
+      if (chimeClockRef.current >= 1 && simulateWorld) {
+        chimeClockRef.current = 0;
+        const chimes = structuresRef.current.filter((s) => s.type === 'bone_chime_sentinel');
+        if (chimes.length > 0 && onChimeWarning) {
+          const now = simClockRef.current;
+          const watchers = faunaRef.current.map((f) => ({
+            x: f.x,
+            z: f.z,
+            isTamed: f.isTamed,
+            // The hunt-profile read (hunt-spec H2): the same
+            // `speciesDef(f.species).hunt` the fauna tick's
+            // provocation law and the sentinel bell read. A
+            // PROFILE, not a state — the tripwire fires on
+            // teeth, not on anger, in any difficulty.
+            hasHuntProfile: Boolean(speciesDef(f.species).hunt),
+          }));
+          for (const chime of chimes) {
+            if (
+              shouldChimeWarn({
+                chimeX: chime.worldX,
+                chimeZ: chime.worldZ,
+                now,
+                lastWarnAt: chimeLastWarnAt(chime),
+                fauna: watchers,
+              })
+            ) {
+              // The cooldown stamp writes IN PLACE on the ref's
+              // object — no setStructuresList, no re-render, no
+              // mesh churn. There is no HUD surface on this
+              // state, and the autosave serializes the same
+              // objects the tick mutates, so the stamp survives
+              // a reload (per-piece state doctrine).
+              chime.chime = { lastWarnAt: now };
+              onChimeWarning(chime.id, chime.worldX, chime.worldZ);
+            }
+          }
+        }
+      }
     },
     [spawnDroppedItem]
   );

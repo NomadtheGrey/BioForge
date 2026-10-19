@@ -20,13 +20,25 @@
 // nothing here outshines the post's 40. And y is the height
 // the light rides ABOVE ITS GROUND (the engine adds the
 // terrain/datum height itself — see getFloraLightSpec).
+//
+// MOTION (wave 2, slice 5): this table is still. Motion lives in
+// ./lightGestures.ts — one gesture per family of light, read at the
+// engine's pool level. Rows stay gesture-free unless a species must
+// move against its family's nature (LightBase.gesture).
 import type { FloraSpecies, StructureType } from '../../types/game';
+import type { LightGesture } from './lightGestures';
 
 export interface LightBase {
   color: number;
   intensity: number;
   distance: number;
   y: number;
+  // LIGHT GESTURES (wave 2, slice 5): an explicit motion override for
+  // this row. Almost no row sets this — the family's rule in
+  // lightGestures.ts (gestureForFlora / gestureForStructure) is the
+  // default, and 'none' is the default's default. Set one only when a
+  // row must move against its family's nature.
+  gesture?: LightGesture;
 }
 
 // Every structure gets a small halo (~2m, enough to see by);
@@ -293,11 +305,29 @@ export const STRUCTURE_LIGHT_BASE: Record<Exclude<StructureType, 'lantern_fern_p
     pen_gate: { color: 0xa3e635, intensity: 3.5, distance: 2.2, y: 1.2 },
     sample_rack: { color: 0x4ade80, intensity: 4, distance: 2.4, y: 1.0 },
     banner_post: { color: 0xc2b49a, intensity: 3, distance: 2.0, y: 2.0 },
+    // The chime is bone and straw in the sun — a faint warm halo,
+    // nothing more. It is a sentinel, not a lamp (the physical
+    // scale: halo 1-3).
+    bone_chime_sentinel: { color: 0xffe8c0, intensity: 1.6, distance: 2.2, y: 2.4 },
+    // The planter, EMPTY: a minimal warm halo off the soil — a
+    // pot reads as tended, not as a lamp. Intensity stays NONZERO
+    // (the merge math divides by total intensity). A PLANTED
+    // planter never reads this row — the engine's special-case
+    // sheds the tenant's own light instead (planter.planterLightOf).
+    planter: { color: 0xd9c9a8, intensity: 1, distance: 1.5, y: 0.5 },
+    // THE MYCOLOGIST'S WALL (BioForge wave 2, 2026-10-19): the
+    // bare wall's halo only. Every glow mount's lamp rides the
+    // engine's special-case (wallLightOf), so this row never
+    // pretends the wall is lit on its own.
+    mycologist_wall: { color: 0x7fe3c8, intensity: 2.0, distance: 2.5, y: 1.4 },
     root_table: { color: 0xfbbf24, intensity: 2.5, distance: 2.0, y: 0.9 },
     root_stool: { color: 0xfbbf24, intensity: 2, distance: 1.8, y: 0.6 },
     woven_rug: { color: 0xa3e635, intensity: 1.2, distance: 1.5, y: 0.3 },
     root_shelf: { color: 0xfbbf24, intensity: 2.5, distance: 2.0, y: 1.1 },
     root_bed: { color: 0xf9a8d4, intensity: 3, distance: 2.2, y: 0.7 },
+    // The husk is alive — a very faint warm halo at the rim,
+    // the heat of a sleeping body. (Physical scale: halo 1-3.)
+    slumber_husk: { color: 0xffb4a2, intensity: 1.4, distance: 2.2, y: 0.5 },
     iris_slit_door: { color: 0xf0abfc, intensity: 5.5, distance: 2.5, y: 1.2 },
     spore_canopy: { color: 0xa78bfa, intensity: 9, distance: 3.5, y: 2.6 },
     bio_forge_station: { color: 0x22d3ee, intensity: 9, distance: 3.5, y: 1.4 },

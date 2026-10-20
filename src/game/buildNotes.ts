@@ -61,27 +61,25 @@ export const DEFAULT_BUILD_NOTES: BuildNotes = {
  * THIS build's notes. Review surface: read them like a
  * player meeting them cold.
  *
- * CURRENT BUILD (the One Law + the kept word, 2026-10-20):
+ * CURRENT BUILD (the feedback door lights, 2026-10-20):
  * lines below — written for the landing, in the file's
  * standing discipline (whoever composes a landing writes
- * its notes). The previous build's greeting ('Words that
- * fly') has already fired; this build must not wear it a
+ * its notes). The previous build's greeting ('The country
+ * provides') has already fired; this build must not wear it a
  * second time (the dev lane's slice-4 lesson, applied).
  */
 export const BUILD_NOTES: BuildNotes = {
-  // The One Law of Life (2026-10-20, Adam pinned): the wild
-  // layers — creatures wander between zones, young are born
-  // where life thrives, and long-empty country can be reached
-  // again. The law is deliberately UNannounced in play (it is
-  // weather, not an event), so the notes tease the FEELING
-  // and name no mechanism, number, or road. The kept log, by
-  // contrast, is a taught surface and is said plainly: News
-  // now keeps every message on the device, and feedback can
-  // attach the game's own error notes — only with the
-  // player's say-so.
-  title: 'The country provides',
+  // The feedback door lights (2026-10-20): Adam completed
+  // the EmailJS account setup today, so the three EMAILJS_*
+  // constants in links.ts carry real values and the feedback
+  // window's direct send (live but dark since PR #78) is now
+  // the working door. The 'Words that fly' greeting PROMISED
+  // this door ('lights the moment our mail service finishes
+  // connecting'); this build's notes keep that promise in
+  // the same plain register — a taught surface, said plainly.
+  title: 'The door lights',
   lines: [
-    'Leave a valley living, and it stays living. The country moves the way weather moves now — life drifts in from the neighboring hills, young are born where the living is already good, and a place emptied long ago is not necessarily empty forever. Walk softly, and look twice at what is standing at the tree line.',
-    'And the game keeps its word: every system message and build notice this device has seen is now kept in the News, nothing dropped when the wire moves on. If something ever breaks, the feedback window can tuck the game\'s own error notes into your letter — with your say-so, and only then.',
+    'The feedback window sends for real now. Our mail service is connected: write your note, press send, and it flies straight to the grower\'s inbox — no detour through your mail app, no borrowed envelope. Leave your own address in the window if you would like an answer back.',
+    'That is the whole of it — a door promised two letters ago, now lit. Everything else stands as it was this morning: the country provides, and the game keeps its word.',
   ],
 };

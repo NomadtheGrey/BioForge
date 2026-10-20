@@ -57,4 +57,4 @@ export const FEEDBACK_EMAIL = 'bioforge.game@gmail.com';
  */
 export const EMAILJS_SERVICE_ID: string | null = 'service_ikopy7e';
 export const EMAILJS_TEMPLATE_ID: string | null = 'template_wz423zk';
-export const EMAILJS_PUBLIC_KEY: string | null = '88JIcq827fzALh_3RWD';
+export const EMAILJS_PUBLIC_KEY: string | null = '88JIcq827fzALh_3R';

@@ -16,6 +16,7 @@
  */
 
 import React from 'react';
+import { recordError } from '../game/errorLog';
 
 interface HudErrorBoundaryState {
   failed: boolean;
@@ -41,7 +42,15 @@ export class HudErrorBoundary extends React.Component<
 
   componentDidCatch(error: unknown) {
     // The console keeps the evidence for the bug report; the
-    // player keeps the game.
+    // player keeps the game. And the device keeps a copy now
+    // (Adam's surfaces commission, 2026-10-20): boundary
+    // catches join the kept error log, so a fault the player
+    // felt can ride out with their next feedback note.
+    recordError({
+      kind: 'boundary',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     console.error('[BioForge HUD] a panel faulted and was dropped:', error);
   }
 

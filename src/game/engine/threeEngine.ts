@@ -117,6 +117,28 @@ const TOUCH_LOOK_MAX_PITCH = Math.PI / 2;
 
 
 // Pre-allocated scratch vectors to prevent GC allocations in render loop (Rule 3)
+/**
+ * ONE LAW OF LIFE (2026-10-20): the far-country stranger's coat.
+ * A 'weathered' colorVariant gets its own bound mesh (the kind key
+ * carries it), and at creation its materials are cloned and washed
+ * toward a storm-grey — the road, visible at a glance. Materials in
+ * this engine are shared per species, so the wash MUST clone: it
+ * runs once per weathered individual (a rare animal by design).
+ */
+function weatherWash(root: THREE.Object3D): void {
+  const grey = new THREE.Color(0x8d8d84);
+  root.traverse((o) => {
+    const mesh = o as THREE.Mesh;
+    if (!mesh.isMesh) return;
+    const wash = (m: THREE.Material): THREE.Material => {
+      const clone = m.clone() as THREE.Material & { color?: THREE.Color };
+      if (clone.color) clone.color.lerp(grey, 0.45);
+      return clone;
+    };
+    mesh.material = Array.isArray(mesh.material) ? mesh.material.map(wash) : wash(mesh.material);
+  });
+}
+
 const SCRATCH_VEC_A = new THREE.Vector3();
 const SCRATCH_VEC_B = new THREE.Vector3();
 const SCRATCH_RAY_ORIGIN = new THREE.Vector3();
@@ -1451,8 +1473,12 @@ export class BioForgeThreeEngine {
       // the mesh at creation, so a creature that gets tamed must
       // rebuild to wear its new colors (the tint was always meant to
       // be the tame signal — it just never got to change before).
-      const kindKey = `${f.species}:${f.isTamed ? 'tamed' : 'wild'}`;
-      const mesh = this.ensureBoundMesh(this.faunaMeshMap, this.faunaGroup, f, kindKey, (e) => this.creatureKit.createFaunaMesh(e));
+      const kindKey = `${f.species}:${f.isTamed ? 'tamed' : 'wild'}${f.colorVariant === 'weathered' ? ':weathered' : ''}`;
+      const mesh = this.ensureBoundMesh(this.faunaMeshMap, this.faunaGroup, f, kindKey, (e) => {
+        const built = this.creatureKit.createFaunaMesh(e);
+        if (e.colorVariant === 'weathered') weatherWash(built);
+        return built;
+      });
       this.creatureKit.updateFaunaMesh(mesh, f, wiggleDt);
       // Hearth Dog (Adam, 2026-10-16): growth scale + the visible
       // decide timer — the tag keeper lives in hearthTag.ts.
@@ -1461,6 +1487,15 @@ export class BioForgeThreeEngine {
         const growth = 0.5 + 0.5 * Math.min(1, Math.max(0, ageDays / 10));
         mesh.scale.setScalar(growth);
         updateHearthTag(mesh, f, growth);
+      }
+      // The SHARED age (One Law of Life, 2026-10-20): any other
+      // animal carrying ageDays wears its growth on the dog's own
+      // curve — half-size at birth, full-grown at day ten. The
+      // stranger's old stamp (30) simply reads as full-grown; age
+      // past grown is a story, not a size.
+      if (f.species !== 'hearth_dog' && f.ageDays !== undefined) {
+        const growth = 0.5 + 0.5 * Math.min(1, Math.max(0, f.ageDays / 10));
+        mesh.scale.setScalar(growth);
       }
     });
   }

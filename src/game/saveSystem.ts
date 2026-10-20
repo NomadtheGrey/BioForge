@@ -104,6 +104,25 @@ export interface WorldSnapshot {
   fauna: FaunaEntity[];
   structures: StructureEntity[];
   drops: DroppedItemEntity[];
+  /** ONE LAW OF LIFE (2026-10-20): when this zone was last parked
+   *  (or saved, for the zone being stood in) — the absence clock
+   *  the immigration resolver reads at zone load. The resolver
+   *  CONSUMES the absence it resolves (the seam clears the stamp),
+   *  so no stretch of time ever earns twice. Absent = no absence
+   *  is owed: fresh rolls, pre-law saves, the zone underfoot. */
+  parkedAt?: number;
+  /** ONE LAW OF LIFE: the zone's dealt WILD census by species —
+   *  wild individuals in its lists at first roll, after the saga
+   *  overlay (abundance included). The carrying capacity every
+   *  wild layer answers to. Stamped at the generate branch;
+   *  derived once at first load for snapshots that predate it. */
+  census?: Record<string, number>;
+  /** ONE LAW OF LIFE — the teeth note: when prey last ROSE in
+   *  this zone by birth or arrival. The next resolution inside
+   *  two days orders a hunter of the gathering earlier among the
+   *  eligible (ordering only, never eligibility). Cleared when
+   *  it lapses. */
+  preyRoseAt?: number;
 }
 
 /** The light-weight part of a save — all the start screen's list needs. */

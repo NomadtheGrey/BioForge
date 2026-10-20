@@ -30,6 +30,7 @@ import { Mail, X, Copy, Check, Bug, Lightbulb, Send, CheckCircle2 } from 'lucide
 import { FEEDBACK_EMAIL } from '../game/links';
 import { BUILD_ID } from '../game/buildNotes';
 import { feedbackSendConfigured, sendFeedback } from '../game/feedbackSend';
+import { formatErrorLog, readErrorLog } from '../game/errorLog';
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -52,6 +53,13 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, c
   // the EmailJS door is lit): compose → sending → sent |
   // failed. Failed never eats the words — the form keeps the
   // message and the mailto door opens as the fallback.
+  // Attach the device's kept error log (Adam's surfaces
+  // commission, 2026-10-20): opt-in, beside the context
+  // option — the log (last ~50 snags this device caught)
+  // rides at the foot of the composed note, through BOTH
+  // doors and the copy escape, since all three read the one
+  // composed body.
+  const [attachLog, setAttachLog] = useState(false);
   const [phase, setPhase] = useState<SendPhase>('compose');
   const [replyEmail, setReplyEmail] = useState('');
   // The failure's substance (Adam's pin, 2026-10-19): the
@@ -91,7 +99,15 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, c
   const footer = includeContext
     ? `\n\n— — —\nBuild: ${BUILD_ID}${contextLine ? `\nWhere: ${contextLine}` : ''}`
     : '';
-  const mailto = `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message.trim() + footer)}`;
+  // The ONE composed body every door sends: the words, the
+  // context footer, and — when the player opts in and this
+  // device has anything kept — the error log at the foot.
+  const logBlock =
+    attachLog && readErrorLog().length > 0
+      ? `\n\n— — — Error log (kept on this device) — — —\n${formatErrorLog()}`
+      : '';
+  const composedBody = message.trim() + footer + logBlock;
+  const mailto = `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(composedBody)}`;
 
   const handleSend = () => {
     window.location.href = mailto;
@@ -108,7 +124,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, c
     setFailInfo(null);
     const result = await sendFeedback({
       subject,
-      message: message.trim() + footer,
+      message: composedBody,
       fromEmail: replyEmail.trim() || undefined,
     });
     if (result.ok) {
@@ -125,7 +141,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, c
   // or page themselves. A failed send never traps the words.
   const handleCopyNote = async () => {
     try {
-      await navigator.clipboard.writeText(`${subject}\n\n${message.trim() + footer}`);
+      await navigator.clipboard.writeText(`${subject}\n\n${composedBody}`);
       setNoteCopied(true);
       window.setTimeout(() => setNoteCopied(false), 2000);
     } catch {
@@ -269,6 +285,17 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, c
                 className="mt-0.5 accent-violet-400"
               />
               Include where I am and which build I&apos;m on — it helps fix things.
+            </label>
+
+            <label className="flex items-start gap-2 text-xs text-slate-400 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={attachLog}
+                onChange={(e) => setAttachLog(e.target.checked)}
+                className="mt-0.5 accent-violet-400"
+              />
+              Attach this device&apos;s error log — snags the game caught and kept here. It&apos;s the
+              biggest help for crashes and HUD faults.
             </label>
 
             {directSend ? (

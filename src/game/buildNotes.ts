@@ -61,24 +61,27 @@ export const DEFAULT_BUILD_NOTES: BuildNotes = {
  * THIS build's notes. Review surface: read them like a
  * player meeting them cold.
  *
- * CURRENT BUILD (the itch door lights, 2026-10-19): the
+ * CURRENT BUILD (the One Law + the kept word, 2026-10-20):
  * lines below — written for the landing, in the file's
  * standing discipline (whoever composes a landing writes
- * its notes). The previous build's greeting ('Yours for
- * good') has already fired; this build must not wear it a
+ * its notes). The previous build's greeting ('Words that
+ * fly') has already fired; this build must not wear it a
  * second time (the dev lane's slice-4 lesson, applied).
  */
 export const BUILD_NOTES: BuildNotes = {
-  // The itch door lights (2026-10-19): Adam published the
-  // game's itch.io page today, so DONATE_URL in links.ts
-  // carries its real address and the DonateModal's second
-  // door stands open beside Ko-fi. The notes also tell
-  // direct-site players the second home exists — and that
-  // their three cloud words bridge the two, so no world is
-  // stranded on either side.
-  title: 'Words that fly',
+  // The One Law of Life (2026-10-20, Adam pinned): the wild
+  // layers — creatures wander between zones, young are born
+  // where life thrives, and long-empty country can be reached
+  // again. The law is deliberately UNannounced in play (it is
+  // weather, not an event), so the notes tease the FEELING
+  // and name no mechanism, number, or road. The kept log, by
+  // contrast, is a taught surface and is said plainly: News
+  // now keeps every message on the device, and feedback can
+  // attach the game's own error notes — only with the
+  // player's say-so.
+  title: 'The country provides',
   lines: [
-    'Writing to us gets easier. The feedback window is learning to send your note itself — no detour through your mail app, no borrowed envelope: you write, you press send, and your words fly straight to the grower\'s inbox. You can leave your own address if you\'d like an answer.',
-    'And if the road is ever blocked, the window says why, plainly — and keeps your words safe in front of you, with a button to copy them out whole, so a failed send never eats what you wrote. The direct door lights the moment our mail service finishes connecting; until then, the old mail door works exactly as it always has.',
+    'Leave a valley living, and it stays living. The country moves the way weather moves now — life drifts in from the neighboring hills, young are born where the living is already good, and a place emptied long ago is not necessarily empty forever. Walk softly, and look twice at what is standing at the tree line.',
+    'And the game keeps its word: every system message and build notice this device has seen is now kept in the News, nothing dropped when the wire moves on. If something ever breaks, the feedback window can tuck the game\'s own error notes into your letter — with your say-so, and only then.',
   ],
 };

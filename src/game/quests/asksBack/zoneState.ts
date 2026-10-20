@@ -146,7 +146,48 @@ export function settleIndividual(
   const id = `set_${hashStringToSeed(`${worldSeed}|${zx}|${zz}|${species}|${day}|${name}`)
     .toString(16)
     .padStart(8, '0')}`;
-  return { id, species, name, zoneKey: `${zx},${zz}`, day };
+  return { id, species, name, zoneKey: `${zx},${zz}`, day, originZone: `${zx},${zz}` };
+}
+
+/**
+ * ONE LAW OF LIFE (2026-10-20): move settled records between zones —
+ * a settled animal that wanders carries its record with it (one
+ * residence for record and animal alike; the receiving zone's
+ * consequence overlay sows settled individuals from ITS record, so a
+ * record left behind would plant a duplicate). Pure: returns a new
+ * state; records keep their originZone (stamped from the zone they
+ * leave, when an older record has none — that zone is where their
+ * recorded story began).
+ */
+export function applySettledMoves(
+  state: AsksBackState,
+  moves: readonly { id: string; fromKey: string; toKey: string }[],
+): AsksBackState {
+  if (moves.length === 0) return state;
+  const zoneState: AsksBackState['zoneState'] = { ...state.zoneState };
+  for (const move of moves) {
+    const from = zoneState[move.fromKey];
+    const record = from?.settled.find((s) => s.id === move.id);
+    if (!from || !record) continue;
+    zoneState[move.fromKey] = {
+      ...from,
+      settled: from.settled.filter((s) => s.id !== move.id),
+    };
+    const to = zoneState[move.toKey] ?? EMPTY_CONSEQUENCES;
+    if (to.settled.some((s) => s.id === move.id)) continue;
+    zoneState[move.toKey] = {
+      ...to,
+      settled: [
+        ...to.settled,
+        {
+          ...record,
+          zoneKey: move.toKey,
+          originZone: record.originZone ?? move.fromKey,
+        },
+      ],
+    };
+  }
+  return { ...state, zoneState };
 }
 
 /** Add a settled individual to the zone's consequences. */

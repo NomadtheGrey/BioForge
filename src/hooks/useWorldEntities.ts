@@ -1205,6 +1205,15 @@ export function useWorldEntities(): UseWorldEntitiesResult {
           if (fauna.species === 'hearth_dog') {
             hearthAgeDays = (hearthAgeDays ?? (isTamed ? 10 : 0)) + dt / 600;
           }
+          // The SHARED age (One Law of Life, 2026-10-20): animals
+          // born under the law carry ageDays and grow on the same
+          // rotation — dt seconds at 600 s to a day. Dealt and
+          // vat-born animals carry no stamp and are grown, forever;
+          // parked growth is the resolver's whole-days addition.
+          let ageDays = fauna.ageDays;
+          if (ageDays !== undefined) {
+            ageDays = ageDays + dt / 600;
+          }
           // The hermit's regard (slice 42): stillness shown to
           // a wild Hollow Hermit in the night band accrues —
           // near (3–8 m: near enough to matter, never close
@@ -2179,6 +2188,7 @@ export function useWorldEntities(): UseWorldEntitiesResult {
             hearthDecideTimer,
             hearthFedTimer,
             hearthAgeDays,
+            ageDays,
             socialState,
             socialTimer,
             socialTravel,

@@ -954,6 +954,17 @@ export interface FaunaEntity {
   hearthFedTimer?: number;
   // Hearth Dog growth clock, in game days (0 = fresh pup, 10 = full-grown).
   hearthAgeDays?: number;
+  // The SHARED age (One Law of Life, 2026-10-20): game days since
+  // birth, carried by animals BORN under the law — wild-born young
+  // (immigration layer 2) and, when pens land, pen-born young — and
+  // by the far-country stranger, who arrives stamped OLD. Absent =
+  // dealt or vat-born = grown, and the sim never ages an animal
+  // that lacks the stamp. Accrues live on the rotation (600 s to
+  // a day, the dog's clock) and by whole real days while its zone
+  // sits parked. Young (below AGE_ADULT_DAYS in creatures/
+  // immigration.ts) render small, never wander alone, and never
+  // count as parents.
+  ageDays?: number;
   animTime: number;
   /** Biome TYPE this creature spawned in (world-gen stamp; absent on old saves). */
   biome?: BiomeId;

@@ -136,6 +136,14 @@ export interface SettledIndividual {
   name: string;
   zoneKey: string;
   day: number;
+  /** ONE LAW OF LIFE (2026-10-20): the zone this record BEGAN in.
+   *  A settled animal may wander (its record migrates with it —
+   *  one residence for record and animal alike), and the
+   *  immigration resolver's homecoming ordering reads this: the
+   *  walker whose story started in the zone it is entering comes
+   *  first. Stamped at settle time; absent on older records,
+   *  whose zoneKey IS their origin until they first move. */
+  originZone?: string;
 }
 
 /** Per-zone mutable consequences written by saga resolutions (S4):

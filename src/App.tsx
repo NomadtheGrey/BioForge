@@ -92,6 +92,7 @@ import {
   type AsksBackState, type AsksEventInput,
 } from './game/quests/asksBackState';
 import { runDirector } from './game/quests/asksBack/director';
+import { applySettledMoves } from './game/quests/asksBack/zoneState';
 // THE WORLD ASKS BACK, S3 (dev lane, 2026-10-17): the step
 // evaluator (latch.ts) makes sagas playable — App triggers it on
 // ledger/day/zone changes and applies its grants/notifications;
@@ -700,6 +701,12 @@ export default function App() {
     onPendingCancel: (p) => {
       if (p.tunnel) tunnelRideReleaseRef.current();
     },
+    // ONE LAW OF LIFE (2026-10-20): settled-record migrations from
+    // the travel hook's immigration resolver — a settled animal
+    // wandered; its record follows it (one residence for both).
+    // Wiring only: the migration itself lives in zoneState.ts.
+    onSettledMoves: (moves) =>
+      setAsksBackState((prev) => applySettledMoves(prev, moves)),
     // THE WORLD ASKS BACK, S4: the consequence record. The travel
     // hook applies its zone state on every crossing — but only for
     // the world author (solo/host); guests carry the host's truth.

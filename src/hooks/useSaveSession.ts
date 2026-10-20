@@ -38,8 +38,20 @@ import {
 // consequence apply path as zone travel (load mode — removals +
 // settled individuals, never abundance on player-shaped lists).
 import { applyZoneConsequences } from '../game/quests/asksBack/applyConsequences';
+import { removedSet, settledIn, applySettledMoves } from '../game/quests/asksBack/zoneState';
+import {
+  resolveImmigration,
+  censusFromFauna,
+  absenceSpannedShower,
+  isGrowingSeason,
+  type ImmigrationDonor,
+} from '../game/creatures/immigration';
+import { wildPressureFor } from '../game/world/worldGen';
+import { biomeTier } from '../game/world/biomes';
+import { skyDayFloat } from '../game/world/skyCalendar';
+import { LANDFORM_EPOCH_MS } from '../game/world/terrain';
 import { INITIAL_STRUCTURES } from './useWorldEntities';
-import { SPAWN_ZONE, zoneKey, zoneBiomeAt, zoneVariantAt, zoneFaceAt } from '../game/world/zones';
+import { SPAWN_ZONE, zoneKey, zoneBiomeAt, zoneVariantAt, zoneFaceAt, zoneHops } from '../game/world/zones';
 import { generateSeededWorld } from '../game/world/worldGen';
 import { setSkyWorld } from '../game/world/skyCalendar';
 import { multiplayerManager } from '../game/multiplayer';
@@ -281,6 +293,19 @@ export function useSaveSession(deps: SaveSessionDeps) {
       };
     }
     record.currentZone = { ...playerZoneRef.current };
+    // ONE LAW OF LIFE (2026-10-20): saving parks the zone you stand
+    // in — its absence clock runs from this save until the restore
+    // resolves it. Every other zone carries the parkedAt it was
+    // parked with; the mirror rule keeps record.world and the
+    // current zone's entry telling the same time.
+    const lawKey = zoneKey(playerZoneRef.current.zx, playerZoneRef.current.zz);
+    if (record.zones[lawKey]) {
+      record.zones = {
+        ...record.zones,
+        [lawKey]: { ...record.zones[lawKey], parkedAt: record.savedAt },
+      };
+    }
+    record.world = { ...record.world, parkedAt: record.savedAt };
     currentSaveRef.current = { ...meta, savedAt: record.savedAt };
     void storeSavedGame(record);
     // THE CLOUD MIRROR (phase 2c, 2026-10-18): saveNow is the
@@ -372,21 +397,108 @@ export function useSaveSession(deps: SaveSessionDeps) {
       const restoredKey = zoneKey(restoredZone.zx, restoredZone.zz);
       const restoredSnap = restoredZones.get(restoredKey) ?? record.world;
       const isAuthor = !multiplayerManager.isConnected || multiplayerManager.isHost;
+      // The saga record the restore works from — immigration's
+      // settled migrations rewrite it below, and the rewritten
+      // record is the one the session adopts at the end.
+      let asksBackForRestore: AsksBackState = record.asksBack ?? EMPTY_ASKS_BACK;
       const appliedSnap = isAuthor
         ? applyZoneConsequences(
             { fauna: restoredSnap.fauna, flora: restoredSnap.flora },
             restoredZone.zx, restoredZone.zz,
-            record.asksBack ?? EMPTY_ASKS_BACK,
+            asksBackForRestore,
             'load',
           )
         : { fauna: restoredSnap.fauna, flora: restoredSnap.flora };
-      if (appliedSnap.fauna !== restoredSnap.fauna || appliedSnap.flora !== restoredSnap.flora) {
-        const withApplied = { ...restoredSnap, fauna: appliedSnap.fauna, flora: appliedSnap.flora };
-        restoredZones.set(restoredKey, withApplied);
-        replaceWorld(withApplied);
-      } else {
-        replaceWorld(restoredSnap);
+      let finalSnap: WorldSnapshot =
+        appliedSnap.fauna !== restoredSnap.fauna || appliedSnap.flora !== restoredSnap.flora
+          ? { ...restoredSnap, fauna: appliedSnap.fauna, flora: appliedSnap.flora }
+          : restoredSnap;
+      // ONE LAW OF LIFE (2026-10-20): the home zone's absence
+      // resolves at the restore like any zone load — a week away
+      // from the game is an absence too, and you should be able to
+      // come home to a deer that wandered in. Author only, seeded
+      // worlds only; the resolver consumes the parkedAt the save
+      // stamped, so the same absence never earns twice.
+      if (isAuthor && record.worldSeed) {
+        const seed = record.worldSeed;
+        const nowMs = Date.now();
+        let homeCensus = finalSnap.census;
+        let dealtCast: WorldSnapshot['fauna'] | undefined;
+        const dealtLists = (): WorldSnapshot['fauna'] => {
+          const gen = generateSeededWorld(seed, restoredZone.zx, restoredZone.zz, {
+            landform: record.createdAt >= LANDFORM_EPOCH_MS,
+          });
+          return applyZoneConsequences({ fauna: gen.fauna, flora: gen.flora }, restoredZone.zx, restoredZone.zz, asksBackForRestore, 'generate').fauna;
+        };
+        if (!homeCensus) {
+          dealtCast = dealtLists();
+          homeCensus = censusFromFauna(dealtCast);
+          finalSnap = { ...finalSnap, census: homeCensus };
+        }
+        const homeWild = finalSnap.fauna.filter((f) => !f.isTamed).length;
+        const homeTotal = Object.values(homeCensus).reduce((a, b) => a + b, 0);
+        if (homeWild === 0 && !dealtCast && homeTotal > 0) dealtCast = dealtLists();
+        const donors: ImmigrationDonor[] = [];
+        if (homeTotal > 0 && homeWild < 0.6 * homeTotal) {
+          const adjacent: [number, number][] = [
+            [restoredZone.zx + 1, restoredZone.zz],
+            [restoredZone.zx - 1, restoredZone.zz],
+            [restoredZone.zx, restoredZone.zz + 1],
+            [restoredZone.zx, restoredZone.zz - 1],
+          ];
+          for (const [ax, az] of adjacent) {
+            const key = zoneKey(ax, az);
+            const snap = restoredZones.get(key);
+            if (!snap) continue;
+            let donorCensus = snap.census;
+            if (!donorCensus) {
+              const gen = generateSeededWorld(seed, ax, az, { landform: record.createdAt >= LANDFORM_EPOCH_MS });
+              donorCensus = censusFromFauna(
+                applyZoneConsequences({ fauna: gen.fauna, flora: gen.flora }, ax, az, asksBackForRestore, 'generate').fauna,
+              );
+              restoredZones.set(key, { ...snap, census: donorCensus });
+            }
+            donors.push({ key, zx: ax, zz: az, snapshot: restoredZones.get(key)!, census: donorCensus });
+          }
+        }
+        const settledByDonor = new Map<string, readonly ReturnType<typeof settledIn>[number][]>();
+        for (const donor of donors) settledByDonor.set(donor.key, settledIn(asksBackForRestore, donor.key));
+        const pressure = wildPressureFor(biomeTier(zoneBiomeAt(seed, restoredZone.zx, restoredZone.zz)), zoneHops(restoredZone.zx, restoredZone.zz));
+        const resolved = resolveImmigration({
+          now: nowMs,
+          worldSeed: seed,
+          receiverKey: restoredKey,
+          receiverZx: restoredZone.zx,
+          receiverZz: restoredZone.zz,
+          receiver: finalSnap,
+          receiverCensus: homeCensus,
+          receiverVariant: zoneVariantAt(seed, restoredZone.zx, restoredZone.zz)?.id,
+          donors,
+          removedHere: removedSet(asksBackForRestore, restoredKey),
+          settledHere: settledIn(asksBackForRestore, restoredKey),
+          settledByDonor,
+          allowSettledMoves: true,
+          dealtCast,
+          showerSpanned:
+            finalSnap.parkedAt !== undefined
+              ? absenceSpannedShower(seed, record.createdAt, finalSnap.parkedAt, nowMs)
+              : false,
+          inGrowingSeason: isGrowingSeason(skyDayFloat(record.createdAt, nowMs)),
+          nativeDmg: pressure.dmg,
+          nativeAggro: pressure.aggro,
+        });
+        if (resolved.changed) {
+          finalSnap = resolved.receiver;
+          for (const [key, snap] of resolved.donorUpdates) restoredZones.set(key, snap);
+          if (resolved.settledMoves.length > 0) {
+            asksBackForRestore = applySettledMoves(asksBackForRestore, resolved.settledMoves);
+          }
+        }
       }
+      if (finalSnap !== restoredSnap) {
+        restoredZones.set(restoredKey, finalSnap);
+      }
+      replaceWorld(finalSnap);
       // Repaint the ground with the RESTORED zone's biome (pre-seed
       // saves pass null and keep the plain quadrant colors). This is
       // the only biome repaint on load — handleSelectSave used to do
@@ -454,7 +566,7 @@ export function useSaveSession(deps: SaveSessionDeps) {
       // The World Asks Back: an old record lacks the key and lands
       // here with an empty memory — offers regenerate from seed +
       // day, so the fallback contradicts nothing.
-      setAsksBackState(record.asksBack ?? EMPTY_ASKS_BACK);
+      setAsksBackState(asksBackForRestore);
       // The shields' own growth (Adam, 2026-10-17): read its own
       // key on new records; on records from before the move, the
       // grafts still sit inside playerState — fold them into the

@@ -26,11 +26,21 @@ import { generateSeededWorld } from '../game/world/worldGen';
 import { LANDFORM_EPOCH_MS } from '../game/world/terrain';
 import { multiplayerManager } from '../game/multiplayer';
 import { snapshotOf, buildZoneSyncTravel as buildZoneSyncTravelPayload, type ZoneStores } from '../game/zoneSync';
-import { readSkyClock } from '../game/world/skyCalendar';
+import { readSkyClock, skyDayFloat } from '../game/world/skyCalendar';
 import type { GameNotification } from '../types/game';
 // THE WORLD ASKS BACK, S4: saga consequences become real zones here.
 import { applyZoneConsequences } from '../game/quests/asksBack/applyConsequences';
 import type { AsksBackState } from '../game/quests/asksBackState';
+import { removedSet, settledIn } from '../game/quests/asksBack/zoneState';
+import {
+  resolveImmigration,
+  censusFromFauna,
+  absenceSpannedShower,
+  isGrowingSeason,
+  type ImmigrationDonor,
+} from '../game/creatures/immigration';
+import { wildPressureFor } from '../game/world/worldGen';
+import { biomeTier } from '../game/world/biomes';
 
 // Zone identification is a HELMET feature (Adam, 2026-10-15):
 // naming the land is a sense, and the helmet is the sensory
@@ -114,6 +124,13 @@ export interface ZoneTravelDeps {
    *  the ride's caller can release its own state — the tunnel's
    *  fade/busy flow, which lives outside this hook. */
   onPendingCancel?: (pending: PendingTravel) => void;
+  /** ONE LAW OF LIFE (2026-10-20): settled-record migrations the
+   *  immigration resolver decided on a crossing — a settled animal
+   *  wandered, and its saga record follows it (one residence for
+   *  record and animal alike). Bridged from App, which owns the
+   *  asksBack state; when the bridge is absent, settled animals
+   *  simply do not wander (the resolver is told so). */
+  onSettledMoves?: (moves: { id: string; fromKey: string; toKey: string }[]) => void;
   /** THE WORLD ASKS BACK, S4: the saga consequence record. The
    *  world author applies its zone state on every crossing;
    *  guests never apply it locally (their host's snapshot is
@@ -146,6 +163,7 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
     replaceWorld, applyPlayerLevel, postNotification,
     buildWorldSnapshot, getDayNightCycle, saveNowRef, getWorldCreatedAt, getZoneReadTier, onZoneEnter,
     onPendingCancel,
+    onSettledMoves,
     asksBackState,
   } = deps;
 
@@ -230,6 +248,11 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
     visitedZonesRef.current.set(zoneKey(cur.zx, cur.zz), {
       ...leaving,
       fauna: leaving.fauna.filter((f) => !(f.isTamed && f.command === 'follow')),
+      // ONE LAW OF LIFE: the absence clock starts at the park. The
+      // stored entry's census (stamped when this zone was loaded)
+      // rides along — the live snapshot builder does not know it.
+      parkedAt: Date.now(),
+      census: leaving.census ?? visitedZonesRef.current.get(zoneKey(cur.zx, cur.zz))?.census,
     });
     // 2. The far side: the host's snapshot when one was sent (and
     //    it joins my map as my copy of the truth); else a visited
@@ -261,6 +284,100 @@ export function useZoneTravel(deps: ZoneTravelDeps): UseZoneTravelResult {
       if (applied.fauna !== target.fauna || applied.flora !== target.flora) {
         target = { ...target, fauna: applied.fauna, flora: applied.flora };
         visitedZonesRef.current.set(nextKey, target);
+      }
+    }
+    // ONE LAW OF LIFE (2026-10-20): the wild resolver — wandering,
+    // wild births, the far country — runs at the same door as the
+    // saga overlay, under the same authority (the world author
+    // only; a guest's snapshot already carries the host's truth).
+    // It reads the target's parkedAt absence and consumes it.
+    if ((!multiplayerManager.isConnected || multiplayerManager.isHost) && target) {
+      let work: WorldSnapshot = target;
+      const nowMs = Date.now();
+      // The receiver's census: stamped at first roll; derived ONCE,
+      // here, for snapshots that predate the law (one generation +
+      // overlay, then the stamp rides the snapshot forever). A
+      // fresh roll's census is simply its own dealt cast, counted.
+      let receiverCensus = work.census;
+      let dealtCast: WorldSnapshot['fauna'] | undefined;
+      const dealtLists = (): WorldSnapshot['fauna'] => {
+        const gen = generateSeededWorld(seed, nx, nz, { landform: getWorldCreatedAt() >= LANDFORM_EPOCH_MS });
+        return applyZoneConsequences({ fauna: gen.fauna, flora: gen.flora }, nx, nz, asksBackState, 'generate').fauna;
+      };
+      if (!receiverCensus) {
+        if (freshRoll) {
+          receiverCensus = censusFromFauna(work.fauna);
+          dealtCast = work.fauna;
+        } else {
+          dealtCast = dealtLists();
+          receiverCensus = censusFromFauna(dealtCast);
+        }
+        work = { ...work, census: receiverCensus };
+        visitedZonesRef.current.set(nextKey, work);
+      }
+      const receiverWild = work.fauna.filter((f) => !f.isTamed).length;
+      const censusTotal = Object.values(receiverCensus).reduce((a, b) => a + b, 0);
+      // The far country needs a template cast even when the census
+      // stamp already exists — derive it only at genuine zero,
+      // the one place the cost can ever be owed.
+      if (receiverWild === 0 && !dealtCast && censusTotal > 0) dealtCast = dealtLists();
+      // Donors (the 4-neighborhood's parked zones, censuses
+      // ensured) are owed only when the receiver can receive:
+      // below its first line, or at zero. Otherwise the resolver
+      // would find no wandering wanted and the derivations would
+      // be spent for nothing.
+      const donors: ImmigrationDonor[] = [];
+      if (censusTotal > 0 && receiverWild < 0.6 * censusTotal) {
+        const adjacent: [number, number][] = [[nx + 1, nz], [nx - 1, nz], [nx, nz + 1], [nx, nz - 1]];
+        for (const [ax, az] of adjacent) {
+          const key = zoneKey(ax, az);
+          const snap = visitedZonesRef.current.get(key);
+          if (!snap) continue;
+          let donorCensus = snap.census;
+          if (!donorCensus) {
+            const gen = generateSeededWorld(seed, ax, az, { landform: getWorldCreatedAt() >= LANDFORM_EPOCH_MS });
+            donorCensus = censusFromFauna(
+              applyZoneConsequences({ fauna: gen.fauna, flora: gen.flora }, ax, az, asksBackState, 'generate').fauna,
+            );
+            visitedZonesRef.current.set(key, { ...snap, census: donorCensus });
+          }
+          donors.push({ key, zx: ax, zz: az, snapshot: visitedZonesRef.current.get(key)!, census: donorCensus });
+        }
+      }
+      const settledByDonor = new Map<string, readonly ReturnType<typeof settledIn>[number][]>();
+      for (const donor of donors) settledByDonor.set(donor.key, settledIn(asksBackState, donor.key));
+      const createdAtMs = getWorldCreatedAt();
+      const pressure = wildPressureFor(biomeTier(zoneBiomeAt(seed, nx, nz)), zoneHops(nx, nz));
+      const resolved = resolveImmigration({
+        now: nowMs,
+        worldSeed: seed,
+        receiverKey: nextKey,
+        receiverZx: nx,
+        receiverZz: nz,
+        receiver: work,
+        receiverCensus,
+        receiverVariant: zoneVariantAt(seed, nx, nz)?.id,
+        donors,
+        removedHere: removedSet(asksBackState, nextKey),
+        settledHere: settledIn(asksBackState, nextKey),
+        settledByDonor,
+        allowSettledMoves: onSettledMoves !== undefined,
+        dealtCast,
+        showerSpanned:
+          work.parkedAt !== undefined
+            ? absenceSpannedShower(seed, createdAtMs, work.parkedAt, nowMs)
+            : false,
+        inGrowingSeason: isGrowingSeason(skyDayFloat(createdAtMs, nowMs)),
+        nativeDmg: pressure.dmg,
+        nativeAggro: pressure.aggro,
+      });
+      if (resolved.changed) {
+        target = resolved.receiver;
+        visitedZonesRef.current.set(nextKey, resolved.receiver);
+        for (const [key, snap] of resolved.donorUpdates) visitedZonesRef.current.set(key, snap);
+        if (resolved.settledMoves.length > 0) onSettledMoves?.(resolved.settledMoves);
+      } else if (work !== target) {
+        target = work;
       }
     }
     // Follow pets materialize beside their person in a loose ring,

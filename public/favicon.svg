@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- THE LEAFPAW, vector twin (HUD lane, 2026-10-20). The raster master
+       (Adam's files: bioforge-icon-master.png) is the brand art; this SVG
+       is its favicon twin — same mark, drawn as shapes so it stays crisp
+       at 16px. The paw is the fauna; the leaves are its material. -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3ff7ae"/>
+      <stop offset="0.55" stop-color="#12d989"/>
+      <stop offset="1" stop-color="#0a9d6e"/>
+    </linearGradient>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="1.7"/>
+    </filter>
+    <!-- one toe leaf, drawn around its own base point -->
+    <g id="toe">
+      <path d="M0 8 C -5.5 3, -4.5 -3.5, 0 -8.5 C 4.5 -3.5, 5.5 3, 0 8 Z" fill="url(#g)"/>
+      <path d="M0 5.5 L0 -5" stroke="#c9ffec" stroke-width="1.1" stroke-linecap="round" opacity="0.85" fill="none"/>
+    </g>
+    <!-- the whole paw, reused crisp and blurred (the glow) -->
+    <g id="paw">
+      <use href="#toe" transform="translate(13.5 30) rotate(-38)"/>
+      <use href="#toe" transform="translate(24 19.5) rotate(-16)"/>
+      <use href="#toe" transform="translate(40 19.5) rotate(16)"/>
+      <use href="#toe" transform="translate(50.5 30) rotate(38)"/>
+      <path d="M32 57 C 19.5 50, 16.5 39.5, 32 26.5 C 47.5 39.5, 44.5 50, 32 57 Z" fill="url(#g)"/>
+      <path d="M32 53.5 L32 30.5" stroke="#c9ffec" stroke-width="1.7" stroke-linecap="round" opacity="0.85" fill="none"/>
+    </g>
+  </defs>
+  <rect width="64" height="64" rx="13" fill="#0e233e"/>
+  <use href="#paw" filter="url(#soft)" opacity="0.55"/>
+  <use href="#paw"/>
+</svg>

@@ -77,9 +77,9 @@ export const BUILD_NOTES: BuildNotes = {
   // this door ('lights the moment our mail service finishes
   // connecting'); this build's notes keep that promise in
   // the same plain register — a taught surface, said plainly.
-  title: 'The door lights',
+  title: 'The Leafpaw',
   lines: [
-    'The feedback window sends for real now. Our mail service is connected: write your note, press send, and it flies straight to the grower\'s inbox — no detour through your mail app, no borrowed envelope. Leave your own address in the window if you would like an answer back.',
-    'That is the whole of it — a door promised two letters ago, now lit. Everything else stands as it was this morning: the country provides, and the game keeps its word.',
+    'The game has a face now. Your browser tab wears the Leafpaw: a creature\'s paw print built entirely from leaves — the animals are the paw, the plants are what it is made of. Which is the whole game, really, in one small mark.',
+    'It travels, too: shared links and phone home screens carry the paw now, so BioForge looks like itself wherever it shows up. A small build — but a game that is going places should be recognized on sight.',
   ],
 };

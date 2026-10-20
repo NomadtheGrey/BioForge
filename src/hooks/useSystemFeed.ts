@@ -14,6 +14,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BUILD_ID, BUILD_NOTES } from '../game/buildNotes';
+import { installErrorCapture } from '../game/errorLog';
+import { mergeSystemFeed } from '../game/systemLog';
 import {
   activeBroadcasts,
   fetchSystemFeed,
@@ -142,10 +144,18 @@ export function useSystemFeed(opts?: { onNotice?: (line: SystemLine) => void }):
   }, []);
 
   useEffect(() => {
+    // The device's error notebook opens with the stream's
+    // engine (its idempotence makes repeat mounts safe) —
+    // fire-and-forget; it can never throw into the hook.
+    installErrorCapture();
     let live = true;
     const pull = async () => {
       const doc = await fetchSystemFeed();
       if (live && doc) {
+        // An accepted document joins the device archive
+        // (broadcasts kept past expiry, build stamps noted).
+        // Fire-and-forget, like the capture above.
+        mergeSystemFeed(doc);
         setFeed(doc);
         processFeed(doc);
       }
